@@ -98,4 +98,4 @@ def test_positive_delete(session):
         assert session.operatingsystem.search(name) == '{} {}'.format(
             name, major)
         session.operatingsystem.delete(name)
-        assert session.operatingsystem.search(name) == None
+        assert session.operatingsystem.search(name) is None
