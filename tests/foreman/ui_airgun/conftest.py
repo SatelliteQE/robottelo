@@ -1,7 +1,13 @@
+import logging
+
 import nailgun.entities
 from airgun.session import Session
 from fauxfactory import gen_string
+from requests.exceptions import HTTPError
 from robottelo.decorators import fixture
+
+
+LOGGER = logging.getLogger('robottelo')
 
 
 @fixture(scope='module')
@@ -22,19 +28,26 @@ def module_user(request, module_org):
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    password = gen_string('alphanumeric')
     # take only "module" from "tests.ui.test_module"
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
+    login = '{}_{}'.format(test_module_name, gen_string('alphanumeric'))
+    password = gen_string('alphanumeric')
+    LOGGER.debug('Creating session user %r', login)
     user = nailgun.entities.User(
         admin=True,
         default_organization=module_org,
         description='created automatically by airgun for module "{}"'.format(
             test_module_name),
-        login='{}_{}'.format(test_module_name, gen_string('alphanumeric')),
+        login=login,
         password=password,
     ).create()
     user.password = password
-    return user
+    yield user
+    try:
+        LOGGER.debug('Deleting session user %r', user.login)
+        user.delete(synchronous=False)
+    except HTTPError as err:
+        LOGGER.warn('Unable to delete session user: %s', str(err))
 
 
 @fixture()
