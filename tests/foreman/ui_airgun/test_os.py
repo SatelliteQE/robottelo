@@ -55,6 +55,9 @@ def test_positive_create_with_ptable(session):
         })
         os_full_name = '{} {}'.format(name, major_version)
         assert session.operatingsystem.search(name) == os_full_name
+        os_values = session.operatingsystem.read(os_full_name)
+        assert len(os_values['ptables']['assigned']) == 1
+        assert os_values['ptables']['assigned'][0] == ptable.name
 
 
 def test_positive_create_with_ptable_same_org(module_org, session):
