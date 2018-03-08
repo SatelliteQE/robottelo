@@ -20,3 +20,10 @@ def test_positive_create_with_os(session):
             'operatingsystems.assigned': [os_name],
         })
         assert session.architecture.search(name) == name
+
+@parametrize('name', valid_data_list())
+def test_positive_delete(session,name):
+    with session:
+        session.architecture.create({'name': name})
+        session.architecture.delete(name)
+        assert session.architecture.search(name) is None
