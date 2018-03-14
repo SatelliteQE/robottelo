@@ -44,3 +44,24 @@ def test_positive_delete(session):
         assert session.activationkey.search(name) == name
         session.activationkey.delete(name)
         assert session.activationkey.search(name) is None
+
+
+def test_positive_edit(session):
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    description = gen_string('alpha')
+    org = entities.Organization().create()
+    entities.ActivationKey(name=name, organization=org).create()
+    with session:
+        session.organization.select(org_name=org.name)
+        assert session.activationkey.search(name) == name
+        session.activationkey.update(
+            name,
+            values={
+                'name': new_name,
+                'description': description,
+            },
+        )
+        ak_values = session.activationkey.read(new_name)
+        assert ak_values['name'] == new_name
+        assert ak_values['description'] == description
