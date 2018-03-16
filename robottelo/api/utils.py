@@ -234,29 +234,29 @@ def enable_sync_redhat_repo(rh_repo, org_id):
     return repo_id
 
 
-def cv_publish_promote(name, env_name, repo_id, org_id):
+def cv_publish_promote(name, env_name, repo_id=None, org_id=None):
     """Create, publish and promote CV to selected environment"""
+    if org_id is None:
+        org_id = entities.Organization().create().id
     # Create Life-Cycle content environment
     lce = entities.LifecycleEnvironment(
         name=env_name,
         organization=org_id,
     ).create()
-
     # Create content view(CV)
     content_view = entities.ContentView(
         name=name,
         organization=org_id,
     ).create()
-
     # Associate YUM repo to created CV
-    content_view.repository = [entities.Repository(id=repo_id)]
-    content_view = content_view.update(['repository'])
-
+    if repo_id is not None:
+        content_view.repository = [entities.Repository(id=repo_id)]
+        content_view = content_view.update(['repository'])
     # Publish content view
     content_view.publish()
-
     # Promote the content view version.
     promote(content_view.read().version[0], lce.id)
+    return content_view.read()
 
 
 def one_to_one_names(name):
