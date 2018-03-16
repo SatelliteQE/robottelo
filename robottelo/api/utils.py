@@ -13,7 +13,9 @@ from robottelo.constants import (
     DEFAULT_PTABLE,
     DEFAULT_PXE_TEMPLATE,
     DEFAULT_TEMPLATE,
+    FAKE_1_YUM_REPO,
     PERMISSIONS_WITH_BZ,
+    REPO_TYPE,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
@@ -190,6 +192,71 @@ def delete_puppet_class(puppetclass_name, puppet_module=None,
         )[0]
         proxy = entities.SmartProxy(name=proxy_hostname).search()[0]
         proxy.import_puppetclasses(environment=env)
+
+
+def create_sync_custom_repo(org_id=None, product_name=None, repo_name=None,
+                            repo_url=None, repo_type=None):
+    """Create product/repo, sync it and returns repo_id"""
+    if org_id is None:
+        org_id = entities.Organization().create().id
+    product_name = product_name or gen_string('alpha')
+    repo_name = repo_name or gen_string('alpha')
+    # Creates new product and repository via API's
+    product = entities.Product(
+        name=product_name,
+        organization=org_id,
+    ).create()
+    repo = entities.Repository(
+        name=repo_name,
+        url=repo_url or FAKE_1_YUM_REPO,
+        content_type=repo_type or REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    # Sync repository
+    entities.Repository(id=repo.id).sync()
+    return repo.id
+
+
+def enable_sync_redhat_repo(rh_repo, org_id):
+    """Enable the RedHat repo, sync it and returns repo_id"""
+    # Enable RH repo and fetch repository_id
+    repo_id = enable_rhrepo_and_fetchid(
+        basearch=rh_repo['basearch'],
+        org_id=org_id,
+        product=rh_repo['product'],
+        repo=rh_repo['name'],
+        reposet=rh_repo['reposet'],
+        releasever=rh_repo['releasever'],
+    )
+    # Sync repository
+    call_entity_method_with_timeout(
+        entities.Repository(id=repo_id).sync, timeout=1500)
+    return repo_id
+
+
+def cv_publish_promote(name, env_name, repo_id, org_id):
+    """Create, publish and promote CV to selected environment"""
+    # Create Life-Cycle content environment
+    lce = entities.LifecycleEnvironment(
+        name=env_name,
+        organization=org_id,
+    ).create()
+
+    # Create content view(CV)
+    content_view = entities.ContentView(
+        name=name,
+        organization=org_id,
+    ).create()
+
+    # Associate YUM repo to created CV
+    content_view.repository = [entities.Repository(id=repo_id)]
+    content_view = content_view.update(['repository'])
+
+    # Publish content view
+    content_view.publish()
+
+    # Promote the content view version.
+    promote(content_view.read().version[0], lce.id)
 
 
 def one_to_one_names(name):
