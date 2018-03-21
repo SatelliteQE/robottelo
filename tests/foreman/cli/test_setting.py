@@ -265,26 +265,25 @@ class SettingTestCase(CLITestCase):
         :caseimportance: low
         """
 
+    @tier1
+    def test_positive_update_send_welcome_email(self):
+        """Check email send welcome email is updated
 
-@tier1
-def test_positive_update_send_welcome_email():
-    """Check email send welcome email is updated
+        :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
 
-    :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
+        :steps: valid values: boolean true or false
 
-    :steps: valid values: boolean true or false
+        :expectedresults: send_welcome_email is updated
 
-    :expectedresults: send_welcome_email is updated
+        :caseautomation: automated
 
-    :caseautomation: automated
-
-    :caseimportance: low
-    """
-    for value in ['true', 'false']:
-        Settings.set({'name': 'send_welcome_email', 'value': value})
-        host_value = Settings.list({'search': 'name=send_welcome_email'})[0][
-            'value']
-        assert value == host_value
+        :caseimportance: low
+        """
+        for value in ['true', 'false']:
+            Settings.set({'name': 'send_welcome_email', 'value': value})
+            host_value = Settings.list(
+              {'search': 'name=send_welcome_email'})[0]['value']
+            assert value == host_value
 
 
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
