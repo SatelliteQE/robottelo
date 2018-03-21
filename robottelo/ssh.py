@@ -25,9 +25,10 @@ def decode_to_utf8(text):  # pragma: no cover
     """Paramiko returns bytes object and we need to ensure it is utf-8 before
     parsing
     """
-    if isinstance(text, bytes):
+    try:
         return text.decode('utf-8')
-    return text
+    except AttributeError:
+        return text
 
 
 class SSHCommandResult(object):
