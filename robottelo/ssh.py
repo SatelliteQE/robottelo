@@ -27,7 +27,7 @@ def decode_to_utf8(text):  # pragma: no cover
     """
     try:
         return text.decode('utf-8')
-    except AttributeError:
+    except (AttributeError, UnicodeEncodeError):
         return text
 
 
