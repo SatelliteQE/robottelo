@@ -4,6 +4,7 @@ import logging
 import os
 import paramiko
 import re
+import six
 
 from contextlib import contextmanager
 from robottelo.cli import hammer
@@ -13,13 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 def decode_to_utf8(text):  # pragma: no cover
-    """Paramiko returns bytes object and we need to ensure it is utf-8 before
-    parsing
-    """
-    try:
+    """In python 3 all strings are already unicode, no need to decode"""
+    if six.PY2:
         return text.decode('utf-8')
-    except (AttributeError, UnicodeEncodeError):
-        return text
+    return text
 
 
 class SSHCommandResult(object):
