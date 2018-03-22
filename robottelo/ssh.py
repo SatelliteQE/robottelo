@@ -4,7 +4,6 @@ import logging
 import os
 import paramiko
 import re
-import six
 
 from contextlib import contextmanager
 from robottelo.cli import hammer

@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from robottelo.config.base import SharedFunctionSettings
+from robottelo.config.settings import SharedFunctionSettings
 
 
 def test_share_timetout_validation():
