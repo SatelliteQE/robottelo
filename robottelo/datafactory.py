@@ -146,7 +146,10 @@ def xdist_adapter(argvalues):
     :param argvalues: to be passed to parametrize
     :return: dict
     """
-    return {'argvalues': argvalues, 'ids': map(str, range(len(argvalues)))}
+    return {
+        'argvalues': argvalues,
+        'ids': [str(index) for index in range(len(argvalues))]
+    }
 
 
 @filtered_datapoint
