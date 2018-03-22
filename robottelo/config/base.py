@@ -978,7 +978,8 @@ class SharedFunctionSettings(FeatureSettings):
             except ImportError:
                 validation_errors.append(
                     '[shared] python redis package not installed')
-
+        if self.share_timeout is None:
+            self.share_timeout = self.MAX_SHARE_TIMEOUT
         if self.share_timeout > self.MAX_SHARE_TIMEOUT:
             validation_errors.append(
                 '[shared] share time out cannot be more than 86400'
