@@ -274,7 +274,7 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
     :return: SSHCommandResult
     """
     logger.info('>>> %s', cmd)
-    _, stdout, stderr = connection.exec_command(cmd, timeout)
+    _, stdout, stderr = connection.exec_command(cmd, timeout=timeout)
 
     errorcode = stdout.channel.recv_exit_status()
 
