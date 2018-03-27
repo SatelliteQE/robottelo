@@ -5,10 +5,15 @@ from robottelo.api.utils import (
     cv_publish_promote,
     promote,
 )
-from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL6, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier3
+from robottelo.decorators import fixture, skip_if_not_set, tier3
 from robottelo.vm import VirtualMachine
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
 
 def test_positive_create(session):
@@ -16,8 +21,7 @@ def test_positive_create(session):
     with session:
         session.activationkey.create({
             'name': ak_name,
-            'unlimited_hosts': False,
-            'max_hosts': 2,
+            'hosts_limit': 2,
             'description': gen_string('alpha'),
         })
         assert session.activationkey.search(ak_name) == ak_name
@@ -74,6 +78,7 @@ def test_positive_edit(session):
         assert ak_values['description'] == description
 
 
+@skip_if_not_set('clients')
 @tier3
 def test_positive_delete_with_system(session):
     """Delete an Activation key which has registered systems
@@ -112,3 +117,48 @@ def test_positive_delete_with_system(session):
             assert vm.subscribed
             session.activationkey.delete(name)
             assert session.activationkey.search(name) is None
+
+
+@skip_if_not_set('clients')
+@tier3
+def test_negative_usage_limit(session, module_org):
+    """Test that Usage limit actually limits usage
+
+    :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
+
+    :Steps:
+        1. Create Activation key
+        2. Update Usage Limit to a finite number
+        3. Register Systems to match the Usage Limit
+        4. Attempt to register an other system after reaching the Usage
+            Limit
+
+    :expectedresults: System Registration fails. Appropriate error shown
+
+    :CaseLevel: System
+    """
+    name = gen_string('alpha')
+    hosts_limit = '1'
+    with session:
+        session.activationkey.create({
+            'name': name,
+            'lce': {ENVIRONMENT: True},
+        })
+        assert session.activationkey.search(name) == name
+        session.activationkey.update(name, values={'hosts_limit': hosts_limit})
+        ak = session.activationkey.read(name)
+        assert ak['hosts_limit'] == hosts_limit
+    with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
+            vm1.install_katello_ca()
+            vm1.register_contenthost(module_org.label, name)
+            assert vm1.subscribed
+            vm2.install_katello_ca()
+            result = vm2.register_contenthost(module_org.label, name)
+            assert not vm2.subscribed
+            assert len(result.stderr) > 0
+            assert (
+                'Max Hosts ({0}) reached for activation key'
+                .format(hosts_limit)
+                in result.stderr
+            )
