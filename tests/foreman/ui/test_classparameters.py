@@ -243,7 +243,7 @@ class SmartClassParametersTestCase(UITestCase):
         with self.assertRaises(HTTPError) as context:
             entities.Role(cfg, id=role.id).read()
         self.assertIn(
-            '403 Client Error: Forbidden', context.exception.message)
+            '403 Client Error: Forbidden', str(context.exception))
         with Session(self, username, password):
             self.assertIsNotNone(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))

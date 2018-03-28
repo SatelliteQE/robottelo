@@ -1242,7 +1242,7 @@ class SELinuxTestCase(TestCase):
         except IOError as exception:
             self.fail(
                 'Could not find log file on server\n{}'
-                .format(exception.message)
+                .format(str(exception))
             )
         if len(logs[0].data) == 0:
             self.skipTest(

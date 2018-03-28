@@ -2934,7 +2934,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         self.assertIn(
             ('The task has been cancelled. Is katello-agent installed and '
              'goferd running on the Host?'),
-            context.exception.message
+            str(context.exception)
         )
 
 
