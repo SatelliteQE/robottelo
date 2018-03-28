@@ -81,7 +81,7 @@ class SubscriptionTestCase(CLITestCase):
         :returns a tuple (list, list[dict]) that represent field_names, data
         """
         csv_data = []
-        with open(file_path, 'rb') as csv_file:
+        with open(file_path, 'r') as csv_file:
             csv_reader = csv.DictReader(csv_file, delimiter=',')
             field_names = csv_reader.fieldnames
             for csv_row in csv_reader:
@@ -96,7 +96,7 @@ class SubscriptionTestCase(CLITestCase):
         :param list filed_names: The field names to be written
         :param list[dict] csv_data: the list dict data to be saved
         """
-        with open(file_path, 'wb') as csv_file:
+        with open(file_path, 'w') as csv_file:
             csv_writer = csv.DictWriter(csv_file, filed_names, delimiter=',')
             csv_writer.writeheader()
             for csv_row in csv_data:
