@@ -98,7 +98,7 @@ def _get_readable_attributes(entity):
         del attributes['password']
 
     # Drop foreign key attributes.
-    for field_name in attributes.keys():
+    for field_name in list(attributes.keys()):
         if isinstance(
                 entity.get_fields()[field_name],
                 (entity_fields.OneToOneField, entity_fields.OneToManyField)
