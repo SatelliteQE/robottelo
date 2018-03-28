@@ -4738,7 +4738,7 @@ class ContentViewTestCase(CLITestCase):
             )
         self.assertEqual(len(cvv['puppet-modules']), 1)
         self.assertEqual(
-            cvv['puppet-modules'].values()[0]['id'], puppet_module['id'])
+            list(cvv['puppet-modules'].values())[0]['id'], puppet_module['id'])
         comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertEqual(len(comp_content_view['versions']), 2)
         with self.assertNotRaises(StopIteration):
@@ -4750,7 +4750,9 @@ class ContentViewTestCase(CLITestCase):
             )
         self.assertEqual(len(comp_cvv['puppet-modules']), 1)
         self.assertEqual(
-            comp_cvv['puppet-modules'].values()[0]['id'], puppet_module['id'])
+            list(comp_cvv['puppet-modules'].values())[0]['id'],
+            puppet_module['id']
+        )
 
 
 class OstreeContentViewTestCase(CLITestCase):
