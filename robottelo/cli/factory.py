@@ -1305,7 +1305,7 @@ def make_sync_plan(options=None):
     args = {
         u'description': gen_string('alpha', 20),
         u'enabled': 'true',
-        u'interval': random.choice(SYNC_INTERVAL.values()),
+        u'interval': random.choice(list(SYNC_INTERVAL.values())),
         u'name': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
