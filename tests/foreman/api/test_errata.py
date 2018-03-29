@@ -118,7 +118,7 @@ class ErrataTestCase(APITestCase):
                                     expected_installed=True, timeout=120):
         """Check whether package was installed on the list of hosts."""
         for host in hosts:
-            for _ in range(timeout / 15):
+            for _ in range(timeout // 15):
                 result = host.run('rpm -q {0}'.format(package_name))
                 if (result.return_code == 0 and expected_installed or
                         result.return_code != 0 and not expected_installed):
@@ -137,7 +137,7 @@ class ErrataTestCase(APITestCase):
     def _validate_errata_counts(self, host, errata_type, expected_value,
                                 timeout=120):
         """Check whether host contains expected errata counts."""
-        for _ in range(timeout / 5):
+        for _ in range(timeout // 5):
             host = host.read()
             if (host.content_facet_attributes[
                     'errata_counts'][errata_type] == expected_value):
@@ -158,7 +158,7 @@ class ErrataTestCase(APITestCase):
     def _fetch_available_errata(self, host, expected_amount, timeout=120):
         """Fetch available errata for host."""
         errata = host.errata()
-        for _ in range(timeout / 5):
+        for _ in range(timeout // 5):
             if len(errata['results']) == expected_amount:
                 return errata['results']
             sleep(5)
