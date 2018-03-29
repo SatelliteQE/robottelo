@@ -388,7 +388,7 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
                 self.assertEqual(len(lces), per_page)
                 # Verify pagination and total amount of pages by checking the
                 # items count on the last page
-                last_page = ceil(self.lces_count / per_page)
+                last_page = int(ceil(self.lces_count / float(per_page)))
                 lces = LifecycleEnvironment.list({
                     'organization-id': self.org['id'],
                     'page': last_page,
