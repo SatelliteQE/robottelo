@@ -1,3 +1,22 @@
+"""Test class for Content View UI
+
+Feature details: https://fedorahosted.org/katello/wiki/ContentViews
+
+
+:Requirement: Contentview
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 from nailgun import entities
 
 from robottelo.datafactory import gen_string

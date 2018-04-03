@@ -1,3 +1,19 @@
+"""Test class for Host Collection UI
+
+:Requirement: Hostcollection
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 from nailgun import entities
 
 from robottelo.api.utils import promote

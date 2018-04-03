@@ -1248,10 +1248,9 @@ class Settings(object):
             entities.DockerComputeResource.__init__ = patched_dockercr_init
 
     def _configure_airgun(self):
+        """Pass required settings to AirGun"""
         airgun.settings.configure({
             'airgun': {
-                # fixme: pass verbosity directly after implementing settings
-                # validations
                 'verbosity': logging.getLevelName(self.verbosity),
             },
             'satellite': {
@@ -1268,7 +1267,7 @@ class Settings(object):
                 'webdriver_binary': self.webdriver_binary,
             },
             'webdriver_desired_capabilities': (
-                self.webdriver_desired_capabilities),
+                self.webdriver_desired_capabilities or {}),
         })
 
     def _configure_logging(self):
@@ -1283,7 +1282,6 @@ class Settings(object):
         logging.captureWarnings(True)
 
         # Set the logging level based on the Robottelo's verbosity
-        # todo: maybe it's better to set logging for airgun here somehow?
         for name in ('nailgun', 'robottelo'):
             logging.getLogger(name).setLevel(self.verbosity)
 

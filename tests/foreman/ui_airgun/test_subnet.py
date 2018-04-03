@@ -1,4 +1,19 @@
+"""Test class for Subnet UI
 
+:Requirement: Subnet
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 from fauxfactory import gen_ipaddr
 from nailgun import entities
 from robottelo.datafactory import gen_string

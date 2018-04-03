@@ -1,3 +1,19 @@
+"""Test class for Operating System UI
+
+:Requirement: Operatingsystem
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 from nailgun import entities
 
 from robottelo.datafactory import gen_string, valid_data_list
@@ -9,7 +25,7 @@ def module_org():
     return entities.Organization().create()
 
 
-@parametrize('name', valid_data_list())
+@parametrize('name', **valid_data_list())
 def test_positive_create(session, name):
     major_version = gen_string('numeric', 2)
     with session:
