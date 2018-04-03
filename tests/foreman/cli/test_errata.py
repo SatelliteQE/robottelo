@@ -1729,7 +1729,7 @@ class ErrataTestCase(CLITestCase):
             for permission in permissions
             if permission['name'] in user_required_permissions_names
         ]
-        self.assertGreater(user_required_permissions_ids, 0)
+        self.assertGreater(len(user_required_permissions_ids), 0)
         # create a role
         role = make_role({'organization-ids': org['id']})
         # create a filter with the required permissions for role with product
