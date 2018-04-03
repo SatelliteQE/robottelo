@@ -25,7 +25,7 @@ def module_org():
     return entities.Organization().create()
 
 
-@parametrize('name', **valid_data_list())
+@parametrize('name', **valid_data_list('ui'))
 def test_positive_create(session, name):
     major_version = gen_string('numeric', 2)
     with session:
