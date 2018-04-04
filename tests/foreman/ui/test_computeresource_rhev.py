@@ -12,6 +12,7 @@
 
 :Upstream: No
 """
+import requests
 
 from fauxfactory import gen_string
 from nailgun import client, entities
@@ -62,6 +63,8 @@ class RhevComputeResourceTestCase(UITestCase):
         cls.rhev_img_pass = settings.rhev.image_password
         cls.rhev_vm_name = settings.rhev.vm_name
         cls.rhev_storage_domain = settings.rhev.storage_domain
+        ca_cert = requests.get(settings.rhev.ca_cert).content
+        cls.rhev_cacert = ca_cert
 
     @run_only_on('sat')
     @tier1
@@ -91,7 +94,9 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
+
         ]
         with Session(self) as session:
             for name in valid_data_list():
@@ -140,6 +145,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         with Session(self) as session:
@@ -194,6 +200,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -235,6 +242,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         with Session(self) as session:
@@ -279,6 +287,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         newname = gen_string('alpha')
@@ -321,6 +330,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -367,6 +377,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -406,6 +417,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         with Session(self) as session:
@@ -463,6 +475,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         with Session(self) as session:
@@ -526,6 +539,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -569,6 +583,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -659,6 +674,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -672,7 +688,7 @@ class RhevComputeResourceTestCase(UITestCase):
             self.compute_resource.set_profile_values(
                 name, COMPUTE_PROFILE_LARGE,
                 cluster=self.rhev_datacenter,
-                template=self.rhev_img_name,
+                template=self.rhev_img_name + str(' (base version)'),
                 cores=2,
                 memory=1024
             )
@@ -699,6 +715,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
@@ -728,6 +745,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
             ['Password', self.rhev_password, 'field'],
+            ['X509 Certification Authorities', self.rhev_cacert, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         cr_name = gen_string('alpha')
@@ -839,6 +857,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
                 ['Password', self.rhev_password, 'field'],
+                ['X509 Certification Authorities', self.rhev_cacert, 'field'],
                 ['Datacenter', self.rhev_datacenter, 'special select'],
             ]
             make_resource(
@@ -950,6 +969,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
                 ['Password', self.rhev_password, 'field'],
+                ['X509 Certification Authorities', self.rhev_cacert, 'field'],
                 ['Datacenter', self.rhev_datacenter, 'special select'],
             ]
             make_resource(
@@ -1054,6 +1074,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
                 ['Password', self.rhev_password, 'field'],
+                ['X509 Certification Authorities', self.rhev_cacert, 'field'],
                 ['Datacenter', self.rhev_datacenter, 'special select'],
             ]
             make_resource(
@@ -1235,6 +1256,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
                 ['Password', self.rhev_password, 'field'],
+                ['X509 Certification Authorities', self.rhev_cacert, 'field'],
                 ['Datacenter', self.rhev_datacenter, 'special select'],
             ]
             make_resource(
@@ -1411,6 +1433,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
                 ['Password', self.rhev_password, 'field'],
+                ['X509 Certification Authorities', self.rhev_cacert, 'field'],
                 ['Datacenter', self.rhev_datacenter, 'special select'],
             ]
             make_resource(
