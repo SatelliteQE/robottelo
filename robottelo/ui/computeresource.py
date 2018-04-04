@@ -328,7 +328,6 @@ class ComputeResource(Base):
                 'resource',
                 (parameter_name.lower()).replace(' ', '_')
             ))
-            self.wait_until_element(locators[param_locator])
             if parameter_type != 'special select':
                 self.assign_value(
                     locators[param_locator], parameter_value)
