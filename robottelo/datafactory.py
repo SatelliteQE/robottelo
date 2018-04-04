@@ -33,7 +33,7 @@ def filtered_datapoint(func):
             # New UI tests are written using pytest, update dict to support
             # pytest's parametrize
             if 'ui' in args or kwargs.get('interface') == 'ui':
-                # Chromedriver only supports BMP chars, but fauxfactory
+                # fixme: Chromedriver only supports BMP chars, but fauxfactory
                 # generates both BMP and SMP chars. Disabling all affected
                 # string types until resolved
                 if settings.webdriver == 'chrome':
