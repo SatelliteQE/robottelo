@@ -246,7 +246,7 @@ def valid_data_list(interface=None):
         Loc - name max length is 246
 
     """
-    return  {
+    return {
         'alpha': gen_string('alpha', random.randint(1, 255)),
         'alphanumeric': gen_string('alphanumeric', random.randint(1, 255)),
         'numeric': gen_string('numeric', random.randint(1, 255)),
