@@ -141,8 +141,8 @@ class TemplateTestCase(UITestCase):
                     template_type='',
                 )
             self.assertEqual(
-                context.exception.message,
-                u'Could not create template "{0}" without type'.format(name)
+                str(context.exception),
+                'Could not create template "{0}" without type'.format(name)
             )
 
     @run_only_on('sat')
@@ -167,8 +167,8 @@ class TemplateTestCase(UITestCase):
                     template_type='PXELinux template',
                 )
             self.assertEqual(
-                context.exception.message,
-                u'Could not create blank template "{0}"'.format(name)
+                str(context.exception),
+                'Could not create blank template "{0}"'.format(name)
             )
 
     @run_only_on('sat')
