@@ -1146,7 +1146,7 @@ class ContentViewTestCase(CLITestCase):
             })
         self.assertIn(
             'Could not create the content view:',
-            context.exception.message
+            str(context.exception)
         )
 
     @tier2
@@ -1366,7 +1366,7 @@ class ContentViewTestCase(CLITestCase):
         })
         # Check output of `content-view info` subcommand
         content_view = ContentView.info({'id': content_view['id']})
-        self.assertGreater(content_view['puppet-modules'], 0)
+        self.assertGreater(len(content_view['puppet-modules']), 0)
         self.assertEqual(
             puppet_module['name'], content_view['puppet-modules'][0]['name'])
         # Check output of `content-view puppet module list` subcommand
@@ -1726,7 +1726,7 @@ class ContentViewTestCase(CLITestCase):
             })
         self.assertIn(
             'Error: content_view_version not found',
-            context.exception.message
+            str(context.exception)
         )
 
     @tier2
@@ -1785,7 +1785,7 @@ class ContentViewTestCase(CLITestCase):
             })
         self.assertIn(
             'Error: content_view_version not found',
-            context.exception.message
+            str(context.exception)
         )
 
     # Content View: promotions

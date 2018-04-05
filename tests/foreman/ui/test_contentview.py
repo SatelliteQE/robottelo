@@ -1916,7 +1916,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.add_puppet_module(
                     composite_name, 'httpd', filter_term='Latest')
             self.assertEqual(
-                context.exception.message,
+                str(context.exception),
                 'Could not find tab to add puppet_modules'
             )
 
@@ -1944,7 +1944,7 @@ class ContentViewTestCase(UITestCase):
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.add_remove_cv(cv1_name, [cv2_name])
             self.assertEqual(
-                context.exception.message,
+                str(context.exception),
                 'Could not find ContentView tab, please make sure '
                 'selected view is composite'
             )
@@ -2152,8 +2152,8 @@ class ContentViewTestCase(UITestCase):
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertEqual(
-                context.exception.message,
-                u'Could not find repo "{0}" to add into CV'
+                str(context.exception),
+                'Could not find repo "{0}" to add into CV'
                 .format(repo_name)
             )
 
@@ -2202,7 +2202,7 @@ class ContentViewTestCase(UITestCase):
             # ensure that the select location of our module is in the
             # exception message
             _, location = locators.contentviews.select_module % module_name
-            self.assertIn(location, context.exception.message)
+            self.assertIn(location, str(context.exception))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -3385,7 +3385,7 @@ class ContentViewTestCase(UITestCase):
                 session.nav.go_to_users()
             # assert that the administer->users menu element was not accessible
             _, locator = menu_locators.menu.users
-            self.assertIn(locator, context.exception.message)
+            self.assertIn(locator, str(context.exception))
             # assert the user can access content views via the menu
             try:
                 session.nav.go_to_content_views()
@@ -3575,7 +3575,7 @@ class ContentViewTestCase(UITestCase):
                 session.nav.go_to_users()
             # assert that the administer->users menu element was not accessible
             _, locator = menu_locators.menu.users
-            self.assertIn(locator, context.exception.message)
+            self.assertIn(locator, str(context.exception))
             # assert the user can access content views via the menu
             try:
                 session.nav.go_to_content_views()
@@ -3823,13 +3823,13 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.delete(cv_name)
             # ensure that the delete locator is in the exception message
             _, locator = common_locators['select_action'] % 'Remove'
-            self.assertIn(locator, context.exception.message)
+            self.assertIn(locator, str(context.exception))
             # ensure the user cannot edit the content view
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.update(cv_name, cv_new_name)
             # ensure that the edit locator is in the exception message
             _, locator = locators.contentviews.edit_name
-            self.assertIn(locator, context.exception.message)
+            self.assertIn(locator, str(context.exception))
             # ensure that the content view still exist
             self.assertIsNotNone(self.content_views.search(cv_name))
             # ensure that the user cannot publish the content view
@@ -3837,7 +3837,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.publish(cv_new_name)
             self.assertIn(
                 'element None was not found while trying to click',
-                context.exception.message
+                str(context.exception)
             )
         # publish the content view with the main admin account
         with Session(self) as session:
@@ -3852,7 +3852,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.promote(
                     cv_name, version, env_name)
             _, locator = locators.contentviews.promote_button % version
-            self.assertIn(locator, context.exception.message)
+            self.assertIn(locator, str(context.exception))
 
     @run_only_on('sat')
     @tier2
@@ -3934,7 +3934,7 @@ class ContentViewTestCase(UITestCase):
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_content_views()
             _, locator = menu_locators.menu.content_views
-            self.assertIn(locator, context.exception.message)
+            self.assertIn(locator, str(context.exception))
             # ensure that user cannot access content views page using browser
             # URL directly
             content_views_url = ''.join(
