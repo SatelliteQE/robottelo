@@ -27,13 +27,11 @@ from robottelo.api.utils import (
     cv_publish_promote,
     enable_rhrepo_and_fetchid,
     enable_sync_redhat_repo,
-    promote,
     upload_manifest,
 )
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.constants import (
     DEFAULT_CV,
-    DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
@@ -119,126 +117,6 @@ class ActivationKeyTestCase(UITestCase):
                 description=gen_string('utf8'),
             )
             self.assertIsNotNone(self.activationkey.search(name))
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_create_with_envs(self):
-        """Create Activation key for all variations of Environments
-
-        :id: f75e994a-6da1-40a3-9685-f8387388b3f0
-
-        :expectedresults: Activation key is created
-
-        :CaseLevel: Integration
-        """
-        with Session(self) as session:
-            for env_name in valid_data_list():
-                with self.subTest(env_name):
-                    name = gen_string('alpha')
-                    cv_name = gen_string('alpha')
-                    # Helper function to create and sync custom repository
-                    repo_id = create_sync_custom_repo(self.organization.id)
-                    # Helper function to create and promote CV to next env
-                    cv_publish_promote(
-                        cv_name, env_name, repo_id, self.organization.id)
-                    make_activationkey(
-                        session,
-                        org=self.organization.name,
-                        name=name,
-                        env=env_name,
-                        content_view=cv_name,
-                    )
-                    self.assertIsNotNone(self.activationkey.search(name))
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_access_non_admin_user(self):
-        """Access activation key that has specific name and assigned
-        environment by user that has filter configured for that specific
-        activation key
-
-        :id: 358a22d1-d576-475a-b90c-98e90a2ed1a9
-
-        :customerscenario: true
-
-        :expectedresults: Only expected activation key can be accessed by new
-            non admin user
-
-        :BZ: 1463813
-
-        :CaseLevel: Integration
-        """
-        ak_name = gen_string('alpha')
-        non_searchable_ak_name = gen_string('alpha')
-        org = entities.Organization().create()
-        envs_list = ['STAGING', 'DEV', 'IT', 'UAT', 'PROD']
-        for name in envs_list:
-            entities.LifecycleEnvironment(name=name, organization=org).create()
-        env_name = random.choice(envs_list)
-        cv = entities.ContentView(organization=org).create()
-        cv.publish()
-        promote(
-            cv.read().version[0],
-            entities.LifecycleEnvironment(name=env_name).search()[0].id
-        )
-        # Create new role
-        role = entities.Role().create()
-        # Create filter with predefined activation keys search criteria
-        envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
-        entities.Filter(
-            organization=[org],
-            permission=entities.Permission(
-                name='view_activation_keys').search(),
-            role=role,
-            search='name ~ {} and ({})'.format(ak_name, envs_condition)
-        ).create()
-
-        # Add permissions for Organization and Location
-        entities.Filter(
-            permission=entities.Permission(
-                resource_type='Organization').search(),
-            role=role,
-        ).create()
-        entities.Filter(
-            permission=entities.Permission(
-                resource_type='Location').search(),
-            role=role,
-        ).create()
-
-        # Create new user with a configured role
-        default_loc = entities.Location().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
-        user_login = gen_string('alpha')
-        user_password = gen_string('alpha')
-        entities.User(
-            role=[role],
-            admin=False,
-            login=user_login,
-            password=user_password,
-            organization=[org],
-            location=[default_loc],
-            default_organization=org,
-        ).create()
-
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            for name in [ak_name, non_searchable_ak_name]:
-                make_activationkey(
-                    session,
-                    name=name,
-                    env=env_name,
-                    content_view=cv.name,
-                )
-                self.assertIsNotNone(self.activationkey.search(name))
-
-        with Session(self, user=user_login, password=user_password) as session:
-            set_context(session, org=org.name, loc=DEFAULT_LOC)
-            self.assertIsNotNone(self.activationkey.search(ak_name))
-            self.org.navigate_to_entity()
-            self.assertIsNone(
-                self.activationkey.search(non_searchable_ak_name))
 
     @run_only_on('sat')
     @tier2
@@ -621,49 +499,6 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
 
-    @skip_if_not_set('clients')
-    @tier3
-    @upgrade
-    def test_positive_delete_with_system(self):
-        """Delete an Activation key which has registered systems
-
-        :id: 86cd070e-cf46-4bb1-b555-e7cb42e4dc9f
-
-        :Steps:
-            1. Create an Activation key
-            2. Register systems to it
-            3. Delete the Activation key
-
-        :expectedresults: Activation key is deleted
-
-        :CaseLevel: System
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        product_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo_id = create_sync_custom_repo(
-            org_id=self.organization.id, product_name=product_name)
-        cv_publish_promote(cv_name, env_name, repo_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.associate_product(name, [product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            with VirtualMachine(distro=self.vm_distro) as vm:
-                vm.install_katello_ca()
-                vm.register_contenthost(self.organization.label, name)
-                self.assertTrue(vm.subscribed)
-                self.activationkey.delete(name)
-
     @tier1
     def test_negative_delete(self):
         """[UI ONLY] Attempt to delete an Activation Key and cancel it
@@ -997,55 +832,6 @@ class ActivationKeyTestCase(UITestCase):
                         str(context.exception),
                         'Please update content host limit with valid ' +
                         'integer value'
-                    )
-
-    @run_only_on('sat')
-    @skip_if_not_set('clients')
-    @tier3
-    def test_negative_usage_limit(self):
-        """Test that Usage limit actually limits usage
-
-        :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
-
-        :Steps:
-            1. Create Activation key
-            2. Update Usage Limit to a finite number
-            3. Register Systems to match the Usage Limit
-            4. Attempt to register an other system after reaching the Usage
-                Limit
-
-        :expectedresults: System Registration fails. Appropriate error shown
-
-        :CaseLevel: System
-        """
-        name = gen_string('alpha')
-        host_limit = '1'
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=ENVIRONMENT,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.update(name, limit=host_limit)
-            selected_limit = self.activationkey.get_attribute(
-                name, locators['ak.fetch_limit'])
-            self.assertEqual(selected_limit, host_limit)
-            with VirtualMachine(distro=self.vm_distro) as vm1:
-                with VirtualMachine(distro=self.vm_distro) as vm2:
-                    vm1.install_katello_ca()
-                    vm1.register_contenthost(self.organization.label, name)
-                    self.assertTrue(vm1.subscribed)
-                    vm2.install_katello_ca()
-                    result = vm2.register_contenthost(
-                        self.organization.label, name)
-                    self.assertFalse(vm2.subscribed)
-                    self.assertGreater(len(result.stderr), 0)
-                    self.assertIn(
-                        'Max Hosts ({0}) reached for activation key'
-                        .format(host_limit),
-                        result.stderr
                     )
 
     @skip_if_not_set('clients')

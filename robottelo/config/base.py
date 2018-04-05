@@ -1,21 +1,25 @@
 """Define and instantiate the configuration class for Robottelo."""
 import importlib
 import logging
+import logging.config
 
 import os
 import sys
 
 from functools import partial
-from logging import config
-from nailgun import entities, entity_mixins
-from nailgun.config import ServerConfig
-from robottelo.config import casts
+
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
     NoSectionError,
     ConfigParser
 )
+
+import airgun.settings
+
+from nailgun import entities, entity_mixins
+from nailgun.config import ServerConfig
+from robottelo.config import casts
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -1088,6 +1092,7 @@ class Settings(object):
         self._configure_logging()
         self._configure_third_party_logging()
         self._configure_entities()
+        self._configure_airgun()
         self._configured = True
 
     def _read_robottelo_settings(self):
@@ -1242,6 +1247,29 @@ class Settings(object):
                 self._fields['url'].default = docker_url
             entities.DockerComputeResource.__init__ = patched_dockercr_init
 
+    def _configure_airgun(self):
+        """Pass required settings to AirGun"""
+        airgun.settings.configure({
+            'airgun': {
+                'verbosity': logging.getLevelName(self.verbosity),
+            },
+            'satellite': {
+                'hostname': self.server.hostname,
+                'password': self.server.admin_password,
+                'username': self.server.admin_username,
+            },
+            'selenium': {
+                'browser': self.browser,
+                'saucelabs_key': self.saucelabs_key,
+                'saucelabs_user': self.saucelabs_user,
+                'screenshots_path': self.screenshots_path,
+                'webdriver': self.webdriver,
+                'webdriver_binary': self.webdriver_binary,
+            },
+            'webdriver_desired_capabilities': (
+                self.webdriver_desired_capabilities or {}),
+        })
+
     def _configure_logging(self):
         """Configure logging for the entire framework.
 
@@ -1261,7 +1289,7 @@ class Settings(object):
         # file on Robottelo's project root
         logging_conf_path = os.path.join(get_project_root(), 'logging.conf')
         if os.path.isfile(logging_conf_path):
-            config.fileConfig(logging_conf_path)
+            logging.config.fileConfig(logging_conf_path)
         else:
             logging.basicConfig(
                 format='%(levelname)s %(module)s:%(lineno)d: %(message)s'

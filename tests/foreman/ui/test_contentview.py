@@ -1869,28 +1869,6 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_add_custom_content(self):
-        """associate custom content in a view
-
-        :id: 7128fc8b-0e8c-4f00-8541-2ca2399650c8
-
-        :setup: Sync custom content
-
-        :expectedresults: Custom content can be seen in a view
-
-        :CaseLevel: Integration
-        """
-        cv_name = gen_string('alpha')
-        repo_name = gen_string('alpha')
-        self.setup_to_create_cv(repo_name=repo_name)
-        with Session(self) as session:
-            # Create content-view
-            make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            self.content_views.add_remove_repos(cv_name, [repo_name])
-
-    @run_only_on('sat')
-    @tier2
     def test_negative_add_puppet_repo_to_composite(self):
         # Again, individual modules should be ok.
         """attempt to associate puppet repos within a composite
