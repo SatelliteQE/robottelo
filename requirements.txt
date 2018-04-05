@@ -13,7 +13,7 @@ pytest==3.4.0
 pytest-services==1.2.1
 pytest-mock==1.6.3
 requests==2.18.4
-selenium==3.8.1
+selenium==3.11.0
 six==1.11.0
 testimony==1.6.0
 unittest2==1.1.0
