@@ -27,13 +27,11 @@ from robottelo.api.utils import (
     cv_publish_promote,
     enable_rhrepo_and_fetchid,
     enable_sync_redhat_repo,
-    promote,
     upload_manifest,
 )
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.constants import (
     DEFAULT_CV,
-    DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
