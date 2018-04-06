@@ -1405,7 +1405,7 @@ class HostUpdateTestCase(CLITestCase):
             'id': self.host['id'],
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['environment'], new_env['name'])
+        self.assertEqual(self.host['puppet-environment'], new_env['name'])
 
     @tier2
     def test_positive_update_env_by_name(self):
@@ -1427,7 +1427,7 @@ class HostUpdateTestCase(CLITestCase):
             'name': self.host['name'],
         })
         self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['environment'], new_env['name'])
+        self.assertEqual(self.host['puppet-environment'], new_env['name'])
 
     @tier2
     def test_positive_update_arch_by_id(self):

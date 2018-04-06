@@ -138,7 +138,7 @@ class HostGroupTestCase(CLITestCase):
         """
         environment = make_environment()
         hostgroup = make_hostgroup({'environment-id': environment['id']})
-        self.assertEqual(environment['name'], hostgroup['environment'])
+        self.assertEqual(environment['name'], hostgroup['puppet-environment'])
 
     @run_only_on('sat')
     @tier1
@@ -455,7 +455,7 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertIn(org['name'], hostgroup['organizations'])
         self.assertIn(loc['name'], hostgroup['locations'])
-        self.assertEqual(env['name'], hostgroup['environment'])
+        self.assertEqual(env['name'], hostgroup['puppet-environment'])
         self.assertEqual(proxy['id'], hostgroup['puppet-master-proxy-id'])
         self.assertEqual(proxy['id'], hostgroup['puppet-ca-proxy-id'])
         self.assertEqual(domain['name'], hostgroup['domain'])
@@ -552,7 +552,8 @@ class HostGroupTestCase(CLITestCase):
             {'id': hostgroup['id']}, output_format='json')
         self.assertIn(org['id'], hostgroup['organizations'][0]['id'])
         self.assertIn(loc['id'], hostgroup['locations'][0]['id'])
-        self.assertEqual(env['id'], hostgroup['environment']['environment_id'])
+        self.assertEqual(
+            env['id'], hostgroup['puppet-environment']['environment_id'])
         self.assertEqual(proxy['id'], hostgroup['puppet-master-proxy-id'])
         self.assertEqual(proxy['id'], hostgroup['puppet-ca-proxy-id'])
         self.assertEqual(domain['id'], hostgroup['domain']['domain_id'])
