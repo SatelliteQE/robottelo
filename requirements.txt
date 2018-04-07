@@ -11,7 +11,7 @@ mock==2.0.0
 paramiko==2.4.0
 pytest==3.4.0
 pytest-services==1.2.1
-pytest-mock==1.6.3
+pytest-mock==1.8.0
 requests==2.18.4
 selenium==3.8.1
 six==1.11.0
