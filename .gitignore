@@ -47,3 +47,5 @@
 
 # For backup files.
 *~
+
+.pytest_cache/
