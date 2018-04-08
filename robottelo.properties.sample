@@ -202,6 +202,11 @@ ssh_key=
 # External docker registries urls in the format http[s]://<server>[:<port>].
 # external_registry_1=
 # external_registry_2=
+# For testing the support for private registry repos 
+# private_registry_url='https://registry.hub.docker.com'
+# private_registry_name=username/imagename
+# private_registry_username=
+# private_registry_password=
 
 
 # For testing Red Hat Access Insights

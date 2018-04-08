@@ -1315,6 +1315,36 @@ class DockerRepositoryTestCase(APITestCase):
         repository = repository.update(['name'])
         self.assertEqual(new_name, repository.name)
 
+    @tier2
+    @run_only_on('sat')
+    def test_positive_synchronize_private_registry(self):
+        """Create and sync a Docker-type repository from a private registry
+
+        :id: c71fe7c1-1160-4145-ac71-f827c14b1027
+
+        :expectedresults: A repository is created with a private Docker \
+            repository and it is synchronized.
+
+        :customerscenario: true
+
+        :BZ: 1475121
+
+        :CaseLevel: Integration
+        """
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=settings.docker.private_registry_name,
+            name=gen_string('alpha'),
+            product=product,
+            url=settings.docker.private_registry_url,
+            upstream_username=settings.docker.private_registry_username,
+            upstream_password=settings.docker.private_registry_password,
+        ).create()
+        repo.sync()
+        self.assertGreaterEqual(
+            repo.read().content_counts['docker_manifest'], 1)
+
 
 class OstreeRepositoryTestCase(APITestCase):
     """Tests specific to using ``OSTree`` repositories."""

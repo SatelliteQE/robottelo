@@ -395,6 +395,10 @@ class DockerSettings(FeatureSettings):
         self.external_registry_1 = None
         self.external_registry_2 = None
         self.unix_socket = None
+        self.private_registry_url = None
+        self.private_registry_name = None
+        self.private_registry_username = None
+        self.private_registry_password = None
 
     def read(self, reader):
         """Read docker settings."""
@@ -404,6 +408,14 @@ class DockerSettings(FeatureSettings):
         self.external_url = reader.get('docker', 'external_url')
         self.external_registry_1 = reader.get('docker', 'external_registry_1')
         self.external_registry_2 = reader.get('docker', 'external_registry_2')
+        self.private_registry_url = reader.get(
+            'docker', 'private_registry_url')
+        self.private_registry_name = reader.get(
+            'docker', 'private_registry_name')
+        self.private_registry_username = reader.get(
+            'docker', 'private_registry_username')
+        self.private_registry_password = reader.get(
+            'docker', 'private_registry_password')
 
     def validate(self):
         """Validate docker settings."""
