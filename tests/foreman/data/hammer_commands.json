@@ -1221,6 +1221,24 @@
           "name": "create", 
           "options": [
             {
+              "help": "Location name", 
+              "name": "location", 
+              "shortname": null, 
+              "value": "LOCATION_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "location-id", 
+              "shortname": null, 
+              "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "", 
               "name": "name", 
               "shortname": null, 
@@ -1237,6 +1255,24 @@
               "name": "operatingsystems", 
               "shortname": null, 
               "value": "OPERATINGSYSTEM_TITLES"
+            }, 
+            {
+              "help": "Organization name", 
+              "name": "organization", 
+              "shortname": null, 
+              "value": "ORGANIZATION_NAME"
+            }, 
+            {
+              "help": "Organization ID", 
+              "name": "organization-id", 
+              "shortname": null, 
+              "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "print help", 
@@ -1258,10 +1294,46 @@
               "value": "ID"
             }, 
             {
+              "help": "Location name", 
+              "name": "location", 
+              "shortname": null, 
+              "value": "LOCATION_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "location-id", 
+              "shortname": null, 
+              "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Architecture name", 
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization name", 
+              "name": "organization", 
+              "shortname": null, 
+              "value": "ORGANIZATION_NAME"
+            }, 
+            {
+              "help": "Organization ID", 
+              "name": "organization-id", 
+              "shortname": null, 
+              "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "print help", 
@@ -1283,10 +1355,46 @@
               "value": "ID"
             }, 
             {
+              "help": "Location name", 
+              "name": "location", 
+              "shortname": null, 
+              "value": "LOCATION_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "location-id", 
+              "shortname": null, 
+              "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Architecture name", 
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization name", 
+              "name": "organization", 
+              "shortname": null, 
+              "value": "ORGANIZATION_NAME"
+            }, 
+            {
+              "help": "Organization ID", 
+              "name": "organization-id", 
+              "shortname": null, 
+              "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "print help", 
@@ -1301,6 +1409,24 @@
           "description": "List all architectures", 
           "name": "list", 
           "options": [
+            {
+              "help": "Location name", 
+              "name": "location", 
+              "shortname": null, 
+              "value": "LOCATION_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "location-id", 
+              "shortname": null, 
+              "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
             {
               "help": "Operating system title", 
               "name": "operatingsystem", 
@@ -1318,6 +1444,24 @@
               "name": "order", 
               "shortname": null, 
               "value": "ORDER"
+            }, 
+            {
+              "help": "Organization name", 
+              "name": "organization", 
+              "shortname": null, 
+              "value": "ORGANIZATION_NAME"
+            }, 
+            {
+              "help": "Organization ID", 
+              "name": "organization-id", 
+              "shortname": null, 
+              "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -1394,6 +1538,24 @@
               "value": "ID"
             }, 
             {
+              "help": "Location name", 
+              "name": "location", 
+              "shortname": null, 
+              "value": "LOCATION_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "location-id", 
+              "shortname": null, 
+              "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Architecture name", 
               "name": "name", 
               "shortname": null, 
@@ -1416,6 +1578,24 @@
               "name": "operatingsystems", 
               "shortname": null, 
               "value": "OPERATINGSYSTEM_TITLES"
+            }, 
+            {
+              "help": "Organization name", 
+              "name": "organization", 
+              "shortname": null, 
+              "value": "ORGANIZATION_NAME"
+            }, 
+            {
+              "help": "Organization ID", 
+              "name": "organization-id", 
+              "shortname": null, 
+              "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "print help", 
