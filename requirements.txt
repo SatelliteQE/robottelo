@@ -3,7 +3,7 @@
 
 cachetools==2.0.1
 cryptography==2.1.4
-fauxfactory==2.1.1
+fauxfactory==3.0.0
 idna==2.6
 Inflector==2.0.12
 import_string==0.1.0
