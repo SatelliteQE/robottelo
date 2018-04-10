@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """
-:Requirement: Computeresource
+:Requirement: Computeresource EC2
 
 :CaseLevel: Acceptance
 

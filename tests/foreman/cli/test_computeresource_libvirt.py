@@ -18,7 +18,7 @@ Subcommands::
     image                         View and manage compute resource's images
 
 
-:Requirement: Computeresource
+:Requirement: Computeresource Libvirt
 
 :CaseAutomation: Automated
 

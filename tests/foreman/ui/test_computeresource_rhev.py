@@ -1,6 +1,6 @@
 """Test for Compute Resource UI
 
-:Requirement: Computeresource
+:Requirement: Computeresource RHV
 
 :CaseLevel: Acceptance
 
