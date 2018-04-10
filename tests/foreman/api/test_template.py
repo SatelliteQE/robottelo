@@ -31,6 +31,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    tier3,
     upgrade
 )
 from robottelo.helpers import get_nailgun_config
@@ -391,6 +392,9 @@ class TemplateSyncTestCase(APITestCase):
                matching specified regex.
                NOTE: Templates are always imported with a prefix defaults to
                `community` unless it is specified as empty string
+            3. Assert json output doesnt have
+               'Name is not matching filter condition, skipping' info message
+               for imported template
 
         :CaseImportance: Critical
         """
@@ -718,4 +722,330 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert all existing templates were exported to repository
 
         :CaseImportance: Critical
+        """
+
+    # Take Templates out of Tech Preview Feature Tests
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_verbose_true(self):
+        """Assert all the required fields displayed in import output when
+        verbose is True
+
+        :id: 74b0a701-341f-4062-9769-e5cb1a1c4792
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Impot a template with verbose `True` option
+
+        :expectedresults:
+            1. Assert json output has all the following fields
+               'name', 'imported', 'diff', 'additional_errors', 'exception',
+               'validation_errors', 'file'
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_verbose_false(self):
+        """Assert all the required fields displayed in import output when
+        verbose is `False`
+
+        :id: 7d7c65f5-1af3-4a9b-ba9e-70130f61d7cb
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Impot a template with verbose `False` option
+
+        :expectedresults:
+            1. Assert json output has all the following fields
+               'name', 'imported', 'changed', 'additional_errors', 'exception',
+               'validation_errors', 'file'
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_changed_key_true(self):
+        """Assert template imports output `changed` key returns `True` when
+        template data gets updated
+
+        :id: 4b866144-822c-4786-9188-53bc7e2dd44a
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Create a template and import it from a source
+            2. Update the template data in source location
+            3. Using nailgun or direct API call
+               Re-import the same template
+
+        :expectedresults:
+            1. On reiport, Assert json output returns 'changed' as `true`
+            2. Assert json output returns diff key with difference as value
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_changed_key_false(self):
+        """Assert template imports output `changed` key returns `False` when
+        template data gets updated
+
+        :id: 64456c0c-c2c6-4a1c-a16e-54ca4a8b66d3
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Create a template and import it from a source
+            2. Dont update the template data in source location
+            3. Using nailgun or direct API call
+               Re-import the same template
+
+        :expectedresults:
+            1. On reiport, Assert json output returns 'changed' as `false`
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_name_key(self):
+        """Assert template imports output `name` key returns correct name
+
+        :id: a5639368-3d23-4a37-974a-889e2ec0916e
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Create a template with some name and import it from a source
+
+        :expectedresults:
+            1. On Import, Assert json output returns 'name' key with correct
+            name as per template metadata
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_imported_key(self):
+        """Assert template imports output `imported` key returns `True` on
+        successful import
+
+        :id: 5bc11163-e8f3-4744-8a76-5c16e6e46e86
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Create a template and import it from a source
+
+        :expectedresults:
+            1. On Import, Assert json output returns 'imported' key as `True`
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_file_key(self):
+        """Assert template imports output `file` key returns correct file name
+        from where the template is imported
+
+        :id: da0b094c-6dc8-4526-b115-8e08bfb05fbb
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Create a template with some name and import it from a source
+
+        :expectedresults:
+            1. Assert json output returns 'file' key with correct
+            file name
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_corrupted_metadata(self):
+        """Assert template imports output returns corrupted metadata error for
+        incorrect metadata in template
+
+        :id: 6bd5bc6b-a7a2-4529-9df6-47a670cd86d8
+
+        :Steps:
+            1. Create a template with wrong syntax in metadata
+            2. Using nailgun or direct API call
+               Import above template
+
+        :expectedresults:
+            1. Assert json output has error contains
+            'Failed to parse metadata' text
+            2. Assert 'imported' key returns 'false' value
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_filtered_skip_message(self):
+        """Assert template imports output returns template import skipped info
+        for templates whose name doesnt match the filter
+
+        :id: db68b5de-7647-4568-b79c-2aec3292328a
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Create template with name not matching filter
+
+        :expectedresults:
+            1. Assert json output has info contains
+            'Name is not matching filter condition, skipping' text
+            2. Assert 'imported' key returns 'false' value
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_no_name_error(self):
+        """Assert template imports output returns no name error for template
+        without name
+
+        :id: 259a8a3a-8749-442d-a2bc-51e9af89ce8c
+
+        :Steps:
+            1. Create a template without name in metadata
+            2. Using nailgun or direct API call
+               Import above template
+
+        :expectedresults:
+            1. Assert json output has error contains
+            'No 'name' found in metadata' text
+            2. Assert 'imported' key returns 'false' value
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_no_model_error(self):
+        """Assert template imports output returns no model error for template
+        without model
+
+        :id: d3f1ffe4-58d7-45a8-b278-74e081dc5062
+
+        :Steps:
+            1. Create a template without model keyword in metadata
+            2. Using nailgun or direct API call
+               Import above template
+
+        :expectedresults:
+            1. Assert json output has error contains
+            'No 'model' found in metadata' text
+            2. Assert 'imported' key returns 'false' value
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_import_json_output_blank_model_error(self):
+        """Assert template imports output returns blank model name error for
+        template without template name
+
+        :id: 5007b12d-1cf6-49e6-8e54-a189d1a209de
+
+        :Steps:
+            1. Create a template with blank model name in metadata
+            2. Using nailgun or direct API call
+               Import above template
+
+        :expectedresults:
+            1. Assert json output has additional_error contains
+               'Template type was not found, maybe you are missing a plugin?'
+            2. Assert 'imported' key returns 'false' value
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_export_json_output(self):
+        """Assert template export output returns template names
+
+        :id: 141b893d-72a3-47c2-bb03-004c757bcfc9
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Export all the templates
+
+        :expectedresults:
+            1. Assert json output has all the exported template names
+            and typewise
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_import_log_to_production(self):
+        """Assert template import logs are logged to production logs
+
+        :id: 19ed0e6a-ee77-4e28-86c9-49db1adec479
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Import template from a source
+
+        :expectedresults:
+            1. Assert template import task and status logged to production log
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_export_log_to_production(self):
+        """Assert template export logs are logged to production logs
+
+        :id: 8ae370b1-84e8-436e-a7d7-99cd0b8f45b1
+
+        :Steps:
+            1. Using nailgun or direct API call
+               Export template to destination
+
+        :expectedresults:
+            1. Assert template export task and status logged to production log
+
+        :requirement: Take Templates out of tech preview
+
+        :CaseLevel: System
         """
