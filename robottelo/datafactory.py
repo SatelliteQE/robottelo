@@ -4,7 +4,7 @@ import random
 import string
 from functools import wraps
 
-from fauxfactory import gen_string, gen_integer, gen_alpha
+from fauxfactory import gen_string, gen_integer, gen_alpha, gen_utf8
 from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
@@ -33,12 +33,11 @@ def filtered_datapoint(func):
             # New UI tests are written using pytest, update dict to support
             # pytest's parametrize
             if 'ui' in args or kwargs.get('interface') == 'ui':
-                # fixme: Chromedriver only supports BMP chars, but fauxfactory
-                # generates both BMP and SMP chars. Disabling all affected
-                # string types until resolved
+                # Chromedriver only supports BMP chars
                 if settings.webdriver == 'chrome':
-                    for unsupported_type in ('cjk', 'latin1', 'utf8', 'html'):
-                        dataset.pop(unsupported_type, None)
+                    utf8 = dataset.pop('utf8', None)
+                    if utf8:
+                        dataset['utf8'] = gen_utf8(len(utf8), smp=False)
                 if settings.run_one_datapoint:
                     key = random.choice(list(dataset.keys()))
                     dataset = {key: dataset[key]}
