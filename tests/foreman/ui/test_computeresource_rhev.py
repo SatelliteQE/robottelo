@@ -784,7 +784,8 @@ class RhevComputeResourceHostTestCase(UITestCase):
         cls.rhev_img_pass = settings.rhev.image_password
         cls.rhev_vm_name = settings.rhev.vm_name
         cls.rhev_storage_domain = settings.rhev.storage_domain
-
+        ca_cert = requests.get(settings.rhev.ca_cert).content
+        cls.rhev_cacert = ca_cert
         cls.org = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = cls.org.name
         cls.loc = entities.Location(
