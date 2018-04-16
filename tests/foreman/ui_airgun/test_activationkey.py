@@ -68,8 +68,8 @@ def test_positive_create_with_lce_and_cv(session):
             'content_view': content_view.name
         })
         assert session.activationkey.search(ak_name) == ak_name
-        ak_values = session.activationkey.read(ak_name)
-        assert ak_values['lce'][lce.name][lce.name]
+        ak = session.activationkey.read(ak_name)
+        assert ak['details']['lce'][lce.name][lce.name]
 
 
 def test_positive_delete(session):
@@ -94,14 +94,107 @@ def test_positive_edit(session):
         assert session.activationkey.search(name) == name
         session.activationkey.update(
             name,
-            values={
-                'name': new_name,
-                'description': description,
+            {
+                'details.name': new_name,
+                'details.description': description,
             },
         )
-        ak_values = session.activationkey.read(new_name)
-        assert ak_values['name'] == new_name
-        assert ak_values['description'] == description
+        ak = session.activationkey.read(new_name)
+        assert ak['details']['name'] == new_name
+        assert ak['details']['description'] == description
+
+
+@tier2
+@upgrade
+@parametrize('cv_name', **valid_data_list('ui'))
+def test_positive_create_with_cv(session, module_org, cv_name):
+    """Create Activation key for all variations of Content Views
+
+    :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
+
+    :expectedresults: Activation key is created
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    env_name = gen_string('alpha')
+    repo_id = create_sync_custom_repo(module_org.id)
+    cv_publish_promote(
+        cv_name, env_name, repo_id, module_org.id)
+    with session:
+        session.activationkey.create({
+            'name': name,
+            'lce': {env_name: True},
+            'content_view': cv_name,
+        })
+        assert session.activationkey.search(name) == name
+        ak = session.activationkey.read(name)
+        assert ak['details']['content_view'] == cv_name
+
+
+@tier2
+@upgrade
+def test_positive_search_scoped(session, module_org):
+    """Test scoped search for different activation key parameters
+
+    :id: 2c2ee1d7-0997-4a89-8f0a-b04e4b6177c0
+
+    :customerscenario: true
+
+    :expectedresults: Search functionality returns correct activation key
+
+    :BZ: 1259374
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    env_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    description = gen_string('alpha')
+    repo_id = create_sync_custom_repo(module_org.id)
+    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
+    with session:
+        session.activationkey.create({
+            'name': name,
+            'description': description,
+            'lce': {env_name: True},
+            'content_view': cv_name,
+        })
+        for query_type, query_value in [
+            ('content_view', cv_name),
+            ('environment', env_name),
+            ('description', description)
+        ]:
+            assert session.activationkey.search(
+                '{} = {}'.format(query_type, query_value),
+                expected_result=name,
+            ) == name
+
+
+@tier2
+@upgrade
+def test_positive_create_with_host_collection(session, module_org):
+    """Create Activation key with Host Collection
+
+    :id: 0e4ad2b4-47a7-4087-828f-2b0535a97b69
+
+    :expectedresults: Activation key is created
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    hc = entities.HostCollection(organization=module_org).create()
+    with session:
+        session.activationkey.create({
+            'name': name,
+            'lce': {ENVIRONMENT: True},
+        })
+        assert session.activationkey.search(name) == name
+        session.activationkey.add_host_collection(name, hc.name)
+        ak = session.activationkey.read(name)
+        assert hc.name in ak['host_collections']['resources']['assigned']
 
 
 @tier2
@@ -130,8 +223,8 @@ def test_positive_create_with_envs(session, module_org, env_name):
             'content_view': cv_name
         })
         assert session.activationkey.search(name) == name
-        ak_values = session.activationkey.read(name)
-        assert ak_values['lce'][env_name][env_name]
+        ak = session.activationkey.read(name)
+        assert ak['details']['lce'][env_name][env_name]
 
 
 @tier2
@@ -212,7 +305,8 @@ def test_positive_access_non_admin_user(session, request):
                 'lce': {env_name: True},
                 'content_view': cv.name
             })
-            assert session.activationkey.read(name)['lce'][env_name][env_name]
+            assert session.activationkey.read(
+                name)['details']['lce'][env_name][env_name]
 
     with Session(
             request.node.name, user=user_login, password=user_password
@@ -255,7 +349,7 @@ def test_positive_delete_with_system(session):
             'content_view': cv_name
         })
         assert session.activationkey.search(name) == name
-        session.activationkey.associate_product(name, product_name)
+        session.activationkey.add_subscription(name, product_name)
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
             vm.register_contenthost(org.label, name)
@@ -290,9 +384,10 @@ def test_negative_usage_limit(session, module_org):
             'lce': {ENVIRONMENT: True},
         })
         assert session.activationkey.search(name) == name
-        session.activationkey.update(name, values={'hosts_limit': hosts_limit})
+        session.activationkey.update(
+            name, {'details.hosts_limit': hosts_limit})
         ak = session.activationkey.read(name)
-        assert ak['hosts_limit'] == hosts_limit
+        assert ak['details']['hosts_limit'] == hosts_limit
     with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
         with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
             vm1.install_katello_ca()
