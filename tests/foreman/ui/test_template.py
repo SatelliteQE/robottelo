@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, upgrade
+from robottelo.decorators import run_only_on, stubbed, tier1, upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -333,43 +333,6 @@ class TemplateTestCase(UITestCase):
         with Session(self, user=user_login, password=user_password):
             self.template.update(name=template.name, new_name=new_name)
             self.assertIsNotNone(self.template.search(new_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_clone(self):
-        """Assure ability to clone a provisioning template
-
-        :id: 912f1619-4bb0-4e0f-88ce-88b5726fdbe0
-
-        :Steps:
-            1.  Go to Provisioning template UI
-            2.  Choose a template and attempt to clone it
-
-        :expectedresults: The template is cloned
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        clone_name = gen_string('alpha')
-        os_list = [
-            entities.OperatingSystem().create().name for _ in range(2)
-        ]
-        with Session(self) as session:
-            make_templates(
-                session,
-                name=name,
-                template_path=OS_TEMPLATE_DATA_FILE,
-                custom_really=True,
-                template_type='Provisioning template',
-            )
-            self.assertIsNotNone(self.template.search(name))
-            self.template.clone(
-                name,
-                custom_really=False,
-                clone_name=clone_name,
-                os_list=os_list,
-            )
-            self.assertIsNotNone(self.template.search(clone_name))
 
     @run_only_on('sat')
     @tier1
