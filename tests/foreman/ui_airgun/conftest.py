@@ -62,7 +62,7 @@ def test_name(request):
 
     """
     # test module name, e.g. 'test_activationkey'
-    name = [request.module.__name__,]
+    name = [request.module.__name__, ]
     # test class name (if present), e.g. 'ActivationKeyTestCase'
     if request.instance:
         name.append(request.instance.__class__.__name__)
