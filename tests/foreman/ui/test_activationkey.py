@@ -439,39 +439,6 @@ class ActivationKeyTestCase(UITestCase):
                 self.assertIsNotNone(chost_url_id)
                 self.assertEqual(int(chost_url_id.group(0)), chost_id)
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_custom_product(self):
-        """Test that custom product can be associated to Activation Keys
-
-        :id: e66db2bf-517a-46ff-ba23-9f9744bef884
-
-        :expectedresults: Custom products are successfully associated to
-            Activation key
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        product_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo_id = create_sync_custom_repo(
-            org_id=self.organization.id, product_name=product_name)
-        cv_publish_promote(cv_name, env_name, repo_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.associate_product(name, [product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
-
     @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
