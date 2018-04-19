@@ -67,8 +67,8 @@ def test_positive_clone(session):
         )
         assert session.provisioningtemplate.search(clone_name) == clone_name
         template = session.provisioningtemplate.read(clone_name)
-        input_os_list = sorted(os_list)
-        cloned_template_os_list = sorted(
-            template['association']['applicable_os']['assigned'])
-        for i in range(len(os_list)):
-            assert input_os_list[i] in cloned_template_os_list[i]
+        cloned_template_os_list = [
+            el.split()[0] for el
+            in template['association']['applicable_os']['assigned']
+        ]
+        assert set(os_list) == set(cloned_template_os_list)
