@@ -16,17 +16,14 @@
 :Upstream: No
 """
 
-import random
 import re
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import (
-    create_role_permissions,
     create_sync_custom_repo,
     cv_publish_promote,
     enable_rhrepo_and_fetchid,
-    enable_sync_redhat_repo,
     upload_manifest,
 )
 from robottelo.cli.factory import setup_org_for_a_custom_repo
@@ -38,7 +35,6 @@ from robottelo.constants import (
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
-    PERMISSIONS,
     PRDS,
     REPOSET,
     REPOS,
@@ -46,7 +42,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
@@ -118,122 +113,6 @@ class ActivationKeyTestCase(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
 
-    @tier2
-    def test_positive_add_host_collection_non_admin(self):
-        """Test that host collection can be associated to Activation Keys
-        by non-admin user.
-
-        :id: 417f0b36-fd49-4414-87ab-6f72a09696f2
-
-        :expectedresults: Activation key is created, added host collection is
-            listed
-
-        :BZ: 1473212
-
-        :CaseLevel: Integration
-        """
-        ak_name = gen_string('alpha')
-        # create Host Collection using API
-        hc = entities.HostCollection(
-            organization=self.organization,
-            name=gen_string('alpha'),
-        ).create()
-        # Create non-admin user with specified permissions
-        roles = [entities.Role().create()]
-        user_permissions = {
-            'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
-            'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
-        }
-        if bz_bug_is_open(1473212):
-            user_permissions['Katello::KTEnvironment'] = [
-                'view_lifecycle_environments']
-            user_permissions['Katello::ContentView'] = ['view_content_views']
-        else:
-            viewer_role = entities.Role().search(
-                query={'search': 'name="Viewer"'})[0]
-            roles.append(viewer_role)
-
-        create_role_permissions(roles[0], user_permissions)
-        password = gen_string('alphanumeric')
-        user = entities.User(
-            admin=False,
-            role=roles,
-            password=password,
-            organization=[self.organization],
-        ).create()
-        with Session(self, user=user.login, password=password) as session:
-            make_activationkey(session, name=ak_name, env=ENVIRONMENT)
-            self.assertIsNotNone(self.activationkey.search(ak_name))
-            # add Host Collection
-            self.activationkey.add_host_collection(ak_name, hc.name)
-            # check added host collection is listed
-            self.activationkey.click(tab_locators['ak.host_collections.list'])
-            host_collection = self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.add.select'] % hc.name)
-            self.assertIsNotNone(host_collection)
-
-    @tier2
-    @upgrade
-    def test_positive_remove_host_collection_non_admin(self):
-        """Test that host collection can be removed from Activation Keys
-        by non-admin user.
-
-        :id: 187456ec-5690-4524-9701-8bdb74c7912a
-
-        :expectedresults: Activation key is created, removed host collection is
-            not listed
-
-        :CaseLevel: Integration
-        """
-        ak_name = gen_string('alpha')
-        # create Host Collection using API
-        hc = entities.HostCollection(
-            organization=self.organization,
-            name=gen_string('alpha'),
-        ).create()
-        # Create non-admin user with specified permissions
-        roles = [entities.Role().create()]
-        user_permissions = {
-            'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
-            'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
-        }
-        if bz_bug_is_open(1473212):
-            user_permissions['Katello::KTEnvironment'] = [
-                'view_lifecycle_environments']
-            user_permissions['Katello::ContentView'] = ['view_content_views']
-        else:
-            viewer_role = entities.Role().search(
-                query={'search': 'name="Viewer"'})[0]
-            roles.append(viewer_role)
-
-        create_role_permissions(roles[0], user_permissions)
-        password = gen_string('alphanumeric')
-        user = entities.User(
-            admin=False,
-            role=roles,
-            password=password,
-            organization=[self.organization],
-        ).create()
-        with Session(self, user=user.login, password=password) as session:
-            make_activationkey(session, name=ak_name, env=ENVIRONMENT)
-            self.assertIsNotNone(self.activationkey.search(ak_name))
-            # add Host Collection
-            self.activationkey.add_host_collection(ak_name, hc.name)
-            # check added host collection is listed
-            self.activationkey.click(tab_locators['ak.host_collections.list'])
-            host_collection = self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.add.select'] % hc.name)
-            self.assertIsNotNone(host_collection)
-            # remove Host Collection
-            self.activationkey.remove_host_collection(ak_name, hc.name)
-            self.assertIsNotNone(self.activationkey.find_element(
-                common_locators['alert.success_sub_form']))
-            # check added host collection is not listed
-            self.activationkey.click(tab_locators['ak.host_collections.list'])
-            host_collection = self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.add.select'] % hc.name)
-            self.assertIsNone(host_collection)
-
     @tier1
     def test_positive_create_with_usage_limit(self):
         """Create Activation key with finite Usage limit
@@ -255,7 +134,7 @@ class ActivationKeyTestCase(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
 
-    @tier2
+    @tier1
     def test_negative_create_with_invalid_name(self):
         """Create Activation key with invalid Name
 
@@ -279,7 +158,7 @@ class ActivationKeyTestCase(UITestCase):
                         common_locators['common_invalid']))
                     self.assertIsNone(self.activationkey.search(name))
 
-    @tier2
+    @tier1
     def test_negative_create_with_invalid_limit(self):
         """Create Activation key with invalid Usage Limit. Both with too
         long numbers and using letters.
@@ -329,63 +208,6 @@ class ActivationKeyTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
                     self.activationkey.delete(name)
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_delete_with_env(self):
-        """Create Activation key with environment and delete it
-
-        :id: b6019881-3d6e-4b75-89f5-1b62aff3b1ca
-
-        :expectedresults: Activation key is deleted
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        env_name = gen_string('utf8')
-        # Helper function to create and promote CV to next environment
-        repo_id = create_sync_custom_repo(self.organization.id)
-        cv_publish_promote(cv_name, env_name, repo_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.delete(name)
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_delete_with_cv(self):
-        """Create Activation key with content view and delete it
-
-        :id: 7e40e1ed-8314-406b-9451-05f64806a6e6
-
-        :expectedresults: Activation key is deleted
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('utf8')
-        env_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo_id = create_sync_custom_repo(self.organization.id)
-        cv_publish_promote(cv_name, env_name, repo_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.delete(name)
 
     @tier1
     def test_negative_delete(self):
@@ -466,154 +288,6 @@ class ActivationKeyTestCase(UITestCase):
                     selected_desc = self.activationkey.get_attribute(
                         name, locators['ak.fetch_description'])
                     self.assertEqual(selected_desc, new_desc)
-
-    @run_in_one_thread
-    @run_only_on('sat')
-    @tier2
-    def test_positive_update_env(self):
-        """Update Environment in an Activation key
-
-        :id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
-
-        :expectedresults: Activation key is updated
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        env_name = gen_string('utf8')
-        # Helper function to create and promote CV to next environment
-        repo_id = create_sync_custom_repo(self.organization.id)
-        cv_publish_promote(cv_name, env_name, repo_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=ENVIRONMENT,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            env_locator = locators['ak.selected_env']
-            selected_env = self.activationkey.get_attribute(name, env_locator)
-            self.assertEqual(ENVIRONMENT, selected_env)
-            self.activationkey.update(name, content_view=cv_name, env=env_name)
-            selected_env = self.activationkey.get_attribute(name, env_locator)
-            self.assertEqual(env_name, selected_env)
-
-    @run_in_one_thread
-    @run_only_on('sat')
-    @tier2
-    def test_positive_update_cv(self):
-        """Update Content View in an Activation key
-
-        :id: 68880ca6-acb9-4a16-aaa0-ced680126732
-
-        :Steps:
-            1. Create Activation key
-            2. Update the Content view with another Content view which has
-                custom products
-
-        :expectedresults: Activation key is updated
-
-        :CaseLevel: Integration
-        """
-        # Pick one of the valid data list items - data driven tests is not
-        # necessary for this test
-        cv2_name = random.choice(valid_data_list())
-        name = gen_string('alpha')
-        env1_name = gen_string('alpha')
-        env2_name = gen_string('alpha')
-        cv1_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo1_id = create_sync_custom_repo(self.organization.id)
-        cv_publish_promote(cv1_name, env1_name, repo1_id, self.organization.id)
-        repo2_id = create_sync_custom_repo(self.organization.id)
-        cv_publish_promote(cv2_name, env2_name, repo2_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env1_name,
-                content_view=cv1_name
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            cv_locator = locators['ak.selected_cv']
-            selected_cv = self.activationkey.get_attribute(name, cv_locator)
-            self.assertEqual(cv1_name, selected_cv)
-            self.activationkey.update(
-                name, content_view=cv2_name, env=env2_name)
-            selected_cv = self.activationkey.get_attribute(name, cv_locator)
-            self.assertEqual(cv2_name, selected_cv)
-
-    @run_in_one_thread
-    @run_only_on('sat')
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    def test_positive_update_rh_product(self):
-        """Update Content View in an Activation key
-
-        :id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
-
-        :Steps:
-
-            1. Create an activation key
-            2. Update the content view with another content view which has RH
-                products
-
-        :expectedresults: Activation key is updated
-
-        :CaseLevel: Integration
-        """
-        # Pick one of the valid data list items - data driven tests is not
-        # necessary for this test
-        cv2_name = random.choice(valid_data_list())
-        name = gen_string('alpha')
-        env1_name = gen_string('alpha')
-        env2_name = gen_string('alpha')
-        cv1_name = gen_string('alpha')
-        rh_repo1 = {
-            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
-                     'Server RPMs x86_64 6Server'),
-            'product': 'Red Hat Enterprise Linux Server',
-            'reposet': ('Red Hat Enterprise Virtualization Agents '
-                        'for RHEL 6 Server (RPMs)'),
-            'basearch': 'x86_64',
-            'releasever': '6Server',
-        }
-        rh_repo2 = {
-            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
-                     'Server RPMs i386 6Server'),
-            'product': 'Red Hat Enterprise Linux Server',
-            'reposet': ('Red Hat Enterprise Virtualization Agents '
-                        'for RHEL 6 Server (RPMs)'),
-            'basearch': 'i386',
-            'releasever': '6Server',
-        }
-        org = entities.Organization().create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        repo1_id = enable_sync_redhat_repo(rh_repo1, org.id)
-        cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
-        repo2_id = enable_sync_redhat_repo(rh_repo2, org.id)
-        cv_publish_promote(cv2_name, env2_name, repo2_id, org.id)
-
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=org.name,
-                name=name,
-                env=env1_name,
-                content_view=cv1_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            cv_locator = locators['ak.selected_cv']
-            selected_cv = self.activationkey.get_attribute(name, cv_locator)
-            self.assertEqual(cv1_name, selected_cv)
-            self.activationkey.update(
-                name, content_view=cv2_name, env=env2_name)
-            selected_cv = self.activationkey.get_attribute(name, cv_locator)
-            self.assertEqual(cv2_name, selected_cv)
 
     @tier1
     def test_positive_update_limit(self):
@@ -724,41 +398,6 @@ class ActivationKeyTestCase(UITestCase):
 
     @skip_if_not_set('clients')
     @tier3
-    def test_positive_add_host(self):
-        """Test that hosts can be associated to Activation Keys
-
-        :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
-
-        :Steps:
-            1. Create Activation key
-            2. Create different hosts
-            3. Associate the hosts to Activation key
-
-        :expectedresults: Hosts are successfully associated to Activation key
-
-        :CaseLevel: System
-        """
-        key_name = gen_string('utf8')
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=key_name,
-                env=ENVIRONMENT,
-            )
-            self.assertIsNotNone(self.activationkey.search(key_name))
-            # Creating VM
-            with VirtualMachine(distro=self.vm_distro) as vm:
-                vm.install_katello_ca()
-                vm.register_contenthost(self.organization.label, key_name)
-                self.assertTrue(vm.subscribed)
-                hostnames = self.activationkey.fetch_associated_content_hosts(
-                    key_name)
-                self.assertEqual(len(hostnames), 1)
-                self.assertEqual(vm.hostname, hostnames[0])
-
-    @skip_if_not_set('clients')
-    @tier3
     @upgrade
     def test_positive_open_associated_host(self):
         """Associate content host with activation key, open activation key's
@@ -799,87 +438,6 @@ class ActivationKeyTestCase(UITestCase):
                     '(?<=content_hosts/)([0-9])+', self.browser.current_url)
                 self.assertIsNotNone(chost_url_id)
                 self.assertEqual(int(chost_url_id.group(0)), chost_id)
-
-    @run_in_one_thread
-    @run_only_on('sat')
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    def test_positive_add_rh_product(self):
-        """Test that RH product can be associated to Activation Keys
-
-        :id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
-
-        :expectedresults: RH products are successfully associated to Activation
-            key
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        rh_repo = {
-            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
-                     'Server RPMs x86_64 6Server'),
-            'product': 'Red Hat Enterprise Linux Server',
-            'reposet': ('Red Hat Enterprise Virtualization Agents '
-                        'for RHEL 6 Server (RPMs)'),
-            'basearch': 'x86_64',
-            'releasever': '6Server',
-        }
-        product_subscription = DEFAULT_SUBSCRIPTION_NAME
-        # Create new org to import manifest
-        org = entities.Organization().create()
-        # Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        # Helper function to create and promote CV to next environment
-        repo_id = enable_sync_redhat_repo(rh_repo, org.id)
-        cv_publish_promote(cv_name, env_name, repo_id, org.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=org.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.associate_product(name, [product_subscription])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_custom_product(self):
-        """Test that custom product can be associated to Activation Keys
-
-        :id: e66db2bf-517a-46ff-ba23-9f9744bef884
-
-        :expectedresults: Custom products are successfully associated to
-            Activation key
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        product_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo_id = create_sync_custom_repo(
-            org_id=self.organization.id, product_name=product_name)
-        cv_publish_promote(cv_name, env_name, repo_id, self.organization.id)
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.associate_product(name, [product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
 
     @run_in_one_thread
     @run_only_on('sat')
