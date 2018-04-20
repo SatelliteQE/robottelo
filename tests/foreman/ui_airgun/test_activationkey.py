@@ -22,6 +22,7 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
     enable_sync_redhat_repo,
     create_role_permissions,
     create_sync_custom_repo,
@@ -29,13 +30,18 @@ from robottelo.api.utils import (
     promote,
     upload_manifest,
 )
+from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    DEFAULT_CV,
     DEFAULT_LOC,
     DEFAULT_RELEASE_VERSION,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
+    DISTRO_RHEL7,
     ENVIRONMENT,
+    FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -582,6 +588,123 @@ def test_positive_add_custom_product(session, module_org):
         assert product_name in ak['subscriptions']['resources']['assigned']
 
 
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_add_rh_and_custom_products(session):
+    """Test that RH/Custom product can be associated to Activation keys
+
+    :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
+
+    :Steps:
+        1. Create Activation key
+        2. Associate RH product(s) to Activation Key
+        3. Associate custom product(s) to Activation Key
+
+    :expectedresults: RH/Custom product is successfully associated to
+        Activation key
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    rh_repo = {
+        'name': REPOS['rhva6']['name'],
+        'product': PRDS['rhel'],
+        'reposet': REPOSET['rhva6'],
+        'basearch': DEFAULT_ARCHITECTURE,
+        'releasever': DEFAULT_RELEASE_VERSION,
+    }
+    custom_product_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    org = entities.Organization().create()
+    product = entities.Product(
+        name=custom_product_name,
+        organization=org,
+    ).create()
+    repo = entities.Repository(
+        name=repo_name,
+        product=product,
+    ).create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    rhel_repo_id = enable_rhrepo_and_fetchid(
+        basearch=rh_repo['basearch'],
+        org_id=org.id,
+        product=rh_repo['product'],
+        repo=rh_repo['name'],
+        reposet=rh_repo['reposet'],
+        releasever=rh_repo['releasever'],
+    )
+    for repo_id in [rhel_repo_id, repo.id]:
+        entities.Repository(id=repo_id).sync()
+    with session:
+        session.organization.select(org.name)
+        session.activationkey.create({
+            'name': name,
+            'lce': {ENVIRONMENT: True},
+            'content_view': DEFAULT_CV,
+        })
+        assert session.activationkey.search(name) == name
+        for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
+            session.activationkey.add_subscription(name, subscription)
+        ak = session.activationkey.read(name)
+        assert {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(
+            ak['subscriptions']['resources']['assigned'])
+
+
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_fetch_product_content(session):
+    """Associate RH & custom product with AK and fetch AK's product content
+
+    :id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
+
+    :expectedresults: Both Red Hat and custom product subscriptions are
+        assigned as Activation Key's product content
+
+    :BZ: 1426386, 1432285
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_product = entities.Product(organization=org).create()
+    custom_repo = entities.Repository(
+        name=gen_string('alphanumeric').upper(),  # first letter is always
+        # uppercase on product content page, workarounding it for
+        # successful checks
+        product=custom_product).create()
+    custom_repo.sync()
+    cv = entities.ContentView(
+        organization=org,
+        repository=[rh_repo_id, custom_repo.id],
+    ).create()
+    cv.publish()
+    ak = entities.ActivationKey(content_view=cv, organization=org).create()
+    with session:
+        session.organization.select(org.name)
+        for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product.name):
+            session.activationkey.add_subscription(ak.name, subscription)
+        ak = session.activationkey.read(ak.name)
+        reposets = [
+            reposet['Repository Name'] for reposet in ak['repository_sets']]
+        assert {custom_repo.name, REPOSET['rhst7']} == set(reposets)
+
+
 @tier2
 @upgrade
 def test_positive_access_non_admin_user(session, test_name):
@@ -669,6 +792,38 @@ def test_positive_access_non_admin_user(session, test_name):
         session.location.select(DEFAULT_LOC)
         assert session.activationkey.search(ak_name) == ak_name
         assert session.activationkey.search(non_searchable_ak_name) is None
+
+
+@tier2
+def test_positive_remove_user(session, module_org, test_name):
+    """Delete any user who has previously created an activation key
+    and check that activation key still exists
+
+    :id: f0504bd8-52d2-40cd-91c6-64d71b14c876
+
+    :expectedresults: Activation Key can be read
+
+    :BZ: 1291271
+    """
+    ak_name = gen_string('alpha')
+    # Create user
+    password = gen_string('alpha')
+    user = entities.User(
+        admin=True,
+        default_organization=module_org,
+        password=password,
+    ).create()
+    # Create Activation Key using new user credentials
+    with Session(test_name, user.login, password) as non_admin_session:
+        non_admin_session.activationkey.create({
+            'name': ak_name,
+            'lce': {ENVIRONMENT: True},
+        })
+        assert non_admin_session.activationkey.search(ak_name) == ak_name
+    # Remove user and check that AK still exists
+    user.delete()
+    with session:
+        assert session.activationkey.search(ak_name) == ak_name
 
 
 @skip_if_not_set('clients')
@@ -790,3 +945,109 @@ def test_negative_usage_limit(session, module_org):
                 .format(hosts_limit)
                 in result.stderr
             )
+
+
+@skip_if_not_set('clients')
+@tier3
+@upgrade
+def test_positive_add_multiple_aks_to_system(session, module_org):
+    """Check if multiple Activation keys can be attached to a system
+
+    :id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
+
+    :expectedresults: Multiple Activation keys are attached to a system
+
+    :CaseLevel: System
+    """
+    key_1_name = gen_string('alpha')
+    key_2_name = gen_string('alpha')
+    cv_1_name = gen_string('alpha')
+    cv_2_name = gen_string('alpha')
+    env_1_name = gen_string('alpha')
+    env_2_name = gen_string('alpha')
+    product_1_name = gen_string('alpha')
+    product_2_name = gen_string('alpha')
+    repo_1_id = create_sync_custom_repo(
+        org_id=module_org.id, product_name=product_1_name)
+    cv_publish_promote(cv_1_name, env_1_name, repo_1_id, module_org.id)
+    repo_2_id = create_sync_custom_repo(
+        org_id=module_org.id,
+        product_name=product_2_name,
+        repo_url=FAKE_2_YUM_REPO,
+    )
+    cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
+    with session:
+        # Create 2 activation keys
+        for key_name, env_name, cv_name, product_name in (
+                (key_1_name, env_1_name, cv_1_name, product_1_name),
+                (key_2_name, env_2_name, cv_2_name, product_2_name)):
+            session.activationkey.create({
+                'name': key_name,
+                'lce': {env_name: True},
+                'content_view': cv_name
+            })
+            assert session.activationkey.search(key_name) == key_name
+            session.activationkey.add_subscription(key_name, product_name)
+            ak = session.activationkey.read(key_name)
+            assert product_name in ak['subscriptions']['resources']['assigned']
+        # Create VM
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(
+                module_org.label,
+                '{0},{1}'.format(key_1_name, key_2_name),
+            )
+            assert vm.subscribed
+            # Assert the content-host association with activation keys
+            for key_name in [key_1_name, key_2_name]:
+                ak = session.activationkey.read(key_name)
+                assert len(ak['content_hosts']) == 1
+                assert ak['content_hosts'][0]['Name'] == vm.hostname
+
+
+@skip_if_not_set('clients')
+@tier3
+@upgrade
+def test_positive_host_associations(session):
+    """Register few hosts with different activation keys and ensure proper
+    data is reflected under Associations > Content Hosts tab
+
+    :id: 111aa2af-caf4-4940-8e4b-5b071d488876
+
+    :expectedresults: Only hosts, registered by specific AK are shown under
+        Associations > Content Hosts tab
+
+    :BZ: 1344033, 1372826, 1394388
+
+    :CaseLevel: System
+    """
+    org = entities.Organization().create()
+    org_entities = setup_org_for_a_custom_repo({
+        'url': FAKE_1_YUM_REPO,
+        'organization-id': org.id,
+    })
+    ak1 = entities.ActivationKey(
+        id=org_entities['activationkey-id']).read()
+    ak2 = entities.ActivationKey(
+        content_view=org_entities['content-view-id'],
+        environment=org_entities['lifecycle-environment-id'],
+        organization=org.id,
+    ).create()
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm1, VirtualMachine(
+            distro=DISTRO_RHEL7) as vm2:
+        vm1.install_katello_ca()
+        vm1.register_contenthost(org.label, ak1.name)
+        assert vm1.subscribed
+        vm2.install_katello_ca()
+        vm2.register_contenthost(org.label, ak2.name)
+        assert vm2.subscribed
+        with session:
+            session.organization.select(org.name)
+            ak1 = session.activationkey.read(ak1.name)
+            assert len(ak1['content_hosts']) == 1
+            assert ak1['content_hosts'][0]['Name'] == vm1.hostname
+            # fixme: drop next line after airgun#63 is solved
+            session.activationkey.search(ak2.name)
+            ak2 = session.activationkey.read(ak2.name)
+            assert len(ak2['content_hosts']) == 1
+            assert ak2['content_hosts'][0]['Name'] == vm2.hostname
