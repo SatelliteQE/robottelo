@@ -930,3 +930,280 @@ class RemoteExecutionTestCase(CLITestCase):
                     )
                 )
             raise AssertionError(result)
+
+
+class AnsibleREXTestCase(CLITestCase):
+    """Test class for remote execution via Ansible"""
+
+    @classmethod
+    @skip_if_not_set('clients')
+    def setUpClass(cls):
+        super(AnsibleREXTestCase, cls).setUpClass()
+        cls.sat6_hostname = settings.server.hostname
+        # register and setup a host here and tests will share the host, step 0.
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_job(self):
+        """Tests Ansible REX job runs successfully
+
+        :id: a0aba09f-1296-4bb7-8123-75c7a9b17e26
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Run Ansible Command job for the host
+
+            2. Check the job result at the host
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_effective_user_job(self):
+        """Tests Ansible REX job having effective user runs successfully
+
+        :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Run Ansible Command job for the host under different user
+
+            2. Check the job result at the host is done under that user
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_reccuring_job(self):
+        """Tests Ansible REX reccuring job runs successfully multiple times
+
+        :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Run recurring Ansible Command job for the host
+
+            2. Check the multiple job results at the host
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_packages_job(self):
+        """Tests Ansible REX job can change presence of packages successfully
+
+        :id: 47ed82fb-77ca-43d6-a52e-f62bae5d3a42
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Run Ansible Package job for the host to install a package
+
+            2. Check the package is present at the host
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_services_job(self):
+        """Tests Ansible REX job can change state of services successfully
+
+        :id: 599f646f-9abf-43f2-bfa3-192d1ec2a888
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Run Ansible Services job for the host to start a service
+
+            2. Check the service is running at the host
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_power_job(self):
+        """Tests Ansible REX job can switch host power state successfully
+
+        :id: f42c2834-8433-4965-a753-70651708c15b
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Run Ansible Power job for the host to reboot it
+
+            2. Check the host was rebooted (by uptime)
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_puppet_job(self):
+        """Tests Ansible REX job can trigger puppet run successfully
+
+        :id: 7404991d-8832-422e-af66-9b21c7337a63
+
+        :Steps:
+
+            0. Create a VM and register to SAT and prepare for REX (ssh key)
+
+            1. Setup puppet-agent on a host
+
+            2. Run Ansible Puppet job for the host to trigger a new puppet run
+
+            3. Check the new puppet run occurred (logs)
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_roles_galaxy_install_job(self):
+        """Tests Ansible REX job installs roles from Galaxy successfully
+
+        :id: 20b09005-01e2-4c39-a9e9-3f418b28aa65
+
+        :Steps:
+
+            0. Prepare REX to be run against Internal Capsule (ssh key)
+
+            1. Run Ansible Galaxy job for the proxy to install and import roles
+
+            2. Check the roles are imported at the proxy
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_roles_git_install_job(self):
+        """Tests Ansible REX job installs roles from git successfully
+
+        :id: 5c767edd-394b-4549-bfc6-242d5d124f5b
+
+        :Steps:
+
+            0. Prepare REX to be run against Internal Capsule (ssh key)
+
+            1. Run Ansible Git job for the proxy to install and import roles
+
+            2. Check the roles are imported at the proxy
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+
+class AnsibleREXProvisionedTestCase(CLITestCase):
+    """Test class for remote execution via Ansible"""
+
+    @classmethod
+    @skip_if_not_set('clients')
+    def setUpClass(cls):
+        super(AnsibleREXProvisionedTestCase, cls).setUpClass()
+        cls.sat6_hostname = settings.server.hostname
+        # provision host here and tests will share the host, step 0. in tests
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_job_for_provisioned_host(self):
+        """Tests Ansible REX job runs successfully for a provisioned host
+
+        :id: 36de179b-d41f-4278-92d3-b748c3bfcbbc
+
+        :Steps:
+
+            0. Provision a host
+
+            1. Run job for the host
+
+            2. Check the run at the host
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    @upgrade
+    def test_positive_run_job_for_multiple_provisioned_hosts(self):
+        """Tests Ansible REX job runs successfully for multiple provisioned hosts
+
+        :id: 08ce6b2c-5385-48a4-8987-2815b3bd83b8
+
+        :Steps:
+
+            0. Provision two hosts
+
+            1. Run job for both hosts
+
+            2. Check the run at the hosts
+
+        :expectedresults: multiple asserts along the code
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
