@@ -65,7 +65,7 @@ ssh_key=
 # browser=selenium
 
 # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
-# webdriver=firefox
+# webdriver=chrome
 
 # Binary location for selected wedriver (not needed if using saucelabs)
 # webdriver_binary=/usr/bin/firefox

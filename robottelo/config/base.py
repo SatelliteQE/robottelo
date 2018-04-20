@@ -1147,7 +1147,7 @@ class Settings(object):
             INIReader.cast_logging_level
         )
         self.webdriver = self.reader.get(
-            'robottelo', 'webdriver', 'firefox')
+            'robottelo', 'webdriver', 'chrome')
         self.saucelabs_user = self.reader.get(
             'robottelo', 'saucelabs_user', None)
         self.saucelabs_key = self.reader.get(
