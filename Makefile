@@ -42,6 +42,7 @@ help:
 	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui            to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb       to test a Foreman deployment UI using xvfb-run"
+	@echo "  test-foreman-upgrade       to run Foreman deployment post-upgrade tests"
 	@echo "  test-foreman-endtoend      to perform a generic end-to-end test"
 	@echo "  graph-entities             to graph entity relationships"
 	@echo "  lint                       to run pylint on the entire codebase"
@@ -122,6 +123,9 @@ test-foreman-tier4:
 
 test-foreman-sys:
 	$(PYTEST) $(PYTEST_OPTS) -m 'not stubbed and destructive' $(FOREMAN_TESTS_PATH)
+
+test-foreman-upgrade:
+	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and upgrade' $(FOREMAN_TIERS_TESTS_PATH)
 
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
