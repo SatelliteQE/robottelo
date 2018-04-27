@@ -8,6 +8,7 @@ import sys
 
 from functools import partial
 
+from six import iteritems
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
@@ -638,6 +639,7 @@ class RHEVSettings(FeatureSettings):
         self.image_username = None
         self.image_password = None
         self.image_name = None
+        self.ca_cert = None
 
     def read(self, reader):
         """Read rhev settings."""
@@ -654,14 +656,16 @@ class RHEVSettings(FeatureSettings):
         self.image_username = reader.get('rhev', 'image_username')
         self.image_password = reader.get('rhev', 'image_password')
         self.image_name = reader.get('rhev', 'image_name')
+        self.ca_cert = reader.get('rhev', 'ca_cert', None)
 
     def validate(self):
         """Validate rhev settings."""
         validation_errors = []
-        if not all(vars(self).values()):
+        values = [v for k, v in iteritems(vars(self)) if k != 'ca_cert']
+        if not values:
             validation_errors.append(
                 'All [rhev] hostname, username, password, datacenter, '
-                'vm_name, image_name, image_os, image_arch, image_usernam, '
+                'vm_name, image_name, image_os, image_arch, image_username, '
                 'image_name options must be provided.'
             )
         return validation_errors
