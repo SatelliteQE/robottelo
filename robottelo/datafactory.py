@@ -41,7 +41,7 @@ def filtered_datapoint(func):
                 if settings.run_one_datapoint:
                     key = random.choice(list(dataset.keys()))
                     dataset = {key: dataset[key]}
-                return parametrized(dataset)
+                return xdist_adapter(dataset.values())
             # Otherwise use list for backwards compatibility
             dataset = list(dataset.values())
 
