@@ -1476,16 +1476,17 @@ OSCAP_PROFILE = {
 }
 
 ROLES = [
-    'Access Insights Admin',
-    'Access Insights Viewer',
-    'Boot disk access',
+    'Auditor',
+    'Bookmarks manager',
     'Compliance manager',
     'Compliance viewer',
+    'Create ARF report',
     'Discovery Manager',
     'Discovery Reader',
     'Edit hosts',
     'Edit partition tables',
-    'Red Hat Access Logs',
+    'Organization admin',
+    'Register hosts',
     'Remote Execution Manager',
     'Remote Execution User',
     'Site manager',
