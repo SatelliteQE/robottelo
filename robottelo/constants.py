@@ -1476,7 +1476,11 @@ OSCAP_PROFILE = {
 }
 
 ROLES = [
+    'Access Insights Admin',
+    'Access Insights Viewer',
+    'Ansible Roles Manager',
     'Auditor',
+    'Boot disk access',
     'Bookmarks manager',
     'Compliance manager',
     'Compliance viewer',
@@ -1486,6 +1490,7 @@ ROLES = [
     'Edit hosts',
     'Edit partition tables',
     'Organization admin',
+    'Red Hat Access Logs',
     'Register hosts',
     'Remote Execution Manager',
     'Remote Execution User',
@@ -1493,6 +1498,9 @@ ROLES = [
     'Tasks Manager',
     'Tasks Reader',
     'View hosts',
+    'Virt-who Manager',
+    'Virt-who Reporter',
+    'Virt-who Viewer',
     'Manager',
     'Viewer',
 ]
