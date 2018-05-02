@@ -20,25 +20,13 @@ import re
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
-from robottelo.api.utils import (
-    create_sync_custom_repo,
-    cv_publish_promote,
-    enable_rhrepo_and_fetchid,
-    upload_manifest,
-)
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.constants import (
-    DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
-    DISTRO_RHEL7,
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    PRDS,
-    REPOSET,
-    REPOS,
-    REPO_TYPE,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
@@ -440,82 +428,6 @@ class ActivationKeyTestCase(UITestCase):
                 self.assertEqual(int(chost_url_id.group(0)), chost_id)
 
     @run_in_one_thread
-    @run_only_on('sat')
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    @upgrade
-    def test_positive_add_rh_and_custom_products(self):
-        """Test that RH/Custom product can be associated to Activation
-        keys
-
-        :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
-
-        :Steps:
-            1. Create Activation key
-            2. Associate RH product(s) to Activation Key
-            3. Associate custom product(s) to Activation Key
-
-        :expectedresults: RH/Custom product is successfully associated to
-            Activation key
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        rh_repo = {
-            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
-                     'Server RPMs x86_64 6Server'),
-            'product': 'Red Hat Enterprise Linux Server',
-            'reposet': ('Red Hat Enterprise Virtualization Agents '
-                        'for RHEL 6 Server (RPMs)'),
-            'basearch': 'x86_64',
-            'releasever': '6Server',
-        }
-        product_subscription = DEFAULT_SUBSCRIPTION_NAME
-        custom_product_name = gen_string('alpha')
-        repo_name = gen_string('alpha')
-        # Create new org to import manifest
-        org = entities.Organization().create()
-        # Creates new product and repository via API's
-        product = entities.Product(
-            name=custom_product_name,
-            organization=org,
-        ).create()
-        repo = entities.Repository(
-            name=repo_name,
-            url=FAKE_1_YUM_REPO,
-            content_type=REPO_TYPE['yum'],
-            product=product,
-        ).create()
-        # Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        # Enable RH repo and fetch repository_id
-        rhel_repo_id = enable_rhrepo_and_fetchid(
-            basearch=rh_repo['basearch'],
-            org_id=org.id,
-            product=rh_repo['product'],
-            repo=rh_repo['name'],
-            reposet=rh_repo['reposet'],
-            releasever=rh_repo['releasever'],
-        )
-        # Sync repository
-        for repo_id in [rhel_repo_id, repo.id]:
-            entities.Repository(id=repo_id).sync()
-        with Session(self) as session:
-            make_activationkey(
-                session,
-                org=org.name,
-                name=name,
-                env=ENVIRONMENT,
-                content_view=DEFAULT_CV,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.associate_product(
-                name, [product_subscription, custom_product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
-
-    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_delete_manifest(self):
@@ -568,79 +480,6 @@ class ActivationKeyTestCase(UITestCase):
                     activation_key.name, DEFAULT_SUBSCRIPTION_NAME
                 )
             )
-
-    @run_only_on('sat')
-    @skip_if_not_set('clients')
-    @tier3
-    @upgrade
-    def test_positive_add_multiple_aks_to_system(self):
-        """Check if multiple Activation keys can be attached to a system
-
-        :id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
-
-        :expectedresults: Multiple Activation keys are attached to a system
-
-        :CaseLevel: System
-        """
-        key_1_name = gen_string('alpha')
-        key_2_name = gen_string('alpha')
-        cv_1_name = gen_string('alpha')
-        cv_2_name = gen_string('alpha')
-        env_1_name = gen_string('alpha')
-        env_2_name = gen_string('alpha')
-        product_1_name = gen_string('alpha')
-        product_2_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo_1_id = create_sync_custom_repo(
-            org_id=self.organization.id, product_name=product_1_name)
-        cv_publish_promote(
-            cv_1_name, env_1_name, repo_1_id, self.organization.id)
-        repo_2_id = create_sync_custom_repo(
-            org_id=self.organization.id,
-            product_name=product_2_name,
-            repo_url=FAKE_2_YUM_REPO,
-        )
-        cv_publish_promote(
-            cv_2_name, env_2_name, repo_2_id, self.organization.id)
-        with Session(self) as session:
-            # Create activation_key_1
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=key_1_name,
-                env=env_1_name,
-                content_view=cv_1_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(key_1_name))
-            self.activationkey.associate_product(key_1_name, [product_1_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            # Create activation_key_2
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=key_2_name,
-                env=env_2_name,
-                content_view=cv_2_name,
-            )
-            self.assertIsNotNone(self.activationkey.search(key_2_name))
-            self.activationkey.associate_product(key_2_name, [product_2_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            # Create VM
-            with VirtualMachine(distro=self.vm_distro) as vm:
-                vm.install_katello_ca()
-                vm.register_contenthost(
-                    self.organization.label,
-                    '{0},{1}'.format(key_1_name, key_2_name),
-                )
-                self.assertTrue(vm.subscribed)
-                # Assert the content-host association with activation-key
-                for key_name in [key_1_name, key_2_name]:
-                    names = self.activationkey.fetch_associated_content_hosts(
-                        key_name)
-                    self.assertEqual(len(names), 1)
-                    self.assertEqual(vm.hostname, names[0])
 
     @run_only_on('sat')
     @stubbed()
@@ -707,135 +546,6 @@ class ActivationKeyTestCase(UITestCase):
                         self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)
                     self.assertIsNone(self.activationkey.search(new_name))
-
-    @tier2
-    def test_positive_remove_user(self):
-        """Delete any user who has previously created an activation key
-        and check that activation key still exists
-
-        :id: f0504bd8-52d2-40cd-91c6-64d71b14c876
-
-        :expectedresults: Activation Key can be read
-
-        :BZ: 1291271
-        """
-        ak_name = gen_string('alpha')
-        # Create user
-        password = gen_string('alpha')
-        user = entities.User(
-            password=password, login=gen_string('alpha'), admin=True).create()
-        # Create Activation Key with new user credentials
-        with Session(self, user=user.login, password=password) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=ak_name,
-                env=ENVIRONMENT,
-            )
-            self.assertIsNotNone(self.activationkey.search(ak_name))
-        # Remove user and check that AK still exists
-        user.delete()
-        with Session(self) as session:
-            set_context(session, org=self.organization.name)
-            self.assertIsNotNone(self.activationkey.search(ak_name))
-
-    @run_in_one_thread
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    @upgrade
-    def test_positive_fetch_product_content(self):
-        """Associate RH & custom product with AK and fetch AK's product content
-
-        :id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
-
-        :expectedresults: Both Red Hat and custom product subscriptions are
-            assigned as Activation Key's product content
-
-        :BZ: 1426386, 1432285
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        rh_repo_id = enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhst7']['name'],
-            reposet=REPOSET['rhst7'],
-            releasever=None,
-        )
-        rh_repo = entities.Repository(id=rh_repo_id).read()
-        rh_repo.sync()
-        custom_product = entities.Product(organization=org).create()
-        custom_repo = entities.Repository(
-            name=gen_string('alphanumeric').upper(),  # first letter is always
-            # uppercase on product content page, workarounding it for
-            # successful checks
-            product=custom_product).create()
-        custom_repo.sync()
-        cv = entities.ContentView(
-            organization=org,
-            repository=[rh_repo_id, custom_repo.id],
-        ).create()
-        cv.publish()
-        ak = entities.ActivationKey(content_view=cv, organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.activationkey.associate_product(
-                ak.name, [custom_product.name, DEFAULT_SUBSCRIPTION_NAME])
-            self.assertEqual(
-                set(self.activationkey.fetch_repository_sets(ak.name)),
-                {custom_repo.name, REPOSET['rhst7']}
-            )
-
-    @skip_if_not_set('clients')
-    @tier3
-    @upgrade
-    def test_positive_host_associations(self):
-        """Register few hosts with different activation keys and ensure proper
-        data is reflected under Associations > Content Hosts tab
-
-        :id: 111aa2af-caf4-4940-8e4b-5b071d488876
-
-        :expectedresults: Only hosts, registered by specific AK are shown under
-            Associations > Content Hosts tab
-
-        :BZ: 1344033, 1372826, 1394388
-
-        :CaseLevel: System
-        """
-        org = entities.Organization().create()
-        org_entities = setup_org_for_a_custom_repo({
-            'url': FAKE_1_YUM_REPO,
-            'organization-id': org.id,
-        })
-        ak1 = entities.ActivationKey(
-            id=org_entities['activationkey-id']).read()
-        ak2 = entities.ActivationKey(
-            content_view=org_entities['content-view-id'],
-            environment=org_entities['lifecycle-environment-id'],
-            organization=org.id,
-        ).create()
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm1, VirtualMachine(
-                distro=DISTRO_RHEL7) as vm2:
-            vm1.install_katello_ca()
-            vm1.register_contenthost(org.label, ak1.name)
-            self.assertTrue(vm1.subscribed)
-            vm2.install_katello_ca()
-            vm2.register_contenthost(org.label, ak2.name)
-            self.assertTrue(vm2.subscribed)
-            with Session(self) as session:
-                set_context(session, org=org.name)
-                ak1_hosts = self.activationkey.fetch_associated_content_hosts(
-                    ak1.name)
-                self.assertEqual(len(ak1_hosts), 1)
-                self.assertIn(vm1.hostname, ak1_hosts)
-                ak2_hosts = self.activationkey.fetch_associated_content_hosts(
-                    ak2.name)
-                self.assertEqual(len(ak2_hosts), 1)
-                self.assertIn(vm2.hostname, ak2_hosts)
 
     @run_only_on('sat')
     @skip_if_not_set('clients', 'fake_manifest')

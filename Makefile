@@ -5,13 +5,13 @@ FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_ENDTOEND_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), endtoend)
-FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui})
+FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui_airgun})
 FOREMAN_TESTS_PATH=tests/foreman/
-FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
+FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui_airgun)
 PYTEST=python -m cProfile -o $@.pstats $$(which py.test)
 PYTEST_OPTS=-v --junit-xml=foreman-results.xml -m 'not stubbed'
 PYTEST_XDIST_NUMPROCESSES=auto
-PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n $(PYTEST_XDIST_NUMPROCESSES) --boxed
+PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n $(PYTEST_XDIST_NUMPROCESSES)
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 TESTIMONY_TOKENS="bz, caseautomation, casecomponent, caseimportance, caselevel, caseposneg, customerscenario, expectedresults, id, requirement, setup, subtype1, steps, teardown, testtype, upstream"
 TESTIMONY_MINIMUM_TOKENS="id, requirement, caseautomation, caselevel, casecomponent, testtype, caseimportance, upstream"
