@@ -28,6 +28,7 @@ from robottelo.constants import (
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
     FAKE_3_ERRATA_ID,
@@ -45,7 +46,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    skip_if_bug_open,
     run_in_one_thread,
     skip_if_not_set,
     stubbed,
@@ -96,7 +96,8 @@ class ErrataTestCase(APITestCase):
             'activationkey-id': cls.activation_key.id,
         })
 
-    def _install_package(self, clients, host_ids, package_name, via_ssh=True):
+    def _install_package(self, clients, host_ids, package_name, via_ssh=True,
+                         rpm_package_name=None):
         """Install package via SSH CLI if via_ssh is True, otherwise
         install via http api: PUT /api/v2/hosts/bulk/install_content
         """
@@ -113,7 +114,7 @@ class ErrataTestCase(APITestCase):
                 'content_type': 'package',
                 'content': [package_name],
             })
-            self._validate_package_installed(clients, package_name)
+            self._validate_package_installed(clients, rpm_package_name)
 
     def _validate_package_installed(self, hosts, package_name,
                                     expected_installed=True, timeout=120):
@@ -174,7 +175,6 @@ class ErrataTestCase(APITestCase):
                 )
             )
 
-    @skip_if_bug_open('bugzilla', 1528275)
     @upgrade
     @tier3
     def test_positive_bulk_install_package(self):
@@ -200,7 +200,12 @@ class ErrataTestCase(APITestCase):
             host_id = entities.Host().search(query={
                 'search': 'name={0}'.format(client.hostname)})[0].id
             self._install_package(
-                [client], [host_id], FAKE_1_CUSTOM_PACKAGE, via_ssh=False)
+                [client],
+                [host_id],
+                FAKE_1_CUSTOM_PACKAGE_NAME,
+                via_ssh=False,
+                rpm_package_name=FAKE_2_CUSTOM_PACKAGE
+            )
 
     @upgrade
     @tier3
