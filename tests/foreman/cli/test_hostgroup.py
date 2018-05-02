@@ -459,7 +459,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(proxy['id'], hostgroup['puppet-master-proxy-id'])
         self.assertEqual(proxy['id'], hostgroup['puppet-ca-proxy-id'])
         self.assertEqual(domain['name'], hostgroup['domain'])
-        self.assertEqual(subnet['name'], hostgroup['subnet'])
+        self.assertEqual(subnet['name'], hostgroup['network']['subnet-ipv4'])
         self.assertEqual(arch['name'], hostgroup['architecture'])
         self.assertEqual(ptable['name'], hostgroup['partition-table'])
         self.assertEqual(media['name'], hostgroup['medium'])
@@ -557,7 +557,9 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(proxy['id'], hostgroup['puppet-master-proxy-id'])
         self.assertEqual(proxy['id'], hostgroup['puppet-ca-proxy-id'])
         self.assertEqual(domain['id'], hostgroup['domain']['domain_id'])
-        self.assertEqual(subnet['id'], hostgroup['subnet']['subnet_id'])
+        self.assertEqual(
+                subnet['id'],
+                hostgroup['network']['subnet-ipv4']['id'])
         self.assertEqual(
             arch['id'], hostgroup['architecture']['architecture_id'])
         self.assertEqual(

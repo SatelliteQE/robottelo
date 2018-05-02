@@ -261,7 +261,7 @@ class DiscoveredTestCase(CLITestCase):
                 )
             })
             self.assertEqual(
-                provisioned_host['network']['subnet'],
+                provisioned_host['network']['subnet-ipv4'],
                 self.configured_env['subnet']['name']
             )
             self.assertEqual(
@@ -460,7 +460,7 @@ class DiscoveredTestCase(CLITestCase):
             })
             # assertion #8
             self.assertEqual(
-                provisioned_host['network']['subnet'],
+                provisioned_host['network']['subnet-ipv4'],
                 self.configured_env['subnet']['name']
             )
             self.assertEqual(
