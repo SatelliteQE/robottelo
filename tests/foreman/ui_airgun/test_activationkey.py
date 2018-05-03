@@ -198,7 +198,8 @@ def test_positive_create_with_host_collection(session, module_org):
         assert session.activationkey.search(name) == name
         session.activationkey.add_host_collection(name, hc.name)
         ak = session.activationkey.read(name)
-        assert hc.name in ak['host_collections']['resources']['assigned']
+        assert ak[
+            'host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
 
 @tier2
@@ -271,7 +272,8 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
         assert session.activationkey.search(ak_name) == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name)
-        assert hc.name in ak['host_collections']['resources']['assigned']
+        assert ak[
+            'host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
 
 @tier2
@@ -314,11 +316,12 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
         assert session.activationkey.search(ak_name) == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name)
-        assert hc.name in ak['host_collections']['resources']['assigned']
+        assert ak[
+            'host_collections']['resources']['assigned'][0]['Name'] == hc.name
         # remove Host Collection
         session.activationkey.remove_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name)
-        assert hc.name not in ak['host_collections']['resources']['assigned']
+        assert not ak['host_collections']['resources']['assigned']
 
 
 @tier2
@@ -553,8 +556,9 @@ def test_positive_add_rh_product(session):
         assert session.activationkey.search(name) == name
         session.activationkey.add_subscription(name, DEFAULT_SUBSCRIPTION_NAME)
         ak = session.activationkey.read(name)
-        assert DEFAULT_SUBSCRIPTION_NAME in ak[
-            'subscriptions']['resources']['assigned']
+        subs_name = ak[
+            'subscriptions']['resources']['assigned'][0]['Repository Name']
+        assert subs_name == DEFAULT_SUBSCRIPTION_NAME
 
 
 @tier2
@@ -585,7 +589,9 @@ def test_positive_add_custom_product(session, module_org):
         assert session.activationkey.search(name) == name
         session.activationkey.add_subscription(name, product_name)
         ak = session.activationkey.read(name)
-        assert product_name in ak['subscriptions']['resources']['assigned']
+        assigned_prod = ak[
+            'subscriptions']['resources']['assigned'][0]['Repository Name']
+        assert assigned_prod == product_name
 
 
 @run_in_one_thread
@@ -649,8 +655,14 @@ def test_positive_add_rh_and_custom_products(session):
         for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
             session.activationkey.add_subscription(name, subscription)
         ak = session.activationkey.read(name)
-        assert {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(
-            ak['subscriptions']['resources']['assigned'])
+        subscriptions = [
+            subscription['Repository Name']
+            for subscription in ak['subscriptions']['resources']['assigned']
+        ]
+        assert (
+            {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} ==
+            set(subscriptions)
+        )
 
 
 @run_in_one_thread
@@ -701,7 +713,9 @@ def test_positive_fetch_product_content(session):
             session.activationkey.add_subscription(ak.name, subscription)
         ak = session.activationkey.read(ak.name)
         reposets = [
-            reposet['Repository Name'] for reposet in ak['repository_sets']]
+            reposet['Repository Name']
+            for reposet in ak['repository_sets']['resources']
+        ]
         assert {custom_repo.name, REPOSET['rhst7']} == set(reposets)
 
 
@@ -856,8 +870,8 @@ def test_positive_add_host(session, module_org):
         with session:
             session.organization.select(module_org.name)
             ak = session.activationkey.read(ak.name)
-            assert len(ak['content_hosts']) == 1
-            assert ak['content_hosts'][0]['Name'] == vm.hostname
+            assert len(ak['content_hosts']['resources']) == 1
+            assert ak['content_hosts']['resources'][0]['Name'] == vm.hostname
 
 
 @skip_if_not_set('clients')
@@ -989,7 +1003,12 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
             assert session.activationkey.search(key_name) == key_name
             session.activationkey.add_subscription(key_name, product_name)
             ak = session.activationkey.read(key_name)
-            assert product_name in ak['subscriptions']['resources']['assigned']
+            subscriptions = [
+                subscription['Repository Name']
+                for subscription
+                in ak['subscriptions']['resources']['assigned']
+            ]
+            assert product_name in subscriptions
         # Create VM
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
@@ -1044,10 +1063,10 @@ def test_positive_host_associations(session):
         with session:
             session.organization.select(org.name)
             ak1 = session.activationkey.read(ak1.name)
-            assert len(ak1['content_hosts']) == 1
-            assert ak1['content_hosts'][0]['Name'] == vm1.hostname
+            assert len(ak1['content_hosts']['resources']) == 1
+            assert ak1['content_hosts']['resources'][0]['Name'] == vm1.hostname
             # fixme: drop next line after airgun#63 is solved
             session.activationkey.search(ak2.name)
             ak2 = session.activationkey.read(ak2.name)
-            assert len(ak2['content_hosts']) == 1
-            assert ak2['content_hosts'][0]['Name'] == vm2.hostname
+            assert len(ak2['content_hosts']['resources']) == 1
+            assert ak2['content_hosts']['resources'][0]['Name'] == vm2.hostname
