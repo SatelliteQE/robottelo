@@ -546,7 +546,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         """Check whether package was installed on the list of hosts."""
 
         for host in hosts:
-            for _ in range(timeout / 15):
+            for _ in range(timeout // 15):
                 result = self.contenthost.package_search(
                     host.hostname, package_name)
                 if (result is not None and expected_installed or
