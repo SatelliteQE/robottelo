@@ -1146,7 +1146,7 @@ class ContentViewTestCase(CLITestCase):
             })
         self.assertIn(
             'Could not create the content view:',
-            context.exception.message
+            str(context.exception)
         )
 
     @tier2
@@ -1726,7 +1726,7 @@ class ContentViewTestCase(CLITestCase):
             })
         self.assertIn(
             'Error: content_view_version not found',
-            context.exception.message
+            str(context.exception)
         )
 
     @tier2
@@ -1785,7 +1785,7 @@ class ContentViewTestCase(CLITestCase):
             })
         self.assertIn(
             'Error: content_view_version not found',
-            context.exception.message
+            str(context.exception)
         )
 
     # Content View: promotions

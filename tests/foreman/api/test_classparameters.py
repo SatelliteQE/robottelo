@@ -263,7 +263,7 @@ class SmartClassParametersTestCase(APITestCase):
         with self.assertRaises(HTTPError) as context:
             entities.Role(cfg, id=role.id).read()
         self.assertIn(
-            '403 Client Error: Forbidden', context.exception.message)
+            '403 Client Error: Forbidden',  str(context.exception))
         result = entities.PuppetClass(
             cfg, id=self.puppet_class.id).list_scparams()['results']
         self.assertGreater(len(result), 0)
