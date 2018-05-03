@@ -100,7 +100,7 @@ class ContentHost(Base):
     def validate_subscription_status(self, name, expected_value=True,
                                      timeout=120):
         """Check whether a content host has active subscription or not"""
-        for _ in range(timeout / 5):
+        for _ in range(timeout // 5):
             self.search(name)
             strategy, value = (
                 locators['contenthost.subscription_active'] if expected_value
