@@ -16,6 +16,7 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+from math import ceil
 from random import choice
 from robottelo.cli.base import CLIDataBaseError, CLIReturnCodeError
 from robottelo.cli.factory import make_filter, make_role
@@ -251,8 +252,7 @@ class RoleTestCase(CLITestCase):
                 self.assertEqual(len(filters), per_page)
                 # Verify pagination and total amount of pages by checking the
                 # items count on the last page
-                last_page = (len(permissions) / per_page
-                             + int(len(permissions) % per_page != 0))
+                last_page = ceil(len(permissions) / per_page)
                 filters = Role.filters({
                     'name': role['name'],
                     'page': last_page,
