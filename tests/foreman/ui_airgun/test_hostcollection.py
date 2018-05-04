@@ -18,7 +18,7 @@ from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier3
+from robottelo.decorators import tier3, upgrade
 
 
 def test_positive_create(session):
@@ -33,6 +33,7 @@ def test_positive_create(session):
         assert session.hostcollection.search(hc_name) == hc_name
 
 
+@upgrade
 @tier3
 def test_positive_add_host(session):
     """Check if host can be added to Host Collection
