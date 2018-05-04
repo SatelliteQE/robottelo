@@ -8,7 +8,6 @@ import sys
 
 from functools import partial
 
-from six import iteritems
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
@@ -661,8 +660,8 @@ class RHEVSettings(FeatureSettings):
     def validate(self):
         """Validate rhev settings."""
         validation_errors = []
-        values = [v for k, v in iteritems(vars(self)) if k != 'ca_cert']
-        if not values:
+        values = [v for k, v in vars(self).items() if k != 'ca_cert']
+        if not all(values):
             validation_errors.append(
                 'All [rhev] hostname, username, password, datacenter, '
                 'vm_name, image_name, image_os, image_arch, image_username, '
