@@ -1048,7 +1048,7 @@ class ActivationKeyTestCase(UITestCase):
                     with self.assertRaises(ValueError) as context:
                         self.activationkey.update(name, limit=limit)
                     self.assertEqual(
-                        context.exception.message,
+                        str(context.exception),
                         'Please update content host limit with valid ' +
                         'integer value'
                     )

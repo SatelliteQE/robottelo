@@ -323,7 +323,7 @@ class DockerRepositoryTestCase(CLITestCase):
                     })
                 self.assertIn(
                     'Validation failed: Docker upstream name',
-                    context.exception.message
+                    str(context.exception)
                 )
 
     @skip_if_not_set('docker')

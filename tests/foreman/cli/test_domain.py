@@ -246,7 +246,7 @@ class DomainTestCase(CLITestCase):
                 Domain.update(dict(options, id=domain['id']))
                 # check - domain updated
                 domain = Domain.info({'id': domain['id']})
-                for key, val in options.iteritems():
+                for key, val in options.items():
                     self.assertEqual(domain[key], val)
 
     @tier1
