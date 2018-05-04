@@ -363,7 +363,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
         self.assertIn(
-            "Error: option '--errata' is required",
+            "Error: Option '--errata' is required",
             context.exception.stderr
         )
 
@@ -390,7 +390,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
         self.assertIn(
-            "Error: option '--errata' is required",
+            "Error: Option '--errata' is required",
             context.exception.stderr
         )
 
@@ -1761,7 +1761,7 @@ class ErrataTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             Org.with_user(user_name, user_password).info({'id': org['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request',
+            'Missing one of the required permissions: view_organizations',
             context.exception.stderr
         )
         # try to get the erratum products list by organization id only
