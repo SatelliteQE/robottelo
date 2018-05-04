@@ -351,7 +351,7 @@ class ActivationKeyTestCase(UITestCase):
                 with self.subTest(new_name):
                     self.activationkey.update(name, new_name)
                     self.assertIsNotNone(self.activationkey.wait_until_element(
-                        common_locators['alert.error_sub_form']))
+                        common_locators['alert.error']))
                     self.assertIsNone(self.activationkey.search(new_name))
 
     @tier1
@@ -546,6 +546,8 @@ class ActivationKeyTestCase(UITestCase):
                         self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)
                     self.assertIsNone(self.activationkey.search(new_name))
+                    self.activationkey.click(
+                        common_locators['toast.alert.close'])
 
     @run_only_on('sat')
     @skip_if_not_set('clients', 'fake_manifest')
