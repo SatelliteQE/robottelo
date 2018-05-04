@@ -16,7 +16,6 @@ from six.moves.configparser import (
     NoSectionError,
     ConfigParser
 )
-from six import iteritems
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -645,8 +644,8 @@ class RHEVSettings(FeatureSettings):
     def validate(self):
         """Validate rhev settings."""
         validation_errors = []
-        values = [v for k, v in iteritems(vars(self)) if k != 'ca_cert']
-        if not values:
+        values = [v for k, v in vars(self).items() if k != 'ca_cert']
+        if not all(values):
             validation_errors.append(
                 'All [rhev] hostname, username, password, datacenter, '
                 'vm_name, image_name, image_os, image_arch, image_username, '
