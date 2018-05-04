@@ -11902,7 +11902,13 @@
               "name": "image-id", 
               "shortname": null, 
               "value": "IMAGE_ID"
-            }, 
+            },
+            {
+              "help": "List of products installed on the host Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "installed-products-attributes",
+              "shortname": null,
+              "value": "INSTALLED_PRODUCTS_ATTRIBUTES"
+            },
             {
               "help": "Interface parameters. Comma-separated list of key=value. Can be specified multiple times.", 
               "name": "interface", 
@@ -12070,7 +12076,19 @@
               "name": "partition-table-id", 
               "shortname": null, 
               "value": "PARTITION_TABLE_ID"
-            }, 
+            },
+            {
+              "help": "Name to search by",
+              "name": "product",
+              "shortname": null,
+              "value": "PRODUCT_NAME"
+            },
+            {
+              "help": "product numeric identifier",
+              "name": "product-id",
+              "shortname": null,
+              "value": "PRODUCT_ID"
+            },
             {
               "help": "UUID to track orchestration tasks status, GET /api/orchestration/:UUID/tasks", 
               "name": "progress-report-id", 
@@ -14273,7 +14291,13 @@
               "name": "image-id", 
               "shortname": null, 
               "value": "IMAGE_ID"
-            }, 
+            },
+            {
+              "help": "List of products installed on the host Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "installed-products-attributes",
+              "shortname": null,
+              "value": "INSTALLED_PRODUCTS_ATTRIBUTES"
+            },
             {
               "help": "Interface parameters. Comma-separated list of key=value. Can be specified multiple times.", 
               "name": "interface", 
@@ -14447,7 +14471,19 @@
               "name": "partition-table-id", 
               "shortname": null, 
               "value": "PARTITION_TABLE_ID"
-            }, 
+            },
+            {
+              "help": "Name to search by",
+              "name": "product",
+              "shortname": null,
+              "value": "PRODUCT_NAME"
+            },
+            {
+              "help": "product numeric identifier",
+              "name": "product-id",
+              "shortname": null,
+              "value": "PRODUCT_ID"
+            },
             {
               "help": "UUID to track orchestration tasks status, GET /api/orchestration/:UUID/tasks", 
               "name": "progress-report-id", 
