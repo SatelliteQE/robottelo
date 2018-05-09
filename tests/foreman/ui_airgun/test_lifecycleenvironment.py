@@ -18,7 +18,7 @@ from nailgun import entities
 
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import fixture, tier2, upgrade
 
 
 @fixture(scope='module')
@@ -41,6 +41,7 @@ def test_positive_edit(session):
         assert new_name in lce_values['lce']
 
 
+@upgrade
 @tier2
 def test_positive_create_chain(session):
     """Create Content Environment in a chain
