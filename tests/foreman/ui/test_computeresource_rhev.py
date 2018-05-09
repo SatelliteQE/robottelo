@@ -1461,7 +1461,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             self.compute_resource.set_profile_values(
                 cr_name, COMPUTE_PROFILE_SMALL,
                 cluster=self.rhev_datacenter,
-                template=self.rhev_img_name,
+                template=self.rhev_img_name + str(' (base version)'),
             )
             if bz_bug_is_open(1520382):
                 # update the memory field as not loaded from template
