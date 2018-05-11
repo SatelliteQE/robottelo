@@ -33,7 +33,7 @@ ssh_key=
 # connection_timeout=10
 
 # Override robottelo configuration
-# [robottelo]
+[robottelo]
 # The directory where screenshots will be saved.
 # Note:- Content under /tmp may be deleted after a reboot.
 # screenshots_path=/tmp/robottelo/screenshots/
