@@ -462,7 +462,13 @@ class SshKeyInUserTestCase(APITestCase):
                 key=invalid_sshkey
             ).create()
         self.assertRegexpMatches(
-            context.exception.response.text, 'Key is invalid')
+            context.exception.response.text,
+            'Key is not a valid public ssh key'
+        )
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            'Key must be in OpenSSH public key format'
+        )
         self.assertRegexpMatches(
             context.exception.response.text,
             'Fingerprint could not be generated'
