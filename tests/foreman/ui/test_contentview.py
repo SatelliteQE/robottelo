@@ -234,50 +234,6 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    @upgrade
-    def test_positive_end_to_end(self):
-        """create content view with yum repo, publish it
-        and promote it to Library +1 env
-
-        :id: 74c1b00d-c582-434f-bf73-588532588d50
-
-        :steps:
-            1. Create Product/repo and Sync it
-            2. Create CV and add created repo in step1
-            3. Publish and promote it to 'Library'
-            4. Promote it to next environment
-
-        :expectedresults: content view is created, updated with repo publish
-            and promoted to next selected env
-
-        :CaseLevel: Integration
-        """
-        repo_name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        version = 'Version 1.0'
-        with Session(self) as session:
-            # Create Life-cycle environment
-            make_lifecycle_environment(
-                session, org=self.organization.name, name=env_name)
-            self.assertIsNotNone(session.nav.wait_until_element(
-                locators['content_env.select_name'] % env_name))
-            # Creates a CV along with product and sync'ed repository
-            self.setup_to_create_cv(repo_name=repo_name)
-            # Create content-view
-            make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            # Add repository to selected CV
-            self.content_views.add_remove_repos(cv_name, [repo_name])
-            # Publish and promote CV to next environment
-            self.content_views.publish(cv_name)
-            self.assertIsNotNone(
-                self.content_views.version_search(cv_name, version))
-            status = self.content_views.promote(cv_name, version, env_name)
-            self.assertIn('Promoted to {}'.format(env_name), status)
-
-    @run_only_on('sat')
-    @tier2
     def test_positive_repo_count_for_composite_cv(self):
         """Create some content views with synchronized repositories and
         promoted to one lce. Add them to composite content view and check repo
