@@ -597,6 +597,11 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
     ],
+    'AnsibleRole': [
+        'view_ansible_roles',
+        'destroy_ansible_roles',
+        'import_ansible_roles',
+    ],
     'Architecture': [
         'view_architectures',
         'create_architectures',
@@ -606,7 +611,7 @@ PERMISSIONS = {
     'Audit': [
         'view_audit_logs',
     ],
-    'AuthSourceLdap': [
+    'AuthSource': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
@@ -722,6 +727,7 @@ PERMISSIONS = {
     'JobInvocation': [
         'view_job_invocations',
         'create_job_invocations',
+        'cancel_job_invocations',
     ],
     'JobTemplate': [
         'view_job_templates',
@@ -750,12 +756,20 @@ PERMISSIONS = {
     ],
     'HostClass': [
         'edit_classes',
+        'play_roles_on_host',
     ],
     'Hostgroup': [
         'view_hostgroups',
         'create_hostgroups',
         'edit_hostgroups',
         'destroy_hostgroups',
+        'play_roles_on_hostgroup',
+    ],
+    'HttpProxy': [
+        'view_http_proxies',
+        'create_http_proxies',
+        'edit_http_proxies',
+        'destroy_http_proxies',
     ],
     'Image': [
         'view_images',
@@ -800,6 +814,11 @@ PERMISSIONS = {
         'create_params',
         'edit_params',
         'destroy_params',
+    ],
+    'PersonalAccessToken': [
+        'view_personal_access_tokens',
+        'create_personal_access_tokens',
+        'revoke_personal_access_tokens',
     ],
     'ProvisioningTemplate': [
         'view_provisioning_templates',
@@ -878,7 +897,7 @@ PERMISSIONS = {
     ],
     'TemplateInvocation': [
         'filter_autocompletion_for_template_invocation',
-        'execute_template_invocation',
+        'create_template_invocations',
     ],
     'Trend': [
         'view_trends',
@@ -942,6 +961,10 @@ PERMISSIONS = {
         'create_gpg_keys',
         'edit_gpg_keys',
         'destroy_gpg_keys',
+        'view_content_credentials',
+        'create_content_credentials',
+        'edit_content_credentials',
+        'destroy_content_credentials',
     ],
     'Katello::HostCollection': [
         'view_host_collections',
@@ -970,6 +993,7 @@ PERMISSIONS = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
+        'manage_subscription_allocations',
     ],
     'Organization': [
         'view_organizations',
