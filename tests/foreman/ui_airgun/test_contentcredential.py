@@ -20,6 +20,7 @@ from nailgun import entities
 from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
+    REPO_DISCOVERY_URL,
     VALID_GPG_KEY_FILE,
 )
 from robottelo.datafactory import gen_string
@@ -237,6 +238,46 @@ class TestGPGKeyProductAssociate(object):
             assert len(values['products']['resources']) == 0
             assert len(values['repositories']['resources']) == 1
             assert values['repositories']['resources'][0]['Name'] == repo1.name
+
+    @tier2
+    @upgrade
+    def test_positive_add_product_using_repo_discovery(self, session):
+        """Create gpg key with valid name and valid gpg key
+        then associate it with custom product using Repo discovery method
+
+        :id: 7490a5a6-8575-45eb-addc-298ed3b62649
+
+        :expectedresults: gpg key is associated with product as well as with
+            the repositories
+
+        :BZ: 1210180, 1461804
+
+        :CaseLevel: Integration
+        """
+        name = gen_string('alpha')
+        product_name = gen_string('alpha')
+        repo_name = 'fakerepo01'
+        with session:
+            session.organization.select(org_name=self.organization.name)
+            session.contentcredential.create({
+                'name': name,
+                'content_type': 'GPG Key',
+                'upload_file': self.key_path
+            })
+            assert session.contentcredential.search(name) == name
+            session.product.discover_repo({
+                'repo_type': 'Yum Repositories',
+                'url': REPO_DISCOVERY_URL,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+                'create_repo.product_content.gpg_key': name,
+            })
+            values = session.contentcredential.read(name)
+            assert len(values['products']['resources']) == 1
+            assert values['products']['resources'][0]['Name'] == product_name
+            assert len(values['repositories']['resources']) == 1
+            assert values['repositories']['resources'][0]['Name'] == repo_name
 
     @tier2
     def test_positive_update_key_for_empty_product(self, session):

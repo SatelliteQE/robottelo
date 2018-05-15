@@ -687,49 +687,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             self.assertIsNotNone(self.products.wait_until_element(
                 locators['prd.title'] % product.name))
 
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_add_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key
-        then associate it with custom product using Repo discovery method
-
-        :id: 7490a5a6-8575-45eb-addc-298ed3b62649
-
-        :expectedresults: gpg key is associated with product as well as with
-            the repositories
-
-        :BZ: 1210180, 1461804
-
-        :CaseLevel: Integration
-        """
-        name = get_random_gpgkey_name()
-        product_name = gen_string('alpha')
-        with Session(self) as session:
-            make_gpgkey(
-                session,
-                key_content=self.key_content,
-                name=name,
-                org=self.organization.name,
-            )
-            self.assertIsNotNone(self.gpgkey.search(name))
-            session.nav.go_to_products()
-            self.repository.discover_repo(
-                REPO_DISCOVERY_URL,
-                ['fakerepo01/'],
-                gpg_key=name,
-                new_product=True,
-                product=product_name,
-            )
-            self.assertIsNotNone(
-                self.gpgkey.get_product_repo(name, product_name)
-            )
-            self.assertIsNotNone(
-                self.gpgkey.get_product_repo(
-                    name, 'fakerepo01', entity_type='Repository'
-                )
-            )
-
     @stubbed()
     @run_only_on('sat')
     @tier2
