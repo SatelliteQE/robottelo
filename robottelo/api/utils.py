@@ -195,7 +195,8 @@ def delete_puppet_class(puppetclass_name, puppet_module=None,
 
 
 def create_sync_custom_repo(org_id=None, product_name=None, repo_name=None,
-                            repo_url=None, repo_type=None):
+                            repo_url=None, repo_type=None,
+                            repo_unprotected=True, docker_upstream_name=None):
     """Create product/repo, sync it and returns repo_id"""
     if org_id is None:
         org_id = entities.Organization().create().id
@@ -211,6 +212,8 @@ def create_sync_custom_repo(org_id=None, product_name=None, repo_name=None,
         url=repo_url or FAKE_1_YUM_REPO,
         content_type=repo_type or REPO_TYPE['yum'],
         product=product,
+        unprotected=repo_unprotected,
+        docker_upstream_name=docker_upstream_name,
     ).create()
     # Sync repository
     entities.Repository(id=repo.id).sync()
