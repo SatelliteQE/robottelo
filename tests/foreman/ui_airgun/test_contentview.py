@@ -96,11 +96,11 @@ def test_positive_end_to_end(session, module_org):
     env_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     version = 'Version 1.0'
+    # Creates a CV along with product and sync'ed repository
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         # Create Life-cycle environment
         session.lifecycleenvironment.create({'name': env_name})
-        # Creates a CV along with product and sync'ed repository
-        create_sync_custom_repo(module_org.id, repo_name=repo_name)
         # Create content-view
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name) == cv_name
