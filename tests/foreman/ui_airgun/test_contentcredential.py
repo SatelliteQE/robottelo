@@ -45,7 +45,7 @@ class TestGPGKeyProductAssociate(object):
                 'content_type': 'GPG Key',
                 'upload_file': self.key_path
             })
-            assert session.contentcredential.search(name) == name
+            assert session.contentcredential.search(name)[0]['Name'] == name
 
     @tier2
     def test_positive_add_empty_product(self, session):
@@ -72,9 +72,9 @@ class TestGPGKeyProductAssociate(object):
         with session:
             session.organization.select(org_name=self.organization.name)
             values = session.contentcredential.read(name)
-            assert len(values['products']['resources']) == 1
-            assert values['products']['resources'][0]['Name'] == product.name
-            assert values['products']['resources'][0]['Used as'] == 'GPG Key'
+            assert len(values['products']['table']) == 1
+            assert values['products']['table'][0]['Name'] == product.name
+            assert values['products']['table'][0]['Used as'] == 'GPG Key'
 
     @tier2
     def test_positive_add_product_with_repo(self, session):
@@ -107,17 +107,17 @@ class TestGPGKeyProductAssociate(object):
         with session:
             session.organization.select(org_name=self.organization.name)
             values = session.contentcredential.read(name)
-            assert len(values['products']['resources']) == 1
-            assert values['products']['resources'][0]['Name'] == product.name
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo.name
+            assert len(values['products']['table']) == 1
+            assert values['products']['table'][0]['Name'] == product.name
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo.name
             assert (
-                values['repositories']['resources'][0]['Product'] ==
+                values['repositories']['table'][0]['Product'] ==
                 product.name
             )
-            assert values['repositories']['resources'][0]['Type'] == 'yum'
+            assert values['repositories']['table'][0]['Type'] == 'yum'
             assert (
-                values['repositories']['resources'][0]['Used as'] ==
+                values['repositories']['table'][0]['Used as'] ==
                 'GPG Key'
             )
 
@@ -156,13 +156,13 @@ class TestGPGKeyProductAssociate(object):
         with session:
             session.organization.select(org_name=self.organization.name)
             values = session.contentcredential.read(name)
-            assert len(values['repositories']['resources']) == 2
+            assert len(values['repositories']['table']) == 2
             assert (
-                set([repo1.name, repo2.name]) ==
+                {repo1.name, repo2.name} ==
                 set([
                     repo['Name']
                     for repo
-                    in values['repositories']['resources']])
+                    in values['repositories']['table']])
             )
 
     @tier2
@@ -194,10 +194,10 @@ class TestGPGKeyProductAssociate(object):
         with session:
             session.organization.select(org_name=self.organization.name)
             values = session.contentcredential.read(name)
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo.name
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo.name
             assert (
-                values['repositories']['resources'][0]['Product'] ==
+                values['repositories']['table'][0]['Product'] ==
                 product.name
             )
 
@@ -235,9 +235,9 @@ class TestGPGKeyProductAssociate(object):
         with session:
             session.organization.select(org_name=self.organization.name)
             values = session.contentcredential.read(name)
-            assert len(values['products']['resources']) == 0
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo1.name
+            assert len(values['products']['table']) == 0
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo1.name
 
     @tier2
     @upgrade
@@ -264,7 +264,7 @@ class TestGPGKeyProductAssociate(object):
                 'content_type': 'GPG Key',
                 'upload_file': self.key_path
             })
-            assert session.contentcredential.search(name) == name
+            assert session.contentcredential.search(name)[0]['Name'] == name
             session.product.discover_repo({
                 'repo_type': 'Yum Repositories',
                 'url': REPO_DISCOVERY_URL,
@@ -274,10 +274,10 @@ class TestGPGKeyProductAssociate(object):
                 'create_repo.product_content.gpg_key': name,
             })
             values = session.contentcredential.read(name)
-            assert len(values['products']['resources']) == 1
-            assert values['products']['resources'][0]['Name'] == product_name
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo_name
+            assert len(values['products']['table']) == 1
+            assert values['products']['table'][0]['Name'] == product_name
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo_name
 
     @tier2
     def test_positive_update_key_for_empty_product(self, session):
@@ -307,16 +307,16 @@ class TestGPGKeyProductAssociate(object):
             session.organization.select(org_name=self.organization.name)
             values = session.contentcredential.read(name)
             # Assert that GPGKey is associated with product
-            assert len(values['products']['resources']) == 1
-            assert values['products']['resources'][0]['Name'] == product.name
+            assert len(values['products']['table']) == 1
+            assert values['products']['table'][0]['Name'] == product.name
             session.contentcredential.update(
                 name,
                 {'details.name': new_name},
             )
             values = session.contentcredential.read(new_name)
             # Assert that GPGKey is still associated with product
-            assert len(values['products']['resources']) == 1
-            assert values['products']['resources'][0]['Name'] == product.name
+            assert len(values['products']['table']) == 1
+            assert values['products']['table'][0]['Name'] == product.name
 
     @tier2
     def test_positive_update_key_for_product_with_repo(self, session):
@@ -355,10 +355,10 @@ class TestGPGKeyProductAssociate(object):
             )
             values = session.contentcredential.read(new_name)
             # Assert that GPGKey is still associated with product
-            assert len(values['products']['resources']) == 1
-            assert values['products']['resources'][0]['Name'] == product.name
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo.name
+            assert len(values['products']['table']) == 1
+            assert values['products']['table'][0]['Name'] == product.name
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo.name
 
     @tier2
     @upgrade
@@ -403,13 +403,13 @@ class TestGPGKeyProductAssociate(object):
                 {'details.name': new_name},
             )
             values = session.contentcredential.read(new_name)
-            assert len(values['repositories']['resources']) == 2
+            assert len(values['repositories']['table']) == 2
             assert (
-                set([repo1.name, repo2.name]) ==
+                {repo1.name, repo2.name} ==
                 set([
                     repo['Name']
                     for repo
-                    in values['repositories']['resources']])
+                    in values['repositories']['table']])
             )
 
     @tier2
@@ -451,11 +451,11 @@ class TestGPGKeyProductAssociate(object):
             )
             values = session.contentcredential.read(new_name)
             # Assert that after update GPGKey is not associated with product
-            assert len(values['products']['resources']) == 0
+            assert len(values['products']['table']) == 0
             # Assert that after update GPGKey is still associated
             # with repository
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo.name
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo.name
 
     @tier2
     @upgrade
@@ -501,6 +501,6 @@ class TestGPGKeyProductAssociate(object):
                 {'details.name': new_name},
             )
             values = session.contentcredential.read(new_name)
-            assert len(values['products']['resources']) == 0
-            assert len(values['repositories']['resources']) == 1
-            assert values['repositories']['resources'][0]['Name'] == repo1.name
+            assert len(values['products']['table']) == 0
+            assert len(values['repositories']['table']) == 1
+            assert values['repositories']['table'][0]['Name'] == repo1.name

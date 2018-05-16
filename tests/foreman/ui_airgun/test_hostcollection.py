@@ -30,7 +30,7 @@ def test_positive_create(session):
             'max_hosts': 3,
             'description': gen_string('alpha'),
         })
-        assert session.hostcollection.search(hc_name) == hc_name
+        assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
 
 
 @upgrade
@@ -60,7 +60,9 @@ def test_positive_add_host(session):
     with session:
         session.organization.select(org_name=org.name)
         session.hostcollection.create({'name': hc_name})
-        assert session.hostcollection.search(hc_name) == hc_name
+        assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)
         hc_values = session.hostcollection.read(hc_name)
-        assert hc_values['hosts']['resources']['assigned'][0] == host.name
+        assert (
+            hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
+        )

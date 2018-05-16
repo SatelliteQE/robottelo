@@ -31,7 +31,7 @@ def test_positive_create(session):
             'network_mask': subnet.mask,
             'boot_mode': 'Static',
         })
-        assert session.subnet.search(name) == name
+        assert session.subnet.search(name)[0]['Name'] == name
         subnet_values = session.subnet.read(name)
         assert subnet_values['protocol'] == 'IPv4'
         assert subnet_values['network_address'] == subnet.network
@@ -48,7 +48,7 @@ def test_positive_create_v6(session):
             'network_address': ip_address,
             'network_prefix': 12
         })
-        assert session.subnet.search(name) == name
+        assert session.subnet.search(name)[0]['Name'] == name
         subnet_values = session.subnet.read(name)
         assert subnet_values['protocol'] == 'IPv6'
         assert subnet_values['network_address'] == ip_address

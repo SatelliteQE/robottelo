@@ -47,12 +47,10 @@ def test_positive_create_with_multiple_roles(session):
             'user.confirm': password,
             'roles.resources.assigned': [role1, role2],
         })
-        assert session.user.search(name) == name
-        user_values = session.user.read(name)
+        assert session.user.search(name)[0]['Username'] == name
+        user = session.user.read(name)
         assert (
-            set(user_values['roles']['resources']['assigned']) ==
-            set([role1, role2])
-        )
+            set(user['roles']['resources']['assigned']) == {role1, role2})
 
 
 @tier2
@@ -75,10 +73,9 @@ def test_positive_create_with_all_roles(session):
             'user.confirm': password,
             'roles.resources.assigned': ROLES,
         })
-        assert session.user.search(name) == name
-        user_values = session.user.read(name)
-        assert (
-            set(user_values['roles']['resources']['assigned']) == set(ROLES))
+        assert session.user.search(name)[0]['Username'] == name
+        user = session.user.read(name)
+        assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
 @tier2
@@ -106,11 +103,11 @@ def test_positive_create_with_multiple_orgs(session):
             'user.confirm': password,
             'organizations.resources.assigned': [org_name1, org_name2],
         })
-        assert session.user.search(name) == name
-        user_values = session.user.read(name)
+        assert session.user.search(name)[0]['Username'] == name
+        user = session.user.read(name)
         assert (
-            set(user_values['organizations']['resources']['assigned']) ==
-            set([DEFAULT_ORG, org_name1, org_name2])
+            set(user['organizations']['resources']['assigned']) ==
+            {DEFAULT_ORG, org_name1, org_name2}
         )
 
 
@@ -141,12 +138,9 @@ def test_positive_update_with_multiple_roles(session):
             name,
             {'roles.resources.assigned': role_names},
         )
-        assert session.user.search(name) == name
-        user_values = session.user.read(name)
-        assert (
-            set(user_values['roles']['resources']['assigned']) ==
-            set(role_names)
-        )
+        assert session.user.search(name)[0]['Username'] == name
+        user = session.user.read(name)
+        assert set(user['roles']['resources']['assigned']) == set(role_names)
 
 
 @tier2
@@ -172,10 +166,9 @@ def test_positive_update_with_all_roles(session):
             name,
             {'roles.resources.assigned': ROLES},
         )
-        assert session.user.search(name) == name
-        user_values = session.user.read(name)
-        assert (
-            set(user_values['roles']['resources']['assigned']) == set(ROLES))
+        assert session.user.search(name)[0]['Username'] == name
+        user = session.user.read(name)
+        assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
 @tier2
@@ -206,9 +199,9 @@ def test_positive_update_orgs(session):
             name,
             {'organizations.resources.assigned': org_names},
         )
-        assert session.user.search(name) == name
-        user_values = session.user.read(name)
+        assert session.user.search(name)[0]['Username'] == name
+        user = session.user.read(name)
         assert (
-            set(user_values['organizations']['resources']['assigned']) ==
+            set(user['organizations']['resources']['assigned']) ==
             set(org_names)
         )

@@ -234,66 +234,6 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_repo_count_for_composite_cv(self):
-        """Create some content views with synchronized repositories and
-        promoted to one lce. Add them to composite content view and check repo
-        count for it.
-
-        :id: 4b8d5def-a593-4f6c-9856-e5f32fb80164
-
-        :expectedresults: repository count for composite content view should
-            be the sum of archived repositories across all content views.
-
-        :BZ: 1431778
-
-        :CaseLevel: Integration
-        """
-        lce = entities.LifecycleEnvironment(
-            organization=self.organization).create()
-        ccv_name = gen_string('alpha')
-        repo_name = gen_string('alpha')
-        with Session(self) as session:
-            # Creates a composite CV along with product and sync'ed repository
-            make_contentview(
-                session,
-                name=ccv_name,
-                org=self.organization.name,
-                is_composite=True,
-            )
-            self.setup_to_create_cv(repo_name=repo_name)
-            # Create three content-views and add synced repo to them
-            for _ in range(3):
-                cv_name = entities.ContentView(
-                    organization=self.organization).create().name
-                self.assertIsNotNone(self.content_views.search(cv_name))
-                # Add repository to selected CV
-                self.content_views.add_remove_repos(cv_name, [repo_name])
-                # Publish content view
-                self.content_views.publish(cv_name)
-                # Check that repo count for cv is equal to 1
-                self.assertEqual(
-                    self.content_views.get_cv_table_value(
-                        cv_name, 'Repositories'),
-                    '1'
-                )
-                # Promote content view
-                status = self.content_views.promote(
-                    cv_name, 'Version 1.0', lce.name)
-                self.assertIn('Promoted to {}'.format(lce.name), status)
-                # Add content view to composite one
-                self.content_views.add_remove_cv(ccv_name, [cv_name])
-            # Publish composite content view
-            self.content_views.publish(ccv_name)
-            # Check that composite cv has three repositories in the table as we
-            # were using one repository for each content view
-            self.assertEqual(
-                self.content_views.get_cv_table_value(
-                    ccv_name, 'Repositories'),
-                '3'
-            )
-
-    @run_only_on('sat')
-    @tier2
     def test_positive_publish_with_repo_with_disabled_http(self):
         """Attempt to publish content view with repository that set
         'publish via http' to False
@@ -336,40 +276,6 @@ class ContentViewTestCase(UITestCase):
             self.content_views.publish(cv_name)
             self.assertIsNotNone(
                 self.content_views.version_search(cv_name, 'Version 1.0'))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_puppet_module(self):
-        """create content view with puppet repository
-
-        :id: c772d55b-6762-4c25-bbaf-83e7c200fe8a
-
-        :customerscenario: true
-
-        :steps:
-            1. Create Product/puppet repo and Sync it
-            2. Create CV and add puppet modules from created repo
-
-        :expectedresults: content view is created, updated with puppet module
-
-        :CaseLevel: Integration
-        """
-        repo_url = FAKE_0_PUPPET_REPO
-        cv_name = gen_string('alpha')
-        puppet_module = 'httpd'
-        self.setup_to_create_cv(
-            repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
-        with Session(self) as session:
-            # Create content-view
-            make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            self.content_views.add_puppet_module(
-                cv_name,
-                puppet_module,
-                filter_term='Latest',
-            )
-            self.assertIsNotNone(self.content_views.fetch_puppet_module(
-                cv_name, puppet_module))
 
     @run_only_on('sat')
     @tier2
@@ -1637,67 +1543,6 @@ class ContentViewTestCase(UITestCase):
                     )
                     self.content_views.delete(name)
 
-    @run_in_one_thread
-    @run_only_on('sat')
-    @skip_if_not_set('fake_manifest')
-    @tier3
-    def test_positive_create_composite(self):
-        # Note: puppet repos cannot/should not be used in this test
-        # It shouldn't work - and that is tested in a different case.
-        # Individual modules from a puppet repo, however, are a valid
-        # variation.
-        """create a composite content views
-
-        :id: 550f1970-5cbd-4571-bb7b-17e97639b715
-
-        :setup: sync multiple content source/types (RH, custom, etc.)
-
-        :expectedresults: Composite content views are created
-
-        :CaseLevel: System
-        """
-        puppet_module = 'httpd'
-        cv_name1 = gen_string('alpha')
-        cv_name2 = gen_string('alpha')
-        composite_name = gen_string('alpha')
-        rh_repo = {
-            'name': REPOS['rhst7']['name'],
-            'product': PRDS['rhel'],
-            'reposet': REPOSET['rhst7'],
-            'basearch': 'x86_64',
-            'releasever': None,
-        }
-        # Create new org to import manifest
-        org = entities.Organization().create()
-        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
-        self.setup_to_create_cv(
-            repo_url=FAKE_0_PUPPET_REPO,
-            repo_type=REPO_TYPE['puppet'],
-            org_id=org.id,
-        )
-        with Session(self) as session:
-            # Create content-view
-            make_contentview(session, org=org.name, name=cv_name2)
-            self.assertIsNotNone(self.content_views.search(cv_name2))
-            # Create content-view
-            make_contentview(session, org=org.name, name=cv_name1)
-            self.assertIsNotNone(self.content_views.search(cv_name1))
-            self.content_views.add_puppet_module(
-                cv_name1,
-                puppet_module,
-                filter_term='Latest',
-            )
-            module = self.content_views.fetch_puppet_module(
-                cv_name1, puppet_module)
-            self.assertIsNotNone(module)
-            self.content_views.publish(cv_name1)
-            self.content_views.add_remove_repos(cv_name2, [rh_repo['name']])
-            self.content_views.publish(cv_name2)
-            make_contentview(
-                session, org=org.name, name=composite_name, is_composite=True)
-            self.content_views.add_remove_cv(
-                composite_name, [cv_name1, cv_name2])
-
     @run_only_on('sat')
     @tier1
     def test_positive_search_composite(self):
@@ -1725,38 +1570,6 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.search(
                     composite_name, _raw_query='composite = true')
             )
-
-    @run_in_one_thread
-    @run_only_on('sat')
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    def test_positive_add_rh_content(self):
-        """Add Red Hat content to a content view
-
-        :id: c370fd79-0c0d-4685-99cb-848556c786c1
-
-        :setup: Sync RH content
-
-        :expectedresults: RH Content can be seen in a view
-
-        :CaseLevel: Integration
-        """
-        cv_name = gen_string('alpha')
-        rh_repo = {
-            'name': REPOS['rhst7']['name'],
-            'product': PRDS['rhel'],
-            'reposet': REPOSET['rhst7'],
-            'basearch': 'x86_64',
-            'releasever': None
-        }
-        # Create new org to import manifest
-        org = entities.Organization().create()
-        with Session(self) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
-            # Create content-view
-            make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1822,105 +1635,6 @@ class ContentViewTestCase(UITestCase):
             # this assertion should find/open the cv and search for our filter
             self.assertIsNotNone(
                 self.content_views.search_filter(cv_name, filter_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_negative_add_puppet_repo_to_composite(self):
-        # Again, individual modules should be ok.
-        """attempt to associate puppet repos within a composite
-        content view
-
-        :id: 283fa7da-ca40-4ce2-b3c5-da58ae01b8e7
-
-        :expectedresults: User cannot create a composite content view that
-            contains direct puppet repos.
-
-        :CaseLevel: Integration
-        """
-        composite_name = gen_string('alpha')
-        with Session(self) as session:
-            make_contentview(
-                session,
-                org=self.organization.name,
-                name=composite_name,
-                is_composite=True
-            )
-            self.assertIsNotNone(self.content_views.search(composite_name))
-            with self.assertRaises(UIError) as context:
-                self.content_views.add_puppet_module(
-                    composite_name, 'httpd', filter_term='Latest')
-            self.assertEqual(
-                str(context.exception),
-                'Could not find tab to add puppet_modules'
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_negative_add_components_to_non_composite(self):
-        """attempt to associate components to a non-composite
-        content view
-
-        :id: fa3e6aea-7ee3-46a6-a5ba-248de3c20a8f
-
-        :expectedresults: User cannot add components to the view
-
-        :CaseLevel: Integration
-        """
-        cv1_name = gen_string('alpha')
-        cv2_name = gen_string('alpha')
-        with Session(self) as session:
-            make_contentview(
-                session, org=self.organization.name, name=cv1_name)
-            self.assertIsNotNone(self.content_views.search(cv1_name))
-            make_contentview(
-                session, org=self.organization.name, name=cv2_name)
-            self.assertIsNotNone(self.content_views.search(cv2_name))
-            with self.assertRaises(UINoSuchElementError) as context:
-                self.content_views.add_remove_cv(cv1_name, [cv2_name])
-            self.assertEqual(
-                str(context.exception),
-                'Could not find ContentView tab, please make sure '
-                'selected view is composite'
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_unpublished_cv_to_composite(self):
-        """Attempt to associate unpublished non-composite content view with
-        composite content view.
-
-        :id: dc253606-3425-489d-bc01-266787d36841
-
-        :steps:
-
-            1. Create an empty non-composite content view. Do not publish it.
-            2. Create a new composite content view
-
-        :expectedresults: Non-composite content view is added to composite one
-
-        :CaseLevel: Integration
-
-        :BZ: 1367123
-        """
-        unpublished_cv_name = gen_string('alpha')
-        composite_cv_name = gen_string('alpha')
-        with Session(self) as session:
-            # Create unpublished component CV
-            make_contentview(
-                session, org=self.organization.name, name=unpublished_cv_name)
-            self.assertIsNotNone(
-                self.content_views.search(unpublished_cv_name))
-            # Create composite CV
-            make_contentview(
-                session,
-                org=self.organization.name,
-                name=composite_cv_name,
-                is_composite=True
-            )
-            self.assertIsNotNone(self.content_views.search(composite_cv_name))
-            # Add unpublished content view to composite one
-            self.content_views.add_remove_cv(
-                composite_cv_name, [unpublished_cv_name])
 
     @run_only_on('sat')
     @tier2

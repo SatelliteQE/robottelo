@@ -73,7 +73,7 @@ def test_positive_create(session):
             'hosts_limit': 2,
             'description': gen_string('alpha'),
         })
-        assert session.activationkey.search(ak_name) == ak_name
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
 
 
 def test_positive_delete(session):
@@ -82,9 +82,9 @@ def test_positive_delete(session):
     entities.ActivationKey(name=name, organization=org).create()
     with session:
         session.organization.select(org_name=org.name)
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
-        assert session.activationkey.search(name) is None
+        assert not session.activationkey.search(name)
 
 
 def test_positive_edit(session):
@@ -95,7 +95,7 @@ def test_positive_edit(session):
     entities.ActivationKey(name=name, organization=org).create()
     with session:
         session.organization.select(org_name=org.name)
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(
             name,
             {
@@ -131,7 +131,7 @@ def test_positive_create_with_cv(session, module_org, cv_name):
             'lce': {env_name: True},
             'content_view': cv_name,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['content_view'] == cv_name
 
@@ -172,9 +172,7 @@ def test_positive_search_scoped(session, module_org):
             ('description', description)
         ]:
             assert session.activationkey.search(
-                '{} = {}'.format(query_type, query_value),
-                expected_result=name,
-            ) == name
+                '{} = {}'.format(query_type, query_value))[0]['Name'] == name
 
 
 @tier2
@@ -195,7 +193,7 @@ def test_positive_create_with_host_collection(session, module_org):
             'name': name,
             'lce': {ENVIRONMENT: True},
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_host_collection(name, hc.name)
         ak = session.activationkey.read(name)
         assert ak[
@@ -204,9 +202,8 @@ def test_positive_create_with_host_collection(session, module_org):
 
 @tier2
 @upgrade
-@parametrize('env_name', **valid_data_list('ui'))
-def test_positive_create_with_envs(session, module_org, env_name):
-    """Create Activation key for all variations of Environments
+def test_positive_create_with_envs(session, module_org):
+    """Create Activation key with lifecycle environment
 
     :id: f75e994a-6da1-40a3-9685-f8387388b3f0
 
@@ -216,6 +213,7 @@ def test_positive_create_with_envs(session, module_org, env_name):
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
+    env_name = gen_string('alphanumeric')
     # Helper function to create and sync custom repository
     repo_id = create_sync_custom_repo(module_org.id)
     # Helper function to create and promote CV to next env
@@ -227,7 +225,7 @@ def test_positive_create_with_envs(session, module_org, env_name):
             'lce': {env_name: True},
             'content_view': cv_name
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['lce'][env_name][env_name]
 
@@ -269,7 +267,7 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
             'name': ak_name,
             'lce': {ENVIRONMENT: True},
         })
-        assert session.activationkey.search(ak_name) == ak_name
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name)
         assert ak[
@@ -313,7 +311,7 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
             'name': ak_name,
             'lce': {ENVIRONMENT: True},
         })
-        assert session.activationkey.search(ak_name) == ak_name
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name)
         assert ak[
@@ -345,9 +343,9 @@ def test_positive_delete_with_env(session, module_org):
             'name': name,
             'lce': {env_name: True},
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
-        assert session.activationkey.search(name) is None
+        assert not session.activationkey.search(name)
 
 
 @tier2
@@ -373,15 +371,14 @@ def test_positive_delete_with_cv(session, module_org):
             'lce': {env_name: True},
             'content_view': cv_name,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
-        assert session.activationkey.search(name) is None
+        assert not session.activationkey.search(name)
 
 
 @run_in_one_thread
 @tier2
-@parametrize('env_name', **valid_data_list('ui'))
-def test_positive_update_env(session, module_org, env_name):
+def test_positive_update_env(session, module_org):
     """Update Environment in an Activation key
 
     :id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
@@ -392,6 +389,7 @@ def test_positive_update_env(session, module_org, env_name):
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
+    env_name = gen_string('alphanumeric')
     # Helper function to create and promote CV to next environment
     repo_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
@@ -400,7 +398,7 @@ def test_positive_update_env(session, module_org, env_name):
             'name': name,
             'lce': {ENVIRONMENT: True},
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['lce'][env_name][ENVIRONMENT]
         assert not ak['details']['lce'][env_name][env_name]
@@ -442,7 +440,7 @@ def test_positive_update_cv(session, module_org, cv2_name):
             'lce': {env1_name: True},
             'content_view': cv1_name,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['content_view'] == cv1_name
         session.activationkey.update(name, {'details': {
@@ -505,7 +503,7 @@ def test_positive_update_rh_product(session):
             'lce': {env1_name: True},
             'content_view': cv1_name,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['content_view'] == cv1_name
         session.activationkey.update(name, {'details': {
@@ -553,7 +551,7 @@ def test_positive_add_rh_product(session):
             'lce': {env_name: True},
             'content_view': cv_name,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, DEFAULT_SUBSCRIPTION_NAME)
         ak = session.activationkey.read(name)
         subs_name = ak[
@@ -586,7 +584,7 @@ def test_positive_add_custom_product(session, module_org):
             'lce': {env_name: True},
             'content_view': cv_name,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
         ak = session.activationkey.read(name)
         assigned_prod = ak[
@@ -651,7 +649,7 @@ def test_positive_add_rh_and_custom_products(session):
             'lce': {ENVIRONMENT: True},
             'content_view': DEFAULT_CV,
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
             session.activationkey.add_subscription(name, subscription)
         ak = session.activationkey.read(name)
@@ -714,7 +712,7 @@ def test_positive_fetch_product_content(session):
         ak = session.activationkey.read(ak.name)
         reposets = [
             reposet['Repository Name']
-            for reposet in ak['repository_sets']['resources']
+            for reposet in ak['repository_sets']['table']
         ]
         assert {custom_repo.name, REPOSET['rhst7']} == set(reposets)
 
@@ -804,8 +802,8 @@ def test_positive_access_non_admin_user(session, test_name):
             test_name, user=user_login, password=user_password) as session:
         session.organization.select(org.name)
         session.location.select(DEFAULT_LOC)
-        assert session.activationkey.search(ak_name) == ak_name
-        assert session.activationkey.search(non_searchable_ak_name) is None
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
+        assert not session.activationkey.search(non_searchable_ak_name)
 
 
 @tier2
@@ -833,11 +831,12 @@ def test_positive_remove_user(session, module_org, test_name):
             'name': ak_name,
             'lce': {ENVIRONMENT: True},
         })
-        assert non_admin_session.activationkey.search(ak_name) == ak_name
+        assert non_admin_session.activationkey.search(
+            ak_name)[0]['Name'] == ak_name
     # Remove user and check that AK still exists
     user.delete()
     with session:
-        assert session.activationkey.search(ak_name) == ak_name
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
 
 
 @skip_if_not_set('clients')
@@ -870,8 +869,8 @@ def test_positive_add_host(session, module_org):
         with session:
             session.organization.select(module_org.name)
             ak = session.activationkey.read(ak.name)
-            assert len(ak['content_hosts']['resources']) == 1
-            assert ak['content_hosts']['resources'][0]['Name'] == vm.hostname
+            assert len(ak['content_hosts']['table']) == 1
+            assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
 @skip_if_not_set('clients')
@@ -905,14 +904,14 @@ def test_positive_delete_with_system(session):
             'lce': {env_name: True},
             'content_view': cv_name
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
             vm.register_contenthost(org.label, name)
             assert vm.subscribed
             session.activationkey.delete(name)
-            assert session.activationkey.search(name) is None
+            assert not session.activationkey.search(name)
 
 
 @skip_if_not_set('clients')
@@ -940,7 +939,7 @@ def test_negative_usage_limit(session, module_org):
             'name': name,
             'lce': {ENVIRONMENT: True},
         })
-        assert session.activationkey.search(name) == name
+        assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(
             name, {'details.hosts_limit': hosts_limit})
         ak = session.activationkey.read(name)
@@ -1000,7 +999,8 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
                 'lce': {env_name: True},
                 'content_view': cv_name
             })
-            assert session.activationkey.search(key_name) == key_name
+            assert (
+                session.activationkey.search(key_name)[0]['Name'] == key_name)
             session.activationkey.add_subscription(key_name, product_name)
             ak = session.activationkey.read(key_name)
             subscriptions = [
@@ -1020,8 +1020,8 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
             # Assert the content-host association with activation keys
             for key_name in [key_1_name, key_2_name]:
                 ak = session.activationkey.read(key_name)
-                assert len(ak['content_hosts']) == 1
-                assert ak['content_hosts'][0]['Name'] == vm.hostname
+                assert len(ak['content_hosts']['table']) == 1
+                assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
 @skip_if_not_set('clients')
@@ -1063,10 +1063,10 @@ def test_positive_host_associations(session):
         with session:
             session.organization.select(org.name)
             ak1 = session.activationkey.read(ak1.name)
-            assert len(ak1['content_hosts']['resources']) == 1
-            assert ak1['content_hosts']['resources'][0]['Name'] == vm1.hostname
+            assert len(ak1['content_hosts']['table']) == 1
+            assert ak1['content_hosts']['table'][0]['Name'] == vm1.hostname
             # fixme: drop next line after airgun#63 is solved
             session.activationkey.search(ak2.name)
             ak2 = session.activationkey.read(ak2.name)
-            assert len(ak2['content_hosts']['resources']) == 1
-            assert ak2['content_hosts']['resources'][0]['Name'] == vm2.hostname
+            assert len(ak2['content_hosts']['table']) == 1
+            assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
