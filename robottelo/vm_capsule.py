@@ -206,7 +206,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 self.unregister()
             except Exception as exp:
                 logger.error('Failed to unregister the host: {0}\n{1}'.format(
-                    self.hostname, exp.message))
+                    self.hostname, exp))
 
         if self._capsule_hostname:
             # do cleanup as using a static hostname that can be reused by
@@ -225,7 +225,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # or maybe that the capsule was not registered or setup does
                 # not reach that stage
                 logger.error('Failed to cleanup the host: {0}\n{1}'.format(
-                    self.hostname, exp.message))
+                    self.hostname, exp))
 
     def _setup_capsule(self):
         """Prepare the virtual machine to host a capsule node"""
