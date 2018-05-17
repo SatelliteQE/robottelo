@@ -33,9 +33,11 @@ def test_positive_create_os_family(session):
         session.partitiontable.create({
             'name': name,
             'snippet': False,
-            'os_family': 'Debian',
+            'os_family_selection': {'os_family': 'Debian'},
             'template': template,
         }, )
+        pt = session.partitiontable.read(name)
+        assert pt['os_family_selection']['os_family'] == 'Debian'
         assert session.partitiontable.search(name) == name
 
 
@@ -68,10 +70,10 @@ def test_positive_clone(session):
             'name': new_name,
             'default': True,
             'snippet': False,
-            'os_family': 'Red Hat',
+            'os_family_selection': {'os_family': 'Red Hat'},
             'audit_comment': audit_comment,
             'template': template_new
         }, name)
         pt = session.partitiontable.read(new_name)
-        assert pt['os_family'] == 'Red Hat'
+        assert pt['os_family_selection']['os_family'] == 'Red Hat'
         assert pt['name'] == new_name
