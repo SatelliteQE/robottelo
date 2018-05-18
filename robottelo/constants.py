@@ -241,6 +241,7 @@ PRDS = {
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
+    'rhscl': 'Red Hat Software Collections for RHEL Server',
 }
 
 REPOSET = {
@@ -258,6 +259,8 @@ REPOSET = {
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
               ' Server'),
+    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
+              ' Linux 7 Server'),
 }
 
 REPOS = {
@@ -353,7 +356,12 @@ REPOS = {
     'rhdt7': {
         'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
                  ' Server x86_64'),
-    }
+    },
+    'rhscl7': {
+        'id': 'rhel-server-rhscl-7-rpms',
+        'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
+                 ' Linux 7 Server x86_64 7Server'),
+    },
 }
 
 DISTRO_REPOS = {
