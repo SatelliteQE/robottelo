@@ -24,7 +24,7 @@ from robottelo.decorators import parametrize
 def test_positive_create(session, name):
     with session:
         session.architecture.create({'name': name})
-        assert session.architecture.search(name) == name
+        assert session.architecture.search(name)[0]['Name'] == name
 
 
 def test_positive_create_with_os(session):
@@ -35,7 +35,7 @@ def test_positive_create_with_os(session):
             'name': name,
             'operatingsystems.assigned': [os_name],
         })
-        assert session.architecture.search(name) == name
+        assert session.architecture.search(name)[0]['Name'] == name
 
 
 @parametrize('name', **valid_data_list('ui'))
@@ -43,4 +43,4 @@ def test_positive_delete(session, name):
     with session:
         session.architecture.create({'name': name})
         session.architecture.delete(name)
-        assert session.architecture.search(name) is None
+        assert not session.architecture.search(name)
