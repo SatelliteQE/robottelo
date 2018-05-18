@@ -260,7 +260,7 @@ REPOSET = {
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
               ' Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
-              ' Linux 7 Server'),
+               ' Linux 7 Server'),
 }
 
 REPOS = {
