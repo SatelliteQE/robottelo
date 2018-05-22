@@ -21,7 +21,7 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
-from robottelo.decorators import run_in_one_thread, skip_if_not_set, stub
+from robottelo.decorators import run_in_one_thread, skip_if_not_set, stubbed
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
 from robottelo.ui.session import Session
@@ -146,7 +146,7 @@ class RHAITestCase(UITestCase):
                        'redhat-access-insights.log',
                        './insights_unregister.log')
 
-    @stub
+    @stubbed
     def test_positive_rule_disable_enable(self):
         """Tests Insights rule can be disabled and enabled
 
@@ -178,7 +178,7 @@ class RHAIPlannerTestCase(RHAITestCase):
     def setUpClass(cls):  # noqa
         super(RHAIPlannerTestCase, cls).setUpClass()
 
-    @stub
+    @stubbed
     def test_positive_playbook_run(self):
         """Tests Planner playbook runs successfully
 
@@ -208,7 +208,7 @@ class RHAIPlannerTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_playbook_customized_run(self):
         """Tests Planner playbook customized run is successful
 
@@ -240,7 +240,7 @@ class RHAIPlannerTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_playbook_download(self):
         """Tests Planner playbook download is successful
 
@@ -269,7 +269,7 @@ class RHAIPlannerTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_plan_export_csv(self):
         """Tests Insights plan is exported to csv successfully
 
@@ -299,7 +299,7 @@ class RHAIPlannerTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_plan_edit_remove_system(self):
         """Tests Insights plan can be edited by removing a system from it
 
@@ -329,7 +329,7 @@ class RHAIPlannerTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_plan_edit_remove_rule(self):
         """Tests Insights plan can be edited by removing a rule from it
 
@@ -368,7 +368,7 @@ class RHAIInventoryTestCase(RHAITestCase):
     def setUpClass(cls):  # noqa
         super(RHAIInventoryTestCase, cls).setUpClass()
 
-    @stub
+    @stubbed
     def test_positive_inventory_export_csv(self):
         """Tests Insights inventory can be exported to csv
 
@@ -390,7 +390,7 @@ class RHAIInventoryTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_inventory_create_new_plan(self):
         """Tests Insights plan can be created using chosen inventory
 
@@ -411,7 +411,7 @@ class RHAIInventoryTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_inventory_add_to_existing_plan(self):
         """Tests Insights inventory system can be added to the existing plan
 
@@ -437,7 +437,7 @@ class RHAIInventoryTestCase(RHAITestCase):
         :CaseLevel: System
         """
 
-    @stub
+    @stubbed
     def test_positive_inventory_group_systems(self):
         """Tests Insights inventory systems can be grouped
 
