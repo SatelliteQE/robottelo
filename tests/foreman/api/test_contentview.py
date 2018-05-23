@@ -458,7 +458,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.component), cv_amount)
 
     @tier1
-    @skip_if_bug_open(1581628)
+    @skip_if_bug_open('bugzilla', 1581628)
     def test_positive_publish_with_long_name(self):
         """Publish a content view that has at least 256 characters in its name
 
