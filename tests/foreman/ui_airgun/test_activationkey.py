@@ -1065,8 +1065,6 @@ def test_positive_host_associations(session):
             ak1 = session.activationkey.read(ak1.name)
             assert len(ak1['content_hosts']['table']) == 1
             assert ak1['content_hosts']['table'][0]['Name'] == vm1.hostname
-            # fixme: drop next line after airgun#63 is solved
-            session.activationkey.search(ak2.name)
             ak2 = session.activationkey.read(ak2.name)
             assert len(ak2['content_hosts']['table']) == 1
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname

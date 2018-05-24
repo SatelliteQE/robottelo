@@ -180,8 +180,6 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
                 cv_name, 'Version 1.0', lce.name)
             assert 'Promoted to {}'.format(lce.name) in result['Status']
             # Add content view to composite one
-            # fixme: drop next line after airgun#63 is solved
-            session.contentview.search(ccv_name)
             session.contentview.add_cv(ccv_name, cv_name)
         # Publish composite content view
         session.contentview.publish(ccv_name)
@@ -265,8 +263,6 @@ def test_positive_create_composite(session):
         cv1 = session.contentview.read(cv_name1)
         assert cv1['puppet_modules']['table'][0]['Name'] == puppet_module
         session.contentview.publish(cv_name1)
-        # fixme: drop next line after airgun#63 is solved
-        session.contentview.search(cv_name2)
         session.contentview.add_yum_repo(cv_name2, rh_repo['name'])
         session.contentview.publish(cv_name2)
         session.contentview.create({
