@@ -19,7 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, tier2, upgrade
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_product
 from robottelo.ui.locators import common_locators
@@ -58,32 +58,6 @@ class ProductTestCase(UITestCase):
                         description=gen_string('alphanumeric'),
                     )
                     self.assertIsNotNone(self.products.search(prd_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_in_different_orgs(self):
-        """Create Content Product with same name but in another org
-
-        :id: 469fc036-a48a-4c0a-9da9-33e73f903479
-
-        :expectedresults: Product is created successfully in both
-            organizations.
-
-        :CaseLevel: Integration
-        """
-        organization_2 = entities.Organization().create()
-        with Session(self) as session:
-            for prd_name in generate_strings_list():
-                with self.subTest(prd_name):
-                    for org in [self.organization.name, organization_2.name]:
-                        make_product(
-                            session,
-                            org=org,
-                            loc=self.loc.name,
-                            name=prd_name,
-                            description=gen_string('alphanumeric'),
-                        )
-                        self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
     @tier1
@@ -163,7 +137,7 @@ class ProductTestCase(UITestCase):
                     prd_name = new_prd_name  # for next iteration
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_positive_update_to_original_name(self):
         """Rename Product back to original name.
 
