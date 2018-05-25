@@ -450,7 +450,7 @@ class Navigator(Base):
         self.click(menu_locators['menu.current_text'])
         # get to left corner of the browser instance to not have impact on
         # further actions
-        self.perform_action_chain_move_by_offset(-150, -150)
+        self.perform_action_chain_move_by_offset(0, 0)
         return org
 
     def go_to_select_loc(self, loc):
@@ -479,5 +479,5 @@ class Navigator(Base):
         self.click(menu_locators['menu.current_text'])
         # get to left corner of the browser instance to not have impact on
         # further actions
-        self.perform_action_chain_move_by_offset(-150, -150)
+        self.perform_action_chain_move_by_offset(0, 0)
         return loc
