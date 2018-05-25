@@ -455,14 +455,16 @@ class Base(object):
         angular_active = False
 
         try:
-            jquery_active = driver.execute_script('return jQuery.active') > 0
+            val = driver.execute_script('return jQuery.active')
+            jquery_active = isinstance(val, int) and val > 0
         except WebDriverException:
             pass
 
         try:
-            angular_active = driver.execute_script(
+            val = driver.execute_script(
                 u'return angular.element(document).injector().get("$http")'
-                u'.pendingRequests.length') > 0
+                u'.pendingRequests.length')
+            angular_active = isinstance(val, int) and val > 0
         except WebDriverException:
             pass
 
