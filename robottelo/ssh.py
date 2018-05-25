@@ -315,6 +315,14 @@ def execute_command(cmd, connection, output_format=None, timeout=None,
         else:
             logger.error('ssh command did not respond in the predefined time'
                          ' (timeout=%s) and will be interrupted', timeout)
+            stdout.channel.close()
+            stderr.channel.close()
+            logger.error(
+                    '[Captured stdout]\n{0}\n-----\n'.format(stdout.read())
+            )
+            logger.error(
+                    '[Captured stderr]\n{0}\n-----\n'.format(stderr.read())
+            )
             raise SSHCommandTimeoutError(
                 'ssh command: {0} \n did not respond in the predefined time '
                 '(timeout={1})'.format(cmd, timeout)
