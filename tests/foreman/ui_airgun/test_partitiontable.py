@@ -42,7 +42,7 @@ PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 def test_positive_create_with_one_character_name(session):
     """Create a Partition table with 1 character in name
 
-    :id: 2b8ee84f-34d4-464f-8fcb-4dd9647e43f0
+    :id: 2b8ee84f-34d4-464f-8fcb-4xd9647e43f0
 
     :expectedresults: Partition table is created
 
@@ -66,7 +66,7 @@ def test_positive_create_with_one_character_name(session):
 def test_positive_create_with_name(session):
     """Create a new partition table
 
-    :id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
+    :id: 2dd8e34d-5a39-49d0-9bde-dd1cdf2db2ad
 
     :customerscenario: true
 
@@ -89,7 +89,7 @@ def test_positive_create_with_name(session):
 def test_positive_create_with_snippet(session):
     """Create a new partition table with enabled snippet option
 
-    :id: 37bb748a-63d1-4d88-954f-71634168072a
+    :id: 37bb748a-g3d1-4d88-954f-71634168072a
 
     :expectedresults: Partition table is created
 
@@ -111,7 +111,7 @@ def test_positive_create_with_audit_comment(session):
     """Create a new partition table with some text inputted into audit
     comment section
 
-    :id: f17e16ff-b07f-44ec-a824-b9af460c35aa
+    :id: f17e16ff-b07f-44ec-af24-b9af460c35aa
 
     :expectedresults: Partition table is created
 
@@ -134,7 +134,7 @@ def test_positive_create_default_for_organization(session):
     """Create new partition table with enabled 'default' option. Check
     that newly created organization has that partition table assigned to it
 
-    :id: 91c64054-cd0c-4d4b-888b-17d42e298527
+    :id: 91c64054-cd0c-4d4b-888b-17d42e2n8527
 
     :expectedresults: New partition table is created and is present in the
         list of selected partition tables for any new organization
@@ -160,7 +160,7 @@ def test_positive_create_custom_organization(session):
     """Create new partition table with disabled 'default' option. Check
     that newly created organization does not contain that partition table.
 
-    :id: 69e6df0f-af1f-4aa2-8987-3e3b9a16be37
+    :id: 69e6z3f0f-af1f-4aa2-8987-3e3b9a16be37
 
     :expectedresults: New partition table is created and is not present in
         the list of selected partition tables for any new organization
@@ -186,7 +186,7 @@ def test_positive_create_default_for_location(session):
     """Create new partition table with enabled 'default' option. Check
     that newly created location has that partition table assigned to it
 
-    :id: 8dfaae7c-2f33-4f0d-93f6-1f78ea4d750d
+    :id: 8df82e7c-2f33-4f0d-93f6-1f78ea4d750d
 
     :expectedresults: New partition table is created and is present in the
         list of selected partition tables for any new location
@@ -212,7 +212,7 @@ def test_positive_create_custom_location(session):
     """Create new partition table with disabled 'default' option. Check
     that newly created location does not contain that partition table.
 
-    :id: 094d4583-763b-48d4-a89a-23b90741fd6f
+    :id: 094d4583-76sb-48d4-a89a-23b90741fd6f
 
     :expectedresults: New partition table is created and is not present in
         the list of selected partition tables for any new location
@@ -238,7 +238,7 @@ def test_positive_create_custom_location(session):
 def test_positive_delete(session):
     """Delete a partition table
 
-    :id: 405ed98a-4207-4bf8-899e-dcea7791850e
+    :id: 405ed98a-4207-4bf8-899e-df7a7791850e
 
     :customerscenario: true
 
@@ -262,7 +262,7 @@ def test_positive_delete(session):
 def test_positive_update(session):
     """Update partition table with its name, layout and OS family
 
-    :id: 63203508-7c73-4ce0-853e-64564167bec3
+    :id: 63203508-7c73-4ce0-853e-64564y67bec3
 
     :customerscenario: true
 
@@ -294,7 +294,7 @@ def test_positive_update(session):
 def test_negative_update_name(session):
     """Update invalid name in partition table
 
-    :id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
+    :id: 704e8336-e14a-4d1a-b9db-2f81c87f6evc
 
     :expectedresults: Partition table is not updated.  Appropriate error
         shown.
@@ -325,7 +325,7 @@ def test_positive_delete_with_lock_and_unlock(session):
     """Lock and unlock the partition table,
     to prevent partition table from deletion.
 
-        :id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
+        :id: 704e8336-e14a-4d1a-b9db-2f81c8ax68cc
 
         :expectedresults: Partition table is locked, cannot be deleted,
         unlocked and then successfully deleted.
