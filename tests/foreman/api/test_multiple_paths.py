@@ -188,6 +188,7 @@ class EntityTestCase(APITestCase):
                     response.headers['content-type']
                 )
 
+    @stubbed()
     @tier1
     def test_negative_get_unauthorized(self):
         """GET an entity-dependent path without credentials.
@@ -247,6 +248,7 @@ class EntityTestCase(APITestCase):
                     response.headers['content-type']
                 )
 
+    @stubbed()
     @tier1
     @skip_if_bug_open('bugzilla', 1122257)
     def test_negative_post_unauthorized(self):
