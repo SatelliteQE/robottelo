@@ -289,13 +289,14 @@ class SettingTestCase(CLITestCase):
     @tier1
     def test_positive_enable_disable_rssfeed(self):
         """Check if the RSS feed can be enabled or disabled
+
         :id: 021cefab-2629-44e2-a30d-49c944d0a234
 
         :steps: Set rss_enable true or false
 
         :expectedresults: rss_enable is updated
 
-        :caseuatomation: automated
+        :caseautomation: automated
         """
         for value in ['true', 'false']:
             Settings.set({'name': 'rss_enable', 'value': value})
@@ -305,6 +306,7 @@ class SettingTestCase(CLITestCase):
     @tier1
     def test_positive_update_rssfeed_url(self):
         """Check if the RSS feed URL is updated
+
         :id: 166ff6f2-e36e-4934-951f-b947139d0d73
 
         :steps:
