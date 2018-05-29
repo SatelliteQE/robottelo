@@ -298,10 +298,12 @@ class SettingTestCase(CLITestCase):
 
         :caseautomation: automated
         """
+        orig_value = Settings.list({'search': 'name=rss_enable'})[0]['value']
         for value in ['true', 'false']:
             Settings.set({'name': 'rss_enable', 'value': value})
             rss_setting = Settings.list({'search': 'name=rss_enable'})[0]
             self.assertEqual(value, rss_setting['value'])
+        Settings.set({'name': 'rss_enable', 'value': orig_value})
 
     @tier1
     def test_positive_update_rssfeed_url(self):
@@ -320,15 +322,11 @@ class SettingTestCase(CLITestCase):
         :caseautomation: automated
         """
         orig_url = Settings.list({'search': 'name=rss_url'})[0]['value']
-        # The 'valid_url_list()' func  provides list of URLs,
-        # and we need only one.
-        # And there is always at least one URL, so 0 is safe.
-        test_url = valid_url_list()[0]
-        Settings.set({'name': 'rss_url', 'value': test_url})
-        updated_url = Settings.list({'search': 'name=rss_url'})[0]['value']
-        # Restore original URL
+        for test_url in valid_url_list():
+            Settings.set({'name': 'rss_url', 'value': test_url})
+            updated_url = Settings.list({'search': 'name=rss_url'})[0]['value']
+            self.assertEqual(test_url, updated_url)
         Settings.set({'name': 'rss_url', 'value': orig_url})
-        self.assertEqual(test_url, updated_url)
 
 
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
