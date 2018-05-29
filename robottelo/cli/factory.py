@@ -1568,16 +1568,12 @@ def make_fake_host(options=None):
         except CLIReturnCodeError:
             options['location-id'] = make_location()['id']
     if not options.get('domain') and not options.get('domain-id'):
-        try:
-            options['domain-id'] = Domain.info({
-                'name': settings.server.hostname.partition('.')[-1]})['id']
-        except CLIReturnCodeError:
-            options['domain-id'] = make_domain({
-                'location-ids': options.get('location-id'),
-                'locations': options.get('location'),
-                'organization-ids': options.get('organization-id'),
-                'organizations': options.get('organization'),
-            })['id']
+        options['domain-id'] = make_domain({
+            'location-ids': options.get('location-id'),
+            'locations': options.get('location'),
+            'organization-ids': options.get('organization-id'),
+            'organizations': options.get('organization'),
+        })['id']
     if not options.get('architecture') and not options.get('architecture-id'):
         try:
             options['architecture-id'] = Architecture.info({
