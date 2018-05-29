@@ -243,7 +243,9 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.new_lce['id'],
             'organization-ids': self.new_org['id'],
         })
-        host = entities.Host()
+        host = entities.Host(
+            organization=entities.Organization(id=self.new_org['id']).read()
+            )
         host.create_missing()
         interface = (
             "type=interface,mac={0},identifier=eth0,name={1},domain_id={2},"
@@ -754,6 +756,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -781,6 +784,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -808,6 +812,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
@@ -832,6 +837,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
