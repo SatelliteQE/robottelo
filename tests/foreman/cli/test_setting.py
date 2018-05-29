@@ -324,8 +324,8 @@ class SettingTestCase(CLITestCase):
         orig_url = Settings.list({'search': 'name=rss_url'})[0]['value']
         for test_url in valid_url_list():
             Settings.set({'name': 'rss_url', 'value': test_url})
-            updated_url = Settings.list({'search': 'name=rss_url'})[0]['value']
-            self.assertEqual(test_url, updated_url)
+            updated_url = Settings.list({'search': 'name=rss_url'})[0]
+            self.assertEqual(test_url, updated_url['value'])
         Settings.set({'name': 'rss_url', 'value': orig_url})
 
 
