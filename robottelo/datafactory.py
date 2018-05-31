@@ -4,7 +4,7 @@ import random
 import string
 from functools import wraps
 
-from fauxfactory import gen_string, gen_integer, gen_alpha, gen_utf8
+from fauxfactory import gen_string, gen_integer, gen_alpha, gen_utf8, gen_url
 from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
@@ -639,4 +639,12 @@ def valid_docker_upstream_names():
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
         u'{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
+    ]
+
+
+@filtered_datapoint
+def valid_url_list():
+    return [
+        gen_url(scheme="http"),
+        gen_url(scheme="https"),
     ]

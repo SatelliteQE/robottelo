@@ -22,6 +22,7 @@ from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
+    valid_url_list,
     valid_data_list, invalid_boolean_strings, xdist_adapter)
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
@@ -284,6 +285,48 @@ class SettingTestCase(CLITestCase):
             host_value = Settings.list(
               {'search': 'name=send_welcome_email'})[0]['value']
             assert value == host_value
+
+    @tier1
+    def test_positive_enable_disable_rssfeed(self):
+        """Check if the RSS feed can be enabled or disabled
+
+        :id: 021cefab-2629-44e2-a30d-49c944d0a234
+
+        :steps: Set rss_enable true or false
+
+        :expectedresults: rss_enable is updated
+
+        :caseautomation: automated
+        """
+        orig_value = Settings.list({'search': 'name=rss_enable'})[0]['value']
+        for value in ['true', 'false']:
+            Settings.set({'name': 'rss_enable', 'value': value})
+            rss_setting = Settings.list({'search': 'name=rss_enable'})[0]
+            self.assertEqual(value, rss_setting['value'])
+        Settings.set({'name': 'rss_enable', 'value': orig_value})
+
+    @tier1
+    def test_positive_update_rssfeed_url(self):
+        """Check if the RSS feed URL is updated
+
+        :id: 166ff6f2-e36e-4934-951f-b947139d0d73
+
+        :steps:
+            1. Save the original RSS URL
+            2. Update RSS feed with a valid URL
+            3. Assert the RSS feed URL was really updated
+            4. Restore the original feed URL
+
+        :expectedresults: RSS feed URL is updated
+
+        :caseautomation: automated
+        """
+        orig_url = Settings.list({'search': 'name=rss_url'})[0]['value']
+        for test_url in valid_url_list():
+            Settings.set({'name': 'rss_url', 'value': test_url})
+            updated_url = Settings.list({'search': 'name=rss_url'})[0]
+            self.assertEqual(test_url, updated_url['value'])
+        Settings.set({'name': 'rss_url', 'value': orig_url})
 
 
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
