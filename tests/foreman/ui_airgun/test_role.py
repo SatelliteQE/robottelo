@@ -33,7 +33,7 @@ def module_loc():
     return entities.Location().create()
 
 
-def test_positive_update(session):
+def test_positive_update_filter(session):
     resource_name = 'Architecture'
     permission_name = 'edit_architectures'
     role = entities.Role().create()
@@ -51,7 +51,7 @@ def test_positive_update(session):
         assert permission_name in filter_values['permission']['unassigned']
 
 
-def test_positive_delete(session):
+def test_positive_delete_filter(session):
     resource_name = 'Architecture'
     role = entities.Role().create()
     permission = entities.Permission(resource_type=resource_name).search()
@@ -91,13 +91,11 @@ def test_positive_create_filter_without_override(
     subnet.create_missing()
     subnet_name = subnet.name
     with session:
-        session.role.create(
-            {
-                'name': role_name,
-                'organizations.assigned': [module_org.name],
-                'locations.assigned': [module_loc.name]
-            }
-        )
+        session.role.create({
+            'name': role_name,
+            'organizations.assigned': [module_org.name],
+            'locations.assigned': [module_loc.name]
+        })
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name,
@@ -177,13 +175,11 @@ def test_positive_create_non_overridable_filter(
     user_loc = entities.Location().create()
     arch = entities.Architecture().create()
     with session:
-        session.role.create(
-            {
-                'name': role_name,
-                'organizations.assigned': [module_org.name],
-                'locations.assigned': [module_loc.name]
-            }
-        )
+        session.role.create({
+            'name': role_name,
+            'organizations.assigned': [module_org.name],
+            'locations.assigned': [module_loc.name]
+        })
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name,
@@ -249,13 +245,12 @@ def test_positive_create_overridable_filter(
     subnet_name = subnet.name
     new_subnet_name = gen_string('alpha')
     with session:
-        session.role.create(
-            {
-                'name': role_name,
-                'organizations.assigned': [role_org.name, module_org.name],
-                'locations.assigned': [role_loc.name, module_loc.name]
-            }
-        )
+        session.role.create({
+            'name': role_name,
+            'organizations.assigned': [role_org.name, module_org.name],
+            'locations.assigned': [role_loc.name, module_loc.name]
+
+        })
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name,
@@ -299,24 +294,24 @@ def test_positive_create_overridable_filter(
     with Session(test_name, user=username, password=password) as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
-        message = session.subnet.create({
+        session.subnet.create({
             'name': subnet_name,
             'protocol': 'IPv4',
             'network_address': subnet.network,
             'network_mask': subnet.mask,
             'boot_mode': 'Static',
         })
-        assert 'Successfully created' in message[0]
         assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
         session.organization.select(org_name=role_org.name)
         session.location.select(loc_name=role_loc.name)
-        message = session.subnet.create({
-            'name': new_subnet_name,
-            'protocol': 'IPv4',
-            'network_address': subnet.network,
-            'network_mask': subnet.mask,
-            'boot_mode': 'Static',
-        })
+        with raises(AssertionError) as context:
+            session.subnet.create({
+                'name': new_subnet_name,
+                'protocol': 'IPv4',
+                'network_address': subnet.network,
+                'network_mask': subnet.mask,
+                'boot_mode': 'Static',
+            })
         assert "You don't have permission create_subnets with attributes" \
                " that you have specified or you don't have access to" \
-               " specified locations or organizations" in message[0]
+               " specified locations or organizations" in str(context.value)
