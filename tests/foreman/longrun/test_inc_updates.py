@@ -21,6 +21,7 @@ from nailgun import entities
 from nailgun import entity_mixins
 from robottelo import manifests
 from robottelo.api.utils import (
+    call_entity_method_with_timeout,
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
@@ -201,6 +202,9 @@ class IncrementalUpdateTestCase(TestCase):
                          ' and resource_id = {}'
                          ' and started_at >= {}'.format(host[0].id, timestamp)
         )
+        # Force host to generate or refresh errata applicability
+        call_entity_method_with_timeout(host[0].errata_applicability,
+                                        timeout=600)
 
     @staticmethod
     def setup_vm(client, act_key, org_name):
