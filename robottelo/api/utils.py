@@ -5,6 +5,7 @@ import time
 from fauxfactory import gen_string
 from inflector import Inflector
 from nailgun import entities, entity_mixins
+from nailgun.client import request
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.config.base import ImproperlyConfigured
@@ -622,3 +623,70 @@ def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None,
         raise AssertionError(
             "No task was found using query '{}'".format(search_query))
     return tasks
+
+
+def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
+    """Search the pulp tasks and identify repositories sync tasks with
+    specified name or backend_identifier
+
+    :param repo_backend_id: The Backend ID for the repository to identify the
+        repo in Pulp environment
+    :param timeout: Value to decided how long to check for the Sync task
+    :param repo_name: If repo_backend_id can not be passed, pass the repo_name
+    """
+    if repo_name:
+            repo_backend_id = entities.Repository().search(query={
+                        'search': 'name="{0}"'.format(repo_name),
+                        'per_page': 1000,
+                    })[0].backend_identifier
+    # Fetch the Pulp password
+    pulp_pass = ssh.command(
+        'grep "^default_password" /etc/pulp/server.conf |'
+        ' awk \'{print $2}\''
+    ).stdout[0]
+    # Set the Timeout value
+    timeup = time.time() + int(timeout) * 60
+    # Search Filter to filter out the task based on backend-id and sync action
+    filtered_req = {
+        'criteria': {
+            'filters': {
+                'tags': {
+                    '$in': [
+                        "pulp:repository:{0}".format(repo_backend_id)]
+                },
+                'task_type': {
+                    '$in': ["pulp.server.managers.repo.sync.sync"]
+                }
+            }
+        }
+    }
+    while True:
+        if time.time() > timeup:
+            raise entities.APIResponseError(
+                'Pulp task with repo_id {0} not found'.format(repo_backend_id)
+            )
+        # Send request to pulp API to get the task info
+        req = request('POST',
+                      '{0}/pulp/api/v2/tasks/search/'.format(
+                          settings.server.get_url()),
+                      verify=False,
+                      auth=('admin', '{0}'.format(pulp_pass)),
+                      headers={'content-type': 'application/json'},
+                      data=filtered_req)
+        # Check Status code of response
+        if req.status_code != 200:
+            raise entities.APIResponseError(
+                'Pulp task with repo_id {0} not found'.format(repo_backend_id))
+        # Check content of response
+        # It is '[]' string for empty content when backend_identifier is wrong
+        if len(req.content) > 2:
+            if req.json()[0].get('state') in ['finished']:
+                return True
+            elif req.json()[0].get('error'):
+                raise AssertionError(
+                    "Pulp task with repo_id {0} errored or not "
+                    "found: '{1}'".format(repo_backend_id,
+                                          req.json().get('error')
+                                          )
+                )
+        time.sleep(2)
