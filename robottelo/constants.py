@@ -756,7 +756,6 @@ PERMISSIONS = {
     ],
     'HostClass': [
         'edit_classes',
-        'play_roles_on_host',
     ],
     'Hostgroup': [
         'view_hostgroups',
@@ -934,6 +933,7 @@ PERMISSIONS = {
         'edit_discovered_hosts',
         'edit_hosts',
         'ipmi_boot_hosts',
+        'play_roles_on_host',
         'power_hosts',
         'provision_discovered_hosts',
         'puppetrun_hosts',
