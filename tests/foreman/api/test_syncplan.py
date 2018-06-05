@@ -23,7 +23,11 @@ from fauxfactory import gen_string
 from nailgun import client, entities
 from random import sample
 from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid, wait_for_tasks
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    wait_for_tasks,
+    wait_for_syncplan_tasks
+)
 from robottelo.config import settings
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import (
@@ -581,7 +585,16 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         cls.org = entities.Organization().create()
 
     @staticmethod
-    def validate_task_status(repo_id, max_tries=10):
+    def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):
+        """Wait for Pulp and foreman_tasks to complete or timeout
+
+        :param repo_id: Repository Id to identify the correct task
+        :param max_tries: Max tries to poll for the task creation
+        :param repo_backend_id: Backend identifier of repository to filter the
+            pulp tasks
+        """
+        if repo_backend_id:
+            wait_for_syncplan_tasks(repo_backend_id)
         wait_for_tasks(
             search_query='resource_type = Katello::Repository'
                          ' and owner.login = foreman_admin'
@@ -630,11 +643,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        sync_plan = entities.SyncPlan(
-            organization=self.org,
-            enabled=True,
-            sync_date=datetime.utcnow(),
-        ).create()
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
         # Verify product is not synced and doesn't have any content
@@ -642,7 +650,12 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Associate sync plan with product
+        # Create and Associate sync plan with product
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            sync_date=datetime.utcnow(),
+        ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product was not synced right after it was added to sync plan
         with self.assertRaises(AssertionError):
@@ -666,15 +679,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         delay = 4 * 60
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
             interval=u'hourly',
             sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
-        product = entities.Product(organization=self.org).create()
-        repo = entities.Repository(product=product).create()
-        # Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product is not synced and doesn't have any content
         self.logger.info('Waiting {0} seconds to check product {1}'
@@ -688,8 +701,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
+        # Update with the current UTC time
+        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
-        self.validate_task_status(repo.id)
+        self.validate_task_status(repo.id,
+                                  repo_backend_id=repo.backend_identifier
+                                  )
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -705,11 +723,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         delay = 4 * 60  # delay for sync date in seconds
-        sync_plan = entities.SyncPlan(
-            organization=self.org,
-            enabled=True,
-            sync_date=datetime.utcnow() + timedelta(seconds=delay),
-        ).create()
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
         # Verify product is not synced and doesn't have any content
@@ -717,7 +730,12 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Associate sync plan with product
+        # Create and Associate sync plan with product
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+        ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait half of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
@@ -732,8 +750,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
+        # Update with the current UTC time
+        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
-        self.validate_task_status(repo.id)
+        self.validate_task_status(repo.id,
+                                  repo_backend_id=repo.backend_identifier
+                                  )
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -750,11 +773,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         delay = 6 * 60  # delay for sync date in seconds
-        sync_plan = entities.SyncPlan(
-            organization=self.org,
-            enabled=True,
-            sync_date=datetime.utcnow() + timedelta(seconds=delay),
-        ).create()
         products = [
             entities.Product(organization=self.org).create()
             for _ in range(3)
@@ -768,7 +786,12 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo.id)
-        # Associate sync plan with products
+        # Create and Associate sync plan with products
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+        ).create()
         sync_plan.add_products(data={
             'product_ids': [product.id for product in products]})
         # Wait half of expected time
@@ -783,9 +806,14 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check products'
                          ' were synced'.format(delay))
         sleep(delay * 3/4)
+        # Update with the current UTC time
+        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
         for repo in repos:
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo, ['erratum', 'package', 'package_group'])
 
@@ -845,8 +873,14 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
+        # Update with the current UTC time
+        sync_plan.sync_date = datetime.utcnow() - timedelta(
+            seconds=interval - delay)
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
-        self.validate_task_status(repo.id)
+        self.validate_task_status(repo.id,
+                                  repo_backend_id=repo.backend_identifier
+                                  )
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -870,12 +904,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                 data={'organization_id': org.id},
                 files={'content': manifest.content},
             )
-        sync_plan = entities.SyncPlan(
-            organization=org,
-            enabled=True,
-            interval=u'hourly',
-            sync_date=datetime.utcnow() + timedelta(seconds=delay),
-        ).create()
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=org.id,
@@ -889,7 +917,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             organization=org,
         ).search()[0]
         repo = entities.Repository(id=repo_id).read()
-        # Associate sync plan with product
+        sync_plan = entities.SyncPlan(
+            organization=org,
+            enabled=True,
+            interval=u'hourly',
+            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+        ).create()
+        # Create and Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
@@ -909,8 +943,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
+        # Update with the current UTC time
+        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
-        self.validate_task_status(repo.id)
+        self.validate_task_status(repo.id,
+                                  repo_backend_id=repo.backend_identifier
+                                  )
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -929,15 +968,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         delay = 4 * 60
         start_date = datetime.utcnow() - timedelta(days=1)\
             + timedelta(seconds=delay)
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
             interval=u'hourly',
             sync_date=start_date,
         ).create()
-        product = entities.Product(organization=self.org).create()
-        repo = entities.Repository(product=product).create()
-        # Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product is not synced and doesn't have any content
         self.logger.info('Waiting {0} seconds to check product {1}'
@@ -951,8 +990,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        start_date = datetime.utcnow() - timedelta(days=1)\
+            + timedelta(seconds=delay)
+        sync_plan.sync_date = start_date
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
-        self.validate_task_status(repo.id)
+        self.validate_task_status(repo.id,
+                                  repo_backend_id=repo.backend_identifier
+                                  )
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -974,15 +1020,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         delay = 4 * 60
         start_date = datetime.utcnow() - timedelta(weeks=1) \
             + timedelta(seconds=delay)
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
             interval=u'weekly',
             sync_date=start_date,
         ).create()
-        product = entities.Product(organization=self.org).create()
-        repo = entities.Repository(product=product).create()
-        # Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product is not synced and doesn't have any content
         self.logger.info('Waiting {0} seconds to check product {1}'
@@ -996,8 +1042,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        start_date = datetime.utcnow() - timedelta(weeks=1) \
+            + timedelta(seconds=delay)
+        sync_plan.sync_date = start_date
+        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
-        self.validate_task_status(repo.id)
+        self.validate_task_status(repo.id,
+                                  repo_backend_id=repo.backend_identifier
+                                  )
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
