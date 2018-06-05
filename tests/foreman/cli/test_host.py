@@ -2145,22 +2145,7 @@ class HostParameterTestCase(CLITestCase):
             u'password-auth\r\n'
             u'account     include                  password-auth'
         )
-        host = entities.Host()
-        host.create_missing()
-        host = make_host({
-            u'architecture-id': host.architecture.id,
-            u'domain-id': host.domain.id,
-            u'environment-id': host.environment.id,
-            u'location-id': self.loc_id,
-            u'mac': host.mac,
-            u'medium-id': host.medium.id,
-            u'name': host.name,
-            u'operatingsystem-id': host.operatingsystem.id,
-            u'organization-id': self.org_id,
-            u'partition-table-id': host.ptable.id,
-            u'puppet-proxy-id': self.puppet_proxy['id'],
-            u'root-password': host.root_pass,
-        })
+        host = self.host
         Host.set_parameter({
             'host-id': host['id'],
             'name': param_name,
