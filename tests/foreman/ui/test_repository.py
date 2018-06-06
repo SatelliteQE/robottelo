@@ -147,44 +147,6 @@ class RepositoryTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
 
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_create_in_different_orgs(self):
-        """Create repository in two different orgs with same name
-
-        :id: 019c2242-8802-4bae-82c5-accf8f793dbc
-
-        :expectedresults: Repository is created successfully for both
-            organizations
-
-        :CaseLevel: Integration
-        """
-        org_2 = entities.Organization(name=gen_string('alpha')).create()
-        product_1 = entities.Product(organization=self.session_org).create()
-        product_2 = entities.Product(organization=org_2).create()
-        with Session(self) as session:
-            for repo_name in generate_strings_list(
-                    exclude_types=['numeric'], bug_id=1467722):
-                with self.subTest(repo_name):
-                    set_context(session, org=self.session_org.name)
-                    self.products.search_and_click(product_1.name)
-                    make_repository(
-                        session,
-                        name=repo_name,
-                        url=FAKE_1_YUM_REPO,
-                    )
-                    self.assertIsNotNone(self.repository.search(repo_name))
-                    set_context(session, org=org_2.name)
-                    self.products.search_and_click(product_2.name)
-                    make_repository(
-                        session,
-                        name=repo_name,
-                        url=FAKE_1_YUM_REPO,
-                        force_context=True,
-                    )
-                    self.assertIsNotNone(self.repository.search(repo_name))
-
     @tier2
     @upgrade
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
@@ -324,63 +286,6 @@ class RepositoryTestCase(UITestCase):
                 self.products.search_and_click(product.name)
                 self.assertTrue(self.repository.validate_field(
                     repo_name, property_name, ''))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_as_non_admin_user(self):
-        """Create a repository as a non admin user
-
-        :id: 582949c4-b95f-4d64-b7f0-fb80b3d2bd7e
-
-        :expectedresults: Repository successfully created
-
-        :BZ: 1426393
-
-        :CaseLevel: Integration
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        repo_name = gen_string('alpha')
-        user_permissions = {
-            None: ['access_dashboard'],
-            'Katello::Product': [
-                'view_products',
-                'create_products',
-                'edit_products',
-                'destroy_products',
-                'sync_products',
-                'export_products',
-            ],
-        }
-        role = entities.Role().create()
-        create_role_permissions(role, user_permissions)
-        entities.User(
-            login=user_login,
-            password=user_password,
-            role=[role],
-            admin=False,
-            default_organization=self.session_org,
-            organization=[self.session_org],
-        ).create()
-        product = entities.Product(organization=self.session_org).create()
-        with Session(self, user_login, user_password) as session:
-            # ensure that the created user is not a global admin user
-            # check administer->users page
-            with self.assertRaises(UINoSuchElementError):
-                session.nav.go_to_users()
-            # ensure that the created user has only the assigned
-            # permissions, check that hosts menu tab does not exist
-            self.assertIsNone(
-                self.content_views.wait_until_element(
-                    menu_locators['menu.hosts'], timeout=5)
-            )
-            self.products.search_and_click(product.name)
-            make_repository(
-                session,
-                name=repo_name,
-                url=FAKE_1_YUM_REPO,
-            )
-            self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
     @tier2
