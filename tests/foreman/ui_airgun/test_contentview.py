@@ -532,61 +532,21 @@ def test_negative_add_dupe_modules(session, module_org):
         )
 
 
-@run_in_one_thread
-@skip_if_not_set('fake_manifest')
 @tier2
-def test_positive_promote_with_rh_content(session):
-    """Attempt to promote a content view containing RH content
+def test_positive_publish_with_custom_content(session, module_org):
+    """Attempt to publish a content view containing custom content
 
-    :id: 82f71639-3580-49fd-bd5a-8dba568b98d1
-
-    :setup: Multiple environments for an org; RH content synced
-
-    :expectedresults: Content view can be promoted
-
-    :CaseLevel: System
-    """
-    cv_name = gen_string('alpha')
-    version = 'Version 1.0'
-    rh_repo = {
-        'name': REPOS['rhst7']['name'],
-        'product': PRDS['rhel'],
-        'reposet': REPOSET['rhst7'],
-        'basearch': 'x86_64',
-        'releasever': None,
-    }
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-    enable_sync_redhat_repo(rh_repo, org.id)
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    with session:
-        session.organization.select(org.name)
-        session.contentview.create({'name': cv_name})
-        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        session.contentview.add_yum_repo(cv_name, rh_repo['name'])
-        result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
-        result = session.contentview.promote(cv_name, version, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
-
-
-@tier2
-def test_positive_promote_with_custom_content(session, module_org):
-    """Attempt to promote a content view containing custom content
-
-    :id: 7c2fd8f0-c83f-4725-8953-9590112fae50
+    :id: 66b5efc7-2e43-438e-bd80-a754814222f9
 
     :setup: Multiple environments for an org; custom content synced
 
-    :expectedresults: Content view can be promoted
+    :expectedresults: Content view can be published
 
     :CaseLevel: Integration
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     version = 'Version 1.0'
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
     create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
@@ -594,101 +554,8 @@ def test_positive_promote_with_custom_content(session, module_org):
         session.contentview.add_yum_repo(cv_name, repo_name)
         result = session.contentview.publish(cv_name)
         assert result['Version'] == version
-        result = session.contentview.promote(cv_name, version, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
-
-
-@run_in_one_thread
-@skip_if_not_set('fake_manifest')
-@tier2
-def test_positive_promote_composite_with_custom_content(session):
-    """Attempt to promote composite content view containing custom content
-
-    :id: 35efbd83-d32e-4831-9d5b-1adb15289f54
-
-    :setup: Multiple environments for an org; custom content synced
-
-    :steps: create a composite view containing multiple content types
-
-    :expectedresults: Composite content view can be promoted
-
-    :CaseLevel: Integration
-    """
-    cv1_name = gen_string('alpha')
-    cv2_name = gen_string('alpha')
-    cv_composite_name = gen_string('alpha')
-    custom_repo1_name = gen_string('alpha')
-    custom_repo2_name = gen_string('alpha')
-    custom_repo1_url = FAKE_0_YUM_REPO
-    custom_repo2_url = FAKE_1_YUM_REPO
-    puppet_repo1_url = FAKE_0_PUPPET_REPO
-    puppet_repo2_url = FAKE_1_PUPPET_REPO
-    puppet_module1 = 'httpd'
-    puppet_module2 = 'ntp'
-    rh7_repo = {
-        'name': REPOS['rhst7']['name'],
-        'product': PRDS['rhel'],
-        'reposet': REPOSET['rhst7'],
-        'basearch': 'x86_64',
-        'releasever': None,
-    }
-    version = 'Version 1.0'
-    org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-    # create a life cycle environment
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    # Enable and sync RH repository
-    enable_sync_redhat_repo(rh7_repo, org.id)
-    # Create custom yum repositories
-    for name, url in (
-            (custom_repo1_name, custom_repo1_url),
-            (custom_repo2_name, custom_repo2_url)):
-        create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
-    # Create custom puppet repositories
-    for url in (puppet_repo1_url, puppet_repo2_url):
-        create_sync_custom_repo(
-            repo_url=url, repo_type=REPO_TYPE['puppet'], org_id=org.id)
-    with session:
-        session.organization.select(org.name)
-        # create the first content view
-        session.contentview.create({'name': cv1_name})
-        assert session.contentview.search(cv1_name)[0]['Name'] == cv1_name
-        # add repositories to first content view
-        for repo_name in (rh7_repo['name'], custom_repo1_name):
-            session.contentview.add_yum_repo(cv1_name, repo_name)
-        # add the first puppet module to first content view
-        session.contentview.add_puppet_module(cv1_name, puppet_module1)
-        # publish the first content
-        result = session.contentview.publish(cv1_name)
-        assert result['Version'] == version
-        # create the second content view
-        session.contentview.create({'name': cv2_name})
-        assert session.contentview.search(cv2_name)[0]['Name'] == cv2_name
-        # add repositories to the second content view
-        session.contentview.add_yum_repo(cv2_name, custom_repo2_name)
-        # add the second puppet module to the second content view
-        session.contentview.add_puppet_module(cv2_name, puppet_module2)
-        # publish the second content
-        result = session.contentview.publish(cv2_name)
-        assert result['Version'] == version
-        # create a composite content view
-        session.contentview.create({
-            'name': cv_composite_name,
-            'composite_view': True,
-        })
-        assert session.contentview.search(
-            cv_composite_name)[0]['Name'] == cv_composite_name
-        # add the first and second content views to the composite one
-        for cv_name in (cv1_name, cv2_name):
-            session.contentview.add_cv(cv_composite_name, cv_name)
-        # publish the composite content view
-        result = session.contentview.publish(cv_composite_name)
-        assert result['Version'] == version
-        # promote the composite content view
-        result = session.contentview.promote(
-            cv_composite_name, version, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        cv = session.contentview.read(cv_name)
+        assert cv['versions']['table'][0]['Version'] == version
 
 
 @run_in_one_thread
@@ -723,32 +590,6 @@ def test_positive_publish_with_rh_content(session):
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         session.contentview.add_yum_repo(cv_name, rh_repo['name'])
-        result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
-        cv = session.contentview.read(cv_name)
-        assert cv['versions']['table'][0]['Version'] == version
-
-
-@tier2
-def test_positive_publish_with_custom_content(session, module_org):
-    """Attempt to publish a content view containing custom content
-
-    :id: 66b5efc7-2e43-438e-bd80-a754814222f9
-
-    :setup: Multiple environments for an org; custom content synced
-
-    :expectedresults: Content view can be published
-
-    :CaseLevel: Integration
-    """
-    repo_name = gen_string('alpha')
-    cv_name = gen_string('alpha')
-    version = 'Version 1.0'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    with session:
-        session.contentview.create({'name': cv_name})
-        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        session.contentview.add_yum_repo(cv_name, repo_name)
         result = session.contentview.publish(cv_name)
         assert result['Version'] == version
         cv = session.contentview.read(cv_name)
@@ -898,3 +739,162 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
             assert ENVIRONMENT in result['Environments']
             # assert that env_name is in environments of this version
             assert lce.name in result['Environments']
+
+
+@tier2
+def test_positive_promote_with_custom_content(session, module_org):
+    """Attempt to promote a content view containing custom content
+
+    :id: 7c2fd8f0-c83f-4725-8953-9590112fae50
+
+    :setup: Multiple environments for an org; custom content synced
+
+    :expectedresults: Content view can be promoted
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    version = 'Version 1.0'
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with session:
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == version
+        result = session.contentview.promote(cv_name, version, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier2
+def test_positive_promote_with_rh_content(session):
+    """Attempt to promote a content view containing RH content
+
+    :id: 82f71639-3580-49fd-bd5a-8dba568b98d1
+
+    :setup: Multiple environments for an org; RH content synced
+
+    :expectedresults: Content view can be promoted
+
+    :CaseLevel: System
+    """
+    cv_name = gen_string('alpha')
+    version = 'Version 1.0'
+    rh_repo = {
+        'name': REPOS['rhst7']['name'],
+        'product': PRDS['rhel'],
+        'reposet': REPOSET['rhst7'],
+        'basearch': 'x86_64',
+        'releasever': None,
+    }
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    enable_sync_redhat_repo(rh_repo, org.id)
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    with session:
+        session.organization.select(org.name)
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, rh_repo['name'])
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == version
+        result = session.contentview.promote(cv_name, version, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier2
+def test_positive_promote_composite_with_custom_content(session):
+    """Attempt to promote composite content view containing custom content
+
+    :id: 35efbd83-d32e-4831-9d5b-1adb15289f54
+
+    :setup: Multiple environments for an org; custom content synced
+
+    :steps: create a composite view containing multiple content types
+
+    :expectedresults: Composite content view can be promoted
+
+    :CaseLevel: Integration
+    """
+    cv1_name = gen_string('alpha')
+    cv2_name = gen_string('alpha')
+    cv_composite_name = gen_string('alpha')
+    custom_repo1_name = gen_string('alpha')
+    custom_repo2_name = gen_string('alpha')
+    custom_repo1_url = FAKE_0_YUM_REPO
+    custom_repo2_url = FAKE_1_YUM_REPO
+    puppet_repo1_url = FAKE_0_PUPPET_REPO
+    puppet_repo2_url = FAKE_1_PUPPET_REPO
+    puppet_module1 = 'httpd'
+    puppet_module2 = 'ntp'
+    rh7_repo = {
+        'name': REPOS['rhst7']['name'],
+        'product': PRDS['rhel'],
+        'reposet': REPOSET['rhst7'],
+        'basearch': 'x86_64',
+        'releasever': None,
+    }
+    version = 'Version 1.0'
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    # create a life cycle environment
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    # Enable and sync RH repository
+    enable_sync_redhat_repo(rh7_repo, org.id)
+    # Create custom yum repositories
+    for name, url in (
+            (custom_repo1_name, custom_repo1_url),
+            (custom_repo2_name, custom_repo2_url)):
+        create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
+    # Create custom puppet repositories
+    for url in (puppet_repo1_url, puppet_repo2_url):
+        create_sync_custom_repo(
+            repo_url=url, repo_type=REPO_TYPE['puppet'], org_id=org.id)
+    with session:
+        session.organization.select(org.name)
+        # create the first content view
+        session.contentview.create({'name': cv1_name})
+        assert session.contentview.search(cv1_name)[0]['Name'] == cv1_name
+        # add repositories to first content view
+        for repo_name in (rh7_repo['name'], custom_repo1_name):
+            session.contentview.add_yum_repo(cv1_name, repo_name)
+        # add the first puppet module to first content view
+        session.contentview.add_puppet_module(cv1_name, puppet_module1)
+        # publish the first content
+        result = session.contentview.publish(cv1_name)
+        assert result['Version'] == version
+        # create the second content view
+        session.contentview.create({'name': cv2_name})
+        assert session.contentview.search(cv2_name)[0]['Name'] == cv2_name
+        # add repositories to the second content view
+        session.contentview.add_yum_repo(cv2_name, custom_repo2_name)
+        # add the second puppet module to the second content view
+        session.contentview.add_puppet_module(cv2_name, puppet_module2)
+        # publish the second content
+        result = session.contentview.publish(cv2_name)
+        assert result['Version'] == version
+        # create a composite content view
+        session.contentview.create({
+            'name': cv_composite_name,
+            'composite_view': True,
+        })
+        assert session.contentview.search(
+            cv_composite_name)[0]['Name'] == cv_composite_name
+        # add the first and second content views to the composite one
+        for cv_name in (cv1_name, cv2_name):
+            session.contentview.add_cv(cv_composite_name, cv_name)
+        # publish the composite content view
+        result = session.contentview.publish(cv_composite_name)
+        assert result['Version'] == version
+        # promote the composite content view
+        result = session.contentview.promote(
+            cv_composite_name, version, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
