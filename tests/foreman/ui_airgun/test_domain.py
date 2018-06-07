@@ -15,7 +15,10 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string, gen_utf8
+from fauxfactory import (
+    gen_string,
+    gen_utf8
+)
 import pytest
 
 from robottelo.constants import DOMAIN
@@ -23,7 +26,6 @@ from robottelo.datafactory import parametrized
 from robottelo.decorators import (
     parametrize,
     run_only_on,
-    tier1,
     tier2,
     upgrade
 )
@@ -55,25 +57,6 @@ def invalid_domain_names():
     return parametrized(names)
 
 
-def _create_domain(session, name=None, assert_created=True):
-    """
-    Create a domain and optionally assert that it is created
-    """
-    if not name:
-        name = DOMAIN % gen_string('alpha')
-    session.domain.create({
-        'domain.dns_domain': name,
-        'domain.full_name': name,
-    })
-    if assert_created:
-        assert session.domain.search(name), (
-            "Unable to find domain '{}' after creating"
-            .format(name)
-        )
-    return name
-
-
-@tier1
 @run_only_on('sat')
 @parametrize('name', **valid_domain_names(length=5))
 def test_positive_create_with_name(session, name):
@@ -86,11 +69,17 @@ def test_positive_create_with_name(session, name):
     :CaseImportance: Critical
     """
     with session:
-        _create_domain(session, name)
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        assert session.domain.search(name), (
+            "Unable to find domain '{}' after creating"
+            .format(name)
+        )
 
 
 @run_only_on('sat')
-@tier1
 @parametrize('name', **valid_domain_names(length=243))
 def test_positive_create_with_long_name(session, name):
     """Create a new domain with long names
@@ -102,12 +91,18 @@ def test_positive_create_with_long_name(session, name):
     :CaseImportance: Critical
     """
     with session:
-        _create_domain(session, name)
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        assert session.domain.search(name), (
+            "Unable to find domain '{}' after creating"
+            .format(name)
+        )
 
 
 @run_only_on('sat')
 @upgrade
-@tier1
 def test_positive_delete(session):
     """Delete a domain
 
@@ -118,7 +113,11 @@ def test_positive_delete(session):
     :CaseImportance: Critical
     """
     with session:
-        name = _create_domain(session)
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
         session.domain.delete(name)
         assert not session.domain.search(name), (
             "Deleted domain '{}' still exists in UI"
@@ -127,7 +126,6 @@ def test_positive_delete(session):
 
 
 @run_only_on('sat')
-@tier1
 @upgrade
 @parametrize('new_name', **valid_domain_names(length=5))
 def test_positive_update(session, new_name):
@@ -140,7 +138,11 @@ def test_positive_update(session, new_name):
     :CaseImportance: Critical
     """
     with session:
-        old_name = _create_domain(session)
+        old_name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': old_name,
+            'domain.full_name': old_name,
+        })
         session.domain.update(old_name, {'domain.dns_domain': new_name})
         assert session.domain.search(new_name), (
             "Unable to find domain '{}' after changing name (old name: {})"
@@ -149,7 +151,6 @@ def test_positive_update(session, new_name):
 
 
 @run_only_on('sat')
-@tier1
 @parametrize('name', **invalid_domain_names())
 def test_negative_create_with_invalid_name(session, name):
     """Try to create domain and use whitespace, blank, tab symbol or
@@ -163,7 +164,10 @@ def test_negative_create_with_invalid_name(session, name):
     """
     with session:
         with pytest.raises(AssertionError) as context:
-            _create_domain(session, name=name, assert_created=False)
+            session.domain.create({
+                'domain.dns_domain': name,
+                'domain.full_name': name,
+            })
         assert 'errors present' in str(context.value)
 
 
@@ -187,8 +191,12 @@ def test_positive_set_parameter(session):
         ]
     }
     with session:
-        domain_name = _create_domain(session)
-        session.domain.update(domain_name, update_values)
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        session.domain.update(name, update_values)
 
 
 @run_only_on('sat')
@@ -211,8 +219,12 @@ def test_positive_set_parameter_long(session):
         ]
     }
     with session:
-        domain_name = _create_domain(session)
-        session.domain.update(domain_name, update_values)
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        session.domain.update(name, update_values)
 
 
 @run_only_on('sat')
@@ -235,8 +247,12 @@ def test_positive_set_parameter_blank(session):
         ]
     }
     with session:
-        domain_name = _create_domain(session)
-        session.domain.update(domain_name, update_values)
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        session.domain.update(name, update_values)
 
 
 @run_only_on('sat')
@@ -259,9 +275,13 @@ def test_negative_set_parameter(session):
         ]
     }
     with session:
-        domain_name = _create_domain(session)
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
         with pytest.raises(AssertionError) as context:
-            session.domain.update(domain_name, update_values)
+            session.domain.update(name, update_values)
         assert 'Name is too long' in str(context.value)
 
 
@@ -279,10 +299,14 @@ def test_negative_set_parameter_same(session):
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
     with session:
-        domain_name = _create_domain(session)
-        session.domain.add_parameter(domain_name, param_name, param_value)
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        session.domain.add_parameter(name, param_name, param_value)
         with pytest.raises(AssertionError) as context:
-            session.domain.add_parameter(domain_name, param_name, param_value)
+            session.domain.add_parameter(name, param_name, param_value)
         assert 'Name has already been taken' in str(context.value)
 
 
@@ -300,10 +324,12 @@ def test_positive_remove_parameter(session):
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
     with session:
-        domain_name = _create_domain(session)
-        session.domain.add_parameter(
-            domain_name, param_name, param_value)
-        session.domain.remove_parameter(
-            domain_name, param_name)
-        params = session.domain.read(domain_name)['parameters']['params']
+        name = DOMAIN % gen_string('alphanumeric')
+        session.domain.create({
+            'domain.dns_domain': name,
+            'domain.full_name': name,
+        })
+        session.domain.add_parameter(name, param_name, param_value)
+        session.domain.remove_parameter(name, param_name)
+        params = session.domain.read(name)['parameters']['params']
         assert param_name not in [param['name'] for param in params]
