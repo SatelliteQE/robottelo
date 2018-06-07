@@ -16,13 +16,11 @@
 :Upstream: No
 """
 from fauxfactory import gen_string, gen_utf8
-from nailgun import entities
 import pytest
 
 from robottelo.constants import DOMAIN
 from robottelo.datafactory import parametrized
 from robottelo.decorators import (
-    bz_bug_is_open,
     parametrize,
     run_only_on,
     tier1,
