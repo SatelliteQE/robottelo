@@ -27,6 +27,7 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
+    REPO_DISCOVERY_URL,
     REPO_TYPE,
 )
 
@@ -128,6 +129,59 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
         )
         assert session.repository.search(
             product.name, repo_name)[0]['Name'] == repo_name
+
+
+@tier2
+@upgrade
+def test_positive_discover_repo_via_existing_product(session, module_org):
+    """Create repository via repo-discovery under existing product
+
+    :id: 9181950c-a756-456f-a46a-059e7a2add3c
+
+    :expectedresults: Repository is discovered and created
+
+    :CaseLevel: Integration
+    """
+    repo_name = 'fakerepo01'
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.product.discover_repo({
+            'repo_type': 'Yum Repositories',
+            'url': REPO_DISCOVERY_URL,
+            'discovered_repos.repos': repo_name,
+            'create_repo.product_type': 'Existing Product',
+            'create_repo.product_content.product_name': product.name,
+        })
+        assert repo_name in session.repository.search(
+            product.name, repo_name)[0]['Name']
+
+
+@tier2
+def test_positive_discover_repo_via_new_product(session, module_org):
+    """Create repository via repo discovery under new product
+
+    :id: dc5281f8-1a8a-4a17-b746-728f344a1504
+
+    :expectedresults: Repository is discovered and created
+
+    :CaseLevel: Integration
+    """
+    product_name = gen_string('alpha')
+    repo_name = 'fakerepo01'
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.product.discover_repo({
+            'repo_type': 'Yum Repositories',
+            'url': REPO_DISCOVERY_URL,
+            'discovered_repos.repos': repo_name,
+            'create_repo.product_type': 'New Product',
+            'create_repo.product_content.product_name': product_name,
+        })
+        assert session.product.search(
+            product_name)[0]['Name'] == product_name
+        assert repo_name in session.repository.search(
+            product_name, repo_name)[0]['Name']
 
 
 @tier2
