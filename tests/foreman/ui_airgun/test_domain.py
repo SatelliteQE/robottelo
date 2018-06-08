@@ -60,7 +60,7 @@ def invalid_domain_names():
 def test_positive_create_with_name(session, name):
     """Create a new domain with name of 255 chars
 
-    :id: 142f90e3-a2a3-4f99-8f9b-11189f230bc5
+    :id: 6366fa30-c94f-4d98-9c7f-c590e709cf79
 
     :expectedresults: Domain is created
 
@@ -81,7 +81,7 @@ def test_positive_create_with_name(session, name):
 def test_positive_delete(session):
     """Delete a domain
 
-    :id: 07c1cc34-4569-4f04-9c4a-2842821a6977
+    :id: e05ec510-dfb0-4669-9371-7e594333d80c
 
     :expectedresults: Domain is deleted
 
@@ -105,7 +105,7 @@ def test_positive_delete(session):
 def test_positive_update(session, new_name):
     """Update a domain with name and description
 
-    :id: 25ff4a1d-3ca1-4153-be45-4fe1e63f3f16
+    :id: 4a883383-da9c-4b03-bcb8-e1ffb203d19b
 
     :expectedresults: Domain is updated
 
@@ -129,7 +129,7 @@ def test_negative_create_with_invalid_name(session, name):
     """Try to create domain and use whitespace, blank, tab symbol or
     too long string of different types as its name value
 
-    :id: 5a8ba1a8-2da8-48e1-8b2a-96d91161bf94
+    :id: 33c96cb6-711e-4a17-bce8-55e33ebcd342
 
     :expectedresults: Domain is not created
 
@@ -151,7 +151,6 @@ def test_positive_set_parameter(session, param_value):
     """Set parameter in a domain with a value of 255 chars, or a blank value.
 
     :id: b346ae66-1720-46af-b0da-460c52ce9476
-    :id: b5a67709-57ad-4043-8e72-190ec31b8217
 
     :expectedresults: Domain parameter is created.
 
