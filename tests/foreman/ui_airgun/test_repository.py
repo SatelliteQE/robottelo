@@ -23,7 +23,12 @@ from pytest import raises
 from robottelo.api.utils import create_role_permissions
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2, upgrade
-from robottelo.constants import FAKE_1_YUM_REPO, REPO_TYPE
+from robottelo.constants import (
+    DOCKER_REGISTRY_HUB,
+    FAKE_0_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
+    REPO_TYPE,
+)
 
 
 @fixture(scope='module')
@@ -123,3 +128,67 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
         )
         assert session.repository.search(
             product.name, repo_name)[0]['Name'] == repo_name
+
+
+@tier2
+@upgrade
+def test_positive_sync_custom_repo_yum(session, module_org):
+    """Create Custom yum repos and sync it via the repos page.
+
+    :id: afa218f4-e97a-4240-a82a-e69538d837a1
+
+    :expectedresults: Sync procedure for specific yum repository is successful
+
+    :CaseLevel: Integration
+    """
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    with session:
+        result = session.repository.synchronize(product.name, repo.name)
+        assert result['result'] == 'success'
+
+
+@tier2
+@upgrade
+def test_positive_sync_custom_repo_puppet(session, module_org):
+    """Create Custom puppet repos and sync it via the repos page.
+
+    :id: 135176cc-7664-41ee-8c41-b77e193f2f22
+
+    :expectedresults: Sync procedure for specific puppet repository is
+        successful
+
+    :CaseLevel: Integration
+    """
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(
+        url=FAKE_0_PUPPET_REPO,
+        product=product,
+        content_type=REPO_TYPE['puppet'],
+    ).create()
+    with session:
+        result = session.repository.synchronize(product.name, repo.name)
+        assert result['result'] == 'success'
+
+
+@tier2
+@upgrade
+def test_positive_sync_custom_repo_docker(session, module_org):
+    """Create Custom docker repos and sync it via the repos page.
+
+    :id: 942e0b4f-3524-4f00-812d-bdad306f81de
+
+    :expectedresults: Sync procedure for specific docker repository is
+        successful
+
+    :CaseLevel: Integration
+    """
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=product,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        result = session.repository.synchronize(product.name, repo.name)
+        assert result['result'] == 'success'
