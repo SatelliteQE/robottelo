@@ -24,7 +24,6 @@ from robottelo import manifests, ssh
 from robottelo.api.utils import create_role_permissions, upload_manifest
 from robottelo.constants import (
     CHECKSUM_TYPE,
-    DOCKER_REGISTRY_HUB,
     DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
     FAKE_1_PUPPET_REPO,
@@ -49,7 +48,6 @@ from robottelo.constants import (
 from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
-    valid_docker_repository_names,
 )
 from robottelo.decorators import (
     bz_bug_is_open,
@@ -624,38 +622,6 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    @upgrade
-    def test_positive_sync_custom_repo_yum(self):
-        """Create Custom yum repos and sync it via the repos page.
-
-        :id: afa218f4-e97a-4240-a82a-e69538d837a1
-
-        :expectedresults: Sync procedure for specific yum repository is
-            successful
-
-        :CaseLevel: Integration
-        """
-        product = entities.Product(organization=self.session_org).create()
-        with Session(self) as session:
-            for repo_name in generate_strings_list(
-                    exclude_types=['numeric'], bug_id=1467722):
-                with self.subTest(repo_name):
-                    # Creates new yum repository using api
-                    entities.Repository(
-                        name=repo_name,
-                        url=FAKE_1_YUM_REPO,
-                        product=product,
-                    ).create()
-                    self.setup_navigate_syncnow(
-                        session,
-                        product.name,
-                        repo_name,
-                    )
-                    # prd_sync_is_ok returns boolean values and not objects
-                    self.assertTrue(self.prd_sync_is_ok(repo_name))
-
-    @run_only_on('sat')
-    @tier2
     def test_positive_resync_custom_repo_after_invalid_update(self):
         """Create Custom yum repo and sync it via the repos page. Then try to
         change repo url to invalid one and re-sync that repository
@@ -701,70 +667,6 @@ class RepositoryTestCase(UITestCase):
                 repo_name,
             )
             self.assertTrue(self.prd_sync_is_ok(repo_name))
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_sync_custom_repo_puppet(self):
-        """Create Custom puppet repos and sync it via the repos page.
-
-        :id: 135176cc-7664-41ee-8c41-b77e193f2f22
-
-        :expectedresults: Sync procedure for specific puppet repository is
-            successful
-
-        :CaseLevel: Integration
-        """
-        # Creates new product
-        product = entities.Product(organization=self.session_org).create()
-        with Session(self) as session:
-            for repo_name in generate_strings_list():
-                with self.subTest(repo_name):
-                    # Creates new puppet repository
-                    entities.Repository(
-                        name=repo_name,
-                        url=FAKE_0_PUPPET_REPO,
-                        product=product,
-                        content_type=REPO_TYPE['puppet'],
-                    ).create()
-                    self.setup_navigate_syncnow(
-                        session,
-                        product.name,
-                        repo_name,
-                    )
-                    # prd_sync_is_ok returns boolean values and not objects
-                    self.assertTrue(self.prd_sync_is_ok(repo_name))
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_sync_custom_repo_docker(self):
-        """Create Custom docker repos and sync it via the repos page.
-
-        :id: 942e0b4f-3524-4f00-812d-bdad306f81de
-
-        :expectedresults: Sync procedure for specific docker repository is
-            successful
-
-        :CaseLevel: Integration
-        """
-        # Creates new product
-        product = entities.Product(organization=self.session_org).create()
-        with Session(self) as session:
-            for repo_name in valid_docker_repository_names():
-                with self.subTest(repo_name):
-                    # Creates new docker repository
-                    entities.Repository(
-                        name=repo_name,
-                        url=DOCKER_REGISTRY_HUB,
-                        product=product,
-                        content_type=REPO_TYPE['docker'],
-                    ).create()
-                    self.setup_navigate_syncnow(
-                        session, product.name, repo_name
-                    )
-                    # prd_sync_is_ok returns boolean values and not objects
-                    self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
     @tier2
