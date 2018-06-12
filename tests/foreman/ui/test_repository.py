@@ -36,7 +36,6 @@ from robottelo.constants import (
     INVALID_URL,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
-    REPO_DISCOVERY_URL,
     REPO_TAB,
     REPO_TYPE,
     REPOS,
@@ -571,54 +570,6 @@ class RepositoryTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_discover_repo_via_existing_product(self):
-        """Create repository via repo-discovery under existing product
-
-        :id: 9181950c-a756-456f-a46a-059e7a2add3c
-
-        :expectedresults: Repository is discovered and created
-
-        :CaseLevel: Integration
-        """
-        discovered_urls = 'fakerepo01/'
-        product = entities.Product(organization=self.session_org).create()
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.session_org.name, force=False)
-            session.nav.go_to_products()
-            self.repository.discover_repo(
-                url_to_discover=REPO_DISCOVERY_URL,
-                discovered_urls=[discovered_urls],
-                product=product.name,
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_discover_repo_via_new_product(self):
-        """Create repository via repo discovery under new product
-
-        :id: dc5281f8-1a8a-4a17-b746-728f344a1504
-
-        :expectedresults: Repository is discovered and created
-
-        :CaseLevel: Integration
-        """
-        product_name = gen_string('alpha')
-        discovered_urls = 'fakerepo01/'
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.session_org.name)
-            session.nav.go_to_select_loc(self.session_loc.name)
-            session.nav.go_to_products()
-            self.repository.discover_repo(
-                url_to_discover=REPO_DISCOVERY_URL,
-                discovered_urls=[discovered_urls],
-                product=product_name,
-                new_product=True,
-            )
-            self.assertIsNotNone(self.products.search(product_name))
 
     @run_only_on('sat')
     @tier2
