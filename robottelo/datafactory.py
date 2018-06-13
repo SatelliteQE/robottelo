@@ -110,7 +110,7 @@ def add_uppercase_char_into_string(text=None, length=10):
     if text is None:
         text = gen_string('alpha', length)
     st_chars = list(text)
-    st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
+    st_chars[random.randint(0, len(st_chars) - 1)] = random.choice(
         string.ascii_uppercase)
     return ''.join(st_chars)
 

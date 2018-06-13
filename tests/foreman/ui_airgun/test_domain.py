@@ -15,16 +15,11 @@
 
 :Upstream: No
 """
-from fauxfactory import (
-    gen_string,
-    gen_utf8
-)
+from fauxfactory import gen_string
 import pytest
-from random import choice
 
 from robottelo.datafactory import (
     invalid_domain_names,
-    parametrized,
     valid_domain_names
 )
 from robottelo.decorators import (
@@ -57,11 +52,11 @@ def test_positive_create_with_name(session, name):
         assert session.domain.search(name), (
             "Unable to find domain '{}' after creating"
             .format(name)
-        )        
+        )
 
 
 @upgrade
-def test_positive_delete(session):
+def test_positive_delete(session, valid_domain_name):
     """Delete a domain
 
     :id: e05ec510-dfb0-4669-9371-7e594333d80c
@@ -71,7 +66,7 @@ def test_positive_delete(session):
     :CaseImportance: Critical
     """
     with session:
-        name = valid_
+        name = valid_domain_name
         session.domain.create({
             'domain.dns_domain': name,
             'domain.full_name': name,
