@@ -20,9 +20,13 @@ from fauxfactory import (
     gen_utf8
 )
 import pytest
+from random import choice
 
-from robottelo.constants import DOMAIN
-from robottelo.datafactory import parametrized
+from robottelo.datafactory import (
+    invalid_domain_names,
+    parametrized,
+    valid_domain_names
+)
 from robottelo.decorators import (
     parametrize,
     tier2,
@@ -30,33 +34,12 @@ from robottelo.decorators import (
 )
 
 
-def valid_domain_names(length):
-    """Returns pytest parametrize kwargs for valid domain names."""
-    max_len = 255 - len(DOMAIN % '')
-    if max_len - length < 0:
-        raise ValueError('length is too large, max: {}'.format(max_len))
-    names = {
-        'alphanumeric': DOMAIN % gen_string('alphanumeric', length),
-        'alpha': DOMAIN % gen_string('alpha', length),
-        'numeric': DOMAIN % gen_string('numeric', length),
-        'latin1': DOMAIN % gen_string('latin1', length),
-        'utf8': DOMAIN % gen_utf8(length, smp=False),
-    }
-    return parametrized(names)
+@pytest.fixture
+def valid_domain_name():
+    return valid_domain_names(interface=None)[0]
 
 
-def invalid_domain_names():
-    """Returns pytest parametrize kwargs for invalid names."""
-    names = {
-        'empty': '\0',
-        'whitespace': ' ',
-        'tab': '\t',
-        'toolong': gen_string('alphanumeric', 300)
-    }
-    return parametrized(names)
-
-
-@parametrize('name', **valid_domain_names(length=243))
+@parametrize('name', **valid_domain_names(interface='ui', length=243))
 def test_positive_create_with_name(session, name):
     """Create a new domain with name of 255 chars
 
@@ -74,7 +57,7 @@ def test_positive_create_with_name(session, name):
         assert session.domain.search(name), (
             "Unable to find domain '{}' after creating"
             .format(name)
-        )
+        )        
 
 
 @upgrade
@@ -88,7 +71,7 @@ def test_positive_delete(session):
     :CaseImportance: Critical
     """
     with session:
-        name = DOMAIN % gen_string('alphanumeric')
+        name = valid_
         session.domain.create({
             'domain.dns_domain': name,
             'domain.full_name': name,
@@ -101,8 +84,8 @@ def test_positive_delete(session):
 
 
 @upgrade
-@parametrize('new_name', **valid_domain_names(length=5))
-def test_positive_update(session, new_name):
+@parametrize('new_name', **valid_domain_names(interface='ui'))
+def test_positive_update(session, valid_domain_name, new_name):
     """Update a domain with name and description
 
     :id: 4a883383-da9c-4b03-bcb8-e1ffb203d19b
@@ -112,7 +95,7 @@ def test_positive_update(session, new_name):
     :CaseImportance: Critical
     """
     with session:
-        old_name = DOMAIN % gen_string('alphanumeric')
+        old_name = valid_domain_name
         session.domain.create({
             'domain.dns_domain': old_name,
             'domain.full_name': old_name,
@@ -124,7 +107,7 @@ def test_positive_update(session, new_name):
         )
 
 
-@parametrize('name', **invalid_domain_names())
+@parametrize('name', **invalid_domain_names(interface='ui'))
 def test_negative_create_with_invalid_name(session, name):
     """Try to create domain and use whitespace, blank, tab symbol or
     too long string of different types as its name value
@@ -147,7 +130,7 @@ def test_negative_create_with_invalid_name(session, name):
 @tier2
 @parametrize('param_value', [gen_string('alpha', 255), ''],
              ids=['long_value', 'blank_value'])
-def test_positive_set_parameter(session, param_value):
+def test_positive_set_parameter(session, valid_domain_name, param_value):
     """Set parameter in a domain with a value of 255 chars, or a blank value.
 
     :id: b346ae66-1720-46af-b0da-460c52ce9476
@@ -160,7 +143,7 @@ def test_positive_set_parameter(session, param_value):
     new_param = {'name': param_name, 'value': param_value}
     update_values = {'parameters.params': [new_param]}
     with session:
-        name = DOMAIN % gen_string('alphanumeric')
+        name = valid_domain_name
         session.domain.create({
             'domain.dns_domain': name,
             'domain.full_name': name,
@@ -173,7 +156,7 @@ def test_positive_set_parameter(session, param_value):
 
 
 @tier2
-def test_negative_set_parameter(session):
+def test_negative_set_parameter(session, valid_domain_name):
     """Set a parameter in a domain with 256 chars in name and value.
 
     :id: 1c647d66-6a3f-4d88-8e6b-60f2fc7fd603
@@ -191,7 +174,7 @@ def test_negative_set_parameter(session):
         ]
     }
     with session:
-        name = DOMAIN % gen_string('alphanumeric')
+        name = valid_domain_name
         session.domain.create({
             'domain.dns_domain': name,
             'domain.full_name': name,
@@ -202,7 +185,7 @@ def test_negative_set_parameter(session):
 
 
 @tier2
-def test_negative_set_parameter_same(session):
+def test_negative_set_parameter_same(session, valid_domain_name):
     """Again set the same parameter for domain with name and value.
 
     :id: 6266f12e-cf94-4564-ba26-b467ced2737f
@@ -214,7 +197,7 @@ def test_negative_set_parameter_same(session):
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
     with session:
-        name = DOMAIN % gen_string('alphanumeric')
+        name = valid_domain_name
         session.domain.create({
             'domain.dns_domain': name,
             'domain.full_name': name,
@@ -226,7 +209,7 @@ def test_negative_set_parameter_same(session):
 
 
 @tier2
-def test_positive_remove_parameter(session):
+def test_positive_remove_parameter(session, valid_domain_name):
     """Remove a selected domain parameter
 
     :id: 8f7f8501-cf39-418f-a412-1a4b53698bc3
@@ -238,7 +221,7 @@ def test_positive_remove_parameter(session):
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
     with session:
-        name = DOMAIN % gen_string('alphanumeric')
+        name = valid_domain_name
         session.domain.create({
             'domain.dns_domain': name,
             'domain.full_name': name,
