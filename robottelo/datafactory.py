@@ -203,9 +203,9 @@ def invalid_names_list():
 @filtered_datapoint
 def valid_domain_names(interface='ui', length=None):
     """Valid domain names."""
-    if not length:
-        length = random.randint(1, 255 - len(DOMAIN))
     max_len = 255 - len(DOMAIN % '')
+    if not length:
+        length = random.randint(1, max_len)
     if length > max_len:
         raise ValueError('length is too large, max: {}'.format(max_len))
     names = {
