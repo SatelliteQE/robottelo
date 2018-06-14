@@ -2,7 +2,7 @@
 
 cachetools==1.1.6
 click==6.6
-cryptography==1.8.2
+cryptography==2.0
 fauxfactory==2.0.9
 Inflector==2.0.11
 import_string==0.1.0
