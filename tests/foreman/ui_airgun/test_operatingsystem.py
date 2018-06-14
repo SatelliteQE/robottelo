@@ -17,7 +17,7 @@
 from nailgun import entities
 
 from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize
+from robottelo.decorators import fixture, parametrize, tier2
 
 
 @fixture(scope='module')
@@ -103,6 +103,37 @@ def test_positive_create_with_params(session):
         })
         os_full_name = '{} {}'.format(name, major_version)
         assert session.operatingsystem.search(name)[0]['Title'] == os_full_name
+        values = session.operatingsystem.read(os_full_name)
+        assert len(values['parameters']) == 1
+        assert values['parameters'][0]['name'] == param_name
+        assert values['parameters'][0]['value'] == param_value
+
+
+@tier2
+def test_positive_update_with_params(session):
+    """Set Operating System parameter
+
+    :id: 05b504d8-2518-4359-a53a-f577339f1ebe
+
+    :expectedresults: OS is updated with new parameter
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    major_version = gen_string('numeric', 2)
+    param_name = gen_string('alpha')
+    param_value = gen_string('alpha')
+    with session:
+        session.operatingsystem.create({
+            'name': name,
+            'major': major_version,
+        })
+        os_full_name = '{} {}'.format(name, major_version)
+        assert session.operatingsystem.search(name)[0]['Title'] == os_full_name
+        session.operatingsystem.update(
+            os_full_name,
+            {'parameters': {'name': param_name, 'value': param_value}}
+        )
         values = session.operatingsystem.read(os_full_name)
         assert len(values['parameters']) == 1
         assert values['parameters'][0]['name'] == param_name
