@@ -22,9 +22,14 @@ from random import choice
 
 from fauxfactory import gen_string
 from nailgun import client, entities
+from requests import get
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.constants import (
+    FOREMAN_TEMPLATE_IMPORT_URL,
+    FOREMAN_TEMPLATE_TEST_TEMPLATE
+)
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     skip_if_bug_open,
@@ -35,6 +40,7 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.helpers import get_nailgun_config
+from robottelo import ssh
 from robottelo.test import APITestCase
 
 
@@ -370,10 +376,40 @@ class TemplateSyncTestCase(APITestCase):
             - http://pastebin.test.redhat.com/516304
 
         """
+        if not get(FOREMAN_TEMPLATE_IMPORT_URL).status_code == 200:
+            raise HTTPError('The foreman templates git url is not accessible')
+        # Downloading Test Template
+        if not ssh.command('[ -f example_template.erb ]').return_code == 0:
+            ssh.command('wget {0}'.format(FOREMAN_TEMPLATE_TEST_TEMPLATE))
+
+    @classmethod
+    def tearDownClass(cls):
+        """Deletes /usr/share/foreman_templates directory on satellite"""
+        if ssh.command('[ -d /usr/share/foreman_templates ]').return_code == 0:
+            ssh.command('rm -rf /usr/share/foreman_templates')
+
+    def create_import_export_local_directory(self, dir_name):
+        """Creates a local directory on satellite from where the templates will
+            be import or exported to
+
+        :param dir_name str: The directory name which will be created as export
+            or import directory under ```/usr/share/foreman_templates```
+        """
+        dir_path = '/usr/share/foreman_templates/{}'.format(dir_name)
+        if ssh.command('[ -d {} ]'.format(dir_path)).return_code == 0:
+            if ssh.command('rm -rf {}'.format(dir_path)) == 1:
+                raise OSError(
+                    'The existing export directory {} still exists! Please '
+                    'remove, recreate it and try again'.format(dir_path))
+        if not ssh.command(
+                'mkdir -p {}'.format(dir_path)).return_code == 0:
+            raise OSError('The export directory is not being created!')
+        ssh.command('chown foreman {} -R'.format(dir_path))
+        ssh.command('chmod 777 {} -R'.format(dir_path))
+        ssh.command('chcon -t httpd_sys_rw_content_t {} -R'.format(dir_path))
+        return dir_path
 
     # Import tests
-
-    @stubbed()
     @tier1
     def test_positive_import_filtered_templates_from_git(self):
         """Assure only templates with a given filter regex are pulled from
@@ -398,8 +434,38 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        org = entities.Organization().create()
+        filtered_imported_templates = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'filter': 'robottelo',
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        imported_count = [
+            template['imported'] for template in filtered_imported_templates[
+                'message']['templates']].count(True)
+        self.assertEqual(imported_count, 7)
+        ptemplates = entities.ProvisioningTemplate().search(
+            query={
+                'per_page': 1000,
+                'search': 'name~robottelo',
+                'organization_id': org.id})
+        self.assertEqual(len(ptemplates), 5)
+        ptables = entities.PartitionTable().search(
+            query={
+                'per_page': 1000,
+                'search': 'name~robottelo',
+                'organization_id': org.id})
+        self.assertEqual(len(ptables), 1)
+        jtemplates = entities.JobTemplate().search(
+            query={
+                'per_page': 1000,
+                'search': 'name~robottelo',
+                'organization_id': org.id})
+        self.assertEqual(len(jtemplates), 1)
 
-    @stubbed()
     @tier1
     def test_negative_import_filtered_templates_from_git(self):
         """Assure templates with a given filter regex are NOT pulled from
@@ -419,6 +485,38 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        org = entities.Organization().create()
+        filtered_imported_templates = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'filter': 'robottelo',
+                'organization_id': org.id,
+                'prefix': org.name,
+                'negate': True
+            })
+        not_imported_count = [
+            template['imported'] for template in filtered_imported_templates[
+                'message']['templates']].count(False)
+        self.assertEqual(not_imported_count, 7)
+        ptemplates = entities.ProvisioningTemplate().search(
+            query={
+                'per_page': 1000,
+                'search': 'name~jenkins',
+                'organization_id': org.id})
+        self.assertEqual(len(ptemplates), 6)
+        ptables = entities.PartitionTable().search(
+            query={
+                'per_page': 1000,
+                'search': 'name~jenkins',
+                'organization_id': org.id})
+        self.assertEqual(len(ptables), 1)
+        jtemplates = entities.JobTemplate().search(
+            query={
+                'per_page': 1000,
+                'search': 'name~jenkins',
+                'organization_id': org.id})
+        self.assertEqual(len(jtemplates), 1)
 
     @stubbed()
     @tier1
@@ -534,6 +632,52 @@ class TemplateSyncTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
+    @tier1
+    def test_positive_export_filtered_templates_to_localdir(self):
+        """Assure only templates with a given filter regex are pushed to
+        local directory (new templates are created, existing updated).
+
+        :id: b7c98b75-4dd1-4b6a-b424-35b0f48c25db
+
+        :Steps:
+            1. Using nailgun or direct API call
+               export only the templates matching with regex e.g: `robottelo`
+               refer to: `/apidoc/v2/template/export.html`
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and templates exported.
+            2. Assert no other template has been exported but only those
+               matching specified regex.
+
+        :CaseImportance: Critical
+        """
+        # First import all the templates to be exported in dir later
+        org = entities.Organization().create()
+        all_imported_templates = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        imported_count = [
+            template['imported'] for template in all_imported_templates[
+                'message']['templates']].count(True)
+        self.assertEqual(imported_count, 16)  # Total Count
+        # Export some filtered templates to local dir
+        dir_name = 'test-b7c98b75-4dd1-4b6a-b424-35b0f48c25db'
+        dir_path = self.create_import_export_local_directory(dir_name)
+        exported_temps = entities.Template().exports(
+            data={
+                'repo': dir_path,
+                'organization_ids': [org.id],
+                'filter': 'robottelo'
+            })
+        self.assertEqual(len(exported_temps['message']['templates']), 7)
+        self.assertEqual(
+            ssh.command(
+                'find {} -type f | wc -l'.format(dir_path)).stdout[0], '7')
+
     @stubbed()
     @tier1
     def test_positive_file_based_sync(self):
@@ -598,7 +742,6 @@ class TemplateSyncTestCase(APITestCase):
         """
 
     # Export tests
-
     @stubbed()
     @tier1
     def test_positive_export_filtered_templates_to_git(self):
@@ -725,8 +868,6 @@ class TemplateSyncTestCase(APITestCase):
         """
 
     # Take Templates out of Tech Preview Feature Tests
-
-    @stubbed
     @tier2
     def test_positive_import_json_output_verbose_true(self):
         """Assert all the required fields displayed in import output when
@@ -747,8 +888,23 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        templates = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'filter': 'robottelo',
+                'organization_id': org.id,
+                'prefix': org.name,
+                'verbose': True
+            })
+        expected_fields = [
+            'name', 'imported', 'diff', 'additional_errors', 'exception',
+            'validation_errors', 'file', 'type', 'id', 'changed'
+        ]
+        actual_fields = templates['message']['templates'][0].keys()
+        self.assertListEqual(sorted(actual_fields), sorted(expected_fields))
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_verbose_false(self):
         """Assert all the required fields displayed in import output when
@@ -769,8 +925,23 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        templates = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'filter': 'robottelo',
+                'organization_id': org.id,
+                'prefix': org.name,
+                'verbose': False
+            })
+        expected_fields = [
+            'name', 'imported', 'changed', 'additional_errors', 'exception',
+            'validation_errors', 'file', 'type', 'id'
+        ]
+        actual_fields = templates['message']['templates'][0].keys()
+        self.assertListEqual(sorted(actual_fields), sorted(expected_fields))
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_changed_key_true(self):
         """Assert template imports output `changed` key returns `True` when
@@ -786,15 +957,39 @@ class TemplateSyncTestCase(APITestCase):
                Re-import the same template
 
         :expectedresults:
-            1. On reiport, Assert json output returns 'changed' as `true`
+            1. On reimport, Assert json output returns 'changed' as `true`
             2. Assert json output returns diff key with difference as value
 
         :requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        pre_template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        self.assertTrue(
+            bool(pre_template['message']['templates'][0]['imported']))
+        ssh.command(
+            'echo " Updating Template data." >> '
+            '{}/example_template.erb'.format(
+                dir_path)
+        )
+        post_template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        self.assertTrue(
+            bool(post_template['message']['templates'][0]['changed']))
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_changed_key_false(self):
         """Assert template imports output `changed` key returns `False` when
@@ -816,8 +1011,27 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        pre_template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        self.assertTrue(
+            bool(pre_template['message']['templates'][0]['imported']))
+        post_template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        self.assertFalse(
+            bool(post_template['message']['templates'][0]['changed']))
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_name_key(self):
         """Assert template imports output `name` key returns correct name
@@ -836,8 +1050,24 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        template_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        ssh.command(
+            'sed -ie "s/name: .*/name: {0}/" {1}/example_template.erb'.format(
+                template_name, dir_path)
+        )
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+            })
+        self.assertIn('name', template['message']['templates'][0].keys())
+        self.assertEqual(
+            template_name, template['message']['templates'][0]['name'])
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_imported_key(self):
         """Assert template imports output `imported` key returns `True` on
@@ -856,8 +1086,19 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        self.assertTrue(
+            bool(template['message']['templates'][0]['imported']))
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_file_key(self):
         """Assert template imports output `file` key returns correct file name
@@ -877,8 +1118,19 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+            })
+        self.assertEqual(
+            'example_template.erb',
+            template['message']['templates'][0]['file'])
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_corrupted_metadata(self):
         """Assert template imports output returns corrupted metadata error for
@@ -900,8 +1152,24 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        ssh.command(
+            'sed -ie "s/<%#/$#$#@%^$^@@RT$$/" {0}/example_template.erb'.format(
+                dir_path)
+        )
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+            })
+        self.assertFalse(bool(template['message']['templates'][0]['imported']))
+        self.assertEqual(
+            'Failed to parse metadata',
+            template['message']['templates'][0]['additional_errors'])
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_filtered_skip_message(self):
         """Assert template imports output returns template import skipped info
@@ -922,8 +1190,22 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id,
+                'filter': gen_string('alpha')
+            })
+        self.assertFalse(bool(template['message']['templates'][0]['imported']))
+        self.assertEqual(
+            "Skipping, 'name' filtered out based on"
+            " 'filter' and 'negate' settings",
+            template['message']['templates'][0]['additional_errors'])
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_no_name_error(self):
         """Assert template imports output returns no name error for template
@@ -945,8 +1227,24 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        ssh.command(
+            'sed -ie "s/name: .*/name: /" {}/example_template.erb'.format(
+                dir_path)
+        )
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id
+            })
+        self.assertFalse(bool(template['message']['templates'][0]['imported']))
+        self.assertEqual(
+            "No 'name' found in metadata",
+            template['message']['templates'][0]['additional_errors'])
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_no_model_error(self):
         """Assert template imports output returns no model error for template
@@ -968,8 +1266,24 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        ssh.command(
+            'sed -ie "/model: .*/d" {0}/example_template.erb'.format(
+                dir_path)
+        )
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id
+            })
+        self.assertFalse(bool(template['message']['templates'][0]['imported']))
+        self.assertEqual(
+            "No 'model' found in metadata",
+            template['message']['templates'][0]['additional_errors'])
 
-    @stubbed
     @tier2
     def test_positive_import_json_output_blank_model_error(self):
         """Assert template imports output returns blank model name error for
@@ -991,8 +1305,24 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        ssh.command('cp example_template.erb {}'.format(dir_path))
+        ssh.command(
+            'sed -ie "s/model: .*/model: /" {}/example_template.erb'.format(
+                dir_path)
+        )
+        template = entities.Template().imports(
+            data={
+                'repo': dir_path,
+                'organization_id': org.id
+            })
+        self.assertFalse(bool(template['message']['templates'][0]['imported']))
+        self.assertEqual(
+            "Template type  was not found, are you missing a plugin?",
+            template['message']['templates'][0]['additional_errors'])
 
-    @stubbed
     @tier2
     def test_positive_export_json_output(self):
         """Assert template export output returns template names
@@ -1011,8 +1341,42 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        imported_templates = entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'organization_id': org.id,
+                'prefix': org.name
+            })
+        imported_count = [
+            template['imported'] for template in imported_templates[
+                'message']['templates']].count(True)
+        self.assertEqual(imported_count, 16)  # Total Count
+        # Export some filtered templates to local dir
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        exported_temps = entities.Template().exports(
+            data={
+                'repo': dir_path,
+                'organization_ids': [org.id],
+                'filter': org.name
+            })
+        self.assertEqual(len(exported_temps['message']['templates']), 16)
+        self.assertIn('name', exported_temps['message']['templates'][0].keys())
+        self.assertEqual(
+            ssh.command(
+                '[ -d {}/job_templates ]'.format(dir_path)
+            ).return_code, 0)
+        self.assertEqual(
+            ssh.command(
+                '[ -d {}/partition_tables_templates ]'.format(dir_path)
+            ).return_code, 0)
+        self.assertEqual(
+            ssh.command(
+                '[ -d {}/provisioning_templates ]'.format(dir_path)
+            ).return_code, 0)
 
-    @stubbed
     @tier3
     def test_positive_import_log_to_production(self):
         """Assert template import logs are logged to production logs
@@ -1030,8 +1394,21 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: System
         """
+        org = entities.Organization().create()
+        entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'organization_id': org.id,
+                'filter': 'empty'
+            })
+        self.assertIn(
+            'Started POST "/api/v2/templates/import"',
+            ssh.command(
+                'tail -10 /var/log/foreman/production.log | grep import'
+            ).stdout[0]
+        )
 
-    @stubbed
     @tier3
     def test_positive_export_log_to_production(self):
         """Assert template export logs are logged to production logs
@@ -1049,3 +1426,25 @@ class TemplateSyncTestCase(APITestCase):
 
         :CaseLevel: System
         """
+        org = entities.Organization().create()
+        entities.Template().imports(
+            data={
+                'repo': FOREMAN_TEMPLATE_IMPORT_URL,
+                'branch': 'master',
+                'organization_id': org.id,
+                'filter': 'empty'
+            })
+        dir_name = gen_string('alpha')
+        dir_path = self.create_import_export_local_directory(dir_name)
+        entities.Template().exports(
+            data={
+                'repo': dir_path,
+                'organization_ids': [org.id],
+                'filter': 'empty'
+            })
+        self.assertIn(
+            'Started POST "/api/v2/templates/export"',
+            ssh.command(
+                'tail -10 /var/log/foreman/production.log | grep export'
+            ).stdout[0]
+        )
