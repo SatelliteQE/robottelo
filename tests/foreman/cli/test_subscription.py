@@ -119,7 +119,6 @@ class SubscriptionTestCase(CLITestCase):
         )
 
     @tier1
-    @upgrade
     def test_positive_manifest_delete(self):
         """Delete uploaded manifest
 
@@ -198,7 +197,6 @@ class SubscriptionTestCase(CLITestCase):
         )
 
     @tier1
-    @upgrade
     def test_positive_manifest_refresh(self):
         """upload manifest and refresh
 
