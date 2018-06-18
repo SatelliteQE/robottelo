@@ -1,14 +1,33 @@
 from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize
+from robottelo.decorators import fixture, parametrize, tier2
 from robottelo.config import settings
 from nailgun import entities
 from robottelo.constants import FOREMAN_PROVIDERS
-import pytest
 
 
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_rhev3(module_org):
+    rhev_url = settings.rhev.hostname
+    username = settings.rhev.username
+    password = settings.rhev.password
+    return entities.OVirtComputeResource(
+        url=rhev_url, user=username, password=password,
+        organization=[module_org], use_v4=False).create()
+
+
+@fixture(scope='module')
+def module_rhev4(module_org):
+    rhev_url = settings.rhev.hostname
+    username = settings.rhev.username
+    password = settings.rhev.password
+    return entities.OVirtComputeResource(
+        url=rhev_url, user=username, password=password,
+        organization=[module_org], use_v4=True).create()
 
 
 @parametrize('name', **valid_data_list('ui'))
@@ -119,12 +138,7 @@ def test_positive_delete(session):
         assert not session.computeresource.search(name)
 
 
-@pytest.mark.parametrize("version,expected", [
-    ('4', True),
-    ('3', False),
-])
-def test_positive_create_rhev(session, version, expected):
-    """Create new RHEV Compute Resource using APIv3(4) and autoloaded cert"""
+def add_rhev(session, version):
     rhev_url = settings.rhev.hostname
     username = settings.rhev.username
     password = settings.rhev.password
@@ -136,29 +150,56 @@ def test_positive_create_rhev(session, version, expected):
             'provider_content.url': rhev_url,
             'provider_content.user': username,
             'provider_content.password': password,
-            'provider_content.api4': expected,
+            'provider_content.api4': version == 4,
         })
         assert session.computeresource.search(name)[0]['Name'] == name
         assert session.computeresource.read(
-            name)['provider_content']['api4'] == expected
+            name)['provider_content']['api4'] == (version == 4)
 
 
-@parametrize('description', **valid_data_list('ui'))
-@pytest.mark.parametrize('version', [
-    '3',
-    '4',
-])
-def test_positive_edit_rhev(session, module_org, description, version):
-    """Edit a RHEV Compute Resource using APIv3 """
-    """and  APIv4 - change description"""
-    rhev_url = settings.rhev.hostname
-    username = settings.rhev.username
-    password = settings.rhev.password
-    cr = entities.OVirtComputeResource(
-        url=rhev_url, user=username, password=password,
-        organization=[module_org], use_v4=version == 3).create()
+@tier2
+def test_positive_v3_wui_can_add_resource(session):
+    """Create new RHEV Compute Resource using APIv3 and autoloaded cert
+
+    :id: f75e994a-6da1-40a3-9685-42387388b300
+    """
+    add_rhev(session, 3)
+
+
+@tier2
+def test_positive_v4_wui_can_add_resource(session):
+    """Create new RHEV Compute Resource using APIv3 and autoloaded cert
+
+    :id: f75e994a-6da1-40a3-9685-42387388b301
+    """
+    add_rhev(session, 4)
+
+
+def edit_rhev(session, module_org, cr, description, version):
     with session:
         session.computeresource.edit(
             name=cr.name, values={'description': description})
         assert session.computeresource.read(
             cr.name)['description'] == description
+
+
+@tier2
+@parametrize('description', **valid_data_list('ui'))
+def test_positive_v3_wui_can_edit_resource(
+        session, module_org, module_rhev3, description):
+    """Edit a RHEV Compute Resource using APIv3/4
+
+    :id: f75e994a-6da1-40a3-9685-42387388b302
+    """
+    edit_rhev(session, module_org, module_rhev3, description, 3)
+
+
+@tier2
+@parametrize('description', **valid_data_list('ui'))
+def test_positive_v4_wui_can_edit_resource(
+        session, module_org, module_rhev4, description):
+    """Edit a RHEV Compute Resource using APIv3/4
+
+    :id: f75e994a-6da1-40a3-9685-42387388b303
+    """
+    edit_rhev(session, module_org, module_rhev4, description, 4)
