@@ -688,7 +688,6 @@ class SyncPlanTestCase(UITestCase):
             )
 
     @tier4
-    @upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -753,7 +752,6 @@ class SyncPlanTestCase(UITestCase):
 
     @run_in_one_thread
     @tier4
-    @upgrade
     def test_positive_synchronize_rh_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
@@ -828,7 +826,6 @@ class SyncPlanTestCase(UITestCase):
 
     @run_in_one_thread
     @tier4
-    @upgrade
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.

@@ -92,7 +92,6 @@ class SyncTestCase(UITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
-    @upgrade
     def test_positive_sync_rh_repos(self):
         """Create Content RedHat Sync with two repos.
 
