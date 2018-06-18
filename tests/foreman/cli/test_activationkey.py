@@ -1333,6 +1333,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(updated_ak['auto-attach'], new_value)
 
     @tier1
+    @upgrade
     def test_positive_update_autoattach(self):
         """Update Activation key with valid auto-attach values
 
@@ -1380,6 +1381,7 @@ class ActivationKeyTestCase(CLITestCase):
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
     @tier3
+    @upgrade
     def test_positive_content_override(self):
         """Positive content override
 

@@ -114,6 +114,7 @@ class RepositoryExportTestCase(CLITestCase):
         super(RepositoryExportTestCase, cls).tearDownClass()
 
     @tier3
+    @upgrade
     def test_positive_export_custom_product(self):
         """Export a repository from the custom product
 

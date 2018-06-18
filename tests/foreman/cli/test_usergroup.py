@@ -697,6 +697,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         })
 
     @tier2
+    @upgrade
     def test_positive_create(self):
         """Create external user group using LDAP
 

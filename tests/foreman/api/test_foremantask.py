@@ -16,7 +16,7 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -38,6 +38,7 @@ class ForemanTaskTestCase(APITestCase):
             entities.ForemanTask(id='abc123').read()
 
     @tier1
+    @upgrade
     @run_only_on('sat')
     def test_positive_get_summary(self):
         """Get a summary of foreman tasks.

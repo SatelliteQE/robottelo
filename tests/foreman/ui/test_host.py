@@ -2232,6 +2232,7 @@ class AtomicHostTestCase(UITestCase):
         super(AtomicHostTestCase, self).tearDown()
 
     @tier3
+    @upgrade
     def test_positive_provision_atomic_host(self):
         """Provision an atomic host on libvirt and register it with satellite
 

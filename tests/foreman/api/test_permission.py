@@ -364,6 +364,7 @@ class UserRoleTestCase(APITestCase):
                     entity.read()  # As admin user
 
     @tier1
+    @upgrade
     def test_positive_check_update(self):
         """Check whether the "edit_*" role has an effect.
 

@@ -1167,6 +1167,7 @@ class SshKeyInUserTestCase(CLITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_add_ssh_key_from_file(self):
         """SSH Key can be added to User from ssh pub file
 
@@ -1247,6 +1248,7 @@ class SshKeyInUserTestCase(CLITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_delete_ssh_key(self):
         """Satellite Admin can delete ssh key from user
 

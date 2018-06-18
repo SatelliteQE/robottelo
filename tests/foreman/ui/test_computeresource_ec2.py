@@ -365,6 +365,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_access_ec2_with_custom_profile(self):
         """Associate custom (3-Large) compute profile to ec2 compute resource
 

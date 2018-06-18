@@ -332,6 +332,7 @@ class HammerAuthTestCase(CLITestCase):
             Org.with_user().list()
 
     @tier1
+    @upgrade
     def test_positive_session_preceeds_saved_credentials(self):
         """Check if enabled session is mutually exclusive with
         saved credentials in hammer config
