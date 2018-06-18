@@ -968,6 +968,10 @@ def make_repository_with_credentials(options=None, credentials=None):
                                                 or 'background')
         --gpg-key GPG_KEY_NAME                  Name to search by
         --gpg-key-id GPG_KEY_ID                 gpg key numeric identifier
+        --ignorable-content IGNORABLE_CONTENT   List of content units to ignore
+                                                while syncing a yum repository.
+                                                Subset of rpm, drpm, srpm,
+                                                distribution, erratum
         --label LABEL
         --mirror-on-sync MIRROR_ON_SYNC         true if this repository when
                                                 synced has to be mirrored from
@@ -1011,6 +1015,7 @@ def make_repository_with_credentials(options=None, credentials=None):
         u'download-policy': None,
         u'gpg-key': None,
         u'gpg-key-id': None,
+        u'ignorable-content': None,
         u'label': None,
         u'mirror-on-sync': None,
         u'name': gen_string('alpha', 15),

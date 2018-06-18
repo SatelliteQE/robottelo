@@ -59,6 +59,7 @@ from robottelo.constants import (
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
     FAKE_YUM_DRPM_REPO,
+    FAKE_YUM_MIXED_REPO,
     FAKE_YUM_SRPM_REPO,
     FAKE_PULP_REMOTE_FILEREPO,
     OS_TEMPLATE_DATA_FILE,
@@ -68,6 +69,7 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -1061,6 +1063,91 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['puppet-modules'], '2')
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_synchronize_rpm_repo_ignore_content(self):
+        """Synchronize yum repository with ignore content setting
+
+        :id: fa32ff10-e2e2-4ee0-b444-82f66f4a0e96
+
+        :expectedresults: Selected content types are ignored during
+            synchronization
+
+        :BZ: 1591358
+
+        :CaseLevel: Integration
+
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            'content-type': 'yum',
+            'url': FAKE_YUM_MIXED_REPO,
+            'ignorable-content': ['erratum', 'srpm', 'drpm'],
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        # Check synced content types
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '5',
+                         'content not synced correctly')
+        self.assertEqual(repo['content-counts']['errata'], '0',
+                         'content not ignored correctly')
+        if not bz_bug_is_open(1591358):
+            self.assertEqual(repo['content-counts']['source-rpms'], '0',
+                             'content not ignored correctly')
+        # drpm check requires a different method
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        # expecting No such file or directory for drpms
+        self.assertEqual(result.return_code, 1)
+        self.assertIn('No such file or directory', result.stderr)
+
+        # Find repo packages and remove them
+        packages = Package.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [package['id'] for package in packages],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['packages'], '0')
+
+        # Update the ignorable-content setting
+        Repository.update({
+            'id': repo['id'],
+            'ignorable-content': ['rpm'],
+        })
+
+        # Re-synchronize repository
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        # Re-check synced content types
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '0',
+                         'content not ignored correctly')
+        self.assertEqual(repo['content-counts']['errata'], '2',
+                         'content not synced correctly')
+        self.assertEqual(repo['content-counts']['source-rpms'], '3',
+                         'content not synced correctly')
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 4,
+                                'content not synced correctly')
 
     @run_only_on('sat')
     @tier1
