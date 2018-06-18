@@ -590,6 +590,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_apply_vmware_with_custom_profile_to_host(self):
         """Associate custom default (3-Large) compute profile with hostgroup
         and then inherit it to the host

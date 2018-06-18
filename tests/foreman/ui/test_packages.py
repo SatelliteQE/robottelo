@@ -29,7 +29,12 @@ from robottelo.constants import (
     REPOSET,
     RPM_TO_UPLOAD,
 )
-from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2
+from robottelo.decorators import (
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier2,
+    upgrade
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
@@ -211,6 +216,7 @@ class RHPackagesTestCase(UITestCase):
             self.assertIsNotNone(self.package.search('katello-agent'))
 
     @tier2
+    @upgrade
     def test_positive_check_file_list(self):
         """Synchronize one of RH repos (for example Satellite Tools). Search
         for packages inside of it. Open one of the package and check list of

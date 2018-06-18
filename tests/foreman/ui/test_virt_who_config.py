@@ -36,6 +36,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier4,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
@@ -368,6 +369,7 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1487317)
     @tier4
+    @upgrade
     def test_positive_vdc_subscription_contenthost_association(self):
         """Ensure vdc subscription hosts association is not empty and virt-who
         hypervisor is in the association list

@@ -16,7 +16,7 @@
 """
 from nailgun import entities
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -144,6 +144,7 @@ class AuditTestCase(APITestCase):
             self.assertEqual(audit.version, 2)
 
     @tier1
+    @upgrade
     def test_positive_delete_by_type(self):
         """Delete some entities of different types and check audit logs for
         these events using entity type as search criteria

@@ -18,7 +18,7 @@ from robottelo.cli.factory import make_ldap_auth_source
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_not_set, tier1
+from robottelo.decorators import skip_if_not_set, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -39,6 +39,7 @@ class LDAPAuthSourceTestCase(CLITestCase):
         cls.ldap_hostname = settings.ldap.hostname
 
     @tier1
+    @upgrade
     def test_positive_create_withad(self):
         """Create LDAP authentication with AD using names of different types
 

@@ -1410,6 +1410,9 @@ class HostTestCase(APITestCase):
         self.assertIsNotNone(content_source_id)
         self.assertEqual(content_source_id, proxy.id)
 
+    @run_only_on('sat')
+    @tier2
+    @upgrade
     def test_positive_read_enc_information(self):
         """Attempt to read host ENC information
 

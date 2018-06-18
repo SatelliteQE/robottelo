@@ -1156,6 +1156,7 @@ class CannedRoleTestCases(APITestCase):
             entities.User(sc, id=1).read()
 
     @tier2
+    @upgrade
     def test_positive_create_user_by_org_admin(self):
         """Org Admin can create new users
 
