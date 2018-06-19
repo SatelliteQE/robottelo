@@ -201,7 +201,7 @@ def invalid_names_list():
 
 
 @filtered_datapoint
-def valid_domain_names(interface='ui', length=None):
+def valid_domain_names(interface=None, length=None):
     """Valid domain names."""
     max_len = 255 - len(DOMAIN % '')
     if not length:
@@ -219,7 +219,7 @@ def valid_domain_names(interface='ui', length=None):
 
 
 @filtered_datapoint
-def invalid_domain_names(interface='ui'):
+def invalid_domain_names(interface=None):
     """Invalid domain names."""
     return {
         'empty': '\0',

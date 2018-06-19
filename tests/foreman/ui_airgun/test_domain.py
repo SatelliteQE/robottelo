@@ -31,7 +31,7 @@ from robottelo.decorators import (
 
 @pytest.fixture
 def valid_domain_name():
-    return valid_domain_names(interface=None)[0]
+    return list(valid_domain_names(interface='ui')['argvalues'])[0]
 
 
 @parametrize('name', **valid_domain_names(interface='ui', length=243))
