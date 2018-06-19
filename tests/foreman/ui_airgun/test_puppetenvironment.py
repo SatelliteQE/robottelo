@@ -17,12 +17,12 @@ def fixture_for_puppet_environment():
     name = gen_string('alpha')
     org = entities.Organization().create()
     location = entities.Location().create()
-    smartVariableValues = {
+    puppetEnvironmentValues = {
         'environment.name': name,
         'locations.locations.assigned': [location.name],
         'organizations.organizations.assigned': [org.name],
     }
-    return smartVariableValues
+    return puppetEnvironmentValues
 
 
 @run_only_on('sat')
