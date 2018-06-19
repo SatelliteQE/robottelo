@@ -436,7 +436,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert int(repo_values['content_counts']['Packages']) >= 1
         # Remove packages
-        session.repository.remove_packages(module_prod.name, repo.name)
+        session.repository.remove_all_packages(module_prod.name, repo.name)
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert repo_values['content_counts']['Packages'] == '0'
         # Sync it again
@@ -472,7 +472,8 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert int(repo_values['content_counts']['Puppet Modules']) >= 1
         # Remove puppet modules
-        session.repository.remove_puppet_modules(module_prod.name, repo.name)
+        session.repository.remove_all_puppet_modules(
+            module_prod.name, repo.name)
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert repo_values['content_counts']['Puppet Modules'] == '0'
         # Sync it again
