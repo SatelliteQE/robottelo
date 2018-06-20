@@ -1,5 +1,5 @@
 from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize, tier2
+from robottelo.decorators import fixture, parametrize, tier1, tier2
 from robottelo.config import settings
 from nailgun import entities
 from robottelo.constants import FOREMAN_PROVIDERS
@@ -157,7 +157,7 @@ def add_rhev(session, version):
             name)['provider_content']['api4'] == (version == 4)
 
 
-@tier2
+@tier1
 def test_positive_v3_wui_can_add_resource(session):
     """Create new RHEV Compute Resource using APIv3 and autoloaded cert
 
@@ -166,7 +166,7 @@ def test_positive_v3_wui_can_add_resource(session):
     add_rhev(session, 3)
 
 
-@tier2
+@tier1
 def test_positive_v4_wui_can_add_resource(session):
     """Create new RHEV Compute Resource using APIv3 and autoloaded cert
 
@@ -183,23 +183,51 @@ def edit_rhev(session, module_org, cr, description, version):
             cr.name)['description'] == description
 
 
-@tier2
+@tier1
 @parametrize('description', **valid_data_list('ui'))
 def test_positive_v3_wui_can_edit_resource(
         session, module_org, module_rhev3, description):
-    """Edit a RHEV Compute Resource using APIv3/4
+    """Edit a RHEV Compute Resource using APIv3
 
     :id: f75e994a-6da1-40a3-9685-42387388b302
     """
     edit_rhev(session, module_org, module_rhev3, description, 3)
 
 
-@tier2
+@tier1
 @parametrize('description', **valid_data_list('ui'))
 def test_positive_v4_wui_can_edit_resource(
         session, module_org, module_rhev4, description):
-    """Edit a RHEV Compute Resource using APIv3/4
+    """Edit a RHEV Compute Resource using APIv3
 
     :id: f75e994a-6da1-40a3-9685-42387388b303
     """
     edit_rhev(session, module_org, module_rhev4, description, 4)
+
+
+def list_VMs(session, rhev, version):
+    expected_vm_name = settings.rhev.vm_name
+    with session:
+            vm = session.computeresource.list_vms(
+                    rhev.name, expected_vm_name)
+            assert vm is not None
+
+
+@tier2
+def test_positive_v3_wui_virtual_machines_get_loaded(
+        session, module_rhev3):
+    """List VMs using API v3
+
+    :id: f75e994a-6da1-40a3-9685-42387388b304
+    """
+    list_VMs(session, module_rhev3, 3)
+
+
+@tier2
+def test_positive_v4_wui_virtual_machines_get_loaded(
+        session, module_rhev4):
+    """List VMs using API v3
+
+    :id: f75e994a-6da1-40a3-9685-42387388b305
+    """
+    list_VMs(session, module_rhev4, 4)
