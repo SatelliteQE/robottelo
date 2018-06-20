@@ -168,7 +168,7 @@ ssh_key=
 # not specified in the configuration, the default libvirt path will be used
 # "/var/lib/libvirt/images/". Make sure that the path exists on the
 # provisioning server.
-# image_dir=/opt/robottelo/images
+# image_dir=/opt/robottelo/disks
 
 
 # For tests that uses the images for content-host testcases.
