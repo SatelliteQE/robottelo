@@ -148,8 +148,8 @@ def test_positive_create_puppet_repo_same_url_different_orgs(
 
     :id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
 
-    :expectedresults: Repositories are created and puppet modules are visible
-        from different organizations.
+    :expectedresults: Repositories are created and have correct number of
+        puppet modules synced
 
     :CaseLevel: Integration
     """
@@ -186,7 +186,7 @@ def test_positive_create_puppet_repo_same_url_different_orgs(
 @tier2
 @upgrade
 def test_positive_create_as_non_admin_user_with_cv_published(
-        module_org, module_prod, test_name):
+        module_org, test_name):
     """Create a repository as a non admin user in a product that already
     contain a repository that is used in a published content view.
 
@@ -222,8 +222,8 @@ def test_positive_create_as_non_admin_user_with_cv_published(
         default_organization=module_org,
         organization=[module_org],
     ).create()
-    repo = entities.Repository(
-        product=module_prod, url=FAKE_2_YUM_REPO).create()
+    prod = entities.Product(organization=module_org).create()
+    repo = entities.Repository(product=prod, url=FAKE_2_YUM_REPO).create()
     repo.sync()
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [repo]
@@ -245,7 +245,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(
         with raises(NavigationTriesExceeded):
             session.hostcollection.create({'name': gen_string('alphanumeric')})
         session.repository.create(
-            module_prod.name,
+            prod.name,
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
@@ -253,7 +253,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(
             }
         )
         assert session.repository.search(
-            module_prod.name, repo.name)[0]['Name'] == repo.name
+            prod.name, repo.name)[0]['Name'] == repo.name
 
 
 @tier2
