@@ -21,7 +21,7 @@ import time
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests, ssh
-from robottelo.api.utils import create_role_permissions, upload_manifest
+from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     CHECKSUM_TYPE,
     DOWNLOAD_POLICIES,
@@ -33,7 +33,6 @@ from robottelo.constants import (
     FAKE_YUM_SRPM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
-    INVALID_URL,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPO_TAB,
@@ -63,12 +62,10 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.host_info import get_host_os_version
 from robottelo.test import UITestCase
-from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_repository, set_context
 from robottelo.ui.locators import (
     common_locators,
     locators,
-    menu_locators,
     tab_locators,
 )
 from robottelo.ui.session import Session
@@ -143,52 +140,6 @@ class RepositoryTestCase(UITestCase):
                         url=FAKE_1_YUM_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
-
-    @tier2
-    @upgrade
-    def test_positive_create_puppet_repo_same_url_different_orgs(self):
-        """Create two repos with the same URL in two different organizations.
-
-        :id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
-
-        :expectedresults: Repositories are created and puppet modules are
-            visible from different organizations.
-
-        :CaseLevel: Integration
-        """
-        url = 'https://omaciel.fedorapeople.org/f4cb00ed/'
-        # Create first repository
-        repo = entities.Repository(
-            url=url,
-            product=self.session_prod,
-            content_type=REPO_TYPE['puppet'],
-        ).create()
-        repo.sync()
-        # Create second repository
-        org = entities.Organization().create()
-        product = entities.Product(organization=org).create()
-        new_repo = entities.Repository(
-            url=url,
-            product=product,
-            content_type=REPO_TYPE['puppet'],
-        ).create()
-        new_repo.sync()
-        with Session(self) as session:
-            # Check packages number in first repository
-            self.products.search_and_click(self.session_prod.name)
-            self.assertIsNotNone(self.repository.search(repo.name))
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertEqual(int(number.text), 1)
-            # Check packages number in first repository
-            session.nav.go_to_select_org(org.name)
-            self.products.search_and_click(product.name)
-            self.assertIsNotNone(self.repository.search(new_repo.name))
-            self.repository.search_and_click(new_repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertEqual(int(number.text), 1)
 
     @run_only_on('sat')
     @tier1
@@ -283,73 +234,6 @@ class RepositoryTestCase(UITestCase):
                 self.products.search_and_click(product.name)
                 self.assertTrue(self.repository.validate_field(
                     repo_name, property_name, ''))
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_create_as_non_admin_user_with_cv_published(self):
-        """Create a repository as a non admin user in a product that already
-        contain a repository that is used in a published content view.
-
-        :id: 407864eb-50b8-4bc8-bbc7-0e6f8136d89f
-
-        :expectedresults: New repository successfully created by non admin user
-
-        :BZ: 1447829
-
-        :CaseLevel: Integration
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        repo_name = gen_string('alpha')
-        user_permissions = {
-            None: ['access_dashboard'],
-            'Katello::Product': [
-                'view_products',
-                'create_products',
-                'edit_products',
-                'destroy_products',
-                'sync_products',
-                'export_products',
-            ],
-        }
-        role = entities.Role().create()
-        create_role_permissions(role, user_permissions)
-        entities.User(
-            login=user_login,
-            password=user_password,
-            role=[role],
-            admin=False,
-            default_organization=self.session_org,
-            organization=[self.session_org],
-        ).create()
-        product = entities.Product(organization=self.session_org).create()
-        repo = entities.Repository(
-            product=product, url=FAKE_2_YUM_REPO).create()
-        repo.sync()
-        content_view = entities.ContentView(
-            organization=self.session_org).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        with Session(self, user_login, user_password) as session:
-            # ensure that the created user is not a global admin user
-            # check administer->users page
-            with self.assertRaises(UINoSuchElementError):
-                session.nav.go_to_users()
-            # ensure that the created user has only the assigned
-            # permissions, check that hosts menu tab does not exist
-            self.assertIsNone(
-                self.content_views.wait_until_element(
-                    menu_locators['menu.hosts'], timeout=5)
-            )
-            self.products.search_and_click(product.name)
-            make_repository(
-                session,
-                name=repo_name,
-                url=FAKE_1_YUM_REPO,
-            )
-            self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
     @tier1
@@ -570,146 +454,6 @@ class RepositoryTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_resync_custom_repo_after_invalid_update(self):
-        """Create Custom yum repo and sync it via the repos page. Then try to
-        change repo url to invalid one and re-sync that repository
-
-        :id: 089b1e41-2017-429a-9c3f-b0291007a78f
-
-        :customerscenario: true
-
-        :expectedresults: Repository URL is not changed to invalid value and
-            resync procedure for specific yum repository is successful
-
-        :BZ: 1487173, 1262313
-
-        :CaseLevel: Integration
-        """
-        product = entities.Product(organization=self.session_org).create()
-        repo_name = gen_string('alpha')
-        with Session(self) as session:
-            self.products.search_and_click(product.name)
-            make_repository(
-                session,
-                name=repo_name,
-                url=FAKE_1_YUM_REPO,
-            )
-            self.assertIsNotNone(self.repository.search(repo_name))
-            self.setup_navigate_syncnow(
-                session,
-                product.name,
-                repo_name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo_name))
-            self.repository.update(repo_name, new_url=INVALID_URL)
-            if not bz_bug_is_open(1487173):
-                self.assertIsNotNone(self.user.wait_until_element(
-                    common_locators['alert.error_sub_form']))
-            self.repository.click(common_locators['cancel'])
-            self.products.search_and_click(product.name)
-            self.assertTrue(self.repository.validate_field(
-                repo_name, 'url', FAKE_1_YUM_REPO))
-            self.setup_navigate_syncnow(
-                session,
-                product.name,
-                repo_name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_resynchronize_rpm_repo(self):
-        """Check that repository content is resynced after packages were
-        removed from repository
-
-        :id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
-
-        :expectedresults: Repository has updated non-zero package count
-
-        :CaseLevel: Integration
-
-        :BZ: 1318004
-        """
-        with Session(self) as session:
-            repo = entities.Repository(
-                url=FAKE_1_YUM_REPO,
-                content_type='yum',
-                product=self.session_prod,
-            ).create()
-            self.setup_navigate_syncnow(
-                session,
-                self.session_prod.name,
-                repo.name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages count
-            count = self.repository.fetch_content_count(repo.name, 'packages')
-            self.assertGreaterEqual(count, 1)
-            # Remove packages
-            self.products.search_and_click(self.session_prod.name)
-            self.repository.remove_content(repo.name)
-            self.products.search_and_click(self.session_prod.name)
-            count = self.repository.fetch_content_count(repo.name, 'packages')
-            self.assertEqual(count, 0)
-            # Sync it again
-            self.setup_navigate_syncnow(
-                session,
-                self.session_prod.name,
-                repo.name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages number
-            count = self.repository.fetch_content_count(repo.name, 'packages')
-            self.assertGreaterEqual(count, 1)
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_resynchronize_puppet_repo(self):
-        """Check that repository content is resynced after packages were
-        removed from repository
-
-        :id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
-
-        :expectedresults: Repository has updated non-zero package count
-
-        :CaseLevel: Integration
-
-        :BZ: 1318004
-        """
-        with Session(self) as session:
-            repo = entities.Repository(
-                url=FAKE_1_PUPPET_REPO,
-                content_type='puppet',
-                product=self.session_prod,
-            ).create()
-            self.setup_navigate_syncnow(
-                session,
-                self.session_prod.name,
-                repo.name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages count
-            count = self.repository.fetch_content_count(repo.name, 'puppet')
-            self.assertGreaterEqual(count, 1)
-            # Remove packages
-            self.products.search_and_click(self.session_prod.name)
-            self.repository.remove_content(repo.name)
-            self.products.search_and_click(self.session_prod.name)
-            count = self.repository.fetch_content_count(repo.name, 'puppet')
-            self.assertEqual(count, 0)
-            # Sync repo again
-            self.setup_navigate_syncnow(
-                session,
-                self.session_prod.name,
-                repo.name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages count
-            count = self.repository.fetch_content_count(repo.name, 'puppet')
-            self.assertGreaterEqual(count, 1)
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -1837,37 +1581,6 @@ class RepositoryTestCase(UITestCase):
             self.repository.remove_content(repo.name)
             self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo.name, 'packages')
-            self.assertEqual(count, 0)
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_remove_content_puppet(self):
-        """Synchronize repository and remove content from it
-
-        :id: be178e21-5d64-46d4-8a41-c3f0f62dabe0
-
-        :expectedresults: Content Counts shows zero puppet modules
-        """
-        with Session(self) as session:
-            repo = entities.Repository(
-                url=FAKE_1_PUPPET_REPO,
-                content_type='puppet',
-                product=self.session_prod,
-            ).create()
-            self.setup_navigate_syncnow(
-                session,
-                self.session_prod.name,
-                repo.name,
-            )
-            self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages count
-            count = self.repository.fetch_content_count(repo.name, 'puppet')
-            self.assertGreaterEqual(count, 1)
-            # Remove packages
-            self.products.search_and_click(self.session_prod.name)
-            self.repository.remove_content(repo.name)
-            self.products.search_and_click(self.session_prod.name)
-            count = self.repository.fetch_content_count(repo.name, 'puppet')
             self.assertEqual(count, 0)
 
 
