@@ -60,6 +60,7 @@ from robottelo.constants import (
     FAKE_7_PUPPET_REPO,
     FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
+    FAKE_PULP_REMOTE_FILEREPO,
     OS_TEMPLATE_DATA_FILE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
@@ -72,7 +73,6 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    tier4,
     upgrade
 )
 from robottelo.datafactory import (
@@ -2304,6 +2304,14 @@ class GitPuppetMirrorTestCase(CLITestCase):
 
 class FileRepositoryTestCase(CLITestCase):
     """Specific tests for File Repositories"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(FileRepositoryTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({'organization-id': cls.org['id']})
+
     @stubbed()
     @tier1
     def test_positive_upload_file_to_file_repo(self):
@@ -2358,8 +2366,7 @@ class FileRepositoryTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
-    @tier4
+    @tier2
     @upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
@@ -2376,11 +2383,20 @@ class FileRepositoryTestCase(CLITestCase):
                 created on setup
             2. Initialize synchronization
 
-
         :expectedresults: entire directory is synced over http
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
         """
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'content-type': 'file',
+            'url': FAKE_PULP_REMOTE_FILEREPO,
+            'name': gen_string('alpha'),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['files'], '2')
 
     @stubbed()
     @tier1
