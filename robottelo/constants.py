@@ -898,6 +898,10 @@ PERMISSIONS = {
         'destroy_subnets',
         'import_subnets',
     ],
+    'Template': [
+        'export_templates',
+        'import_templates',
+    ],
     'TemplateInvocation': [
         'filter_autocompletion_for_template_invocation',
         'create_template_invocations',
