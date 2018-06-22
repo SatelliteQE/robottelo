@@ -5,8 +5,7 @@ from robottelo.datafactory import (
     gen_string,
 )
 from robottelo.decorators import (
-    tier1,
-    upgrade,
+    tier2,
     run_only_on,
 )
 
@@ -19,22 +18,13 @@ def fixture_for_puppet_environment():
     location = entities.Location().create()
     puppetEnvironmentValues = {
         'environment.name': name,
-        'locations.locations.assigned': [location.name],
-        'organizations.organizations.assigned': [org.name],
+        'locations.resources.assigned': [location.name],
+        'organizations.resources.assigned': [org.name],
     }
     return puppetEnvironmentValues
 
 
-@run_only_on('sat')
-@tier1
 def test_positive_create(session, fixture_for_puppet_environment):
-    """
-    Create new environment with name, location and organization
-
-    :id: 663bc34e-df98-4c63-9184-abc3bf395475
-
-    :expectedresults: Environment is created
-    """
     values = fixture_for_puppet_environment
     with session:
         session.puppetenvironment.create(values=values)
@@ -43,22 +33,11 @@ def test_positive_create(session, fixture_for_puppet_environment):
             values.get('environment.name')
         env_values = session.puppetenvironment.read(
             values.get('environment.name'))
-        assert env_values['locations']['locations']['assigned'][0] == \
-            values.get('locations.locations.assigned')[0]
+        assert env_values['locations']['resources']['assigned'][0] == \
+            values.get('locations.resources.assigned')[0]
 
 
-@run_only_on('sat')
-@tier1
 def test_negative_create(session):
-    """
-    Create a new environment with the bad format of the name
-
-    :id: ef21c4f2-72e9-11e8-92c5-54e1ad07c9dd
-
-    :expectedresults: Environment is not created
-
-    :CaseImportance: Critical
-    """
     name = ' '
     with session:
         session.puppetenvironment.create({'name': name})
@@ -67,18 +46,7 @@ def test_negative_create(session):
                 name)[0]['Name'] == name
 
 
-@run_only_on('sat')
-@tier1
 def test_positive_update(session, fixture_for_puppet_environment):
-    """
-    Update environment with a new name
-
-    :id: f3744a5e-2adc-448a-8e02-13d76121eea0
-
-    :expectedresults: Environment is updated
-
-    :CaseImportance: Critical
-    """
     ak_name = gen_string('alpha')
     values = fixture_for_puppet_environment
     with session:
@@ -90,22 +58,40 @@ def test_positive_update(session, fixture_for_puppet_environment):
             ak_name)[0]['Name'] == ak_name
 
 
-@run_only_on('sat')
-@tier1
-@upgrade
 def test_positive_delete(session, fixture_for_puppet_environment):
-    """
-    Delete an environment
-
-    :id: 5869d9b5-fbb1-4e76-bbb7-9f536b717af0
-
-    :expectedresults: Environment is deleted
-
-    :CaseImportance: Critical
-    """
     values = fixture_for_puppet_environment
     with session:
         session.puppetenvironment.create(values=values)
         session.puppetenvironment.delete(values.get('environment.name'))
         assert not session.puppetenvironment.search(
             values.get('environment.name'))
+
+
+@run_only_on('sat')
+@tier2
+def test_positive_availability_for_hostgroup_in_multiple_orgs(
+        session, fixture_for_puppet_environment):
+    """
+    New environment that present in different organizations should be
+    visible for any created hostgroup in these organizations
+
+    :id: c086f0c4-3cef-4b58-95aa-40d89954138b
+
+    :customerscenario: true
+
+    :expectedresults: Environment can be used for any new hostgroup and any
+        organization where it is present in
+
+    :BZ: 543178
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    values = fixture_for_puppet_environment
+    with session:
+        session.puppetenvironment.create(values=values)
+        env_name = values.get('environment.name')
+        session.puppetenvironment.search_environment({
+            'hostgroup.puppet_environment': env_name,
+        })
