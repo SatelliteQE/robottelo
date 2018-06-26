@@ -231,3 +231,39 @@ def test_positive_v4_wui_virtual_machines_get_loaded(
     :id: f75e994a-6da1-40a3-9685-42387388b305
     """
     list_VMs(session, module_rhev4, 4)
+
+
+def switch_rhev_version(session, rhev, from_version):
+    to_version = False if from_version == 4 else True
+    orig_version = not to_version
+    with session:
+        session.computeresource.edit(
+            name=rhev.name, values={'provider_content.api4': to_version})
+        assert session.computeresource.read(
+            rhev.name)['provider_content']['api4'] == to_version
+        entities.OVirtComputeResource(
+                    id=rhev.id, use_v4=orig_version).update(['use_v4'])
+
+
+@tier2
+def test_positive_v3_wui_can_switch_resource_to_v4(
+        session, module_rhev3):
+    """Switch RHEV API v3 to v4
+    Used API version should also be verified manually as described in
+    https://url.corp.redhat.com/f7d3374
+
+    :id: f75e994a-6da1-40a3-9685-42387388b306
+    """
+    switch_rhev_version(session, module_rhev3, 3)
+
+
+@tier2
+def test_positive_v4_wui_can_switch_resource_to_v3(
+        session, module_rhev4):
+    """Switch RHEV API v4 to v3
+    Used API version should also be verified manually as described in
+    https://url.corp.redhat.com/f7d3374
+
+    :id: f75e994a-6da1-40a3-9685-42387388b307
+    """
+    switch_rhev_version(session, module_rhev4, 4)
