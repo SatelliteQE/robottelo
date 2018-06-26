@@ -39,36 +39,26 @@ def test_positive_create(session):
         assert session.location.search(loc_name)[0]['Name'] == loc_name
 
 
+def test_positive_create_with_parent(session):
+    loc_parent = entities.Location().create()
+    loc_child_name = gen_string('alpha')
+    with session:
+        session.location.create({
+            'name': loc_child_name,
+            'parent_id': loc_parent.name,
+        })
+        new_loc_name = "{}/{}".format(loc_parent.name, loc_child_name)
+        loc_values = session.location.read(new_loc_name)
+        assert loc_values['primary']['parent_id'] == loc_parent.name
+        assert loc_values['primary']['name'] == loc_child_name
+
+
 def test_positive_delete(session):
     loc_name = gen_string('alpha')
     with session:
         session.location.create({'name': loc_name})
         session.location.delete(loc_name)
         assert not session.location.search(loc_name)
-
-
-@run_only_on('sat')
-@tier2
-def test_positive_create_with_location_and_org(session):
-    """Create and select both organization and location.
-
-    :id: a1640ada-d4e9-447e-9e1b-40d17e1ede7e
-
-    :expectedresults: Both organization and location are selected.
-
-    :CaseLevel: Integration
-    """
-    loc_name = gen_string('alpha')
-    org = entities.Organization().create()
-    with session:
-        session.location.create({
-            'name': loc_name,
-            'description': gen_string('alpha'),
-        })
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc_name)
-        assert session.location.search(loc_name)[0]['Name'] == loc_name
-        assert session.organization.search(org.name)[0]['Name'] == org.name
 
 
 @run_only_on('sat')
@@ -92,14 +82,13 @@ def test_positive_update_subnet(session):
         session.location.update(
             loc.name, {'subnets.resources.assigned': [subnet.name]})
         loc_values = session.location.read(loc.name)
-        assert loc_values['subnets']['resources']['assigned'][0] == \
-            subnet.name + " (" + ip_addres + "/24)"
+        subnet_name = "{} ({}/24)".format(subnet.name, ip_addres)
+        assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
         session.location.update(
             loc.name, {'subnets.resources.unassigned': [subnet.name]})
         loc_values = session.location.read(loc.name)
         assert len(loc_values['subnets']['resources']['assigned']) == 0
-        assert subnet.name + " (" + ip_addres + "/24)" in loc_values[
-            'subnets']['resources']['unassigned']
+        assert subnet_name in loc_values['subnets']['resources']['unassigned']
 
 
 @run_only_on('sat')
@@ -171,7 +160,23 @@ def test_positive_update_with_all_users(session):
 
     :CaseLevel: Integration
     """
-    # TODO
+    user = entities.User().create()
+    loc = entities.Location().create()
+    with session:
+        session.organization.select(org_name='Any Organization')
+        session.location.select(loc_name=loc.name)
+        session.location.update(
+            loc.name, {'users.resources.assigned': [user.login]})
+        loc_values = session.location.read(loc.name)
+        user_values = session.user.read(user.login)
+        assert loc_values['users']['resources']['assigned'][0] == user.login
+        assert user_values['locations']['resources']['assigned'][0] == loc.name
+        session.location.update(loc.name, {'users.all_users': True})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['assigned']
+        session.location.update(loc.name, {'users.all_users': False})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['unassigned']
 
 
 @run_only_on('sat')
@@ -191,7 +196,17 @@ def test_positive_update_with_all_users_setting_only(session):
 
     :CaseLevel: Integration
     """
-    # TODO
+    user = entities.User().create()
+    loc = entities.Location().create()
+    with session:
+        session.organization.select(org_name='Any Organization')
+        session.location.select(loc_name=loc.name)
+        session.location.update(loc.name, {'users.all_users': True})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['assigned']
+        session.location.update(loc.name, {'users.all_users': False})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['unassigned']
 
 
 @run_only_on('sat')
@@ -298,9 +313,8 @@ def test_positive_update_compresource(session):
             {'compute_resources.resources.assigned': [resource_name]}
         )
         loc_values = session.location.read(loc.name)
-        assert loc_values[
-                   'compute_resources']['resources']['assigned'][
-                   0] == resource_name
+        assert loc_values['compute_resources'][
+                   'resources']['assigned'][0] == resource_name
         session.location.update(
             loc.name,
             {'compute_resources.resources.unassigned': [resource_name]}
@@ -371,4 +385,3 @@ def test_positive_update_template(session):
                     'provisioning_templates']['resources']['assigned']) + 1
         assert template.name in new_loc_values[
             'provisioning_templates']['resources']['assigned']
-# TODO remove tests from ui
