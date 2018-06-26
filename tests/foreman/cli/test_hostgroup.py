@@ -247,8 +247,8 @@ class HostGroupTestCase(CLITestCase):
         })[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
-            puppet_proxy['id'],
-            hostgroup['puppet-master-proxy']['id'],
+            puppet_proxy['name'],
+            hostgroup['puppet-master-proxy'],
         )
 
     @tier1
