@@ -172,7 +172,7 @@ class HostGroupTestCase(CLITestCase):
         os = make_os()
         hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
         self.assertEqual(hostgroup['operating-system']['operating-system'],
-            os['title'])
+                         os['title'])
 
     @run_only_on('sat')
     @tier1
