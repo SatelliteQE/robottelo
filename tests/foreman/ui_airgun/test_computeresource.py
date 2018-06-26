@@ -1,5 +1,5 @@
 from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize, tier1, tier2
+from robottelo.decorators import fixture, parametrize, tier2
 from robottelo.config import settings
 from nailgun import entities
 from robottelo.constants import FOREMAN_PROVIDERS
@@ -157,7 +157,7 @@ def add_rhev(session, version):
             name)['provider_content']['api4'] == (version == 4)
 
 
-@tier1
+@tier2
 def test_positive_v3_wui_can_add_resource(session):
     """Create new RHEV Compute Resource using APIv3 and autoloaded cert
 
@@ -166,7 +166,7 @@ def test_positive_v3_wui_can_add_resource(session):
     add_rhev(session, 3)
 
 
-@tier1
+@tier2
 def test_positive_v4_wui_can_add_resource(session):
     """Create new RHEV Compute Resource using APIv3 and autoloaded cert
 
@@ -183,7 +183,7 @@ def edit_rhev(session, module_org, cr, description, version):
             cr.name)['description'] == description
 
 
-@tier1
+@tier2
 @parametrize('description', **valid_data_list('ui'))
 def test_positive_v3_wui_can_edit_resource(
         session, module_org, module_rhev3, description):
@@ -194,7 +194,7 @@ def test_positive_v3_wui_can_edit_resource(
     edit_rhev(session, module_org, module_rhev3, description, 3)
 
 
-@tier1
+@tier2
 @parametrize('description', **valid_data_list('ui'))
 def test_positive_v4_wui_can_edit_resource(
         session, module_org, module_rhev4, description):
@@ -267,3 +267,65 @@ def test_positive_v4_wui_can_switch_resource_to_v3(
     :id: f75e994a-6da1-40a3-9685-42387388b307
     """
     switch_rhev_version(session, module_rhev4, 4)
+
+
+def vm_poweron(session, rhev):
+    vm_name = settings.rhev.vm_name
+    with session:
+            # power off first - nailgun can't do this,
+            # it can only poweroff/on hosts, this is a plain unassociated VM
+            session.computeresource.vm_poweroff(rhev.name, vm_name)
+            assert not session.computeresource.vm_status(rhev.name, vm_name)
+            session.computeresource.vm_poweron(rhev.name, vm_name)
+            assert session.computeresource.vm_status(rhev.name, vm_name)
+
+
+def vm_poweroff(session, rhev):
+    vm_name = settings.rhev.vm_name
+    with session:
+            # power off first - nailgun can't do this,
+            # it can only poweroff/on hosts, this is a plain unassociated VM
+            session.computeresource.vm_poweron(rhev.name, vm_name)
+            assert session.computeresource.vm_status(rhev.name, vm_name)
+            session.computeresource.vm_poweroff(rhev.name, vm_name)
+            assert not session.computeresource.vm_status(rhev.name, vm_name)
+
+
+@tier2
+def test_positive_v3_wui_virtual_machines_can_be_powered_on(
+        session, module_rhev3):
+    """Power on a machine on RHEV using APIv3
+
+    :id: f75e994a-6da1-40a3-9685-42387388b308
+    """
+    vm_poweron(session, module_rhev3)
+
+
+@tier2
+def test_positive_v4_wui_virtual_machines_can_be_powered_on(
+        session, module_rhev4):
+    """Power on a machine on RHEV using APIv4
+
+    :id: f75e994a-6da1-40a3-9685-42387388b309
+    """
+    vm_poweron(session, module_rhev4)
+
+
+@tier2
+def test_positive_v3_wui_virtual_machines_can_be_powered_off(
+        session, module_rhev3):
+    """Power off a machine on RHEV using APIv3
+
+    :id: f75e994a-6da1-40a3-9685-42387388b30a
+    """
+    vm_poweroff(session, module_rhev3)
+
+
+@tier2
+def test_positive_v4_wui_virtual_machines_can_be_powered_off(
+        session, module_rhev4):
+    """Power off a machine on RHEV using APIv4
+
+    :id: f75e994a-6da1-40a3-9685-42387388b30b
+    """
+    vm_poweroff(session, module_rhev4)
