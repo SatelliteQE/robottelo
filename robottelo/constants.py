@@ -250,8 +250,8 @@ REPOSET = {
 REPOS = {
     'rhel7': {
         'id': 'rhel-7-server-rpms',
-        'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.4',
-        'releasever': '7.4',
+        'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
+        'releasever': '7Server',
         'arch': 'x86_64'
     },
     'rhsc7': {
