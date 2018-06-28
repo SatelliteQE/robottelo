@@ -350,10 +350,8 @@ class ClientsSettings(FeatureSettings):
 
     def read(self, reader):
         """Read clients settings."""
-        self.image_dir = reader.get(
-            'clients', 'image_dir', '/opt/robottelo/images')
-        self.provisioning_server = reader.get(
-            'clients', 'provisioning_server')
+        self.image_dir = reader.get('clients', 'image_dir')
+        self.provisioning_server = reader.get('clients', 'provisioning_server')
 
     def validate(self):
         """Validate clients settings."""
