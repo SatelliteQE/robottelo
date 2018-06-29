@@ -387,6 +387,20 @@ class Navigator(Base):
             menu_locators['insights.manage'],
         )
 
+    def go_to_insights_actions(self):
+        """Navigates to Red Hat Access Insights Actions"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.actions'],
+        )
+
+    def go_to_insights_planner(self):
+        """Navigates to Red Hat Access Insights Planner"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.planner'],
+        )
+
     def go_to_oscap_policy(self):
         """ Navigates to Oscap Policy"""
         self.menu_click(
