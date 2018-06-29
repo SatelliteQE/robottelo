@@ -29,7 +29,6 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
-    upgrade,
 )
 from robottelo.test import CLITestCase
 from robottelo.vm_capsule import CapsuleVirtualMachine
@@ -39,7 +38,6 @@ class CapsuleInstallerTestCase(CLITestCase):
     """Test class for capsule installer CLI"""
 
     @stubbed()
-    @upgrade
     def test_positive_basic(self):
         """perform a basic install of capsule.
 

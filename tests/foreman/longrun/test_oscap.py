@@ -158,6 +158,8 @@ class OpenScapTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1479413)
     @tier4
     @upgrade
+    @skip_if_not_set()
+    @stubbed
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test and upload reports.
 
@@ -278,6 +280,7 @@ class OpenScapTestCase(UITestCase):
     @upgrade
     @skip_if_bug_open('bugzilla', 1420439)
     @tier4
+    @stubbed
     def test_positive_push_updated_content(self):
         """Perform end to end oscap test, and push the updated scap content
          after first run.
@@ -404,6 +407,7 @@ class OpenScapTestCase(UITestCase):
     @upgrade
     @run_only_on('sat')
     @tier4
+    @stubbed
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """ End-to-End Oscap run with tailoring files and default capsule
 
