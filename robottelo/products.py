@@ -221,6 +221,32 @@ PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
 _server_distro = None  # type: str
 
 
+class RepositoryAlreadyDefinedError(Exception):
+    """Raised when a repository has already a predefined key"""
+
+
+class DistroNotSupportedError(Exception):
+    """Raised when using a non supported distro"""
+
+
+class RepositoryDataNotFound(Exception):
+    """Raised when repository data cannot be found for a predefined distro"""
+
+
+class OnlyOneOSRepositoryAllowed(Exception):
+    """Raised when trying to more than one OS repository to a collection"""
+
+
+class RepositoryAlreadyCreated(Exception):
+    """Raised when a repository content is already created and trying to launch
+    the create an other time"""
+
+
+class ReposContentSetupWasNotPerformed(Exception):
+    """Raised when trying to setup a VM but the repositories content was not
+    setup"""
+
+
 def get_server_distro():  # type: () -> str
     global _server_distro
     if _server_distro is None:
@@ -302,7 +328,8 @@ class GenericRHRepository(BaseRepository):
         super(GenericRHRepository, self).__init__()
 
         if key is not None and self.key:
-            raise Exception('Repository key already defined')
+            raise RepositoryAlreadyDefinedError(
+                'Repository key already defined')
 
         if key is not None:
             self._key = key
@@ -337,12 +364,13 @@ class GenericRHRepository(BaseRepository):
         """
 
         if distro is not None and distro not in DISTROS_SUPPORTED:
-            raise Exception('distro "{0}" not supported'.format(distro))
+            raise DistroNotSupportedError(
+                'distro "{0}" not supported'.format(distro))
         if distro is None:
             distro = DISTRO_DEFAULT
         repo_data = self._get_repo_data(distro)
         if repo_data is None:
-            raise Exception(
+            raise RepositoryDataNotFound(
                 'Repository data not found for distro {}'.format(distro))
         self._distro = distro
         self._repo_data = repo_data
@@ -490,7 +518,8 @@ class RepositoryCollection(object):
         self._items = []
 
         if distro is not None and distro not in DISTROS_SUPPORTED:
-            raise Exception('distro "{0}" not supported'.format(distro))
+            raise DistroNotSupportedError(
+                'distro "{0}" not supported'.format(distro))
         if distro is not None:
             self._distro = distro
 
@@ -517,7 +546,8 @@ class RepositoryCollection(object):
     @os_repo.setter
     def os_repo(self, repo):  # type: (RHELRepository) -> None
         if self.os_repo is not None:
-            raise Exception('OS repo already added.(Only one OS repo allowed)')
+            raise OnlyOneOSRepositoryAllowed(
+                'OS repo already added.(Only one OS repo allowed)')
         if not isinstance(repo, RHELRepository):
             raise ValueError('repo: "{0}" is not an RHEL repo'.format(repo))
         self._os_repo = repo
@@ -562,7 +592,8 @@ class RepositoryCollection(object):
 
     def add_item(self, item):  # type: (BaseRepository) -> None
         if self._repos_info:
-            raise Exception('Repositories already created can not add more')
+            raise RepositoryAlreadyCreated(
+                'Repositories already created can not add more')
         if not isinstance(item, BaseRepository):
             raise ValueError('item "{0}" is not a repository'.format(item))
         if self.distro is not None:
@@ -587,7 +618,7 @@ class RepositoryCollection(object):
             setup_content.
         """
         if self._repos_info:
-            raise Exception('Repositories already created')
+            raise RepositoryAlreadyCreated('Repositories already created')
         setup_data = setup_cdn_and_custom_repositories(
             org_id, self.repos_data, download_policy=download_policy)
         self._custom_product_info, self._repos_info = setup_data
@@ -610,7 +641,7 @@ class RepositoryCollection(object):
             key
         """
         if self._repos_info:
-            raise Exception(
+            raise RepositoryAlreadyCreated(
                 'Repositories already created can not setup content')
         if upload_manifest and self.need_subscription:
             # upload manifest only if needed
@@ -648,7 +679,8 @@ class RepositoryCollection(object):
         :param enable_custom_repos: whether to enable custom repositories
         """
         if not self._setup_content_data:
-            raise Exception('Repos content setup was not performed')
+            raise ReposContentSetupWasNotPerformed(
+                'Repos content setup was not performed')
 
         distro = None
         if patch_os_release and self.os_repo:
