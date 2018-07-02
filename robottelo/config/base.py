@@ -1079,6 +1079,7 @@ class Settings(object):
         self.webdriver = None
         self.webdriver_binary = None
         self.webdriver_desired_capabilities = None
+        self.command_executor = None
 
         self.bugzilla = BugzillaSettings()
         # Features
@@ -1206,6 +1207,8 @@ class Settings(object):
             None,
             cast=INIReader.cast_webdriver_desired_capabilities
         )
+        self.command_executor = self.reader.get(
+            'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub')
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
 
