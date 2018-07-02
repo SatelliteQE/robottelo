@@ -194,6 +194,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_update_name(self):
         """RHEV compute resource positive update
 

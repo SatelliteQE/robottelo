@@ -162,6 +162,7 @@ class RepositoryExportTestCase(CLITestCase):
 
     @skip_if_not_set('fake_manifest')
     @tier3
+    @upgrade
     def test_positive_export_rh_product(self):
         """Export a repository from the Red Hat product
 

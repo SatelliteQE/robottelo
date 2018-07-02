@@ -367,6 +367,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         """
 
     @tier1
+    @upgrade
     def test_positive_delete_subnet_parameter(self):
         """Subnet parameter can be deleted
 

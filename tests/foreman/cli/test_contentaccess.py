@@ -43,6 +43,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     tier2,
+    upgrade
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -206,6 +207,7 @@ class ContentAccessTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_erratum_installable(self):
         """Ensure erratum applicability is showing properly, without attaching
         any subscription.
@@ -282,6 +284,7 @@ class ContentAccessTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_rct_shows_golden_ticket_enabled(self):
         """Assert unrestricted manifest has Golden Ticket enabled .
 
