@@ -464,14 +464,16 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :id: 1c786756-266d-49b2-912f-7808096f5cc0
 
-        :expectedresults: Content view has been published and has one version
-            populated
+        :expectedresults: Content view has been published with repository and
+            has one version populated
 
         :BZ: 1365312, 1581628
 
         """
         name = gen_string('alpha', 256)
         content_view = entities.ContentView(name=name).create()
+        content_view.repository = [self.yum_repo]
+        content_view = content_view.update(['repository'])
         content_view.publish()
         self.assertEqual(len(content_view.read().version), 1)
 
