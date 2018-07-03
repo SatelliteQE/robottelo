@@ -526,55 +526,6 @@ class HostTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
-    @tier3
-    def test_positive_create(self):
-        """Create a new Host
-
-        :id: 4821444d-3c86-4f93-849b-60460e025ba0
-
-        :expectedresults: Host is created
-
-        :CaseLevel: System
-        """
-        host = entities.Host()
-        host.create_missing()
-        os_name = u'{0} {1}'.format(
-            host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self) as session:
-            make_host(
-                session,
-                name=host.name,
-                org=host.organization.name,
-                parameters_list=[
-                    ['Host', 'Organization', host.organization.name],
-                    ['Host', 'Location', host.location.name],
-                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
-                    ['Host', 'Content View', DEFAULT_CV],
-                    ['Host', 'Puppet Environment', host.environment.name],
-                    [
-                        'Operating System',
-                        'Architecture',
-                        host.architecture.name
-                    ],
-                    ['Operating System', 'Operating system', os_name],
-                    ['Operating System', 'Media', host.medium.name],
-                    ['Operating System', 'Partition table', host.ptable.name],
-                    ['Operating System', 'Root password', host.root_pass],
-                ],
-                interface_parameters=[
-                    ['Type', 'Interface'],
-                    ['MAC address', host.mac],
-                    ['Domain', host.domain.name],
-                    ['Primary', True],
-                ],
-            )
-            # confirm the Host appears in the UI
-            search = self.hosts.search(
-                u'{0}.{1}'.format(host.name, host.domain.name)
-            )
-            self.assertIsNotNone(search)
-
     @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_create_with_inherited_params(self):
@@ -1109,56 +1060,6 @@ class HostTestCase(UITestCase):
             new_host_name = (
                 u'{0}.{1}'.format(new_name, host.domain.name)).lower()
             self.assertIsNotNone(self.hosts.search(new_host_name))
-
-    @run_only_on('sat')
-    @tier3
-    @upgrade
-    def test_positive_delete(self):
-        """Delete a Host
-
-        :id: 13735af1-f1c7-466e-a969-80618a1d854d
-
-        :expectedresults: Host is delete
-
-        :CaseLevel: System
-        """
-        host = entities.Host()
-        host.create_missing()
-        os_name = u'{0} {1}'.format(
-            host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self) as session:
-            make_host(
-                session,
-                name=host.name,
-                org=host.organization.name,
-                parameters_list=[
-                    ['Host', 'Organization', host.organization.name],
-                    ['Host', 'Location', host.location.name],
-                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
-                    ['Host', 'Content View', DEFAULT_CV],
-                    ['Host', 'Puppet Environment', host.environment.name],
-                    [
-                        'Operating System',
-                        'Architecture',
-                        host.architecture.name
-                    ],
-                    ['Operating System', 'Operating system', os_name],
-                    ['Operating System', 'Media', host.medium.name],
-                    ['Operating System', 'Partition table', host.ptable.name],
-                    ['Operating System', 'Root password', host.root_pass],
-                ],
-                interface_parameters=[
-                    ['Type', 'Interface'],
-                    ['MAC address', host.mac],
-                    ['Domain', host.domain.name],
-                    ['Primary', True],
-                ],
-            )
-            # Delete host
-            self.hosts.delete(
-                u'{0}.{1}'.format(host.name, host.domain.name),
-                dropdown_present=True
-            )
 
     @run_only_on('sat')
     @tier2
@@ -1743,69 +1644,6 @@ class HostTestCase(UITestCase):
                     locators['host.fetch_puppet_environment']).text,
                 env.name
             )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_inherit_puppet_env_from_host_group_when_action(self):
-        """Host group puppet environment is inherited to already created
-        host when corresponding action is applied to that host
-
-        :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
-
-        :customerscenario: true
-
-        :expectedresults: Expected puppet environment is inherited to the host
-
-        :BZ: 1414914
-
-        :CaseLevel: Integration
-        """
-        host_name = gen_string('alpha').lower()
-        org = entities.Organization().create()
-        host = entities.Host(organization=org, name=host_name).create()
-        env = entities.Environment(
-            name=gen_string('alpha'), organization=[org]).create()
-        hostgroup = entities.HostGroup(
-            environment=env, organization=[org]).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.hosts.update_host_bulkactions(
-                [host_name],
-                action='Change Environment',
-                parameters_list=[{
-                    'puppet_env_name': '*Clear environment*',
-                }],
-            )
-            self.assertEqual(
-                self.hosts.wait_until_element(
-                    common_locators['table_cell_value'] %
-                    (host_name, 'Environment')).text,
-                ''
-            )
-            self.hosts.update_host_bulkactions(
-                [host_name],
-                action='Change Group',
-                parameters_list=[{'host_group_name': hostgroup.name}],
-            )
-            self.hosts.update_host_bulkactions(
-                [host_name],
-                action='Change Environment',
-                parameters_list=[{
-                    'puppet_env_name': '*Inherit from host group*',
-                }],
-            )
-            self.assertEqual(
-                self.hosts.wait_until_element(
-                    common_locators['table_cell_value'] %
-                    (host_name, 'Environment')).text,
-                env.name
-            )
-            result = self.hosts.fetch_host_parameters(
-                host_name,
-                host.domain.read().name,
-                [['Host', 'Puppet Environment']],
-            )
-            self.assertEqual(result['Puppet Environment'], env.name)
 
     @run_only_on('sat')
     @tier2
