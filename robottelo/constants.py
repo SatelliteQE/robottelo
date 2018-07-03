@@ -905,6 +905,7 @@ PERMISSIONS = {
     'TemplateInvocation': [
         'filter_autocompletion_for_template_invocation',
         'create_template_invocations',
+        'view_template_invocations',
     ],
     'Trend': [
         'view_trends',
