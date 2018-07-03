@@ -49,6 +49,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
+    bz_bug_is_open,
     fixture,
     parametrize,
     run_in_one_thread,
@@ -443,6 +444,8 @@ def test_positive_update_cv(session, module_org, cv2_name):
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['content_view'] == cv1_name
+        if bz_bug_is_open(1597639):
+            assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(name, {'details': {
             'lce': {env2_name: True},
             'content_view': cv2_name,
@@ -506,6 +509,8 @@ def test_positive_update_rh_product(session):
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name)
         assert ak['details']['content_view'] == cv1_name
+        if bz_bug_is_open(1597639):
+            assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(name, {'details': {
             'lce': {env2_name: True},
             'content_view': cv2_name,
