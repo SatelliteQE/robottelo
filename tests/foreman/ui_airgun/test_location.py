@@ -45,11 +45,11 @@ def test_positive_create_with_parent(session):
     with session:
         session.location.create({
             'name': loc_child_name,
-            'parent_id': loc_parent.name,
+            'parent_location': loc_parent.name,
         })
         new_loc_name = "{}/{}".format(loc_parent.name, loc_child_name)
         loc_values = session.location.read(new_loc_name)
-        assert loc_values['primary']['parent_id'] == loc_parent.name
+        assert loc_values['primary']['parent_location'] == loc_parent.name
         assert loc_values['primary']['name'] == loc_child_name
 
 
