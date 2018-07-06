@@ -23,7 +23,7 @@ unittest2==1.1.0
 # to update it code changes is needed.
 python-bugzilla==1.2.2  # pyup: ignore
 
-PyYAML==3.12
+PyYAML==3.13
 robozilla==0.2.6
 
 # Get airgun and nailgun from master
