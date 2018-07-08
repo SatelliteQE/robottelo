@@ -20,9 +20,12 @@ from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 
 from robottelo.config import settings
-from robottelo.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.constants import (
+    ANY_CONTEXT,
+    INSTALL_MEDIUM_URL,
+    LIBVIRT_RESOURCE_URL,
+)
 from robottelo.decorators import (
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     tier2,
@@ -61,7 +64,6 @@ def test_positive_delete(session):
         assert not session.location.search(loc_name)
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_update_subnet(session):
     """Add/Remove subnet from/to location
@@ -91,7 +93,6 @@ def test_positive_update_subnet(session):
         assert subnet_name in loc_values['subnets']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_update_domain(session):
     """Add/Remove domain from/to a Location
@@ -116,7 +117,6 @@ def test_positive_update_domain(session):
         assert domain.name in loc_values['domains']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_update_user(session):
     """Add new user and then remove it from location
@@ -142,7 +142,6 @@ def test_positive_update_user(session):
         assert user.login in loc_values['users']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @skip_if_bug_open('bugzilla', 1321543)
 @tier2
 def test_positive_update_with_all_users(session):
@@ -163,7 +162,7 @@ def test_positive_update_with_all_users(session):
     user = entities.User().create()
     loc = entities.Location().create()
     with session:
-        session.organization.select(org_name='Any Organization')
+        session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=loc.name)
         session.location.update(
             loc.name, {'users.resources.assigned': [user.login]})
@@ -179,7 +178,6 @@ def test_positive_update_with_all_users(session):
         assert loc.name in user_values['locations']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @skip_if_bug_open('bugzilla', 1321543)
 @tier2
 def test_positive_update_with_all_users_setting_only(session):
@@ -199,7 +197,7 @@ def test_positive_update_with_all_users_setting_only(session):
     user = entities.User().create()
     loc = entities.Location().create()
     with session:
-        session.organization.select(org_name='Any Organization')
+        session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=loc.name)
         session.location.update(loc.name, {'users.all_users': True})
         user_values = session.user.read(user.login)
@@ -209,7 +207,6 @@ def test_positive_update_with_all_users_setting_only(session):
         assert loc.name in user_values['locations']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_update_hostgroup(session):
     """Add/Remove host group from/to location.
@@ -241,7 +238,6 @@ def test_positive_update_hostgroup(session):
             'host_groups']['resources']['assigned']
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_add_org(session):
     """Add a organization by using the location name
@@ -257,13 +253,11 @@ def test_positive_add_org(session):
     with session:
         session.location.update(
             loc.name, {'organizations.resources.assigned': [org.name]})
-
         loc_values = session.location.read(loc.name)
         assert loc_values[
             'organizations']['resources']['assigned'][0] == org.name
 
 
-@run_only_on('sat')
 @tier2
 def test_update_environment(session):
     """Add/Remove environment from/to location
@@ -290,7 +284,6 @@ def test_update_environment(session):
             'environments']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @skip_if_not_set('compute_resources')
 @tier2
 def test_positive_update_compresource(session):
@@ -326,7 +319,6 @@ def test_positive_update_compresource(session):
             'compute_resources']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_update_medium(session):
     """Add/Remove medium from/to location
@@ -354,7 +346,6 @@ def test_positive_update_medium(session):
         assert media.name in loc_values['media']['resources']['unassigned']
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_update_template(session):
     """Add/Remove template from/to location
