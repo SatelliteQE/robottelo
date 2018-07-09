@@ -3,6 +3,7 @@ from nailgun import entities
 import pytest
 from robottelo.datafactory import (
     gen_string,
+    invalid_values_list,
 )
 from robottelo.decorators import (
     tier2,
@@ -11,7 +12,7 @@ from robottelo.decorators import (
 
 
 @pytest.fixture(scope='module')
-def fixture_for_puppet_environment():
+def init_values():
     """Fixture returns values for new environment"""
     name = gen_string('alpha')
     org = entities.Organization().create()
@@ -24,44 +25,41 @@ def fixture_for_puppet_environment():
     return puppetEnvironmentValues
 
 
-def test_positive_create(session, fixture_for_puppet_environment):
-    values = fixture_for_puppet_environment
+def test_positive_create(session, init_values):
+    name = init_values.get('environment.name')
     with session:
-        session.puppetenvironment.create(values=values)
+        session.puppetenvironment.create(values=init_values)
         assert session.puppetenvironment.search(
-            values.get('environment.name'))[0]['Name'] == \
-            values.get('environment.name')
-        env_values = session.puppetenvironment.read(
-            values.get('environment.name'))
+            name)[0]['Name'] == name
+        env_values = session.puppetenvironment.read(name)
         assert env_values['locations']['resources']['assigned'][0] == \
-            values.get('locations.resources.assigned')[0]
+            init_values.get('locations.resources.assigned')[0]
 
 
 def test_negative_create(session):
-    name = ' '
-    with session:
-        session.puppetenvironment.create({'name': name})
-        with raises(AssertionError):
-            assert session.puppetenvironment.search(
-                name)[0]['Name'] == name
+    for name in invalid_values_list(interface='ui'):
+        with session:
+            session.puppetenvironment.create({'name': name})
+            with raises(AssertionError):
+                assert session.puppetenvironment.search(
+                    name)[0]['Name'] == name
 
 
-def test_positive_update(session, fixture_for_puppet_environment):
+def test_positive_update(session, init_values):
     ak_name = gen_string('alpha')
-    values = fixture_for_puppet_environment
+    name = init_values.get('environment.name')
     with session:
-        session.puppetenvironment.create(values=values)
-        session.puppetenvironment.update(values.get('environment.name'), {
+        session.puppetenvironment.create(values=init_values)
+        session.puppetenvironment.update(name, {
             'environment.name': ak_name,
         })
         assert session.puppetenvironment.search(
             ak_name)[0]['Name'] == ak_name
 
 
-def test_positive_delete(session, fixture_for_puppet_environment):
-    values = fixture_for_puppet_environment
+def test_positive_delete(session, init_values):
+    name = init_values.get('environment.name')
     with session:
-        session.puppetenvironment.create(values=values)
-        session.puppetenvironment.delete(values.get('environment.name'))
-        assert not session.puppetenvironment.search(
-            values.get('environment.name'))
+        session.puppetenvironment.create(values=init_values)
+        session.puppetenvironment.delete(name)
+        assert not session.puppetenvironment.search(name)
