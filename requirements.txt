@@ -26,7 +26,7 @@ python-bugzilla==1.2.2  # pyup: ignore
 PyYAML==3.12
 robozilla==0.2.6
 
-# Get nailgun from master
-git+https://github.com/SatelliteQE/nailgun.git#egg=nailgun
+# Get nailgun from specific branch
+git+https://github.com/SatelliteQE/nailgun.git@6.3.z#egg=nailgun
 
 --editable .
