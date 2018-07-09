@@ -65,33 +65,3 @@ def test_positive_delete(session, fixture_for_puppet_environment):
         session.puppetenvironment.delete(values.get('environment.name'))
         assert not session.puppetenvironment.search(
             values.get('environment.name'))
-
-
-@run_only_on('sat')
-@tier2
-def test_positive_availability_for_hostgroup_in_multiple_orgs(
-        session, fixture_for_puppet_environment):
-    """
-    New environment that present in different organizations should be
-    visible for any created hostgroup in these organizations
-
-    :id: c086f0c4-3cef-4b58-95aa-40d89954138b
-
-    :customerscenario: true
-
-    :expectedresults: Environment can be used for any new hostgroup and any
-        organization where it is present in
-
-    :BZ: 543178
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-    """
-    values = fixture_for_puppet_environment
-    with session:
-        session.puppetenvironment.create(values=values)
-        env_name = values.get('environment.name')
-        session.puppetenvironment.search_environment({
-            'hostgroup.puppet_environment': env_name,
-        })
