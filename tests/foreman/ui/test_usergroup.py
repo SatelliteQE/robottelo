@@ -34,34 +34,6 @@ class UserGroupTestCase(UITestCase):
         cls.organization = entities.Organization().create()
 
     @tier1
-    def test_positive_create_with_name(self):
-        """Create new Usergroup using different names
-
-        :id: 43e70c8d-455e-4da8-9c69-ab80dae2a0bc
-
-        :expectedresults: Usergroup is created successfully
-
-        :CaseImportance: Critical
-        """
-        user_name = gen_string('alpha')
-        # Create a new user
-        entities.User(
-            login=user_name,
-            password=gen_string('alpha'),
-            organization=[self.organization],
-        ).create()
-        with Session(self) as session:
-            for group_name in generate_strings_list():
-                with self.subTest(group_name):
-                    make_usergroup(
-                        session,
-                        name=group_name,
-                        users=[user_name],
-                        org=self.organization.name,
-                    )
-                    self.assertIsNotNone(self.usergroup.search(group_name))
-
-    @tier1
     def test_negative_create_with_invalid_name(self):
         """Create a new UserGroup with invalid names
 
@@ -99,43 +71,6 @@ class UserGroupTestCase(UITestCase):
                 session, org=self.organization.name, name=group_name)
             self.assertIsNotNone(self.usergroup.wait_until_element(
                 common_locators['name_haserror']))
-
-    @tier1
-    def test_positive_delete_empty(self):
-        """Delete an empty Usergroup
-
-        :id: ca82f84b-bc5a-4f7d-b70d-9ee3e1b0fffa
-
-        :expectedresults: Usergroup is deleted
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for group_name in generate_strings_list():
-                with self.subTest(group_name):
-                    make_usergroup(
-                        session, org=self.organization.name, name=group_name)
-                    self.usergroup.delete(group_name)
-
-    @tier1
-    def test_positive_update_name(self):
-        """Update usergroup with new name
-
-        :id: 2f49ab7c-2f11-48c0-99c2-448fc86b5ad2
-
-        :expectedresults: Usergroup is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_usergroup(session, name=name)
-            self.assertIsNotNone(self.usergroup.search(name))
-            for new_name in generate_strings_list():
-                with self.subTest(new_name):
-                    self.usergroup.update(name, new_name)
-                    self.assertIsNotNone(self.usergroup.search(new_name))
-                    name = new_name  # for next iteration
 
     @tier1
     def test_positive_update_user(self):

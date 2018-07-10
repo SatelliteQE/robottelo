@@ -18,15 +18,72 @@
 from fauxfactory import gen_string, gen_utf8
 from nailgun import entities
 
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
-    fixture,
     parametrize,
-    run_in_one_thread,
-    skip_if_not_set,
+    tier1,
     tier2,
-    tier3,
     upgrade,
 )
+
+
+@tier1
+@parametrize("group_name", generate_strings_list())
+def test_positive_create_with_name(session, group_name):
+    """Create new Usergroup using different names
+
+    :id: 43e70c8d-455e-4da8-9c69-ab80dae2a0bc
+
+    :expectedresults: Usergroup is created successfully
+
+    :CaseImportance: Critical
+    """
+    with session:
+        session.usergroup.create({
+            'usergroup.name': group_name,
+        })
+        assert session.usergroup.search(group_name) is not None
+
+
+@tier1
+@parametrize("new_group_name", generate_strings_list())
+def test_positive_update_name(session, new_group_name):
+    """Update usergroup with new name
+
+    :id: 2f49ab7c-2f11-48c0-99c2-448fc86b5ad2
+
+    :expectedresults: Usergroup is updated
+
+    :CaseImportance: Critical
+    """
+    group_name = gen_string('alpha')
+    with session:
+        session.usergroup.create({
+            'usergroup.name': group_name,
+        })
+        session.usergroup.update(group_name, {
+            'usergroup.name': new_group_name,
+        })
+        assert session.usergroup.search(new_group_name) is not None
+
+
+@tier1
+@parametrize("group_name", generate_strings_list())
+def test_positive_delete_empty(session, group_name):
+    """Delete an empty Usergroup
+
+    :id: ca82f84b-bc5a-4f7d-b70d-9ee3e1b0fffa
+
+    :expectedresults: Usergroup is deleted
+
+    :CaseImportance: Critical
+    """
+    with session:
+        session.usergroup.create({
+            'usergroup.name': group_name,
+        })
+        session.usergroup.delete(group_name)
+        assert session.usergroup.search(group_name) == []
 
 
 @tier2
