@@ -171,7 +171,8 @@ class HostGroupTestCase(CLITestCase):
         """
         os = make_os()
         hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
-        self.assertEqual(hostgroup['operating-system'], os['title'])
+        self.assertEqual(hostgroup['operating-system']['operating-system'],
+                         os['title'])
 
     @run_only_on('sat')
     @tier1
@@ -246,8 +247,8 @@ class HostGroupTestCase(CLITestCase):
         })[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
-            puppet_proxy['id'],
-            hostgroup['puppet-master-proxy']['id'],
+            puppet_proxy['name'],
+            hostgroup['puppet-master-proxy'],
         )
 
     @tier1
