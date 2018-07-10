@@ -5,10 +5,6 @@ from robottelo.datafactory import (
     gen_string,
     invalid_values_list,
 )
-from robottelo.decorators import (
-    tier2,
-    run_only_on,
-)
 
 
 @pytest.fixture(scope='module')
