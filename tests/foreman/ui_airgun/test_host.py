@@ -67,7 +67,16 @@ def test_positive_create(session):
         assert session.host.search(host_name)[0]['Name'] == host_name
 
 
+@tier3
 def test_positive_read_from_details_page(session):
+    """Create new Host and read all its content through details page
+
+    :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
+
+    :expectedresults: Host is created and has expected content
+
+    :CaseLevel: System
+    """
     host = entities.Host()
     host.create_missing()
     os_name = u'{0} {1}'.format(
@@ -102,7 +111,16 @@ def test_positive_read_from_details_page(session):
             'Owner'] == values['current_user']
 
 
+@tier3
 def test_positive_read_from_edit_page(session):
+    """Create new Host and read all its content through edit page
+
+    :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
+
+    :expectedresults: Host is created and has expected content
+
+    :CaseLevel: System
+    """
     host = entities.Host()
     host.create_missing()
     os_name = u'{0} {1}'.format(
