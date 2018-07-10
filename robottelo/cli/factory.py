@@ -3632,6 +3632,17 @@ def _get_capsule_vm_distro_repos(distro):
             'arch': rh_product_arch,
             'cdn': True,
         })
+        # Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7
+        # Server
+        rh_repos.append({
+            'product': PRDS['rhscl'],
+            'repository-set': REPOSET['rhscl7'],
+            'repository': REPOS['rhscl7']['name'],
+            'repository-id': REPOS['rhscl7']['id'],
+            'releasever': rh_product_releasever,
+            'arch': rh_product_arch,
+            'cdn': True,
+        })
         # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
         rh_repos.append({
             'product': PRDS['rhsc'],
