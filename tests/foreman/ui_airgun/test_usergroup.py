@@ -20,20 +20,20 @@ from nailgun import entities
 
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
-    parametrize,
+    fixture,
     tier2,
     upgrade,
 )
 
 
-@parametrize("group_name", generate_strings_list())
-def test_positive_create_with_name(session, group_name):
+def test_positive_create_with_name(session):
     """Create new Usergroup using different names
 
     :expectedresults: Usergroup is created successfully
 
     :CaseImportance: Critical
     """
+    group_name = gen_utf8(smp=False)
     with session:
         session.usergroup.create({
             'usergroup.name': group_name,
@@ -41,8 +41,7 @@ def test_positive_create_with_name(session, group_name):
         assert session.usergroup.search(group_name) is not None
 
 
-@parametrize("new_group_name", generate_strings_list())
-def test_positive_update_name(session, new_group_name):
+def test_positive_update_name(session):
     """Update usergroup with new name
 
     :expectedresults: Usergroup is updated
@@ -50,6 +49,7 @@ def test_positive_update_name(session, new_group_name):
     :CaseImportance: Critical
     """
     group_name = gen_string('alpha')
+    new_group_name = gen_utf8(smp=False)
     with session:
         session.usergroup.create({
             'usergroup.name': group_name,
@@ -60,14 +60,14 @@ def test_positive_update_name(session, new_group_name):
         assert session.usergroup.search(new_group_name) is not None
 
 
-@parametrize("group_name", generate_strings_list())
-def test_positive_delete_empty(session, group_name):
+def test_positive_delete_empty(session):
     """Delete an empty Usergroup
 
     :expectedresults: Usergroup is deleted
 
     :CaseImportance: Critical
     """
+    group_name = gen_utf8(smp=False)
     with session:
         session.usergroup.create({
             'usergroup.name': group_name,
