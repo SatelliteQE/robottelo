@@ -55,7 +55,7 @@ class ParseJSONTestCase(unittest2.TestCase):
           "Organization": "Default Organization",
           "Yum Repositories": {
           },
-          "Docker Repositories": {
+          "Container Image Repositories": {
           },
           "OSTree Repositories": {
           },
@@ -96,7 +96,7 @@ class ParseJSONTestCase(unittest2.TestCase):
                 u'ostree-repositories': {},
                 u'label': u'Default_Organization_View',
                 u'activation-keys': {},
-                u'docker-repositories': {},
+                u'container-image-repositories': {},
                 u'components': {},
                 u'organization': u'Default Organization',
                 u'yum-repositories': {},
