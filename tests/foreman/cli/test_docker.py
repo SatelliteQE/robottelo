@@ -240,11 +240,11 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
-        self.assertEqual(int(repo['content-counts']['docker-manifests']), 0)
+        self.assertEqual(int(repo['content-counts']['container-image-manifests']), 0)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
-            int(repo['content-counts']['docker-manifests']), 1)
+            int(repo['content-counts']['container-image-manifests']), 1)
 
     @tier1
     @run_only_on('sat')
