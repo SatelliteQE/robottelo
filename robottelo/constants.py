@@ -718,13 +718,11 @@ PERMISSIONS = {
         'execute_discovery_rules',
         'view_discovery_rules',
     ],
-    'Docker/ImageSearch': [
-        'search_repository_image_search',
-    ],
     'DockerRegistry': [
         'create_registries',
         'destroy_registries',
         'view_registries',
+        'search_repository_image_search',
     ],
     'Domain': [
         'view_domains',
