@@ -664,13 +664,11 @@ PERMISSIONS = {
         'execute_discovery_rules',
         'view_discovery_rules',
     ],
-    'Docker/ImageSearch': [
-        'search_repository_image_search',
-    ],
     'DockerRegistry': [
         'create_registries',
         'destroy_registries',
         'view_registries',
+        'search_repository_image_search',
     ],
     'Domain': [
         'view_domains',
@@ -905,6 +903,7 @@ PERMISSIONS = {
     'TemplateInvocation': [
         'filter_autocompletion_for_template_invocation',
         'create_template_invocations',
+        'view_template_invocations',
     ],
     'Trend': [
         'view_trends',
