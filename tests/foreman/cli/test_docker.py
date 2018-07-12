@@ -240,7 +240,8 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
-        self.assertEqual(int(repo['content-counts']['container-image-manifests']), 0)
+        self.assertEqual(
+            int(repo['content-counts']['container-image-manifests']), 0)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
@@ -512,7 +513,8 @@ class DockerContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
             repo['id'],
-            [repo_['id'] for repo_ in content_view['container-image-repositories']],
+            [repo_['id'] for repo_ in
+                content_view['container-image-repositories']],
         )
 
     @tier1
@@ -546,7 +548,8 @@ class DockerContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(
             set([repo['id'] for repo in repos]),
-            set([repo['id'] for repo in content_view['container-image-repositories']]),
+            set([repo['id'] for repo in
+                content_view['container-image-repositories']]),
         )
 
     @tier2
@@ -578,7 +581,8 @@ class DockerContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
             repo['id'],
-            [repo_['id'] for repo_ in content_view['container-image-repositories']],
+            [repo_['id'] for repo_ in
+                content_view['container-image-repositories']],
         )
 
     @tier1
