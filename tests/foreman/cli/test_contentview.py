@@ -4258,7 +4258,7 @@ class ContentViewTestCase(CLITestCase):
             'prior': qe_env['name'],
         })
         with CapsuleVirtualMachine(organization_ids=[org['id']]) as capsule_vm:
-            capsule = capsule_vm.capsule
+            capsule = Capsule().info({'name': capsule_vm.hostname})
             # Add all environments to capsule
             environments = {ENVIRONMENT, dev_env['name'], qe_env['name'],
                             prod_env['name']}
