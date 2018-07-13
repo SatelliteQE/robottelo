@@ -621,3 +621,33 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
     )
 
     return result
+
+
+def extract_capsule_satellite_installer_command(text):
+    """Extract satellite installer command from capsule-certs-generate command
+    output
+    """
+    cmd_start_with = 'satellite-installer'
+    cmd_lines = []
+    if text:
+        if isinstance(text, (list, tuple)):
+            lines = text
+        else:
+            lines = text.split('\n')
+        cmd_start_found = False
+        cmd_end_found = False
+        for line in lines:
+            if line.lstrip().startswith(cmd_start_with):
+                cmd_start_found = True
+            if cmd_start_found and not cmd_end_found:
+                cmd_lines.append(line.strip('\\'))
+                if not line.endswith('\\'):
+                    cmd_end_found = True
+    if cmd_lines:
+        cmd = ' '.join(cmd_lines)
+        # remove empty spaces
+        while '  ' in cmd:
+            cmd = cmd.replace('  ', ' ')
+
+        return cmd
+    return None
