@@ -1,4 +1,3 @@
-from pytest import raises
 from nailgun import entities
 import pytest
 from robottelo.datafactory import (
@@ -36,9 +35,7 @@ def test_negative_create(session):
     for name in invalid_values_list(interface='ui'):
         with session:
             session.puppetenvironment.create({'name': name})
-            with raises(AssertionError):
-                assert session.puppetenvironment.search(
-                    name)[0]['Name'] == name
+            assert not session.puppetenvironment.search(name)
 
 
 def test_positive_update(session, init_values):
