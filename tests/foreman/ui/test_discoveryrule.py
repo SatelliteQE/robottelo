@@ -27,12 +27,10 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     tier1,
-    tier2,
     stubbed,
     upgrade,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import make_discoveryrule
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
