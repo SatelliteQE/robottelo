@@ -228,7 +228,7 @@ class HostGroupTestCase(CLITestCase):
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
         })[0]
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
-        self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
+        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
 
     @run_only_on('sat')
     @tier1
