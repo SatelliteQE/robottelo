@@ -4104,6 +4104,12 @@
               "shortname": null,
               "value": "ORGANIZATION_NAMES"
             },
+	    {
+	      "help": "For RHEV only",
+	      "name": "ovirt-quota",
+	      "shortname": null,
+	      "value": "OVIRT_QUOTA"
+	    },
             {
               "help": "Password for RHEV, EC2, VMware, OpenStack. Secret key for EC2",
               "name": "password",
@@ -5155,6 +5161,12 @@
               "shortname": null,
               "value": "ORGANIZATION_NAMES"
             },
+	    {
+	      "help": "For RHEV only",
+	      "name": "ovirt-quota",
+	      "shortname": null,
+	      "value": "OVIRT_QUOTA"
+	    },
             {
               "help": "Password for RHEV, EC2, VMware, OpenStack. Secret key for EC2",
               "name": "password",
