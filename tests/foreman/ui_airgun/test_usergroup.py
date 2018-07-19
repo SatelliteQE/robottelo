@@ -18,9 +18,7 @@
 from fauxfactory import gen_string, gen_utf8
 from nailgun import entities
 
-from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
-    fixture,
     tier2,
     upgrade,
 )
