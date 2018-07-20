@@ -66,4 +66,7 @@ class BrowserTestCase(unittest2.TestCase):
     def test_browser_remote(self):
         self.settings.webdriver = 'remote'
         browser()
-        self.remote.assert_called_once_with()
+        self.remote.assert_called_once_with(
+            command_executor=self.settings.command_executor,
+            desired_capabilities=self.settings.webdriver_desired_capabilities
+        )
