@@ -3379,7 +3379,7 @@ def configure_env_for_provision(org=None, loc=None):
     # relevant fields otherwise create new subnet
     network = settings.vlan_networking.subnet
     subnet = Subnet.list({'search': 'network={0}'.format(network)})
-    if len(subnet) == 1:
+    if len(subnet) >= 1:
         subnet = Subnet.info({'id': subnet[0]['id']})
         Subnet.update({
             'name': subnet['name'],
