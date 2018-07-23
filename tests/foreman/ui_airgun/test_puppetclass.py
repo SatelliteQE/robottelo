@@ -17,12 +17,9 @@
 """
 from nailgun import entities
 
-from robottelo.datafactory import gen_string
-
 
 def test_positive_delete(session):
-    name = gen_string('alpha')
-    entities.PuppetClass(name=name).create()
+    puppet_class = entities.PuppetClass().create()
     with session:
-        session.puppetclass.delete(name)
-        assert not session.puppetclass.search(name)
+        session.puppetclass.delete(puppet_class.name)
+        assert not session.puppetclass.search(puppet_class.name)

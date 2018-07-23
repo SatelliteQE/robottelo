@@ -86,7 +86,7 @@ def module_host(module_org, content_view, puppet_env, puppet_class):
 
 @fixture(scope='module')
 def domain(module_host):
-    return entities.Domain(id=module_host.domain.id).read().name
+    return entities.Domain(id=module_host.domain.id).read()
 
 
 def test_positive_create(session, puppet_class):
