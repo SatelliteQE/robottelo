@@ -4,6 +4,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     FOREMAN_PROVIDERS,
     AWS_EC2_FLAVOR_T2_MICRO,
+    COMPUTE_PROFILE_LARGE,
 )
 from robottelo.decorators import (
     run_only_on,
@@ -48,7 +49,8 @@ def test_positive_access_ec2_with_default_profile(session, name):
             'provider_content.secret_key': ec2_secret_key,
         })
         assert session.computeresource.search(name)[0]['Name'] == name
-        session.computeprofile.list_computeprofiles(name)
+        session.computeprofile.list_computeprofiles(
+            name, COMPUTE_PROFILE_LARGE)
 
 
 @parametrize('name', **valid_data_list('ui'))
@@ -93,6 +95,6 @@ def test_positive_access_ec2_with_custom_profile(session, name):
             'availability_zone': availability_zone,
             'subnet': subnet,
             'managed_ip': managed_ip,
-        }, name)
+        }, name, COMPUTE_PROFILE_LARGE)
         assert session.computeprofile.read_computeprofile(
-            name)['subnet'] == subnet
+            name, COMPUTE_PROFILE_LARGE)['subnet'] == subnet
