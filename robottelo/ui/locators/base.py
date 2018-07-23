@@ -2608,8 +2608,8 @@ locators = LocatorDict({
     "insights.org_selection_msg": (
         By.ID, "content"),
     "insights.no_systems_element": (
-        By.XPATH, (
-        "//div[@class='text-center']//h4")
+        By.XPATH,
+        "//div[@class='text-center']//h4"
     ),
     "insights.manage.service_status": (
         By.ID,
