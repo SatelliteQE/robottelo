@@ -18,7 +18,7 @@ from nailgun import entities
 
 from robottelo.constants import HASH_TYPE
 from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize, tier2, tier3
+from robottelo.decorators import fixture, parametrize, tier2
 
 
 @fixture(scope='module')
@@ -81,8 +81,17 @@ def test_positive_delete(session):
         assert not session.operatingsystem.search(name)
 
 
-@tier3
+@tier2
 def test_positive_end_to_end(session):
+    """Create all possible entities that required for operating system and then
+    test all scenarios like create/read/update/delete for it
+
+    :id: 280afff3-ebf4-4a54-af11-200327b8957b
+
+    :expectedresults: All scenarios flows work properly
+
+    :CaseLevel: Integration
+    """
     name = gen_string('alpha')
     major_version = gen_string('numeric', 2)
     minor_version = gen_string('numeric', 2)
