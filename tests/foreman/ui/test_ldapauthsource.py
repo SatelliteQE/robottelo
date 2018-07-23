@@ -14,15 +14,12 @@
 
 :Upstream: No
 """
-from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     skip_if_not_set,
     tier1,
-    tier2,
-    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_ldapauth
@@ -119,90 +116,3 @@ class LDAPAuthSourceTestCase(UITestCase):
                         self.ldapauthsource.search(server_name)
                     )
                     self.ldapauthsource.delete(server_name)
-
-    @tier2
-    @upgrade
-    def test_positive_create_with_ad_org_and_loc(self):
-        """Create LDAP auth_source for AD with org and loc assigned.
-
-        :id: 4f595af4-fc01-44c6-a614-a9ec827e3c3c
-
-        :steps:
-            1. Create a new LDAP Auth source with AD,
-               provide organization and location information.
-            2. Fill in all the fields appropriately for AD.
-
-        :expectedresults: Whether creating LDAP Auth with AD and
-            associating org and loc is successful.
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            orgs = [entities.Organization().create().name]
-            locations = [entities.Location().create().name]
-            for server_name in generate_strings_list():
-                with self.subTest(server_name):
-                    make_ldapauth(
-                        session,
-                        name=server_name,
-                        server=self.ldap_hostname,
-                        server_type=LDAP_SERVER_TYPE['UI']['ad'],
-                        login_name=LDAP_ATTR['login_ad'],
-                        first_name=LDAP_ATTR['firstname'],
-                        surname=LDAP_ATTR['surname'],
-                        mail=LDAP_ATTR['mail'],
-                        account_user=self.ldap_user_name,
-                        account_passwd=self.ldap_user_passwd,
-                        account_basedn=self.base_dn,
-                        account_grpbasedn=self.group_base_dn,
-                        orgs=orgs,
-                        org_select=True,
-                        locations=locations,
-                        loc_select=True,
-                    )
-                    self.assertIsNotNone(
-                        self.ldapauthsource.search(server_name)
-                    )
-
-    @tier2
-    def test_positive_create_with_idm_org_and_loc(self):
-        """Create LDAP auth_source for IDM with org and loc assigned.
-
-        :id: bc70bcff-1241-4d8e-9713-da752d6c4798
-
-        :steps:
-            1. Create a new LDAP Auth source with IDM,
-               provide organization and location information.
-            2. Fill in all the fields appropriately for IDM.
-
-        :expectedresults: Whether creating LDAP Auth source with IDM and
-            associating org and loc is successful.
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            orgs = [entities.Organization().create().name]
-            locations = [entities.Location().create().name]
-            for server_name in generate_strings_list():
-                with self.subTest(server_name):
-                    make_ldapauth(
-                        session,
-                        name=server_name,
-                        server=self.ldap_ipa_hostname,
-                        server_type=LDAP_SERVER_TYPE['UI']['ipa'],
-                        login_name=LDAP_ATTR['login'],
-                        first_name=LDAP_ATTR['firstname'],
-                        surname=LDAP_ATTR['surname'],
-                        mail=LDAP_ATTR['mail'],
-                        account_user=self.ldap_ipa_user_name,
-                        account_passwd=self.ldap_ipa_user_passwd,
-                        account_basedn=self.ipa_base_dn,
-                        account_grpbasedn=self.ipa_group_base_dn,
-                        orgs=orgs,
-                        org_select=True,
-                        locations=locations,
-                        loc_select=True,
-                    )
-                    self.assertIsNotNone(
-                        self.ldapauthsource.search(server_name)
-                    )
