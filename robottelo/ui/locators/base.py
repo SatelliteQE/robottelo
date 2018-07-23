@@ -2609,9 +2609,28 @@ locators = LocatorDict({
         By.ID, "content"),
     "insights.no_systems_element": (
         By.XPATH, (
-            "//div[@class='text-center']//h4")
-        ),
-
+        "//div[@class='text-center']//h4")
+    ),
+    "insights.manage.service_status": (
+        By.ID,
+        "rha-insights-enabled"
+    ),
+    "insights.manage.save_status": (
+        By.XPATH,
+        "//input[@value='Save']"
+    ),
+    "insights.manage.connection_status": (
+        By.XPATH,
+        "//label[@for='connectionStatus']/..//p"
+    ),
+    "insights.manage.account_number": (
+        By.XPATH,
+        "//label[@for='account']/..//p"
+    ),
+    "insights.manage.check_connection": (
+        By.XPATH,
+        "//input[@value='Check Connection']"
+    ),
     # OpenScap locators
     # Scap Content
     "oscap.upload_content": (
