@@ -24,6 +24,7 @@ from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
+from robottelo.ui.locators import common_locators, menu_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -145,3 +146,53 @@ class RHAITestCase(UITestCase):
                 vm.get('/var/log/redhat-access-insights/'
                        'redhat-access-insights.log',
                        './insights_unregister.log')
+
+    def test_navigation(self):
+        """Test navigation across RHAI tab
+
+        :id: ccfeab23-ef03-4200-85d0-0e7a30c3760e
+
+        :expectedresults: All pages should be opened correctly without 500
+            error
+        """
+        pages = [
+            'rhai_overview',
+            'rhai_inventory',
+            'rhai_manage'
+        ]
+        with Session(self) as session:
+            set_context(session, org=self.org_name, force_context=True)
+            for page in pages:
+                getattr(session, page).navigate_to_entity()
+                self.assertIsNotNone(session.nav.wait_until_element(
+                    menu_locators['menu.current_text']))
+                self.assertIsNone(session.nav.wait_until_element(
+                    common_locators['alert.error'], timeout=1))
+                self.assertIsNone(session.nav.wait_until_element(
+                    common_locators['notif.error'], timeout=1))
+
+    def test_rhai_manage_service(self):
+        """Test insights service disabling/enabling
+
+        :id: 19668cc7-63dd-4bad-a7d4-1006c42b05ce
+
+        :expectedresults: insights service should have a respectful state
+        """
+        with Session(self) as session:
+            set_context(session, org=self.org_name, force_context=True)
+            session.rhai_manage.disable_service()
+            assert not session.rhai_manage.is_service_enabled
+            session.rhai_manage.enable_service()
+            assert session.rhai_manage.is_service_enabled
+
+    def test_rhai_manage_insights_connection(self):
+        """Test insights engine connections
+
+        :id: d08b8079-48d0-4e75-b619-0857abde9996
+
+        :expectedresults: insights engine should be connected
+        """
+        with Session(self) as session:
+            set_context(session, org=self.org_name, force_context=True)
+            session.rhai_manage.check_connection()
+            assert session.rhai_manage.is_insights_engine_connected
