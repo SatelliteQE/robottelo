@@ -28,8 +28,6 @@ from robottelo.decorators import (
 
 
 @fixture(scope='module')
-@skip_if_not_set('ldap')
-@skip_if_not_set('ipa')
 def ldap_data():
     return {
         'ldap_user_name': settings.ldap.username,
@@ -37,6 +35,12 @@ def ldap_data():
         'base_dn': settings.ldap.basedn,
         'group_base_dn': settings.ldap.grpbasedn,
         'ldap_hostname': settings.ldap.hostname,
+    }
+
+
+@fixture(scope='module')
+def ipa_data():
+    return {
         'ldap_ipa_user_name': settings.ipa.username_ipa,
         'ldap_ipa_user_passwd': settings.ipa.password_ipa,
         'ipa_base_dn': settings.ipa.basedn_ipa,
@@ -160,8 +164,8 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data):
         assert ldap_source['account']['base_dn'] == ldap_data['base_dn']
         assert ldap_source[
             'account']['groups_base_dn'] == ldap_data['group_base_dn']
-        assert ldap_source['account']['onthefly_register'] is False
-        assert ldap_source['account']['usergroup_sync'] is True
+        assert not ldap_source['account']['onthefly_register']
+        assert ldap_source['account']['usergroup_sync']
         assert ldap_source[
             'attribute_mappings']['login'] == LDAP_ATTR['login_ad']
         assert ldap_source[
@@ -173,7 +177,7 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data):
 
 @skip_if_not_set('ipa')
 @tier2
-def test_positive_create_with_idm_org_and_loc(session, ldap_data):
+def test_positive_create_with_idm_org_and_loc(session, ipa_data):
     """Create LDAP auth_source for IDM with org and loc assigned.
 
     :id: bc70bcff-1241-4d8e-9713-da752d6c4798
@@ -194,12 +198,12 @@ def test_positive_create_with_idm_org_and_loc(session, ldap_data):
     with session:
         session.ldapauthentication.create({
             'ldap_server.name': name,
-            'ldap_server.host': ldap_data['ldap_ipa_hostname'],
+            'ldap_server.host': ipa_data['ldap_ipa_hostname'],
             'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-            'account.account_name': ldap_data['ldap_ipa_user_name'],
-            'account.password': ldap_data['ldap_ipa_user_passwd'],
-            'account.base_dn': ldap_data['ipa_base_dn'],
-            'account.groups_base_dn': ldap_data['ipa_group_base_dn'],
+            'account.account_name': ipa_data['ldap_ipa_user_name'],
+            'account.password': ipa_data['ldap_ipa_user_passwd'],
+            'account.base_dn': ipa_data['ipa_base_dn'],
+            'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
             'attribute_mappings.login': LDAP_ATTR['login'],
             'attribute_mappings.first_name': LDAP_ATTR['firstname'],
             'attribute_mappings.last_name': LDAP_ATTR['surname'],
@@ -213,17 +217,17 @@ def test_positive_create_with_idm_org_and_loc(session, ldap_data):
         ldap_source = session.ldapauthentication.read(name)
         assert ldap_source['ldap_server']['name'] == name
         assert ldap_source[
-            'ldap_server']['host'] == ldap_data['ldap_ipa_hostname']
+            'ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
         assert ldap_source[
             'ldap_server']['server_type'] == LDAP_SERVER_TYPE['UI']['ipa']
         assert ldap_source[
-            'account']['account_name'] == ldap_data['ldap_ipa_user_name']
-        assert ldap_source['account']['base_dn'] == ldap_data['ipa_base_dn']
+            'account']['account_name'] == ipa_data['ldap_ipa_user_name']
+        assert ldap_source['account']['base_dn'] == ipa_data['ipa_base_dn']
         assert ldap_source[
-            'account']['groups_base_dn'] == ldap_data['ipa_group_base_dn']
-        assert ldap_source['account']['onthefly_register'] is False
-        assert ldap_source['account']['usergroup_sync'] is True
+            'account']['groups_base_dn'] == ipa_data['ipa_group_base_dn']
+        assert not ldap_source['account']['onthefly_register']
+        assert ldap_source['account']['usergroup_sync']
         assert ldap_source[
             'attribute_mappings']['login'] == LDAP_ATTR['login']
         assert ldap_source[
