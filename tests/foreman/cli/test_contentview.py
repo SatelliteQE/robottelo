@@ -3227,7 +3227,7 @@ class ContentViewTestCase(CLITestCase):
             Role.with_user(user_name, user_password).info(
                 {'id': role['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request',
+            '403 Forbidden',
             context.exception.stderr
         )
         # Create a lifecycle environment
