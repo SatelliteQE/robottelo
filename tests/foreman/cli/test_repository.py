@@ -21,6 +21,7 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
+from robottelo.cli.file import File
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
 from robottelo.cli.factory import (
@@ -44,6 +45,8 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     CUSTOM_FILE_REPO,
+    CUSTOM_LOCAL_FILE,
+    CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
@@ -86,6 +89,7 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
+import pathlib
 
 
 class RepositoryTestCase(CLITestCase):
@@ -2346,7 +2350,6 @@ class FileRepositoryTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
     @tier1
     @upgrade
     def test_positive_remove_file(self):
@@ -2363,8 +2366,34 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: file is not listed under File Repository after
             removal
 
-        :CaseAutomation: notautomated
         """
+        new_repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': CUSTOM_FILE_REPO,
+        })
+        ssh.upload_file(
+            local_file=get_data_file(RPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+        )
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+        })
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
+            result[0]['message'],
+        )
+        repo = Repository.info({'id': new_repo['id']})
+        files = File.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [file['id'] for file in files],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['files'], '0')
 
     @tier2
     @upgrade
@@ -2385,7 +2414,6 @@ class FileRepositoryTestCase(CLITestCase):
 
         :expectedresults: entire directory is synced over http
 
-        :CaseAutomation: automated
         """
         repo = make_repository({
             'product-id': self.product['id'],
@@ -2398,7 +2426,6 @@ class FileRepositoryTestCase(CLITestCase):
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['files'], '2')
 
-    @stubbed()
     @tier1
     def test_positive_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
@@ -2417,20 +2444,31 @@ class FileRepositoryTestCase(CLITestCase):
 
         :expectedresults: entire directory is synced
 
-        :CaseAutomation: notautomated
         """
+        # Making Setup For Creating Local Directory using Pulp Manifest
+        ssh.command("yum -y install python-pulp-manifest")
+        ssh.command("mkdir {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command("touch {0} && pulp-manifest {1}".format(CUSTOM_LOCAL_FILE, CUSTOM_LOCAL_FOLDER))
+        repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': pathlib.Path(CUSTOM_LOCAL_FOLDER).as_uri(),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['files'], '1')
 
     @stubbed()
     @tier1
     def test_positive_symlinks_sync(self):
-        """Check synlinks can be synced to File Repository
+        """Check symlinks can be synced to File Repository
 
         :id: b0b0a725-b754-450b-bc0d-572d0294307a
 
         :Setup:
             1. Create a directory to be synced with a pulp manifest on its root
                 locally (on the Satellite/Foreman host)
-            2. Make sure it contains synlinks
+            2. Make sure it contains symlinks
 
         :Steps:
             1. Create a File Repository with url pointing to local url
