@@ -89,7 +89,7 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
-import pathlib
+from pathlib import Path
 
 
 class RepositoryTestCase(CLITestCase):
@@ -2448,11 +2448,12 @@ class FileRepositoryTestCase(CLITestCase):
         # Making Setup For Creating Local Directory using Pulp Manifest
         ssh.command("yum -y install python-pulp-manifest")
         ssh.command("mkdir {}".format(CUSTOM_LOCAL_FOLDER))
-        ssh.command("touch {0} && pulp-manifest {1}".format(CUSTOM_LOCAL_FILE, CUSTOM_LOCAL_FOLDER))
+        ssh.command("touch {0} && pulp-manifest {1}".
+                    format(CUSTOM_LOCAL_FILE, CUSTOM_LOCAL_FOLDER))
         repo = make_repository({
             'content-type': 'file',
             'product-id': self.product['id'],
-            'url': pathlib.Path(CUSTOM_LOCAL_FOLDER).as_uri(),
+            'url': Path(CUSTOM_LOCAL_FOLDER).as_uri(),
         })
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
