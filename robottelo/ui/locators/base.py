@@ -2577,6 +2577,10 @@ locators = LocatorDict({
          "contains(@data-original-title, '%s')]/../../a")),
 
     # Red Hat Access Insights locators
+    "insights.page_title": (
+        By.XPATH,
+        "//h1[contains(@class, 'page-title')]"
+    ),
     "insight.inventory.search": (
         By.XPATH,
         "//div[@class='table-search']/input[contains(@ng-class, 'search-box')]"
@@ -2630,6 +2634,22 @@ locators = LocatorDict({
     "insights.manage.check_connection": (
         By.XPATH,
         "//input[@value='Check Connection']"
+    ),
+    "insights.actions.export_csv": (
+        By.XPATH,
+        "//button[normalize-space(.)='Export CSV']"
+    ),
+    "insights.actions.issues_count": (
+        By.XPATH,
+        "//span[normalize-space(.)='Issues']/../div[@class='num']"
+    ),
+    "insights.help.general_info": (
+        By.XPATH,
+        "//div[@ng-app='RedhatAccessInsights']//h3[1]"
+    ),
+    "insights.help.getting_started": (
+        By.XPATH,
+        "//div[@ng-app='RedhatAccessInsights']//h3[2]"
     ),
     # OpenScap locators
     # Scap Content

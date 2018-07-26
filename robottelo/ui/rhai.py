@@ -10,8 +10,28 @@ class AccessInsightsError(Exception):
     """Exception raised for failed Access Insights configuration operations"""
 
 
-class RHAIInventory(Base):
+class RHAIBase(Base):
+
+    TITLE = None
+
+    @property
+    def page_title(self):
+        self.navigate_to_entity()
+        return self.wait_until_element(locators['insights.page_title']).text
+
+    @property
+    def is_displayed(self):
+        """Is a page displayed.
+
+        A simple check if a title of the page is correct.
+        """
+        return self.page_title == self.TITLE
+
+
+class RHAIInventory(RHAIBase):
     """Implements functionality for RHAI Inventory."""
+
+    TITLE = 'Inventory'
 
     def navigate_to_entity(self):
         """Navigate to RHAI Inventory page"""
@@ -52,8 +72,10 @@ class RHAIInventory(Base):
         self.click(locators["insight.inventory.action_confirm_yes"])
 
 
-class RHAIOverview(Base):
+class RHAIOverview(RHAIBase):
     """Implements functionality for RHAI Overview."""
+
+    TITLE = 'Overview'
 
     def navigate_to_entity(self):
         """Navigate to RHAI Overview page"""
@@ -69,8 +91,10 @@ class RHAIOverview(Base):
         return None
 
 
-class RHAIManage(Base):
+class RHAIManage(RHAIBase):
     """Implements functionality for RHAI Manage."""
+
+    TITLE = 'Manage'
 
     def navigate_to_entity(self):
         """Navigate to RHAI Manage page"""
@@ -113,3 +137,56 @@ class RHAIManage(Base):
     def check_connection(self):
         self.navigate_to_entity()
         self.click(locators['insights.manage.service_status'])
+
+
+class RHAIActions(RHAIBase):
+    """Implements functionality for RHAI Actions."""
+
+    TITLE = 'Actions'
+
+    def navigate_to_entity(self):
+        """Navigate to RHAI Actions page"""
+        Navigator(self.browser).go_to_insights_actions()
+
+    @property
+    def issues_count(self):
+        self.navigate_to_entity()
+        count = self.wait_until_element(
+            locators['insights.actions.issues_count'])
+        return int(count)
+
+
+class RHAIPlanner(RHAIBase):
+    """Implements functionality for RHAI Planner."""
+
+    TITLE = 'Planner'
+
+    def navigate_to_entity(self):
+        """Navigate to RHAI Actions page"""
+        Navigator(self.browser).go_to_insights_planner()
+
+
+class RHAIRules(RHAIBase):
+    """Implements functionality for RHAI Rules."""
+
+    TITLE = 'Rules'
+
+    def navigate_to_entity(self):
+        """Navigate to RHAI Planner page"""
+        Navigator(self.browser).go_to_insights_rules()
+
+
+class RHAIHelp(RHAIBase):
+    """Implements functionality for RHAI Help."""
+
+    def navigate_to_entity(self):
+        """Navigate to RHAI Planner page"""
+        Navigator(self.browser).go_to_insights_help()
+
+    @property
+    def is_displayed(self):
+        general_info = self.wait_until_element(
+            locators['insights.help.general_info'])
+        getting_started = self.wait_until_element(
+            locators['insights.help.getting_started'])
+        return general_info.is_displayed() and getting_started.is_displayed()

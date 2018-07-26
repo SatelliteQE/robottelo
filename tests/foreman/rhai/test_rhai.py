@@ -157,19 +157,25 @@ class RHAITestCase(UITestCase):
         """
         pages = [
             'rhai_overview',
+            'rhai_actions',
             'rhai_inventory',
-            'rhai_manage'
+            'rhai_rules',
+            'rhai_planner',
+            'rhai_manage',
+            'rhai_help'
         ]
         with Session(self) as session:
             set_context(session, org=self.org_name, force_context=True)
             for page in pages:
-                getattr(session, page).navigate_to_entity()
+                page_model_obj = getattr(session, page)
+                page_model_obj.navigate_to_entity()
                 self.assertIsNotNone(session.nav.wait_until_element(
                     menu_locators['menu.current_text']))
                 self.assertIsNone(session.nav.wait_until_element(
                     common_locators['alert.error'], timeout=1))
                 self.assertIsNone(session.nav.wait_until_element(
                     common_locators['notif.error'], timeout=1))
+                self.assertTrue(page_model_obj.is_displayed)
 
     def test_rhai_manage_service(self):
         """Test insights service disabling/enabling
@@ -181,9 +187,9 @@ class RHAITestCase(UITestCase):
         with Session(self) as session:
             set_context(session, org=self.org_name, force_context=True)
             session.rhai_manage.disable_service()
-            assert not session.rhai_manage.is_service_enabled
+            self.assertFalse(session.rhai_manage.is_service_enabled)
             session.rhai_manage.enable_service()
-            assert session.rhai_manage.is_service_enabled
+            self.assertTrue(session.rhai_manage.is_service_enabled)
 
     def test_rhai_manage_insights_connection(self):
         """Test insights engine connections
@@ -195,4 +201,4 @@ class RHAITestCase(UITestCase):
         with Session(self) as session:
             set_context(session, org=self.org_name, force_context=True)
             session.rhai_manage.check_connection()
-            assert session.rhai_manage.is_insights_engine_connected
+            self.assertTrue(session.rhai_manage.is_insights_engine_connected)
