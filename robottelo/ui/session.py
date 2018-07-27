@@ -53,7 +53,9 @@ from robottelo.ui.puppetclasses import PuppetClasses
 from robottelo.ui.puppetmodule import PuppetModule
 from robottelo.ui.registry import Registry
 from robottelo.ui.repository import Repos
-from robottelo.ui.rhai import RHAIInventory, RHAIOverview, RHAIManage
+from robottelo.ui.rhai import (RHAIActions, RHAIInventory, RHAIHelp,
+                               RHAIManage, RHAIOverview, RHAIPlanner,
+                               RHAIRules)
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
 from robottelo.ui.scparams import SmartClassParameter
@@ -169,8 +171,12 @@ class Session(object):
         self.products = Products(self.browser)
         self.registry = Registry(self.browser)
         self.repository = Repos(self.browser)
+        self.rhai_actions = RHAIActions(self.browser)
         self.rhai_inventory = RHAIInventory(self.browser)
+        self.rhai_help = RHAIHelp(self.browser)
         self.rhai_overview = RHAIOverview(self.browser)
+        self.rhai_planner = RHAIPlanner(self.browser)
+        self.rhai_rules = RHAIRules(self.browser)
         self.rhai_manage = RHAIManage(self.browser)
         self.role = Role(self.browser)
         self.settings = Settings(self.browser)
@@ -200,10 +206,11 @@ class Session(object):
                 'oscapreports', 'oscaptailoringfile', 'package',
                 'partitiontable', 'puppetclasses', 'puppetmodule',
                 'products', 'registry', 'repository', 'rhai_inventory',
-                'rhai_manage', 'rhai_overview', 'role',
-                'settings', 'sc_parameters', 'smart_variable', 'statistic',
-                'subnet', 'subscriptions', 'sync', 'syncplan', 'task',
-                'template', 'trend', 'usergroup', 'globalparameters'):
+                'rhai_actions', 'rhai_manage', 'rhai_overview', 'rhai_planner',
+                'rhai_rules', 'rhai_help', 'role', 'settings', 'sc_parameters',
+                'smart_variable', 'statistic', 'subnet', 'subscriptions',
+                'sync', 'syncplan', 'task', 'template', 'trend', 'usergroup',
+                'globalparameters'):
             setattr(self.test, attr, getattr(self, attr))
 
         self.login.login(self._user, self._password)

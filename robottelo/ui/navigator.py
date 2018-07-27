@@ -401,6 +401,13 @@ class Navigator(Base):
             menu_locators['insights.planner'],
         )
 
+    def go_to_insights_help(self):
+        """Navigates to Red Hat Access Insights Help"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.help'],
+        )
+
     def go_to_oscap_policy(self):
         """ Navigates to Oscap Policy"""
         self.menu_click(

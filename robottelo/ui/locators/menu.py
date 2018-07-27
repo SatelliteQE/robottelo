@@ -215,20 +215,25 @@ menu_locators = LocatorDict({
         (MENU_CONTAINER_PATH + "//a[@id='redhat_access_top_menu']")),
     "insights.overview": (
         By.XPATH,
-        (MENU_CONTAINER_PATH + "//a[@href='/redhat_access/insights']")),
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_dashboard']")),
     "insights.rules": (
         By.XPATH,
-        (MENU_CONTAINER_PATH +
-         "//a[@href='/redhat_access/insights/rules/']")),
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_rules']")),
     "insights.inventory": (
         By.XPATH,
-        (MENU_CONTAINER_PATH +
-         "//a[@href='/redhat_access/insights/inventory']")),
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_inventory']")),
     "insights.manage": (
         By.XPATH,
-        (MENU_CONTAINER_PATH +
-         "//a[@href='/redhat_access/insights/manage']")),
-
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_configuration']")),
+    "insights.actions": (
+        By.XPATH,
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_actions']")),
+    "insights.planner": (
+        By.XPATH,
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_planner']")),
+    "insights.help": (
+        By.XPATH,
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_rhai_help']")),
 
     # Administer Menu
     "menu.administer": (
