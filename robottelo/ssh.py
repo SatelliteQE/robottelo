@@ -217,7 +217,7 @@ def add_authorized_key(key, hostname=None, username=None, password=None,
         execute_command(cmd, con)
 
 
-def upload_file(local_file, remote_file, hostname=None):
+def upload_file(local_file, remote_file, key_filename=None, hostname=None):
     """Upload a local file to a remote machine
 
     :param local_file: either a file path or a file-like object to be uploaded.
@@ -226,7 +226,9 @@ def upload_file(local_file, remote_file, hostname=None):
     :param hostname: target machine hostname. If not provided will be used the
         ``server.hostname`` from the configuration.
     """
-    with get_connection(hostname=hostname) as connection:  # pragma: no cover
+    with get_connection(
+        hostname=hostname, key_filename=key_filename
+    ) as connection:  # pragma: no cover
         try:
             sftp = connection.open_sftp()
             # Check if local_file is a file-like object and use the proper
@@ -246,7 +248,9 @@ def download_file(remote_file, local_file=None, hostname=None):
     """
     if local_file is None:  # pragma: no cover
         local_file = remote_file
-    with get_connection(hostname=hostname) as connection:  # pragma: no cover
+    with get_connection(
+        hostname=hostname,
+    ) as connection:  # pragma: no cover
         try:
             sftp = connection.open_sftp()
             sftp.get(remote_file, local_file)
