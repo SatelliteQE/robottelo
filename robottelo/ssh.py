@@ -321,7 +321,9 @@ def download_file(remote_file, local_file=None, hostname=None):
     """
     if local_file is None:  # pragma: no cover
         local_file = remote_file
-    with get_connection(hostname=hostname) as connection:  # pragma: no cover
+    with get_connection(
+        hostname=hostname,
+    ) as connection:  # pragma: no cover
         try:
             sftp = connection.open_sftp()
             sftp.get(remote_file, local_file)

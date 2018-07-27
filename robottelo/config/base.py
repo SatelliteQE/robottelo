@@ -270,10 +270,7 @@ class CapsuleSettings(FeatureSettings):
 
     def read(self, reader):
         """Read clients settings."""
-        self.domain = reader.get('capsule', 'domain')
         self.instance_name = reader.get('capsule', 'instance_name')
-        self.hash = reader.get('capsule', 'hash')
-        self.ddns_package_url = reader.get('capsule', 'ddns_package_url')
 
     @property
     def hostname(self):
@@ -285,17 +282,9 @@ class CapsuleSettings(FeatureSettings):
     def validate(self):
         """Validate capsule settings."""
         validation_errors = []
-        if self.domain is None:
-            validation_errors.append(
-                '[capsule] domain option must be provided.')
         if self.instance_name is None:
             validation_errors.append(
                 '[capsule] instance_name option must be provided.')
-        if self.hash is None:
-            validation_errors.append('[capsule] hash option must be provided.')
-        if self.ddns_package_url is None:
-            validation_errors.append(
-                '[capsule] ddns_package_url option must be provided.')
         return validation_errors
 
 
@@ -988,6 +977,7 @@ class Settings(object):
         self.rhel6_os = None
         self.rhel7_os = None
         self.capsule_repo = None
+        self.rhscl_repo = None
         self.sattools_repo = None
         self.screenshots_path = None
         self.tmp_dir = None
@@ -1095,6 +1085,7 @@ class Settings(object):
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
+        self.rhscl_repo = self.reader.get('robottelo', 'rhscl_repo', None)
         self.sattools_repo = self.reader.get(
             'robottelo', 'sattools_repo', None, dict)
         self.screenshots_path = self.reader.get(
