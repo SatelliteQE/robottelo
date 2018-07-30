@@ -2244,7 +2244,7 @@ class ContentViewTestCase(CLITestCase):
         # Check that repos were actually assigned to CV
         for repo_type in [
             'yum-repositories',
-            'docker-repositories',
+            'container-image-repositories',
             'ostree-repositories',
         ]:
             self.assertEqual(len(new_cv[repo_type]), 1)
@@ -2261,7 +2261,7 @@ class ContentViewTestCase(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         for repo_type in [
             'yum-repositories',
-            'docker-repositories',
+            'container-image-repositories',
             'ostree-repositories',
         ]:
             self.assertEqual(len(new_cv[repo_type]), 0)
@@ -3227,7 +3227,7 @@ class ContentViewTestCase(CLITestCase):
             Role.with_user(user_name, user_password).info(
                 {'id': role['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request',
+            '403 Forbidden',
             context.exception.stderr
         )
         # Create a lifecycle environment
@@ -4258,7 +4258,7 @@ class ContentViewTestCase(CLITestCase):
             'prior': qe_env['name'],
         })
         with CapsuleVirtualMachine(organization_ids=[org['id']]) as capsule_vm:
-            capsule = capsule_vm.capsule
+            capsule = Capsule().info({'name': capsule_vm.hostname})
             # Add all environments to capsule
             environments = {ENVIRONMENT, dev_env['name'], qe_env['name'],
                             prod_env['name']}
@@ -4918,7 +4918,7 @@ class OstreeContentViewTestCase(CLITestCase):
             'Yum Repo was not associated to CV',
         )
         self.assertEqual(
-            cv['docker-repositories'][0]['name'],
+            cv['container-image-repositories'][0]['name'],
             self.docker_repo['name'],
             'Docker Repo was not associated to CV',
         )

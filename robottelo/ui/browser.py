@@ -141,7 +141,9 @@ def browser(browser_name=None, webdriver_name=None):
             return PhantomJS(
                 service_args=['--ignore-ssl-errors=true'])
         elif webdriver_name == 'remote':
-            return Remote()
+            return Remote(
+                command_executor=settings.command_executor,
+                desired_capabilities=settings.webdriver_desired_capabilities)
     elif browser_name == 'saucelabs':
         if webdriver_name == 'chrome':
             desired_capabilities = webdriver.DesiredCapabilities.CHROME.copy()

@@ -18,7 +18,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_names_list
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
 from robottelo.ui.locators import common_locators, tab_locators
@@ -116,36 +116,6 @@ class UserGroupTestCase(UITestCase):
                     make_usergroup(
                         session, org=self.organization.name, name=group_name)
                     self.usergroup.delete(group_name)
-
-    @tier2
-    @upgrade
-    def test_positive_delete_with_user(self):
-        """Delete an Usergroup that contains a user
-
-        :id: 2bda3db5-f54f-412f-831f-8e005631f271
-
-        :expectedresults: Usergroup is deleted but not the added user
-
-        :CaseLevel: Integration
-        """
-        user_name = gen_string('alpha')
-        group_name = gen_string('utf8')
-        # Create a new user
-        entities.User(
-            login=user_name,
-            password=gen_string('alpha'),
-            organization=[self.organization],
-        ).create()
-
-        with Session(self) as session:
-            make_usergroup(
-                session,
-                name=group_name,
-                users=[user_name],
-                org=self.organization.name,
-            )
-            self.usergroup.delete(group_name)
-            self.assertIsNotNone(self.user.search(user_name))
 
     @tier1
     def test_positive_update_name(self):

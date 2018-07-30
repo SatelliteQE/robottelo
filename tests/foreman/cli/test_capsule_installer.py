@@ -21,7 +21,6 @@ from tempfile import mkstemp
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.capsule import Capsule
-from robottelo.cli.factory import extract_capsule_satellite_installer_command
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
@@ -30,6 +29,7 @@ from robottelo.decorators import (
     stubbed,
     tier3,
 )
+from robottelo.helpers import extract_capsule_satellite_installer_command
 from robottelo.test import CLITestCase
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
@@ -195,8 +195,6 @@ class CapsuleInstallerTestCase(CLITestCase):
                     {'name': capsule_vm._capsule_hostname})
             # reinstall katello certs as they have been removed
             capsule_vm.install_katello_ca()
-            # refresh subscription
-            capsule_vm.run('subscription-manager refresh')
             # install satellite-capsule package
             result = capsule_vm.run('yum install -y satellite-capsule')
             self.assertEqual(result.return_code, 0)
@@ -223,7 +221,7 @@ class CapsuleInstallerTestCase(CLITestCase):
             ssh.upload_file(
                 local_file=temporary_local_cert_file_path,
                 remote_file=cert_file_path,
-                hostname=capsule_vm.hostname
+                hostname=capsule_vm.ip_addr
             )
             # delete the temporary file
             os.remove(temporary_local_cert_file_path)
@@ -232,4 +230,4 @@ class CapsuleInstallerTestCase(CLITestCase):
             # ensure that capsule refresh-features succeed
             with self.assertNotRaises(CLIReturnCodeError):
                 Capsule.refresh_features(
-                    {'name': capsule_vm._capsule_hostname})
+                    {'name': capsule_vm.hostname})

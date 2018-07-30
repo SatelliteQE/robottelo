@@ -64,7 +64,7 @@ ssh_key=
 #   other valid webdriver values are going to be translated to firefox.
 # browser=selenium
 
-# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
+# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs, remote
 # webdriver=chrome
 
 # Binary location for selected wedriver (not needed if using saucelabs)
@@ -88,6 +88,8 @@ ssh_key=
 # webdriver_desired_capabilities=platform=OS X 10.9,version=45.0,build=myBuildName,parentTunnel=otherUser,seleniumVersion=2.48.0
 # webdriver_desired_capabilities=platform=macOS 10.12,version=45.0,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
 # webdriver_desired_capabilities=platform=Windows 10,version=14.14393,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
+# webdriver_desired_capabilities=platform=Linux,browserName=chrome,unhandledPromptBehavior=dismiss,unexpectedAlertBehaviour=ignore,acceptInsecureCerts=True
+# command_executor=http://127.0.0.1:4444/wd/hub
 
 # saucelabs_user=
 # saucelabs_key=

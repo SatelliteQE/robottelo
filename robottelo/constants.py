@@ -224,6 +224,13 @@ CHECKSUM_TYPE = {
     'sha1': "sha1",
 }
 
+HASH_TYPE = {
+    'sha256': "SHA256",
+    'sha512': "SHA512",
+    'base64': "Base64",
+    'md5': "MD5",
+}
+
 REPO_TAB = {
     'rpms': "RPMs",
     'kickstarts': "Kickstarts",
@@ -241,6 +248,7 @@ PRDS = {
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
+    'rhscl': 'Red Hat Software Collections for RHEL Server',
 }
 
 REPOSET = {
@@ -258,6 +266,8 @@ REPOSET = {
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
               ' Server'),
+    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
+               ' Linux 7 Server'),
 }
 
 REPOS = {
@@ -353,7 +363,12 @@ REPOS = {
     'rhdt7': {
         'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
                  ' Server x86_64'),
-    }
+    },
+    'rhscl7': {
+        'id': 'rhel-server-rhscl-7-rpms',
+        'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
+                 ' Linux 7 Server x86_64 7Server'),
+    },
 }
 
 DISTRO_REPOS = {
@@ -411,9 +426,9 @@ DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
 DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
-DEFAULT_TEMPLATE = "Satellite Kickstart Default"
+DEFAULT_TEMPLATE = "Kickstart default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
-DEFAULT_ATOMIC_TEMPLATE = 'Satellite Atomic Kickstart Default'
+DEFAULT_ATOMIC_TEMPLATE = 'Atomic Kickstart default'
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
@@ -511,6 +526,9 @@ FAKE_YUM_DRPM_REPO = (
 )
 FAKE_YUM_SRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
+)
+FAKE_YUM_MIXED_REPO = (
+    u'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 )
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 CUSTOM_PUPPET_REPO = u'http://omaciel.fedorapeople.org/bagoftricks'
@@ -717,13 +735,11 @@ PERMISSIONS = {
         'execute_discovery_rules',
         'view_discovery_rules',
     ],
-    'Docker/ImageSearch': [
-        'search_repository_image_search',
-    ],
     'DockerRegistry': [
         'create_registries',
         'destroy_registries',
         'view_registries',
+        'search_repository_image_search',
     ],
     'Domain': [
         'view_domains',

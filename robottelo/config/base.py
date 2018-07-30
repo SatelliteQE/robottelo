@@ -274,10 +274,7 @@ class CapsuleSettings(FeatureSettings):
 
     def read(self, reader):
         """Read clients settings."""
-        self.domain = reader.get('capsule', 'domain')
         self.instance_name = reader.get('capsule', 'instance_name')
-        self.hash = reader.get('capsule', 'hash')
-        self.ddns_package_url = reader.get('capsule', 'ddns_package_url')
 
     @property
     def hostname(self):
@@ -289,17 +286,9 @@ class CapsuleSettings(FeatureSettings):
     def validate(self):
         """Validate capsule settings."""
         validation_errors = []
-        if self.domain is None:
-            validation_errors.append(
-                '[capsule] domain option must be provided.')
         if self.instance_name is None:
             validation_errors.append(
                 '[capsule] instance_name option must be provided.')
-        if self.hash is None:
-            validation_errors.append('[capsule] hash option must be provided.')
-        if self.ddns_package_url is None:
-            validation_errors.append(
-                '[capsule] ddns_package_url option must be provided.')
         return validation_errors
 
 
@@ -1067,7 +1056,10 @@ class Settings(object):
         self.rhel6_os = None
         self.rhel7_os = None
         self.capsule_repo = None
+        self.rhscl_repo = None
+        self.ansible_repo = None
         self.sattools_repo = None
+        self.satmaintenance_repo = None
         self.screenshots_path = None
         self.tmp_dir = None
         self.saucelabs_key = None
@@ -1079,6 +1071,7 @@ class Settings(object):
         self.webdriver = None
         self.webdriver_binary = None
         self.webdriver_desired_capabilities = None
+        self.command_executor = None
 
         self.bugzilla = BugzillaSettings()
         # Features
@@ -1177,8 +1170,12 @@ class Settings(object):
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
+        self.rhscl_repo = self.reader.get('robottelo', 'rhscl_repo', None)
+        self.ansible_repo = self.reader.get('robottelo', 'ansible_repo', None)
         self.sattools_repo = self.reader.get(
             'robottelo', 'sattools_repo', None, dict)
+        self.satmaintenance_repo = self.reader.get(
+            'robottelo', 'satmaintenance_repo', None)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
@@ -1206,6 +1203,8 @@ class Settings(object):
             None,
             cast=INIReader.cast_webdriver_desired_capabilities
         )
+        self.command_executor = self.reader.get(
+            'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub')
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
 
