@@ -93,7 +93,6 @@ from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
 
 
-
 class RepositoryTestCase(CLITestCase):
     """Repository CLI tests."""
 
