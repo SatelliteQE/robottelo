@@ -81,13 +81,15 @@ def test_end_to_end(session):
         'lifecycle-environment-id': env.id,
         'activationkey-id': activation_key.id,
     }, force_manifest_upload=True)
-    setup_org_for_a_custom_repo({
+    custom_entities = setup_org_for_a_custom_repo({
         'url': CUSTOM_REPO_URL,
         'organization-id': org.id,
         'content-view-id': content_view.id,
         'lifecycle-environment-id': env.id,
         'activationkey-id': activation_key.id,
     })
+    product = entities.Product(id=custom_entities['product-id']).read()
+    repo = entities.Repository(id=custom_entities['repository-id']).read()
     with VirtualMachine(distro=DISTRO_RHEL7) as client:
         client.install_katello_ca()
         client.register_contenthost(
@@ -102,6 +104,9 @@ def test_end_to_end(session):
             session.organization.select(org.name)
             errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
             assert errata['details'] == ERRATA_DETAILS
+            assert errata['repositories']['table'][0]['Name'] == repo.name
+            assert errata[
+                'repositories']['table'][0]['Product'] == product.name
             result = session.errata.install(
                 CUSTOM_REPO_ERRATA_ID, client.hostname)
             assert result['result'] == 'success'
