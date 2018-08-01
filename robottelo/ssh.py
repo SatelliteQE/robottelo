@@ -241,6 +241,22 @@ def upload_file(local_file, remote_file, key_filename=None, hostname=None):
             sftp.close()
 
 
+def upload_files(local_dir, remote_dir, file_type='.txt'):
+    """ Upload all files from directory to a remote directory
+    :param local_dir: all files from local path to be uploaded.
+    :param remote_dir: a remote path where the uploaded files will be
+           placed.
+    :param file_type: filter only files contains the type extension
+    """
+    command("mkdir -p {}".format(remote_dir))
+    for root, dirs, files in os.walk(local_dir):
+        for local_filename in files:
+            if file_type in local_filename:
+                remote_filename = "{0}{1}".format(remote_dir, local_filename)
+                local_filename = "{0}{1}".format(local_dir, local_filename)
+                upload_file(local_filename, remote_filename)
+
+
 def download_file(remote_file, local_file=None, hostname=None):
     """Download a remote file to the local machine. If ``hostname`` is not
     provided will be used the server.
