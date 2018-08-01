@@ -2544,8 +2544,7 @@ class FileRepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertGreater(repo['content-counts']['files'], '1')
 
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_symlinks_sync(self):
         """Check symlinks can be synced to File Repository
 
@@ -2564,5 +2563,21 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: entire directory is synced, including files
             referred by symlinks
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
         """
+        # Setting Creating Local Directory using Pulp Manifest and
+        ssh.command("yum -y install python-pulp-manifest")
+        ssh.command("mkdir {0} && ln -s {0} {1}"
+                    .format(CUSTOM_LOCAL_FOLDER, gen_string('alpha')))
+
+        ssh.command("touch {0} && pulp-manifest {1}"
+                    .format(CUSTOM_LOCAL_FILE, CUSTOM_LOCAL_FOLDER))
+
+        repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': 'file://{0}'.format(CUSTOM_LOCAL_FOLDER),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['files'], '1')
