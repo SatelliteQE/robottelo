@@ -16,20 +16,18 @@
 """
 from nailgun import entities
 
-from robottelo.cli.factory import (
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
     FAKE_6_YUM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
 )
 from robottelo.decorators import tier3
+from robottelo.products import (
+    YumRepository,
+    RepositoryCollection,
+    SatelliteToolsRepository,
+)
 from robottelo.vm import VirtualMachine
 
 CUSTOM_REPO_URL = FAKE_6_YUM_REPO
@@ -66,47 +64,31 @@ def test_end_to_end(session):
         ]
     }
     org = entities.Organization().create()
-    env = entities.LifecycleEnvironment(organization=org).create()
-    content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(
-        environment=env,
-        organization=org,
-    ).create()
-    setup_org_for_a_rh_repo({
-        'product': PRDS['rhel'],
-        'repository-set': REPOSET['rhst7'],
-        'repository': REPOS['rhst7']['name'],
-        'organization-id': org.id,
-        'content-view-id': content_view.id,
-        'lifecycle-environment-id': env.id,
-        'activationkey-id': activation_key.id,
-    }, force_manifest_upload=True)
-    custom_entities = setup_org_for_a_custom_repo({
-        'url': CUSTOM_REPO_URL,
-        'organization-id': org.id,
-        'content-view-id': content_view.id,
-        'lifecycle-environment-id': env.id,
-        'activationkey-id': activation_key.id,
-    })
-    product = entities.Product(id=custom_entities['product-id']).read()
-    repo = entities.Repository(id=custom_entities['repository-id']).read()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            YumRepository(url=CUSTOM_REPO_URL)
+        ]
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(
-            org.label,
-            activation_key.name,
-        )
+        repos_collection.setup_virtual_machine(client)
         assert client.subscribed
-        client.enable_repo(REPOS['rhst7']['id'])
-        client.install_katello_agent()
         client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         with session:
             session.organization.select(org.name)
             errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
             assert errata['details'] == ERRATA_DETAILS
-            assert errata['repositories']['table'][0]['Name'] == repo.name
-            assert errata[
-                'repositories']['table'][0]['Product'] == product.name
+            assert (
+                errata['repositories']['table'][0]['Name'] ==
+                repos_collection.custom_repos_info[-1]['name']
+            )
+            assert (
+                errata['repositories']['table'][0]['Product'] ==
+                repos_collection.custom_product['name']
+            )
             result = session.errata.install(
                 CUSTOM_REPO_ERRATA_ID, client.hostname)
             assert result['result'] == 'success'
