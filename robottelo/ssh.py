@@ -8,6 +8,7 @@ import time
 import paramiko
 import six
 
+from fnmatch import fnmatch
 from contextlib import contextmanager
 from robottelo.cli import hammer
 from robottelo.config import settings
@@ -125,7 +126,7 @@ def get_connection(hostname=None, username=None, password=None,
         with get_connection() as connection:
             ...
 
-    :param str hostname: The hostname of the server to establish connection. If
+    :param str hostname: The hostname of the server to establish connection.If
         it is ``None`` ``hostname`` from configuration's ``server`` section
         will be used.
     :param str username: The username to use when connecting. If it is ``None``
@@ -154,6 +155,45 @@ def get_connection(hostname=None, username=None, password=None,
     finally:
         client.close()
         logger.debug('Destroyed Paramiko client {0}'.format(client._id))
+
+
+@contextmanager
+def get_sftp_session(hostname=None, username=None,
+                     password=None, key_filename=None, timeout=None):
+    """Yield a SFTP session object.
+
+    The session will be configured with the host whose hostname is
+    passed as
+    argument.
+
+    Yield this SFTP Session. The session is automatically closed when
+    the caller is done using it using ``contextlib``, so clients should use
+    the``with`` statement to handle the object::
+
+      with get_sftp_session() as session:
+      ...
+    :param str hostname: The hostname of the server to establish connection.If
+        it is ``None`` ``hostname`` from configuration's ``server`` section
+        will be used.
+    :param str username: The username to use when connecting.If it is ``None``
+    `   `ssh_username`` from configuration's ``server`` section will be used.
+    :param str password: The password to use when connecting. If it is
+        ``None``  ``ssh_password`` from configuration's ``server`` section
+        will be used. Should be applied only in case ``key_filename`` is not
+        set
+    :param str key_filename: The path of the ssh private key to use when
+        connecting to the server. If it is ``None`` ``key_filename`` from
+        configuration's ``server`` section will be used.
+    :param int timeout: Time to wait for establish the connection.
+       """
+    with get_connection(hostname=hostname, username=username,
+                        password=password, key_filename=key_filename,
+                        timeout=timeout) as connection:
+        try:
+            sftp = connection.open_sftp()
+            yield sftp
+        finally:
+            sftp.close()
 
 
 def add_authorized_key(key, hostname=None, username=None, password=None,
@@ -225,20 +265,53 @@ def upload_file(local_file, remote_file, key_filename=None, hostname=None):
         placed.
     :param hostname: target machine hostname. If not provided will be used the
         ``server.hostname`` from the configuration.
+    :param str key_filename: The path of the ssh private key to use when
+        connecting to the server. If it is ``None`` ``key_filename`` from
+        configuration's ``server`` section will be used.
     """
-    with get_connection(
-        hostname=hostname, key_filename=key_filename
-    ) as connection:  # pragma: no cover
-        try:
-            sftp = connection.open_sftp()
-            # Check if local_file is a file-like object and use the proper
-            # paramiko function to upload it to the remote machine.
-            if hasattr(local_file, 'read'):
-                sftp.putfo(local_file, remote_file)
-            else:
-                sftp.put(local_file, remote_file)
-        finally:
-            sftp.close()
+
+    with get_sftp_session(hostname, key_filename) as sftp:
+        _upload_file(sftp, local_file, remote_file)
+
+
+def upload_files(local_dir, remote_dir, file_search="*.txt",
+                 hostname=None, key_filename=None):
+    """ Upload all files from directory to a remote directory
+    :param local_dir: all files from local path to be uploaded.
+    :param remote_dir: a remote path where the uploaded files will be
+           placed.
+    :param file_search: filter only files contains the type extension
+    :param hostname: target machine hostname. If not provided will be used the
+        ``server.hostname`` from the configuration.
+    :param str key_filename: The path of the ssh private key to use when
+        connecting to the server. If it is ``None`` ``key_filename`` from
+        configuration's ``server`` section will be used.
+    """
+    command("mkdir -p {}".format(remote_dir))
+    # making only one SFTP Session to transfer all files
+    with get_sftp_session(hostname, key_filename) as sftp:
+        for root, dirs, files in os.walk(local_dir):
+            for local_filename in files:
+                if fnmatch(local_filename, file_search):
+                    remote_file = "{0}/{1}".format(remote_dir, local_filename)
+                    local_file = os.path.join(local_dir, local_filename)
+                    _upload_file(sftp, local_file, remote_file)
+
+
+def _upload_file(sftp, local_file, remote_file):
+    """ Upload a file using existent sftp session
+    :param sftp: sftp session object
+    :param local_file: either a file path or a file-like object to be uploaded.
+    :param remote_file: a remote file path where the uploaded file will be
+        placed.
+
+    """
+    # Check if local_file is a file-like object and use the proper
+    # paramiko function to upload it to the remote machine.
+    if hasattr(local_file, 'read'):
+        sftp.putfo(local_file, remote_file)
+    else:
+        sftp.put(local_file, remote_file)
 
 
 def download_file(remote_file, local_file=None, hostname=None):
