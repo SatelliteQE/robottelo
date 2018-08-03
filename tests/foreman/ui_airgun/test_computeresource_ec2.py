@@ -90,7 +90,7 @@ def test_positive_access_ec2_with_custom_profile(session, name):
             'provider_content.secret_key': ec2_secret_key,
         })
         assert session.computeresource.search(name)[0]['Name'] == name
-        session.computeresource.edit_computeprofiles({
+        session.computeresource.update_computeprofile({
             'flavor': AWS_EC2_FLAVOR_T2_MICRO,
             'availability_zone': availability_zone,
             'subnet': subnet,
