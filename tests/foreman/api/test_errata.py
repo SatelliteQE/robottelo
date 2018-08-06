@@ -742,6 +742,7 @@ class ErrataTestCase(APITestCase):
         promote(cvvs[-1], new_env.id)
         result = entities.Errata().compare(data={
             'content_view_version_ids': [cvv.id for cvv in cvvs],
+            'per_page': 9999,
         })
         cvv2_only_errata = next(
             errata for errata in result['results']
