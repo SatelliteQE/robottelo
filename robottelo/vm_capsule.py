@@ -211,12 +211,12 @@ class CapsuleVirtualMachine(VirtualMachine):
         self._capsule_setup_name_resolution()
         logger.info('adding repofiles required for capsule installation')
         self.create_custom_repos(
-            rhel=settings.__dict__[self.distro[:-1] + '_os'],
             capsule=settings.capsule_repo,
             rhscl=settings.rhscl_repo,
             ansible=settings.ansible_repo,
             maint=settings.satmaintenance_repo
         )
+        self.configure_rhel_repo(settings.__dict__[self.distro[:-1] + '_repo'])
         self.run('yum repolist')
         self.run('yum -y install satellite-capsule', timeout=900)
         result = self.run('rpm -q satellite-capsule')
