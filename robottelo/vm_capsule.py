@@ -190,12 +190,15 @@ class CapsuleVirtualMachine(VirtualMachine):
             # do cleanup as using a static hostname that can be reused by
             # other tests and organizations
             try:
+                # try to delete the capsule if it was added already
+                Capsule.delete({'name': self._capsule_hostname})
+            except Exception as exp:
+                logger.error('Failed to cleanup the capsule: {0}\n{1}'.format(
+                    self.hostname, exp))
+            try:
                 # try to delete the hostname first
                 Host.delete({'name': self._capsule_hostname})
                 # try delete the capsule
-                # note: if the host was not registered the capsule does not
-                # exist yet
-                Capsule.delete({'name': self._capsule_hostname})
             except Exception as exp:
                 # do nothing, only log the exception
                 # as maybe that the host was not registered or setup does not
