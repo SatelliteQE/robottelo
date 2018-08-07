@@ -45,7 +45,6 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     CUSTOM_FILE_REPO,
-    CUSTOM_LOCAL_FILE,
     CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
     DOCKER_REGISTRY_HUB,
@@ -2514,7 +2513,7 @@ class FileRepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['files'], '2')
 
     @tier1
-    def test_positive_local_directory_sync(self):
+    def test_positive_file_repo_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
 
         :id: ee91ecd2-2f07-4678-b782-95a7e7e57159
@@ -2533,10 +2532,9 @@ class FileRepositoryTestCase(CLITestCase):
 
         """
         # Making Setup For Creating Local Directory using Pulp Manifest
-        ssh.command("yum -y install python-pulp-manifest")
-        ssh.command("mkdir {}".format(CUSTOM_LOCAL_FOLDER))
-        ssh.command("touch {0} && pulp-manifest {1}".
-                    format(CUSTOM_LOCAL_FILE, CUSTOM_LOCAL_FOLDER))
+        ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command('wget -P {0} -r -np -nH --cut-dirs=5 -R "index.html*" '
+                    '{1}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO))
         repo = make_repository({
             'content-type': 'file',
             'product-id': self.product['id'],
@@ -2544,7 +2542,7 @@ class FileRepositoryTestCase(CLITestCase):
         })
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
-        self.assertEqual(repo['content-counts']['files'], '1')
+        self.assertGreater(repo['content-counts']['files'], '1')
 
     @stubbed()
     @tier1
