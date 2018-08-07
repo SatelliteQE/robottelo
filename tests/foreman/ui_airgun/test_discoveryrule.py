@@ -80,13 +80,13 @@ def test_positive_create(session, module_organ):
     with session:
         session.organization.select(org_name=module_organ.name)
         session.discoveryrule.create({
-            'name': name,
-            'search': search,
-            'host_group': hg.name,
-            'hostname': gen_string('alpha'),
-            'hosts_limit': str(gen_integer(1, 100)),
-            'priority': str(gen_integer(1, 100)),
-            'enabled': False,
+            'primary.name': name,
+            'primary.search': search,
+            'primary.host_group': hg.name,
+            'primary.hostname': gen_string('alpha'),
+            'primary.hosts_limit': str(gen_integer(1, 100)),
+            'primary.priority': str(gen_integer(1, 100)),
+            'primary.enabled': False,
         })
         dr_val = session.discoveryrule.read_all()
         assert dr_val[0]['Name'] == name
@@ -164,10 +164,10 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
     ) as session:
         session.location.select(loc_name=manager_loc.name)
         session.discoveryrule.create({
-            'name': name,
-            'search': search,
-            'host_group': hg.name,
-            'priority': str(gen_integer(1, 100)),
+            'primary.name': name,
+            'primary.search': search,
+            'primary.host_group': hg.name,
+            'primary.priority': str(gen_integer(1, 100)),
         })
         dr_val = session.discoveryrule.read_all()
         assert dr_val[0]['Name'] == name
