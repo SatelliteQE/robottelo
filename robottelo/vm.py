@@ -568,11 +568,11 @@ class VirtualMachine(object):
             'wget -O /etc/yum.repos.d/insights.repo {0}'.format(insights_repo))
 
         # Install redhat-access-insights package
-        package_name = 'redhat-access-insights'
+        package_name = 'insights-client'
         result = self.run('yum install -y {0}'.format(package_name))
         if result.return_code != 0:
             raise VirtualMachineError(
-                'Unable to install redhat-access-insights package'
+                'Unable to install insights-client package'
             )
 
         # Verify if package is installed by query it
@@ -581,11 +581,11 @@ class VirtualMachine(object):
             result.stdout))
         if result.return_code != 0:
             raise VirtualMachineError(
-                'Unable to install redhat-access-insights package'
+                'Unable to install insights-client package'
             )
 
         # Register client with Red Hat Access Insights
-        result = self.run('redhat-access-insights --register')
+        result = self.run('insights-client --register')
         if result.return_code != 0:
             raise VirtualMachineError(
                 'Unable to register client to Access Insights through '
