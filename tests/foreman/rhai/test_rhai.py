@@ -96,8 +96,8 @@ class RHAITestCase(UITestCase):
                     self.assertIn("1", result,
                                   'Registered clients are not listed')
             finally:
-                vm.get('/var/log/redhat-access-insights/'
-                       'redhat-access-insights.log',
+                vm.get('/var/log/insights-client/'
+                       'insights-client.log',
                        './insights_client_registration.log')
 
     def test_negative_org_not_selected(self):
@@ -127,7 +127,7 @@ class RHAITestCase(UITestCase):
 
         :expectedresults: Once the system is unregistered from the RHAI web
             interface then the unregistered system should return `1` on running
-            the service 'redhat-access-insights'
+            the service 'insights-client'
         """
         # Register a VM to Access Insights Service
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
@@ -139,12 +139,12 @@ class RHAITestCase(UITestCase):
                     set_context(session, org=self.org_name, force_context=True)
                     session.rhai_inventory.unregister_system(vm.hostname)
 
-                result = vm.run('redhat-access-insights')
+                result = vm.run('insights-client')
                 self.assertEqual(result.return_code, 1,
                                  "System has not been unregistered")
             finally:
-                vm.get('/var/log/redhat-access-insights/'
-                       'redhat-access-insights.log',
+                vm.get('/var/log/insights-client/'
+                       'insights-client.log',
                        './insights_unregister.log')
 
     def test_navigation(self):

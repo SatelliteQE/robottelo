@@ -2651,6 +2651,18 @@ locators = LocatorDict({
         By.XPATH,
         "//div[@ng-app='RedhatAccessInsights']//h3[2]"
     ),
+    "insights.rules.modal_window": (
+        By.XPATH,
+        "//div[@class='modal-content']"
+    ),
+    "insights.rules.rule_summary": (
+        By.XPATH,
+        "//div[contains(@class, 'rule-summary')]"
+    ),
+    "insights.rules.close_modal": (
+        By.XPATH,
+        "//div[contains(@class, 'fa-close')]"
+    ),
     # OpenScap locators
     # Scap Content
     "oscap.upload_content": (
