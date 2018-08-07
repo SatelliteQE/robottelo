@@ -160,7 +160,6 @@ ssh_key=
 # URL of the certificate file
 # cert_url=http://example.org/fake_manifest.crt
 
-
 # Client provisioning for tests that require client machines
 # [clients]
 # Provisioning server hostname where the clients will be created
