@@ -18,25 +18,28 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2
+from robottelo.decorators import fixture, tier2
 
 
-def test_positive_create(session):
+@fixture(scope='module')
+def oscap_content_path():
+    return settings.oscap.content_path
+
+
+def test_positive_create(session, oscap_content_path):
     title = gen_string('alpha')
-    oscap_content_path = settings.oscap.content_path
     with session:
-        session.oscapcontent.upload_new({
+        session.oscapcontent.create({
             'title': title,
             'scap_file': oscap_content_path,
         })
         assert session.oscapcontent.search(title)[0]['Title'] == title
 
 
-def test_positive_delete(session):
+def test_positive_delete(session, oscap_content_path):
     title = gen_string('alpha')
-    oscap_content_path = settings.oscap.content_path
     with session:
-        session.oscapcontent.upload_new({
+        session.oscapcontent.create({
             'title': title,
             'scap_file': oscap_content_path,
         })
@@ -45,7 +48,7 @@ def test_positive_delete(session):
 
 
 @tier2
-def test_positive_update(session):
+def test_positive_update(session, oscap_content_path):
     """Update OpenScap content.
 
     :id: 9870555d-0b60-41ab-a481-81d4d3f78fec
@@ -62,13 +65,12 @@ def test_positive_update(session):
     """
     title = gen_string('alpha')
     org = entities.Organization().create()
-    oscap_content_path = settings.oscap.content_path
     with session:
-        session.oscapcontent.upload_new({
+        session.oscapcontent.create({
             'title': title,
             'scap_file': oscap_content_path,
         })
-        session.oscapcontent.edit(title, {
+        session.oscapcontent.update(title, {
             'organizations.resources.assigned': [org.name]
         })
         oscap_val = session.oscapcontent.read(title)
