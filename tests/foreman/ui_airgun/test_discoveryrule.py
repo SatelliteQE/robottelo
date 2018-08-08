@@ -130,19 +130,6 @@ def test_positive_disable_and_enable(session, module_organ):
         assert dr_val[0]['Enabled'] == 'true'
 
 
-def test_positive_associated_hosts(session, module_loc, module_organ):
-    host = entities.Host(organization=module_organ,
-                         location=module_loc).create()
-    hg = entities.HostGroup(organization=[module_organ]).create()
-    dr = entities.DiscoveryRule(hostgroup=hg,
-                                organization=[module_organ]).create()
-    with session:
-        session.organization.select(org_name=module_organ.name)
-        assoc_hosts = session.discoveryrule.associated_hosts(dr.name,
-                                                             host.name)
-        assert assoc_hosts[0]['Name'] == host.name
-
-
 @tier2
 def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
                                                   module_organ, test_name):
