@@ -30,8 +30,8 @@ def test_positive_create(session, oscap_content_path):
     title = gen_string('alpha')
     with session:
         session.oscapcontent.create({
-            'title': title,
-            'scap_file': oscap_content_path,
+            'file_upload.title': title,
+            'file_upload.scap_file': oscap_content_path,
         })
         assert session.oscapcontent.search(title)[0]['Title'] == title
 
@@ -40,8 +40,8 @@ def test_positive_delete(session, oscap_content_path):
     title = gen_string('alpha')
     with session:
         session.oscapcontent.create({
-            'title': title,
-            'scap_file': oscap_content_path,
+            'file_upload.title': title,
+            'file_upload.scap_file': oscap_content_path,
         })
         session.oscapcontent.delete(title)
         assert not session.oscapcontent.search(title)
@@ -67,8 +67,8 @@ def test_positive_update(session, oscap_content_path):
     org = entities.Organization().create()
     with session:
         session.oscapcontent.create({
-            'title': title,
-            'scap_file': oscap_content_path,
+            'file_upload.title': title,
+            'file_upload.scap_file': oscap_content_path,
         })
         session.oscapcontent.update(title, {
             'organizations.resources.assigned': [org.name]
