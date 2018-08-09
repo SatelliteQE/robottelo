@@ -21,7 +21,7 @@ from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import fixture, stubbed, tier2
 
 
 @fixture(scope='module')
@@ -261,3 +261,26 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
         assert dr.name in [rule['Name'] for rule in dr_val]
+
+
+@stubbed()
+@tier2
+def test_positive_list_host_based_on_rule_search_query():
+    """List all the discovered hosts resolved by given rule's search query
+    e.g. all hosts with cpu_count = 1
+
+    :id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
+
+    :Steps:
+
+        1. discovered a host with cpu_count = 2
+        2. Define a rule 'rule1' with search query cpu_count = 2
+        3. Click on 'Discovered Hosts' from rule1
+
+    :expectedresults: All hosts based on rule's search query( w/ cpu_count
+        = 2) should be listed
+
+    :caseautomation: notautomated
+
+    :CaseLevel: Integration
+    """
