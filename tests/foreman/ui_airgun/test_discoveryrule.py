@@ -34,13 +34,13 @@ def manager_loc():
     return entities.Location().create()
 
 
-@fixture
-def module_organ():
+@fixture(scope='module')
+def module_org():
     return entities.Organization().create()
 
 
 @fixture
-def manager_user(manager_loc, module_loc, module_organ):
+def manager_user(manager_loc, module_loc, module_org):
     manager_role = entities.Role().search(
         query={'search': 'name="Discovery Manager"'}
     )[0]
@@ -50,14 +50,14 @@ def manager_user(manager_loc, module_loc, module_organ):
         role=[manager_role],
         password=password,
         location=[module_loc, manager_loc],
-        organization=[module_organ],
+        organization=[module_org],
     ).create()
     manager_user.password = password
-    yield manager_user
+    return manager_user
 
 
 @fixture
-def reader_user(module_loc, module_organ):
+def reader_user(module_loc, module_org):
     password = gen_string('alphanumeric')
     reader_role = entities.Role().search(
         query={'search': 'name="Discovery Reader"'}
@@ -66,19 +66,20 @@ def reader_user(module_loc, module_organ):
         login=gen_string('alpha'),
         role=[reader_role],
         password=password,
-        organization=[module_organ],
+        organization=[module_org],
         location=[module_loc],
     ).create()
     reader_user.password = password
-    yield reader_user
+    return reader_user
 
 
-def test_positive_create(session, module_organ):
+def test_positive_create(session, module_org):
     name = gen_string('alpha')
-    search = '{}\t'.format(gen_string('alpha'))
-    hg = entities.HostGroup(organization=[module_organ]).create()
+    search_name = gen_string('alpha')
+    search = '{}\t'.format(search_name)
+    hg = entities.HostGroup(organization=[module_org]).create()
     with session:
-        session.organization.select(org_name=module_organ.name)
+        session.organization.select(org_name=module_org.name)
         session.discoveryrule.create({
             'primary.name': name,
             'primary.search': search,
@@ -88,51 +89,60 @@ def test_positive_create(session, module_organ):
             'primary.priority': str(gen_integer(1, 100)),
             'primary.enabled': False,
         })
-        dr_val = session.discoveryrule.read_all()
-        assert dr_val[0]['Name'] == name
+        dr_val = session.discoveryrule.read(name)
+        assert dr_val['primary']['name'] == name
+        assert dr_val['primary']['search'] == search_name
+        assert dr_val['primary']['host_group'] == hg.name
 
 
-def test_positive_delete(session, module_organ):
-    hg = entities.HostGroup(organization=[module_organ]).create()
-    dr = entities.DiscoveryRule(hostgroup=hg,
-                                organization=[module_organ]).create()
+def test_positive_delete(session, module_org):
+    hg = entities.HostGroup(organization=[module_org]).create()
+    dr = entities.DiscoveryRule(
+        hostgroup=hg,
+        organization=[module_org]
+    ).create()
     with session:
-        session.organization.select(org_name=module_organ.name)
+        session.organization.select(org_name=module_org.name)
         session.discoveryrule.delete(dr.name)
-        assert not session.discoveryrule.read_all()
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name not in [rule['Name'] for rule in dr_val]
 
 
-def test_positive_update(session, module_loc, module_organ):
-    hg = entities.HostGroup(organization=[module_organ]).create()
-    dr = entities.DiscoveryRule(hostgroup=hg,
-                                organization=[module_organ]).create()
+def test_positive_update(session, module_loc, module_org):
+    hg = entities.HostGroup(organization=[module_org]).create()
+    dr = entities.DiscoveryRule(
+        hostgroup=hg,
+        organization=[module_org]
+    ).create()
     with session:
-        session.organization.select(org_name=module_organ.name)
+        session.organization.select(org_name=module_org.name)
         session.discoveryrule.update(
             dr.name, {'locations.resources.assigned': [module_loc.name]})
         dr_val = session.discoveryrule.read(dr.name)
-        assert (dr_val
-                ['locations']['resources']['assigned'][0] == module_loc.name)
+        assert dr_val[
+                   'locations']['resources']['assigned'][0] == module_loc.name
 
 
-def test_positive_disable_and_enable(session, module_organ):
-    hg = entities.HostGroup(organization=[module_organ]).create()
-    dr = entities.DiscoveryRule(hostgroup=hg,
-                                organization=[module_organ]).create()
+def test_positive_disable_and_enable(session, module_org):
+    hg = entities.HostGroup(organization=[module_org]).create()
+    dr = entities.DiscoveryRule(
+        hostgroup=hg,
+        organization=[module_org]
+    ).create()
     with session:
-        session.organization.select(org_name=module_organ.name)
+        session.organization.select(org_name=module_org.name)
         # enable checkbox is true, by default
         session.discoveryrule.disable(dr.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr_val[0]['Enabled'] == 'false'
+        dr_val = session.discoveryrule.read(dr.name)
+        assert (not dr_val['primary']['enabled'])
         session.discoveryrule.enable(dr.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr_val[0]['Enabled'] == 'true'
+        dr_val = session.discoveryrule.read(dr.name)
+        assert dr_val['primary']['enabled']
 
 
 @tier2
 def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
-                                                  module_organ, test_name):
+                                                  module_org, test_name):
     """Create rule with non-admin user by associating discovery_manager role
 
     :id: 6a03983b-363d-4646-b277-34af5f5abc55
@@ -142,8 +152,9 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    search = '{}\t'.format(gen_string('alpha'))
-    hg = entities.HostGroup(organization=[module_organ]).create()
+    search_name = gen_string('alpha')
+    search = '{}\t'.format(search_name)
+    hg = entities.HostGroup(organization=[module_org]).create()
     with Session(
             test_name,
             user=manager_user.login,
@@ -154,15 +165,16 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
             'primary.name': name,
             'primary.search': search,
             'primary.host_group': hg.name,
-            'primary.priority': str(gen_integer(1, 100)),
         })
-        dr_val = session.discoveryrule.read_all()
-        assert dr_val[0]['Name'] == name
+        dr_val = session.discoveryrule.read(name)
+        assert dr_val['primary']['name'] == name
+        assert dr_val['primary']['search'] == search_name
+        assert dr_val['primary']['host_group'] == hg.name
 
 
 @tier2
 def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user,
-                                                  module_organ, test_name):
+                                                  module_org, test_name):
     """Delete rule with non-admin user by associating discovery_manager role
 
     :id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703
@@ -171,10 +183,10 @@ def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user,
 
     :CaseLevel: Integration
     """
-    hg = entities.HostGroup(organization=[module_organ]).create()
+    hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
         hostgroup=hg,
-        organization=[module_organ],
+        organization=[module_org],
         location=[manager_loc]
     ).create()
     with Session(
@@ -183,12 +195,13 @@ def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user,
             password=manager_user.password
     ) as session:
         session.discoveryrule.delete(dr.name)
-        assert not session.discoveryrule.read_all()
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name not in [rule['Name'] for rule in dr_val]
 
 
 @tier2
 def test_positive_view_existing_rule_with_non_admin_user(module_loc,
-                                                         module_organ,
+                                                         module_org,
                                                          reader_user,
                                                          test_name):
     """Existing rule should be viewed to non-admin user by associating
@@ -206,10 +219,10 @@ def test_positive_view_existing_rule_with_non_admin_user(module_loc,
 
     :CaseLevel: Integration
     """
-    hg = entities.HostGroup(organization=[module_organ]).create()
+    hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
         hostgroup=hg,
-        organization=[module_organ],
+        organization=[module_org],
         location=[module_loc]
     ).create()
     with Session(
@@ -218,11 +231,11 @@ def test_positive_view_existing_rule_with_non_admin_user(module_loc,
             password=reader_user.password
     ) as session:
         dr_val = session.discoveryrule.read_all()
-        assert dr_val[0]['Name'] == dr.name
+        assert dr.name in [rule['Name'] for rule in dr_val]
 
 
 @tier2
-def test_negative_delete_rule_with_non_admin_user(module_loc, module_organ,
+def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
                                                   reader_user, test_name):
     """Delete rule with non-admin user by associating discovery_reader role
 
@@ -233,10 +246,10 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_organ,
 
     :CaseLevel: Integration
     """
-    hg = entities.HostGroup(organization=[module_organ]).create()
+    hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
         hostgroup=hg,
-        organization=[module_organ],
+        organization=[module_org],
         location=[module_loc]
     ).create()
     with Session(
@@ -247,7 +260,7 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_organ,
         with raises(ValueError):
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
-        assert dr_val[0]['Name'] == dr.name
+        assert dr.name in [rule['Name'] for rule in dr_val]
 
 
 @stubbed()
