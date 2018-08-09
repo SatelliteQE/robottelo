@@ -142,7 +142,7 @@ def add_rhev(session, version, module_ca_cert):
         'provider_content.user': username,
         'provider_content.password': password,
         'provider_content.api4': version == 4,
-        'provider_content.datacenter': datacenter,
+        'provider_content.datacenter.value': datacenter,
         'provider_content.certification_authorities': module_ca_cert
     })
     found = session.computeresource.search(name)[0]
