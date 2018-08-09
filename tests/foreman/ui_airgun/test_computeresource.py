@@ -129,6 +129,7 @@ def add_rhev(session, version, module_ca_cert):
     rhev_url = settings.rhev.hostname
     username = settings.rhev.username
     password = settings.rhev.password
+    datacenter = settings.rhev.datacenter
     name = gen_string('alpha')
     # Our currently used testing RHEV uses custom cert.
     # We need to manually specify it.
@@ -141,6 +142,7 @@ def add_rhev(session, version, module_ca_cert):
         'provider_content.user': username,
         'provider_content.password': password,
         'provider_content.api4': version == 4,
+        'provider_content.datacenter.value': datacenter,
         'provider_content.certification_authorities': module_ca_cert
     })
     found = session.computeresource.search(name)[0]
