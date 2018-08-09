@@ -77,6 +77,10 @@ def test_positive_create(session, module_org):
     name = gen_string('alpha')
     search_name = gen_string('alpha')
     search = '{}\t'.format(search_name)
+    hostname = gen_string('alpha')
+    hosts_limit = str(gen_integer(1, 100))
+    priority = str(gen_integer(1, 100))
+    enable = False
     hg = entities.HostGroup(organization=[module_org]).create()
     with session:
         session.organization.select(org_name=module_org.name)
@@ -84,15 +88,19 @@ def test_positive_create(session, module_org):
             'primary.name': name,
             'primary.search': search,
             'primary.host_group': hg.name,
-            'primary.hostname': gen_string('alpha'),
-            'primary.hosts_limit': str(gen_integer(1, 100)),
-            'primary.priority': str(gen_integer(1, 100)),
-            'primary.enabled': False,
+            'primary.hostname': hostname,
+            'primary.hosts_limit': hosts_limit,
+            'primary.priority': priority,
+            'primary.enabled': enable,
         })
         dr_val = session.discoveryrule.read(name)
         assert dr_val['primary']['name'] == name
         assert dr_val['primary']['search'] == search_name
         assert dr_val['primary']['host_group'] == hg.name
+        assert dr_val['primary']['hostname'] == hostname
+        assert dr_val['primary']['hosts_limit'] == hosts_limit
+        assert dr_val['primary']['priority'] == priority
+        assert dr_val['primary']['enabled'] == enable
 
 
 def test_positive_delete(session, module_org):
@@ -103,6 +111,8 @@ def test_positive_delete(session, module_org):
     ).create()
     with session:
         session.organization.select(org_name=module_org.name)
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name in [rule['Name'] for rule in dr_val]
         session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
         assert dr.name not in [rule['Name'] for rule in dr_val]
@@ -194,6 +204,8 @@ def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user,
             user=manager_user.login,
             password=manager_user.password
     ) as session:
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name in [rule['Name'] for rule in dr_val]
         session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
         assert dr.name not in [rule['Name'] for rule in dr_val]
