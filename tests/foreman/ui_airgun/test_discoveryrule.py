@@ -75,8 +75,7 @@ def reader_user(module_loc, module_org):
 
 def test_positive_create(session, module_org):
     name = gen_string('alpha')
-    search_name = gen_string('alpha')
-    search = '{}\t'.format(search_name)
+    search = gen_string('alpha')
     hostname = gen_string('alpha')
     hosts_limit = str(gen_integer(1, 100))
     priority = str(gen_integer(1, 100))
@@ -95,7 +94,6 @@ def test_positive_create(session, module_org):
         })
         dr_val = session.discoveryrule.read(name)
         assert dr_val['primary']['name'] == name
-        assert dr_val['primary']['search'] == search_name
         assert dr_val['primary']['host_group'] == hg.name
         assert dr_val['primary']['hostname'] == hostname
         assert dr_val['primary']['hosts_limit'] == hosts_limit
@@ -162,8 +160,7 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    search_name = gen_string('alpha')
-    search = '{}\t'.format(search_name)
+    search = gen_string('alpha')
     hg = entities.HostGroup(organization=[module_org]).create()
     with Session(
             test_name,
@@ -178,7 +175,6 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
         })
         dr_val = session.discoveryrule.read(name)
         assert dr_val['primary']['name'] == name
-        assert dr_val['primary']['search'] == search_name
         assert dr_val['primary']['host_group'] == hg.name
 
 
