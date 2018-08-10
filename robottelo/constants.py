@@ -27,6 +27,19 @@ BZ_CLOSED_STATUSES = [
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
 
+RHEL_6_MAJOR_VERSION = 6
+RHEL_7_MAJOR_VERSION = 7
+
+DISTRO_DEFAULT = DISTRO_RHEL7
+DISTROS_SUPPORTED = [DISTRO_RHEL6, DISTRO_RHEL7]
+DISTROS_MAJOR_VERSION = {
+    DISTRO_RHEL6: RHEL_6_MAJOR_VERSION,
+    DISTRO_RHEL7: RHEL_7_MAJOR_VERSION,
+}
+MAJOR_VERSION_DISTRO = {
+    value: key for key, value in DISTROS_MAJOR_VERSION.items()}
+
+
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
 
@@ -211,6 +224,13 @@ CHECKSUM_TYPE = {
     'sha1': "sha1",
 }
 
+HASH_TYPE = {
+    'sha256': "SHA256",
+    'sha512': "SHA512",
+    'base64': "Base64",
+    'md5': "MD5",
+}
+
 REPO_TAB = {
     'rpms': "RPMs",
     'kickstarts': "Kickstarts",
@@ -228,6 +248,7 @@ PRDS = {
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
+    'rhscl': 'Red Hat Software Collections for RHEL Server',
 }
 
 REPOSET = {
@@ -245,20 +266,34 @@ REPOSET = {
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
               ' Server'),
+    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
+               ' Linux 7 Server'),
 }
 
 REPOS = {
     'rhel7': {
         'id': 'rhel-7-server-rpms',
-        'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.4',
-        'releasever': '7.4',
-        'arch': 'x86_64'
+        'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
+        'releasever': '7Server',
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL7,
+        'reposet': REPOSET['rhel7'],
+        'product': PRDS['rhel'],
+        'major_version': RHEL_7_MAJOR_VERSION,
+        'distro_repository': True,
+        'key': 'rhel',
+        'version': '7.5',
     },
     'rhsc7': {
         'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
         'name': (
             'Red Hat Satellite Capsule 6.2 for RHEL 7 Server RPMs x86_64'
         ),
+        'version': '6.2',
+        'reposet': REPOSET['rhsc7'],
+        'product': PRDS['rhsc'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhsc',
     },
     'rhsc7_iso': {
         'id': 'rhel-7-server-satellite-capsule-6.2-isos',
@@ -271,19 +306,33 @@ REPOS = {
         'name': (
             'Red Hat Satellite Capsule 6.2 for RHEL 6 Server RPMs x86_64'
         ),
+        'version': '6.2',
+        'reposet': REPOSET['rhsc6'],
+        'product': PRDS['rhsc'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhsc',
     },
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.2-rpms',
         'name': (
             'Red Hat Satellite Tools 6.2 for RHEL 7 Server RPMs x86_64'
         ),
-        'releasever': '6.2',
+        'version': '6.2',
+        'reposet': REPOSET['rhst7'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhst',
     },
     'rhst6': {
         'id': 'rhel-6-server-satellite-tools-6.2-rpms',
         'name': (
             'Red Hat Satellite Tools 6.2 for RHEL 6 Server RPMs x86_64'
         ),
+        'version': '6.2',
+        'reposet': REPOSET['rhst6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhst',
     },
     'rhva6': {
         'id': 'rhel-6-server-rhev-agent-rpms',
@@ -291,12 +340,22 @@ REPOS = {
             'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
             'x86_64 6Server'
         ),
+        'version': '6.0',
+        'reposet': REPOSET['rhva6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhva6',
     },
     'rhva65': {
         'name': (
             'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
             'x86_64 6.5'
         ),
+        'version': '6.5',
+        'reposet': REPOSET['rhva6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhva65',
     },
     'rhaht': {
         'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
@@ -304,11 +363,18 @@ REPOS = {
     'rhdt7': {
         'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
                  ' Server x86_64'),
-    }
+    },
+    'rhscl7': {
+        'id': 'rhel-server-rhscl-7-rpms',
+        'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
+                 ' Linux 7 Server x86_64 7Server'),
+    },
 }
 
-RHEL_6_MAJOR_VERSION = 6
-RHEL_7_MAJOR_VERSION = 7
+DISTRO_REPOS = {
+    # DISTRO_RHEL6: REPOS['rhel6'],
+    DISTRO_RHEL7: REPOS['rhel7']
+}
 
 # The 'create_repos_tree' function under 'sync' module uses the following
 # list of tuples. It actually includes following two repos under
@@ -360,9 +426,9 @@ DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
 DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
-DEFAULT_TEMPLATE = "Satellite Kickstart Default"
+DEFAULT_TEMPLATE = "Kickstart default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
-DEFAULT_ATOMIC_TEMPLATE = 'Satellite Atomic Kickstart Default'
+DEFAULT_ATOMIC_TEMPLATE = 'Atomic Kickstart default'
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
@@ -433,6 +499,8 @@ DOCKER_RH_REGISTRY_UPSTREAM_NAME = (
 CUSTOM_FILE_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
 )
+CUSTOM_LOCAL_FOLDER = u'/var/www/html/myrepo/'
+CUSTOM_LOCAL_FILE = u'/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
@@ -459,6 +527,9 @@ FAKE_YUM_DRPM_REPO = (
 FAKE_YUM_SRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
 )
+FAKE_YUM_MIXED_REPO = (
+    u'https://pondrejk.fedorapeople.org/test_repos/mixed/'
+)
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 CUSTOM_PUPPET_REPO = u'http://omaciel.fedorapeople.org/bagoftricks'
 FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
@@ -469,6 +540,7 @@ FAKE_4_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet04'
 FAKE_5_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet05'
 FAKE_6_PUPPET_REPO = u'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
 FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
+FAKE_8_PUPPET_REPO = u'https://omaciel.fedorapeople.org/f4cb00ed/'
 FEDORA22_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/22/'
 FEDORA23_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/23/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
@@ -554,6 +626,9 @@ FAKE_1_YUM_REPO_RPMS = [
 ]
 FAKE_0_PUPPET_MODULE = 'httpd'
 
+FAKE_PULP_REMOTE_FILEREPO = (
+    u'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
+)
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
@@ -597,6 +672,11 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
     ],
+    'AnsibleRole': [
+        'view_ansible_roles',
+        'destroy_ansible_roles',
+        'import_ansible_roles',
+    ],
     'Architecture': [
         'view_architectures',
         'create_architectures',
@@ -606,7 +686,7 @@ PERMISSIONS = {
     'Audit': [
         'view_audit_logs',
     ],
-    'AuthSourceLdap': [
+    'AuthSource': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
@@ -655,13 +735,11 @@ PERMISSIONS = {
         'execute_discovery_rules',
         'view_discovery_rules',
     ],
-    'Docker/ImageSearch': [
-        'search_repository_image_search',
-    ],
     'DockerRegistry': [
         'create_registries',
         'destroy_registries',
         'view_registries',
+        'search_repository_image_search',
     ],
     'Domain': [
         'view_domains',
@@ -722,6 +800,7 @@ PERMISSIONS = {
     'JobInvocation': [
         'view_job_invocations',
         'create_job_invocations',
+        'cancel_job_invocations',
     ],
     'JobTemplate': [
         'view_job_templates',
@@ -756,6 +835,13 @@ PERMISSIONS = {
         'create_hostgroups',
         'edit_hostgroups',
         'destroy_hostgroups',
+        'play_roles_on_hostgroup',
+    ],
+    'HttpProxy': [
+        'view_http_proxies',
+        'create_http_proxies',
+        'edit_http_proxies',
+        'destroy_http_proxies',
     ],
     'Image': [
         'view_images',
@@ -800,6 +886,11 @@ PERMISSIONS = {
         'create_params',
         'edit_params',
         'destroy_params',
+    ],
+    'PersonalAccessToken': [
+        'view_personal_access_tokens',
+        'create_personal_access_tokens',
+        'revoke_personal_access_tokens',
     ],
     'ProvisioningTemplate': [
         'view_provisioning_templates',
@@ -876,9 +967,14 @@ PERMISSIONS = {
         'destroy_subnets',
         'import_subnets',
     ],
+    'Template': [
+        'export_templates',
+        'import_templates',
+    ],
     'TemplateInvocation': [
         'filter_autocompletion_for_template_invocation',
-        'execute_template_invocation',
+        'create_template_invocations',
+        'view_template_invocations',
     ],
     'Trend': [
         'view_trends',
@@ -915,6 +1011,7 @@ PERMISSIONS = {
         'edit_discovered_hosts',
         'edit_hosts',
         'ipmi_boot_hosts',
+        'play_roles_on_host',
         'power_hosts',
         'provision_discovered_hosts',
         'puppetrun_hosts',
@@ -942,6 +1039,10 @@ PERMISSIONS = {
         'create_gpg_keys',
         'edit_gpg_keys',
         'destroy_gpg_keys',
+        'view_content_credentials',
+        'create_content_credentials',
+        'edit_content_credentials',
+        'destroy_content_credentials',
     ],
     'Katello::HostCollection': [
         'view_host_collections',
@@ -970,6 +1071,7 @@ PERMISSIONS = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
+        'manage_subscription_allocations',
     ],
     'Organization': [
         'view_organizations',
@@ -1478,20 +1580,29 @@ OSCAP_PROFILE = {
 ROLES = [
     'Access Insights Admin',
     'Access Insights Viewer',
+    'Ansible Roles Manager',
+    'Auditor',
     'Boot disk access',
+    'Bookmarks manager',
     'Compliance manager',
     'Compliance viewer',
+    'Create ARF report',
     'Discovery Manager',
     'Discovery Reader',
     'Edit hosts',
     'Edit partition tables',
+    'Organization admin',
     'Red Hat Access Logs',
+    'Register hosts',
     'Remote Execution Manager',
     'Remote Execution User',
     'Site manager',
     'Tasks Manager',
     'Tasks Reader',
     'View hosts',
+    'Virt-who Manager',
+    'Virt-who Reporter',
+    'Virt-who Viewer',
     'Manager',
     'Viewer',
 ]
@@ -2214,3 +2325,10 @@ VMWARE_CONSTANTS = {
 }
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
+
+FOREMAN_TEMPLATE_IMPORT_URL = (
+    'https://github.com/SatelliteQE/foreman_templates.git')
+
+FOREMAN_TEMPLATE_TEST_TEMPLATE = (
+    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
+    'example_template.erb')

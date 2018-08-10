@@ -84,38 +84,6 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                         self.lifecycleenvironment.search(name))
 
     @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_create_chain(self):
-        """Create Content Environment in a chain
-
-        :id: ed3d2c88-ef0a-4a1a-9f11-5bdb2119fc18
-
-        :expectedresults: Environment is created
-
-        :CaseLevel: Integration
-        """
-        env1_name = gen_string('alpha')
-        env2_name = gen_string('alpha')
-        description = gen_string('alpha')
-        with Session(self) as session:
-            make_lifecycle_environment(
-                session,
-                org=self.organization.name,
-                name=env1_name,
-                description=description
-            )
-            self.assertIsNotNone(self.lifecycleenvironment.search(env1_name))
-            make_lifecycle_environment(
-                session,
-                org=self.organization.name,
-                name=env2_name,
-                description=description,
-                prior=env1_name,
-            )
-            self.assertIsNotNone(self.lifecycleenvironment.search(env2_name))
-
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):

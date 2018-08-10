@@ -5,6 +5,7 @@ import time
 from fauxfactory import gen_string
 from inflector import Inflector
 from nailgun import entities, entity_mixins
+from nailgun.client import request
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.config.base import ImproperlyConfigured
@@ -13,7 +14,9 @@ from robottelo.constants import (
     DEFAULT_PTABLE,
     DEFAULT_PXE_TEMPLATE,
     DEFAULT_TEMPLATE,
+    FAKE_1_YUM_REPO,
     PERMISSIONS_WITH_BZ,
+    REPO_TYPE,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
@@ -190,6 +193,76 @@ def delete_puppet_class(puppetclass_name, puppet_module=None,
         )[0]
         proxy = entities.SmartProxy(name=proxy_hostname).search()[0]
         proxy.import_puppetclasses(environment=env)
+
+
+def create_sync_custom_repo(org_id=None, product_name=None, repo_name=None,
+                            repo_url=None, repo_type=None,
+                            repo_unprotected=True, docker_upstream_name=None):
+    """Create product/repo, sync it and returns repo_id"""
+    if org_id is None:
+        org_id = entities.Organization().create().id
+    product_name = product_name or gen_string('alpha')
+    repo_name = repo_name or gen_string('alpha')
+    # Creates new product and repository via API's
+    product = entities.Product(
+        name=product_name,
+        organization=org_id,
+    ).create()
+    repo = entities.Repository(
+        name=repo_name,
+        url=repo_url or FAKE_1_YUM_REPO,
+        content_type=repo_type or REPO_TYPE['yum'],
+        product=product,
+        unprotected=repo_unprotected,
+        docker_upstream_name=docker_upstream_name,
+    ).create()
+    # Sync repository
+    entities.Repository(id=repo.id).sync()
+    return repo.id
+
+
+def enable_sync_redhat_repo(rh_repo, org_id):
+    """Enable the RedHat repo, sync it and returns repo_id"""
+    # Enable RH repo and fetch repository_id
+    repo_id = enable_rhrepo_and_fetchid(
+        basearch=rh_repo['basearch'],
+        org_id=org_id,
+        product=rh_repo['product'],
+        repo=rh_repo['name'],
+        reposet=rh_repo['reposet'],
+        releasever=rh_repo['releasever'],
+    )
+    # Sync repository
+    call_entity_method_with_timeout(
+        entities.Repository(id=repo_id).sync, timeout=1500)
+    return repo_id
+
+
+def cv_publish_promote(name=None, env_name=None, repo_id=None, org_id=None):
+    """Create, publish and promote CV to selected environment"""
+    if org_id is None:
+        org_id = entities.Organization().create().id
+    # Create Life-Cycle content environment
+    kwargs = {'name': env_name} if env_name is not None else {}
+    lce = entities.LifecycleEnvironment(
+        organization=org_id,
+        **kwargs
+    ).create()
+    # Create content view(CV)
+    kwargs = {'name': name} if name is not None else {}
+    content_view = entities.ContentView(
+        organization=org_id,
+        **kwargs
+    ).create()
+    # Associate YUM repo to created CV
+    if repo_id is not None:
+        content_view.repository = [entities.Repository(id=repo_id)]
+        content_view = content_view.update(['repository'])
+    # Publish content view
+    content_view.publish()
+    # Promote the content view version.
+    promote(content_view.read().version[0], lce.id)
+    return content_view.read()
 
 
 def one_to_one_names(name):
@@ -622,3 +695,70 @@ def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None,
         raise AssertionError(
             "No task was found using query '{}'".format(search_query))
     return tasks
+
+
+def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
+    """Search the pulp tasks and identify repositories sync tasks with
+    specified name or backend_identifier
+
+    :param repo_backend_id: The Backend ID for the repository to identify the
+        repo in Pulp environment
+    :param timeout: Value to decided how long to check for the Sync task
+    :param repo_name: If repo_backend_id can not be passed, pass the repo_name
+    """
+    if repo_name:
+            repo_backend_id = entities.Repository().search(query={
+                        'search': 'name="{0}"'.format(repo_name),
+                        'per_page': 1000,
+                    })[0].backend_identifier
+    # Fetch the Pulp password
+    pulp_pass = ssh.command(
+        'grep "^default_password" /etc/pulp/server.conf |'
+        ' awk \'{print $2}\''
+    ).stdout[0]
+    # Set the Timeout value
+    timeup = time.time() + int(timeout) * 60
+    # Search Filter to filter out the task based on backend-id and sync action
+    filtered_req = {
+        'criteria': {
+            'filters': {
+                'tags': {
+                    '$in': [
+                        "pulp:repository:{0}".format(repo_backend_id)]
+                },
+                'task_type': {
+                    '$in': ["pulp.server.managers.repo.sync.sync"]
+                }
+            }
+        }
+    }
+    while True:
+        if time.time() > timeup:
+            raise entities.APIResponseError(
+                'Pulp task with repo_id {0} not found'.format(repo_backend_id)
+            )
+        # Send request to pulp API to get the task info
+        req = request('POST',
+                      '{0}/pulp/api/v2/tasks/search/'.format(
+                          settings.server.get_url()),
+                      verify=False,
+                      auth=('admin', '{0}'.format(pulp_pass)),
+                      headers={'content-type': 'application/json'},
+                      data=filtered_req)
+        # Check Status code of response
+        if req.status_code != 200:
+            raise entities.APIResponseError(
+                'Pulp task with repo_id {0} not found'.format(repo_backend_id))
+        # Check content of response
+        # It is '[]' string for empty content when backend_identifier is wrong
+        if len(req.content) > 2:
+            if req.json()[0].get('state') in ['finished']:
+                return True
+            elif req.json()[0].get('error'):
+                raise AssertionError(
+                    "Pulp task with repo_id {0} errored or not "
+                    "found: '{1}'".format(repo_backend_id,
+                                          req.json().get('error')
+                                          )
+                )
+        time.sleep(2)

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """
-:Requirement: Computeresource
+:Requirement: Computeresource Vmware
 
 :CaseLevel: Acceptance
 
@@ -26,6 +26,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     tier1,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -145,6 +146,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_create_with_org_and_loc(self):
         """Create VMware Compute Resource with organizations and locations
 

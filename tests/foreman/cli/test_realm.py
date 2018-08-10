@@ -146,7 +146,7 @@ class RealmTestCase(CLITestCase):
         up = Realm.update({'id': self.realm['id'], 'new-name': new_realm_name})
         self.assertEquals(
             up[0]['message'],
-            'Realm [{0}] updated'.format(new_realm_name)
+            'Realm [{0}] updated.'.format(new_realm_name)
         )
         info = Realm.info({'id': self.realm['id']})
         self.assertEquals(info['name'], new_realm_name)

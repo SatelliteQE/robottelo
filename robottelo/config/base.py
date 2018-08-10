@@ -1,21 +1,25 @@
 """Define and instantiate the configuration class for Robottelo."""
 import importlib
 import logging
+import logging.config
 
 import os
 import sys
 
 from functools import partial
-from logging import config
-from nailgun import entities, entity_mixins
-from nailgun.config import ServerConfig
-from robottelo.config import casts
+
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
     NoSectionError,
     ConfigParser
 )
+
+import airgun.settings
+
+from nailgun import entities, entity_mixins
+from nailgun.config import ServerConfig
+from robottelo.config import casts
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -270,10 +274,7 @@ class CapsuleSettings(FeatureSettings):
 
     def read(self, reader):
         """Read clients settings."""
-        self.domain = reader.get('capsule', 'domain')
         self.instance_name = reader.get('capsule', 'instance_name')
-        self.hash = reader.get('capsule', 'hash')
-        self.ddns_package_url = reader.get('capsule', 'ddns_package_url')
 
     @property
     def hostname(self):
@@ -285,17 +286,9 @@ class CapsuleSettings(FeatureSettings):
     def validate(self):
         """Validate capsule settings."""
         validation_errors = []
-        if self.domain is None:
-            validation_errors.append(
-                '[capsule] domain option must be provided.')
         if self.instance_name is None:
             validation_errors.append(
                 '[capsule] instance_name option must be provided.')
-        if self.hash is None:
-            validation_errors.append('[capsule] hash option must be provided.')
-        if self.ddns_package_url is None:
-            validation_errors.append(
-                '[capsule] ddns_package_url option must be provided.')
         return validation_errors
 
 
@@ -346,10 +339,8 @@ class ClientsSettings(FeatureSettings):
 
     def read(self, reader):
         """Read clients settings."""
-        self.image_dir = reader.get(
-            'clients', 'image_dir', '/opt/robottelo/images')
-        self.provisioning_server = reader.get(
-            'clients', 'provisioning_server')
+        self.image_dir = reader.get('clients', 'image_dir')
+        self.provisioning_server = reader.get('clients', 'provisioning_server')
 
     def validate(self):
         """Validate clients settings."""
@@ -391,6 +382,10 @@ class DockerSettings(FeatureSettings):
         self.external_registry_1 = None
         self.external_registry_2 = None
         self.unix_socket = None
+        self.private_registry_url = None
+        self.private_registry_name = None
+        self.private_registry_username = None
+        self.private_registry_password = None
 
     def read(self, reader):
         """Read docker settings."""
@@ -400,6 +395,14 @@ class DockerSettings(FeatureSettings):
         self.external_url = reader.get('docker', 'external_url')
         self.external_registry_1 = reader.get('docker', 'external_registry_1')
         self.external_registry_2 = reader.get('docker', 'external_registry_2')
+        self.private_registry_url = reader.get(
+            'docker', 'private_registry_url')
+        self.private_registry_name = reader.get(
+            'docker', 'private_registry_name')
+        self.private_registry_username = reader.get(
+            'docker', 'private_registry_username')
+        self.private_registry_password = reader.get(
+            'docker', 'private_registry_password')
 
     def validate(self):
         """Validate docker settings."""
@@ -622,6 +625,7 @@ class RHEVSettings(FeatureSettings):
         self.image_username = None
         self.image_password = None
         self.image_name = None
+        self.ca_cert = None
 
     def read(self, reader):
         """Read rhev settings."""
@@ -638,14 +642,16 @@ class RHEVSettings(FeatureSettings):
         self.image_username = reader.get('rhev', 'image_username')
         self.image_password = reader.get('rhev', 'image_password')
         self.image_name = reader.get('rhev', 'image_name')
+        self.ca_cert = reader.get('rhev', 'ca_cert', None)
 
     def validate(self):
         """Validate rhev settings."""
         validation_errors = []
-        if not all(vars(self).values()):
+        values = [v for k, v in vars(self).items() if k != 'ca_cert']
+        if not all(values):
             validation_errors.append(
                 'All [rhev] hostname, username, password, datacenter, '
-                'vm_name, image_name, image_os, image_arch, image_usernam, '
+                'vm_name, image_name, image_os, image_arch, image_username, '
                 'image_name options must be provided.'
             )
         return validation_errors
@@ -737,6 +743,50 @@ class OscapSettings(FeatureSettings):
         if self.tailoring_path is None:
             validation_errors.append(
                 '[oscap] tailoring_path option must be provided.'
+            )
+        return validation_errors
+
+
+class OSPSettings(FeatureSettings):
+    """OSP settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(OSPSettings, self).__init__(*args, **kwargs)
+        # Compute Resource Information
+        self.hostname = None
+        self.username = None
+        self.password = None
+        self.tenant = None
+        self.vm_name = None
+        self.security_group = None
+        # Image Information
+        self.image_os = None
+        self.image_arch = None
+        self.image_username = None
+        self.image_name = None
+
+    def read(self, reader):
+        """Read osp settings."""
+        # Compute Resource Information
+        self.hostname = reader.get('osp', 'hostname')
+        self.username = reader.get('osp', 'username')
+        self.password = reader.get('osp', 'password')
+        self.tenant = reader.get('osp', 'tenant')
+        self.security_group = reader.get('osp', 'security_group')
+        self.vm_name = reader.get('osp', 'vm_name')
+        # Image Information
+        self.image_os = reader.get('osp', 'image_os')
+        self.image_arch = reader.get('osp', 'image_arch')
+        self.image_username = reader.get('osp', 'image_username')
+        self.image_name = reader.get('osp', 'image_name')
+
+    def validate(self):
+        """Validate osp settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [osp] hostname, username, password, tenant, '
+                'vm_name, image_name, image_os, image_arch, image_username, '
+                'image_name options must be provided.'
             )
         return validation_errors
 
@@ -978,7 +1028,8 @@ class SharedFunctionSettings(FeatureSettings):
             except ImportError:
                 validation_errors.append(
                     '[shared] python redis package not installed')
-
+        if self.share_timeout is None:
+            self.share_timeout = self.MAX_SHARE_TIMEOUT
         if self.share_timeout > self.MAX_SHARE_TIMEOUT:
             validation_errors.append(
                 '[shared] share time out cannot be more than 86400'
@@ -1005,7 +1056,10 @@ class Settings(object):
         self.rhel6_os = None
         self.rhel7_os = None
         self.capsule_repo = None
+        self.rhscl_repo = None
+        self.ansible_repo = None
         self.sattools_repo = None
+        self.satmaintenance_repo = None
         self.screenshots_path = None
         self.tmp_dir = None
         self.saucelabs_key = None
@@ -1017,6 +1071,7 @@ class Settings(object):
         self.webdriver = None
         self.webdriver_binary = None
         self.webdriver_desired_capabilities = None
+        self.command_executor = None
 
         self.bugzilla = BugzillaSettings()
         # Features
@@ -1034,6 +1089,7 @@ class Settings(object):
         self.ipa = LDAPIPASettings()
         self.oscap = OscapSettings()
         self.ostree = OstreeSettings()
+        self.osp = OSPSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
@@ -1087,6 +1143,7 @@ class Settings(object):
         self._configure_logging()
         self._configure_third_party_logging()
         self._configure_entities()
+        self._configure_airgun()
         self._configured = True
 
     def _read_robottelo_settings(self):
@@ -1113,8 +1170,12 @@ class Settings(object):
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
+        self.rhscl_repo = self.reader.get('robottelo', 'rhscl_repo', None)
+        self.ansible_repo = self.reader.get('robottelo', 'ansible_repo', None)
         self.sattools_repo = self.reader.get(
             'robottelo', 'sattools_repo', None, dict)
+        self.satmaintenance_repo = self.reader.get(
+            'robottelo', 'satmaintenance_repo', None)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
@@ -1129,7 +1190,7 @@ class Settings(object):
             INIReader.cast_logging_level
         )
         self.webdriver = self.reader.get(
-            'robottelo', 'webdriver', 'firefox')
+            'robottelo', 'webdriver', 'chrome')
         self.saucelabs_user = self.reader.get(
             'robottelo', 'saucelabs_user', None)
         self.saucelabs_key = self.reader.get(
@@ -1142,6 +1203,8 @@ class Settings(object):
             None,
             cast=INIReader.cast_webdriver_desired_capabilities
         )
+        self.command_executor = self.reader.get(
+            'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub')
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
 
@@ -1241,6 +1304,29 @@ class Settings(object):
                 self._fields['url'].default = docker_url
             entities.DockerComputeResource.__init__ = patched_dockercr_init
 
+    def _configure_airgun(self):
+        """Pass required settings to AirGun"""
+        airgun.settings.configure({
+            'airgun': {
+                'verbosity': logging.getLevelName(self.verbosity),
+            },
+            'satellite': {
+                'hostname': self.server.hostname,
+                'password': self.server.admin_password,
+                'username': self.server.admin_username,
+            },
+            'selenium': {
+                'browser': self.browser,
+                'saucelabs_key': self.saucelabs_key,
+                'saucelabs_user': self.saucelabs_user,
+                'screenshots_path': self.screenshots_path,
+                'webdriver': self.webdriver,
+                'webdriver_binary': self.webdriver_binary,
+            },
+            'webdriver_desired_capabilities': (
+                self.webdriver_desired_capabilities or {}),
+        })
+
     def _configure_logging(self):
         """Configure logging for the entire framework.
 
@@ -1260,7 +1346,7 @@ class Settings(object):
         # file on Robottelo's project root
         logging_conf_path = os.path.join(get_project_root(), 'logging.conf')
         if os.path.isfile(logging_conf_path):
-            config.fileConfig(logging_conf_path)
+            logging.config.fileConfig(logging_conf_path)
         else:
             logging.basicConfig(
                 format='%(levelname)s %(module)s:%(lineno)d: %(message)s'

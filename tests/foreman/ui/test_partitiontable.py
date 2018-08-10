@@ -16,7 +16,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.datafactory import (
     generate_strings_list,
@@ -26,13 +25,12 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_only_on,
     tier1,
-    tier2,
     upgrade
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
-from robottelo.ui.locators import common_locators, tab_locators
+from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -133,134 +131,6 @@ class PartitionTableTestCase(UITestCase):
                         audit_comment=comment_text,
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_default_for_organization(self):
-        """Create new partition table with enabled 'default' option. Check
-        that newly created organization has that partition table assigned to it
-
-        :id: 91c64054-cd0c-4d4b-888b-17d42e298527
-
-        :expectedresults: New partition table is created and is present in the
-            list of selected partition tables for any new organization
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        org_name = gen_string('alpha')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                default=True,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            entities.Organization(name=org_name).create()
-            self.org.search_and_click(org_name)
-            session.nav.click(tab_locators['context.tab_ptable'])
-            # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertIsNotNone(
-                session.nav.wait_until_element(
-                    common_locators['entity_deselect'] % name)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_non_default_for_organization(self):
-        """Create new partition table with disabled 'default' option. Check
-        that newly created organization does not contain that partition table.
-
-        :id: 69e6df0f-af1f-4aa2-8987-3e3b9a16be37
-
-        :expectedresults: New partition table is created and is not present in
-            the list of selected partition tables for any new organization
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        org_name = gen_string('alpha')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                default=False,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            entities.Organization(name=org_name).create()
-            self.org.search_and_click(org_name)
-            session.nav.click(tab_locators['context.tab_ptable'])
-            # Item is listed in 'All Items' list and not Selected Items' list.
-            self.assertIsNotNone(
-                session.nav.wait_until_element(
-                    common_locators['entity_select'] % name)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_default_for_location(self):
-        """Create new partition table with enabled 'default' option. Check
-        that newly created location has that partition table assigned to it
-
-        :id: 8dfaae7c-2f33-4f0d-93f6-1f78ea4d750d
-
-        :expectedresults: New partition table is created and is present in the
-            list of selected partition tables for any new location
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        loc_name = gen_string('alpha')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                default=True,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            entities.Location(name=loc_name).create()
-            self.location.search_and_click(loc_name)
-            session.nav.click(tab_locators['context.tab_ptable'])
-            # Item is listed in 'Selected Items' list and not 'All Items' list.
-            self.assertIsNotNone(
-                session.nav.wait_until_element(
-                    common_locators['entity_deselect'] % name)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_non_default_for_location(self):
-        """Create new partition table with disabled 'default' option. Check
-        that newly created location does not contain that partition table.
-
-        :id: 094d4583-763b-48d4-a89a-23b90741fd6f
-
-        :expectedresults: New partition table is created and is not present in
-            the list of selected partition tables for any new location
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        org_name = gen_string('alpha')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                default=False,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            entities.Location(name=org_name).create()
-            self.location.search_and_click(org_name)
-            session.nav.click(tab_locators['context.tab_ptable'])
-            # Item is listed in 'All Items' list and not Selected Items' list.
-            self.assertIsNotNone(
-                session.nav.wait_until_element(
-                    common_locators['entity_select'] % name)
-            )
 
     @run_only_on('sat')
     @tier1

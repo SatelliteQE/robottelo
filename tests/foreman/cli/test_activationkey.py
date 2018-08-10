@@ -1377,7 +1377,9 @@ class ActivationKeyTestCase(CLITestCase):
                 u'organization-id': self.org['id'],
             })
         self.assertIn(
-            u"'--auto-attach': value must be one of", exe.exception.stderr)
+            u"'--auto-attach': value must be one of",
+            exe.exception.stderr.lower()
+        )
 
     @tier3
     def test_positive_content_override(self):

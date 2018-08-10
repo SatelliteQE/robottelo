@@ -363,7 +363,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
         self.assertIn(
-            "Error: option '--errata' is required",
+            "Error: Option '--errata' is required",
             context.exception.stderr
         )
 
@@ -390,7 +390,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
         self.assertIn(
-            "Error: option '--errata' is required",
+            "Error: Option '--errata' is required",
             context.exception.stderr
         )
 
@@ -1729,7 +1729,7 @@ class ErrataTestCase(CLITestCase):
             for permission in permissions
             if permission['name'] in user_required_permissions_names
         ]
-        self.assertGreater(user_required_permissions_ids, 0)
+        self.assertGreater(len(user_required_permissions_ids), 0)
         # create a role
         role = make_role({'organization-ids': org['id']})
         # create a filter with the required permissions for role with product
@@ -1761,7 +1761,7 @@ class ErrataTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             Org.with_user(user_name, user_password).info({'id': org['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request',
+            'Missing one of the required permissions: view_organizations',
             context.exception.stderr
         )
         # try to get the erratum products list by organization id only

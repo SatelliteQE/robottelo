@@ -377,38 +377,6 @@ class HostCollectionTestCase(UITestCase):
                     )
 
     @tier3
-    @upgrade
-    def test_positive_add_host(self):
-        """Check if host can be added to Host Collection
-
-        :id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
-
-        :expectedresults: Host is added to Host Collection successfully
-
-        :CaseLevel: System
-        """
-        name = gen_string('alpha')
-        cv = entities.ContentView(organization=self.organization).create()
-        lce = entities.LifecycleEnvironment(
-            organization=self.organization).create()
-        cv.publish()
-        promote(cv.read().version[0], lce.id)
-        new_system = make_fake_host({
-            u'content-view-id': cv.id,
-            u'lifecycle-environment-id': lce.id,
-            u'name': gen_string('alpha'),
-            u'organization-id': self.organization.id,
-        })
-        with Session(self) as session:
-            make_host_collection(
-                session, org=self.organization.name, name=name)
-            self.hostcollection.add_host(name, new_system['name'])
-            self.assertIsNotNone(
-                self.hostcollection.search(
-                    name, _raw_query='host = {}'.format(new_system['name']))
-            )
-
-    @tier3
     def test_negative_hosts_limit(self):
         """Check that Host limit actually limits usage
 
@@ -546,7 +514,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         """Check whether package was installed on the list of hosts."""
 
         for host in hosts:
-            for _ in range(timeout / 15):
+            for _ in range(timeout // 15):
                 result = self.contenthost.package_search(
                     host.hostname, package_name)
                 if (result is not None and expected_installed or

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test for Compute Resource UI
 
-:Requirement: Computeresource
+:Requirement: Computeresource Libvirt
 
 :CaseAutomation: Automated
 

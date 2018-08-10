@@ -138,7 +138,7 @@ class HostGroupTestCase(CLITestCase):
         """
         environment = make_environment()
         hostgroup = make_hostgroup({'environment-id': environment['id']})
-        self.assertEqual(environment['name'], hostgroup['environment'])
+        self.assertEqual(environment['name'], hostgroup['puppet-environment'])
 
     @run_only_on('sat')
     @tier1
@@ -171,7 +171,8 @@ class HostGroupTestCase(CLITestCase):
         """
         os = make_os()
         hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
-        self.assertEqual(hostgroup['operating-system'], os['title'])
+        self.assertEqual(hostgroup['operating-system']['operating-system'],
+                         os['title'])
 
     @run_only_on('sat')
     @tier1
@@ -227,7 +228,7 @@ class HostGroupTestCase(CLITestCase):
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
         })[0]
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
-        self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
+        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
 
     @run_only_on('sat')
     @tier1
@@ -246,8 +247,8 @@ class HostGroupTestCase(CLITestCase):
         })[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
-            puppet_proxy['id'],
-            hostgroup['puppet-master-proxy-id'],
+            puppet_proxy['name'],
+            hostgroup['puppet-master-proxy'],
         )
 
     @tier1
@@ -320,7 +321,7 @@ class HostGroupTestCase(CLITestCase):
         """
         domain = make_domain()
         hostgroup = make_hostgroup({'domain-id': domain['id']})
-        self.assertEqual(domain['name'], hostgroup['domain'])
+        self.assertEqual(domain['name'], hostgroup['network']['domain'])
 
     @run_only_on('sat')
     @tier1
@@ -455,16 +456,30 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertIn(org['name'], hostgroup['organizations'])
         self.assertIn(loc['name'], hostgroup['locations'])
-        self.assertEqual(env['name'], hostgroup['environment'])
-        self.assertEqual(proxy['id'], hostgroup['puppet-master-proxy-id'])
-        self.assertEqual(proxy['id'], hostgroup['puppet-ca-proxy-id'])
-        self.assertEqual(domain['name'], hostgroup['domain'])
-        self.assertEqual(subnet['name'], hostgroup['subnet'])
-        self.assertEqual(arch['name'], hostgroup['architecture'])
-        self.assertEqual(ptable['name'], hostgroup['partition-table'])
-        self.assertEqual(media['name'], hostgroup['medium'])
-        self.assertEqual(os_full_name, hostgroup['operating-system'])
-        self.assertEqual(cv['name'], hostgroup['content-view']['name'])
+        self.assertEqual(env['name'], hostgroup['puppet-environment'])
+        self.assertEqual(proxy['name'], hostgroup['puppet-master-proxy'])
+        self.assertEqual(proxy['name'], hostgroup['puppet-ca-proxy'])
+        self.assertEqual(domain['name'], hostgroup['network']['domain'])
+        self.assertEqual(subnet['name'], hostgroup['network']['subnet-ipv4'])
+        self.assertEqual(
+            arch['name'],
+            hostgroup['operating-system']['architecture']
+        )
+        self.assertEqual(
+            ptable['name'],
+            hostgroup['operating-system']['partition-table']
+        )
+        self.assertEqual(
+            media['name'],
+            hostgroup['operating-system']['medium']
+        )
+        self.assertEqual(
+            os_full_name,
+            hostgroup['operating-system']['operating-system']
+        )
+        self.assertEqual(
+            cv['name'],
+            hostgroup['content-view']['name'])
         self.assertEqual(
             lce['name'], hostgroup['lifecycle-environment']['name'])
         self.assertEqual(proxy['name'], hostgroup['content-source']['name'])
@@ -552,18 +567,33 @@ class HostGroupTestCase(CLITestCase):
             {'id': hostgroup['id']}, output_format='json')
         self.assertIn(org['id'], hostgroup['organizations'][0]['id'])
         self.assertIn(loc['id'], hostgroup['locations'][0]['id'])
-        self.assertEqual(env['id'], hostgroup['environment']['environment_id'])
-        self.assertEqual(proxy['id'], hostgroup['puppet-master-proxy-id'])
-        self.assertEqual(proxy['id'], hostgroup['puppet-ca-proxy-id'])
-        self.assertEqual(domain['id'], hostgroup['domain']['domain_id'])
-        self.assertEqual(subnet['id'], hostgroup['subnet']['subnet_id'])
         self.assertEqual(
-            arch['id'], hostgroup['architecture']['architecture_id'])
+            env['id'], hostgroup['puppet-environment']['environment_id'])
         self.assertEqual(
-            ptable['id'], hostgroup['partition-table']['ptable_id'])
-        self.assertEqual(media['id'], hostgroup['medium']['medium_id'])
+            proxy['id'],
+            hostgroup['puppet-master-proxy']['puppet_proxy_id']
+        )
         self.assertEqual(
-            os['id'], hostgroup['operating-system']['operatingsystem_id'])
+            proxy['id'],
+            hostgroup['puppet-master-proxy']['puppet_ca_proxy_id']
+        )
+        self.assertEqual(
+            domain['id'],
+            hostgroup['network']['domain']['domain_id']
+        )
+        self.assertEqual(
+                subnet['id'],
+                hostgroup['network']['domain']['subnet_id'])
+        self.assertEqual(
+            arch['id'], hostgroup['network']['domain']['architecture_id'])
+        self.assertEqual(
+            ptable['id'], hostgroup['network']['domain']['ptable_id'])
+        self.assertEqual(
+            media['id'],
+            hostgroup['network']['domain']['medium_id']
+        )
+        self.assertEqual(
+            os['id'], hostgroup['network']['domain']['operatingsystem_id'])
 
     @skip_if_bug_open('bugzilla', 1354568)
     @run_only_on('sat')
@@ -770,7 +800,7 @@ class HostGroupTestCase(CLITestCase):
         })
         hg = HostGroup.info({'id': hostgroup['id']}, output_format='json')
         self.assertEqual(
-            hg['operating-system']['kickstart_repository_id'],
+            hg['kickstart-repository']['id'],
             synced_repo['id']
         )
 

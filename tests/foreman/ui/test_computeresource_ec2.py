@@ -1,6 +1,6 @@
 """Test for compute resource UI
 
-:Requirement: Computeresource
+:Requirement: Computeresource EC2
 
 :CaseLevel: Acceptance
 

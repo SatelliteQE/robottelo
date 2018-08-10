@@ -243,7 +243,9 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.new_lce['id'],
             'organization-ids': self.new_org['id'],
         })
-        host = entities.Host()
+        host = entities.Host(
+            organization=entities.Organization(id=self.new_org['id']).read()
+            )
         host.create_missing()
         interface = (
             "type=interface,mac={0},identifier=eth0,name={1},domain_id={2},"
@@ -754,6 +756,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -781,6 +784,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -808,6 +812,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
@@ -832,6 +837,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
@@ -1405,7 +1411,7 @@ class HostUpdateTestCase(CLITestCase):
             'id': self.host['id'],
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['environment'], new_env['name'])
+        self.assertEqual(self.host['puppet-environment'], new_env['name'])
 
     @tier2
     def test_positive_update_env_by_name(self):
@@ -1427,7 +1433,7 @@ class HostUpdateTestCase(CLITestCase):
             'name': self.host['name'],
         })
         self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['environment'], new_env['name'])
+        self.assertEqual(self.host['puppet-environment'], new_env['name'])
 
     @tier2
     def test_positive_update_arch_by_id(self):
@@ -2139,22 +2145,7 @@ class HostParameterTestCase(CLITestCase):
             u'password-auth\r\n'
             u'account     include                  password-auth'
         )
-        host = entities.Host()
-        host.create_missing()
-        host = make_host({
-            u'architecture-id': host.architecture.id,
-            u'domain-id': host.domain.id,
-            u'environment-id': host.environment.id,
-            u'location-id': self.loc_id,
-            u'mac': host.mac,
-            u'medium-id': host.medium.id,
-            u'name': host.name,
-            u'operatingsystem-id': host.operatingsystem.id,
-            u'organization-id': self.org_id,
-            u'partition-table-id': host.ptable.id,
-            u'puppet-proxy-id': self.puppet_proxy['id'],
-            u'root-password': host.root_pass,
-        })
+        host = self.host
         Host.set_parameter({
             'host-id': host['id'],
             'name': param_name,
@@ -2934,7 +2925,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         self.assertIn(
             ('The task has been cancelled. Is katello-agent installed and '
              'goferd running on the Host?'),
-            context.exception.message
+            str(context.exception)
         )
 
 

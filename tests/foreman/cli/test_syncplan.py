@@ -19,7 +19,7 @@
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from robottelo import manifests
-from robottelo.api.utils import wait_for_tasks
+from robottelo.api.utils import wait_for_tasks, wait_for_syncplan_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -143,7 +143,16 @@ class SyncPlanTestCase(CLITestCase):
         return make_sync_plan(options)
 
     @staticmethod
-    def validate_task_status(repo_id, max_tries=10):
+    def validate_task_status(repo_id, max_tries=10, repo_name=None):
+        """Wait for Pulp and foreman_tasks to complete or timeout
+
+        :param repo_id: Repository Id to identify the correct task
+        :param max_tries: Max tries to poll for the task creation
+        :param repo_name: Repository name of repository to filter the
+            pulp tasks
+        """
+        if repo_name:
+            wait_for_syncplan_tasks(repo_name=repo_name)
         wait_for_tasks(
             search_query='resource_type = Katello::Repository'
                          ' and owner.login = foreman_admin'
@@ -474,8 +483,15 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': (
+              datetime.utcnow() - timedelta(seconds=interval - delay)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
-        self.validate_task_status(repo['id'])
+        self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
@@ -521,8 +537,14 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay/2, product['name']))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
+                .strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
-        self.validate_task_status(repo['id'])
+        self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
@@ -576,9 +598,15 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check products'
                          ' were synced'.format(delay/2))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
+                .strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
         for repo in repos:
-            self.validate_task_status(repo['id'])
+            self.validate_task_status(repo['id'], repo_name=repo['name'])
             self.validate_repo_content(
                 repo, ['errata', 'package-groups', 'packages'])
 
@@ -648,8 +676,15 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': (
+              datetime.utcnow() - timedelta(seconds=interval - delay)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
-        self.validate_task_status(repo['id'])
+        self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(repo, ['errata', 'packages'])
 
     @run_in_one_thread
@@ -718,8 +753,14 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay/2, product['name']))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
+                .strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
-        self.validate_task_status(repo['id'])
+        self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(repo, ['errata', 'packages'])
 
     @tier3
@@ -763,8 +804,15 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        start_date = datetime.utcnow() - timedelta(days=1)\
+            + timedelta(seconds=delay)
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
-        self.validate_task_status(repo['id'])
+        self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
@@ -810,7 +858,14 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
+        # Re-calculate and Update with the current UTC time
+        start_date = datetime.utcnow() - timedelta(weeks=1)\
+            + timedelta(seconds=delay)
+        SyncPlan.update({
+            u'id': sync_plan['id'],
+            u'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
         # Verify product was synced successfully
-        self.validate_task_status(repo['id'])
+        self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])

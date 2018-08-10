@@ -55,6 +55,31 @@ are a few other things you may wish to do before continuing:
    for tasks like working with certificates, running the internal robottelo test
    suite and checking code quality with pylint.
 
+Robottelo on Docker
+-------------------
+
+Robottelo is also available on `dockerhub`_.::
+
+    $ docker pull satelliteqe/robottelo
+
+It also can be built locally using the Dockerfile, in the main directory.::
+
+    $ docker built -t robottelo .
+
+In order to run tests, you will need to mount your robottelo.properties file.::
+
+    $ docker run -v {path to robottelo dir}/robottelo.properties:/robottelo/robottelo.properties satelliteqe/robottelo <test command>
+
+You can also mount the entire robottelo directory to include the properties file
+and any new tests you have written.::
+
+    $ docker run -it -v {path to robottelo dir}:/robottelo satelliteqe/robottelo /bin/bash
+
+**Notes:**
+
+- CLI tests run easiest if you include the root credentials in robottelo.properties
+- UI tests should be configured to run through your SauceLabs account.
+
 Running the Tests
 =================
 
@@ -298,6 +323,7 @@ To check for code smells::
 The design and development for this software is led by `Og Maciel`_.
 
 .. _data driven: http://en.wikipedia.org/wiki/Data-driven_testing
+.. _dockerhub: https://hub.docker.com/r/satelliteqe/robottelo/
 .. _subTest: https://docs.python.org/3/library/unittest.html#unittest.TestCase.subTest
 .. _graphviz: http://graphviz.org/
 .. _nose: https://nose.readthedocs.org/en/latest/index.html

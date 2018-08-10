@@ -37,11 +37,9 @@ class KatelloCertsCheckTestCase(TestCase):
         )
         _, cls.cert_file_name = os.path.split(settings.certs.cert_file)
         _, cls.key_file_name = os.path.split(settings.certs.key_file)
-        _, cls.req_file_name = os.path.split(settings.certs.req_file)
         cls.ca_bundle_file = settings.certs.ca_bundle_file
         cls.cert_file = settings.certs.cert_file
         cls.key_file = settings.certs.key_file
-        cls.req_file = settings.certs.req_file
         cls.SUCCESS_MSG = "Validation succeeded"
         # uploads certs to satellite
         upload_file(
@@ -56,16 +54,11 @@ class KatelloCertsCheckTestCase(TestCase):
             local_file=settings.certs.key_file,
             remote_file="/tmp/{0}".format(cls.key_file_name)
         )
-        upload_file(
-            local_file=settings.certs.req_file,
-            remote_file="/tmp/{0}".format(cls.req_file_name)
-        )
 
     def validate_output(self, result):
         expected_result = set(
             ['--certs-update-server-ca', '--certs-server-key', '--server-cert',
-                '--server-key', '--certs-server-cert', '--server-cert-req',
-                '--certs-server-cert-req', '--certs-update-server',
+                '--server-key', '--certs-server-cert', '--certs-update-server',
                 '--foreman-proxy-fqdn', '--scenario',
                 '--certs-tar', '--server-ca-cert', '--certs-server-ca-cert'])
         self.assertEqual(result.return_code, 0)
@@ -107,11 +100,10 @@ class KatelloCertsCheckTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-certs-check -c /tmp/{0} -k /tmp/{1} -r /tmp/{2} '
-                '-b /tmp/{3}'.format(
+                'katello-certs-check -c /tmp/{0} -k /tmp/{1} '
+                '-b /tmp/{2}'.format(
                     self.cert_file_name,
                     self.key_file_name,
-                    self.req_file_name,
                     self.ca_bundle_file_name
                 ),
                 output_format='plain'
