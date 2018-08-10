@@ -2567,13 +2567,12 @@ class FileRepositoryTestCase(CLITestCase):
 
         :CaseAutomation: automated
         """
-        # Setting Creating Local Directory using Pulp Manifest and
-        ssh.command("yum -y install python-pulp-manifest")
-        ssh.command("mkdir {0} && ln -s {0} {1}"
+        # Downloading the pulp repository into Satellite Host
+        ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command('wget -P {0} -r -np -nH --cut-dirs=5 -R "index.html*" '
+                    '{1}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO))
+        ssh.command("ln -s {0} /{1}"
                     .format(CUSTOM_LOCAL_FOLDER, gen_string('alpha')))
-
-        ssh.command("touch {0} && pulp-manifest {1}"
-                    .format(CUSTOM_LOCAL_FILE, CUSTOM_LOCAL_FOLDER))
 
         repo = make_repository({
             'content-type': 'file',
@@ -2582,4 +2581,4 @@ class FileRepositoryTestCase(CLITestCase):
         })
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
-        self.assertEqual(repo['content-counts']['files'], '1')
+        self.assertGreater(repo['content-counts']['files'], '1')
