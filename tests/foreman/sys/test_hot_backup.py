@@ -753,3 +753,285 @@ class HotBackupTestCase(TestCase):
 
         :caseautomation: notautomated
         """
+
+@destructive
+class ForemanMaintainBackupTestCase(TestCase):
+    """Implements `foreman-maintain backup`` tests"""
+
+    @classmethod
+    def setUpClass(cls):
+        """check if foreman maintain is installed"""
+        # TODO
+
+    def check_services_status(self, max_attempts=5):
+        for _ in range(max_attempts):
+            try:
+                result = get_services_status()
+                self.assertEquals(result[0], 0)
+            except AssertionError:
+                sleep(30)
+            else:
+                break
+        else:
+            raise AssertionError(
+                u'Some services failed to start:\
+                \n{0}'.format('\n'.join(result[1])))
+
+    def test_positive_online(self):
+        """foreman-manintain online backup
+
+        :id: afea1280-0d90-4f4d-ad88-f259a4f37fc7
+
+        :Steps:
+
+            1.
+            2.
+
+        :expectedresults:
+
+        :caseautomation: automated
+        """
+        with get_connection() as connection:
+            dir_name = gen_string('alpha')
+            result = connection.run(
+                'foreman-maintain backup online -y /tmp/{0}'.format(
+                    dir_name),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            files = connection.run(
+                'ls -a /tmp/{0}/foreman-backup*'.format(dir_name),
+            )
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+            self.check_services_status()
+            tmp_directory_cleanup(connection, dir_name)
+
+    def test_positive_online_skip_pulp_preserve_dir(self):
+        """online backup with --skip_pulp and --preserve-directory
+
+        :id: 3b7325e9-defb-4ca5-9a55-0f7543304d08
+
+        :Steps:
+
+            1.
+            2.
+
+        :expectedresults:
+
+        :caseautomation: automated
+        """
+        with get_connection() as connection:
+            dir_name = make_random_tmp_directory(connection)
+            # postgre access needed for --preserve-dir
+            connection.run('chown :postgres /tmp/{0}'.format(dir_name))
+            result = connection.run(
+                'foreman-maintain backup online -y \
+                        --skip-pulp-content \
+                        --preserve-directory /tmp/{0}'.format(
+                    dir_name),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            files = connection.run(
+                'ls -a /tmp/{0}/'.format(dir_name),
+            )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.check_services_status()
+            tmp_directory_cleanup(connection, dir_name)
+
+    def test_positive_online_incremental(self):
+
+        """online backup with --split-pulp-tar and --incremental
+
+        :id: 47da5fdb-d429-404a-883a-7ac12002f4b6
+
+        :Steps:
+
+            1.
+            2.
+
+        :expectedresults:
+
+        :caseautomation: automated
+        """
+        with get_connection() as connection:
+            b1_dir = make_random_tmp_directory(connection)
+            # run full backup
+            result = connection.run(
+                'foreman-maintain backup online -y \
+                        --split-pulp-tar 10M \
+                        /tmp/{0}'.format(b1_dir),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
+            files = connection.run(
+                    'ls -a /tmp/{0}/foreman-backup*'.format(b1_dir),
+                    'list'
+                    )
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+            # TODO check if none of pulp data is bigger than 10240
+
+            # run incremental backup
+            b1_dest = make_random_tmp_directory(connection)
+            timestamped_dir = connection.run(
+                    'ls /tmp/{0}/'.format(b1_dir),
+                    'list'
+                    )
+            result = connection.run(
+                '''foreman-maintain backup online -y \
+                        --skip-pulp-content \
+                        --incremental /tmp/{1}/{2} \
+                        /tmp/{0}'''
+                .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
+            files = connection.run(
+                    'ls -a /tmp/{0}/foreman-backup*'.format(b1_dest),
+                    'list'
+                    )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.check_services_status()
+            tmp_directory_cleanup(connection, b1_dir, b1_dest)
+            # TODO better check incremental -- e.g. what is in tar
+
+    def test_positive_offline(self):
+        """offline backup, offline
+
+        :id: 8d3faae6-6d25-4c90-abfa-6ed993c1e527
+
+        :Steps:
+
+            1.
+            2.
+
+        :expectedresults:
+
+        :caseautomation: automated
+        """
+        with get_connection() as connection:
+            dir_name = gen_string('alpha')
+            result = connection.run(
+                'foreman-maintain backup offline -y /tmp/{0}'.format(
+                    dir_name),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            files = connection.run(
+                'ls -a /tmp/{0}/foreman-backup*'.format(dir_name),
+            )
+            self.assertTrue(set(files.stdout).issuperset(
+                set(BACKUP_FILES)))
+            self.check_services_status()
+            tmp_directory_cleanup(connection, dir_name)
+
+    def test_positive_offline_skip_pulp_and_preserve_dir(self):
+
+        """offline backup with --skip-pulp-content and --preserve-dir
+        --include-online
+
+        :id: a57b37ee-9f90-4c4e-8744-d5e1f0ea6d86
+
+        :Steps:
+
+            1.
+            2.
+
+        :expectedresults:
+
+        :caseautomation: automated
+        """
+        with get_connection() as connection:
+            dir_name = make_random_tmp_directory(connection)
+            # postgre access needed for --preserve-dir
+            connection.run('chown :postgres /tmp/{0}'.format(dir_name))
+            result = connection.run(
+                'foreman-maintain backup offline -y \
+                        --skip-pulp-content \
+                        --preserve-directory /tmp/{0}'.format(
+                    dir_name),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            files = connection.run(
+                'ls -a /tmp/{0}/'.format(dir_name),
+            )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.check_services_status()
+            tmp_directory_cleanup(connection, dir_name)
+
+    def test_positive_offline_incremental(self):
+
+        """offline backup with --split-pulp-tar and --incremental
+
+        :id: 1cad5b2a-a480-4db1-b4bc-726d342210fe
+
+        :Steps:
+
+            1.
+            2.
+
+        :expectedresults:
+
+        :caseautomation: automated
+        """
+
+        with get_connection() as connection:
+            b1_dir = make_random_tmp_directory(connection)
+            # run full backup
+            result = connection.run(
+                'foreman-maintain backup offline -y \
+                        --split-pulp-tar 10M \
+                        /tmp/{0}'.format(b1_dir),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
+            files = connection.run(
+                    'ls -a /tmp/{0}/foreman-backup*'.format(b1_dir),
+                    'list'
+                    )
+            self.assertTrue(set(files.stdout).issuperset(
+                set(BACKUP_FILES)))
+            # TODO check if none of pulp data is bigger than 10240
+
+            # run incremental backup
+            b1_dest = make_random_tmp_directory(connection)
+            timestamped_dir = connection.run(
+                    'ls /tmp/{0}/'.format(b1_dir),
+                    'list'
+                    )
+            result = connection.run(
+                '''foreman-maintain backup offline -y \
+                        --skip-pulp-content \
+                        --incremental /tmp/{1}/{2} \
+                        /tmp/{0}'''
+                .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
+                output_format='plain',
+                timeout=900
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
+            files = connection.run(
+                    'ls -a /tmp/{0}/foreman-backup*'.format(b1_dest),
+                    'list'
+                    )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.check_services_status()
+            tmp_directory_cleanup(connection, b1_dir, b1_dest)
+            # TODO better check incremental -- e.g. what is in tar
