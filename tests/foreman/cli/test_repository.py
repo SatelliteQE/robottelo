@@ -1096,7 +1096,7 @@ class RepositoryTestCase(CLITestCase):
                          'content not synced correctly')
         self.assertEqual(repo['content-counts']['errata'], '0',
                          'content not ignored correctly')
-        if not bz_bug_is_open(1591358):
+        if not bz_bug_is_open(1335621):
             self.assertEqual(repo['content-counts']['source-rpms'], '0',
                              'content not ignored correctly')
         # drpm check requires a different method
@@ -1137,8 +1137,9 @@ class RepositoryTestCase(CLITestCase):
                          'content not ignored correctly')
         self.assertEqual(repo['content-counts']['errata'], '2',
                          'content not synced correctly')
-        self.assertEqual(repo['content-counts']['source-rpms'], '3',
-                         'content not synced correctly')
+        if not bz_bug_is_open(1335621):
+            self.assertEqual(repo['content-counts']['source-rpms'], '3',
+                             'content not synced correctly')
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
             '/custom/{}/{}/drpms/ | grep .drpm'
