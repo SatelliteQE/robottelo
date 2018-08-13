@@ -50,6 +50,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_create_rhev_with_valid_name(self):
         """Create Compute Resource of type Rhev with valid name
 
@@ -70,6 +71,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_rhev_info(self):
         """List the info of RHEV compute resource
 
@@ -92,6 +94,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_delete_by_name(self):
         """Delete the RHEV compute resource by name
 
@@ -115,6 +118,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_delete_by_id(self):
         """Delete the RHEV compute resource by id
 
@@ -195,6 +199,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     @upgrade
+    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_update_name(self):
         """RHEV compute resource positive update
 
