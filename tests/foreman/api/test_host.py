@@ -286,7 +286,7 @@ class HostTestCase(APITestCase):
         :customerscenario: true
 
         :expectedresults: Host has inherited parameters from organization and
-            location
+            location as well as global parameters
 
         :CaseImportance: High
         """
@@ -298,10 +298,25 @@ class HostTestCase(APITestCase):
             location=loc,
             organization=org,
         ).create()
-        self.assertEqual(len(host.all_parameters), 2)
+        # get global parameters
+        glob_param_list = {(param.name, param.value) for param
+                           in entities.CommonParameter().search()}
+        # if there are no global parameters, create one
+        if len(glob_param_list) == 0:
+            param_name = gen_string('alpha')
+            param_global_value = gen_string('numeric')
+            entities.CommonParameter(
+                name=param_name,
+                value=param_global_value
+            ).create()
+            glob_param_list = {(param.name, param.value) for param
+                               in entities.CommonParameter().search()}
+        self.assertEqual(len(host.all_parameters), 2 + len(glob_param_list))
+        innerited_params = {(org_param.name, org_param.value),
+                            (loc_param.name, loc_param.value)}
+        expected_params = innerited_params.union(glob_param_list)
         self.assertEqual(
-            {(org_param.name, org_param.value),
-             (loc_param.name, loc_param.value)},
+            expected_params,
             {(param['name'], param['value']) for param in host.all_parameters}
         )
 
