@@ -45,6 +45,7 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     CUSTOM_FILE_REPO,
+    CUSTOM_LOCAL_FILE,
     CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
     DOCKER_REGISTRY_HUB,
