@@ -843,7 +843,6 @@ class RemoteExecutionTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @tier3
-    @upgrade
     def test_positive_run_recurring_job_with_max_iterations_by_ip(self):
         """Run default job template multiple times with max iteration by ip
 
