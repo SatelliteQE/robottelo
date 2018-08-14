@@ -1,0 +1,1153 @@
+2018-08-13 14:03:51 - robottelo - INFO - Started setUpClass: test_repository/FileRepositoryTestCase
+2018-08-13 14:03:54 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447d9ce10
+2018-08-13 14:03:54 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:03:54 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv organization create --name="brVJFL"'
+2018-08-13 14:04:05 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Organization created,235,brVJFL
+
+2018-08-13 14:04:05 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447d9ce10
+2018-08-13 14:04:07 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447d9cd68
+2018-08-13 14:04:07 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:07 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  organization info --id="235"'
+2018-08-13 14:04:12 - robottelo.ssh - INFO - <<< stdout
+Id:                     235
+Title:                  brVJFL
+Name:                   brVJFL
+Description:            
+Users:                  
+
+Smart proxies:          
+    qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com
+Subnets:                
+
+Compute resources:      
+
+Installation media:     
+
+Templates:              
+    Alterator default (provision)
+    Alterator default finish (finish)
+    Alterator default PXELinux (PXELinux)
+    ansible_provisioning_callback ()
+    ansible_tower_callback_script ()
+    ansible_tower_callback_service ()
+    Atomic Kickstart default (provision)
+    AutoYaST default (provision)
+    AutoYaST default iPXE (iPXE)
+    AutoYaST default PXELinux (PXELinux)
+    AutoYaST default user data (user_data)
+    AutoYaST SLES default (provision)
+    bmc_nic_setup ()
+    Boot disk iPXE - generic host (Bootdisk)
+    Boot disk iPXE - host (Bootdisk)
+    chef_client ()
+    coreos_cloudconfig ()
+    CoreOS provision (provision)
+    CoreOS PXELinux (PXELinux)
+    create_users ()
+    DEPRECATED idm_register ()
+    DEPRECATED Satellite Atomic Kickstart Default (provision)
+    DEPRECATED Satellite Kickstart Default (provision)
+    DEPRECATED Satellite Kickstart Default Finish (finish)
+    DEPRECATED Satellite Kickstart Default User Data (user_data)
+    Discovery Debian kexec (kexec)
+    Discovery Red Hat kexec (kexec)
+    FreeBSD (mfsBSD) finish (finish)
+    FreeBSD (mfsBSD) provision (provision)
+    FreeBSD (mfsBSD) PXELinux (PXELinux)
+    freeipa_register ()
+    Grubby default (script)
+    Jumpstart default (provision)
+    Jumpstart default finish (finish)
+    Jumpstart default PXEGrub (PXEGrub)
+    Junos default SLAX (provision)
+    Junos default ZTP config (ZTP)
+    Kickstart default (provision)
+    Kickstart default finish (finish)
+    Kickstart default iPXE (iPXE)
+    Kickstart default PXEGrub (PXEGrub)
+    Kickstart default PXEGrub2 (PXEGrub2)
+    Kickstart default PXELinux (PXELinux)
+    Kickstart default user data (user_data)
+    kickstart_ifcfg_bonded_interface ()
+    kickstart_ifcfg_bond_interface ()
+    kickstart_ifcfg_generic_interface ()
+    kickstart_ifcfg_get_identifier_names ()
+    kickstart_networking_setup ()
+    Kickstart oVirt-RHVH (provision)
+    Kickstart oVirt-RHVH PXELinux (PXELinux)
+    NX-OS default POAP setup (POAP)
+    Preseed default (provision)
+    Preseed default finish (finish)
+    Preseed default iPXE (iPXE)
+    Preseed default PXEGrub2 (PXELinux)
+    Preseed default PXELinux (PXELinux)
+    Preseed default user data (user_data)
+    preseed_networking_setup ()
+    puppet.conf ()
+    puppetlabs_repo ()
+    puppet_setup ()
+    pxegrub2_chainload ()
+    PXEGrub2 default local boot (PXEGrub2)
+    pxegrub2_discovery ()
+    PXEGrub2 global default (PXEGrub2)
+    pxegrub_chainload ()
+    PXEGrub default local boot (PXEGrub)
+    pxegrub_discovery ()
+    PXEGrub global default (PXEGrub)
+    PXELinux chain iPXE (PXELinux)
+    PXELinux chain iPXE UNDI (PXELinux)
+    pxelinux_chainload ()
+    PXELinux default local boot (PXELinux)
+    PXELinux default memdisk (PXELinux)
+    pxelinux_discovery ()
+    PXELinux global default (PXELinux)
+    rancheros_cloudconfig ()
+    RancherOS provision (provision)
+    RancherOS PXELinux (PXELinux)
+    remote_execution_ssh_keys ()
+    saltstack_setup ()
+    Satellite Finish Default (finish)
+    Satellite User Data Default (user_data)
+    subscription_manager_registration ()
+    UserData default (user_data)
+    WAIK default PXELinux (PXELinux)
+    XenServer default answerfile (provision)
+    XenServer default finish (finish)
+    XenServer default PXELinux (PXELinux)
+Domains:                
+
+Environments:           
+
+Hostgroups:             
+
+Parameters:             
+
+Created at:             2018/08/13 08:31:06
+Updated at:             2018/08/13 08:31:06
+Label:                  brVJFL
+Description:            
+Red Hat Repository URL: https://cdn.redhat.com
+Service Levels:
+
+
+2018-08-13 14:04:12 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447d9cd68
+2018-08-13 14:04:15 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f14470ed898
+2018-08-13 14:04:15 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:15 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv product create --description="pSteVMUMthFAwhZCcTxV" --name="vZZgLyetbusBoBeuVssC" --organization-id="235" --label="QsOPKDLQmooRWONQiLSR"'
+2018-08-13 14:04:22 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Product created,2216,vZZgLyetbusBoBeuVssC
+
+2018-08-13 14:04:22 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f14470ed898
+2018-08-13 14:04:24 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447087fd0
+2018-08-13 14:04:24 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:24 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  product info --organization-id="235" --id="2216"'
+2018-08-13 14:04:29 - robottelo.ssh - INFO - <<< stdout
+ID:           2216
+Name:         vZZgLyetbusBoBeuVssC
+Label:        QsOPKDLQmooRWONQiLSR
+Description:  pSteVMUMthFAwhZCcTxV
+Sync State:   
+Sync Plan ID: 
+GPG:          
+    GPG Key ID: 
+    GPG Key:
+Organization: brVJFL
+Readonly:     
+Deletable:    
+Content:
+
+
+2018-08-13 14:04:29 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447087fd0
+2018-08-13 14:04:31 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447090438
+2018-08-13 14:04:31 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:31 - robottelo.ssh - INFO - >>> mkdir -p /var/www/html/myrepo/
+2018-08-13 14:04:34 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447090438
+2018-08-13 14:04:36 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f14470875f8
+2018-08-13 14:04:36 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:36 - robottelo.ssh - INFO - >>> wget -P /var/www/html/myrepo/ -r -np -nH --cut-dirs=5 -R "index.html*" https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/
+2018-08-13 14:04:38 - robottelo.ssh - INFO - <<< stderr
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/
+Resolving repos.fedorapeople.org (repos.fedorapeople.org)... 152.19.134.199, 2610:28:3090:3001:5054:ff:fea7:9474
+Connecting to repos.fedorapeople.org (repos.fedorapeople.org)|152.19.134.199|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html’
+
+     0K ..                                                     4.70M=0.001s
+
+2018-08-13 04:31:45 (4.70 MB/s) - ‘/var/www/html/myrepo/index.html’ saved [2871]
+
+Loading robots.txt; please ignore errors.
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/robots.txt
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 404 Not Found
+2018-08-13 04:31:45 ERROR 404: Not Found.
+
+Removing /var/www/html/myrepo/index.html since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=N;O=D
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=N;O=D’
+
+     0K ..                                                     5.00M=0.001s
+
+2018-08-13 04:31:45 (5.00 MB/s) - ‘/var/www/html/myrepo/index.html?C=N;O=D’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=N;O=D since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=M;O=A
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=M;O=A’
+
+     0K ..                                                     4.85M=0.001s
+
+2018-08-13 04:31:45 (4.85 MB/s) - ‘/var/www/html/myrepo/index.html?C=M;O=A’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=M;O=A since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=S;O=A
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=S;O=A’
+
+     0K ..                                                     4.73M=0.001s
+
+2018-08-13 04:31:45 (4.73 MB/s) - ‘/var/www/html/myrepo/index.html?C=S;O=A’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=S;O=A since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=D;O=A
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=D;O=A’
+
+     0K ..                                                     4.74M=0.001s
+
+2018-08-13 04:31:45 (4.74 MB/s) - ‘/var/www/html/myrepo/index.html?C=D;O=A’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=D;O=A since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/1.iso
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: 1024 (1.0K) [application/octet-stream]
+Saving to: ‘/var/www/html/myrepo/1.iso’
+
+     0K .                                                     100% 19.9M=0s
+
+2018-08-13 04:31:45 (19.9 MB/s) - ‘/var/www/html/myrepo/1.iso’ saved [1024/1024]
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/2.iso
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: 1024 (1.0K) [application/octet-stream]
+Saving to: ‘/var/www/html/myrepo/2.iso’
+
+     0K .                                                     100% 12.1M=0s
+
+2018-08-13 04:31:45 (12.1 MB/s) - ‘/var/www/html/myrepo/2.iso’ saved [1024/1024]
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/3.iso
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: 1024 (1.0K) [application/octet-stream]
+Saving to: ‘/var/www/html/myrepo/3.iso’
+
+     0K .                                                     100% 15.4M=0s
+
+2018-08-13 04:31:45 (15.4 MB/s) - ‘/var/www/html/myrepo/3.iso’ saved [1024/1024]
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/PULP_MANIFEST
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: 228
+Saving to: ‘/var/www/html/myrepo/PULP_MANIFEST’
+
+     0K                                                       100% 4.62M=0s
+
+2018-08-13 04:31:45 (4.62 MB/s) - ‘/var/www/html/myrepo/PULP_MANIFEST’ saved [228/228]
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=N;O=A
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=N;O=A’
+
+     0K ..                                                     5.38M=0.001s
+
+2018-08-13 04:31:45 (5.38 MB/s) - ‘/var/www/html/myrepo/index.html?C=N;O=A’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=N;O=A since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=M;O=D
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=M;O=D’
+
+     0K ..                                                     4.86M=0.001s
+
+2018-08-13 04:31:45 (4.86 MB/s) - ‘/var/www/html/myrepo/index.html?C=M;O=D’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=M;O=D since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=S;O=D
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=S;O=D’
+
+     0K ..                                                     5.62M=0s
+
+2018-08-13 04:31:45 (5.62 MB/s) - ‘/var/www/html/myrepo/index.html?C=S;O=D’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=S;O=D since it should be rejected.
+
+--2018-08-13 04:31:45--  https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/?C=D;O=D
+Reusing existing connection to repos.fedorapeople.org:443.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘/var/www/html/myrepo/index.html?C=D;O=D’
+
+     0K ..                                                     5.38M=0.001s
+
+2018-08-13 04:31:45 (5.38 MB/s) - ‘/var/www/html/myrepo/index.html?C=D;O=D’ saved [2871]
+
+Removing /var/www/html/myrepo/index.html?C=D;O=D since it should be rejected.
+
+FINISHED --2018-08-13 04:31:45--
+Total wall clock time: 0.5s
+Downloaded: 13 files, 28K in 0.005s (5.38 MB/s)
+
+2018-08-13 14:04:38 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f14470875f8
+2018-08-13 14:04:41 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447096e80
+2018-08-13 14:04:41 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:41 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository create --name="ghZkknAORKPkbfP" --content-type="file" --publish-via-http="true" --url="file:///var/www/html/myrepo/" --product-id="2216"'
+2018-08-13 14:04:49 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Repository created,827,ghZkknAORKPkbfP
+
+2018-08-13 14:04:49 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447096e80
+2018-08-13 14:04:51 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447090400
+2018-08-13 14:04:51 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:51 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="827"'
+2018-08-13 14:04:56 - robottelo.ssh - INFO - <<< stdout
+ID:                 827
+Name:               ghZkknAORKPkbfP
+Label:              ghZkknAORKPkbfP
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                file:///var/www/html/myrepo/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/ghZkknAORKPkbfP/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/ghZkknAORKPkbfP
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 08:31:53
+Updated:            2018/08/13 08:31:55
+Content Counts:     
+    Files: 0
+
+
+2018-08-13 14:04:56 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447090400
+2018-08-13 14:04:59 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447087d68
+2018-08-13 14:04:59 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:04:59 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository synchronize --id="827"'
+2018-08-13 14:05:09 - robottelo.ssh - INFO - <<< stdout
+New Files: 3
+
+2018-08-13 14:05:09 - robottelo.ssh - INFO - <<< stderr
+Task e4364c54-384f-474e-bff3-b54cdcbba5a9 running: 0.05/1, 5%, elapsed: 00:00:00
+Task e4364c54-384f-474e-bff3-b54cdcbba5a9 running: 0.55/1, 55%, elapsed: 00:00:02
+Task e4364c54-384f-474e-bff3-b54cdcbba5a9 success: 1.0/1, 100%, elapsed: 00:00:04
+Task e4364c54-384f-474e-bff3-b54cdcbba5a9 success: 1.0/1, 100%, elapsed: 00:00:04
+
+2018-08-13 14:05:09 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447087d68
+2018-08-13 14:05:12 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f14470a41d0
+2018-08-13 14:05:12 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:05:12 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="827"'
+2018-08-13 14:05:18 - robottelo.ssh - INFO - <<< stdout
+ID:                 827
+Name:               ghZkknAORKPkbfP
+Label:              ghZkknAORKPkbfP
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                file:///var/www/html/myrepo/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/ghZkknAORKPkbfP/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/ghZkknAORKPkbfP
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status:         Success
+    Last Sync Date: less than a minute
+Created:            2018/08/13 08:31:53
+Updated:            2018/08/13 08:31:55
+Content Counts:     
+    Files: 3
+
+
+2018-08-13 14:05:18 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f14470a41d0
+2018-08-13 14:05:21 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447096f28
+2018-08-13 14:05:21 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:05:21 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository create --name="GvJLrTFuYx" --content-type="file" --publish-via-http="true" --url="https://pondrejk.fedorapeople.org/test_repos/filerepo/" --product-id="2216"'
+2018-08-13 14:05:29 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Repository created,828,GvJLrTFuYx
+
+2018-08-13 14:05:29 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447096f28
+2018-08-13 14:05:31 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f144709be48
+2018-08-13 14:05:31 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:05:31 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="828"'
+2018-08-13 14:05:36 - robottelo.ssh - INFO - <<< stdout
+ID:                 828
+Name:               GvJLrTFuYx
+Label:              GvJLrTFuYx
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                https://pondrejk.fedorapeople.org/test_repos/filerepo/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/GvJLrTFuYx/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/GvJLrTFuYx
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 08:32:33
+Updated:            2018/08/13 08:32:36
+Content Counts:     
+    Files: 0
+
+
+2018-08-13 14:05:36 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f144709be48
+2018-08-13 14:05:39 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f14470a4438
+2018-08-13 14:05:39 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:05:39 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository synchronize --id="828"'
+2018-08-13 14:05:53 - robottelo.ssh - INFO - <<< stdout
+New Files: 0
+
+2018-08-13 14:05:53 - robottelo.ssh - INFO - <<< stderr
+Task 04ebf27b-b7a2-445c-a4c5-02d4af8b47a2 planned: 0.0/1, 0%, elapsed: 00:00:00
+Task 04ebf27b-b7a2-445c-a4c5-02d4af8b47a2 running: 0.05500000000000001/1, 5%, 0.0/s, elapsed: 00:00:02, ETA: 00:00:37
+Task 04ebf27b-b7a2-445c-a4c5-02d4af8b47a2 running: 0.05500000000000001/1, 5%, 0.0/s, elapsed: 00:00:04, ETA: 00:01:14
+Task 04ebf27b-b7a2-445c-a4c5-02d4af8b47a2 running: 0.65/1, 65%, 0.1/s, elapsed: 00:00:06, ETA: 00:00:03
+Task 04ebf27b-b7a2-445c-a4c5-02d4af8b47a2 success: 1.0/1, 100%, 0.1/s, elapsed: 00:00:08
+Task 04ebf27b-b7a2-445c-a4c5-02d4af8b47a2 success: 1.0/1, 100%, 0.1/s, elapsed: 00:00:08
+
+2018-08-13 14:05:53 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f14470a4438
+2018-08-13 14:05:55 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447090400
+2018-08-13 14:05:55 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:05:55 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="828"'
+2018-08-13 14:06:01 - robottelo.ssh - INFO - <<< stdout
+ID:                 828
+Name:               GvJLrTFuYx
+Label:              GvJLrTFuYx
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                https://pondrejk.fedorapeople.org/test_repos/filerepo/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/GvJLrTFuYx/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/GvJLrTFuYx
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status:         Success
+    Last Sync Date: less than a minute
+Created:            2018/08/13 08:32:33
+Updated:            2018/08/13 08:32:36
+Content Counts:     
+    Files: 2
+
+
+2018-08-13 14:06:01 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447090400
+2018-08-13 14:06:03 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447030cf8
+2018-08-13 14:06:03 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:06:03 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository create --name="DvAFOeNALGWWBjC" --content-type="file" --publish-via-http="true" --url="https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/" --product-id="2216"'
+2018-08-13 14:06:11 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Repository created,829,DvAFOeNALGWWBjC
+
+2018-08-13 14:06:11 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447030cf8
+2018-08-13 14:06:13 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f14470abbe0
+2018-08-13 14:06:13 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:06:13 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="829"'
+2018-08-13 14:06:19 - robottelo.ssh - INFO - <<< stdout
+ID:                 829
+Name:               DvAFOeNALGWWBjC
+Label:              DvAFOeNALGWWBjC
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/DvAFOeNALGWWBjC/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/DvAFOeNALGWWBjC
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 08:33:15
+Updated:            2018/08/13 08:33:18
+Content Counts:     
+    Files: 0
+
+
+2018-08-13 14:06:19 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f14470abbe0
+2018-08-13 14:07:08 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447090be0
+2018-08-13 14:07:08 - robottelo.ssh - INFO - Connected to [None]
+2018-08-13 14:11:23 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447090be0
+2018-08-13 14:11:36 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447d9cdd8
+2018-08-13 14:11:36 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:11:36 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository upload-content --organization="brVJFL" --name="DvAFOeNALGWWBjC" --product-id="2216" --path="/tmp/which-2.19-6.el6.x86_64.rpm"'
+2018-08-13 14:11:49 - robottelo.ssh - INFO - <<< stdout
+Message
+Successfully uploaded file 'which-2.19-6.el6.x86_64.rpm'
+
+2018-08-13 14:11:49 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447d9cdd8
+2018-08-13 14:11:51 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447030cf8
+2018-08-13 14:11:51 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:11:51 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="829"'
+2018-08-13 14:11:57 - robottelo.ssh - INFO - <<< stdout
+ID:                 829
+Name:               DvAFOeNALGWWBjC
+Label:              DvAFOeNALGWWBjC
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/DvAFOeNALGWWBjC/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/DvAFOeNALGWWBjC
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 08:33:15
+Updated:            2018/08/13 08:33:18
+Content Counts:     
+    Files: 1
+
+
+2018-08-13 14:11:57 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447030cf8
+2018-08-13 14:11:59 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447090cf8
+2018-08-13 14:11:59 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:11:59 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv file list --repository-id="829" --per-page="10000"'
+2018-08-13 14:12:04 - robottelo.ssh - INFO - <<< stdout
+ID,Name,Path
+7,which-2.19-6.el6.x86_64.rpm,which-2.19-6.el6.x86_64.rpm
+
+2018-08-13 14:12:04 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447090cf8
+2018-08-13 14:12:06 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f14470abd30
+2018-08-13 14:12:06 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:12:06 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository remove-content --id="829" --ids="7"'
+2018-08-13 14:12:15 - robottelo.ssh - INFO - <<< stdout
+Message,Id
+Repository content removed,90338c83-3537-42eb-8b89-f4f0eec01d0d
+
+2018-08-13 14:12:15 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f14470abd30
+2018-08-13 14:12:17 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f144709bc18
+2018-08-13 14:12:17 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:12:17 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="829"'
+2018-08-13 14:12:21 - robottelo.ssh - INFO - <<< stdout
+ID:                 829
+Name:               DvAFOeNALGWWBjC
+Label:              DvAFOeNALGWWBjC
+Organization:       brVJFL
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/
+Publish Via HTTP:   yes
+Published At:       http://qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com/pulp/isos/brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/DvAFOeNALGWWBjC/
+Relative Path:      brVJFL/Library/custom/QsOPKDLQmooRWONQiLSR/DvAFOeNALGWWBjC
+Product:            
+    ID:   2216
+    Name: vZZgLyetbusBoBeuVssC
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 08:33:15
+Updated:            2018/08/13 08:33:18
+Content Counts:     
+    Files: 0
+
+
+2018-08-13 14:12:21 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f144709bc18
+2018-08-13 14:12:24 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f144709bf28
+2018-08-13 14:12:24 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:12:24 - robottelo.ssh - INFO - >>> yum -y install python-pulp-manifest
+2018-08-13 14:12:48 - robottelo.ssh - INFO - <<< stdout
+Loaded plugins: langpacks, product-id, search-disabled-repos, subscription-
+              : manager
+No package python-pulp-manifest available.
+
+2018-08-13 14:12:48 - robottelo.ssh - INFO - <<< stderr
+Error: Nothing to do
+
+2018-08-13 14:12:48 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f144709bf28
+2018-08-13 14:12:50 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f1447096860
+2018-08-13 14:12:50 - robottelo.ssh - INFO - Connected to [qe-sat6-upgrade-rhel7.satqe.lab.eng.rdu2.redhat.com]
+2018-08-13 14:12:50 - robottelo.ssh - INFO - >>> mkdir /var/www/html/myrepo/ && ln -s /var/www/html/myrepo/ iyPHLAkqVH
+2018-08-13 14:12:52 - robottelo.ssh - INFO - <<< stderr
+mkdir: cannot create directory ‘/var/www/html/myrepo/’: File exists
+
+2018-08-13 14:12:52 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f1447096860
+2018-08-13 14:12:52 - robottelo - INFO - Started tearDownClass: test_repository/FileRepositoryTestCase
+2018-08-13 14:36:07 - robottelo - INFO - Started setUpClass: test_contentview/ContentViewFileRepoTestCase
+2018-08-13 14:36:09 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed2e68cc0
+2018-08-13 14:36:09 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:09 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv organization create --name="HhQqWF"'
+2018-08-13 14:36:16 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Organization created,20,HhQqWF
+
+2018-08-13 14:36:16 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed2e68cc0
+2018-08-13 14:36:17 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed2e688d0
+2018-08-13 14:36:17 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:17 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  organization info --id="20"'
+2018-08-13 14:36:20 - robottelo.ssh - INFO - <<< stdout
+Id:                     20
+Title:                  HhQqWF
+Name:                   HhQqWF
+Description:            
+Users:                  
+
+Smart proxies:          
+    smqa-r210-02.lab.eng.brq.redhat.com
+Subnets:                
+
+Compute resources:      
+
+Installation media:     
+
+Templates:              
+    Alterator default (provision)
+    Alterator default finish (finish)
+    Alterator default PXELinux (PXELinux)
+    alterator_pkglist ()
+    ansible_provisioning_callback ()
+    ansible_tower_callback_script ()
+    ansible_tower_callback_service ()
+    Atomic Kickstart default (provision)
+    AutoYaST default (provision)
+    AutoYaST default iPXE (iPXE)
+    AutoYaST default PXELinux (PXELinux)
+    AutoYaST default user data (user_data)
+    AutoYaST SLES default (provision)
+    bmc_nic_setup ()
+    Boot disk iPXE - generic host (Bootdisk)
+    Boot disk iPXE - host (Bootdisk)
+    chef_client ()
+    coreos_cloudconfig ()
+    CoreOS provision (provision)
+    CoreOS PXELinux (PXELinux)
+    create_users ()
+    Discovery Debian kexec (kexec)
+    Discovery Red Hat kexec (kexec)
+    epel ()
+    fix_hosts ()
+    FreeBSD (mfsBSD) finish (finish)
+    FreeBSD (mfsBSD) provision (provision)
+    FreeBSD (mfsBSD) PXELinux (PXELinux)
+    freeipa_register ()
+    Grubby default (script)
+    http_proxy ()
+    idm_register ()
+    Jumpstart default (provision)
+    Jumpstart default finish (finish)
+    Jumpstart default PXEGrub (PXEGrub)
+    Junos default finish (finish)
+    Junos default SLAX (provision)
+    Junos default ZTP config (ZTP)
+    Kickstart default finish (finish)
+    Kickstart default iPXE (iPXE)
+    Kickstart default PXEGrub (PXEGrub)
+    Kickstart default PXEGrub2 (PXEGrub2)
+    Kickstart default PXELinux (PXELinux)
+    Kickstart default user data (user_data)
+    kickstart_ifcfg_bonded_interface ()
+    kickstart_ifcfg_bond_interface ()
+    kickstart_ifcfg_generic_interface ()
+    kickstart_ifcfg_get_identifier_names ()
+    kickstart_networking_setup ()
+    Kickstart oVirt-RHVH (provision)
+    Kickstart oVirt-RHVH PXELinux (PXELinux)
+    NX-OS default POAP setup (POAP)
+    Preseed default (provision)
+    Preseed default finish (finish)
+    Preseed default iPXE (iPXE)
+    Preseed default PXEGrub2 (PXELinux)
+    Preseed default PXELinux (PXELinux)
+    Preseed default user data (user_data)
+    preseed_networking_setup ()
+    puppet.conf ()
+    puppetlabs_repo ()
+    puppet_setup ()
+    pxegrub2_chainload ()
+    PXEGrub2 default local boot (PXEGrub2)
+    pxegrub2_discovery ()
+    PXEGrub2 global default (PXEGrub2)
+    pxegrub_chainload ()
+    PXEGrub default local boot (PXEGrub)
+    pxegrub_discovery ()
+    PXEGrub global default (PXEGrub)
+    PXELinux chain iPXE (PXELinux)
+    PXELinux chain iPXE UNDI (PXELinux)
+    pxelinux_chainload ()
+    PXELinux default local boot (PXELinux)
+    PXELinux default memdisk (PXELinux)
+    pxelinux_discovery ()
+    PXELinux global default (PXELinux)
+    redhat_register ()
+    remote_execution_ssh_keys ()
+    saltstack_minion ()
+    saltstack_setup ()
+    Satellite Atomic Kickstart Default (provision)
+    Satellite Kickstart Default (provision)
+    Satellite Kickstart Default Finish (finish)
+    Satellite Kickstart Default User Data (user_data)
+    subscription_manager_registration ()
+    UserData default (user_data)
+    WAIK default PXELinux (PXELinux)
+    XenServer default answerfile (provision)
+    XenServer default finish (finish)
+    XenServer default PXELinux (PXELinux)
+Domains:                
+
+Environments:           
+
+Hostgroups:             
+
+Parameters:             
+
+Created at:             2018/08/13 09:06:12
+Updated at:             2018/08/13 09:06:12
+Label:                  HhQqWF
+Description:            
+Red Hat Repository URL: https://cdn.redhat.com
+Service Levels:
+
+
+2018-08-13 14:36:20 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed2e688d0
+2018-08-13 14:36:21 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1100ac8
+2018-08-13 14:36:21 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:21 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv product create --description="MLHtEeLTgSSktdWaAeAa" --label="oSfUkuBtdrcgQduHryOE" --name="jmapeQsLDvyUpxMgNiTd" --organization-id="20"'
+2018-08-13 14:36:26 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Product created,487,jmapeQsLDvyUpxMgNiTd
+
+2018-08-13 14:36:26 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1100ac8
+2018-08-13 14:36:27 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1100978
+2018-08-13 14:36:27 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:27 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  product info --id="487" --organization-id="20"'
+2018-08-13 14:36:30 - robottelo.ssh - INFO - <<< stdout
+ID:           487
+Name:         jmapeQsLDvyUpxMgNiTd
+Label:        oSfUkuBtdrcgQduHryOE
+Description:  MLHtEeLTgSSktdWaAeAa
+Sync State:   
+Sync Plan ID: 
+GPG:          
+    GPG Key ID: 
+    GPG Key:
+Organization: HhQqWF
+Readonly:     
+Deletable:    
+Content:
+
+
+2018-08-13 14:36:30 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1100978
+2018-08-13 14:36:31 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1119278
+2018-08-13 14:36:31 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:31 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository create --product-id="487" --content-type="file" --url="http://inecas.fedorapeople.org/fakerepos/zoo3/" --publish-via-http="true" --name="zQdNfYmDuAFaqLN"'
+2018-08-13 14:36:37 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Repository created,125,zQdNfYmDuAFaqLN
+
+2018-08-13 14:36:37 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1119278
+2018-08-13 14:36:39 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1125ba8
+2018-08-13 14:36:39 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:39 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="125"'
+2018-08-13 14:36:41 - robottelo.ssh - INFO - <<< stdout
+ID:                 125
+Name:               zQdNfYmDuAFaqLN
+Label:              zQdNfYmDuAFaqLN
+Organization:       HhQqWF
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                http://inecas.fedorapeople.org/fakerepos/zoo3/
+Publish Via HTTP:   yes
+Published At:       http://smqa-r210-02.lab.eng.brq.redhat.com/pulp/isos/HhQqWF/Library/custom/oSfUkuBtdrcgQduHryOE/zQdNfYmDuAFaqLN/
+Relative Path:      HhQqWF/Library/custom/oSfUkuBtdrcgQduHryOE/zQdNfYmDuAFaqLN
+Product:            
+    ID:   487
+    Name: jmapeQsLDvyUpxMgNiTd
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 09:06:34
+Updated:            2018/08/13 09:06:36
+Content Counts:     
+    Files: 0
+
+
+2018-08-13 14:36:41 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1125ba8
+2018-08-13 14:36:43 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1119748
+2018-08-13 14:36:43 - robottelo.ssh - INFO - Connected to [None]
+2018-08-13 14:36:44 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1119748
+2018-08-13 14:36:46 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1119e80
+2018-08-13 14:36:46 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:46 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository upload-content --path="/tmp/which-2.19-6.el6.x86_64.rpm" --product-id="487" --organization="HhQqWF" --name="zQdNfYmDuAFaqLN"'
+2018-08-13 14:36:51 - robottelo.ssh - INFO - <<< stdout
+Message
+Successfully uploaded file 'which-2.19-6.el6.x86_64.rpm'.
+
+2018-08-13 14:36:51 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1119e80
+2018-08-13 14:36:53 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed112ae80
+2018-08-13 14:36:53 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:53 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="125"'
+2018-08-13 14:36:55 - robottelo.ssh - INFO - <<< stdout
+ID:                 125
+Name:               zQdNfYmDuAFaqLN
+Label:              zQdNfYmDuAFaqLN
+Organization:       HhQqWF
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                http://inecas.fedorapeople.org/fakerepos/zoo3/
+Publish Via HTTP:   yes
+Published At:       http://smqa-r210-02.lab.eng.brq.redhat.com/pulp/isos/HhQqWF/Library/custom/oSfUkuBtdrcgQduHryOE/zQdNfYmDuAFaqLN/
+Relative Path:      HhQqWF/Library/custom/oSfUkuBtdrcgQduHryOE/zQdNfYmDuAFaqLN
+Product:            
+    ID:   487
+    Name: jmapeQsLDvyUpxMgNiTd
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 09:06:34
+Updated:            2018/08/13 09:06:36
+Content Counts:     
+    Files: 1
+
+
+2018-08-13 14:36:55 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed112ae80
+2018-08-13 14:36:57 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1119c88
+2018-08-13 14:36:57 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:36:57 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv content-view create --name="OziSwksUkf" --organization-id="20"'
+2018-08-13 14:36:59 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Content view created,34,OziSwksUkf
+
+2018-08-13 14:36:59 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1119c88
+2018-08-13 14:37:01 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed112a438
+2018-08-13 14:37:01 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:37:01 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  content-view info --id="34"'
+2018-08-13 14:37:04 - robottelo.ssh - INFO - <<< stdout
+ID:                     34
+Name:                   OziSwksUkf
+Label:                  OziSwksUkf
+Composite:              false
+Description:            
+Content Host Count:     0
+Organization:           HhQqWF
+Yum Repositories:       
+
+Docker Repositories:    
+
+OSTree Repositories:    
+
+Puppet Modules:         
+
+Lifecycle Environments: 
+
+Versions:               
+
+Components:             
+
+Activation Keys:
+
+
+2018-08-13 14:37:04 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed112a438
+2018-08-13 14:37:05 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed11332e8
+2018-08-13 14:37:05 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:37:05 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv content-view add-repository --product-id="487" --repository="zQdNfYmDuAFaqLN" --organization="HhQqWF" --name="OziSwksUkf"'
+2018-08-13 14:37:09 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+The repository has been associated,34,OziSwksUkf
+
+2018-08-13 14:37:09 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed11332e8
+2018-08-13 14:37:11 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f4ed1125ba8
+2018-08-13 14:37:11 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:37:11 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  content-view info --id="34"'
+2018-08-13 14:37:13 - robottelo.ssh - INFO - <<< stdout
+ID:                     34
+Name:                   OziSwksUkf
+Label:                  OziSwksUkf
+Composite:              false
+Description:            
+Content Host Count:     0
+Organization:           HhQqWF
+Yum Repositories:       
+
+Docker Repositories:    
+
+OSTree Repositories:    
+
+Puppet Modules:         
+
+Lifecycle Environments: 
+
+Versions:               
+
+Components:             
+
+Activation Keys:
+
+
+2018-08-13 14:37:13 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f4ed1125ba8
+2018-08-13 14:37:13 - robottelo - INFO - Started tearDownClass: test_contentview/ContentViewFileRepoTestCase
+2018-08-13 14:42:28 - robottelo - INFO - Started setUpClass: test_contentview/ContentViewFileRepoTestCase
+2018-08-13 14:42:30 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f99af6a4cc0
+2018-08-13 14:42:30 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:42:30 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv organization create --name="mbiqhv"'
+2018-08-13 14:42:35 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Organization created,21,mbiqhv
+
+2018-08-13 14:42:35 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f99af6a4cc0
+2018-08-13 14:42:37 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f99af6a4588
+2018-08-13 14:42:37 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:42:37 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  organization info --id="21"'
+2018-08-13 14:42:39 - robottelo.ssh - INFO - <<< stdout
+Id:                     21
+Title:                  mbiqhv
+Name:                   mbiqhv
+Description:            
+Users:                  
+
+Smart proxies:          
+    smqa-r210-02.lab.eng.brq.redhat.com
+Subnets:                
+
+Compute resources:      
+
+Installation media:     
+
+Templates:              
+    Alterator default (provision)
+    Alterator default finish (finish)
+    Alterator default PXELinux (PXELinux)
+    alterator_pkglist ()
+    ansible_provisioning_callback ()
+    ansible_tower_callback_script ()
+    ansible_tower_callback_service ()
+    Atomic Kickstart default (provision)
+    AutoYaST default (provision)
+    AutoYaST default iPXE (iPXE)
+    AutoYaST default PXELinux (PXELinux)
+    AutoYaST default user data (user_data)
+    AutoYaST SLES default (provision)
+    bmc_nic_setup ()
+    Boot disk iPXE - generic host (Bootdisk)
+    Boot disk iPXE - host (Bootdisk)
+    chef_client ()
+    coreos_cloudconfig ()
+    CoreOS provision (provision)
+    CoreOS PXELinux (PXELinux)
+    create_users ()
+    Discovery Debian kexec (kexec)
+    Discovery Red Hat kexec (kexec)
+    epel ()
+    fix_hosts ()
+    FreeBSD (mfsBSD) finish (finish)
+    FreeBSD (mfsBSD) provision (provision)
+    FreeBSD (mfsBSD) PXELinux (PXELinux)
+    freeipa_register ()
+    Grubby default (script)
+    http_proxy ()
+    idm_register ()
+    Jumpstart default (provision)
+    Jumpstart default finish (finish)
+    Jumpstart default PXEGrub (PXEGrub)
+    Junos default finish (finish)
+    Junos default SLAX (provision)
+    Junos default ZTP config (ZTP)
+    Kickstart default finish (finish)
+    Kickstart default iPXE (iPXE)
+    Kickstart default PXEGrub (PXEGrub)
+    Kickstart default PXEGrub2 (PXEGrub2)
+    Kickstart default PXELinux (PXELinux)
+    Kickstart default user data (user_data)
+    kickstart_ifcfg_bonded_interface ()
+    kickstart_ifcfg_bond_interface ()
+    kickstart_ifcfg_generic_interface ()
+    kickstart_ifcfg_get_identifier_names ()
+    kickstart_networking_setup ()
+    Kickstart oVirt-RHVH (provision)
+    Kickstart oVirt-RHVH PXELinux (PXELinux)
+    NX-OS default POAP setup (POAP)
+    Preseed default (provision)
+    Preseed default finish (finish)
+    Preseed default iPXE (iPXE)
+    Preseed default PXEGrub2 (PXELinux)
+    Preseed default PXELinux (PXELinux)
+    Preseed default user data (user_data)
+    preseed_networking_setup ()
+    puppet.conf ()
+    puppetlabs_repo ()
+    puppet_setup ()
+    pxegrub2_chainload ()
+    PXEGrub2 default local boot (PXEGrub2)
+    pxegrub2_discovery ()
+    PXEGrub2 global default (PXEGrub2)
+    pxegrub_chainload ()
+    PXEGrub default local boot (PXEGrub)
+    pxegrub_discovery ()
+    PXEGrub global default (PXEGrub)
+    PXELinux chain iPXE (PXELinux)
+    PXELinux chain iPXE UNDI (PXELinux)
+    pxelinux_chainload ()
+    PXELinux default local boot (PXELinux)
+    PXELinux default memdisk (PXELinux)
+    pxelinux_discovery ()
+    PXELinux global default (PXELinux)
+    redhat_register ()
+    remote_execution_ssh_keys ()
+    saltstack_minion ()
+    saltstack_setup ()
+    Satellite Atomic Kickstart Default (provision)
+    Satellite Kickstart Default (provision)
+    Satellite Kickstart Default Finish (finish)
+    Satellite Kickstart Default User Data (user_data)
+    subscription_manager_registration ()
+    UserData default (user_data)
+    WAIK default PXELinux (PXELinux)
+    XenServer default answerfile (provision)
+    XenServer default finish (finish)
+    XenServer default PXELinux (PXELinux)
+Domains:                
+
+Environments:           
+
+Hostgroups:             
+
+Parameters:             
+
+Created at:             2018/08/13 09:12:32
+Updated at:             2018/08/13 09:12:32
+Label:                  mbiqhv
+Description:            
+Red Hat Repository URL: https://cdn.redhat.com
+Service Levels:
+
+
+2018-08-13 14:42:39 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f99af6a4588
+2018-08-13 14:42:41 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f99ad9bbb00
+2018-08-13 14:42:41 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:42:41 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv product create --description="vNMeAgLtZXnOyvuChSuI" --label="WtVorLTRDVoREzKNMRQF" --name="PoMEGWhpcCIQJvGVUejS" --organization-id="21"'
+2018-08-13 14:42:45 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Product created,488,PoMEGWhpcCIQJvGVUejS
+
+2018-08-13 14:42:45 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f99ad9bbb00
+2018-08-13 14:42:47 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f99ad9bbef0
+2018-08-13 14:42:47 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:42:47 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  product info --organization-id="21" --id="488"'
+2018-08-13 14:42:49 - robottelo.ssh - INFO - <<< stdout
+ID:           488
+Name:         PoMEGWhpcCIQJvGVUejS
+Label:        WtVorLTRDVoREzKNMRQF
+Description:  vNMeAgLtZXnOyvuChSuI
+Sync State:   
+Sync Plan ID: 
+GPG:          
+    GPG Key ID: 
+    GPG Key:
+Organization: mbiqhv
+Readonly:     
+Deletable:    
+Content:
+
+
+2018-08-13 14:42:49 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f99ad9bbef0
+2018-08-13 14:42:51 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f99ad9d32e8
+2018-08-13 14:42:51 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:42:51 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv repository create --publish-via-http="true" --content-type="file" --name="GWxjJMSuErrKFCx" --url="http://inecas.fedorapeople.org/fakerepos/zoo3/" --product-id="488"'
+2018-08-13 14:42:55 - robottelo.ssh - INFO - <<< stdout
+Message,Id,Name
+Repository created,126,GWxjJMSuErrKFCx
+
+2018-08-13 14:42:55 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f99ad9d32e8
+2018-08-13 14:42:57 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f99ad9dfb38
+2018-08-13 14:42:57 - robottelo.ssh - INFO - Connected to [smqa-r210-02.lab.eng.brq.redhat.com]
+2018-08-13 14:42:57 - robottelo.ssh - INFO - >>> b'LANG=en_US.UTF-8  hammer -v -u admin -p changeme  repository info --id="126"'
+2018-08-13 14:42:59 - robottelo.ssh - INFO - <<< stdout
+ID:                 126
+Name:               GWxjJMSuErrKFCx
+Label:              GWxjJMSuErrKFCx
+Organization:       mbiqhv
+Red Hat Repository: no
+Content Type:       file
+Mirror on Sync:     yes
+URL:                http://inecas.fedorapeople.org/fakerepos/zoo3/
+Publish Via HTTP:   yes
+Published At:       http://smqa-r210-02.lab.eng.brq.redhat.com/pulp/isos/mbiqhv/Library/custom/WtVorLTRDVoREzKNMRQF/GWxjJMSuErrKFCx/
+Relative Path:      mbiqhv/Library/custom/WtVorLTRDVoREzKNMRQF/GWxjJMSuErrKFCx
+Product:            
+    ID:   488
+    Name: PoMEGWhpcCIQJvGVUejS
+GPG Key:            
+
+Sync:               
+    Status: Not Synced
+Created:            2018/08/13 09:12:53
+Updated:            2018/08/13 09:12:54
+Content Counts:     
+    Files: 0
+
+
+2018-08-13 14:42:59 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f99ad9dfb38
+2018-08-13 14:42:59 - robottelo - INFO - Started tearDownClass: test_contentview/ContentViewFileRepoTestCase
