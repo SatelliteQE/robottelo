@@ -380,7 +380,7 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with self.assertRaises(CLIBaseError):
+        with self.assertRaises(CLIFactoryError):
             make_fake_host({
                 'content-source-id': gen_integer(10000, 99999),
                 'content-view-id': self.DEFAULT_CV['id'],
