@@ -172,7 +172,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
                          'ff8de44cea4f4ab5aa37'),
             'checksum_type': 'sha256',
             'source_rpm': 'gorilla-0.62-1.src.rpm',
-            'build_Host': 'smqe-ws15',
+            'build_host': 'smqe-ws15',
             'build_time': '1331831364',
         }
         all_package_details = session.package.read(
@@ -181,7 +181,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
             key: value for key, value in all_package_details.items()
             if key in expected_package_details
         }
-        assert expected_package_details, package_details
+        assert expected_package_details == package_details
 
 
 @tier2
