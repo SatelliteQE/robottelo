@@ -200,7 +200,7 @@ class IncrementalUpdateTestCase(TestCase):
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadPackageProfile'
                          ' and resource_id = {}'
-                         ' and started_at >= {}'.format(host[0].id, timestamp)
+                         ' and started_at >= "{}"'.format(host[0].id, timestamp)
         )
         # Force host to generate or refresh errata applicability
         call_entity_method_with_timeout(host[0].errata_applicability,
