@@ -270,8 +270,7 @@ def upload_file(local_file, remote_file, key_filename=None, hostname=None):
         configuration's ``server`` section will be used.
     """
 
-    with get_sftp_session(hostname=hostname,
-                          key_filename=key_filename) as sftp:
+    with get_sftp_session(hostname, key_filename) as sftp:
         _upload_file(sftp, local_file, remote_file)
 
 
@@ -290,8 +289,7 @@ def upload_files(local_dir, remote_dir, file_search="*.txt",
     """
     command("mkdir -p {}".format(remote_dir))
     # making only one SFTP Session to transfer all files
-    with get_sftp_session(hostname=hostname,
-                          key_filename=key_filename) as sftp:
+    with get_sftp_session(hostname, key_filename) as sftp:
         for root, dirs, files in os.walk(local_dir):
             for local_filename in files:
                 if fnmatch(local_filename, file_search):
