@@ -55,6 +55,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
+from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
@@ -146,6 +147,12 @@ class HostCreateTestCase(CLITestCase):
         cls.puppet_class = Puppet.info({
             'name': puppet_modules[0]['name'],
             'environment': cls.puppet_env['name'],
+        })
+        # adding org to a puppet env
+        Org.set_parameter({
+            'name': 'Environment',
+            'value': cls.puppet_env["name"],
+            'organization': cls.new_org["name"],
         })
 
     def setUp(self):
