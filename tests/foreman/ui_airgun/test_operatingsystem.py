@@ -16,7 +16,7 @@
 """
 from nailgun import entities
 
-from robottelo.constants import HASH_TYPE
+from robottelo.constants import DEFAULT_TEMPLATE, HASH_TYPE
 from robottelo.datafactory import gen_string, valid_data_list
 from robottelo.decorators import fixture, parametrize, tier2
 
@@ -157,3 +157,38 @@ def test_positive_end_to_end(session):
             ptable.name)[0]['Operating Systems'] == new_description
         session.operatingsystem.delete(new_description)
         assert not session.operatingsystem.search(new_description)
+
+
+@tier2
+def test_positive_update_template(session, module_org):
+    """Update operating system with new provisioning template value
+
+    :id: 0b90eb24-8fc9-4e42-8709-6eee8ffbbdb5
+
+    :expectedresults: OS is updated with new template
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    major_version = gen_string('numeric', 2)
+    os = entities.OperatingSystem(
+        name=name, major=major_version, family='Redhat').create()
+    template = entities.ProvisioningTemplate(
+        organization=[module_org],
+        snippet=False,
+        template_kind=entities.TemplateKind().search(
+            query={'search': 'name="provision"'})[0],
+        operatingsystem=[os],
+    ).create()
+    with session:
+        os_full_name = '{} {}'.format(name, major_version)
+        values = session.operatingsystem.read(os_full_name)
+        assert values['templates']['resources'][
+            'Provisioning template *'] == DEFAULT_TEMPLATE
+        session.operatingsystem.update(
+            os_full_name,
+            {'templates.resources': {'Provisioning template *': template.name}}
+        )
+        values = session.operatingsystem.read(os_full_name)
+        assert values['templates']['resources'][
+            'Provisioning template *'] == template.name
