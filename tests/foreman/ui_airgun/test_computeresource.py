@@ -30,6 +30,7 @@ def test_positive_create_docker(session, name):
         assert session.computeresource.search(name)[0]['Name'] == name
 
 
+@tier2
 @parametrize('name', **valid_data_list('ui'))
 def test_positive_create_ec2(session, name):
     ec2_access_key = settings.ec2.access_key
@@ -60,6 +61,7 @@ def test_positive_create_libvirt(session, name):
         assert session.computeresource.search(name)[0]['Name'] == name
 
 
+@tier2
 @parametrize('name', **valid_data_list('ui'))
 def test_positive_create_vmware(session, name):
     vmware_vcenter = settings.vmware.vcenter
@@ -77,6 +79,7 @@ def test_positive_create_vmware(session, name):
         assert session.computeresource.search(name)[0]['Name'] == name
 
 
+@tier2
 @parametrize('name', **valid_data_list('ui'))
 def test_positive_create_rhv(session, name):
     rhev_url = settings.rhev.hostname
