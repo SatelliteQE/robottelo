@@ -190,7 +190,7 @@ class IncrementalUpdateTestCase(TestCase):
         self.addCleanup(vm_cleanup, self.vm)
         self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
         self.vm.enable_repo(REPOS['rhva6']['id'])
-        timestamp = datetime.utcnow()
+        tstamp = datetime.utcnow()
         self.vm.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
 
         # Find the content host and ensure that tasks started by package
@@ -200,7 +200,7 @@ class IncrementalUpdateTestCase(TestCase):
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadPackageProfile'
                          ' and resource_id = {}'
-                         ' and started_at >= "{}"'.format(host[0].id, timestamp)
+                         ' and started_at >= "{}"'.format(host[0].id, tstamp)
         )
         # Force host to generate or refresh errata applicability
         call_entity_method_with_timeout(host[0].errata_applicability,
