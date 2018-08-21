@@ -17,7 +17,7 @@ from robottelo.decorators import parametrize
 @parametrize('name', **valid_data_list('ui'))
 @run_only_on('sat')
 @tier2
-def test_positive_access_ec2_with_default_profile(session, name):
+def test_positive_select_compute_profile_tab(session, name):
     """
     Associate default (3-Large) compute profile to ec2 compute
     resource
@@ -34,7 +34,7 @@ def test_positive_access_ec2_with_default_profile(session, name):
         4. Click Compute Profile tab.
         5. Select (3-Large) and submit.
 
-    :expectedresults: The compute resource created and opened successfully
+    :expectedresults: (3-Large) can be select on Compute profiles tab
 
     :Caseautomation: Automated
     """
@@ -49,14 +49,14 @@ def test_positive_access_ec2_with_default_profile(session, name):
             'provider_content.secret_key': ec2_secret_key,
         })
         assert session.computeresource.search(name)[0]['Name'] == name
-        session.computeprofile.list_computeprofiles(
+        session.computeprofile.select_profile(
             name, COMPUTE_PROFILE_LARGE)
 
 
 @parametrize('name', **valid_data_list('ui'))
 @run_only_on('sat')
 @tier2
-def test_positive_access_ec2_with_custom_profile(session, name):
+def test_positive_edit_compute_profile_through_CR(session, name):
     """
     Associate custom (3-Large) compute profile to ec2 compute resource
 
@@ -72,7 +72,7 @@ def test_positive_access_ec2_with_custom_profile(session, name):
         4. Click Compute Profile tab.
         5. Edit (3-Large) with valid configurations and submit.
 
-    :expectedresults: The compute resource created and opened successfully
+    :expectedresults: The compute profile edit successfully
 
     :Caseautomation: Automated
     """
@@ -90,11 +90,17 @@ def test_positive_access_ec2_with_custom_profile(session, name):
             'provider_content.secret_key': ec2_secret_key,
         })
         assert session.computeresource.search(name)[0]['Name'] == name
-        session.computeresource.update_computeprofile({
-            'flavor': AWS_EC2_FLAVOR_T2_MICRO,
-            'availability_zone': availability_zone,
-            'subnet': subnet,
-            'managed_ip': managed_ip,
-        }, name, COMPUTE_PROFILE_LARGE)
-        assert session.computeprofile.read_computeprofile(
-            name, COMPUTE_PROFILE_LARGE)['subnet'] == subnet
+        session.computeresource.update_computeprofile(
+            name, COMPUTE_PROFILE_LARGE, {
+                'flavor': AWS_EC2_FLAVOR_T2_MICRO,
+                'availability_zone': availability_zone,
+                'subnet': subnet,
+                'managed_ip': managed_ip,
+            })
+        EC2_region = session.computeresource.read(
+            name)['provider_content']['region']
+        brackets = "(" + EC2_region + "-" + FOREMAN_PROVIDERS['ec2'] + ")"
+        computeresource_name = (name, brackets)
+        computeresource_name = " ".join(computeresource_name)
+        assert session.computeprofile.read(
+            COMPUTE_PROFILE_LARGE, computeresource_name)['subnet'] == subnet
