@@ -1946,7 +1946,7 @@ class HostParameterTestCase(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
 
-    @tier3
+    @tier2
     def test_negative_view_parameter_by_non_admin_user(self):
         """Attempt to view parameters with non admin user without Parameter
          permissions
@@ -2004,7 +2004,7 @@ class HostParameterTestCase(CLITestCase):
         ).info({'id': self.host['id']})
         self.assertFalse(host.get('parameters'))
 
-    @tier3
+    @tier2
     def test_positive_view_parameter_by_non_admin_user(self):
         """Attempt to view parameters with non admin user that has
         Parameter::vew_params permission
@@ -2065,7 +2065,7 @@ class HostParameterTestCase(CLITestCase):
         self.assertIn(param_name, host['parameters'])
         self.assertEqual(host['parameters'][param_name], param_value)
 
-    @tier3
+    @tier2
     def test_negative_edit_parameter_by_non_admin_user(self):
         """Attempt to edit parameter with non admin user that has
         Parameter::vew_params permission
@@ -2132,7 +2132,7 @@ class HostParameterTestCase(CLITestCase):
         host = Host.info({'id': self.host['id']})
         self.assertEqual(host['parameters'][param_name], param_value)
 
-    @tier3
+    @tier2
     def test_positive_set_multi_line_and_with_spaces_parameter_value(self):
         """Check that host parameter value with multi-line and spaces is
         correctly restored from yaml format
@@ -2157,6 +2157,13 @@ class HostParameterTestCase(CLITestCase):
             u'account     include                  password-auth'
         )
         host = self.host
+        # count parameters of a host
+        response = Host.info(
+            {'id': host['id']}, output_format='yaml', return_raw_response=True)
+        self.assertEqual(response.return_code, 0)
+        yaml_content = yaml.load('\n'.join(response.stdout))
+        host_initial_params = yaml_content.get('Parameters')
+        # set parameter
         Host.set_parameter({
             'host-id': host['id'],
             'name': param_name,
@@ -2167,8 +2174,8 @@ class HostParameterTestCase(CLITestCase):
         self.assertEqual(response.return_code, 0)
         yaml_content = yaml.load('\n'.join(response.stdout))
         host_parameters = yaml_content.get('Parameters')
-        self.assertIsNotNone(host_parameters)
-        self.assertEqual(len(host_parameters), 1)
+        # check that number of params increased by one
+        self.assertEqual(len(host_parameters), 1 + len(host_initial_params))
         self.assertEqual(host_parameters[0]['name'], param_name)
         self.assertEqual(host_parameters[0]['value'], param_value)
 
