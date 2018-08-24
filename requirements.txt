@@ -26,7 +26,8 @@ python-bugzilla==1.2.2  # pyup: ignore
 PyYAML==3.12
 robozilla==0.2.6
 
-# Get nailgun from specific branch
+# Get nailgun from specific branch and upgrade
 git+https://github.com/SatelliteQE/nailgun.git@6.3.z#egg=nailgun
+git+https://github.com/SatelliteQE/satellite6-upgrade.git#egg=satellite6-upgrade
 
 --editable .
