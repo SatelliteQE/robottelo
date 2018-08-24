@@ -17,9 +17,9 @@ from robottelo.decorators import parametrize
 @parametrize('name', **valid_data_list('ui'))
 @run_only_on('sat')
 @tier2
-def test_positive_select_compute_profile_tab(session, name):
+def test_positive_list_CR(session, name):
     """
-    Associate default (3-Large) compute profile to ec2 compute
+    Associate (3-Large) compute profile to ec2 compute
     resource
 
     :id: 366abfde-06ee-4576-9c36-3910b5a4e174
@@ -28,13 +28,13 @@ def test_positive_select_compute_profile_tab(session, name):
 
     :steps:
 
-        1. Create a compute resource of type ec2.
-        2. Provide a valid Access Key and Secret Key.
-        3. Select the created ec2 CR.
-        4. Click Compute Profile tab.
-        5. Select (3-Large) and submit.
+        1. Create a compute resource of type ec2
+        2. Provide a valid Access Key and Secret Key
+        3. Select (3-Large) compute profile
+        4. List Compute Resources associated with this compute profile
+        5. Check if created ec2 CR is in the list
 
-    :expectedresults: (3-Large) can be select on Compute profiles tab
+    :expectedresults: (3-Large) is associated with ec2 CR
 
     :Caseautomation: Automated
     """
@@ -49,8 +49,17 @@ def test_positive_select_compute_profile_tab(session, name):
             'provider_content.secret_key': ec2_secret_key,
         })
         assert session.computeresource.search(name)[0]['Name'] == name
-        session.computeprofile.select_profile(
-            name, COMPUTE_PROFILE_LARGE)
+        EC2_region = session.computeresource.read(
+            name)['provider_content']['region']
+        brackets = "(" + EC2_region + "-" + FOREMAN_PROVIDERS['ec2'] + ")"
+        computeresource_name = (name, brackets)
+        computeresource_name = " ".join(computeresource_name)
+        computeresource_dict = session.computeprofile.list_resources(
+            COMPUTE_PROFILE_LARGE)
+        computeresource_list = []
+        for CR in computeresource_dict:
+            computeresource_list.append(CR['Compute Resource'])
+        assert computeresource_name in computeresource_list
 
 
 @parametrize('name', **valid_data_list('ui'))
@@ -66,11 +75,11 @@ def test_positive_edit_compute_profile_through_CR(session, name):
 
     :steps:
 
-        1. Create a compute resource of type ec2.
-        2. Provide a valid Access Key and Secret Key.
-        3. Select the created ec2 CR.
-        4. Click Compute Profile tab.
-        5. Edit (3-Large) with valid configurations and submit.
+        1. Create a compute resource of type ec2
+        2. Provide a valid Access Key and Secret Key
+        3. Select the created ec2 CR
+        4. Click Compute Profile tab
+        5. Edit (3-Large) with valid configurations and submit
 
     :expectedresults: The compute profile edit successfully
 
@@ -97,10 +106,5 @@ def test_positive_edit_compute_profile_through_CR(session, name):
                 'subnet': subnet,
                 'managed_ip': managed_ip,
             })
-        EC2_region = session.computeresource.read(
-            name)['provider_content']['region']
-        brackets = "(" + EC2_region + "-" + FOREMAN_PROVIDERS['ec2'] + ")"
-        computeresource_name = (name, brackets)
-        computeresource_name = " ".join(computeresource_name)
-        assert session.computeprofile.read(
-            COMPUTE_PROFILE_LARGE, computeresource_name)['subnet'] == subnet
+        assert session.computeresource.read_computeprofile(
+            name, COMPUTE_PROFILE_LARGE)['subnet'] == subnet
