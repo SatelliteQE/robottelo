@@ -29,8 +29,9 @@ Sphinx==1.4.5
 testimony==1.2.0
 codecov==2.0.9
 
-# Install nailgun specific branch
+# Install nailgun and satellite6-upgrade specific branch
 git+https://github.com/SatelliteQE/nailgun.git@6.2.z#egg=nailgun
+git+https://github.com/SatelliteQE/satellite6-upgrade.git@64less#egg=satellite6-upgrade
 
 # Install robottelo itself to the path
 --editable .
