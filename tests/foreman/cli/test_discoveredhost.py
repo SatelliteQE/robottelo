@@ -32,6 +32,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
+    upgrade
 )
 from robozilla.decorators import bz_bug_is_open
 from robottelo.libvirt_discovery import LibvirtGuest
@@ -224,6 +225,7 @@ class DiscoveredTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
         """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
         loader
@@ -407,6 +409,7 @@ class DiscoveredTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
         """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
         loader
