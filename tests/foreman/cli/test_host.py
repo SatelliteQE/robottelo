@@ -3330,3 +3330,24 @@ class HostErrataTestCase(CLITestCase):
         hostname = ssh.command('hostname').stdout[0]
         host = Host.info({'name': hostname})
         self.assertIsInstance(Host.errata_list({'host-id': host['id']}), list)
+
+
+class EncDumpTestCase(CLITestCase):
+    """Tests for Dump host's ENC YAML"""
+
+    @tier1
+    def test_positive_dump_enc_yaml(self):
+        """Dump host's ENC YAML. Check BZ for details.
+
+        :id: 50bf2530-788c-4710-a382-d034d73d5d4d
+
+        :expectedresults: Ensure that enc-dump does not fail
+
+        :customerscenario: true
+
+        :BZ: 1372731
+
+        :CaseImportance: Critical
+        """
+        hostname = ssh.command('hostname').stdout[0]
+        self.assertIsInstance(Host.enc_dump({'name': hostname}), list)
