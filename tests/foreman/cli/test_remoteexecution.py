@@ -296,7 +296,7 @@ class RemoteExecutionTestCase(CLITestCase):
         })
 
     @stubbed()
-    @tier2
+    @tier3
     def test_positive_run_default_job_template(self):
         """Run default job template against a single host
 
@@ -321,7 +321,7 @@ class RemoteExecutionTestCase(CLITestCase):
             raise AssertionError(result)
 
     @stubbed()
-    @tier2
+    @tier3
     @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user(self):
         """Run default job template as effective user against a single host
@@ -376,7 +376,7 @@ class RemoteExecutionTestCase(CLITestCase):
         self.assertEqual(username, result.stdout[0])
 
     @stubbed()
-    @tier2
+    @tier3
     def test_positive_run_custom_job_template(self):
         """Run custom job template against a single host
 
@@ -608,7 +608,7 @@ class RemoteExecutionTestCase(CLITestCase):
         # currently it is not possible to get subtasks from
         # a task other than via UI
 
-    @tier2
+    @tier3
     def test_positive_run_default_job_template_by_ip(self):
         """Run default template on host connected by ip
 
@@ -638,7 +638,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
             raise AssertionError(result)
 
-    @tier2
+    @tier3
     @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user_by_ip(self):
         """Run default job template as effective user on a host by ip
@@ -698,7 +698,7 @@ class RemoteExecutionTestCase(CLITestCase):
         # assert the file is owned by the effective user
         self.assertEqual(username, result.stdout[0])
 
-    @tier2
+    @tier3
     def test_positive_run_custom_job_template_by_ip(self):
         """Run custom template on host connected by ip
 
