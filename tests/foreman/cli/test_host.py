@@ -302,7 +302,9 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.new_lce['id'],
             'organization-ids': self.new_org['id'],
         })
-        host = entities.Host()
+        host = entities.Host(
+            organization=entities.Organization(id=self.new_org['id']).read()
+        )
         host.create_missing()
         interface = (
             "type=interface,mac={0},identifier=eth0,name={1},domain={2},"
