@@ -75,3 +75,5 @@ def test_positive_update(session, oscap_content_path):
         })
         oscap_val = session.oscapcontent.read(title)
         assert org.name in oscap_val['organizations']['resources']['assigned']
+        assert oscap_content_path.rsplit(
+            '/', 1)[-1] == oscap_val['scap_file_name']
