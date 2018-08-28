@@ -1309,6 +1309,7 @@ class Settings(object):
         airgun.settings.configure({
             'airgun': {
                 'verbosity': logging.getLevelName(self.verbosity),
+                'tmp_dir': self.tmp_dir,
             },
             'satellite': {
                 'hostname': self.server.hostname,
