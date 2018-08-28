@@ -59,7 +59,7 @@ def test_positive_update(session, oscap_content_path):
         2. Provide all the appropriate parameters.
         3. Update the openscap content, here the Org.
 
-    :expectedresults: Whether creating  content for OpenScap is successful.
+    :expectedresults: Whether updating content for OpenScap is successful.
 
     :CaseLevel: Integration
     """
