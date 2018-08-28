@@ -371,12 +371,14 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         ).info({'id': content_host['id']})
         # check that content view matches what we passed
         self.assertEqual(
-            content_host['content-information']['content-view'],
+            content_host['content-information'][
+                'content-view']['name'],
             content_view['name']
         )
         # check that lifecycle environment matches
         self.assertEqual(
-            content_host['content-information']['lifecycle-environment'],
+            content_host['content-information'][
+                'lifecycle-environment']['name'],
             lifecycle_environment['name']
         )
 
