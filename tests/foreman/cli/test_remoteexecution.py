@@ -47,7 +47,6 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier1,
-    tier2,
     tier3,
     upgrade
 )
