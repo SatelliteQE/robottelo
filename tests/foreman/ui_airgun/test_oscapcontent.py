@@ -28,12 +28,22 @@ def oscap_content_path():
 
 def test_positive_create(session, oscap_content_path):
     title = gen_string('alpha')
+    org = entities.Organization().create()
+    loc = entities.Location().create()
     with session:
         session.oscapcontent.create({
             'file_upload.title': title,
             'file_upload.scap_file': oscap_content_path,
+            'locations.resources.assigned': [loc.name],
+            'organizations.resources.assigned': [org.name],
         })
         assert session.oscapcontent.search(title)[0]['Title'] == title
+        oscap_val = session.oscapcontent.read(title)
+        assert oscap_content_path.rsplit(
+            '/', 1)[-1] == oscap_val['scap_file_name']
+        assert oscap_val['locations']['resources']['assigned'][0] == loc.name
+        assert (oscap_val
+                ['organizations']['resources']['assigned'][0] == org.name)
 
 
 def test_positive_delete(session, oscap_content_path):
@@ -75,5 +85,3 @@ def test_positive_update(session, oscap_content_path):
         })
         oscap_val = session.oscapcontent.read(title)
         assert org.name in oscap_val['organizations']['resources']['assigned']
-        assert oscap_content_path.rsplit(
-            '/', 1)[-1] == oscap_val['scap_file_name']
