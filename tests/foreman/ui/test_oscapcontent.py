@@ -24,7 +24,6 @@ from robottelo.decorators import (
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
-    tier2,
     upgrade
 )
 from robottelo.helpers import get_data_file
@@ -171,36 +170,6 @@ class OpenScapContentTestCase(UITestCase):
                 OSCAP_DEFAULT_CONTENT['rhel7_content']))
             self.assertIsNotNone(self.oscapcontent.search(
                 OSCAP_DEFAULT_CONTENT['rhel6_content']))
-
-    @tier2
-    def test_positive_update(self):
-        """Update OpenScap content.
-
-        :id: 9870555d-0b60-41ab-a481-81d4d3f78fec
-
-        :Steps:
-
-            1. Create an openscap content.
-            2. Provide all the appropriate parameters.
-            3. Update the openscap content, here the Org.
-
-        :expectedresults: Whether creating  content for OpenScap is successful.
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization(name=gen_string('alpha')).create()
-        content_name = gen_string('alpha')
-        with Session(self) as session:
-            make_oscapcontent(
-                session,
-                name=content_name,
-                content_path=self.content_path,
-                content_org=self.org_name,
-            )
-            self.oscapcontent.update(content_name, content_org=org.name)
-            session.nav.go_to_select_org(org.name)
-            self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
 
     @tier1
     @upgrade
