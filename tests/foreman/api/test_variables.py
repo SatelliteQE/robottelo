@@ -725,7 +725,7 @@ class SmartVariablesTestCase(APITestCase):
             validator_type='list',
             validator_rule=values_list_str,
         ).create()
-        self.assertEqual(smart_variable.default_value, value)
+        self.assertEqual(smart_variable.default_value, str(value))
         self.assertEqual(smart_variable.validator_type, 'list')
         self.assertEqual(smart_variable.validator_rule, values_list_str)
 
