@@ -195,6 +195,7 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_DEFAULT,
+    DISTRO_RHEL6,
     DISTROS_MAJOR_VERSION,
     DISTROS_SUPPORTED,
     MAJOR_VERSION_DISTRO,
@@ -217,6 +218,7 @@ DOWNLOAD_POLICY_BACKGROUND = 'background'
 PRODUCT_KEY_RHEL = 'rhel'
 PRODUCT_KEY_SAT_TOOLS = 'rhst'
 PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
+PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
 
 _server_distro = None  # type: str
 
@@ -367,7 +369,7 @@ class GenericRHRepository(BaseRepository):
             raise DistroNotSupportedError(
                 'distro "{0}" not supported'.format(distro))
         if distro is None:
-            distro = DISTRO_DEFAULT
+            distro = self._distro
         repo_data = self._get_repo_data(distro)
         if repo_data is None:
             raise RepositoryDataNotFound(
@@ -504,6 +506,12 @@ class SatelliteCapsuleRepository(GenericRHRepository):
         if self.distro == get_server_distro():
             return settings.capsule_repo
         return None
+
+
+class VirtualizationAgentsRepository(GenericRHRepository):
+    """Virtualization Agents repository"""
+    _key = PRODUCT_KEY_VIRT_AGENTS
+    _distro = DISTRO_RHEL6
 
 
 class RepositoryCollection(object):
