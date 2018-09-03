@@ -487,22 +487,22 @@ def test_positive_export(session):
     """
     org = entities.Organization().create()
     hosts = [entities.Host(organization=org).create() for _ in range(3)]
+    expected_fields = set(
+        (host.name,
+         host.operatingsystem.read().title,
+         host.environment.read().name)
+        for host in hosts
+    )
     with session:
         session.organization.select(org.name)
         file_path = session.host.export()
         assert os.path.isfile(file_path)
         with open(file_path, newline='') as csvfile:
+            actual_fields = []
             for row in csv.DictReader(csvfile):
-                current_host = next(
-                    host for host in hosts if host.name == row['Name'])
-                expected_fields = {
-                    current_host.name,
-                    current_host.operatingsystem.read().name,
-                    current_host.environment.read().name
-                }
-                actual_fields = {
-                    row['Name'],
-                    row['Operatingsystem'],
-                    row['Environment']
-                }
-                assert actual_fields == expected_fields
+                actual_fields.append(
+                    (row['Name'],
+                     row['Operatingsystem'],
+                     row['Environment'])
+                )
+        assert set(actual_fields) == expected_fields
