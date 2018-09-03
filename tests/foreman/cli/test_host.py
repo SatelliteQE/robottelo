@@ -574,6 +574,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-class-ids': self.puppet_class['id'],
             'environment-id': self.puppet_env['id'],
+            'organization-id': self.new_org['id'],
         })
         host_classes = Host.puppetclasses({'host-id': host['id']})
         self.assertIn(
@@ -594,6 +595,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         host_classes = Host.puppetclasses({'host': host['name']})
         self.assertIn(
