@@ -370,21 +370,26 @@ def test_positive_create_host_with_parameters(session, module_global_params):
 
 
 @tier2
-def test_positive_assign_organization(session, module_org):
-    """Ensure Host organization can be assigned.
+def test_positive_assign_taxonomies(session, module_org):
+    """Ensure Host organization and Location can be assigned.
 
     :id: 52466df5-6f56-4faa-b0f8-42b63731f494
 
-    :expectedresults: Host Assign Organization action is working as expected.
+    :expectedresults: Host Assign Organization and Location actions are
+        working as expected.
 
     :CaseLevel: Integration
     """
-    host = entities.Host(organization=module_org).create()
+    default_loc = entities.Location().search(
+        query={'search': 'name="{0}"'.format(DEFAULT_LOC)}
+    )[0]
+    host = entities.Host(
+        organization=module_org, location=default_loc).create()
     new_host_org = entities.Organization().create()
-    loc = host.location.read()
+    new_host_location = entities.Location(organization=[new_host_org]).create()
     with session:
         session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=loc.name)
+        session.location.select(loc_name=default_loc.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
             'Assign Organization',
@@ -396,31 +401,6 @@ def test_positive_assign_organization(session, module_org):
         )
         assert not session.host.search(host.name)
         session.organization.select(org_name=new_host_org.name)
-        assert session.host.search(host.name)[0]['Name'] == host.name
-        values = session.host.get_details(host.name)
-        assert (values['properties']['properties_table']['Organization']
-                == new_host_org.name)
-
-
-@tier2
-def test_positive_assign_location(session, module_org):
-    """Ensure Host location can be assigned.
-
-    :id: 9277ce1e-626a-4870-9701-0bf63cce7fc2
-
-    :expectedresults: Host Assign Location action is working as expected.
-
-    :CaseLevel: Integration
-    """
-    default_loc = entities.Location().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_LOC)}
-    )[0]
-    host = entities.Host(
-        organization=module_org, location=default_loc).create()
-    new_host_location = entities.Location(organization=[module_org]).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=default_loc.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
             'Assign Location',
@@ -434,6 +414,8 @@ def test_positive_assign_location(session, module_org):
         session.location.select(loc_name=new_host_location.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         values = session.host.get_details(host.name)
+        assert (values['properties']['properties_table']['Organization']
+                == new_host_org.name)
         assert (values['properties']['properties_table']['Location']
                 == new_host_location.name)
 
