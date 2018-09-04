@@ -69,16 +69,15 @@ def module_repos_collection(module_org, module_lce):
 
 
 @fixture
-def vm_content_hosts(module_repos_collection):
+def vm_content_hosts(request, module_repos_collection):
     clients = []
     for _ in range(2):
         client = VirtualMachine(distro=module_repos_collection.distro)
         clients.append(client)
+        request.addfinalizer(client.destroy)
         client.create()
         module_repos_collection.setup_virtual_machine(client)
-    yield clients
-    for client in clients:
-        client.destroy()
+    return clients
 
 
 @fixture
@@ -95,24 +94,24 @@ def vm_host_collection(module_org, vm_content_hosts):
     return host_collection
 
 
-def _assert_package_installed(
-        vm_clients, package_name, expected_installed=True, retries=10,
+def _is_package_installed(
+        vm_clients, package_name, expect_installed=True, retries=10,
         iteration_sleep=15):
     """Check whether package name was installed on the list of Virtual Machines
     clients.
     """
     assert len(vm_clients) > 0
     installed = 0
-    if not expected_installed:
+    if not expect_installed:
         installed = len(vm_clients)
     for vm_client in vm_clients:
         for ind in range(retries):
             result = vm_client.run(
                 'rpm -q {0}'.format(package_name))
-            if result.return_code == 0 and expected_installed:
+            if result.return_code == 0 and expect_installed:
                 installed += 1
                 break
-            elif result.return_code != 0 and not expected_installed:
+            elif result.return_code != 0 and not expect_installed:
                 installed -= 1
                 break
             if ind < retries - 1:
@@ -120,10 +119,10 @@ def _assert_package_installed(
         else:
             break
 
-    if expected_installed:
-        assert installed == len(vm_clients)
+    if expect_installed:
+        return installed == len(vm_clients)
     else:
-        assert installed == 0
+        return bool(installed)
 
 
 def _install_package_with_assertion(vm_clients, package_name):
@@ -132,7 +131,7 @@ def _install_package_with_assertion(vm_clients, package_name):
         result = client.run(
             'yum install -y {0}'.format(package_name))
         assert result.return_code == 0
-    _assert_package_installed(vm_clients, package_name)
+    assert _is_package_installed(vm_clients, package_name)
 
 
 def _get_content_repository_urls(repos_collection, lce, content_view):
@@ -265,7 +264,7 @@ def test_positive_install_package(
             packages=FAKE_0_CUSTOM_PACKAGE_NAME,
             action='install'
         )
-        _assert_package_installed(
+        assert _is_package_installed(
             vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
 
@@ -290,10 +289,10 @@ def test_positive_remove_package(
             packages=FAKE_0_CUSTOM_PACKAGE_NAME,
             action='remove'
         )
-        _assert_package_installed(
+        assert not _is_package_installed(
             vm_content_hosts,
             FAKE_0_CUSTOM_PACKAGE_NAME,
-            expected_installed=False
+            expect_installed=False
         )
 
 
@@ -317,7 +316,7 @@ def test_positive_upgrade_package(
             packages=FAKE_1_CUSTOM_PACKAGE_NAME,
             action='update'
         )
-        _assert_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
+        assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
 @tier3
@@ -342,7 +341,7 @@ def test_positive_install_package_group(
             action='install',
         )
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            _assert_package_installed(vm_content_hosts, package)
+            assert _is_package_installed(vm_content_hosts, package)
 
 
 @tier3
@@ -362,7 +361,7 @@ def test_positive_remove_package_group(
             FAKE_0_CUSTOM_PACKAGE_GROUP_NAME))
         assert result.return_code == 0
     for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-        _assert_package_installed(vm_content_hosts, package)
+        assert _is_package_installed(vm_content_hosts, package)
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
@@ -372,10 +371,10 @@ def test_positive_remove_package_group(
             action='remove',
         )
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            _assert_package_installed(
+            assert not _is_package_installed(
                 vm_content_hosts,
                 package,
-                expected_installed=False
+                expect_installed=False
             )
 
 
@@ -398,7 +397,7 @@ def test_positive_install_errata(
         task_values = session.hostcollection.install_errata(
             vm_host_collection.name, FAKE_2_ERRATA_ID)
         assert task_values['result'] == 'success'
-        _assert_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
+        assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
 @tier3
