@@ -338,6 +338,8 @@ class SmartVariablesTestCase(APITestCase):
         """
         entities.SmartVariable(puppetclass=self.puppet_class).create()
         host = entities.Host(organization=self.org).create()
+        self.env.location = [host.location]
+        self.env.update()
         host.environment = self.env
         host.update(['environment'])
         host.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})
