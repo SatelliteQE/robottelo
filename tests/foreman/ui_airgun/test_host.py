@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import csv
 import copy
 import os
 
@@ -35,7 +36,7 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, tier3, skip_if_not_set
+from robottelo.decorators import tier2, tier3, skip_if, skip_if_not_set
 
 
 def _get_set_from_list_of_dict(value):
@@ -276,7 +277,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
     :BZ: 1414914
 
-    :CaseLevel: Integration
+    :CaseLevel: System
     """
     org = entities.Organization().create()
     host = entities.Host(organization=org).create()
@@ -471,3 +472,37 @@ def test_positive_assign_compliance_policy(session, scap_policy):
             'compliance_policy = {0}'.format(scap_policy['name']))[0]['Name']
             ==
             host.name)
+
+
+@skip_if(settings.webdriver != 'chrome')
+@tier3
+def test_positive_export(session):
+    """Create few hosts and export them via UI
+
+    :id: ffc512ad-982e-4b60-970a-41e940ebc74c
+
+    :expectedresults: csv file contains same values as on web UI
+
+    :CaseLevel: System
+    """
+    org = entities.Organization().create()
+    hosts = [entities.Host(organization=org).create() for _ in range(3)]
+    expected_fields = set(
+        (host.name,
+         host.operatingsystem.read().title,
+         host.environment.read().name)
+        for host in hosts
+    )
+    with session:
+        session.organization.select(org.name)
+        file_path = session.host.export()
+        assert os.path.isfile(file_path)
+        with open(file_path, newline='') as csvfile:
+            actual_fields = []
+            for row in csv.DictReader(csvfile):
+                actual_fields.append(
+                    (row['Name'],
+                     row['Operatingsystem'],
+                     row['Environment'])
+                )
+        assert set(actual_fields) == expected_fields
