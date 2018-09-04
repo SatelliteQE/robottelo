@@ -800,7 +800,7 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['match'], 'domain=example.com')
         self.assertEqual(
-            smart_variable.override_values[0]['value'], 30)
+            smart_variable.override_values[0]['value'], '30')
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1375643)
