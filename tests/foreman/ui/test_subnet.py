@@ -28,9 +28,8 @@ from robottelo.decorators import (
     run_only_on, skip_if_bug_open, stubbed, tier1, tier2, tier3, upgrade
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_subnet, set_context
-from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -86,43 +85,6 @@ class SubnetTestCase(UITestCase):
                     )
                     self.assertIsNotNone(
                         self.subnet.search(name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_domain(self):
-        """Create new subnet and associate domain with it
-
-        :id: adbc7189-b451-49df-aa10-2ae732832dfe
-
-        :expectedresults: Subnet is created with domain associated
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        domain = entities.Domain(
-            organization=[self.organization]
-        ).create()
-        with Session(self) as session:
-            make_subnet(
-                session,
-                org=self.organization.name,
-                subnet_name=name,
-                subnet_network=gen_ipaddr(ip3=True),
-                subnet_mask=gen_netmask(),
-                domains=[domain.name],
-            )
-            self.subnet.search_and_click(name)
-            self.subnet.click(tab_locators['subnet.tab_domain'])
-            element = self.subnet.wait_until_element(
-                common_locators['entity_deselect'] % domain.name)
-            checkbox_element = self.subnet.wait_until_element(
-                common_locators['entity_checkbox'] % domain.name)
-            # Depending upon the number of domains either, checkbox or
-            # selection list appears.
-            if element is None and checkbox_element is None:
-                raise UIError('Neither checkbox or select list is present')
-            if checkbox_element:
-                self.assertTrue(checkbox_element.is_selected())
 
     @run_only_on('sat')
     @tier1
