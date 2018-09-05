@@ -18,7 +18,7 @@ from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import ANY_CONTEXT, DEFAULT_LOC, DEFAULT_ORG
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2
 
@@ -98,6 +98,35 @@ def test_positive_create(session, module_host_group, module_loc,
                 ['resources']['assigned'][0] == module_loc.name)
         assert (policy_val['organizations']
                 ['resources']['assigned'][0] == module_org.name)
+        assert (policy_val['host_group']
+                ['resources']['assigned'][0] == module_host_group.name)
+
+
+def test_positive_create_with_missing_org_and_loc(
+        session, module_host_group, oscap_content_path):
+    """Test successfully creates OSCAP Policy
+    and default LOC and ORG to oscappolicy"""
+    name = gen_string('alpha')
+    oscap_content_title = gen_string('alpha')
+    with session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.oscapcontent.create({
+            'file_upload.title': oscap_content_title,
+            'file_upload.scap_file': oscap_content_path,
+        })
+        session.oscappolicy.create({
+            'create_policy.name': name,
+            'scap_content.scap_content_resource': oscap_content_title,
+            'schedule.period': 'Weekly',
+            'schedule.period_selection.weekday': 'Monday',
+            'host_group.resources.assigned': [module_host_group.name]
+        })
+        assert session.oscappolicy.search(name)[0]['Name'] == name
+        policy_val = session.oscappolicy.read(name)
+        assert (policy_val['locations']
+                ['resources']['assigned'][0] == DEFAULT_LOC)
+        assert (policy_val['organizations']
+                ['resources']['assigned'][0] == DEFAULT_ORG)
         assert (policy_val['host_group']
                 ['resources']['assigned'][0] == module_host_group.name)
 
