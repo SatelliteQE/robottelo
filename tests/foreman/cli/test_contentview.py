@@ -2647,6 +2647,7 @@ class ContentViewTestCase(CLITestCase):
             components[0]['version-id'], '{0} (Latest)'.format(version_2_id))
         self.assertEqual(components[0]['current-version'], '2.0')
 
+    @upgrade
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id(self):

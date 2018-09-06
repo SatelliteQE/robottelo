@@ -54,6 +54,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier2,
     tier4,
+    upgrade
 )
 from robottelo.helpers import (
     create_repo,
@@ -272,6 +273,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
+    @upgrade
     @tier4
     def test_positive_checksum_sync(self):
         """Synchronize repository to capsule, update repository's checksum
@@ -391,6 +393,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreater(len(result.stdout), 0)
 
+    @upgrade
     @tier4
     def test_positive_capsule_sync(self):
         """Create repository, add it to lifecycle environment, assign lifecycle
@@ -606,6 +609,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(cvv_repo_path)
         )
 
+    @upgrade
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
@@ -678,6 +682,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertGreater(len(result), 0)
         self.assertEqual(set(sat_isos), set(capsule_isos))
 
+    @upgrade
     @tier4
     def test_positive_on_demand_sync(self):
         """Create a repository with 'on_demand' sync, add it to lifecycle
@@ -812,6 +817,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Assert checksums are matching
         self.assertEqual(package_md5, published_package_md5)
 
+    @upgrade
     @tier4
     def test_positive_mirror_on_sync(self):
         """Create 2 repositories with 'on_demand' download policy and mirror on
@@ -968,6 +974,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(package_name, result.stdout[0])
 
+    @upgrade
     @tier4
     def test_positive_update_with_immediate_sync(self):
         """Create a repository with on_demand download policy, associate it
@@ -1116,6 +1123,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         broken_links = set(link for link in result.stdout if link)
         self.assertEqual(len(broken_links), 0)
 
+    @upgrade
     @tier4
     def test_positive_sync_puppet_module_with_versions(self):
         """Ensure it's possible to sync multiple versions of the same puppet
@@ -1232,6 +1240,7 @@ class CapsuleContentManagementTestCase(APITestCase):
                 if '{}-{}'.format(module_name, module_versions[1]) in filename
             )
 
+    @upgrade
     @tier4
     def test_positive_capsule_pub_url_accessible(self):
         """Ensure capsule pub url is accessible

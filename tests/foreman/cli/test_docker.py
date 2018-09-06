@@ -1280,6 +1280,7 @@ class DockerClientTestCase(CLITestCase):
         cls.docker_host.destroy()
 
     @run_only_on('sat')
+    @upgrade
     @tier3
     def test_positive_pull_image(self):
         """A Docker-enabled client can use ``docker pull`` to pull a

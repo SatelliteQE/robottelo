@@ -953,6 +953,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
+    @upgrade
     @tier3
     def test_positive_synchronize_custom_product_daily_recurrence(self):
         """Create a daily sync plan with current datetime as a sync date,
