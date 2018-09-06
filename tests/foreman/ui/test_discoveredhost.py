@@ -26,7 +26,6 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
-    upgrade,
 )
 from robottelo.api.utils import configure_provisioning
 from robottelo.libvirt_discovery import LibvirtGuest
@@ -36,9 +35,8 @@ from robottelo.ui.factory import (
     edit_param,
     make_discoveryrule,
 )
-from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.session import Session
-from time import sleep
 
 
 @run_in_one_thread
@@ -139,58 +137,6 @@ class DiscoveryTestCase(UITestCase):
         cls.discovery_auto.update({'value'})
 
         super(DiscoveryTestCase, cls).tearDownClass()
-
-    @run_only_on('sat')
-    @tier3
-    @upgrade
-    def test_positive_pxe_based_discovery(self):
-        """Discover a host via PXE boot by setting "proxy.type=proxy" in
-        PXE default
-
-        :id: 43a8857d-2f08-436e-97fb-ffec6a0c84dd
-
-        :Setup: Provisioning should be configured
-
-        :Steps: PXE boot a host/VM
-
-        :expectedresults: Host should be successfully discovered
-
-        :CaseLevel: System
-        """
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_host:
-                hostname = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(hostname)
-                )
-                self.assertIsNotNone(self.discoveredhosts.search(hostname))
-
-    @run_only_on('sat')
-    @tier3
-    @upgrade
-    def test_positive_pxe_less_with_dhcp_unattended(self):
-        """Discover a host with dhcp via bootable discovery ISO by setting
-        "proxy.type=proxy" in PXE default in unattended mode.
-
-        :id: fc13167f-6fa0-4fe5-8584-7716292866ce
-
-        :Setup: Provisioning should be configured
-
-        :Steps: Boot a host/VM using modified discovery ISO.
-
-        :expectedresults: Host should be successfully discovered
-
-        :CaseLevel: System
-        """
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest(boot_iso=True) as pxe_less_host:
-                hostname = pxe_less_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(hostname)
-                )
-                self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
     @run_only_on('sat')
     @stubbed()
@@ -495,28 +441,6 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
-    def test_positive_delete(self):
-        """Delete the selected discovered host
-
-        :id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: Selected host should be removed successfully
-
-        :CaseLevel: System
-        """
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_host:
-                hostname = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(hostname)
-                )
-                self.discoveredhosts.delete(hostname, dropdown_present=True)
-
-    @run_only_on('sat')
-    @tier3
     def test_positive_delete_from_facts(self):
         """Delete the selected discovered host from facts page
 
@@ -648,111 +572,6 @@ class DiscoveryTestCase(UITestCase):
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
     @run_only_on('sat')
-    @tier3
-    def test_positive_reboot(self):
-        """Reboot a discovered host.
-
-        :id: 5edc6831-bfc8-4e69-9029-b4c0caa3ee32
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: Host should be successfully rebooted.
-
-        :CaseLevel: System
-        """
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_host:
-                hostname = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(hostname)
-                )
-                element = (locators['discoveredhosts.fetch_ip'] % hostname)
-                # Get the IP of discovered host
-                host_ip = self.discoveredhosts.fetch_fact_value(
-                    hostname, element)
-                # Check if host is reachable via IP
-                self.assertTrue(self._ping_host(host_ip))
-                self.discoveredhosts.reboot_host(hostname)
-                for _ in range(12):
-                    response = self._ping_host(host_ip, timeout=5)
-                    if not response:
-                        break
-                    sleep(5)
-                else:
-                    self.fail('Host was not stopped')
-
-    @run_only_on('sat')
-    @tier3
-    def test_positive_update_default_org(self):
-        """Change the default org of more than one discovered hosts
-        from 'Select Action' drop down
-
-        :id: fe6ab6e0-c942-46c1-8ae2-4f4caf00e0d8
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: Default org should be successfully changed for
-            multiple hosts
-
-        :CaseLevel: System
-        """
-        new_org = gen_string('alpha')
-        entities.Organization(name=new_org).create()
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_1_host:
-                host_1_name = pxe_1_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(host_1_name)
-                )
-                with LibvirtGuest() as pxe_2_host:
-                    host_2_name = pxe_2_host.guest_name
-                    self.assertTrue(
-                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
-                    )
-                    hostnames = [host_1_name, host_2_name]
-                    for hostname in hostnames:
-                        self.assertIsNotNone(
-                            self.discoveredhosts.search(hostname))
-                    self.discoveredhosts.update_org_loc(hostnames, new_org)
-
-    @run_only_on('sat')
-    @tier3
-    def test_positive_update_default_location(self):
-        """Change the default location of more than one discovered hosts
-        from 'Select Action' drop down
-
-        :id: 537bfb51-144a-44be-a087-d2437f074464
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: Default Location should be successfully changed for
-            multiple hosts
-
-        :CaseLevel: System
-        """
-        loc = entities.Location().create()
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_1_host:
-                host_1_name = pxe_1_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(host_1_name)
-                )
-                with LibvirtGuest() as pxe_2_host:
-                    host_2_name = pxe_2_host.guest_name
-                    self.assertTrue(
-                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
-                    )
-                    hostnames = [host_1_name, host_2_name]
-                    for hostname in hostnames:
-                        self.assertIsNotNone(
-                            self.discoveredhosts.search(hostname))
-                    self.discoveredhosts.update_org_loc(
-                        hostnames, new_loc=loc.name)
-
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_auto_provision_host_with_rule(self):
@@ -771,54 +590,6 @@ class DiscoveryTestCase(UITestCase):
 
         :caseautomation: notautomated
         """
-
-    @run_only_on('sat')
-    @tier3
-    @upgrade
-    def test_positive_manual_provision_host_with_rule(self):
-        """Create a new discovery rule and manually provision a discovered host using
-        that discovery rule.
-
-        Set query as (e.g IP=IP_of_discovered_host)
-
-        :id: 4488ab9a-d462-4a62-a1a1-e5656c8a8b99
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: Host should reboot and provision
-
-        :CaseLevel: System
-        """
-        rule_name = gen_string('alpha')
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_host:
-                host_name = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(host_name)
-                )
-                element = (locators['discoveredhosts.fetch_ip'] % host_name)
-                # Get the IP of discovered host
-                host_ip = self.discoveredhosts.fetch_fact_value(
-                    host_name, element)
-                # Define a discovery rule with IP_address
-                make_discoveryrule(
-                        session,
-                        name=rule_name,
-                        host_limit=1,
-                        hostgroup=self.config_env['host_group'],
-                        search_rule=host_ip,
-                        locations=[self.loc.name],
-                )
-                self.assertIsNotNone(self.discoveryrules.search(rule_name))
-                self.discoveredhosts.auto_provision(host_name)
-                self.assertIsNotNone(self.discoveredhosts.wait_until_element(
-                    common_locators['notif.success']))
-                self.assertIsNotNone(self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
-                # Check that provisioned host is not in the list of discovered
-                # hosts anymore
-                self.assertIsNone(self.discoveredhosts.search(host_name))
 
     @run_only_on('sat')
     @stubbed()
@@ -964,42 +735,6 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-
-    @run_only_on('sat')
-    @stubbed('unstub once os/browser/env combination is changed')
-    @tier3
-    def test_positive_update_name(self):
-        """Update the discovered host name and provision it
-
-        :id: 3770b007-5006-4815-ae03-fbd330aad304
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: The hostname should be updated and host should be
-            provisioned
-
-        :CaseLevel: System
-        """
-        name = gen_string('alpha').lower()
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_host:
-                host_name = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(host_name)
-                )
-                self.discoveredhosts.provision_discoveredhost(
-                    hostname=host_name,
-                    hostgroup=self.config_env['host_group'],
-                    org=self.org_name,
-                    loc=self.loc.name,
-                    new_name=name)
-                new_host_name = (
-                    u'{0}.{1}'.format(name, self.config_env['domain']))
-                self.assertIsNotNone(self.hosts.search(new_host_name))
-                # Check that provisioned host is not in the list of discovered
-                # hosts anymore
-                self.assertIsNone(self.discoveredhosts.search(host_name))
 
     @run_only_on('sat')
     @tier3
@@ -1242,45 +977,6 @@ class DiscoveryTestCase(UITestCase):
                     hostgroup=self.config_env['host_group'],
                     org=self.org_name,
                     loc=self.loc.name)
-                self.assertIsNotNone(self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
-                # Check that provisioned host is not in the list of discovered
-                # hosts anymore
-                self.assertIsNone(self.discoveredhosts.search(host_name))
-
-    @run_only_on('sat')
-    @tier3
-    @upgrade
-    def test_positive_provision_using_quick_host_button(self):
-        """Associate hostgroup while provisioning a discovered host from
-        host properties model window and select quick host.
-
-        :id: 34c1e9ea-f210-4a1e-aead-421eb962643b
-
-        :Setup:
-
-            1. Host should already be discovered
-            2. Hostgroup should already be created with all required entities.
-
-        :expectedresults: Host should be quickly provisioned and entry from
-            discovered host should be auto removed.
-
-        :CaseLevel: System
-        """
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_host:
-                host_name = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(host_name)
-                )
-                self.assertIsNotNone(self.discoveredhosts.search(host_name))
-                self.discoveredhosts.provision_discoveredhost(
-                    hostname=host_name,
-                    hostgroup=self.config_env['host_group'],
-                    org=self.org_name,
-                    loc=self.loc.name,
-                    quick_create=True)
                 self.assertIsNotNone(self.hosts.search(
                     u'{0}.{1}'.format(host_name, self.config_env['domain'])))
                 # Check that provisioned host is not in the list of discovered

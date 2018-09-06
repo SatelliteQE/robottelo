@@ -1,0 +1,496 @@
+# -*- encoding: utf-8 -*-
+"""Test class for Foreman Discovery
+
+:Requirement: Discoveredhost
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
+from fauxfactory import gen_string
+from nailgun import entities
+
+from robottelo import ssh
+from robottelo.api.utils import configure_provisioning
+from robottelo.decorators import (
+    fixture,
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    tier3,
+    upgrade,
+)
+from robottelo.libvirt_discovery import LibvirtGuest
+from robottelo.products import RHELRepository
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_loc(module_org):
+    return entities.Location(
+        name=gen_string('alpha'),
+        organization=[module_org],
+    ).create()
+
+
+@fixture(scope='module')
+def provisioning_env(module_org, module_loc):
+    # Build PXE default template to get default PXE file
+    entities.ConfigTemplate().build_pxe_default()
+    # Update default org and location params to place discovered host
+    discovery_loc = entities.Setting().search(
+        query={'search': 'name="discovery_location"'})[0]
+    default_discovery_loc = discovery_loc.value
+    discovery_loc.value = module_loc.name
+    discovery_loc.update(['value'])
+    discovery_org = entities.Setting().search(
+        query={'search': 'name="discovery_organization"'})[0]
+    default_discovery_org = discovery_org.value
+    discovery_org.value = module_org.name
+    discovery_org.update(['value'])
+    # Enable flag to auto provision discovered hosts via discovery rules
+    discovery_auto = entities.Setting().search(
+        query={'search': 'name="discovery_auto"'})[0]
+    default_discovery_auto = str(discovery_auto.value)
+    discovery_auto.value = 'True'
+    discovery_auto.update(['value'])
+    # we need the default RHEL os version
+    yield configure_provisioning(
+        org=module_org,
+        loc=module_loc,
+        os='Redhat {0}'.format(RHELRepository().repo_data['version'])
+    )
+    discovery_auto.value = default_discovery_auto
+    discovery_auto.update(['value'])
+    discovery_loc.value = default_discovery_loc
+    discovery_loc.update(['value'])
+    discovery_org.value = default_discovery_org
+    discovery_org.update(['value'])
+
+
+def _is_host_reachable(host, retries=12, iteration_sleep=5,
+                       expect_reachable=True):
+    """Helper to ensure given IP/hostname is reachable or not. The return value
+    returned depend from expect reachable value.
+
+    :param str host: The IP or hostname of host.
+    :param int retries: The polling retries.
+    :param int iteration_sleep: time to wait after each retry iteration.
+    :param bool expect_reachable: Whether we expect the host to be reachable.
+    :return bool
+    """
+    operator = '&&'
+    if not expect_reachable:
+        operator = '||'
+    cmd = ('for i in {{1..{0}}}; do ping -c1 {1} {2} exit 0; sleep {3};'
+           ' done; exit 1')
+    result = ssh.command(
+        cmd.format(retries, host, operator, iteration_sleep),
+        connection_timeout=30
+    )
+    if expect_reachable:
+        return not result.return_code
+    else:
+        return bool(result.return_code)
+
+
+def test_positive_read_details_from_discovered_host(
+        session, module_org, module_loc, provisioning_env):
+    """Ensure discovered host details entity page is readable"""
+    os_family, _, os_release_full = provisioning_env['os'].partition(' ')
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+            values = session.discoveredhosts.read(host_name)
+            assert (values['interfaces'][0]['IP address']
+                    == discovered_host_values['IP Address'])
+            assert (values['highlights']['ipaddress']
+                    == discovered_host_values['IP Address'])
+            assert (values['highlights']['productname']
+                    == discovered_host_values['Model'])
+            assert (values['storage']['blockdevice_vda_size']
+                    == discovered_host_values['Disks Size'])
+            assert (values['hardware']['processors::count']
+                    == discovered_host_values['CPUs'])
+            assert (values['network']['ipaddress_eth0']
+                    == discovered_host_values['IP Address'])
+            assert (values['software']['os::family'] == os_family)
+            assert (values['software']['os::release::full'] == os_release_full)
+            assert (values['miscellaneous'][
+                        'nmprimary_dhcp4_option_ip_address']
+                    == discovered_host_values['IP Address']
+                    )
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+@upgrade
+def test_positive_pxe_based_discovery(
+        session, module_org, module_loc, provisioning_env):
+    """Discover a host via PXE boot by setting "proxy.type=proxy" in
+    PXE default
+
+    :id: 43a8857d-2f08-436e-97fb-ffec6a0c84dd
+
+    :Setup: Provisioning should be configured
+
+    :Steps: PXE boot a host/VM
+
+    :expectedresults: Host should be successfully discovered
+
+    :CaseLevel: System
+    """
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
+@tier3
+@upgrade
+def test_positive_pxe_less_with_dhcp_unattended(
+        session, module_org, module_loc, provisioning_env):
+    """Discover a host with dhcp via bootable discovery ISO by setting
+    "proxy.type=proxy" in PXE default in unattended mode.
+
+    :id: fc13167f-6fa0-4fe5-8584-7716292866ce
+
+    :Setup: Provisioning should be configured
+
+    :Steps: Boot a host/VM using modified discovery ISO.
+
+    :expectedresults: Host should be successfully discovered
+
+    :CaseLevel: System
+    """
+    with LibvirtGuest(boot_iso=True) as pxe_less_host:
+        host_name = pxe_less_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+@upgrade
+def test_positive_provision_using_quick_host_button(
+        session, module_org, module_loc, provisioning_env):
+    """Associate hostgroup while provisioning a discovered host from
+    host properties model window and select quick host.
+
+    :id: 34c1e9ea-f210-4a1e-aead-421eb962643b
+
+    :Setup:
+
+        1. Host should already be discovered
+        2. Hostgroup should already be created with all required entities.
+
+    :expectedresults: Host should be quickly provisioned and entry from
+        discovered host should be auto removed.
+
+    :CaseLevel: System
+    """
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+            session.discoveredhosts.provision(
+                host_name,
+                provisioning_env['host_group'],
+                module_org.name,
+                module_loc.name,
+            )
+            pxe_host_name = '{0}.{1}'.format(
+                host_name, provisioning_env['domain'])
+            # After this step we will be redirected to the created host details
+            # view.
+            values = session.host.get_details(pxe_host_name)
+            assert values['properties']['properties_table']['Status'] == 'OK'
+            # Check that provisioned host is not in the list of discovered
+            # hosts anymore
+            assert not session.discoveredhosts.search(
+                'name = {0}'.format(host_name))
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+def test_positive_update_name(
+        session, module_org, module_loc, provisioning_env):
+    """Update the discovered host name and provision it
+
+    :id: 3770b007-5006-4815-ae03-fbd330aad304
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: The hostname should be updated and host should be
+        provisioned
+
+    :CaseLevel: System
+    """
+    new_name = gen_string('alpha').lower()
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+            session.discoveredhosts.provision(
+                host_name,
+                provisioning_env['host_group'],
+                module_org.name,
+                module_loc.name,
+                quick=False,
+                host_values={'host.name': new_name}
+            )
+            new_host_name = (
+                u'{0}.{1}'.format(new_name, provisioning_env['domain']))
+            assert (session.host.search(new_host_name)[0]['Name']
+                    == new_host_name)
+            values = session.host.get_details(new_host_name)
+            assert values['properties']['properties_table']['Status'] == 'OK'
+            assert not session.discoveredhosts.search(
+                'name = {0}'.format(host_name))
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+@upgrade
+def test_positive_manual_provision_host_with_rule(
+        session, module_org, module_loc, provisioning_env):
+    """Create a new discovery rule and manually provision a discovered host
+    using that discovery rule.
+
+    Set query as (e.g IP=IP_of_discovered_host)
+
+    :id: 4488ab9a-d462-4a62-a1a1-e5656c8a8b99
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: Host should reboot and provision
+
+    :CaseLevel: System
+    """
+    hostgroup = entities.HostGroup().search(
+        query=dict(search='name={0}'.format(provisioning_env['host_group']))
+    )[0]
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+            host_ip = discovered_host_values['IP Address']
+            assert host_ip
+            entities.DiscoveryRule(
+                max_count=1,
+                hostgroup=hostgroup,
+                search_=host_ip,
+                location=[module_loc],
+                organization=[module_org],
+            ).create()
+            session.discoveredhosts.auto_provision([host_name])
+            pxe_host_name = (
+                u'{0}.{1}'.format(host_name, provisioning_env['domain']))
+            assert (session.host.search(pxe_host_name)[0]['Name']
+                    == pxe_host_name)
+            values = session.host.get_details(pxe_host_name)
+            assert values['properties']['properties_table']['Status'] == 'OK'
+            assert not session.discoveredhosts.search(
+                'name = {0}'.format(host_name))
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+def test_positive_delete(session, module_org, module_loc, provisioning_env):
+    """Delete the selected discovered host
+
+    :id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: Selected host should be removed successfully
+
+    :CaseLevel: System
+    """
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+            session.discoveredhosts.delete(host_name)
+            assert not session.discoveredhosts.search(
+                'name = {0}'.format(host_name))
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+def test_positive_update_default_org(
+        session, module_org, module_loc, provisioning_env):
+    """Change the default org of more than one discovered hosts
+    from 'Select Action' drop down
+
+    :id: fe6ab6e0-c942-46c1-8ae2-4f4caf00e0d8
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: Default org should be successfully changed for
+        multiple hosts
+
+    :CaseLevel: System
+    """
+    new_org = entities.Organization().create()
+    module_loc.organization.append(new_org)
+    module_loc.update(['organization'])
+    with LibvirtGuest() as pxe_1_host, LibvirtGuest() as pxe_2_host:
+        host_names = [pxe_1_host.guest_name, pxe_2_host.guest_name]
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            for host_name in host_names:
+                host_values = session.discoveredhosts.wait_for_entity(
+                    host_name)
+                assert host_values['Name'] == host_name
+            values = session.discoveredhosts.search(
+                'name = "{0}" or name = "{1}"'.format(*host_names)
+            )
+            assert set(host_names) == {value['Name'] for value in values}
+            session.discoveredhosts.assign_organization(
+                host_names,
+                new_org.name
+            )
+            assert not session.discoveredhosts.search(
+                'name = "{0}" or name = "{1}"'.format(*host_names)
+            )
+            session.organization.select(org_name=new_org.name)
+            values = session.discoveredhosts.search(
+                'name = "{0}" or name = "{1}"'.format(*host_names)
+            )
+            assert set(host_names) == {value['Name'] for value in values}
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+def test_positive_update_default_location(
+        session, module_org, module_loc, provisioning_env):
+    """Change the default location of more than one discovered hosts
+    from 'Select Action' drop down
+
+    :id: 537bfb51-144a-44be-a087-d2437f074464
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: Default Location should be successfully changed for
+        multiple hosts
+
+    :CaseLevel: System
+    """
+    new_loc = entities.Location(organization=[module_org]).create()
+    with LibvirtGuest() as pxe_1_host, LibvirtGuest() as pxe_2_host:
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            host_names = [pxe_1_host.guest_name, pxe_2_host.guest_name]
+            for host_name in host_names:
+                host_values = session.discoveredhosts.wait_for_entity(
+                    host_name)
+                assert host_values['Name'] == host_name
+            values = session.discoveredhosts.search(
+                'name = "{0}" or name = "{1}"'.format(*host_names)
+            )
+            assert set(host_names) == {value['Name'] for value in values}
+            session.discoveredhosts.assign_location(
+                host_names,
+                new_loc.name
+            )
+            assert not session.discoveredhosts.search(
+                'name = "{0}" or name = "{1}"'.format(*host_names)
+            )
+            session.location.select(loc_name=new_loc.name)
+            values = session.discoveredhosts.search(
+                'name = "{0}" or name = "{1}"'.format(*host_names)
+            )
+            assert set(host_names) == {value['Name'] for value in values}
+
+
+@run_in_one_thread
+@run_only_on('sat')
+@skip_if_not_set('compute_resources', 'vlan_networking')
+@tier3
+def test_positive_reboot(session, module_org, module_loc, provisioning_env):
+    """Reboot a discovered host.
+
+    :id: 5edc6831-bfc8-4e69-9029-b4c0caa3ee32
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: Host should be successfully rebooted.
+
+    :CaseLevel: System
+    """
+    with LibvirtGuest() as pxe_host:
+        host_name = pxe_host.guest_name
+        with session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_loc.name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(
+                host_name)
+            assert discovered_host_values['Name'] == host_name
+            host_ip = discovered_host_values['IP Address']
+            assert host_ip
+            # Ensure that the host is reachable
+            assert _is_host_reachable(host_ip)
+            session.discoveredhosts.reboot(host_name)
+            # Ensure that the host is not reachable
+            assert not _is_host_reachable(host_ip, expect_reachable=False)
