@@ -210,7 +210,10 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        domain = make_domain()
+        domain = make_domain({
+            u'organizations': u'Default Organization',
+            u'locations': u'Default Location'
+        })
         mac = gen_mac(multicast=False)
         host = make_fake_host({
             u'domain-id': domain['id'],
@@ -219,6 +222,7 @@ class HostCreateTestCase(CLITestCase):
             u'host-id': host['id'],
             u'domain-id': domain['id'],
             u'mac': mac,
+            u'type': u'interface'
         })
         host = Host.info({u'id': host['id']})
         host_interface = HostInterface.info({
