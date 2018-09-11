@@ -21,7 +21,7 @@ from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC_ID, DISTRO_RHEL6
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, tier3
+from robottelo.decorators import fixture, tier3
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 
@@ -46,7 +46,7 @@ def module_subnet(module_org):
     ).create()
 
 
-@tier2
+@tier3
 def test_positive_run_default_job_template_by_ip(
         session, module_org, module_subnet):
     """Run a job template on a host connected by ip
