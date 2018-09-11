@@ -190,12 +190,6 @@ class CapsuleVirtualMachine(VirtualMachine):
             # do cleanup as using a static hostname that can be reused by
             # other tests and organizations
             try:
-                # try to delete the capsule if it was added already
-                Capsule.delete({'name': self._capsule_hostname})
-            except Exception as exp:
-                logger.error('Failed to cleanup the capsule: {0}\n{1}'.format(
-                    self.hostname, exp))
-            try:
                 # try to delete the hostname first
                 Host.delete({'name': self._capsule_hostname})
                 # try delete the capsule
@@ -205,8 +199,20 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # reach that stage
                 # or maybe that the capsule was not registered or setup does
                 # not reach that stage
-                logger.error('Failed to cleanup the host: {0}\n{1}'.format(
+                if bz_bug_is_open('1622064'):
+                    logger.warn('Failed to cleanup the host: {0}\n{1}'.format(
+                        self.hostname, exp))
+                else:
+                    logger.error('Failed to cleanup the host: {0}\n{1}'.format(
+                        self.hostname, exp))
+                    raise
+            try:
+                # try to delete the capsule if it was added already
+                Capsule.delete({'name': self._capsule_hostname})
+            except Exception as exp:
+                logger.error('Failed to cleanup the capsule: {0}\n{1}'.format(
                     self.hostname, exp))
+                raise
 
     def _setup_capsule(self):
         """Prepare the virtual machine to host a capsule node"""
