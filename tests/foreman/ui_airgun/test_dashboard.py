@@ -74,14 +74,12 @@ def test_positive_host_configuration_status(session):
     ]
     with session:
         session.organization.select(org_name=org.name)
-        dashboard_values = session.dashboard.read()
+        dashboard_values = session.dashboard.read('HostConfigurationStatus')
         for criteria in criteria_list:
             if criteria == 'Hosts with no reports':
-                assert dashboard_values[
-                    'HostConfigurationStatus']['status_list'][criteria] == '1'
+                assert dashboard_values['status_list'][criteria] == 1
             else:
-                assert dashboard_values[
-                    'HostConfigurationStatus']['status_list'][criteria] == '0'
+                assert dashboard_values['status_list'][criteria] == 0
 
         for criteria, search in zip(criteria_list, search_strings_list):
             if criteria == 'Hosts with no reports':
@@ -121,9 +119,8 @@ def test_positive_host_configuration_chart(session):
     entities.Host(organization=org).create()
     with session:
         session.organization.select(org_name=org.name)
-        dashboard_values = session.dashboard.read()
-        assert dashboard_values[
-            'HostConfigurationChart']['chart']['No report'] == '100%'
+        dashboard_values = session.dashboard.read('HostConfigurationChart')
+        assert dashboard_values['chart']['No report'] == '100%'
 
 
 @run_in_one_thread
@@ -172,8 +169,8 @@ def test_positive_task_status(session):
 
 @tier2
 def test_positive_latest_warning_error_tasks(session):
-    """Check if the Latest Warning/Error
-    Tasks Status are working in the Dashboard UI
+    """Check if the Latest Warning/Error Tasks Status widget is working in the
+    Dashboard UI
 
     :id: c90df864-1472-4b7c-91e6-9ea9e98384a9
 
@@ -225,8 +222,7 @@ def test_positive_content_view_history(session):
     promote(content_view.read().version[0], lc_env.id)
     with session:
         session.organization.select(org_name=org.name)
-        cv_values = session.dashboard.read()['ContentViews']
-        assert True
+        cv_values = session.dashboard.read('ContentViews')
         assert content_view.name in cv_values[
             'content_views'][0]['Content View']
         assert cv_values['content_views'][0][
@@ -304,11 +300,9 @@ def test_positive_host_collections(session):
     ).create()
     with session:
         session.organization.select(org_name=org.name)
-        values = session.dashboard.read()
-        assert values['HostCollections'][
-            'collections'][0]['Name'] == host_collection.name
-        assert values['HostCollections'][
-            'collections'][0]['Content Hosts'] == '1'
+        values = session.dashboard.read('HostCollections')
+        assert values['collections'][0]['Name'] == host_collection.name
+        assert values['collections'][0]['Content Hosts'] == '1'
 
 
 @tier3
