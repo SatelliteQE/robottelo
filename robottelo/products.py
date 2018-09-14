@@ -699,7 +699,8 @@ class RepositoryCollection(object):
             self.organization['label'],
             rh_repos_id=rh_repos_id,
             repos_label=custom_repos_label,
-            product_label=self.custom_product['label'],
+            product_label=self.custom_product[
+                'label'] if self.custom_product else None,
             activation_key=self._setup_content_data['activation_key']['name'],
             patch_os_release_distro=distro,
             install_katello_agent=install_katello_agent

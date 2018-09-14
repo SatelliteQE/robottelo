@@ -20,14 +20,17 @@ from pytest import raises
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
-from robottelo.cli.factory import setup_org_for_a_rh_repo
-from robottelo.constants import DISTRO_RHEL7, PRDS, REPOS, REPOSET
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.decorators import (
     run_in_one_thread,
     skip_if_not_set,
     tier2,
     tier3,
     upgrade,
+)
+from robottelo.products import (
+    RepositoryCollection,
+    SatelliteToolsRepository,
 )
 from robottelo.vm import VirtualMachine
 
@@ -332,29 +335,16 @@ def test_positive_content_host_subscription_status(session):
     """
     org = entities.Organization().create()
     env = entities.LifecycleEnvironment(organization=org).create()
-    content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(
-        environment=env,
-        organization=org,
-    ).create()
-    # Using cdn repo as we need a rh repo (no matter are we in cdn or
-    # downstream) for subscription status to be ok
-    setup_org_for_a_rh_repo({
-        'product': PRDS['rhel'],
-        'repository-set': REPOSET['rhst7'],
-        'repository': REPOS['rhst7']['name'],
-        'organization-id': org.id,
-        'content-view-id': content_view.id,
-        'lifecycle-environment-id': env.id,
-        'activationkey-id': activation_key.id,
-    }, force_use_cdn=True)
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(cdn=True),
+        ]
+    )
+    repos_collection.setup_content(org.id, env.id, upload_manifest=True)
     with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(
-            org.label, activation_key.name)
+        repos_collection.setup_virtual_machine(client)
         assert client.subscribed
-        client.enable_repo(REPOS['rhst7']['id'], force=True)
-        client.install_katello_agent()
         with session:
             session.organization.select(org_name=org.name)
             session.dashboard.action({'HostSubscription': {'type': 'Invalid'}})
@@ -367,4 +357,6 @@ def test_positive_content_host_subscription_status(session):
             assert len(values['table']) == 1
             assert values['table'][0]['Name'] == client.hostname
             assert values['table'][0]['Lifecycle Environment'] == env.name
-            assert values['table'][0]['Content View'] == content_view.name
+            cv_name = repos_collection._setup_content_data[
+                'content_view']['name']
+            assert values['table'][0]['Content View'] == cv_name
