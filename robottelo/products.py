@@ -410,6 +410,10 @@ class GenericRHRepository(BaseRepository):
         return self._repo_is_distro()
 
     @property
+    def distro_major_version(self):
+        return DISTROS_MAJOR_VERSION[self.distro]
+
+    @property
     def distro_repository(self):  # type: () -> Optional(RHELRepository)
         """Return the OS distro repository object relied to this repository
 
@@ -476,9 +480,8 @@ class RHELRepository(GenericRHRepository):
 
     @property
     def url(self):
-        return getattr(settings, 'rhel{0}_os'.format(
-            DISTROS_MAJOR_VERSION[self.distro])
-        )
+        return getattr(
+            settings, 'rhel{0}_os'.format(self.distro_major_version))
 
 
 class SatelliteToolsRepository(GenericRHRepository):
@@ -488,7 +491,7 @@ class SatelliteToolsRepository(GenericRHRepository):
     @property
     def url(self):
         return settings.sattools_repo['{0}{1}'.format(
-            PRODUCT_KEY_RHEL, DISTROS_MAJOR_VERSION[self.distro]
+            PRODUCT_KEY_RHEL, self.distro_major_version
         )]
 
 
@@ -579,6 +582,10 @@ class RepositoryCollection(object):
             for repo_info in self._repos_info
             if repo_info['red-hat-repository'] == 'no'
         ]
+
+    @property
+    def setup_content_data(self):
+        return self._setup_content_data
 
     @property
     def need_subscription(self):  # type: () -> bool
