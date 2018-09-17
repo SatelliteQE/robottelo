@@ -209,6 +209,59 @@ def test_positive_edit(session, module_org):
         assert values['details']['content_host_limit'] == 'Unlimited'
 
 
+def test_negative_install_via_remote_execution(session, module_org):
+    """Test basic functionality of the Hosts collection UI remote execution
+    job. Expected behavior: the package is not installed (as using fake hosts).
+    """
+    hosts = []
+    for _ in range(2):
+        hosts.append(entities.Host(organization=module_org).create())
+    host_collection = entities.HostCollection(
+        host=[host.id for host in hosts],
+        organization=module_org,
+    ).create()
+    with session:
+        job_values = session.hostcollection.manage_packages(
+            host_collection.name,
+            packages=FAKE_0_CUSTOM_PACKAGE_NAME,
+            action='install',
+            action_via='via remote execution'
+        )
+        assert job_values['job_status'] == 'Failed'
+        assert job_values['job_status_progress'] == '100%'
+        assert int(job_values['total_hosts']) == len(hosts)
+        assert ({host.name for host in hosts}
+                == {host['Host'] for host in job_values['hosts_table']})
+
+
+def test_negative_install_via_custom_remote_execution(session, module_org):
+    """Test basic functionality of the Hosts collection UI custom remote
+    execution job. Expected behavior: the package is not installed (as using
+    fake hosts).
+    """
+    hosts = []
+    for _ in range(2):
+        hosts.append(entities.Host(organization=module_org).create())
+    host_collection = entities.HostCollection(
+        host=[host.id for host in hosts],
+        organization=module_org,
+    ).create()
+    with session:
+        job_values = session.hostcollection.manage_packages(
+            host_collection.name,
+            packages=FAKE_0_CUSTOM_PACKAGE_NAME,
+            action='install',
+            action_via='via remote execution - customize first',
+            job_values=dict(search_query='host_collection_id = {0}'.format(
+                host_collection.id))
+        )
+        assert job_values['job_status'] == 'Failed'
+        assert job_values['job_status_progress'] == '100%'
+        assert int(job_values['total_hosts']) == len(hosts)
+        assert ({host.name for host in hosts}
+                == {host['Host'] for host in job_values['hosts_table']})
+
+
 @upgrade
 @tier3
 def test_positive_add_host(session):
