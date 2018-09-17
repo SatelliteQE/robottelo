@@ -34,7 +34,7 @@ from robottelo.constants import (
     FAKE_6_YUM_REPO,
 )
 from robottelo.datafactory import gen_string, gen_integer
-from robottelo.decorators import fixture, tier3, upgrade
+from robottelo.decorators import fixture, tier2, tier3, upgrade
 from robottelo.products import (
     YumRepository,
     RepositoryCollection,
@@ -209,9 +209,19 @@ def test_positive_edit(session, module_org):
         assert values['details']['content_host_limit'] == 'Unlimited'
 
 
+@tier2
 def test_negative_install_via_remote_execution(session, module_org):
-    """Test basic functionality of the Hosts collection UI remote execution
-    job. Expected behavior: the package is not installed (as using fake hosts).
+    """Test basic functionality of the Hosts collection UI install package via
+    remote execution.
+
+    :id: c5fe46fb-0b34-4ea3-bc53-e86c18adaf94
+
+    :setup: Create a host collection with two fake hosts assigned.
+
+    :expectedresults: The package is not installed, and the job invocation
+        status contains some expected values: hosts information, jos status.
+
+    :CaseLevel: Integration
     """
     hosts = []
     for _ in range(2):
@@ -234,10 +244,19 @@ def test_negative_install_via_remote_execution(session, module_org):
                 == {host['Host'] for host in job_values['hosts_table']})
 
 
+@tier2
 def test_negative_install_via_custom_remote_execution(session, module_org):
-    """Test basic functionality of the Hosts collection UI custom remote
-    execution job. Expected behavior: the package is not installed (as using
-    fake hosts).
+    """Test basic functionality of the Hosts collection UI install package via
+    remote execution - customize first.
+
+    :id: 5aa7f084-bab7-4e62-9bf3-a37fd4aa71fa
+
+    :setup: Create a host collection with two fake hosts assigned.
+
+    :expectedresults: The package is not installed, and the job invocation
+        status contains some expected values: hosts information, jos status.
+
+    :CaseLevel: Integration
     """
     hosts = []
     for _ in range(2):
