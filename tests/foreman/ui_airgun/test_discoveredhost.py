@@ -60,20 +60,12 @@ def provisioning_env(module_org, module_loc):
     default_discovery_org = discovery_org.value
     discovery_org.value = module_org.name
     discovery_org.update(['value'])
-    # Enable flag to auto provision discovered hosts via discovery rules
-    discovery_auto = entities.Setting().search(
-        query={'search': 'name="discovery_auto"'})[0]
-    default_discovery_auto = str(discovery_auto.value)
-    discovery_auto.value = 'True'
-    discovery_auto.update(['value'])
     # we need the default RHEL os version
     yield configure_provisioning(
         org=module_org,
         loc=module_loc,
         os='Redhat {0}'.format(RHELRepository().repo_data['version'])
     )
-    discovery_auto.value = default_discovery_auto
-    discovery_auto.update(['value'])
     discovery_loc.value = default_discovery_loc
     discovery_loc.update(['value'])
     discovery_org.value = default_discovery_org
@@ -331,7 +323,7 @@ def test_positive_manual_provision_host_with_rule(
                 location=[module_loc],
                 organization=[module_org],
             ).create()
-            session.discoveredhosts.auto_provision([host_name])
+            session.discoveredhosts.apply_action('Auto Provision', [host_name])
             pxe_host_name = (
                 u'{0}.{1}'.format(host_name, provisioning_env['domain']))
             assert (session.host.search(pxe_host_name)[0]['Name']
@@ -365,7 +357,7 @@ def test_positive_delete(session, module_org, module_loc, provisioning_env):
             discovered_host_values = session.discoveredhosts.wait_for_entity(
                 host_name)
             assert discovered_host_values['Name'] == host_name
-            session.discoveredhosts.delete(host_name)
+            session.discoveredhosts.apply_action('Delete', [host_name])
             assert not session.discoveredhosts.search(
                 'name = {0}'.format(host_name))
 
@@ -404,9 +396,10 @@ def test_positive_update_default_org(
                 'name = "{0}" or name = "{1}"'.format(*host_names)
             )
             assert set(host_names) == {value['Name'] for value in values}
-            session.discoveredhosts.assign_organization(
+            session.discoveredhosts.apply_action(
+                'Assign Organization',
                 host_names,
-                new_org.name
+                values=dict(organization=new_org.name)
             )
             assert not session.discoveredhosts.search(
                 'name = "{0}" or name = "{1}"'.format(*host_names)
@@ -450,9 +443,10 @@ def test_positive_update_default_location(
                 'name = "{0}" or name = "{1}"'.format(*host_names)
             )
             assert set(host_names) == {value['Name'] for value in values}
-            session.discoveredhosts.assign_location(
+            session.discoveredhosts.apply_action(
+                'Assign Location',
                 host_names,
-                new_loc.name
+                values=dict(location=new_loc.name)
             )
             assert not session.discoveredhosts.search(
                 'name = "{0}" or name = "{1}"'.format(*host_names)
@@ -491,6 +485,6 @@ def test_positive_reboot(session, module_org, module_loc, provisioning_env):
             assert host_ip
             # Ensure that the host is reachable
             assert _is_host_reachable(host_ip)
-            session.discoveredhosts.reboot(host_name)
+            session.discoveredhosts.apply_action('Reboot', host_name)
             # Ensure that the host is not reachable
             assert not _is_host_reachable(host_ip, expect_reachable=False)
