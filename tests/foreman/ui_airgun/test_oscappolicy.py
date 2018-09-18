@@ -255,6 +255,8 @@ def test_positive_check_dashboard(session, module_host_group, module_loc,
             'host_group.resources.assigned': [module_host_group.name]
         })
         policy_details = session.oscappolicy.details(name)
-        total_hosts = policy_details['total_hosts'].split(' ')[-1]
-        assert int(total_hosts) == 1
-        assert int(policy_details['hosts_percentage'][:-1]) == 100
+        assert policy_details['HostsBreakdownStatus']['total_count'] == 1
+        host_breakdown_chart = policy_details[
+            'HostBreakdownChart']['hosts_breakdown'].split(" ", 1)
+        assert host_breakdown_chart[0] == '100%'
+        assert host_breakdown_chart[1] == 'Not audited'
