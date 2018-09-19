@@ -21,12 +21,16 @@ from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
-    skip_if_bug_open,
     tier2,
     tier4,
     stubbed,
     upgrade,
 )
+
+
+@fixture(scope='module')
+def oscap_content_path():
+    return settings.oscap.content_path
 
 
 @fixture(scope='module')
@@ -62,10 +66,10 @@ def test_positive_update(session, oscap_tailoring_path):
         assert org.name in tailor_val['organizations']['resources']['assigned']
 
 
-# TODO content policy has to be done firstly.
 @tier2
 @upgrade
-def test_positive_associate_tailoring_file_with_scap():
+def test_positive_associate_tailoring_file_with_scap(
+        session, oscap_content_path, oscap_tailoring_path):
     """ Associate a Tailoring file with it’s scap content
 
     :id: 33e7b8ca-2e5f-4886-91b7-1a8763059d14
@@ -82,28 +86,40 @@ def test_positive_associate_tailoring_file_with_scap():
 
     :CaseImportance: Critical
     """
-
-
-# TODO content policy has to be done firstly.
-@skip_if_bug_open('bugzilla', 1482904)
-@tier2
-def test_negative_associate_tailoring_file_with_different_scap():
-    """ Associate a tailoring file with different scap content
-
-    :id: 5b166dd4-5e9c-4c35-b2fb-fd35d75d51f5
-
-    :setup: scap content and tailoring file
-
-    :steps:
-
-        1. Create a valid scap content
-        2. Upload a Mutually exclusive tailoring file
-        3. Associate the scap content with tailoring file
-
-    :expectedresults: Association should give some warning
-
-    :CaseImportance: Critical
-    """
+    content_name = gen_string('alpha')
+    tailoring_name = gen_string('alpha')
+    policy_name = gen_string('alpha')
+    loc = entities.Location().create()
+    org = entities.Organization().create()
+    with session:
+        session.oscapcontent.create({
+            'file_upload.title': content_name,
+            'file_upload.scap_file': oscap_content_path,
+            'organizations.resources.assigned': [org.name]
+        })
+        session.organization.select(org_name=org.name)
+        session.oscaptailoringfile.create({
+            'file_upload.name': tailoring_name,
+            'file_upload.scap_file': oscap_tailoring_path,
+            'locations.resources.assigned': [loc.name]
+        })
+        assert session.oscaptailoringfile.search(
+            tailoring_name)[0]['Name'] == tailoring_name
+        assert session.oscapcontent.search(
+            content_name)[0]['Title'] == content_name
+        session.oscappolicy.create({
+            'create_policy.name': policy_name,
+            'scap_content.scap_content_resource': content_name,
+            'scap_content.xccdf_profile':
+                'Common Profile for General-Purpose Systems',
+            'scap_content.tailoring_file': tailoring_name,
+            'scap_content.xccdf_profile_tailoring_file':
+                'Common Profile for General-Purpose Systems [CUSTOMIZED1]',
+            'schedule.period': 'Weekly',
+            'schedule.period_selection.weekday': 'Friday',
+        })
+        assert session.oscappolicy.search(
+            policy_name)[0]['Name'] == policy_name
 
 
 @tier2
