@@ -134,11 +134,11 @@ def test_positive_create_filter_without_override(
         })
     with Session(test_name, user=username, password=password) as session:
         session.subnet.create({
-            'name': subnet_name,
-            'protocol': 'IPv4',
-            'network_address': subnet.network,
-            'network_mask': subnet.mask,
-            'boot_mode': 'Static',
+            'subnet.name': subnet_name,
+            'subnet.protocol': 'IPv4',
+            'subnet.network_address': subnet.network,
+            'subnet.network_mask': subnet.mask,
+            'subnet.boot_mode': 'Static',
         })
         assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
         with raises(NavigationTriesExceeded):
@@ -295,22 +295,22 @@ def test_positive_create_overridable_filter(
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
         session.subnet.create({
-            'name': subnet_name,
-            'protocol': 'IPv4',
-            'network_address': subnet.network,
-            'network_mask': subnet.mask,
-            'boot_mode': 'Static',
+            'subnet.name': subnet_name,
+            'subnet.protocol': 'IPv4',
+            'subnet.network_address': subnet.network,
+            'subnet.network_mask': subnet.mask,
+            'subnet.boot_mode': 'Static',
         })
         assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
         session.organization.select(org_name=role_org.name)
         session.location.select(loc_name=role_loc.name)
         with raises(AssertionError) as context:
             session.subnet.create({
-                'name': new_subnet_name,
-                'protocol': 'IPv4',
-                'network_address': subnet.network,
-                'network_mask': subnet.mask,
-                'boot_mode': 'Static',
+                'subnet.name': new_subnet_name,
+                'subnet.protocol': 'IPv4',
+                'subnet.network_address': subnet.network,
+                'subnet.network_mask': subnet.mask,
+                'subnet.boot_mode': 'Static',
             })
         assert "You don't have permission create_subnets with attributes" \
                " that you have specified or you don't have access to" \
