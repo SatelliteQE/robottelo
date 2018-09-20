@@ -31,6 +31,18 @@ common_locators = LocatorDict({
         By.XPATH, "//div[contains(@bst-alert, 'danger')]"),
     "alert.close": (By.XPATH, "//button[@class='close ng-scope']"),
 
+    "toast.list": (
+        By.XPATH,
+        ("//div['notifications']//"
+         "div[contains(@class, 'toast-notifications-list-pf')]")),
+    "toast.alert": (
+        By.XPATH,
+        ("//div[contains(@class, 'alert') and contains(@class, 'toast-pf')]")),
+    "toast.alert.close": (
+        By.XPATH,
+        ("//div[contains(@class, 'alert') and contains(@class, 'toast-pf')]//"
+         "button[contains(@class, 'close')]")),
+
     "selected_entity": (
         By.XPATH,
         ("//div[@class='ms-selection']/ul[@class='ms-list']"

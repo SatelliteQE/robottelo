@@ -40,8 +40,11 @@ from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_oscap_tailoringfile, make_oscappolicy
 from robottelo.ui.session import Session
+from unittest import skipIf
 
 
+@skipIf(not(settings.oscap.tailoring_path or settings.oscap.content_path),
+        "OSCAP-settings must have tailoring_path and content_path set")
 class TailoringFilesTestCase(UITestCase):
     """Implements Tailoring Files tests in UI."""
 

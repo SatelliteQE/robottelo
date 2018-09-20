@@ -25,6 +25,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+from robottelo.ui.base import UINoSuchElementError
 
 
 class ComputeResourceTestCase(UITestCase):
@@ -61,6 +62,15 @@ class ComputeResourceTestCase(UITestCase):
                             ['URL', self.current_libvirt_url, 'field']
                         ],
                     )
+                    if self.compute_resource.find_element(
+                      common_locators['toast.list']):
+                        try:
+                            self.compute_resource.wait_until_element_is_clickable(  # noqa: E501
+                                common_locators['toast.alert.close'])
+                            self.compute_resource.click(
+                                common_locators['toast.alert.close'])
+                        except UINoSuchElementError:
+                            pass
                     self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
