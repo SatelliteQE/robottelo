@@ -62,28 +62,6 @@ def test_positive_upload_and_delete(session, manifest_file, organization):
 
 @skip_if_not_set('fake_manifest')
 @tier1
-def test_negative_delete(session, manifest_file, organization):
-    """Upload a manifest with minimal input parameters and attempt to
-    delete it but hit 'Cancel' button on confirmation screen
-
-    :id: dbb68a99-2935-4124-8927-e6385e7eecd6
-
-    :BZ: 1266827
-
-    :expectedresults: Manifest was not deleted
-
-    :CaseImportance: Critical
-    """
-    with session:
-        session.organization.select(organization.name)
-        session.subscription.add_manifest(manifest_file)
-        assert session.subscription.has_manifest
-        session.subscription.delete_manifest(really=False)
-        assert session.subscription.has_manifest
-
-
-@skip_if_not_set('fake_manifest')
-@tier1
 def test_positive_delete_confirmation(session, manifest_file, organization):
     """Upload a manifest with minimal input parameters, press 'Delete'
     button and check warning message on confirmation screen
