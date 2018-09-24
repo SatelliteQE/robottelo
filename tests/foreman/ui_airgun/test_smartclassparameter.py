@@ -19,7 +19,7 @@ import yaml
 from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class, publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
+from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC_ID, ENVIRONMENT
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2
 
@@ -35,7 +35,7 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    return entities.Location(id=2).read()
+    return entities.Location(id=DEFAULT_LOC_ID).read()
 
 
 @fixture(scope='module')
@@ -46,11 +46,10 @@ def content_view(module_org):
 
 @fixture(scope='module')
 def puppet_env(content_view, module_org):
-    env = entities.Environment().search(
+    return entities.Environment().search(
         query={'search': u'content_view="{0}" and organization_id={1}'.format(
             content_view.name, module_org.id)}
     )[0]
-    return env
 
 
 @fixture(scope='module')
