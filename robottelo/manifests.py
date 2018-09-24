@@ -186,7 +186,7 @@ def original_manifest():
 
 
 @lock_function
-def upload_manifest_locked(org_id, manifest,  interface=INTERFACE_API):
+def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API):
     """Upload a manifest with locking, using the requested interface.
 
     :type org_id: int
@@ -218,6 +218,8 @@ def upload_manifest_locked(org_id, manifest,  interface=INTERFACE_API):
             'upload manifest with interface "{0}" not supported'
             .format(interface)
         )
+    if manifest is None:
+        manifest = clone()
     if interface == INTERFACE_API:
         with manifest:
             result = entities.Subscription().upload(

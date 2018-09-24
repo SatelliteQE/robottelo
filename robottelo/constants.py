@@ -314,6 +314,19 @@ REPOS = {
             'Red Hat Satellite Capsule 6.2 for RHEL 7 Server ISOs x86_64'
         ),
     },
+    'rhel6': {
+        'id': 'rhel-6-server-rpms',
+        'name': 'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL6,
+        'reposet': REPOSET['rhel6'],
+        'product': PRDS['rhel'],
+        'major_version': RHEL_6_MAJOR_VERSION,
+        'distro_repository': True,
+        'key': 'rhel',
+        'version': '6.8',
+    },
     'rhsc6': {
         'id': 'rhel-6-server-satellite-capsule-6.2-rpms',
         'name': (
@@ -370,6 +383,16 @@ REPOS = {
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL6,
         'key': 'rhva65',
+    },
+    'rhct6': {
+        'name': 'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'version': '6Server',
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhct6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhct6',
     },
     'rhaht': {
         'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
