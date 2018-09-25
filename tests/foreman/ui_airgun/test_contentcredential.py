@@ -274,7 +274,8 @@ class TestGPGKeyProductAssociate(object):
             assert len(values['products']['table']) == 1
             assert values['products']['table'][0]['Name'] == product_name
             assert len(values['repositories']['table']) == 1
-            assert values['repositories']['table'][0]['Name'] == repo_name
+            assert (values['repositories']['table'][0]['Name'].split(' ')[-1]
+                    == repo_name)
 
     @tier2
     def test_positive_update_key_for_empty_product(self, session):
