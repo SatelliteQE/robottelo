@@ -415,7 +415,7 @@ class TemplateSyncTestCase(APITestCase):
         """Assure only templates with a given filter regex are pulled from
         git repo.
 
-        :id: 628a95d6-7a4e-4e56-ad7b-d9fecd34f765
+        :id: fbdebf70-6522-4332-a92b-2e6a4a439c0c
 
         :Steps:
             1. Using nailgun or direct API call
@@ -471,7 +471,7 @@ class TemplateSyncTestCase(APITestCase):
         """Assure templates with a given filter regex are NOT pulled from
         git repo.
 
-        :id: a6857454-249b-4a2e-9b53-b5d7b4eb34e3
+        :id: bdef39a1-8169-4788-ba60-1698cfbab1fe
 
         :Steps:
             1. Using nailgun or direct API call
@@ -523,7 +523,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_import_from_branch(self):
         """Assure only templates from a given branch are imported
 
-        :id: 8ccb2c13-808d-41b7-afd7-22431311d74a
+        :id: 8b4dc943-3f2b-4836-828c-8d00814edd2f
 
         :Steps:
             1. Using nailgun or direct API call
@@ -542,7 +542,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_import_from_subdirectory(self):
         """Assure only templates from a given subdirectory are imported
 
-        :id: 9d368931-045b-4bfd-94ea-ef67006191a1
+        :id: 888ce7c7-c586-4c21-9bdd-7e81fcb9b33b
 
         :Steps:
             1. Using nailgun or direct API call
@@ -561,7 +561,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_negative_import_locked_template(self):
         """Assure locked templates are not pulled from repository.
 
-        :id: 88e21cad-448e-45e0-add2-94493a1319c5
+        :id: d3ea2191-e247-4039-af62-c0913572c75f
 
         :Steps:
             1. Using nailgun or direct API call try to import a locked template
@@ -578,7 +578,7 @@ class TemplateSyncTestCase(APITestCase):
         """Assure locked templates are updated from repository when `force` is
         specified.
 
-        :id: b80fbfc4-bcab-4a5d-b6c1-0e22906cd8ab
+        :id: 5f933402-4cb3-44e5-84e4-aac67642b35b
 
         :Steps:
             1. Using nailgun or direct API call
@@ -598,7 +598,7 @@ class TemplateSyncTestCase(APITestCase):
         """Assure imported template is automatically associated with
         Organization and Location.
 
-        :id: 04a14a56-bd71-412b-b2da-4b8c3991c401
+        :id: f4c37cb2-d1ab-4d1b-94b4-148f6e81e016
 
         :Steps:
             1. Using nailgun or direct API call
@@ -619,7 +619,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_import_all_templates_from_repo(self):
         """Assure all templates are imported if no filter is specified.
 
-        :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
+        :id: d1f001b9-4bb1-4712-aa75-cc41153168d9
 
         :Steps:
             1. Using nailgun or direct API call
@@ -683,7 +683,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_file_based_sync(self):
         """Assure template sync work from a local directory
 
-        :id: cb39b80f-9114-4da0-bf7d-f7ec2b71edc3
+        :id: 53637a61-3848-4fca-adff-7caac9220d75
 
         :steps:
             1. Create a new template in local filesystem using $FOLDER=
@@ -748,7 +748,7 @@ class TemplateSyncTestCase(APITestCase):
         """Assure only templates with a given filter regex are pushed to
         git template (new templates are created, existing updated).
 
-        :id: fd583f85-f170-4b93-b9b1-36d72f31c31f
+        :id: 44cc65d9-07de-492e-9a41-3da74c475fcb
 
         :Steps:
             1. Using nailgun or direct API call
@@ -769,7 +769,7 @@ class TemplateSyncTestCase(APITestCase):
         """Assure templates with a given filter regex are NOT pushed to
         git repo.
 
-        :id: ca1186f7-a0d5-4e5e-b7dd-de293308bc90
+        :id: 1704602a-1c22-4b7f-b74f-71dbbaa3a61d
 
         :Steps:
             1. Using nailgun or direct API call
@@ -790,7 +790,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_export_to_branch(self):
         """Assure templates are exported to specified existing branch
 
-        :id: 2bef9597-1b5a-4010-b6e9-a3540e045a7b
+        :id: 03f77671-a974-49c1-82a1-65b87367e8a4
 
         :Steps:
             1. Using nailgun or direct API call
@@ -809,7 +809,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_export_to_subdirectory(self):
         """Assure templates are exported to repository existing subdirectory
 
-        :id: 8ea11a1a-165e-4834-9387-7accb4c94e77
+        :id: bb4de97a-557e-40f0-87de-558c84300712
 
         :Steps:
             1. Using nailgun or direct API call
@@ -828,7 +828,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_export_and_import_with_metadata(self):
         """Assure exported template contains metadata.
 
-        :id: ba8a34ce-c2c6-4889-8729-59714c0a4b19
+        :id: 1694634d-8120-4c10-a031-ffacd7a77aea
 
         :Steps:
             1. Create a template using nailgun entity and specify Org/Loc.
@@ -854,7 +854,7 @@ class TemplateSyncTestCase(APITestCase):
     def test_positive_export_all_templates_to_repo(self):
         """Assure all templates are exported if no filter is specified.
 
-        :id: 0bf6fe77-01a3-4843-86d6-22db5b8adf3b
+        :id: 70566851-82ff-494d-b672-134d7bf8855f
 
         :Steps:
             1. Using nailgun or direct API call
