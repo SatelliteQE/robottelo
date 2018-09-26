@@ -1,3 +1,20 @@
+"""Tests for Red Hat Access Insights
+
+:Requirement: Rhai
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
+
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
@@ -5,6 +22,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest as up_man
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL7
+from robottelo.decorators import tier2
 from robottelo.vm import VirtualMachine
 
 
@@ -62,6 +80,7 @@ def vm(activation_key, module_org):
         yield vm
 
 
+@tier2
 def test_positive_register_client_to_rhai(vm, autosession):
     """Check client registration to redhat-access-insights service.
 
@@ -69,6 +88,8 @@ def test_positive_register_client_to_rhai(vm, autosession):
 
     :expectedresults: Registered client should appear in the Systems sub-
         menu of Red Hat Access Insights
+
+    :CaseLevel: Integration
     """
     table = autosession.insightsinventory.search(vm.hostname)
     assert table[0]["System Name"].text == vm.hostname
