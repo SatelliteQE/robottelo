@@ -16,8 +16,6 @@
 """
 import os
 
-import json
-
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -31,7 +29,6 @@ from robottelo.cli.factory import (
     make_tailoringfile,
     make_user
 )
-from robottelo.cli.host import Host
 from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
@@ -62,7 +59,6 @@ from robottelo.datafactory import (
 )
 from robottelo.test import CLITestCase
 from nailgun import entities
-from nailgun import client
 from robottelo.cli.proxy import Proxy
 
 
