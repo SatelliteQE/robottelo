@@ -22,7 +22,6 @@ from robottelo.config import settings
 from robottelo.decorators import (
         destructive,
         run_in_one_thread,
-        skip_if_bug_open,
         stubbed,
 )
 from robottelo.ssh import get_connection
@@ -93,7 +92,7 @@ class RenameHostTestCase(TestCase):
                 product=self.product, name='testrepo').create()
         with get_connection() as connection:
             result = connection.run(
-                'katello-change-hostname {0} -y -u {1} -p {2}'.format(
+                'satellite-change-hostname {0} -y -u {1} -p {2}'.format(
                     new_hostname, self.username, self.password),
             )
             self.assertEqual(result.return_code, 0, 'unsuccessful rename')
@@ -166,7 +165,6 @@ class RenameHostTestCase(TestCase):
         cv.publish()
 
     @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1485884)
     def test_negative_rename_sat_to_invalid_hostname(self):
         """change to invalid hostname on Satellite server
 
@@ -182,7 +180,7 @@ class RenameHostTestCase(TestCase):
         with get_connection() as connection:
             hostname = gen_string('alpha')
             result = connection.run(
-                'katello-change-hostname -y \
+                'satellite-change-hostname -y \
                         {0} -u {1} -p {2}'.format(
                     hostname, self.username, self.password),
                 output_format='plain'
@@ -195,7 +193,6 @@ class RenameHostTestCase(TestCase):
                              "Invalid hostame assigned")
 
     @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1485884)
     def test_negative_rename_sat_no_credentials(self):
         """change hostname without credentials on Satellite server
 
@@ -211,7 +208,7 @@ class RenameHostTestCase(TestCase):
         with get_connection() as connection:
             hostname = gen_string('alpha')
             result = connection.run(
-                'katello-change-hostname -y {0}'.format(hostname),
+                'satellite-change-hostname -y {0}'.format(hostname),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -222,7 +219,6 @@ class RenameHostTestCase(TestCase):
                              "Invalid hostame assigned")
 
     @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1485884)
     def test_negative_rename_sat_wrong_passwd(self):
         """change hostname with wrong password on Satellite server
 
@@ -238,7 +234,7 @@ class RenameHostTestCase(TestCase):
         with get_connection() as connection:
             password = gen_string('alpha')
             result = connection.run(
-                'katello-change-hostname -y \
+                'satellite-change-hostname -y \
                         {0} -u {1} -p {2}'.format(
                     self.hostname, self.username, password),
                 output_format='plain'
@@ -282,8 +278,7 @@ class RenameHostTestCase(TestCase):
         with get_connection() as connection:
             hostname = gen_string('alpha')
             result = connection.run(
-                # use -y once implemented BZ#1469466
-                'yes | katello-change-hostname -u {0} -p {1}\
+                'satellite-change-hostname -y -u {0} -p {1}\
                         --disable-system-checks\
                         --scenario capsule {2}'.format(
                     username, password, hostname),
