@@ -1196,7 +1196,7 @@ class OpenScapTestCase(CLITestCase):
             'id': scap_policy['id'],
             'hosts': result['name'],
         })
-        data = entities.CompliancePolicies(id=scap_policy['id']).read().hosts
+        data = entities.Policies(id=scap_policy['id']).read().hosts
         self.assertNotEqual(len(data[0]['name']), 0)
         self.assertEqual(data[0]['name'], result['name'])
 
