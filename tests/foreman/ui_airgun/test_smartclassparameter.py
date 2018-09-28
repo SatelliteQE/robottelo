@@ -21,11 +21,13 @@ from nailgun import entities
 from robottelo.api.utils import delete_puppet_class, publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC_ID, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import fixture, run_in_one_thread, tier2
 
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [
     {'author': 'robottelo', 'name': PM_NAME}]
+
+pytestmark = [run_in_one_thread]
 
 
 @fixture(scope='module')
