@@ -22,6 +22,7 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier2,
@@ -50,6 +51,8 @@ def test_positive_host_configuration_status(session):
 
     :expectedresults: Each link shows the right info
 
+    :BZ: 1631219
+
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
@@ -60,8 +63,8 @@ def test_positive_host_configuration_status(session):
         'Good host reports in the last 30 minutes',
         'Hosts that had pending changes',
         'Out of sync hosts',
-        'Hosts with no reports',
         'Hosts with alerts disabled',
+        'Hosts with no reports',
     ]
     search_strings_list = [
         'last_report > \"30 minutes ago\" and (status.applied > 0 or'
@@ -70,11 +73,16 @@ def test_positive_host_configuration_status(session):
         ' status.failed_restarts > 0) and status.enabled = true',
         'last_report > \"30 minutes ago\" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'status.pending > 0 and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.pending > 0'
+        ' and status.enabled = true',
         'last_report < \"30 minutes ago\" and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.enabled = false',
         'not has last_report and status.enabled = true',
-        'status.enabled = false'
     ]
+    if bz_bug_is_open(1631219):
+        criteria_list.pop()
+        search_strings_list.pop()
+
     with session:
         session.organization.select(org_name=org.name)
         dashboard_values = session.dashboard.read('HostConfigurationStatus')
