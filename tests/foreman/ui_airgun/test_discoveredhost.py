@@ -23,13 +23,15 @@ from robottelo.api.utils import configure_provisioning
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     tier3,
     upgrade,
 )
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.products import RHELRepository
+
+pytestmark = [run_in_one_thread]
 
 
 @fixture(scope='module')
@@ -131,8 +133,6 @@ def test_positive_read_details_from_discovered_host(
                     )
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
@@ -161,8 +161,6 @@ def test_positive_pxe_based_discovery(
             assert discovered_host_values['Name'] == host_name
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @tier3
 @upgrade
@@ -191,8 +189,6 @@ def test_positive_pxe_less_with_dhcp_unattended(
             assert discovered_host_values['Name'] == host_name
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
@@ -239,8 +235,6 @@ def test_positive_provision_using_quick_host_button(
                 'name = {0}'.format(host_name))
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_update_name(
@@ -283,8 +277,6 @@ def test_positive_update_name(
                 'name = {0}'.format(host_name))
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
@@ -334,8 +326,6 @@ def test_positive_manual_provision_host_with_rule(
                 'name = {0}'.format(host_name))
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_delete(session, module_org, module_loc, provisioning_env):
@@ -362,8 +352,7 @@ def test_positive_delete(session, module_org, module_loc, provisioning_env):
                 'name = {0}'.format(host_name))
 
 
-@run_in_one_thread
-@run_only_on('sat')
+@skip_if_bug_open('bugzilla', 1634728)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_update_default_org(
@@ -377,6 +366,8 @@ def test_positive_update_default_org(
 
     :expectedresults: Default org should be successfully changed for
         multiple hosts
+
+    :BZ: 1634728
 
     :CaseLevel: System
     """
@@ -411,8 +402,7 @@ def test_positive_update_default_org(
             assert set(host_names) == {value['Name'] for value in values}
 
 
-@run_in_one_thread
-@run_only_on('sat')
+@skip_if_bug_open('bugzilla', 1634728)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_update_default_location(
@@ -426,6 +416,8 @@ def test_positive_update_default_location(
 
     :expectedresults: Default Location should be successfully changed for
         multiple hosts
+
+    :BZ: 1634728
 
     :CaseLevel: System
     """
@@ -458,8 +450,6 @@ def test_positive_update_default_location(
             assert set(host_names) == {value['Name'] for value in values}
 
 
-@run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_reboot(session, module_org, module_loc, provisioning_env):
