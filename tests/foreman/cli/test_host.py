@@ -1727,24 +1727,24 @@ class HostParameterTestCase(CLITestCase):
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
         })[0]
         # using nailgun to create dependencies
-        cls.host = entities.Host()
-        cls.host.create_missing()
-        cls.org_id = cls.host.organization.id
-        cls.loc_id = cls.host.location.id
+        cls.host_template = entities.Host()
+        cls.host_template.create_missing()
+        cls.org_id = cls.host_template.organization.id
+        cls.loc_id = cls.host_template.location.id
         # using CLI to create host
         cls.host = make_host({
-            u'architecture-id': cls.host.architecture.id,
-            u'domain-id': cls.host.domain.id,
-            u'environment-id': cls.host.environment.id,
+            u'architecture-id': cls.host_template.architecture.id,
+            u'domain-id': cls.host_template.domain.id,
+            u'environment-id': cls.host_template.environment.id,
             u'location-id': cls.loc_id,
-            u'mac': cls.host.mac,
-            u'medium-id': cls.host.medium.id,
-            u'name': cls.host.name,
-            u'operatingsystem-id': cls.host.operatingsystem.id,
+            u'mac': cls.host_template.mac,
+            u'medium-id': cls.host_template.medium.id,
+            u'name': cls.host_template.name,
+            u'operatingsystem-id': cls.host_template.operatingsystem.id,
             u'organization-id': cls.org_id,
-            u'partition-table-id': cls.host.ptable.id,
+            u'partition-table-id': cls.host_template.ptable.id,
             u'puppet-proxy-id': cls.puppet_proxy['id'],
-            u'root-password': cls.host.root_pass,
+            u'root-password': cls.host_template.root_pass,
         })
 
     @tier1
@@ -2160,7 +2160,19 @@ class HostParameterTestCase(CLITestCase):
             u'password-auth\r\n'
             u'account     include                  password-auth'
         )
-        host = self.host
+        host = make_host({
+            u'architecture-id': self.host_template.architecture.id,
+            u'domain-id': self.host_template.domain.id,
+            u'environment-id': self.host_template.environment.id,
+            u'location-id': self.loc_id,
+            u'mac': self.host_template.mac,
+            u'medium-id': self.host_template.medium.id,
+            u'operatingsystem-id': self.host_template.operatingsystem.id,
+            u'organization-id': self.org_id,
+            u'partition-table-id': self.host_template.ptable.id,
+            u'puppet-proxy-id': self.puppet_proxy['id'],
+            u'root-password': self.host_template.root_pass,
+        })
         # count parameters of a host
         response = Host.info(
             {'id': host['id']}, output_format='yaml', return_raw_response=True)
@@ -2180,8 +2192,10 @@ class HostParameterTestCase(CLITestCase):
         host_parameters = yaml_content.get('Parameters')
         # check that number of params increased by one
         self.assertEqual(len(host_parameters), 1 + len(host_initial_params))
-        self.assertEqual(host_parameters[0]['name'], param_name)
-        self.assertEqual(host_parameters[0]['value'], param_value)
+        filtered_params = [param for param in host_parameters
+                           if param['name'] == param_name]
+        self.assertEqual(len(filtered_params), 1)
+        self.assertEqual(filtered_params[0]['value'], param_value)
 
 
 class HostProvisionTestCase(CLITestCase):
