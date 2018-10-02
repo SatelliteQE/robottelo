@@ -19,13 +19,12 @@ from fauxfactory import gen_string
 from pytest import raises
 
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.decorators import run_only_on, tier2
+from robottelo.decorators import tier2
 from robottelo.helpers import get_data_file
 
 PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_default_for_organization(session):
     """Create new partition table with enabled 'default' option. Check
@@ -51,7 +50,6 @@ def test_positive_create_default_for_organization(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_custom_organization(session):
     """Create new partition table with disabled 'default' option. Check
@@ -77,7 +75,6 @@ def test_positive_create_custom_organization(session):
         assert not session.partitiontable.search(name)
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_default_for_location(session):
     """Create new partition table with enabled 'default' option. Check
@@ -103,7 +100,6 @@ def test_positive_create_default_for_location(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_custom_location(session):
     """Create new partition table with disabled 'default' option. Check
@@ -130,14 +126,6 @@ def test_positive_create_custom_location(session):
 
 
 def test_positive_delete(session):
-    """Delete a partition table
-
-    :customerscenario: true
-
-    :expectedresults: Partition table is deleted
-
-    :CaseImportance: Critical
-    """
     name = gen_string('alpha')
     with session:
         session.partitiontable.create({
@@ -150,14 +138,6 @@ def test_positive_delete(session):
 
 
 def test_positive_update(session):
-    """Update partition table with its name, layout and OS family
-
-    :customerscenario: true
-
-    :expectedresults: Partition table is updated
-
-    :CaseImportance: Critical
-    """
     old_name = gen_string('alpha')
     new_name = gen_string('alpha')
     with session:
@@ -177,14 +157,6 @@ def test_positive_update(session):
 
 
 def test_positive_delete_with_lock_and_unlock(session):
-    """Lock and unlock the partition table,
-    to prevent partition table from deletion.
-
-    :expectedresults: Partition table is locked, cannot be deleted,
-        unlocked and then successfully deleted.
-
-    :CaseImportance: Critical
-    """
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
     with session:
@@ -205,13 +177,6 @@ def test_positive_delete_with_lock_and_unlock(session):
 
 
 def test_positive_clone(session):
-    """Clone the partition table from existing partition table
-    and change parameters in cloned partition table
-
-    :expectedresults: Partition table is cloned.
-
-    :CaseImportance: Critical
-    """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     audit_comment = gen_string('alpha')

@@ -92,6 +92,8 @@ def domain(module_host):
 def test_positive_create(session, puppet_class):
     """Creates a Smart Variable using different names.
 
+    :id: ee4a0e3c-9a41-4fe9-8730-faab663b9ed1
+
     :steps: Creates a smart variable with valid name
 
     :expectedresults: The smart variable is created successfully.
