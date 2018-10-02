@@ -1083,7 +1083,7 @@ def test_positive_add_package_filter(session, module_org):
             'inclusion_type': FILTER_TYPE['include'],
         })
         for package_name, versions in packages:
-            session.contentviewfilter.add_package(
+            session.contentviewfilter.add_package_rule(
                 cv.name, filter_name, package_name, None, versions)
         cvf = session.contentviewfilter.read(cv.name, filter_name)
         expected_packages = {
@@ -1120,7 +1120,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
             'content_type': FILTER_CONTENT_TYPE['package'],
             'inclusion_type': FILTER_TYPE['include'],
         })
-        session.contentviewfilter.add_package(
+        session.contentviewfilter.add_package_rule(
             cv.name, filter_name, package_name, None, ('Equal To', '0.71-1'))
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
@@ -1138,7 +1138,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
             'name = "{}" and version = "{}"'.format(package_name, '5.21')
         )
         assert not packages
-        session.contentviewfilter.update_package(
+        session.contentviewfilter.update_package_rule(
             cv.name, filter_name, package_name,
             {'Version': ('Equal To', '5.21-1')},
             version='Version 0.71-1',
@@ -1187,7 +1187,7 @@ def test_positive_edit_rh_custom_spin(session):
         upload_manifest=True,
     )
     cv = entities.ContentView(
-        id=repos_collection._setup_content_data['content_view']['id']).read()
+        id=repos_collection.setup_content_data['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(cv.name, {
@@ -1335,7 +1335,7 @@ def test_positive_update_filter_affected_repos(session, module_org):
             'content_type': FILTER_CONTENT_TYPE['package'],
             'inclusion_type': FILTER_TYPE['include'],
         })
-        session.contentviewfilter.add_package(
+        session.contentviewfilter.add_package_rule(
             cv.name, filter_name, repo1_package_name, None,
             ('Equal To', '0.71-1')
         )
