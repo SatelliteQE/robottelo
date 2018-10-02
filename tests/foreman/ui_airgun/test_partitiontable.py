@@ -157,16 +157,6 @@ def test_positive_update(session):
 
 
 def test_positive_delete_with_lock_and_unlock(session):
-    """Lock and unlock the partition table to prevent partition table from
-    deletion.
-
-    :id: adcebf79-d032-46ea-9cd1-fb9642548527
-
-    :expectedresults: Partition table is locked, cannot be deleted,
-        unlocked and then successfully deleted.
-
-    :CaseImportance: Critical
-    """
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
     with session:
@@ -187,15 +177,6 @@ def test_positive_delete_with_lock_and_unlock(session):
 
 
 def test_positive_clone(session):
-    """Clone the partition table from existing partition table and change
-    parameters in cloned partition table
-
-    :id: 629f1256-ec2a-4239-b752-e756d3487290
-
-    :expectedresults: Partition table is cloned.
-
-    :CaseImportance: Critical
-    """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     audit_comment = gen_string('alpha')

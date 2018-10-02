@@ -18,7 +18,7 @@ import requests
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, parametrize, tier2
+from robottelo.decorators import fixture, parametrize, run_in_one_thread, tier2
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 
@@ -277,6 +277,7 @@ def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
 
 @tier2
 @parametrize('version', [True, False])
+@run_in_one_thread
 def test_positive_resource_vm_power_management(
         session, module_ca_cert, rhev_data, version):
     """Read current RHEV Compute Resource virtual machine power status and

@@ -50,6 +50,7 @@ def ipa_data():
 
 
 @skip_if_not_set('ldap')
+@tier2
 def test_positive_create_with_ad(session, ldap_data):
     """Create LDAP authentication with AD
 
@@ -83,6 +84,7 @@ def test_positive_create_with_ad(session, ldap_data):
 
 
 @skip_if_not_set('ldap')
+@tier2
 def test_positive_delete_with_ad(session, ldap_data):
     """Delete LDAP authentication with AD
 
