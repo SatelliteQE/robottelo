@@ -82,35 +82,6 @@ def _create_repository(session, org, name, product, upstream_name=None):
     )
 
 
-class DockerTagTestCase(UITestCase):
-    """Tests related to Content > Docker Tags page"""
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_search_docker_image(self):
-        """Search for a docker image
-
-        :id: 28640396-c44d-4487-9d6d-3d5f2ed599d7
-
-        :expectedresults: The docker tag can be searched and found
-
-        :CaseLevel: Integration
-        """
-        organization = entities.Organization().create()
-        pr = entities.Product(organization=organization).create()
-        repo = entities.Repository(
-            content_type='docker',
-            docker_upstream_name='busybox',
-            product=pr,
-            url=DOCKER_REGISTRY_HUB,
-        ).create()
-        repo.sync()
-        with Session(self) as session:
-            session.nav.go_to_select_org(organization.name)
-            self.assertIsNotNone(
-                self.dockertag.search('latest', pr.name, repo.name))
-
-
 class DockerRepositoryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
