@@ -42,7 +42,7 @@ def sync_repo(product):
 
 
 @tier2
-def test_positive_search_docker_image(session, org, product, sync_repo):
+def test_positive_search(session, org, product, sync_repo):
     """Search for a docker image
 
     :id: 28640396-c44d-4487-9d6d-3d5f2ed599d7
@@ -61,7 +61,7 @@ def test_positive_search_docker_image(session, org, product, sync_repo):
 def test_positve_read_details(session, org, product, sync_repo):
     with session:
         session.organization.select(org_name=org.name)
-        values = session.containerimagetag.read_details('latest')
-        assert product.name == values['details']['product_name']
-        assert sync_repo.name == values['details']['repository_name']
+        values = session.containerimagetag.read('latest')
+        assert product.name == values['details']['product']
+        assert sync_repo.name == values['details']['repository']
         assert values['lce']['table'][0]['Environment'] == 'Library'
