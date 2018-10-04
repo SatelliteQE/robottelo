@@ -122,6 +122,8 @@ class HostGroupTestCase(APITestCase):
         ]
         self.assertEqual(len(environments), 1)
         environment = environments[0].read()
+        environment.location = [location]
+        environment.update()
 
         # Create a host group and it dependencies.
         mac = entity_fields.MACAddressField().gen_value()

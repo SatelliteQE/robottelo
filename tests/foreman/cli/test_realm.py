@@ -27,7 +27,7 @@ from robottelo.cli.factory import (
     CLIFactoryError,
 )
 from robottelo.cli.realm import Realm
-from robottelo.decorators import tier1, run_in_one_thread, upgrade
+from robottelo.decorators import tier1, run_in_one_thread
 from robottelo.test import CLITestCase
 
 
@@ -52,7 +52,6 @@ class RealmTestCase(CLITestCase):
             self.addCleanup(realm_cleanup, self.realm['id'])
 
     @tier1
-    @upgrade
     def test_positive_delete_by_name(self):
         """Realm deletion by realm name
 
@@ -146,7 +145,7 @@ class RealmTestCase(CLITestCase):
         up = Realm.update({'id': self.realm['id'], 'new-name': new_realm_name})
         self.assertEquals(
             up[0]['message'],
-            'Realm [{0}] updated'.format(new_realm_name)
+            'Realm [{0}] updated.'.format(new_realm_name)
         )
         info = Realm.info({'id': self.realm['id']})
         self.assertEquals(info['name'], new_realm_name)

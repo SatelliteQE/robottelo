@@ -15,24 +15,16 @@
 :Upstream: No
 """
 from nailgun import entities
-from requests.exceptions import HTTPError
 from robottelo import manifests
-from robottelo.api.utils import promote, upload_manifest
-from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     ANY_CONTEXT,
-    DISTRO_RHEL7,
     FAKE_0_YUM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_bug_open,
-    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
@@ -42,7 +34,6 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
-from robottelo.vm import VirtualMachine
 
 
 class DashboardTestCase(UITestCase):
@@ -291,222 +282,6 @@ class DashboardTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @tier2
-    def test_positive_host_configuration_status(self):
-        """Check if the Host Configuration Status Widget links are working
-
-        :id: ffb0a6a1-2b65-4578-83c7-61492122d865
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Review the Host Configuration Status
-            3. Navigate to each of the links which has search string associated
-               with it.
-
-        :expectedresults: Each link shows the right info
-
-        :CaseLevel: Integration
-        """
-        criteria_list = [
-            'Hosts that had performed modifications without error',
-            'Hosts in error state',
-            'Good host reports in the last 35 minutes',
-            'Hosts that had pending changes',
-            'Out of sync hosts',
-            'Hosts with no reports',
-            'Hosts with alerts disabled',
-        ]
-        search_strings_list = [
-            'last_report > \"35 minutes ago\" and (status.applied > 0 or'
-            ' status.restarted > 0) and (status.failed = 0)',
-            'last_report > \"35 minutes ago\" and (status.failed > 0 or'
-            ' status.failed_restarts > 0) and status.enabled = true',
-            'last_report > \"35 minutes ago\" and status.enabled = true and'
-            ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-            'status.pending > 0 and status.enabled = true',
-            'last_report < \"35 minutes ago\" and status.enabled = true',
-            'not has last_report and status.enabled = true',
-            'status.enabled = false'
-        ]
-        org = entities.Organization().create()
-        host = entities.Host(organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.dashboard.navigate_to_entity()
-            for criteria in criteria_list:
-                if criteria == 'Hosts with no reports':
-                    self.assertEqual(
-                        self.dashboard.get_hcs_host_count(criteria), 1)
-                else:
-                    self.assertEqual(
-                        self.dashboard.get_hcs_host_count(criteria), 0)
-            for criteria, search in zip(criteria_list, search_strings_list):
-                if criteria == 'Hosts with no reports':
-                    self.assertTrue(self.dashboard.validate_hcs_navigation(
-                        criteria, search, host_name=host.name)
-                    )
-                else:
-                    self.assertTrue(self.dashboard.validate_hcs_navigation(
-                        criteria, search))
-
-    @tier2
-    def test_positive_host_configuration_chart(self):
-        """Check if the Host Configuration Chart is working in the Dashboard UI
-
-        :id: b03314aa-4394-44e5-86da-c341c783003d
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Review the Host Configuration Chart widget
-            3. Check that chart contains correct percentage value
-
-        :expectedresults: Chart showing correct data
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        entities.Host(organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertEqual(
-                self.dashboard.get_hcc_host_percentage('No report'),
-                '100%'
-            )
-
-    @run_in_one_thread
-    @tier2
-    def test_positive_task_status(self):
-        """Check if the Task Status is working in the Dashboard UI
-
-        :id: fb667d6a-7255-4341-9f79-2f03d19e8e0f
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Review the Task Status widget
-            3. Click each link
-
-        :expectedresults: Each link shows the right info
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        with self.assertRaises(HTTPError):
-            entities.Organization(name=org.name).create()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.publish()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertTrue(self.dashboard.validate_task_navigation(
-                'running', 'pending'))
-            self.assertTrue(self.dashboard.validate_task_navigation(
-                'stopped', 'success',
-                "Publish content view '{0}'; organization '{1}'".format(
-                    content_view.name, org.name)
-            ))
-            self.assertTrue(self.dashboard.validate_task_navigation(
-                'stopped', 'error'))
-
-    @skip_if_bug_open('bugzilla', 1460240)
-    @tier2
-    def test_positive_latest_warning_error_tasks(self):
-        """Check if the Latest Warning/Error
-        Tasks Status are working in the Dashboard UI
-
-        :id: c90df864-1472-4b7c-91e6-9ea9e98384a9
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Review the Latest Warning/Error Tasks widget.
-
-        :expectedresults: The links to all failed/warnings tasks are working
-
-        :CaseLevel: Integration
-        """
-        name = entities.Organization().create().name
-        with self.assertRaises(HTTPError):
-            entities.Organization(name=name).create()
-        with Session(self) as session:
-            set_context(session, org=name)
-            self.assertTrue(self.dashboard.validate_error_navigation(
-                'Create',
-                'error',
-                'Validation failed: Name has already been taken'
-            ))
-
-    @tier2
-    def test_positive_content_view_history(self):
-        """Check if the Content View History are working in the Dashboard UI
-
-        :id: cb63a67d-7cca-4d2c-9abf-9f4f5e92c856
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Review the Content View History widget
-
-        :expectedresults: Each Content View link shows its current status (the
-            environment to which it is published)
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        lc_env = entities.LifecycleEnvironment(organization=org).create()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.publish()
-        promote(content_view.read().version[0], lc_env.id)
-        expected_list = [
-            ['Promoted to {0}'.format(lc_env.name), 'Success'],
-            ['Published new version', 'Success']
-        ]
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            actual_list = self.dashboard.get_cvh_tasks_list(content_view.name)
-            self.assertTrue(all(
-                element in exp_element
-                for sublist, exp_sublist in zip(expected_list, actual_list)
-                for element, exp_element in zip(sublist, exp_sublist)
-            ))
-
-    @tier2
-    def test_positive_rendering_after_env_removed(self):
-        """Check if Dashboard UI rendered properly after lc environment for
-        active organization is removed from the system
-
-        :id: 81c52395-3476-4123-bc3b-49d6c658da9a
-
-        :Steps:
-
-            1. Create an environment (e.g. Dev)
-            2. Create a content view and promote it to the environment
-            3. Remove the environment.
-            4. Visit the dashboard page and verify that it loads successfully.
-
-        :expectedresults: Dashboard search box and necessary widgets are
-            rendered before and after necessary environment is removed
-
-        :BZ: 1361793
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        lc_env = entities.LifecycleEnvironment(organization=org).create()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.publish()
-        promote(content_view.read().version[0], lc_env.id)
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertIsNotNone(
-                self.dashboard.search(lc_env.name, 'lifecycle_environment'))
-            entities.LifecycleEnvironment(id=lc_env.id).delete()
-            self.assertIsNotNone(
-                self.dashboard.search(lc_env.name, 'lifecycle_environment'))
-            self.assertIsNotNone(
-                self.dashboard.get_widget('Content Views'))
-
     @stubbed()
     @tier2
     def test_positive_discovered_hosts(self):
@@ -580,80 +355,6 @@ class DashboardTestCase(UITestCase):
                 'Syncing Complete.'
             )
 
-    @tier2
-    @run_in_one_thread
-    @skip_if_not_set('clients', 'fake_manifest')
-    @upgrade
-    def test_positive_content_host_subscription_status(self):
-        """Check if the Content Host Subscription Status is working in the
-        Dashboard UI
-
-        :id: ce0d7b0c-ae6a-4361-8173-e50f6381194a
-
-        :Steps:
-
-            1. Register Content Host and subscribe it
-            2. Navigate Monitor -> Dashboard
-            3. Review the Content Host Subscription Status
-            4. Click each link:
-
-                a. Invalid Subscriptions
-                b. Partial Subscriptions
-                c. Valid Subscriptions
-
-        :expectedresults: The widget is updated with all details for Valid,
-            Invalid and Partial Subscriptions
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        env = entities.LifecycleEnvironment(organization=org).create()
-        content_view = entities.ContentView(organization=org).create()
-        activation_key = entities.ActivationKey(
-            environment=env,
-            organization=org,
-        ).create()
-        # Using cdn repo as we need a rh repo (no matter are we in cdn or
-        # downstream) for subscription status to be ok
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        }, force_use_cdn=True)
-        with VirtualMachine(distro=DISTRO_RHEL7) as client:
-            client.install_katello_ca()
-            client.register_contenthost(
-                org.label, activation_key.name)
-            self.assertTrue(client.subscribed)
-            client.enable_repo(REPOS['rhst7']['id'], force=True)
-            client.install_katello_agent()
-            with Session(self) as session:
-                set_context(session, org=org.name)
-                self.assertTrue(self.dashboard.validate_chss_navigation(
-                    'Invalid', u'subscription_status = invalid'))
-                if not bz_bug_is_open(1482150):
-                    self.assertIsNotNone(self.dashboard.wait_until_element(
-                        common_locators['kt_search_no_results']))
-                    self.assertTrue(self.dashboard.validate_chss_navigation(
-                        'Partial', u'subscription_status = partial'))
-                    self.assertIsNotNone(self.dashboard.wait_until_element(
-                        common_locators['kt_search_no_results']))
-                else:
-                    hosts = self.dashboard.find_elements(
-                            self.contenthost._search_locator() % "")
-                    self.assertEqual(len(hosts), 0)
-                    self.assertTrue(self.dashboard.validate_chss_navigation(
-                        'Partial', u'subscription_status = partial'))
-                    hosts = self.dashboard.find_elements(
-                        self.contenthost._search_locator() % "")
-                    self.assertEqual(len(hosts), 0)
-                self.assertTrue(self.dashboard.validate_chss_navigation(
-                    'Valid', u'subscription_status = valid', client.hostname))
-
     @tier1
     def test_positive_current_subscription_totals(self):
         """Check if the Current Subscriptions Totals widget is working in the
@@ -683,37 +384,6 @@ class DashboardTestCase(UITestCase):
                 'Subscriptions Expiring in 120 Days'), 0)
             self.assertEqual(self.dashboard.get_cst_subs_count(
                 'Recently Expired Subscriptions'), 0)
-
-    @tier2
-    def test_positive_host_collections(self):
-        """Check if the Host Collections widget displays list of host
-        collection in UI
-
-        :id: 1feae601-987d-4553-8644-4ceef5059e64
-
-        :Steps:
-
-            1. Make sure to have some hosts and host collections
-            2. Navigate Monitor -> Dashboard
-            3. Review the Host Collections Widget
-
-        :expectedresults: The list of host collections along with content host
-            is displayed in the widget
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        host = entities.Host(organization=org).create()
-        host_collection = entities.HostCollection(
-            host=[host],
-            organization=org,
-        ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertEqual(
-                self.dashboard.get_hc_host_count(host_collection.name),
-                1
-            )
 
     @skip_if_bug_open('bugzilla', 1417114)
     @upgrade

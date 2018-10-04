@@ -21,6 +21,7 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
+from robottelo.cli.file import File
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
 from robottelo.cli.factory import (
@@ -44,6 +45,7 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     CUSTOM_FILE_REPO,
+    CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
@@ -59,7 +61,9 @@ from robottelo.constants import (
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
     FAKE_YUM_DRPM_REPO,
+    FAKE_YUM_MIXED_REPO,
     FAKE_YUM_SRPM_REPO,
+    FAKE_PULP_REMOTE_FILEREPO,
     OS_TEMPLATE_DATA_FILE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
@@ -67,12 +71,12 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
-    tier4,
     upgrade
 )
 from robottelo.datafactory import (
@@ -1061,6 +1065,92 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['puppet-modules'], '2')
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_synchronize_rpm_repo_ignore_content(self):
+        """Synchronize yum repository with ignore content setting
+
+        :id: fa32ff10-e2e2-4ee0-b444-82f66f4a0e96
+
+        :expectedresults: Selected content types are ignored during
+            synchronization
+
+        :BZ: 1591358
+
+        :CaseLevel: Integration
+
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            'content-type': 'yum',
+            'url': FAKE_YUM_MIXED_REPO,
+            'ignorable-content': ['erratum', 'srpm', 'drpm'],
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        # Check synced content types
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '5',
+                         'content not synced correctly')
+        self.assertEqual(repo['content-counts']['errata'], '0',
+                         'content not ignored correctly')
+        if not bz_bug_is_open(1335621):
+            self.assertEqual(repo['content-counts']['source-rpms'], '0',
+                             'content not ignored correctly')
+        # drpm check requires a different method
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        # expecting No such file or directory for drpms
+        self.assertEqual(result.return_code, 1)
+        self.assertIn('No such file or directory', result.stderr)
+
+        # Find repo packages and remove them
+        packages = Package.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [package['id'] for package in packages],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['packages'], '0')
+
+        # Update the ignorable-content setting
+        Repository.update({
+            'id': repo['id'],
+            'ignorable-content': ['rpm'],
+        })
+
+        # Re-synchronize repository
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        # Re-check synced content types
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '0',
+                         'content not ignored correctly')
+        self.assertEqual(repo['content-counts']['errata'], '2',
+                         'content not synced correctly')
+        if not bz_bug_is_open(1335621):
+            self.assertEqual(repo['content-counts']['source-rpms'], '3',
+                             'content not synced correctly')
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 4,
+                                'content not synced correctly')
 
     @run_only_on('sat')
     @tier1
@@ -2304,6 +2394,14 @@ class GitPuppetMirrorTestCase(CLITestCase):
 
 class FileRepositoryTestCase(CLITestCase):
     """Specific tests for File Repositories"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(FileRepositoryTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({'organization-id': cls.org['id']})
+
     @stubbed()
     @tier1
     def test_positive_upload_file_to_file_repo(self):
@@ -2338,7 +2436,6 @@ class FileRepositoryTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
     @tier1
     @upgrade
     def test_positive_remove_file(self):
@@ -2355,11 +2452,37 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: file is not listed under File Repository after
             removal
 
-        :CaseAutomation: notautomated
         """
+        new_repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': CUSTOM_FILE_REPO,
+        })
+        ssh.upload_file(
+            local_file=get_data_file(RPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+        )
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+        })
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
+            result[0]['message'],
+        )
+        repo = Repository.info({'id': new_repo['id']})
+        self.assertGreater(int(repo['content-counts']['files']), 0)
+        files = File.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [file['id'] for file in files],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['files'], '0')
 
-    @stubbed()
-    @tier4
+    @tier2
     @upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
@@ -2376,15 +2499,22 @@ class FileRepositoryTestCase(CLITestCase):
                 created on setup
             2. Initialize synchronization
 
-
         :expectedresults: entire directory is synced over http
 
-        :CaseAutomation: notautomated
         """
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'content-type': 'file',
+            'url': FAKE_PULP_REMOTE_FILEREPO,
+            'name': gen_string('alpha'),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['files'], '2')
 
-    @stubbed()
     @tier1
-    def test_positive_local_directory_sync(self):
+    def test_positive_file_repo_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
 
         :id: ee91ecd2-2f07-4678-b782-95a7e7e57159
@@ -2401,20 +2531,30 @@ class FileRepositoryTestCase(CLITestCase):
 
         :expectedresults: entire directory is synced
 
-        :CaseAutomation: notautomated
         """
+        # Making Setup For Creating Local Directory using Pulp Manifest
+        ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command('wget -P {0} -r -np -nH --cut-dirs=5 -R "index.html*" '
+                    '{1}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO))
+        repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': 'file://{0}'.format(CUSTOM_LOCAL_FOLDER),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertGreater(repo['content-counts']['files'], '1')
 
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_symlinks_sync(self):
-        """Check synlinks can be synced to File Repository
+        """Check symlinks can be synced to File Repository
 
         :id: b0b0a725-b754-450b-bc0d-572d0294307a
 
         :Setup:
             1. Create a directory to be synced with a pulp manifest on its root
                 locally (on the Satellite/Foreman host)
-            2. Make sure it contains synlinks
+            2. Make sure it contains symlinks
 
         :Steps:
             1. Create a File Repository with url pointing to local url
@@ -2424,5 +2564,20 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: entire directory is synced, including files
             referred by symlinks
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
         """
+        # Downloading the pulp repository into Satellite Host
+        ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command('wget -P {0} -r -np -nH --cut-dirs=5 -R "index.html*" '
+                    '{1}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO))
+        ssh.command("ln -s {0} /{1}"
+                    .format(CUSTOM_LOCAL_FOLDER, gen_string('alpha')))
+
+        repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': 'file://{0}'.format(CUSTOM_LOCAL_FOLDER),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertGreater(repo['content-counts']['files'], '1')

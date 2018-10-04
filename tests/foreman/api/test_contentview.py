@@ -458,18 +458,22 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.component), cv_amount)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1581628)
     def test_positive_publish_with_long_name(self):
         """Publish a content view that has at least 255 characters in its name
 
         :id: 1c786756-266d-49b2-912f-7808096f5cc0
 
-        :expectedresults: Content view has been published and has one version
-            populated
+        :expectedresults: Content view has been published with repository and
+            has one version populated
 
-        :BZ: 1365312
+        :BZ: 1365312, 1581628
+
         """
         name = gen_string('alpha', 255)
         content_view = entities.ContentView(name=name).create()
+        content_view.repository = [self.yum_repo]
+        content_view = content_view.update(['repository'])
         content_view.publish()
         self.assertEqual(len(content_view.read().version), 1)
 

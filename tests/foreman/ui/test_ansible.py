@@ -173,7 +173,7 @@ class AnsibleTestCase(UITestCase):
     def test_positive_associate_ansible_roles_to_hosts(self):
         """Associate Ansible roles to hosts
 
-        :id: 2f4d0e17-9cee-4d77-b309-1ba5a1b96173
+        :id: 64839064-20ac-45ea-b8ba-c778df74ba47
 
         :steps:
             1. From Web UI -> Hosts -> Select a Host -> Edit -> Ansible Roles
@@ -298,7 +298,7 @@ class AnsibleTestCase(UITestCase):
         """Check if an user with import_ansible_roles permission able to
         import Ansible roles
 
-        :id: f2cb633b-fa9a-4096-b2c9-54175a30da06
+        :id: f5939207-66ea-4b3c-8c8a-46a588b79026
 
         :expectedresults: An user with import_ansible_roles permission is able
             to import Ansible roles.
@@ -353,7 +353,7 @@ class AnsibleTestCase(UITestCase):
         """Check if an user with play_multiple_roles permission able to run
         multiple Ansible roles
 
-        :id: ba3119b8-024f-4624-94b3-96bdbeede4d3
+        :id: 33cedeb4-c2e9-4771-b333-f5cbf98cfbf1
 
         :expectedresults: The user with play_multiple_roles permission is able
             to run multiple Ansible roles
@@ -414,7 +414,7 @@ class AnsibleTestCase(UITestCase):
     def test_positive_add_ansible_parameter_to_hostgroup(self):
         """Check if an Ansible parameter can be added to a hostgroup
 
-        :id: 37c826d5-ddb8-4739-8a03-18ffbce7915a
+        :id: f05f599e-947f-4500-b550-99a93948c7ed
 
         :expectedresults: Ansible parameter added to the hostgroup successfully
 

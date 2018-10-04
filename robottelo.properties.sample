@@ -33,7 +33,7 @@ ssh_key=
 # connection_timeout=10
 
 # Override robottelo configuration
-# [robottelo]
+[robottelo]
 # The directory where screenshots will be saved.
 # Note:- Content under /tmp may be deleted after a reboot.
 # screenshots_path=/tmp/robottelo/screenshots/
@@ -64,8 +64,8 @@ ssh_key=
 #   other valid webdriver values are going to be translated to firefox.
 # browser=selenium
 
-# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
-# webdriver=firefox
+# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs, remote
+# webdriver=chrome
 
 # Binary location for selected wedriver (not needed if using saucelabs)
 # webdriver_binary=/usr/bin/firefox
@@ -88,6 +88,8 @@ ssh_key=
 # webdriver_desired_capabilities=platform=OS X 10.9,version=45.0,build=myBuildName,parentTunnel=otherUser,seleniumVersion=2.48.0
 # webdriver_desired_capabilities=platform=macOS 10.12,version=45.0,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
 # webdriver_desired_capabilities=platform=Windows 10,version=14.14393,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
+# webdriver_desired_capabilities=platform=Linux,browserName=chrome,unhandledPromptBehavior=dismiss,unexpectedAlertBehaviour=ignore,acceptInsecureCerts=True
+# command_executor=http://127.0.0.1:4444/wd/hub
 
 # saucelabs_user=
 # saucelabs_key=
@@ -158,7 +160,6 @@ ssh_key=
 # URL of the certificate file
 # cert_url=http://example.org/fake_manifest.crt
 
-
 # Client provisioning for tests that require client machines
 # [clients]
 # Provisioning server hostname where the clients will be created
@@ -168,7 +169,7 @@ ssh_key=
 # not specified in the configuration, the default libvirt path will be used
 # "/var/lib/libvirt/images/". Make sure that the path exists on the
 # provisioning server.
-# image_dir=/opt/robottelo/images
+# image_dir=/opt/robottelo/disks
 
 
 # For tests that uses the images for content-host testcases.
@@ -202,6 +203,11 @@ ssh_key=
 # External docker registries urls in the format http[s]://<server>[:<port>].
 # external_registry_1=
 # external_registry_2=
+# For testing the support for private registry repos 
+# private_registry_url='https://registry.hub.docker.com'
+# private_registry_name=username/imagename
+# private_registry_username=
+# private_registry_password=
 
 
 # For testing Red Hat Access Insights
@@ -386,6 +392,8 @@ port_range=9091, 14999
 # image_password=
 # image_name: Image name on the external provider
 # image_name=
+# RHV CA cert url for adding RHV as compute resource
+# ca_cert=
 
 # [vmware]
 # Vmware to be added as a compute resource
@@ -409,6 +417,31 @@ port_range=9091, 14999
 # image_username=
 # image_password: Password to the image
 # image_password=
+# image_name: Image name on the external provider
+# image_name=
+
+# [osp]
+# Openstack to be added as a compute resource
+# hostname: Openstack api url For eg: https://hostname:port/v2.0/tokens
+# hostname=
+# username: Login for Openstack
+# username=
+# password: Password for Openstack
+# password=
+# tenant: Openstack tenant to be used
+# tenant=
+# security_group: Name of group for provisioning
+# security_group=
+# vm_name: Name of VM to power On/Off & delete
+# vm_name=
+
+# Openstack Compute resource image data
+# image_os: Operating system of the image
+# image_os=
+# image_arch: Architecture of the image
+# image_arch=
+# image_username: Login to the image
+# image_username=
 # image_name: Image name on the external provider
 # image_name=
 

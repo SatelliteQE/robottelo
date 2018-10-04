@@ -25,7 +25,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1, tier2, upgrade
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -229,15 +229,13 @@ class OperatingSystemTestCase(UITestCase):
                     self.assertIsNone(self.operatingsys.search(name))
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_negative_create_with_same_name_and_version(self):
         """OS - Create a new OS with same name and version
 
         :id: f1865efe-bdc0-4065-90b8-b48c9fad80bb
 
         :expectedresults: OS is not created
-
-        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         major_version = gen_string('numeric', 1)
@@ -385,36 +383,13 @@ class OperatingSystemTestCase(UITestCase):
             self.assertEqual(template_name, result_obj['template'])
 
     @run_only_on('sat')
-    @tier2
-    def test_positive_set_parameter(self):
-        """Set Operating System parameter
-
-        :id: 05b504d8-2518-4359-a53a-f577339f1ebe
-
-        :expectedresults: OS is updated with new parameter
-
-        :CaseLevel: Integration
-        """
-        with Session(self):
-            try:
-                self.operatingsys.set_os_parameter(
-                    entities.OperatingSystem().create().name,
-                    gen_string('alpha', 4),
-                    gen_string('alpha', 3),
-                )
-            except UIError as err:
-                self.fail(err)
-
-    @run_only_on('sat')
-    @tier2
+    @tier1
     def test_positive_set_parameter_with_blank_value(self):
         """Set OS parameter with blank value
 
         :id: 38ef9293-0f83-4c9d-8314-0c72fdf7e2a6
 
         :expectedresults: Parameter is created with blank value
-
-        :CaseLevel: Integration
         """
         with Session(self):
             try:
@@ -427,7 +402,7 @@ class OperatingSystemTestCase(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     @upgrade
     def test_positive_remove_parameter(self):
         """Remove selected OS parameter
@@ -435,8 +410,6 @@ class OperatingSystemTestCase(UITestCase):
         :id: 14aa3459-9941-43ba-8c17-d7f32e9db43b
 
         :expectedresults: Expected OS parameter is removed
-
-        :CaseLevel: Integration
         """
         param_name = gen_string('alpha', 4)
         os_name = entities.OperatingSystem().create().name
@@ -449,15 +422,13 @@ class OperatingSystemTestCase(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_negative_set_parameter_same_values(self):
         """Set same OS parameter again as it was set earlier
 
         :id: 4211c9c6-d61f-4254-ac45-6791f7577142
 
         :expectedresults: Proper error should be raised - Name is already taken
-
-        :CaseLevel: Integration
         """
         param_name = gen_string('alpha', 4)
         param_value = gen_string('alpha', 3)
@@ -474,7 +445,7 @@ class OperatingSystemTestCase(UITestCase):
             ))
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_negative_set_parameter_with_blank_name_and_value(self):
         """Set OS parameter with blank name and value
 
@@ -482,8 +453,6 @@ class OperatingSystemTestCase(UITestCase):
 
         :expectedresults: Proper error should be raised - Name can't contain
             whitespaces
-
-        :CaseLevel: Integration
         """
         with Session(self):
             try:
@@ -496,7 +465,7 @@ class OperatingSystemTestCase(UITestCase):
             ))
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_negative_set_parameter_with_too_long_values(self):
         """Set OS parameter with name and value exceeding 255 characters
 
@@ -504,8 +473,6 @@ class OperatingSystemTestCase(UITestCase):
 
         :expectedresults: Proper error should be raised, Name should contain a
             value
-
-        :CaseLevel: Integration
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self):

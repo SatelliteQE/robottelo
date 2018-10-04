@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """
-:Requirement: Computeresource
+:Requirement: Computeresource EC2
 
 :CaseLevel: Acceptance
 
@@ -26,6 +26,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     tier1,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -51,6 +52,7 @@ class EC2ComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_create_ec2_with_custom_region(self):
         """Create a new ec2 compute resource with custom region
 

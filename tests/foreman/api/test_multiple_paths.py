@@ -98,7 +98,7 @@ def _get_readable_attributes(entity):
         del attributes['password']
 
     # Drop foreign key attributes.
-    for field_name in attributes.keys():
+    for field_name in list(attributes.keys()):
         if isinstance(
                 entity.get_fields()[field_name],
                 (entity_fields.OneToOneField, entity_fields.OneToManyField)
@@ -152,6 +152,20 @@ def skip_if_sam(self, entity):
 class EntityTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
 
+    @staticmethod
+    def get_entities_for_unauthorized(all_entities, exclude_entities):
+        """Limit the number of entities that have to be tested for negative
+        unauthorized tests.
+        """
+        # FIXME: this must be replaced by a setup function that disable
+        # "Brute-force attack prevention" for negative tests when disabling
+        # feature is available downstream
+        max_entities = 10
+        test_entities = list(set(all_entities) - set(exclude_entities))
+        if len(test_entities) > max_entities:
+            test_entities = test_entities[:max_entities]
+        return test_entities
+
     @tier1
     def test_positive_get_status_code(self):
         """GET an entity-dependent path.
@@ -201,7 +215,9 @@ class EntityTestCase(APITestCase):
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
         )
-        for entity_cls in set(valid_entities()) - set(exclude_list):
+        test_entities = self.get_entities_for_unauthorized(
+            valid_entities(), exclude_list)
+        for entity_cls in test_entities:
             with self.subTest(entity_cls):
                 self.logger.info('test_get_unauthorized arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
@@ -261,7 +277,9 @@ class EntityTestCase(APITestCase):
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
-        for entity_cls in set(valid_entities()) - set(exclude_list):
+        test_entities = self.get_entities_for_unauthorized(
+            valid_entities(), exclude_list)
+        for entity_cls in test_entities:
             with self.subTest(entity_cls):
                 self.logger.info('test_post_unauthorized arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)

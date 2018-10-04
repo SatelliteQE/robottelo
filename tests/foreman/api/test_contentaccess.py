@@ -34,6 +34,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     tier2,
+    upgrade
 )
 from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
@@ -125,6 +126,7 @@ class ContentAccessTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_list_hosts_applicable(self):
         """Request `errata/hosts_applicable` and assert the host with no
         attached subscriptions is present.

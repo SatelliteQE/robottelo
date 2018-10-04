@@ -66,6 +66,8 @@ from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
 from robottelo.test import APITestCase
 
+from time import sleep
+
 
 class ContentManagementTestCase(APITestCase):
     """Content Management related tests, which exercise katello with pulp
@@ -136,10 +138,15 @@ class CapsuleContentManagementTestCase(APITestCase):
         super(CapsuleContentManagementTestCase, cls).setUpClass()
         cls.capsule_vm = CapsuleVirtualMachine()
         cls.capsule_vm.create()
-        # for debugging purposes. you may replace these 2 variables with your
+        # for debugging purposes. you may replace these 3 variables with your
         # capsule values and comment lines above to speed up test execution
-        cls.capsule_id = cls.capsule_vm.capsule['id']
+        cls.capsule_vm._capsule = entities.Capsule().search(
+            query={'search': 'name={0}'.format(cls.capsule_vm.hostname)}
+        )[0]
+
+        cls.capsule_id = cls.capsule_vm._capsule.id
         cls.capsule_hostname = cls.capsule_vm.hostname
+        cls.capsule_ip = cls.capsule_vm.ip_addr
 
     @classmethod
     def tearDownClass(cls):
@@ -172,14 +179,15 @@ class CapsuleContentManagementTestCase(APITestCase):
         """
         package_name = 'redhat-access-insights-puppet'
         result = ssh.command(
-            'yum list available | grep {}'.format(package_name),
-            hostname=self.capsule_hostname
+            'yum list {0} | grep @capsule'.format(package_name),
+            hostname=self.capsule_ip
         )
+        if result.return_code != 0:
+            result = ssh.command(
+                'yum list available | grep {0}'.format(package_name),
+                hostname=self.capsule_ip
+            )
         self.assertEqual(result.return_code, 0)
-        # remove empty lines from output if any
-        result = [line for line in result.stdout if line]
-        self.assertGreaterEqual(len(result), 1)
-        self.assertIn(package_name, result[0])
 
     @tier4
     def test_positive_uploaded_content_library_sync(self):
@@ -204,7 +212,9 @@ class CapsuleContentManagementTestCase(APITestCase):
             product=product,
             url=None,
         ).create()
-        capsule = entities.Capsule(id=self.capsule_id).read()
+        capsule = entities.Capsule(id=self.capsule_id).search(
+            query={'search': 'name={0}'.format(self.capsule_hostname)}
+        )[0]
         # Find "Library" lifecycle env for specific organization
         lce = entities.LifecycleEnvironment(organization=org).search(query={
             'search': 'name={}'.format(ENVIRONMENT)
@@ -217,19 +227,23 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertGreaterEqual(len(result['results']), 1)
         self.assertIn(
             lce.id, [capsule_lce['id'] for capsule_lce in result['results']])
+
         # Create a content view with the repository
         cv = entities.ContentView(
             organization=org,
             repository=[repo],
         ).create()
+
         # Upload custom content into the repo
         with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
             repo.upload_content(files={'content': handle})
         self.assertEqual(repo.read().content_counts['package'], 1)
         # Publish new version of the content view
+
         cv.publish()
         cv = cv.read()
         self.assertEqual(len(cv.version), 1)
+
         # Assert that a task to sync lifecycle environment to the capsule
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
@@ -248,8 +262,13 @@ class CapsuleContentManagementTestCase(APITestCase):
             prod=product.label,
             repo=repo.label,
         )
-        capsule_rpms = get_repo_files(
-            lce_repo_path, hostname=self.capsule_hostname)
+        for i in range(5):
+            capsule_rpms = get_repo_files(
+                lce_repo_path, hostname=self.capsule_ip)
+            if(len(capsule_rpms) != 0):
+                break
+            else:
+                sleep(5)
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
@@ -306,8 +325,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Wait till capsule sync finishes
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
@@ -324,14 +343,14 @@ class CapsuleContentManagementTestCase(APITestCase):
         result = ssh.command(
             'grep -o \'checksum type="sha1"\' {}/{}'
             .format(lce_repo_path, repomd_path),
-            hostname=self.capsule_hostname
+            hostname=self.capsule_ip
         )
         self.assertNotEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         result = ssh.command(
             'grep -o \'checksum type="sha256"\' {}/{}'
             .format(lce_repo_path, repomd_path),
-            hostname=self.capsule_hostname
+            hostname=self.capsule_ip
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreater(len(result.stdout), 0)
@@ -351,8 +370,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Wait till capsule sync finishes
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time'] != last_sync_time
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time'] != last_sync_time
         )
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
@@ -360,14 +379,14 @@ class CapsuleContentManagementTestCase(APITestCase):
         result = ssh.command(
             'grep -o \'checksum type="sha256"\' {}/{}'
             .format(lce_repo_path, repomd_path),
-            hostname=self.capsule_hostname
+            hostname=self.capsule_ip
         )
         self.assertNotEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         result = ssh.command(
             'grep -o \'checksum type="sha1"\' {}/{}'
             .format(lce_repo_path, repomd_path),
-            hostname=self.capsule_hostname
+            hostname=self.capsule_ip
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreater(len(result.stdout), 0)
@@ -443,8 +462,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         # Assert that the content of the published content view in
         # lifecycle environment is exactly the same as content of
@@ -484,8 +503,8 @@ class CapsuleContentManagementTestCase(APITestCase):
             self.assertEqual(len(cvv.environment), 2)
             sync_status = capsule.content_get_sync()
             self.assertTrue(
-                len(sync_status['active_sync_tasks']) >= 1 or
-                sync_status['last_sync_time'] != last_sync_time
+                len(sync_status['active_sync_tasks']) >= 1
+                or sync_status['last_sync_time'] != last_sync_time
             )
             for task in sync_status['active_sync_tasks']:
                 entities.ForemanTask(id=task['id']).poll()
@@ -495,9 +514,9 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
         lce_revision_capsule = get_repomd_revision(
-            lce_repo_path, hostname=self.capsule_hostname)
+            lce_repo_path, hostname=self.capsule_ip)
         self.assertEqual(
-            get_repo_files(lce_repo_path, hostname=self.capsule_hostname),
+            get_repo_files(lce_repo_path, hostname=self.capsule_ip),
             get_repo_files(cvv_repo_path)
         )
         # Sync repository for a second time
@@ -532,7 +551,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Assert that the value of repomd revision of repository in
         # lifecycle environment on the capsule has not changed
         new_lce_revision_capsule = get_repomd_revision(
-            lce_repo_path, hostname=self.capsule_hostname)
+            lce_repo_path, hostname=self.capsule_ip)
         self.assertEqual(lce_revision_capsule, new_lce_revision_capsule)
         # Update a repository with 1 new rpm
         create_repo(
@@ -554,8 +573,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time'] != last_sync_time
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time'] != last_sync_time
         )
         # Assert that packages count in the repository is updated
         self.assertEqual(repo.content_counts['package'], 3)
@@ -583,7 +602,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Assert that the content published on the capsule is exactly the
         # same as in the repository
         self.assertEqual(
-            get_repo_files(lce_repo_path, hostname=self.capsule_hostname),
+            get_repo_files(lce_repo_path, hostname=self.capsule_ip),
             get_repo_files(cvv_repo_path)
         )
 
@@ -652,10 +671,10 @@ class CapsuleContentManagementTestCase(APITestCase):
         )
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
-            entities.ForemanTask(id=task['id']).poll()
+            entities.ForemanTask(id=task['id']).poll(timeout=600)
         # Verify all the ISOs are present on capsule
         capsule_isos = get_repo_files(
-            repo_path, extension='iso', hostname=self.capsule_hostname)
+            repo_path, extension='iso', hostname=self.capsule_ip)
         self.assertGreater(len(result), 0)
         self.assertEqual(set(sat_isos), set(capsule_isos))
 
@@ -724,8 +743,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         # Check whether the symlinks for all the packages were created on
         # satellite
@@ -764,7 +783,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # capsule
         result = ssh.command(
             'find {}/ -type l'.format(lce_repo_path),
-            hostname=self.capsule_hostname,
+            hostname=self.capsule_ip,
         )
         self.assertEqual(result.return_code, 0)
         links = set(link for link in result.stdout if link)
@@ -774,7 +793,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         result = ssh.command(
             'find {}/ -type l ! -exec test -e {{}} \; -print'
             .format(lce_repo_path),
-            hostname=self.capsule_hostname,
+            hostname=self.capsule_ip,
         )
         self.assertEqual(result.return_code, 0)
         broken_links = set(link for link in result.stdout if link)
@@ -875,8 +894,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
@@ -1014,8 +1033,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
@@ -1047,8 +1066,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         # Check whether the symlinks for all the packages were created on
         # satellite
@@ -1084,7 +1103,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Check whether the symlinks for all the packages were created on
         # capsule
         result = ssh.command('find {}/ -type l'.format(lce_repo_path),
-                             hostname=self.capsule_hostname)
+                             hostname=self.capsule_ip)
         self.assertEqual(result.return_code, 0)
         links = set(link for link in result.stdout if link)
         self.assertEqual(len(links), packages_count)
@@ -1092,7 +1111,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # capsule
         result = ssh.command(
             'find {}/ -type l ! -exec test -e {{}} \; -print'.format(
-                lce_repo_path), hostname=self.capsule_hostname)
+                lce_repo_path), hostname=self.capsule_ip)
         self.assertEqual(result.return_code, 0)
         broken_links = set(link for link in result.stdout if link)
         self.assertEqual(len(broken_links), 0)
@@ -1167,8 +1186,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Wait till capsule sync finishes
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
@@ -1206,7 +1225,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             self.assertNotEqual(
                 sync_status['last_sync_time'], last_sync_time)
         stored_modules = get_repo_files(
-            PULP_PUBLISHED_PUPPET_REPOS_PATH, 'gz', self.capsule_hostname)
+            PULP_PUBLISHED_PUPPET_REPOS_PATH, 'gz', self.capsule_ip)
         with self.assertNotRaises(StopIteration):
             next(
                 filename for filename in stored_modules
@@ -1227,10 +1246,10 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        https_pub_url = 'https://{0}/pub'.format(self.capsule_hostname)
-        http_pub_url = 'http://{0}/pub'.format(self.capsule_hostname)
+        https_pub_url = 'https://{0}/pub'.format(self.capsule_ip)
+        http_pub_url = 'http://{0}/pub'.format(self.capsule_ip)
         for url in [http_pub_url, https_pub_url]:
             response = client.get(url, verify=False)
             self.assertEqual(response.status_code, 200)
             # check that one of the files is in the content
-            self.assertIn('katello-server-ca.crt', response.content)
+            self.assertIn(b'katello-server-ca.crt', response.content)

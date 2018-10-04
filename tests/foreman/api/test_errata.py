@@ -28,6 +28,7 @@ from robottelo.constants import (
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
     FAKE_3_ERRATA_ID,
@@ -95,7 +96,8 @@ class ErrataTestCase(APITestCase):
             'activationkey-id': cls.activation_key.id,
         })
 
-    def _install_package(self, clients, host_ids, package_name, via_ssh=True):
+    def _install_package(self, clients, host_ids, package_name, via_ssh=True,
+                         rpm_package_name=None):
         """Install package via SSH CLI if via_ssh is True, otherwise
         install via http api: PUT /api/v2/hosts/bulk/install_content
         """
@@ -112,13 +114,13 @@ class ErrataTestCase(APITestCase):
                 'content_type': 'package',
                 'content': [package_name],
             })
-            self._validate_package_installed(clients, package_name)
+            self._validate_package_installed(clients, rpm_package_name)
 
     def _validate_package_installed(self, hosts, package_name,
                                     expected_installed=True, timeout=120):
         """Check whether package was installed on the list of hosts."""
         for host in hosts:
-            for _ in range(timeout / 15):
+            for _ in range(timeout // 15):
                 result = host.run('rpm -q {0}'.format(package_name))
                 if (result.return_code == 0 and expected_installed or
                         result.return_code != 0 and not expected_installed):
@@ -137,7 +139,7 @@ class ErrataTestCase(APITestCase):
     def _validate_errata_counts(self, host, errata_type, expected_value,
                                 timeout=120):
         """Check whether host contains expected errata counts."""
-        for _ in range(timeout / 5):
+        for _ in range(timeout // 5):
             host = host.read()
             if (host.content_facet_attributes[
                     'errata_counts'][errata_type] == expected_value):
@@ -158,7 +160,7 @@ class ErrataTestCase(APITestCase):
     def _fetch_available_errata(self, host, expected_amount, timeout=120):
         """Fetch available errata for host."""
         errata = host.errata()
-        for _ in range(timeout / 5):
+        for _ in range(timeout // 5):
             if len(errata['results']) == expected_amount:
                 return errata['results']
             sleep(5)
@@ -171,6 +173,38 @@ class ErrataTestCase(APITestCase):
                     len(errata['results']),
                     expected_amount,
                 )
+            )
+
+    @upgrade
+    @tier3
+    def test_positive_bulk_install_package(self):
+        """Bulk install package to a collection of hosts
+
+        :id: c5167851-b456-457a-92c3-59f8de5b27ee
+
+        :Steps: PUT /api/v2/hosts/bulk/install_content
+
+        :expectedresults: package is installed in the hosts.
+
+        :BZ: 1528275
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.org.label, self.activation_key.name)
+            self.assertTrue(client.subscribed)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            host_id = entities.Host().search(query={
+                'search': 'name={0}'.format(client.hostname)})[0].id
+            self._install_package(
+                [client],
+                [host_id],
+                FAKE_1_CUSTOM_PACKAGE_NAME,
+                via_ssh=False,
+                rpm_package_name=FAKE_2_CUSTOM_PACKAGE
             )
 
     @upgrade
@@ -708,6 +742,7 @@ class ErrataTestCase(APITestCase):
         promote(cvvs[-1], new_env.id)
         result = entities.Errata().compare(data={
             'content_view_version_ids': [cvv.id for cvv in cvvs],
+            'per_page': 9999,
         })
         cvv2_only_errata = next(
             errata for errata in result['results']

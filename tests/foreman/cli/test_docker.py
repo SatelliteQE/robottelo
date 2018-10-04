@@ -240,11 +240,12 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
-        self.assertEqual(int(repo['content-counts']['docker-manifests']), 0)
+        self.assertEqual(
+            int(repo['content-counts']['container-image-manifests']), 0)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
-            int(repo['content-counts']['docker-manifests']), 1)
+            int(repo['content-counts']['container-image-manifests']), 1)
 
     @tier1
     @run_only_on('sat')
@@ -323,7 +324,7 @@ class DockerRepositoryTestCase(CLITestCase):
                     })
                 self.assertIn(
                     'Validation failed: Docker upstream name',
-                    context.exception.message
+                    str(context.exception)
                 )
 
     @skip_if_not_set('docker')
@@ -483,7 +484,7 @@ class DockerContentViewTestCase(CLITestCase):
             [
                 repo_['id']
                 for repo_
-                in self.content_view['docker-repositories']
+                in self.content_view['container-image-repositories']
             ],
         )
 
@@ -512,7 +513,8 @@ class DockerContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
             repo['id'],
-            [repo_['id'] for repo_ in content_view['docker-repositories']],
+            [repo_['id'] for repo_ in
+                content_view['container-image-repositories']],
         )
 
     @tier1
@@ -546,7 +548,8 @@ class DockerContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(
             set([repo['id'] for repo in repos]),
-            set([repo['id'] for repo in content_view['docker-repositories']]),
+            set([repo['id'] for repo in
+                content_view['container-image-repositories']]),
         )
 
     @tier2
@@ -566,7 +569,7 @@ class DockerContentViewTestCase(CLITestCase):
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
-            int(repo['content-counts']['docker-manifests']), 1)
+            int(repo['content-counts']['container-image-manifests']), 1)
         content_view = make_content_view({
             'composite': False,
             'organization-id': self.org_id,
@@ -578,7 +581,8 @@ class DockerContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
             repo['id'],
-            [repo_['id'] for repo_ in content_view['docker-repositories']],
+            [repo_['id'] for repo_ in
+                content_view['container-image-repositories']],
         )
 
     @tier1

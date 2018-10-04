@@ -85,7 +85,9 @@ class OpenScapTestCase(CLITestCase):
 
         :returns: scap_id and scap_profile_id
         """
-        default_content = Scapcontent.info({'title': scap_name})
+        default_content = Scapcontent.info({'title': scap_name},
+                                           output_format='json'
+                                           )
         scap_id = default_content['id']
         scap_profile_ids = [
             profile['id']

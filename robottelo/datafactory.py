@@ -4,11 +4,11 @@ import random
 import string
 from functools import wraps
 
-from fauxfactory import gen_string, gen_integer, gen_alpha
+from fauxfactory import gen_string, gen_integer, gen_alpha, gen_utf8, gen_url
 from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
-from robottelo.constants import STRING_TYPES
+from robottelo.constants import STRING_TYPES, DOMAIN
 from robottelo.decorators import bz_bug_is_open
 
 
@@ -17,7 +17,9 @@ class InvalidArgumentError(Exception):
 
 
 def filtered_datapoint(func):
-    """Overrides the data creator functions in this class to return 1 value
+    """Overrides the data creator functions in this class to return 1 value and
+    transforms data dictionary to pytest's parametrize acceptable format for
+    new style generators.
 
     If run_one_datapoint=false, return the entire data set. (default: False)
     If run_one_datapoint=true, return a random data.
@@ -27,10 +29,39 @@ def filtered_datapoint(func):
     def func_wrapper(*args, **kwargs):
         """Perform smoke test attribute check"""
         dataset = func(*args, **kwargs)
+        if isinstance(dataset, dict):
+            # New UI tests are written using pytest, update dict to support
+            # pytest's parametrize
+            if 'ui' in args or kwargs.get('interface') == 'ui':
+                # Chromedriver only supports BMP chars
+                if settings.webdriver == 'chrome':
+                    utf8 = dataset.pop('utf8', None)
+                    if utf8:
+                        dataset['utf8'] = gen_utf8(len(utf8), smp=False)
+                if settings.run_one_datapoint:
+                    key = random.choice(list(dataset.keys()))
+                    dataset = {key: dataset[key]}
+                return xdist_adapter(dataset.values())
+            # Otherwise use list for backwards compatibility
+            dataset = list(dataset.values())
+
         if settings.run_one_datapoint:
             dataset = [random.choice(dataset)]
         return dataset
     return func_wrapper
+
+
+def parametrized(data):
+    """Transforms data dictionary to pytest's parametrize acceptable format.
+    Generates parametrized test names from data dict keys.
+
+    :param dict data: dictionary with parametrized test names as dict keys and
+        parametrized arguments as dict values
+    """
+    return {
+        'ids': list(data.keys()),
+        'argvalues': list(data.values()),
+    }
 
 
 @filtered_datapoint
@@ -79,7 +110,7 @@ def add_uppercase_char_into_string(text=None, length=10):
     if text is None:
         text = gen_string('alpha', length)
     st_chars = list(text)
-    st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
+    st_chars[random.randint(0, len(st_chars) - 1)] = random.choice(
         string.ascii_uppercase)
     return ''.join(st_chars)
 
@@ -170,6 +201,35 @@ def invalid_names_list():
 
 
 @filtered_datapoint
+def valid_domain_names(interface=None, length=None):
+    """Valid domain names."""
+    max_len = 255 - len(DOMAIN % '')
+    if not length:
+        length = random.randint(1, max_len)
+    if length > max_len:
+        raise ValueError('length is too large, max: {}'.format(max_len))
+    names = {
+        'alphanumeric': DOMAIN % gen_string('alphanumeric', length),
+        'alpha': DOMAIN % gen_string('alpha', length),
+        'numeric': DOMAIN % gen_string('numeric', length),
+        'latin1': DOMAIN % gen_string('latin1', length),
+        'utf8': DOMAIN % gen_utf8(length),
+    }
+    return names
+
+
+@filtered_datapoint
+def invalid_domain_names(interface=None):
+    """Invalid domain names."""
+    return {
+        'empty': '\0',
+        'whitespace': ' ',
+        'tab': '\t',
+        'toolong': gen_string('alphanumeric', 300)
+    }
+
+
+@filtered_datapoint
 def invalid_usernames_list():
     return [
         '',
@@ -202,7 +262,7 @@ def invalid_values_list(interface=None):
 
 
 @filtered_datapoint
-def valid_data_list():
+def valid_data_list(interface=None):
     """Generates a list of valid input values.
 
     Note:
@@ -214,15 +274,15 @@ def valid_data_list():
         Loc - name max length is 246
 
     """
-    return [
-        gen_string('alphanumeric', random.randint(1, 255)),
-        gen_string('alpha', random.randint(1, 255)),
-        gen_string('cjk', random.randint(1, 85)),
-        gen_string('latin1', random.randint(1, 255)),
-        gen_string('numeric', random.randint(1, 255)),
-        gen_string('utf8', random.randint(1, 85)),
-        gen_string('html', random.randint(1, 85)),
-    ]
+    return {
+        'alpha': gen_string('alpha', random.randint(1, 255)),
+        'alphanumeric': gen_string('alphanumeric', random.randint(1, 255)),
+        'numeric': gen_string('numeric', random.randint(1, 255)),
+        'cjk': gen_string('cjk', random.randint(1, 85)),
+        'latin1': gen_string('latin1', random.randint(1, 255)),
+        'utf8': gen_string('utf8', random.randint(1, 85)),
+        'html': gen_string('html', random.randint(1, 85)),
+    }
 
 
 @filtered_datapoint
@@ -608,4 +668,12 @@ def valid_docker_upstream_names():
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
         u'{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
+    ]
+
+
+@filtered_datapoint
+def valid_url_list():
+    return [
+        gen_url(scheme="http"),
+        gen_url(scheme="https"),
     ]

@@ -21,7 +21,7 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
-from robottelo.decorators import run_in_one_thread, skip_if_not_set
+from robottelo.decorators import run_in_one_thread, skip_if_not_set, stubbed
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
 from robottelo.ui.session import Session
@@ -145,3 +145,318 @@ class RHAITestCase(UITestCase):
                 vm.get('/var/log/redhat-access-insights/'
                        'redhat-access-insights.log',
                        './insights_unregister.log')
+
+    @stubbed
+    def test_positive_rule_disable_enable(self):
+        """Tests Insights rule can be disabled and enabled
+
+        :id: ca61b798-7502-43a0-9045-392b350fdded
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Rules
+
+            2. Disable the chosen rule (assert)
+
+            3. Enable chosen rule (assert)
+
+        :expectedresults: rule is disabled, rule is enabled
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+
+@run_in_one_thread
+class RHAIPlannerTestCase(RHAITestCase):
+    """Tests Insights Planner related cases"""
+
+    @classmethod
+    def setUpClass(cls):  # noqa
+        super(RHAIPlannerTestCase, cls).setUpClass()
+
+    @stubbed
+    def test_positive_playbook_run(self):
+        """Tests Planner playbook runs successfully
+
+        :id: b4cce0dc-c98e-4e1a-9dac-cdee3be05227
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Planner
+
+            2. Create a plan
+
+            3. Assign specific host to the plan
+
+            4. Assign a rule with ansible support to the plan
+
+            5. Run Playbook
+
+            6. Check the result at the host
+
+
+        :expectedresults: playbook run finished successfully
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_playbook_customized_run(self):
+        """Tests Planner playbook customized run is successful
+
+        :id: eee4556d-69b9-4e89-88b7-3cc34a3fe3b2
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Planner
+
+            2. Create a plan
+
+            3. Assign specific host to the plan
+
+            4. Assign a rule with ansible support to the plan
+
+            5. Customize Playbook Run
+
+            6. Run the customized job
+
+            7. Check the result at the host
+
+
+        :expectedresults: customized playbook run finished successfully
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_playbook_download(self):
+        """Tests Planner playbook download is successful
+
+        :id: 7e9ed852-3f23-4256-862c-1d05058e8a95
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Planner
+
+            2. Create a plan
+
+            3. Assign specific host to the plan
+
+            4. Assign a rule with ansible support to the plan
+
+            5. Download Playbook
+
+            6. Check the downloaded result
+
+        :expectedresults: sane playbook downloaded
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_plan_export_csv(self):
+        """Tests Insights plan is exported to csv successfully
+
+        :id: 4bf67758-e07a-41de-974f-9eda753d28e1
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Planner
+
+            2. Create a plan
+
+            3. Assign specific host to the plan
+
+            4. Assign any rule to the plan
+
+            5. Export CSV
+
+            6. Check the exported plan CSV
+
+
+        :expectedresults: plan exported to sane csv file
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_plan_edit_remove_system(self):
+        """Tests Insights plan can be edited by removing a system from it
+
+        :id: d4ea837e-48b0-4482-a1a7-0507346519d7
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Planner
+
+            2. Create a plan
+
+            3. Assign specific host to the plan
+
+            4. Assign any rule to the plan
+
+            5. Edit the plan and remove assigned system
+
+            6. Check the plan become empty
+
+
+        :expectedresults: plan becomes empty
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_plan_edit_remove_rule(self):
+        """Tests Insights plan can be edited by removing a rule from it
+
+        :id: dd05f149-b6ca-4845-8824-87e21d7b46e1
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Planner
+
+            2. Create a plan
+
+            3. Assign specific host to the plan
+
+            4. Assign any rule to the plan
+
+            5. Edit the plan and remove assigned rule
+
+            6. Check the plan do not contain the rule
+
+
+        :expectedresults: rule is not present in the plan
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+
+@run_in_one_thread
+class RHAIInventoryTestCase(RHAITestCase):
+    """Tests Insights Inventory related cases"""
+
+    @classmethod
+    def setUpClass(cls):  # noqa
+        super(RHAIInventoryTestCase, cls).setUpClass()
+
+    @stubbed
+    def test_positive_inventory_export_csv(self):
+        """Tests Insights inventory can be exported to csv
+
+        :id: df4085f4-b058-4c2f-974f-89bc90d83c9c
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Inventory
+
+            2. Export CSV
+
+
+        :expectedresults: inventory is exported in sane csv file
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_inventory_create_new_plan(self):
+        """Tests Insights plan can be created using chosen inventory
+
+        :id: 5af59eb0-b5d3-4ddb-9c34-f5f0d79353cc
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Inventory
+
+            2. In Actions select Create new Plan/Playbook for a system
+
+        :expectedresults: new plan is created and involves the chosen system
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_inventory_add_to_existing_plan(self):
+        """Tests Insights inventory system can be added to the existing plan
+
+        :id: 1a1923d0-22d3-4ecc-b9cb-ec8ebc2d9155
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Inventory
+
+            2. In Actions select Create new Plan/Playbook for a system1
+
+            3. In Actions select Add to existing Plan/Playbook for a system2
+
+            4. Check that original plan contains also system2
+
+
+        :expectedresults: existing plan gets extended of new system
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    def test_positive_inventory_group_systems(self):
+        """Tests Insights inventory systems can be grouped
+
+        :id: d6a2496f-b038-4d2b-80f9-95ef00225eb7
+
+        :Steps:
+
+            0. Create a VM and register to insights within org having manifest
+
+            1. Navigate to Insights -> Inventory
+
+            2. In Actions select Group systems and create new system group
+
+            3. Check that selected system(s) are grouped in system group
+
+
+        :expectedresults: systems are groupped in new Insights system group
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """

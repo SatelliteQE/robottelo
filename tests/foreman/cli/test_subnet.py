@@ -223,7 +223,7 @@ class SubnetTestCase(CLITestCase):
             with self.subTest(pool):
                 opts = {u'mask': mask, u'network': network}
                 # generate pool range from network address
-                for key, val in pool.iteritems():
+                for key, val in pool.items():
                     opts[key] = re.sub(r'\d+$', str(val), network)
                 with self.assertRaises(CLIFactoryError) as raise_ctx:
                     make_subnet(opts)
@@ -364,7 +364,7 @@ class SubnetTestCase(CLITestCase):
             with self.subTest(options):
                 opts = {u'id': subnet['id']}
                 # generate pool range from network address
-                for key, val in options.iteritems():
+                for key, val in options.items():
                     opts[key] = re.sub(r'\d+$', str(val), subnet['network'])
                 with self.assertRaisesRegex(
                     CLIReturnCodeError,

@@ -23,7 +23,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
-    DEFAULT_ORG,
     LANGUAGES,
     LDAP_ATTR,
     LDAP_SERVER_TYPE,
@@ -259,50 +258,6 @@ class UserTestCase(UITestCase):
                 common_locators['entity_deselect'] % role.name)
             self.assertIsNotNone(element)
 
-    @tier2
-    def test_positive_create_with_multiple_roles(self):
-        """Create User with multiple roles
-
-        :id: d3cc4434-25ca-4465-8878-42495390c17b
-
-        :expectedresults: User is created successfully
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        role1 = gen_string('alpha')
-        role2 = gen_string('alpha')
-        for role in [role1, role2]:
-            entities.Role(name=role).create()
-        with Session(self) as session:
-            make_user(session, username=name, roles=[role1, role2], edit=True)
-            self.user.click(self.user.search(name))
-            self.user.click(tab_locators['users.tab_roles'])
-            for role in [role1, role2]:
-                self.assertIsNotNone(
-                    self.user.wait_until_element(
-                        common_locators['entity_deselect'] % role
-                    ))
-
-    @tier2
-    def test_positive_create_with_all_roles(self):
-        """Create User and assign all available roles to it
-
-        :id: 814593ca-1566-45ea-9eff-e880183b1ee3
-
-        :expectedresults: User is created successfully
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_user(session, username=name, roles=ROLES, edit=True)
-            self.user.click(self.user.search(name))
-            self.user.click(tab_locators['users.tab_roles'])
-            for role in ROLES:
-                self.assertIsNotNone(self.user.wait_until_element(
-                    common_locators['entity_deselect'] % role))
-
     @tier1
     def test_positive_create_with_one_org(self):
         """Create User associated to one Org
@@ -324,36 +279,6 @@ class UserTestCase(UITestCase):
             element = self.user.wait_until_element(
                 common_locators['entity_deselect'] % org_name)
             self.assertIsNotNone(element)
-
-    @tier2
-    def test_positive_create_with_multiple_orgs(self):
-        """Create User associated to multiple Orgs
-
-        :id: d74c0284-3995-4a4a-8746-00858282bf5d
-
-        :expectedresults: User is created successfully
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        org_name1 = gen_string('alpha')
-        org_name2 = gen_string('alpha')
-        for org_name in [org_name1, org_name2]:
-            entities.Organization(name=org_name).create()
-        with Session(self) as session:
-            set_context(session, org=DEFAULT_ORG)
-            make_user(
-                session,
-                username=name,
-                organizations=[org_name1, org_name2],
-                edit=True,
-            )
-            self.user.search_and_click(name)
-            self.user.click(tab_locators['users.tab_organizations'])
-            for org_name in [org_name1, org_name2, DEFAULT_ORG]:
-                element = self.user.wait_until_element(
-                    common_locators['entity_deselect'] % org_name)
-                self.assertIsNotNone(element)
 
     @tier1
     def test_positive_create_with_default_org(self):
@@ -791,54 +716,6 @@ class UserTestCase(UITestCase):
             self.assertIsNotNone(
                 self.user.wait_until_element((strategy, value % role_name)))
 
-    @tier2
-    def test_positive_update_with_multiple_roles(self):
-        """Update User with multiple roles
-
-        :id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
-
-        :expectedresults: User is updated successfully
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        role_names = [
-            entities.Role().create().name
-            for _ in range(3)
-        ]
-        with Session(self) as session:
-            make_user(session, username=name)
-            self.user.update(name, new_roles=role_names)
-            self.user.search_and_click(name)
-            self.user.click(tab_locators['users.tab_roles'])
-            for role in role_names:
-                self.assertIsNotNone(
-                    self.user.wait_until_element(
-                        common_locators['entity_deselect'] % role)
-                )
-
-    @tier2
-    def test_positive_update_with_all_roles(self):
-        """Update User with all roles
-
-        :id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
-
-        :expectedresults: User is updated successfully
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_user(session, username=name)
-            self.user.update(name, new_roles=ROLES)
-            self.user.search_and_click(name)
-            self.user.click(tab_locators['users.tab_roles'])
-            for role in ROLES:
-                self.assertIsNotNone(
-                    self.user.wait_until_element(
-                        common_locators['entity_deselect'] % role)
-                )
-
     @tier1
     def test_positive_update_org(self):
         """Assign a User to an Org
@@ -860,32 +737,6 @@ class UserTestCase(UITestCase):
             element = self.user.wait_until_element(
                 common_locators['entity_deselect'] % org_name)
             self.assertIsNotNone(element)
-
-    @tier2
-    def test_positive_update_orgs(self):
-        """Assign a User to multiple Orgs
-
-        :id: a207188d-1ad1-4ff1-9906-bae1d91104fd
-
-        :expectedresults: User is updated
-
-        :CaseLevel: Integration
-        """
-        name = gen_string('alpha')
-        org_names = [
-            entities.Organization().create().name
-            for _ in range(3)
-        ]
-        with Session(self) as session:
-            make_user(session, username=name)
-            self.user.update(name, new_organizations=org_names)
-            self.user.click(self.user.search(name))
-            self.user.click(tab_locators['users.tab_organizations'])
-            for org in org_names:
-                self.assertIsNotNone(
-                    self.user.wait_until_element(
-                        common_locators['entity_deselect'] % org)
-                )
 
     @tier1
     def test_negative_update_username(self):

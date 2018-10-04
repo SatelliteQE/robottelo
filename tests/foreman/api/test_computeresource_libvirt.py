@@ -5,7 +5,7 @@ A full API reference for compute resources can be found here:
 http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 
-:Requirement: Computeresource
+:Requirement: Computeresource Libvirt
 
 :CaseAutomation: Automated
 

@@ -745,7 +745,7 @@ class SettingTestCase(UITestCase):
                             param_name=param_name,
                         )
                     self.assertEqual(
-                        context.exception.message,
+                        str(context.exception),
                         'Could not find edit button to update selected param'
                     )
 

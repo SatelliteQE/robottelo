@@ -17,6 +17,7 @@
 """
 
 from fauxfactory import gen_alphanumeric, gen_string
+from math import ceil
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
@@ -387,8 +388,7 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
                 self.assertEqual(len(lces), per_page)
                 # Verify pagination and total amount of pages by checking the
                 # items count on the last page
-                last_page = (self.lces_count / per_page
-                             + int(self.lces_count % per_page != 0))
+                last_page = ceil(self.lces_count / per_page)
                 lces = LifecycleEnvironment.list({
                     'organization-id': self.org['id'],
                     'page': last_page,

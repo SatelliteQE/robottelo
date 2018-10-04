@@ -47,3 +47,6 @@
 
 # For backup files.
 *~
+
+.pytest_cache/
+tests/foreman/pytest.ini

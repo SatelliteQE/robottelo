@@ -621,3 +621,74 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
     )
 
     return result
+
+
+def extract_capsule_satellite_installer_command(text):
+    """Extract satellite installer command from capsule-certs-generate command
+    output
+    """
+    cmd_start_with = 'satellite-installer'
+    cmd_lines = []
+    if text:
+        if isinstance(text, (list, tuple)):
+            lines = text
+        else:
+            lines = text.split('\n')
+        cmd_start_found = False
+        cmd_end_found = False
+        for line in lines:
+            if line.lstrip().startswith(cmd_start_with):
+                cmd_start_found = True
+            if cmd_start_found and not cmd_end_found:
+                cmd_lines.append(line.strip('\\'))
+                if not line.endswith('\\'):
+                    cmd_end_found = True
+    if cmd_lines:
+        cmd = ' '.join(cmd_lines)
+        # remove empty spaces
+        while '  ' in cmd:
+            cmd = cmd.replace('  ', ' ')
+
+        return cmd
+    return None
+
+
+def extract_ui_token(input):
+    """Extracts and returns the CSRF protection token from a given
+    HTML string"""
+    token = re.search(
+        r"authenticity_token\" value=\"[^\"]+",
+        input
+    )
+    if token is None:
+        raise IndexError("the given string does not contain any authenticity"
+                         "token references")
+    else:
+        return(token[0].split('value="')[-1])
+
+
+def get_web_session():
+    """Logs in as admin user and returns the valid requests.Session object"""
+    sat_session = requests.Session()
+    url = 'https://{0}'.format(settings.server.hostname)
+
+    init_request = sat_session.get(
+        url,
+        verify=False
+    )
+    login_request = sat_session.post(
+        '{0}/users/login'.format(url),
+        data={
+            'authenticity_token': extract_ui_token(init_request.text),
+            'login[login]': settings.server.admin_username,
+            'login[password]': settings.server.admin_password,
+            'commit': 'Log In'
+        },
+        verify=False
+    )
+    login_request.raise_for_status()
+    if 'users/login' in login_request.history[0].headers.get('Location'):
+        raise requests.HTTPError(
+            'Failed to authenticate using the given credentials'
+        )
+    return(sat_session)
