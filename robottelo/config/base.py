@@ -4,7 +4,7 @@ import logging
 import logging.config
 
 import os
-import sys
+import six
 
 from functools import partial
 
@@ -59,8 +59,7 @@ class INIReader(object):
     def __init__(self, path):
         self.config_parser = ConfigParser()
         with open(path) as handler:
-            self.config_parser.readfp(handler)
-            if sys.version_info[0] < 3:
+            if six.PY2:
                 # ConfigParser.readfp is deprecated on Python3, read_file
                 # replaces it
                 self.config_parser.readfp(handler)
