@@ -77,6 +77,7 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui_airgun
 
 test-robottelo:
 	$(info "Running robottelo framework unit tests...")
@@ -191,6 +192,7 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
+        test-foreman-ui_airgun \
         test-foreman-endtoend graph-entities lint logs-join \
         logs-clean pyc-clean uuid-check uuid-fix token-prefix-editor \
         can-i-push? install-commit-hook gitflake8 clean-cache clean-all \
