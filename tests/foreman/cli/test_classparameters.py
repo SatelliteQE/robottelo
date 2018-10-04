@@ -27,6 +27,7 @@ from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
     add_role_permissions,
     make_hostgroup,
+    make_location,
     make_org,
     make_role,
     make_user,
@@ -139,11 +140,17 @@ class SmartClassParametersTestCase(CLITestCase):
             {'author': 'robottelo', 'name': 'cli_test_classparameters'},
         ]
         cls.org = make_org()
+        cls.loc = make_location()
         cv = publish_puppet_module(
             cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
         cls.env = Environment.list({
             'search': u'content_view="{0}"'.format(cv['name'])
         })[0]
+        Environment.update({
+            'name': cls.env['name'],
+            'organization-ids': cls.org['id'],
+            'location-ids': cls.loc['id'],
+        })
         cls.puppet_class = Puppet.info({
             'name': cls.puppet_modules[0]['name'],
             'environment': cls.env['name'],
@@ -240,7 +247,8 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
-        host = entities.Host(organization=self.org['id']).create()
+        host = entities.Host(organization=self.org['id'],
+                             location=self.loc['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
@@ -276,7 +284,8 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
-        host = entities.Host(organization=self.org['id']).create()
+        host = entities.Host(organization=self.org['id'],
+                             location=self.loc['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
