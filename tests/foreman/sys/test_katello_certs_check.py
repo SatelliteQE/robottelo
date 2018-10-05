@@ -57,26 +57,22 @@ class KatelloCertsCheckTestCase(TestCase):
 
     def validate_output(self, result):
         expected_result = set(
-            ['--certs-update-server-ca', '--certs-server-key', '--server-cert',
-                '--server-key', '--certs-server-cert', '--certs-update-server',
-                '--foreman-proxy-fqdn', '--scenario',
-                '--certs-tar', '--server-ca-cert', '--certs-server-ca-cert'])
+            ['--server-cert', '--server-key', '--certs-update-server',
+                '--foreman-proxy-fqdn', '--certs-tar', '--server-ca-cert'])
         self.assertEqual(result.return_code, 0)
         self.assertIn(self.SUCCESS_MSG, result.stdout)
-        # validate all check passed
+        # validate all checks passed
         self.assertEqual(any(
             flag for flag in re.findall(
                 r"\[([A-Z]+)\]",
                 result.stdout
             ) if flag != 'OK'), False)
         # validate options in output
-        commands = []
+        commands = result.stdout.split('To')
+        commands.pop(0)
         options = []
-        for flag in range(1, 5):
-            commands.append(
-                result.stdout.split('To')[flag])
-        for j in range(len(commands)):
-            for i in commands[j].split():
+        for cmd in commands:
+            for i in cmd.split():
                 if i.startswith('--'):
                     options.append(i)
         self.assertEqual(set(options), expected_result)

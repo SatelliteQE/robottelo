@@ -49,7 +49,7 @@ def test_positive_clone(session):
     clone_name = gen_string('alpha')
     content = gen_string('alpha')
     os_list = [
-        entities.OperatingSystem().create().name for _ in range(2)
+        entities.OperatingSystem().create().title for _ in range(2)
     ]
     with session:
         session.provisioningtemplate.create({
@@ -68,8 +68,5 @@ def test_positive_clone(session):
         assert session.provisioningtemplate.search(
             clone_name)[0]['Name'] == clone_name
         template = session.provisioningtemplate.read(clone_name)
-        cloned_template_os_list = [
-            el.split()[0] for el
-            in template['association']['applicable_os']['assigned']
-        ]
-        assert set(os_list) == set(cloned_template_os_list)
+        assert set(os_list) == set(
+            template['association']['applicable_os']['assigned'])

@@ -25,12 +25,6 @@ from robottelo.decorators import (
 
 
 def test_positive_create_with_name(session):
-    """Create new Usergroup using different names
-
-    :expectedresults: Usergroup is created successfully
-
-    :CaseImportance: Critical
-    """
     group_name = gen_utf8(smp=False)
     with session:
         session.usergroup.create({
@@ -40,12 +34,6 @@ def test_positive_create_with_name(session):
 
 
 def test_positive_update_name(session):
-    """Update usergroup with new name
-
-    :expectedresults: Usergroup is updated
-
-    :CaseImportance: Critical
-    """
     group_name = gen_string('alpha')
     new_group_name = gen_utf8(smp=False)
     with session:
@@ -60,12 +48,6 @@ def test_positive_update_name(session):
 
 
 def test_positive_delete_empty(session):
-    """Delete an empty Usergroup
-
-    :expectedresults: Usergroup is deleted
-
-    :CaseImportance: Critical
-    """
     group_name = gen_utf8(smp=False)
     with session:
         session.usergroup.create({

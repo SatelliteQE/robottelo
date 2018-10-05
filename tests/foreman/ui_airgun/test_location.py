@@ -81,13 +81,14 @@ def test_positive_update_subnet(session):
     ).create()
     loc = entities.Location().create()
     with session:
+        subnet_name = '{0} ({1}/{2})'.format(
+            subnet.name, subnet.network, subnet.cidr)
         session.location.update(
-            loc.name, {'subnets.resources.assigned': [subnet.name]})
+            loc.name, {'subnets.resources.assigned': [subnet_name]})
         loc_values = session.location.read(loc.name)
-        subnet_name = "{} ({}/24)".format(subnet.name, ip_addres)
         assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
         session.location.update(
-            loc.name, {'subnets.resources.unassigned': [subnet.name]})
+            loc.name, {'subnets.resources.unassigned': [subnet_name]})
         loc_values = session.location.read(loc.name)
         assert len(loc_values['subnets']['resources']['assigned']) == 0
         assert subnet_name in loc_values['subnets']['resources']['unassigned']

@@ -19,18 +19,25 @@ import yaml
 from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class, publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
+from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC_ID, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import fixture, run_in_one_thread, tier2
 
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [
     {'author': 'robottelo', 'name': PM_NAME}]
 
+pytestmark = [run_in_one_thread]
+
 
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location(id=DEFAULT_LOC_ID).read()
 
 
 @fixture(scope='module')
@@ -40,9 +47,11 @@ def content_view(module_org):
 
 
 @fixture(scope='module')
-def puppet_env(content_view):
+def puppet_env(content_view, module_org):
     return entities.Environment().search(
-        query={'search': u'content_view="{0}"'.format(content_view.name)})[0]
+        query={'search': u'content_view="{0}" and organization_id={1}'.format(
+            content_view.name, module_org.id)}
+    )[0]
 
 
 @fixture(scope='module')
@@ -64,7 +73,8 @@ def sc_params_list(puppet_class):
 
 
 @fixture(scope='module')
-def module_host(module_org, content_view, puppet_env, puppet_class):
+def module_host(
+        module_org, module_loc, content_view, puppet_env, puppet_class):
     lce = entities.LifecycleEnvironment().search(
         query={
             'search': 'organization_id="{0}" and name="{1}"'.format(
@@ -72,6 +82,7 @@ def module_host(module_org, content_view, puppet_env, puppet_class):
         })[0]
     host = entities.Host(
         organization=module_org,
+        location=module_loc,
         content_facet_attributes={
             'content_view_id': content_view.id,
             'lifecycle_environment_id': lce.id,

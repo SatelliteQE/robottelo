@@ -23,6 +23,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
     make_hostgroup,
+    make_location,
     make_org,
     make_smart_variable,
     publish_puppet_module)
@@ -63,11 +64,17 @@ class SmartVariablesTestCase(CLITestCase):
             {'author': 'robottelo', 'name': 'cli_test_variables'},
         ]
         cls.org = make_org()
+        cls.loc = make_location()
         cv = publish_puppet_module(
             cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
         cls.env = Environment.list({
             'search': u'content_view="{0}"'.format(cv['name'])
         })[0]
+        Environment.update({
+            'name': cls.env['name'],
+            'organization-ids': cls.org['id'],
+            'location-ids': cls.loc['id'],
+        })
         # Find imported puppet class
         cls.puppet_class = Puppet.info({
             'name': cls.puppet_modules[0]['name'],
@@ -103,7 +110,8 @@ class SmartVariablesTestCase(CLITestCase):
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
-        host = entities.Host(organization=self.org['id']).create()
+        host = entities.Host(organization=self.org['id'],
+                             location=self.loc['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
@@ -129,7 +137,8 @@ class SmartVariablesTestCase(CLITestCase):
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
-        host = entities.Host(organization=self.org['id']).create()
+        host = entities.Host(organization=self.org['id'],
+                             location=self.loc['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],

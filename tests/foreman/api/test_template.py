@@ -18,6 +18,8 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 :Upstream: No
 """
+import time
+
 from random import choice
 
 from fauxfactory import gen_string
@@ -1402,12 +1404,11 @@ class TemplateSyncTestCase(APITestCase):
                 'organization_id': org.id,
                 'filter': 'empty'
             })
-        self.assertIn(
-            'Started POST "/api/v2/templates/import"',
-            ssh.command(
-                'tail -10 /var/log/foreman/production.log | grep import'
-            ).stdout[0]
-        )
+        time.sleep(5)
+        result = ssh.command(
+            'grep -i \'Started POST "/api/v2/templates/import"\' '
+            '/var/log/foreman/production.log')
+        self.assertEqual(result.return_code, 0)
 
     @tier3
     def test_positive_export_log_to_production(self):
@@ -1442,9 +1443,8 @@ class TemplateSyncTestCase(APITestCase):
                 'organization_ids': [org.id],
                 'filter': 'empty'
             })
-        self.assertIn(
-            'Started POST "/api/v2/templates/export"',
-            ssh.command(
-                'tail -10 /var/log/foreman/production.log | grep export'
-            ).stdout[0]
-        )
+        time.sleep(5)
+        result = ssh.command(
+            'grep -i \'Started POST "/api/v2/templates/export"\' '
+            '/var/log/foreman/production.log')
+        self.assertEqual(result.return_code, 0)

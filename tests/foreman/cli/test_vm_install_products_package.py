@@ -50,8 +50,6 @@ def test_vm_install_package(value):
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
 
     :expectedresults: Package is install is installed
-
-    :CaseImportance: System
     """
     # the value is support distro DISTRO_RH6 or DISTRO_RH7
     # this will create 4 tests:
