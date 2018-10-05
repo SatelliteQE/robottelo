@@ -21,10 +21,13 @@ from robottelo.datafactory import gen_string
 
 from robottelo.decorators import (
     fixture,
-    tier1,
+    run_in_one_thread,
     skip_if_not_set,
+    tier1,
     upgrade,
 )
+
+pytestmark = [run_in_one_thread]
 
 
 @fixture
