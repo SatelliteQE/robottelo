@@ -1,0 +1,13 @@
+--- # Container registry and repo set information to use for container repo syncing.
+
+# RH Registry Token based auth
+- rhregistry_tokenauth1:
+    registry_url: https://registry.redhat.io
+    registry_username: # Username
+    registry_password: # Token or password
+    repos_to_sync: [rhel7, rhscl/mysql-57-rhel7, rhscl/ruby-24-rhel7]
+
+- rhregistry_tokenauth2:
+    registry_url: https://registry.redhat.io
+    registry_username: # Username
+    registry_password: # Token or password
