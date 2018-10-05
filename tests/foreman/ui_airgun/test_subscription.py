@@ -65,7 +65,7 @@ def test_positive_upload_and_delete(session, manifest_file, organization):
 
 @skip_if_not_set('fake_manifest')
 @tier1
-def test_positive_delete_confirmation(session, manifest_file, organization):
+def test_positive_delete_confirmation(session, organization):
     """Upload a manifest with minimal input parameters, press 'Delete'
     button and check warning message on confirmation screen
 
@@ -91,9 +91,10 @@ def test_positive_delete_confirmation(session, manifest_file, organization):
         'This action should only be taken in extreme circumstances or for '
         'debugging purposes.',
     ]
+    manifests.upload_manifest_locked(
+            organization.id, manifests.clone(), manifests.INTERFACE_API)
     with session:
         session.organization.select(organization.name)
-        session.subscription.add_manifest(manifest_file)
         actual_message = session.subscription.read_delete_manifest_message()
         for line in expected_message:
             assert line in actual_message
