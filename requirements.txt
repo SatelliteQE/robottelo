@@ -4,7 +4,7 @@
 cachetools==2.0.1
 cryptography==2.3.1
 fauxfactory==3.0.2
-idna==2.6
+idna==2.7
 Inflector==2.0.12
 import_string==0.1.0
 mock==2.0.0
