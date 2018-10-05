@@ -96,8 +96,8 @@ class RoleTestCase(CLITestCase):
             'permissions': permissions,
         })
         self.assertEqual(
-            Role.filters({'id': role['id']})[0]['permissions'],
-            permissions
+            set(Role.filters({'id': role['id']})[0]['permissions']),
+            set(permissions)
         )
 
     @tier1

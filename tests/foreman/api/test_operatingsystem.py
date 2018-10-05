@@ -182,7 +182,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for pass_hash in ['MD5', 'SHA256', 'SHA512']:
+        for pass_hash in ['SHA256', 'SHA512']:
             with self.subTest(pass_hash):
                 os = entities.OperatingSystem(password_hash=pass_hash).create()
                 self.assertEqual(os.password_hash, pass_hash)

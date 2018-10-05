@@ -82,7 +82,7 @@ class AuditTestCase(APITestCase):
             },
             {
                 'entity': entities.ProvisioningTemplate(),
-                'entity_type': 'template',
+                'entity_type': 'provisioning_template',
             },
             {'entity': entities.User(), 'value_template': '{entity.login}'},
             {'entity': entities.UserGroup()},

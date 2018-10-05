@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import random
 
 from fauxfactory import gen_alphanumeric, gen_choice, gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -245,9 +246,11 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        rule_priority = '100'
-        rule = self._make_discoveryrule({u'priority': rule_priority})
-        self.assertEqual(rule['priority'], rule_priority)
+        available = set(range(1, 1000)) - set(
+            [r['priority'] for r in DiscoveryRule.list()])
+        rule_priority = random.sample(available, 1)
+        rule = self._make_discoveryrule({u'priority': rule_priority[0]})
+        self.assertEqual(rule['priority'], str(rule_priority[0]))
 
     @run_only_on('sat')
     @tier1
@@ -505,11 +508,17 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        rule = self._make_discoveryrule({u'priority': 100})
-        new_priority = '1'
-        DiscoveryRule.update({'id': rule['id'], 'priority': new_priority})
+        available = set(range(1, 1000)) - set(
+            [r['priority'] for r in DiscoveryRule.list()])
+        rule_priority = random.sample(available, 1)
+        rule = self._make_discoveryrule({u'priority': rule_priority[0]})
+        self.assertEqual(rule['priority'], str(rule_priority[0]))
+        available = set(range(1, 1000)) - set(
+            [r['priority'] for r in DiscoveryRule.list()])
+        rule_priority = random.sample(available, 1)
+        DiscoveryRule.update({'id': rule['id'], 'priority': rule_priority[0]})
         rule = DiscoveryRule.info({'id': rule['id']})
-        self.assertEqual(rule['priority'], new_priority)
+        self.assertEqual(rule['priority'], str(rule_priority[0]))
 
     @run_only_on('sat')
     @tier1

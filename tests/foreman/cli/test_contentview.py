@@ -15,6 +15,7 @@
 :Upstream: No
 """
 import random
+import os
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import manifests, ssh
@@ -48,6 +49,7 @@ from robottelo.cli.role import Role
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.constants import (
+    RPM_TO_UPLOAD,
     CUSTOM_PUPPET_REPO,
     DEFAULT_CV,
     DEFAULT_LOC,
@@ -83,7 +85,7 @@ from robottelo.decorators import (
     upgrade,
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import create_repo, repo_add_updateinfo
+from robottelo.helpers import create_repo, repo_add_updateinfo, get_data_file
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -2244,7 +2246,7 @@ class ContentViewTestCase(CLITestCase):
         # Check that repos were actually assigned to CV
         for repo_type in [
             'yum-repositories',
-            'docker-repositories',
+            'container-image-repositories',
             'ostree-repositories',
         ]:
             self.assertEqual(len(new_cv[repo_type]), 1)
@@ -2261,7 +2263,7 @@ class ContentViewTestCase(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         for repo_type in [
             'yum-repositories',
-            'docker-repositories',
+            'container-image-repositories',
             'ostree-repositories',
         ]:
             self.assertEqual(len(new_cv[repo_type]), 0)
@@ -3227,7 +3229,7 @@ class ContentViewTestCase(CLITestCase):
             Role.with_user(user_name, user_password).info(
                 {'id': role['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request',
+            '403 Forbidden',
             context.exception.stderr
         )
         # Create a lifecycle environment
@@ -4258,7 +4260,7 @@ class ContentViewTestCase(CLITestCase):
             'prior': qe_env['name'],
         })
         with CapsuleVirtualMachine(organization_ids=[org['id']]) as capsule_vm:
-            capsule = capsule_vm.capsule
+            capsule = Capsule().info({'name': capsule_vm.hostname})
             # Add all environments to capsule
             environments = {ENVIRONMENT, dev_env['name'], qe_env['name'],
                             prod_env['name']}
@@ -4918,7 +4920,7 @@ class OstreeContentViewTestCase(CLITestCase):
             'Yum Repo was not associated to CV',
         )
         self.assertEqual(
-            cv['docker-repositories'][0]['name'],
+            cv['container-image-repositories'][0]['name'],
             self.docker_repo['name'],
             'Docker Repo was not associated to CV',
         )
@@ -5136,7 +5138,46 @@ class ContentViewFileRepoTestCase(CLITestCase):
     """Specific tests for Content Views with File Repositories containing
     arbitrary files
     """
-    @stubbed()
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(ContentViewFileRepoTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({'organization-id': cls.org['id']})
+
+    def _make_file_repository_upload_contents(self, options=None):
+        """Makes a new File repository, Upload File/Multiple Files
+        and asserts its success """
+        if options is None:
+            options = {
+                u'product-id': self.product['id'],
+                u'content-type': 'file'
+            }
+        if not options.get('content-type'):
+            raise CLIFactoryError('Please provide a valid Content Type.')
+        new_repo = make_repository(options)
+        remote_path = "/tmp/{0}".format(RPM_TO_UPLOAD)
+        if 'multi_upload' not in options or not options['multi_upload']:
+            ssh.upload_file(
+                local_file=get_data_file(RPM_TO_UPLOAD),
+                remote_file=remote_path
+            )
+        else:
+            remote_path = "/tmp/{}/".format(gen_string('alpha'))
+            ssh.upload_files(local_dir=os.getcwd() + "/../data/",
+                             remote_dir=remote_path)
+
+        Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': remote_path,
+            'product-id': new_repo['product']['id'],
+        })
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertGreater(int(new_repo['content-counts']['files']), 0)
+        return new_repo
+
+    @skip_if_bug_open('bugzilla', 1610309)
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):
         """Check a File Repository with Arbitrary File can be added to a
@@ -5158,6 +5199,19 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
+        repo = self._make_file_repository_upload_contents()
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product-id': self.product['id'],
+            u'repository': repo['name'],
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(
+            cv['file-repositories'][0]['name'],
+            self.repo_name)
 
     @stubbed()
     @tier2

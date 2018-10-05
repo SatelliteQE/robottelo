@@ -14,6 +14,7 @@ Subcommands::
     create                        Create a host
     delete                        Delete a host
     delete-parameter              Delete parameter for a host.
+    enc-dump                      Dump host's ENC YAML.
     errata                        Manage errata on your hosts
     facts                         List all fact values
     info                          Show a host
@@ -42,6 +43,31 @@ class Host(Base):
     """Manipulates Foreman's hosts."""
 
     command_base = 'host'
+
+    @classmethod
+    def enc_dump(cls, options):
+        """
+        Dump host's ENC YAML.
+
+        Usage::
+
+            hammer host enc-dump [OPTIONS]
+
+        Options::
+
+             --id ID
+             --location LOCATION_NAME                Location name
+             --location-id LOCATION_ID
+             --location-title LOCATION_TITLE         Location title
+             --name NAME                             Host name
+             --organization ORGANIZATION_NAME        Organization name
+             --organization-id ORGANIZATION_ID       Organization ID
+             --organization-title ORGANIZATION_TITLE Organization title
+             -h, --help                              Print help
+        """
+        cls.command_sub = 'enc-dump'
+        return cls.execute(
+            cls._construct_command(options), output_format='yaml')
 
     @classmethod
     def errata_apply(cls, options):

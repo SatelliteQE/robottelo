@@ -22,8 +22,13 @@ from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
+    invalid_boolean_strings,
+    invalid_emails_list,
+    valid_data_list,
+    valid_emails_list,
     valid_url_list,
-    valid_data_list, invalid_boolean_strings, xdist_adapter)
+    xdist_adapter
+)
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
 
@@ -206,7 +211,6 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed()
     @tier1
     def test_positive_update_email_reply_address(self):
         """Check email reply address is updated
@@ -217,10 +221,22 @@ class SettingTestCase(CLITestCase):
 
         :caseimportance: low
 
-        :caseautomation: notautomated
+        :caseautomation: automated
         """
+        for email in valid_emails_list():
+            with self.subTest(email):
+                # The email must be escaped because some characters to not fail
+                # the parsing of the generated shell command
+                escaped_email = email.replace(
+                    '"', r'\"').replace('`', r'\`')
+                Settings.set({
+                    'name': "email_reply_address",
+                    'value': escaped_email})
+                email_reply_address = Settings.list({
+                    'search': 'name=email_reply_address'
+                }, output_format='json')[0]
+                self.assertEqual(email_reply_address['value'], email)
 
-    @stubbed()
     @tier1
     def test_negative_update_email_reply_address(self):
         """Check email reply address is not updated
@@ -233,10 +249,16 @@ class SettingTestCase(CLITestCase):
 
         :caseimportance: low
 
-        :caseautomation: notautomated
+        :caseautomation: automated
         """
+        for email in invalid_emails_list():
+            with self.subTest(email):
+                with self.assertRaises(CLIReturnCodeError):
+                    Settings.set({
+                        'name': 'email_reply_address',
+                        'value': email
+                    })
 
-    @stubbed()
     @tier1
     def test_positive_update_email_subject_prefix(self):
         """Check email subject prefix is updated
@@ -245,10 +267,22 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_subject_prefix is updated
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :caseimportance: low
         """
+        email_subject_prefix_value = gen_string('alpha')
+        Settings.set({
+            'name': "email_subject_prefix",
+            'value': email_subject_prefix_value
+        })
+        email_subject_prefix = Settings.list({
+            'search': 'name=email_subject_prefix'
+        })[0]
+        self.assertEqual(
+            email_subject_prefix_value,
+            email_subject_prefix['value']
+        )
 
     @stubbed()
     @tier1

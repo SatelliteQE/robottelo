@@ -44,7 +44,7 @@ nitpick_ignore = [
     ('py:obj', 'str'),
     ('py:obj', 'tuple'),
 ]
-autodoc_default_flags = ['members', 'undoc-members']
+autodoc_default_options = {'members': None, 'undoc-members': None}
 
 # Format-Specific Options -----------------------------------------------------
 

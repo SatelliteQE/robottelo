@@ -55,6 +55,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
+from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
@@ -147,6 +148,12 @@ class HostCreateTestCase(CLITestCase):
             'name': puppet_modules[0]['name'],
             'environment': cls.puppet_env['name'],
         })
+        # adding org to a puppet env
+        Org.set_parameter({
+            'name': 'Environment',
+            'value': cls.puppet_env["name"],
+            'organization': cls.new_org["name"],
+        })
 
     def setUp(self):
         """Find an existing puppet proxy.
@@ -203,7 +210,10 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        domain = make_domain()
+        domain = make_domain({
+            u'organizations': u'Default Organization',
+            u'locations': u'Default Location'
+        })
         mac = gen_mac(multicast=False)
         host = make_fake_host({
             u'domain-id': domain['id'],
@@ -212,6 +222,7 @@ class HostCreateTestCase(CLITestCase):
             u'host-id': host['id'],
             u'domain-id': domain['id'],
             u'mac': mac,
+            u'type': u'interface'
         })
         host = Host.info({u'id': host['id']})
         host_interface = HostInterface.info({
@@ -295,7 +306,9 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.new_lce['id'],
             'organization-ids': self.new_org['id'],
         })
-        host = entities.Host()
+        host = entities.Host(
+            organization=entities.Organization(id=self.new_org['id']).read()
+        )
         host.create_missing()
         interface = (
             "type=interface,mac={0},identifier=eth0,name={1},domain={2},"
@@ -380,7 +393,7 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with self.assertRaises(CLIBaseError):
+        with self.assertRaises(CLIFactoryError):
             make_fake_host({
                 'content-source-id': gen_integer(10000, 99999),
                 'content-view-id': self.DEFAULT_CV['id'],
@@ -565,6 +578,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-class-ids': self.puppet_class['id'],
             'environment-id': self.puppet_env['id'],
+            'organization-id': self.new_org['id'],
         })
         host_classes = Host.puppetclasses({'host-id': host['id']})
         self.assertIn(
@@ -585,6 +599,7 @@ class HostCreateTestCase(CLITestCase):
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
             'environment': self.puppet_env['name'],
+            'organization-id': self.new_org['id'],
         })
         host_classes = Host.puppetclasses({'host': host['name']})
         self.assertIn(
@@ -1712,24 +1727,24 @@ class HostParameterTestCase(CLITestCase):
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
         })[0]
         # using nailgun to create dependencies
-        cls.host = entities.Host()
-        cls.host.create_missing()
-        cls.org_id = cls.host.organization.id
-        cls.loc_id = cls.host.location.id
+        cls.host_template = entities.Host()
+        cls.host_template.create_missing()
+        cls.org_id = cls.host_template.organization.id
+        cls.loc_id = cls.host_template.location.id
         # using CLI to create host
         cls.host = make_host({
-            u'architecture-id': cls.host.architecture.id,
-            u'domain-id': cls.host.domain.id,
-            u'environment-id': cls.host.environment.id,
+            u'architecture-id': cls.host_template.architecture.id,
+            u'domain-id': cls.host_template.domain.id,
+            u'environment-id': cls.host_template.environment.id,
             u'location-id': cls.loc_id,
-            u'mac': cls.host.mac,
-            u'medium-id': cls.host.medium.id,
-            u'name': cls.host.name,
-            u'operatingsystem-id': cls.host.operatingsystem.id,
+            u'mac': cls.host_template.mac,
+            u'medium-id': cls.host_template.medium.id,
+            u'name': cls.host_template.name,
+            u'operatingsystem-id': cls.host_template.operatingsystem.id,
             u'organization-id': cls.org_id,
-            u'partition-table-id': cls.host.ptable.id,
+            u'partition-table-id': cls.host_template.ptable.id,
             u'puppet-proxy-id': cls.puppet_proxy['id'],
-            u'root-password': cls.host.root_pass,
+            u'root-password': cls.host_template.root_pass,
         })
 
     @tier1
@@ -1935,7 +1950,7 @@ class HostParameterTestCase(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
 
-    @tier3
+    @tier2
     def test_negative_view_parameter_by_non_admin_user(self):
         """Attempt to view parameters with non admin user without Parameter
          permissions
@@ -1993,7 +2008,7 @@ class HostParameterTestCase(CLITestCase):
         ).info({'id': self.host['id']})
         self.assertFalse(host.get('parameters'))
 
-    @tier3
+    @tier2
     def test_positive_view_parameter_by_non_admin_user(self):
         """Attempt to view parameters with non admin user that has
         Parameter::vew_params permission
@@ -2054,7 +2069,7 @@ class HostParameterTestCase(CLITestCase):
         self.assertIn(param_name, host['parameters'])
         self.assertEqual(host['parameters'][param_name], param_value)
 
-    @tier3
+    @tier2
     def test_negative_edit_parameter_by_non_admin_user(self):
         """Attempt to edit parameter with non admin user that has
         Parameter::vew_params permission
@@ -2121,7 +2136,7 @@ class HostParameterTestCase(CLITestCase):
         host = Host.info({'id': self.host['id']})
         self.assertEqual(host['parameters'][param_name], param_value)
 
-    @tier3
+    @tier2
     def test_positive_set_multi_line_and_with_spaces_parameter_value(self):
         """Check that host parameter value with multi-line and spaces is
         correctly restored from yaml format
@@ -2145,7 +2160,26 @@ class HostParameterTestCase(CLITestCase):
             u'password-auth\r\n'
             u'account     include                  password-auth'
         )
-        host = self.host
+        host = make_host({
+            u'architecture-id': self.host_template.architecture.id,
+            u'domain-id': self.host_template.domain.id,
+            u'environment-id': self.host_template.environment.id,
+            u'location-id': self.loc_id,
+            u'mac': self.host_template.mac,
+            u'medium-id': self.host_template.medium.id,
+            u'operatingsystem-id': self.host_template.operatingsystem.id,
+            u'organization-id': self.org_id,
+            u'partition-table-id': self.host_template.ptable.id,
+            u'puppet-proxy-id': self.puppet_proxy['id'],
+            u'root-password': self.host_template.root_pass,
+        })
+        # count parameters of a host
+        response = Host.info(
+            {'id': host['id']}, output_format='yaml', return_raw_response=True)
+        self.assertEqual(response.return_code, 0)
+        yaml_content = yaml.load('\n'.join(response.stdout))
+        host_initial_params = yaml_content.get('Parameters')
+        # set parameter
         Host.set_parameter({
             'host-id': host['id'],
             'name': param_name,
@@ -2156,10 +2190,12 @@ class HostParameterTestCase(CLITestCase):
         self.assertEqual(response.return_code, 0)
         yaml_content = yaml.load('\n'.join(response.stdout))
         host_parameters = yaml_content.get('Parameters')
-        self.assertIsNotNone(host_parameters)
-        self.assertEqual(len(host_parameters), 1)
-        self.assertEqual(host_parameters[0]['name'], param_name)
-        self.assertEqual(host_parameters[0]['value'], param_value)
+        # check that number of params increased by one
+        self.assertEqual(len(host_parameters), 1 + len(host_initial_params))
+        filtered_params = [param for param in host_parameters
+                           if param['name'] == param_name]
+        self.assertEqual(len(filtered_params), 1)
+        self.assertEqual(filtered_params[0]['value'], param_value)
 
 
 class HostProvisionTestCase(CLITestCase):
@@ -3321,3 +3357,24 @@ class HostErrataTestCase(CLITestCase):
         hostname = ssh.command('hostname').stdout[0]
         host = Host.info({'name': hostname})
         self.assertIsInstance(Host.errata_list({'host-id': host['id']}), list)
+
+
+class EncDumpTestCase(CLITestCase):
+    """Tests for Dump host's ENC YAML"""
+
+    @tier1
+    def test_positive_dump_enc_yaml(self):
+        """Dump host's ENC YAML. Check BZ for details.
+
+        :id: 50bf2530-788c-4710-a382-d034d73d5d4d
+
+        :expectedresults: Ensure that enc-dump does not fail
+
+        :customerscenario: true
+
+        :BZ: 1372731
+
+        :CaseImportance: Critical
+        """
+        hostname = ssh.command('hostname').stdout[0]
+        self.assertIsInstance(Host.enc_dump({'name': hostname}), list)

@@ -24,7 +24,7 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, upgrade
+from robottelo.decorators import skip_if_bug_open, tier2, upgrade
 from robottelo.helpers import get_data_file, read_data_file
 
 
@@ -235,6 +235,7 @@ class TestGPGKeyProductAssociate(object):
             assert len(values['repositories']['table']) == 1
             assert values['repositories']['table'][0]['Name'] == repo1.name
 
+    @skip_if_bug_open('bugzilla', 1595792)
     @tier2
     @upgrade
     def test_positive_add_product_using_repo_discovery(self, session):
@@ -273,7 +274,8 @@ class TestGPGKeyProductAssociate(object):
             assert len(values['products']['table']) == 1
             assert values['products']['table'][0]['Name'] == product_name
             assert len(values['repositories']['table']) == 1
-            assert values['repositories']['table'][0]['Name'] == repo_name
+            assert (values['repositories']['table'][0]['Name'].split(' ')[-1]
+                    == repo_name)
 
     @tier2
     def test_positive_update_key_for_empty_product(self, session):

@@ -1156,7 +1156,7 @@ class SELinuxTestCase(TestCase):
         :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
         :expectedresults: All services {'elasticsearch', 'foreman-proxy',
-            'foreman-tasks', 'httpd', 'mongod', 'postgresql',
+            'foreman-tasks', 'httpd', 'rh-mongodb34-mongod', 'postgresql',
             'pulp_celerybeat', 'pulp_resource_manager', 'pulp_workers',
             'qdrouterd', 'qpidd', 'tomcat'} are started
         """
@@ -1165,7 +1165,7 @@ class SELinuxTestCase(TestCase):
             'foreman-proxy',
             'foreman-tasks',
             'httpd',
-            'mongod',
+            'rh-mongodb34-mongod',
             'postgresql',
             'pulp_celerybeat',
             'pulp_resource_manager',

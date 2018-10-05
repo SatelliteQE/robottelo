@@ -20,7 +20,11 @@ from fauxfactory import gen_string
 from nailgun import entities
 from random import choice
 from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid, wait_for_tasks
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    wait_for_tasks,
+    wait_for_syncplan_tasks
+)
 from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import (
     filtered_datapoint,
@@ -64,7 +68,16 @@ class SyncPlanTestCase(UITestCase):
         cls.organization = entities.Organization().create()
 
     @staticmethod
-    def validate_task_status(repo_id, max_tries=10):
+    def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):
+        """Wait for Pulp and foreman_tasks to complete or timeout
+
+        :param repo_id: Repository Id to identify the correct task
+        :param max_tries: Max tries to poll for the task creation
+        :param repo_backend_id: Backend identifier of repository to filter the
+            pulp tasks
+        """
+        if repo_backend_id:
+            wait_for_syncplan_tasks(repo_backend_id)
         wait_for_tasks(
             search_query='resource_type = Katello::Repository'
                          ' and owner.login = foreman_admin'
@@ -536,7 +549,9 @@ class SyncPlanTestCase(UITestCase):
                              ' was synced'.format(delay, product.name))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo,
                 ['erratum', 'package', 'package_group'],
@@ -595,14 +610,15 @@ class SyncPlanTestCase(UITestCase):
                              ' was synced'.format(delay/2, product.name))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo,
                 ['erratum', 'package', 'package_group'],
             )
 
     @tier4
-    @upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -656,7 +672,9 @@ class SyncPlanTestCase(UITestCase):
                              ' were synced'.format(delay*2/3))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             for repo in repos:
                 self.validate_repo_content(
                     repo,
@@ -665,7 +683,6 @@ class SyncPlanTestCase(UITestCase):
 
     @run_in_one_thread
     @tier4
-    @upgrade
     def test_positive_synchronize_rh_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
@@ -730,7 +747,9 @@ class SyncPlanTestCase(UITestCase):
                              ' was synced'.format(delay, PRDS['rhel']))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo,
                 ['erratum', 'package', 'package_group'],
@@ -738,6 +757,7 @@ class SyncPlanTestCase(UITestCase):
 
     @run_in_one_thread
     @tier4
+    @upgrade
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -797,7 +817,9 @@ class SyncPlanTestCase(UITestCase):
                              ' was synced'.format(delay/2, PRDS['rhel']))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo,
                 ['erratum', 'package', 'package_group'],
@@ -851,7 +873,9 @@ class SyncPlanTestCase(UITestCase):
                              ' was synced'.format(delay, product.name))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo,
                 ['erratum', 'package', 'package_group'],
@@ -860,7 +884,6 @@ class SyncPlanTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', '1396647')
     @skip_if_bug_open('bugzilla', '1460146')
     @tier3
-    @upgrade
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a daily sync plan with past datetime as a sync date,
         add a custom product and verify the product gets synchronized
@@ -910,7 +933,9 @@ class SyncPlanTestCase(UITestCase):
                              ' was synced'.format(delay, product.name))
             sleep(delay * 3/4)
             # Verify product was synced successfully
-            self.validate_task_status(repo.id)
+            self.validate_task_status(repo.id,
+                                      repo_backend_id=repo.backend_identifier
+                                      )
             self.validate_repo_content(
                 repo,
                 ['erratum', 'package', 'package_group'],

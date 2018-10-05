@@ -8,7 +8,7 @@ from fauxfactory import gen_string, gen_integer, gen_alpha, gen_utf8, gen_url
 from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
-from robottelo.constants import STRING_TYPES
+from robottelo.constants import STRING_TYPES, DOMAIN
 from robottelo.decorators import bz_bug_is_open
 
 
@@ -110,7 +110,7 @@ def add_uppercase_char_into_string(text=None, length=10):
     if text is None:
         text = gen_string('alpha', length)
     st_chars = list(text)
-    st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
+    st_chars[random.randint(0, len(st_chars) - 1)] = random.choice(
         string.ascii_uppercase)
     return ''.join(st_chars)
 
@@ -198,6 +198,35 @@ def invalid_id_list():
 def invalid_names_list():
     """Generates a list of invalid names."""
     return generate_strings_list(300)
+
+
+@filtered_datapoint
+def valid_domain_names(interface=None, length=None):
+    """Valid domain names."""
+    max_len = 255 - len(DOMAIN % '')
+    if not length:
+        length = random.randint(1, max_len)
+    if length > max_len:
+        raise ValueError('length is too large, max: {}'.format(max_len))
+    names = {
+        'alphanumeric': DOMAIN % gen_string('alphanumeric', length),
+        'alpha': DOMAIN % gen_string('alpha', length),
+        'numeric': DOMAIN % gen_string('numeric', length),
+        'latin1': DOMAIN % gen_string('latin1', length),
+        'utf8': DOMAIN % gen_utf8(length),
+    }
+    return names
+
+
+@filtered_datapoint
+def invalid_domain_names(interface=None):
+    """Invalid domain names."""
+    return {
+        'empty': '\0',
+        'whitespace': ' ',
+        'tab': '\t',
+        'toolong': gen_string('alphanumeric', 300)
+    }
 
 
 @filtered_datapoint

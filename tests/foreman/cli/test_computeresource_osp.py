@@ -124,6 +124,7 @@ class OSPComputeResourceTestCase(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1579714)
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_by_id(self):
         """Delete the Openstack compute resource by id
 
