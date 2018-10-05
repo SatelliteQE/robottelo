@@ -70,7 +70,7 @@ def attach_subscription(module_org, activation_key):
             module_org.name))
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def vm(activation_key, module_org):
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.configure_rhai_client(
@@ -95,3 +95,18 @@ def test_positive_register_client_to_rhai(vm, autosession):
     assert table[0]["System Name"].text == vm.hostname
     result = autosession.insightsinventory.total_systems
     assert result == "1", "Registered clients are not listed"
+
+
+def test_positive_unregister_client_to_rhai(vm, autosession):
+    """Check client canceling registration to redhat-access-insights service.
+
+    :id: 70d1045b-7d9d-472e-8ce9-8a5b81c41a85
+
+    :expectedresults: Unregistered client should not appear in the Systems sub-
+        menu of Red Hat Access Insights
+    """
+    vm.unregister()
+    table = autosession.insightsinventory.search(vm.hostname)
+    assert not table[0].is_displayed
+    result = autosession.insightsinventory.total_systems
+    assert result == "0", "The client is still registered"
