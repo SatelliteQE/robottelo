@@ -63,9 +63,11 @@ class HostTestCase(APITestCase):
             CUSTOM_PUPPET_REPO,
             organization_id=cls.org.id
         )
-        cls.env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cls.cv.name)}
-        )[0].read()
+        cls.env = entities.Environment().search(query={
+            'search': u'content_view="{0}" and organization_id={1}'.format(
+                cls.cv.name, cls.org.id)})[0].read()
+        cls.env.location.append(cls.loc)
+        cls.env.update(['location'])
         cls.lce = entities.LifecycleEnvironment().search(query={
             'search': 'name={0} and organization_id={1}'.format(
                 ENVIRONMENT, cls.org.id)
