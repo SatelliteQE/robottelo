@@ -1920,9 +1920,9 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
     @classmethod
     def setUp(cls):
         super(TokenAuthContainerRepositoryTestCase, cls).setUpClass()
-        #cls.org = entities.Organization().create()
+        cls.org = entities.Organization().create()
         #cls.org = entities.Organization(name='testorg1').create() # used for testing, will change to random org later
-        cls.org = entities.Organization.search(name='testorg1') # used for testing, will change to random org later
+        # cls.org = entities.Organization.search(name='testorg1') # used for testing, will change to random org later
 
     @tier2
     @run_only_on('sat')
@@ -1959,4 +1959,34 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                 self.assertEqual(repo.upstream_username,
                                  settings.docker.redhat_registry_username)
         #TODO if we cant find a restrity with passwords >1024 we could just test creating the object with really long passwords, and not syncing it
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_multi_repo(self):
+        """Create and sync Docker-type repo from the Red Hat Container registry
+        Using token based auth, with very long tokens (>255 charaters).
+
+        :id: 4f8ea85b-4c69-4da6-a8ef-bd467ee35147
+
+        :expectedresults: multiple products and repos are created
+
+        """
+        for config in settings.container_repo.repo_configs:
+            product_name = config['label']
+            with self.subTest(product_name):
+                product = entities.Product(organization=self.org,
+                                           name=product_name).create()
+
+                for repo_name in config['repos_to_sync']:
+                    repo = entities.Repository(
+                        content_type=u'docker',
+                        docker_upstream_name=repo_name,
+                        name=repo_name,
+                        product=product,
+                        url=config['registry_url'],
+                        upstream_username=config['registry_username'],
+                        upstream_password=config['registry_password']
+                    ).create()
+
+
 
