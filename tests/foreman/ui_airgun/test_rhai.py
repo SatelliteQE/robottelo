@@ -52,7 +52,7 @@ def attach_subscription(module_org, activation_key):
             module_org.name))
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def vm(activation_key, module_org):
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.configure_rhai_client(
