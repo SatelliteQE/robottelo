@@ -2,6 +2,7 @@
 codecov
 flake8
 pytest-cov
+git+git://github.com/SatelliteQE/agent-python-pytest
 pytest-xdist
 redis
 tox

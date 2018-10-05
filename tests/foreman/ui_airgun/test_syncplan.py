@@ -29,11 +29,11 @@ def test_positive_create(session):
             'description': description,
             'interval': 'daily',
         })
-        assert session.syncplan.search(plan_name) == plan_name
-        syncplan_values = session.syncplan.read(plan_name)
-        assert syncplan_values['details']['name'] == plan_name
-        assert syncplan_values['details']['description'] == description
-        assert syncplan_values['details']['interval'] == 'daily'
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
+        syncplan = session.syncplan.read(plan_name)
+        assert syncplan['details']['name'] == plan_name
+        assert syncplan['details']['description'] == description
+        assert syncplan['details']['interval'] == 'daily'
 
 
 @tier2
@@ -59,7 +59,7 @@ def test_positive_create_with_start_time(session):
             'date_time.minutes': startdate.strftime('%M'),
 
         })
-        assert session.syncplan.search(plan_name) == plan_name
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         syncplan_values = session.syncplan.read(plan_name)
         time = str(syncplan_values['details']['date_time']).rpartition(':')[0]
         assert time == startdate.strftime("%Y/%m/%d %H:%M")
@@ -86,7 +86,7 @@ def test_positive_create_with_start_date(session):
             'interval': 'daily',
             'date_time.start_date': startdate.strftime("%Y-%m-%d"),
         })
-        assert session.syncplan.search(plan_name) == plan_name
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         syncplan_values = session.syncplan.read(plan_name)
         date = str(syncplan_values['details']['date_time']).partition(' ')[0]
         assert date == startdate.strftime("%Y/%m/%d")

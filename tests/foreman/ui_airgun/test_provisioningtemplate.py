@@ -28,7 +28,7 @@ def test_positive_create(session):
             'template.template_editor.editor': gen_string('alpha'),
             'type.template_type': 'Provisioning template'
         })
-        assert session.provisioningtemplate.search(name) == name
+        assert session.provisioningtemplate.search(name)[0]['Name'] == name
 
 
 @tier2
@@ -49,7 +49,7 @@ def test_positive_clone(session):
     clone_name = gen_string('alpha')
     content = gen_string('alpha')
     os_list = [
-        entities.OperatingSystem().create().name for _ in range(2)
+        entities.OperatingSystem().create().title for _ in range(2)
     ]
     with session:
         session.provisioningtemplate.create({
@@ -57,7 +57,7 @@ def test_positive_clone(session):
             'template.template_editor.editor': content,
             'type.template_type': 'Provisioning template'
         })
-        assert session.provisioningtemplate.search(name) == name
+        assert session.provisioningtemplate.search(name)[0]['Name'] == name
         session.provisioningtemplate.clone(
             name,
             {
@@ -65,10 +65,8 @@ def test_positive_clone(session):
                 'association.applicable_os.assigned': os_list
             }
         )
-        assert session.provisioningtemplate.search(clone_name) == clone_name
+        assert session.provisioningtemplate.search(
+            clone_name)[0]['Name'] == clone_name
         template = session.provisioningtemplate.read(clone_name)
-        cloned_template_os_list = [
-            el.split()[0] for el
-            in template['association']['applicable_os']['assigned']
-        ]
-        assert set(os_list) == set(cloned_template_os_list)
+        assert set(os_list) == set(
+            template['association']['applicable_os']['assigned'])

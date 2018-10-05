@@ -47,7 +47,6 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier1,
-    tier2,
     tier3,
     upgrade
 )
@@ -296,7 +295,7 @@ class RemoteExecutionTestCase(CLITestCase):
         })
 
     @stubbed()
-    @tier2
+    @tier3
     def test_positive_run_default_job_template(self):
         """Run default job template against a single host
 
@@ -321,7 +320,7 @@ class RemoteExecutionTestCase(CLITestCase):
             raise AssertionError(result)
 
     @stubbed()
-    @tier2
+    @tier3
     @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user(self):
         """Run default job template as effective user against a single host
@@ -376,7 +375,7 @@ class RemoteExecutionTestCase(CLITestCase):
         self.assertEqual(username, result.stdout[0])
 
     @stubbed()
-    @tier2
+    @tier3
     def test_positive_run_custom_job_template(self):
         """Run custom job template against a single host
 
@@ -608,7 +607,7 @@ class RemoteExecutionTestCase(CLITestCase):
         # currently it is not possible to get subtasks from
         # a task other than via UI
 
-    @tier2
+    @tier3
     def test_positive_run_default_job_template_by_ip(self):
         """Run default template on host connected by ip
 
@@ -638,7 +637,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
             raise AssertionError(result)
 
-    @tier2
+    @tier3
     @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user_by_ip(self):
         """Run default job template as effective user on a host by ip
@@ -698,7 +697,7 @@ class RemoteExecutionTestCase(CLITestCase):
         # assert the file is owned by the effective user
         self.assertEqual(username, result.stdout[0])
 
-    @tier2
+    @tier3
     def test_positive_run_custom_job_template_by_ip(self):
         """Run custom template on host connected by ip
 
@@ -843,7 +842,6 @@ class RemoteExecutionTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @tier3
-    @upgrade
     def test_positive_run_recurring_job_with_max_iterations_by_ip(self):
         """Run default job template multiple times with max iteration by ip
 
@@ -941,8 +939,27 @@ class AnsibleREXTestCase(CLITestCase):
         super(AnsibleREXTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
         # register and setup a host here and tests will share the host, step 0.
+        cls.org = make_org()
+        cls.client = VirtualMachine(distro=DISTRO_RHEL7)
+        cls.client.create()
+        cls.client.install_katello_ca()
+        cls.client.register_contenthost(
+            org=cls.org['label'],
+            lce='Library'
+        )
+        cls.assertTrue(cls.client.subscribed, True)
+        Host.set_parameter({
+            'host': cls.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        add_remote_execution_ssh_key(cls.client.ip_addr)
 
-    @stubbed()
+    @classmethod
+    def tearDownClass(cls):
+        super(AnsibleREXTestCase, cls).tearDownClass()
+        cls.client.destroy()
+
     @tier3
     @upgrade
     def test_positive_run_job(self):
@@ -960,10 +977,25 @@ class AnsibleREXTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseLevel: System
         """
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - Ansible Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
+                    )
+                )
+            raise AssertionError(result)
 
     @stubbed()
     @tier3

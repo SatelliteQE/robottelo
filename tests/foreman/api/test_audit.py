@@ -16,11 +16,10 @@
 """
 from nailgun import entities
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_in_one_thread, tier1
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
-@run_in_one_thread
 class AuditTestCase(APITestCase):
     """Tests for audit functionality"""
 
@@ -83,7 +82,7 @@ class AuditTestCase(APITestCase):
             },
             {
                 'entity': entities.ProvisioningTemplate(),
-                'entity_type': 'template',
+                'entity_type': 'provisioning_template',
             },
             {'entity': entities.User(), 'value_template': '{entity.login}'},
             {'entity': entities.UserGroup()},
@@ -93,9 +92,13 @@ class AuditTestCase(APITestCase):
                 'entity_type', created_entity.__class__.__name__.lower())
             value_template = entity_item.get('value_template', '{entity.name}')
             entity_value = value_template.format(entity=created_entity)
-            audit = entities.Audit().search(
-                query={'search': 'type={0}'.format(entity_type)})[0]
-            self.assertEqual(audit.auditable_name, entity_value)
+            audits = entities.Audit().search(
+                query={'search': 'type={0}'.format(entity_type)})
+            entity_audits = [entry for entry in audits
+                             if entry.auditable_name == entity_value]
+            if not entity_audits:
+                self.fail('audit not found by name "{}"'.format(entity_value))
+            audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(audit.action, 'create')
             self.assertEqual(audit.version, 1)
@@ -124,12 +127,16 @@ class AuditTestCase(APITestCase):
             new_name = gen_string('alpha')
             created_entity.name = new_name
             created_entity = created_entity.update(['name'])
-            audit = entities.Audit().search(
+            audits = entities.Audit().search(
                 query={'search': 'type={0}'.format(
                     created_entity.__class__.__name__.lower())
                 }
-            )[0]
-            self.assertEqual(audit.auditable_name, name)
+            )
+            entity_audits = [entry for entry in audits
+                             if entry.auditable_name == name]
+            if not entity_audits:
+                self.fail('audit not found by name "{}"'.format(name))
+            audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(
                 audit.audited_changes['name'], [name, new_name])
@@ -158,12 +165,17 @@ class AuditTestCase(APITestCase):
         ]:
             created_entity = entity.create()
             created_entity.delete()
-            audit = entities.Audit().search(
+            audits = entities.Audit().search(
                 query={'search': 'type={0}'.format(
                     created_entity.__class__.__name__.lower())
                 }
-            )[0]
-            self.assertEqual(audit.auditable_name, created_entity.name)
+            )
+            entity_audits = [entry for entry in audits
+                             if entry.auditable_name == created_entity.name]
+            if not entity_audits:
+                self.fail('audit not found by name "{}"'.format(
+                            created_entity.name))
+            audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(audit.action, 'destroy')
             self.assertEqual(audit.version, 2)

@@ -2,21 +2,22 @@
 import logging
 import time
 
+import os
+from fauxfactory import gen_alphanumeric
+
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import (
-    DISTRO_RHEL6,
     DISTRO_RHEL7,
     SATELLITE_FIREWALL_SERVICE_NAME,
 )
+from robottelo.decorators import bz_bug_is_open, setting_is_set
 from robottelo.cli.capsule import Capsule
-from robottelo.cli.factory import (
-    setup_capsule_virtual_machine,
-)
 from robottelo.cli.host import Host
-from robottelo.decorators import setting_is_set
-from robottelo.host_info import get_host_os_version
+from robottelo.helpers import extract_capsule_satellite_installer_command
+from robottelo.ssh import download_file, upload_file
 from robottelo.vm import VirtualMachine
+from tempfile import mkstemp
 
 logger = logging.getLogger(__name__)
 
@@ -59,30 +60,24 @@ class CapsuleVirtualMachine(VirtualMachine):
         if not setting_is_set('capsule'):
             raise CapsuleVirtualMachineError('capsule configuration not set')
 
-        if distro is None:
-            # use the same distro as satellite host server os
-            server_host_os_version = get_host_os_version()
-            if server_host_os_version.startswith('RHEL6'):
-                distro = DISTRO_RHEL6
-            elif server_host_os_version.startswith('RHEL7'):
-                distro = DISTRO_RHEL7
-            else:
-                raise CapsuleVirtualMachineError(
-                    'cannot find a default compatible distro to create'
-                    ' the virtual machine')
-
-        self._capsule_distro = distro
-        self._capsule_domain = settings.capsule.domain
-        self._capsule_instance_name = settings.capsule.instance_name
-        self._capsule_hostname_hash = settings.capsule.hash
-        self._capsule_hostname = settings.capsule.hostname
-        self._ddns_package_url = settings.capsule.ddns_package_url
+        name_prefix = gen_alphanumeric(4).lower()
+        self._capsule_instance_name = (
+            '{0}-{1}'.format(name_prefix, settings.capsule.instance_name)
+        )
+        self._capsule_domain = settings.clients.provisioning_server.split(
+            '.', 1)[1]
+        self._capsule_hostname = (
+            '{0}.{1}'.format(
+                self._capsule_instance_name,
+                self._capsule_domain
+            )
+        )
 
         super(CapsuleVirtualMachine, self).__init__(
             cpu=cpu, ram=ram, distro=distro,
             provisioning_server=provisioning_server, image_dir=image_dir,
-            hostname=self._capsule_hostname,
             domain=self._capsule_domain,
+            hostname=self._capsule_hostname,
             target_image=self._capsule_instance_name
         )
 
@@ -97,10 +92,6 @@ class CapsuleVirtualMachine(VirtualMachine):
         self._capsule = None
         self._capsule_org = None
         self._capsule_lce = None
-
-    @property
-    def capsule_distro(self):
-        return self._capsule_distro
 
     @property
     def hostname_local(self):
@@ -127,37 +118,23 @@ class CapsuleVirtualMachine(VirtualMachine):
     def capsule_organization_ids(self):
         return self._capsule_organization_ids
 
-    def _capsule_setup_ddns(self):
-        """Setup and configure ddns client and ensure it's functionality"""
-        self.run('yum localinstall -y {}'.format(self._ddns_package_url))
-        ddns_package_prefix = 'redhat-internal-ddns'
-        ddns_bin_client = '{0}-client.sh'.format(ddns_package_prefix)
-        ddns_bin_client_support_update = True
-        if ddns_package_prefix not in self._ddns_package_url:
-            ddns_package_prefix = 'redhat-ddns'
-            ddns_bin_client = '{0}-client'.format(ddns_package_prefix)
-            ddns_bin_client_support_update = False
-
-        self.run(
-            'echo "{0} {1} {2}" >> /etc/{3}/hosts'.format(
-                self._capsule_instance_name,
-                self._capsule_domain,
-                self._capsule_hostname_hash,
-                ddns_package_prefix
-            )
-        )
-        self.run('echo "127.0.0.1 {} localhost" > /etc/hosts'.format(
-            self._capsule_hostname))
+    def _capsule_setup_name_resolution(self):
+        """Setup a name resolution so the capsule and satellite
+        are resolvable
+        """
         self.run('echo "{0} {1} {2}" >> /etc/hosts'.format(
             self.ip_addr, self._capsule_hostname, self._capsule_instance_name))
 
-        if self.capsule_distro == DISTRO_RHEL7:
+        # add the capsule reverse record to the satellite hosts file
+        ssh.command(
+            u'sed -i \'/{0}/d\' /etc/hosts &&'
+            u' echo "{1} {0}" >> /etc/hosts'
+            .format(self._capsule_hostname, self.ip_addr),
+            hostname=settings.server.hostname
+        )
+        if self.distro[:-1] == DISTRO_RHEL7:
             self.run('hostnamectl set-hostname {}'.format(
                 self._capsule_hostname))
-
-        self.run('{0} enable'.format(ddns_bin_client))
-        if ddns_bin_client_support_update:
-            self.run('{0} update'.format(ddns_bin_client))
 
         def ensure_host_resolved(
                 ssh_func, host_to_ping, ip_addr, time_sleep=60, retries=10):
@@ -167,7 +144,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 ssh_func_result = ssh_func('ping -c 1 {}'.format(host_to_ping))
                 ssh_func_output = ''.join(ssh_func_result.stdout)
                 if ssh_func_result.return_code == 0 and (
-                            '({})'.format(ip_addr) in ssh_func_output):
+                        '({})'.format(ip_addr) in ssh_func_output):
                     resolved = True
                     break
 
@@ -182,16 +159,17 @@ class CapsuleVirtualMachine(VirtualMachine):
             ssh.command, self._capsule_hostname, self.ip_addr)
         if not hostname_resolved:
             raise CapsuleVirtualMachineError(
-                'Failed to resolver the capsule hostname from the server')
+                'Failed to resolve the capsule hostname from the server')
 
         # Ensure capsule hostname is resolvable at capsule host
-        hostname_resolved = ensure_host_resolved(
+        '''hostname_resolved = ensure_host_resolved(
             self.run, self._capsule_hostname, '127.0.0.1', retries=1)
         if not hostname_resolved:
             raise CapsuleVirtualMachineError(
                 'Failed to resolver the capsule hostname from capsule')
+        '''
 
-        if self.capsule_distro == DISTRO_RHEL7:
+        if self.distro[:-1] == DISTRO_RHEL7:
             # Add RH-Satellite-6 service to firewall public zone
             self.run('firewall-cmd --zone=public --add-service={}'.format(
                 SATELLITE_FIREWALL_SERVICE_NAME))
@@ -206,7 +184,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 self.unregister()
             except Exception as exp:
                 logger.error('Failed to unregister the host: {0}\n{1}'.format(
-                    self.hostname, exp.message))
+                    self.hostname, exp))
 
         if self._capsule_hostname:
             # do cleanup as using a static hostname that can be reused by
@@ -215,35 +193,114 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # try to delete the hostname first
                 Host.delete({'name': self._capsule_hostname})
                 # try delete the capsule
-                # note: if the host was not registered the capsule does not
-                # exist yet
-                Capsule.delete({'name': self._capsule_hostname})
             except Exception as exp:
                 # do nothing, only log the exception
                 # as maybe that the host was not registered or setup does not
                 # reach that stage
                 # or maybe that the capsule was not registered or setup does
                 # not reach that stage
-                logger.error('Failed to cleanup the host: {0}\n{1}'.format(
-                    self.hostname, exp.message))
+                if bz_bug_is_open('1622064'):
+                    logger.warn('Failed to cleanup the host: {0}\n{1}'.format(
+                        self.hostname, exp))
+                else:
+                    logger.error('Failed to cleanup the host: {0}\n{1}'.format(
+                        self.hostname, exp))
+                    raise
+            try:
+                # try to delete the capsule if it was added already
+                Capsule.delete({'name': self._capsule_hostname})
+            except Exception as exp:
+                logger.error('Failed to cleanup the capsule: {0}\n{1}'.format(
+                    self.hostname, exp))
+                raise
 
     def _setup_capsule(self):
         """Prepare the virtual machine to host a capsule node"""
-        # setup the ddns client to have a resolvable capsule hostname
-        self._capsule_setup_ddns()
-
-        setup_result = setup_capsule_virtual_machine(
-            self,
-            org_id=self._capsule_org_id,
-            lce_id=self._capsule_lce_id,
-            organization_ids=self._capsule_organization_ids,
-            location_ids=self._capsule_location_ids
+        # setup the name resolution
+        self._capsule_setup_name_resolution()
+        logger.info('adding repofiles required for capsule installation')
+        self.create_custom_repos(
+            capsule=settings.capsule_repo,
+            rhscl=settings.rhscl_repo,
+            ansible=settings.ansible_repo,
+            maint=settings.satmaintenance_repo
         )
+        self.configure_rhel_repo(settings.__dict__[self.distro[:-1] + '_repo'])
+        self.run('yum repolist')
+        self.run('yum -y install satellite-capsule', timeout=900)
+        result = self.run('rpm -q satellite-capsule')
+        if result.return_code != 0:
+            raise CapsuleVirtualMachineError(
+                u'Failed to install satellite-capsule package\n{}'.format(
+                    result.stderr)
+            )
+        cert_file_path = '/tmp/{0}-certs.tar'.format(self.hostname)
+        certs_gen = ssh.command(
+            'capsule-certs-generate '
+            '--foreman-proxy-fqdn {0} '
+            '--certs-tar {1}'
+            .format(self.hostname, cert_file_path)
+        )
+        if certs_gen.return_code != 0:
+            raise CapsuleVirtualMachineError(
+                u'Unable to generate certificate\n{}'
+                .format(certs_gen.stderr)
+            )
+        # copy the certificate to capsule vm
+        _, temporary_local_cert_file_path = mkstemp(suffix='-certs.tar')
+        logger.info(
+            'downloading the certs file: {0}'.format(cert_file_path)
+        )
+        download_file(
+            remote_file=cert_file_path,
+            local_file=temporary_local_cert_file_path,
+            hostname=settings.server.hostname
+        )
+        logger.info(
+            'uploading the certs file: {0}'.format(cert_file_path)
+        )
+        upload_file(
+            key_filename=settings.server.ssh_key,
+            local_file=temporary_local_cert_file_path,
+            remote_file=cert_file_path,
+            hostname=self.ip_addr
+        )
+        # delete the temporary file
+        os.remove(temporary_local_cert_file_path)
 
-        self._capsule, self._capsule_org, self._capsule_lce = setup_result
+        installer_cmd = extract_capsule_satellite_installer_command(
+                            certs_gen.stdout
+                        )
+        if bz_bug_is_open(1458749):
+            if '--scenario foreman-proxy-content' in installer_cmd:
+                installer_cmd = installer_cmd.replace(
+                     '--scenario foreman-proxy-content', '--scenario capsule')
+        result = self.run(installer_cmd, timeout=1500)
+        if result.return_code != 0:
+            # before exit download the capsule log file
+            _, log_path = mkstemp(prefix='capsule_external-', suffix='.log')
+            download_file(
+                '/var/log/foreman-installer/capsule.log',
+                log_path,
+                self.ip_addr
+            )
+            raise CapsuleVirtualMachineError(
+                result.return_code, result.stderr,
+                u'foreman installer failed at capsule host')
 
-        self._capsule_org_id = self._capsule_org['id']
-        self._capsule_lce_id = self._capsule_lce['id']
+        # manually start pulp_celerybeat service if BZ1446930 is open
+        result = self.run('systemctl status pulp_celerybeat.service')
+        if 'inactive (dead)' in '\n'.join(result.stdout):
+            if bz_bug_is_open(1446930):
+                result = self.run('systemctl start pulp_celerybeat.service')
+                if result.return_code != 0:
+                    raise CapsuleVirtualMachineError(
+                        'Failed to start pulp_celerybeat service\n{}'.format(
+                            result.stderr)
+                    )
+            else:
+                raise CapsuleVirtualMachineError(
+                    'pulp_celerybeat service not running')
 
     def create(self):
         super(CapsuleVirtualMachine, self).create()
@@ -252,7 +309,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         except Exception:
             # handle exception as VirtualMachine has no exception handling
             # in __enter__ function
-            self._capsule_cleanup()
+            self.destroy()
             raise
 
     def suspend(self, ensure=False, timeout=None, connection_timeout=30):
@@ -309,7 +366,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         if resumed and ensure:
             # ping one time the virtual machine to ensure that it's reachable
             result = ssh.command(
-                'ping -c 1 {}'.format(self.hostname),
+                'ping -c 1 {}'.format(self.ip_addr),
                 hostname=self.provisioning_server,
                 connection_timeout=connection_timeout,
             )

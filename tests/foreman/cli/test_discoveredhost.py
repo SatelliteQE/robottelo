@@ -32,8 +32,11 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
+    upgrade
 )
+from robozilla.decorators import bz_bug_is_open
 from robottelo.libvirt_discovery import LibvirtGuest
+from robottelo import ssh
 from robottelo.test import CLITestCase
 from time import sleep
 
@@ -73,6 +76,11 @@ class DiscoveredTestCase(CLITestCase):
 
         # Build PXE default template to get default PXE file
         Template.build_pxe_default()
+        # let's just modify the timeouts to speed things up
+        ssh.command("sed -ie 's/TIMEOUT [[:digit:]]\+/TIMEOUT 1/g'"
+                    "/var/lib/tftpboot/pxelinux.cfg/default")
+        ssh.command("sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/'"
+                    "/var/lib/tftpboot/pxelinux.cfg/default")
 
         # Create Org and location
         cls.org = make_org()
@@ -97,6 +105,16 @@ class DiscoveredTestCase(CLITestCase):
         # Flag which shows whether environment is fully configured for
         # discovered host provisioning.
         cls.configured_env = False
+
+        if bz_bug_is_open(1578290):
+            ssh.command('mkdir /var/lib/tftpboot/boot/fdi-image')
+            ssh.command('ln -s /var/lib/tftpboot/boot/'
+                        'foreman-discovery-image-3.4.4-1.iso-vmlinuz'
+                        ' /var/lib/tftpboot/boot/fdi-image/vmlinuz0')
+            ssh.command('ln -s /var/lib/tftpboot/boot/'
+                        'foreman-discovery-image-3.4.4-1.iso-img'
+                        ' /var/lib/tftpboot/boot/fdi-image/initrd0.img')
+            ssh.command('chown -R foreman-proxy /var/lib/tftpboot/boot/')
 
     @classmethod
     def tearDownClass(cls):
@@ -207,6 +225,7 @@ class DiscoveredTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
         """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
         loader
@@ -390,6 +409,7 @@ class DiscoveredTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
         """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
         loader

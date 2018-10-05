@@ -18,6 +18,7 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
 from robottelo.helpers import install_katello_ca, remove_katello_ca
+from robottelo.host_info import get_host_os_version
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,16 @@ class VirtualMachine(object):
         if distro == DISTRO_RHEL7:
             distro = distro_el7
         if distro is None:
-            distro = distro_el7
+            # use the same distro as satellite host server os
+            server_host_os_version = get_host_os_version()
+            if server_host_os_version.startswith('RHEL6'):
+                distro = distro_el6
+            elif server_host_os_version.startswith('RHEL7'):
+                distro = distro_el7
+            else:
+                raise VirtualMachineError(
+                    'cannot find a default compatible distro to create'
+                    ' the virtual machine')
         self.distro = distro
         if self.distro not in (allowed_distros):
             raise VirtualMachineError(
@@ -296,6 +306,31 @@ class VirtualMachine(object):
             downstream_repo = settings.capsule_repo
         if force or settings.cdn or not downstream_repo:
             self.run(u'subscription-manager repos --enable {0}'.format(repo))
+
+    def create_custom_repos(self, **kwargs):
+        """Create custom repofiles.
+        Each ``kwargs`` item will result in one repository file created. Where
+        the key is the repository filename and repository name, and the value
+        is the repository URL.
+        For example::
+            create_custom_repo(custom_repo='http://repourl.domain.com/path')
+        Will create a repository file named ``custom_repo.repo`` with
+        the following contents::
+            [custom_repo]
+            name=custom_repo
+            baseurl=http://repourl.domain.com/path
+            enabled=1
+            gpgcheck=0
+        """
+        for name, url in kwargs.items():
+            content = '''[{0}]
+name={0}
+baseurl={1}
+enabled=1
+gpgcheck=0'''.format(name, url)
+            self.run(
+                'echo "{0}" > /etc/yum.repos.d/{1}.repo'.format(content, name)
+            )
 
     def install_katello_agent(self):
         """Installs katello agent on the virtual machine.
@@ -568,7 +603,7 @@ class VirtualMachine(object):
             'wget -O /etc/yum.repos.d/insights.repo {0}'.format(insights_repo))
 
         # Install redhat-access-insights package
-        package_name = 'redhat-access-insights'
+        package_name = 'insights-client'
         result = self.run('yum install -y {0}'.format(package_name))
         if result.return_code != 0:
             raise VirtualMachineError(
@@ -585,7 +620,7 @@ class VirtualMachine(object):
             )
 
         # Register client with Red Hat Access Insights
-        result = self.run('redhat-access-insights --register')
+        result = self.run('insights-client --register')
         if result.return_code != 0:
             raise VirtualMachineError(
                 'Unable to register client to Access Insights through '

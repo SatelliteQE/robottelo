@@ -28,6 +28,7 @@ from robottelo.constants import HAMMER_CONFIG
 from robottelo.decorators import (
     run_in_one_thread,
     tier1,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 from time import sleep
@@ -137,6 +138,7 @@ class HammerAuthTestCase(CLITestCase):
                 idle_timeout)})
 
     @tier1
+    @upgrade
     def test_positive_disable_session(self):
         """Check if user logs out when session is disabled
 

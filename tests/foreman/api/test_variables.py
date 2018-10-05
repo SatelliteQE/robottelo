@@ -338,6 +338,8 @@ class SmartVariablesTestCase(APITestCase):
         """
         entities.SmartVariable(puppetclass=self.puppet_class).create()
         host = entities.Host(organization=self.org).create()
+        self.env.location = [host.location]
+        self.env.update()
         host.environment = self.env
         host.update(['environment'])
         host.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})
@@ -725,7 +727,7 @@ class SmartVariablesTestCase(APITestCase):
             validator_type='list',
             validator_rule=values_list_str,
         ).create()
-        self.assertEqual(smart_variable.default_value, value)
+        self.assertEqual(smart_variable.default_value, str(value))
         self.assertEqual(smart_variable.validator_type, 'list')
         self.assertEqual(smart_variable.validator_rule, values_list_str)
 
@@ -800,7 +802,7 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['match'], 'domain=example.com')
         self.assertEqual(
-            smart_variable.override_values[0]['value'], 30)
+            smart_variable.override_values[0]['value'], '30')
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1375643)

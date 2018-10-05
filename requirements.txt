@@ -2,32 +2,33 @@
 # Version updates managed by pyup.io
 
 cachetools==2.1.0
-cryptography==2.1.4
+cryptography==2.3.1
 fauxfactory==3.0.2
-idna==2.6
+idna==2.7
 Inflector==2.0.12
 import_string==0.1.0
 mock==2.0.0
-paramiko==2.4.0
-pytest==3.4.0
-pytest-services==1.2.1
-pytest-mock==1.6.3
-requests==2.18.4
-selenium==3.8.1
+paramiko==2.4.1
+pytest==3.6.1
+pytest-services==1.3.0
+pytest-mock==1.10.0
+requests==2.19.1
+selenium==3.14.0
 six==1.11.0
 testimony==1.6.0
 unittest2==1.1.0
+PyNaCl==1.2.1
 
 # python-bugzilla 2.0.0 changed a lot of function signatures
 # also it removed some functions use e.g: getbugsimple
 # to update it code changes is needed.
 python-bugzilla==1.2.2  # pyup: ignore
 
-PyYAML==3.12
+PyYAML==3.13
 robozilla==0.2.6
 
-# Get airgun and nailgun from master
+# Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
-git+https://github.com/SatelliteQE/nailgun.git#egg=nailgun
-
+git+https://github.com/SatelliteQE/nailgun.git@6.4.z#egg=nailgun
+git+https://github.com/SatelliteQE/satellite6-upgrade.git#egg=satellite6-upgrade
 --editable .

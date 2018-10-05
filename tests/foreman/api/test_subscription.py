@@ -23,7 +23,7 @@ from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import upload_manifest
 from robottelo import manifests
 from robottelo.decorators import (
-    run_in_one_thread, skip_if_not_set, tier1, upgrade
+    run_in_one_thread, skip_if_not_set, tier1
 )
 from robottelo.test import APITestCase
 
@@ -99,7 +99,6 @@ class SubscriptionsTestCase(APITestCase):
 
     @skip_if_not_set('fake_manifest')
     @tier1
-    @upgrade
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
 

@@ -4,6 +4,10 @@ import datetime
 import logging
 
 import pytest
+try:
+    from pytest_reportportal import RPLogger, RPLogHandler
+except ImportError:
+    pass
 from nailgun import entities
 
 from robottelo.cleanup import EntitiesCleaner
@@ -69,12 +73,15 @@ def configured_settings():
 
 
 @pytest.fixture(autouse=True, scope='module')
-def robottelo_logger(worker_id):
+def robottelo_logger(request, worker_id):
     """Set up a separate logger for each pytest-xdist worker
     if worker_id != 'master' then xdist is running in multi-threading so
     a logfile named 'robottelo_gw{worker_id}.log' will be created.
     """
     logger = logging.getLogger('robottelo')
+    if (hasattr(request.session.config, '_reportportal_configured') and
+       request.session.config._reportportal_configured):
+        logging.setLoggerClass(RPLogger)
     if '{0}'.format(worker_id) not in [h.get_name() for h in logger.handlers]:
         if worker_id != 'master':
             formatter = logging.Formatter(
@@ -83,12 +90,20 @@ def robottelo_logger(worker_id):
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
             handler = logging.FileHandler(
-                'robottelo_{0}.log'.format(worker_id))
+                'robottelo_{0}.log'.format(worker_id)
+            )
             handler.set_name('{0}'.format(worker_id))
             handler.setFormatter(formatter)
             logger.addHandler(handler)
             # Nailgun HTTP logs should also be included in gw* logs
             logging.getLogger('nailgun').addHandler(handler)
+            if (hasattr(request.session.config, '_reportportal_configured') and
+               request.session.config._reportportal_configured):
+                rp_handler = RPLogHandler(request.node.config.py_test_service)
+                rp_handler.set_name('{0}'.format(worker_id))
+                rp_handler.setFormatter(formatter)
+                logger.addHandler(rp_handler)
+                logging.getLogger('nailgun').addHandler(rp_handler)
     return logger
 
 

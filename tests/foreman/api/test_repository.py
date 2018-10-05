@@ -1345,6 +1345,114 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(
             repo.read().content_counts['docker_manifest'], 1)
 
+    @tier2
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1580510)
+    def test_negative_synchronize_private_registry_wrong_password(self):
+        """Create and try to sync a Docker-type repository from a private
+        registry providing wrong credentials the sync must fail with
+        reasonable error message.
+
+        :id: 2857fce2-fed7-49fc-be20-bf2e4726c9f5
+
+        :expectedresults: A repository is created with a private Docker \
+            repository and sync fails with reasonable error message.
+
+        :customerscenario: true
+
+        :BZ: 1475121, 1580510
+
+        :CaseLevel: Integration
+        """
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=settings.docker.private_registry_name,
+            name=gen_string('alpha'),
+            product=product,
+            url=settings.docker.private_registry_url,
+            upstream_username=settings.docker.private_registry_username,
+            upstream_password='ThisIsaWrongPassword',
+        ).create()
+
+        with self.assertRaises(TaskFailedError) as excinfo:
+            repo.sync()
+        # assert error message includes the proper pulp_docker error code
+        # DKR1007 = Error("DKR1007", _("Could not fetch repository %(repo)s
+        # from registry %(registry)s - ""%(reason)s"),
+        # in this case reason = "Unauthorized or Not Found"
+        self.assertIn("DKR1007", str(excinfo.exception))
+        self.assertIn("Unauthorized or Not Found", str(excinfo.exception))
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_synchronize_private_registry_wrong_repo(self):
+        """Create and try to sync a Docker-type repository from a private
+        registry providing wrong repository the sync must fail with
+        reasonable error message.
+
+        :id: 16c21aaf-796e-4e29-b3a1-7d93de0d6257
+
+        :expectedresults: A repository is created with a private Docker \
+            repository and sync fails with reasonable error message.
+
+        :customerscenario: true
+
+        :BZ: 1475121, 1580510
+
+        :CaseLevel: Integration
+        """
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=settings.docker.private_registry_name,
+            name=gen_string('alpha'),
+            product=product,
+            # url=settings.docker.private_registry_url,
+            url='https://registry.doesnot.exist.com',
+            upstream_username='ThisRegistry/DoesNotExist',
+            upstream_password='ThisIsaWrongPassword',
+        ).create()
+
+        with self.assertRaises(TaskFailedError) as excinfo:
+            repo.sync()
+        # assert error message includes the proper pulp_docker error code
+        # DKR1008 = Error("DKR1008", _("Could not find registry API at
+        # %(registry)s"), ['registry'])
+        self.assertIn("DKR1008", str(excinfo.exception))
+        self.assertIn("Could not find registry API", str(excinfo.exception))
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_synchronize_private_registry_no_passwd(self):
+        """Create and try to sync a Docker-type repository from a private
+        registry providing empty password and the sync must fail with
+        reasonable error message.
+
+        :id: 86bde2f1-4761-4045-aa54-c7be7715cd3a
+
+        :expectedresults: A repository is created with a private Docker \
+            repository and sync fails with reasonable error message.
+
+        :customerscenario: true
+
+        :BZ: 1475121, 1580510
+
+        :CaseLevel: Integration
+        """
+        product = entities.Product(organization=self.org).create()
+        with self.assertRaises(HTTPError) as excinfo:
+            entities.Repository(
+                content_type=u'docker',
+                docker_upstream_name=settings.docker.private_registry_name,
+                name=gen_string('alpha'),
+                product=product,
+                url=settings.docker.private_registry_url,
+                upstream_username=settings.docker.private_registry_username,
+            ).create()
+        self.assertIn("422", str(excinfo.exception))
+        self.assertIn("Unprocessable Entity", str(excinfo.exception))
+
 
 class OstreeRepositoryTestCase(APITestCase):
     """Tests specific to using ``OSTree`` repositories."""

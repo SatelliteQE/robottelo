@@ -49,3 +49,4 @@
 *~
 
 .pytest_cache/
+tests/foreman/pytest.ini
