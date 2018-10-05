@@ -49,7 +49,7 @@ def test_positive_create_with_compresource(session,
     """
     deploy_on = module_docker_cr.name + ' (Docker)'
     repo_name = gen_string('alpha')
-    name = gen_string('alpha', 4)
+    name = gen_string('alpha', 4).lower()
     repo = entities.Repository(
         name=repo_name,
         url=DOCKER_REGISTRY_HUB,
@@ -70,4 +70,4 @@ def test_positive_create_with_compresource(session,
             'configuration.command': 'top',
             'environment.tty': True,
         })
-        assert session.container.search(name)[0]['Name'] == name
+        assert session.container.search(name)[0]['Name'].lower() == name
