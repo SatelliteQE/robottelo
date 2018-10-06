@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
@@ -22,7 +22,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
-        'Operating System :: POSIX :: Linux'
-        'Programming Language :: Python',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3',
     ),
 )

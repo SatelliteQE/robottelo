@@ -4,6 +4,15 @@ Robottelo
 .. image:: https://codecov.io/gh/SatelliteQE/robottelo/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/SatelliteQE/robottelo
 
+.. image:: https://api.travis-ci.org/SatelliteQE/robottelo.svg?branch=master
+  :target: https://travis-ci.org/SatelliteQE/robottelo
+
+.. image:: https://img.shields.io/pypi/pyversions/robottelo.svg
+  :target: https://pypi.org/project/robottelo
+
+.. image:: https://img.shields.io/pypi/l/robottelo.svg
+  :target: https://pypi.org/project/robottelo
+
 `Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
 automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
