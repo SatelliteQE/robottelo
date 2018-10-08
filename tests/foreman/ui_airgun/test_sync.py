@@ -19,7 +19,6 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
     DISTRO_RHEL6, DISTRO_RHEL7,
     FAKE_1_YUM_REPO,
     FEDORA23_OSTREE_REPO,
@@ -30,7 +29,6 @@ from robottelo.constants import (
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     tier2,
     upgrade,
@@ -79,7 +77,6 @@ def test_positive_sync_custom_repo(session, module_org, module_custom_product):
 
 
 @run_in_one_thread
-@run_only_on('sat')
 @skip_if_not_set('fake_manifest')
 @tier2
 @upgrade
@@ -103,18 +100,15 @@ def test_positive_sync_rh_repos(session, module_org, org_manifest):
     ]
     for repo_collection in repo_collections:
         repo_collection.setup(module_org.id, synchronize=False)
-    repo_paths = []
-    for repo in repos:
-        if repo.repo_data.get('releasever'):
-            repo_paths.append((
-                repo.repo_data['product'],
-                repo.repo_data['releasever'],
-                repo.repo_data.get('arch', DEFAULT_ARCHITECTURE),
-                repo.repo_data['name'],
-             ))
-        else:
-            repo_paths.append(
-                (repo.repo_data['product'], repo.repo_data['name']))
+    repo_paths = [
+        (
+            repo.repo_data['product'],
+            repo.repo_data.get('releasever'),
+            repo.repo_data.get('arch'),
+            repo.repo_data['name'],
+        )
+        for repo in repos
+    ]
     with session:
         session.organization.select(org_name=module_org.name)
         results = session.sync_status.synchronize(repo_paths)
@@ -122,7 +116,6 @@ def test_positive_sync_rh_repos(session, module_org, org_manifest):
         assert all([result == 'Syncing Complete.' for result in results])
 
 
-@run_only_on('sat')
 @skip_if_os('RHEL6')
 @tier2
 @upgrade
@@ -150,7 +143,7 @@ def test_positive_sync_custom_ostree_repo(
         assert results[0] == 'Syncing Complete.'
 
 
-@run_only_on('sat')
+@run_in_one_thread
 @skip_if_os('RHEL6')
 @skip_if_not_set('fake_manifest')
 @tier2
