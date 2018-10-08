@@ -930,7 +930,7 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session):
         upload_manifest=True,
     )
     cv = entities.ContentView(
-        id=repos_collection._setup_content_data['content_view']['id']).read()
+        id=repos_collection.setup_content_data['content_view']['id']).read()
     cvf = entities.ErratumContentViewFilter(
         content_view=cv,
         inclusion=False,
