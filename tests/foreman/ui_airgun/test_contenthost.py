@@ -71,12 +71,12 @@ def test_positive_end_to_end(session):
             assert chost['details']['name'] == vm.hostname
             assert (
                 chost['details']['content_view'] ==
-                repos_collection._setup_content_data['content_view']['name']
+                repos_collection.setup_content_data['content_view']['name']
             )
             assert chost['details']['lce'][lce.name][lce.name]
             assert (
                 chost['details']['registered_by'] == 'Activation Key {}'
-                .format(repos_collection._setup_content_data[
+                .format(repos_collection.setup_content_data[
                     'activation_key']['name'])
             )
             assert chost['provisioning_details']['name'] == vm.hostname
@@ -100,17 +100,17 @@ def test_positive_end_to_end(session):
             )
             assert result['result'] == 'success'
             # Ensure package installed
-            package = session.contenthost.search_package(
+            packages = session.contenthost.search_package(
                 vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
-            assert package[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
+            assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
             # Install errata
             result = session.contenthost.install_errata(
                 vm.hostname, FAKE_1_ERRATA_ID)
             assert result['result'] == 'success'
             # Ensure errata installed
-            package = session.contenthost.search_package(
+            packages = session.contenthost.search_package(
                 vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
-            assert package[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+            assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
             # Delete content host
             session.contenthost.delete(vm.hostname)
             assert not session.contenthost.search(vm.hostname)
