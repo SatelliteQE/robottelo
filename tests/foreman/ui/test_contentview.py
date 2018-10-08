@@ -36,8 +36,6 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     activationkey_add_subscription_to_repo,
     make_content_view,
-    make_content_view_filter,
-    make_content_view_filter_rule,
     make_lifecycle_environment as cli_make_lifecycle_environment,
     make_org,
     make_product,
@@ -45,8 +43,6 @@ from robottelo.cli.factory import (
     setup_org_for_a_rh_repo,
 )
 from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
@@ -105,7 +101,6 @@ from robottelo.helpers import (
     read_data_file,
     repo_add_updateinfo,
 )
-from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import (
@@ -453,76 +448,6 @@ class ContentViewTestCase(UITestCase):
                     package2_name,
                 )
             )
-
-    @run_in_one_thread
-    @tier2
-    def test_positive_publish_rh_content_with_errata_by_date_filter(self):
-        """Publish a CV, containing only RH repo, having errata excluding by
-        date filter
-
-        :BZ: 1455990, 1492114
-
-        :id: b4c120b6-129f-4344-8634-df5858c10fef
-
-        :customerscenario: true
-
-        :expectedresults: Errata exclusion by date filter doesn't affect
-            packages - errata was successfully filtered out, however packages
-            are still present
-
-        :CaseImportance: High
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': org['id'],
-        })
-        RepositorySet.enable({
-            'basearch': 'x86_64',
-            'name': REPOSET['rhva6'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-        })
-        rhel_repo = Repository.info({
-            'name': REPOS['rhva6']['name'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel'],
-        })
-        Repository.synchronize({
-            'name': REPOS['rhva6']['name'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel'],
-        })
-        cv = make_content_view({'organization-id': org['id']})
-        ContentView.add_repository({
-            'id': cv['id'],
-            'repository-id': rhel_repo['id'],
-        })
-        cvf = make_content_view_filter({
-            'content-view-id': cv['id'],
-            'inclusion': False,
-            'repository-ids': rhel_repo['id'],
-            'type': 'erratum',
-        })
-        make_content_view_filter_rule({
-            'content-view-filter-id': cvf['filter-id'],
-            'start-date': '2011-01-01',
-            'types': ['enhancement', 'bugfix', 'security'],
-        })
-        ContentView.publish({'id': cv['id']})
-        version = 'Version {}'.format(
-            ContentView.info({'id': cv['id']})['versions'][-1]['version'])
-        with Session(self):
-            self.nav.go_to_select_org(org['name'])
-            packages = self.content_views.fetch_version_packages(
-                cv['name'], version)
-            self.assertGreaterEqual(len(packages), 1)
-            errata = self.content_views.fetch_version_errata(
-                cv['name'], version)
-            self.assertEqual(len(errata), 0)
 
     @run_only_on('sat')
     @tier2
@@ -1965,42 +1890,6 @@ class ContentViewTestCase(UITestCase):
                 # as exiting the loop, set the precedent version to this one
                 # as in the nest loop will publish a new one
                 precedent_version_name = current_version_name
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_clone_within_same_env(self):
-        """attempt to create new content view based on existing
-        view within environment
-
-        :id: 862c385b-d98c-4c29-8345-fd7a5900483a
-
-        :expectedresults: Content view can be cloned
-
-        :BZ: 1461017
-
-        :CaseLevel: Integration
-        """
-        repo_name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        copy_cv_name = gen_string('alpha')
-        self.setup_to_create_cv(repo_name=repo_name)
-        with Session(self) as session:
-            # Create content-view
-            make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            # Add repository to selected CV
-            self.content_views.add_remove_repos(cv_name, [repo_name])
-            # Publish the CV
-            self.content_views.publish(cv_name)
-            self.assertIsNotNone(
-                self.content_views.version_search(cv_name, 'Version 1.0'))
-            # Copy the CV
-            self.content_views.copy_view(cv_name, copy_cv_name)
-            self.assertIsNotNone(self.content_views.search(copy_cv_name))
-            self.assertEqual(
-                repo_name,
-                self.content_views.fetch_yum_content_repo_name(copy_cv_name)
-            )
 
     @run_only_on('sat')
     @tier2
@@ -4219,53 +4108,6 @@ class ContentViewTestCase(UITestCase):
                 ),
             )
             self.assertIsNotNone(self.environment.search(env_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_remove_cv_version_from_default_env(self):
-        """Remove content view version from Library environment
-
-        :id: 43c83c15-c883-45a7-be05-d9b26da99e3c
-
-        :Steps:
-
-            1. Create a content view
-            2. Add a yum repo to it
-            3. Publish content view
-            4. remove the published version from Library environment
-
-        :expectedresults: content view version is removed from Library
-            environment
-
-        :CaseLevel: Integration
-        """
-        cv_name = gen_string('alpha')
-        repo_name = gen_string('alpha')
-        # create a new organization
-        org = entities.Organization().create()
-        # create a yum repository
-        self.setup_to_create_cv(
-            repo_name=repo_name,
-            repo_url=FAKE_0_YUM_REPO,
-            org_id=org.id
-        )
-        with Session(self) as session:
-            # create a content view
-            make_contentview(
-                session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            # add the repository to the created content view
-            self.content_views.add_remove_repos(cv_name, [repo_name])
-            # publish the content view
-            version = self.content_views.publish(cv_name)
-            self.assertIsNotNone(
-                self.content_views.version_search(cv_name, version))
-            self.assertEqual(
-                self._get_cv_version_environments(version), [ENVIRONMENT])
-            # remove the content view version from Library environment
-            self.content_views.remove_version_from_environments(
-                cv_name, version, [ENVIRONMENT])
-            self.assertEqual(self._get_cv_version_environments(version), [])
 
     @run_only_on('sat')
     @tier2

@@ -30,6 +30,7 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo.constants import (
+    DISTRO_RHEL6,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
     FAKE_0_YUM_REPO,
@@ -49,6 +50,13 @@ from robottelo.decorators import (
     tier3,
     upgrade,
 )
+from robottelo.products import (
+    RepositoryCollection,
+    VirtualizationAgentsRepository,
+)
+
+
+VERSION = 'Version 1.0'
 
 
 @fixture(scope='module')
@@ -124,7 +132,6 @@ def test_positive_end_to_end(session, module_org):
     repo_name = gen_string('alpha')
     env_name = gen_string('alpha')
     cv_name = gen_string('alpha')
-    version = 'Version 1.0'
     # Creates a CV along with product and sync'ed repository
     create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
@@ -137,8 +144,8 @@ def test_positive_end_to_end(session, module_org):
         session.contentview.add_yum_repo(cv_name, repo_name)
         # Publish and promote CV to next environment
         result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
-        result = session.contentview.promote(cv_name, version, env_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, env_name)
         assert 'Promoted to {}'.format(env_name) in result['Status']
 
 
@@ -181,8 +188,7 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
             assert session.contentview.search(
                 cv_name)[0]['Repositories'] == '1'
             # Promote content view
-            result = session.contentview.promote(
-                cv_name, 'Version 1.0', lce.name)
+            result = session.contentview.promote(cv_name, VERSION, lce.name)
             assert 'Promoted to {}'.format(lce.name) in result['Status']
             # Add content view to composite one
             session.contentview.add_cv(ccv_name, cv_name)
@@ -438,14 +444,13 @@ def test_positive_add_non_composite_cv_to_composite(session):
     published_cv_name = gen_string('alpha')
     unpublished_cv_name = gen_string('alpha')
     composite_cv_name = gen_string('alpha')
-    version = 'Version 1.0'
     with session:
         # Create a published component content view
         session.contentview.create({'name': published_cv_name})
         assert session.contentview.search(
             published_cv_name)[0]['Name'] == published_cv_name
         result = session.contentview.publish(published_cv_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         # Create an unpublished component content view
         session.contentview.create({'name': unpublished_cv_name})
         assert session.contentview.search(
@@ -470,7 +475,7 @@ def test_positive_add_non_composite_cv_to_composite(session):
         assert unpublished_cv['Version'] == 'Latest (Currently no version)'
         # Publish the composite content view
         result = session.contentview.publish(composite_cv_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
 
 
 @tier2
@@ -546,16 +551,15 @@ def test_positive_publish_with_custom_content(session, module_org):
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
-    version = 'Version 1.0'
     create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         session.contentview.add_yum_repo(cv_name, repo_name)
         result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         cv = session.contentview.read(cv_name)
-        assert cv['versions']['table'][0]['Version'] == version
+        assert cv['versions']['table'][0]['Version'] == VERSION
 
 
 @run_in_one_thread
@@ -573,7 +577,6 @@ def test_positive_publish_with_rh_content(session):
     :CaseLevel: System
     """
     cv_name = gen_string('alpha')
-    version = 'Version 1.0'
     rh_repo = {
         'name': REPOS['rhst7']['name'],
         'product': PRDS['rhel'],
@@ -591,9 +594,9 @@ def test_positive_publish_with_rh_content(session):
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         session.contentview.add_yum_repo(cv_name, rh_repo['name'])
         result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         cv = session.contentview.read(cv_name)
-        assert cv['versions']['table'][0]['Version'] == version
+        assert cv['versions']['table'][0]['Version'] == VERSION
 
 
 @run_in_one_thread
@@ -628,7 +631,6 @@ def test_positive_publish_composite_with_custom_content(session):
         'basearch': 'x86_64',
         'releasever': None,
     }
-    version = 'Version 1.0'
     org = entities.Organization().create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
@@ -655,7 +657,7 @@ def test_positive_publish_composite_with_custom_content(session):
         session.contentview.add_puppet_module(cv1_name, puppet_module1)
         # publish the first content
         result = session.contentview.publish(cv1_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         # create the second content view
         session.contentview.create({'name': cv2_name})
         assert session.contentview.search(cv2_name)[0]['Name'] == cv2_name
@@ -665,7 +667,7 @@ def test_positive_publish_composite_with_custom_content(session):
         session.contentview.add_puppet_module(cv2_name, puppet_module2)
         # publish the second content
         result = session.contentview.publish(cv2_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         # create a composite content view
         session.contentview.create({
             'name': cv_composite_name,
@@ -678,9 +680,9 @@ def test_positive_publish_composite_with_custom_content(session):
             session.contentview.add_cv(cv_composite_name, cv_name)
         # publish the composite content view
         result = session.contentview.publish(cv_composite_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         ccv = session.contentview.read(cv_composite_name)
-        assert ccv['versions']['table'][0]['Version'] == version
+        assert ccv['versions']['table'][0]['Version'] == VERSION
 
 
 @tier2
@@ -755,7 +757,6 @@ def test_positive_promote_with_custom_content(session, module_org):
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
-    version = 'Version 1.0'
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
@@ -763,8 +764,8 @@ def test_positive_promote_with_custom_content(session, module_org):
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         session.contentview.add_yum_repo(cv_name, repo_name)
         result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
-        result = session.contentview.promote(cv_name, version, lce.name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
 
 
@@ -783,7 +784,6 @@ def test_positive_promote_with_rh_content(session):
     :CaseLevel: System
     """
     cv_name = gen_string('alpha')
-    version = 'Version 1.0'
     rh_repo = {
         'name': REPOS['rhst7']['name'],
         'product': PRDS['rhel'],
@@ -802,8 +802,8 @@ def test_positive_promote_with_rh_content(session):
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         session.contentview.add_yum_repo(cv_name, rh_repo['name'])
         result = session.contentview.publish(cv_name)
-        assert result['Version'] == version
-        result = session.contentview.promote(cv_name, version, lce.name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
 
 
@@ -841,7 +841,6 @@ def test_positive_promote_composite_with_custom_content(session):
         'basearch': 'x86_64',
         'releasever': None,
     }
-    version = 'Version 1.0'
     org = entities.Organization().create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
@@ -870,7 +869,7 @@ def test_positive_promote_composite_with_custom_content(session):
         session.contentview.add_puppet_module(cv1_name, puppet_module1)
         # publish the first content
         result = session.contentview.publish(cv1_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         # create the second content view
         session.contentview.create({'name': cv2_name})
         assert session.contentview.search(cv2_name)[0]['Name'] == cv2_name
@@ -880,7 +879,7 @@ def test_positive_promote_composite_with_custom_content(session):
         session.contentview.add_puppet_module(cv2_name, puppet_module2)
         # publish the second content
         result = session.contentview.publish(cv2_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         # create a composite content view
         session.contentview.create({
             'name': cv_composite_name,
@@ -893,8 +892,127 @@ def test_positive_promote_composite_with_custom_content(session):
             session.contentview.add_cv(cv_composite_name, cv_name)
         # publish the composite content view
         result = session.contentview.publish(cv_composite_name)
-        assert result['Version'] == version
+        assert result['Version'] == VERSION
         # promote the composite content view
         result = session.contentview.promote(
-            cv_composite_name, version, lce.name)
+            cv_composite_name, VERSION, lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
+@run_in_one_thread
+@tier2
+def test_positive_publish_rh_content_with_errata_by_date_filter(session):
+    """Publish a CV, containing only RH repo, having errata excluding by
+    date filter
+
+    :BZ: 1455990, 1492114
+
+    :id: b4c120b6-129f-4344-8634-df5858c10fef
+
+    :customerscenario: true
+
+    :expectedresults: Errata exclusion by date filter doesn't affect
+        packages - errata was successfully filtered out, however packages
+        are still present
+
+    :CaseImportance: High
+    """
+    version = 'Version 2.0'
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL6,
+        repositories=[VirtualizationAgentsRepository()]
+    )
+    repos_collection.setup_content(
+        org.id, lce.id,
+        download_policy='immediate',
+        upload_manifest=True,
+    )
+    cv = entities.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']).read()
+    cvf = entities.ErratumContentViewFilter(
+        content_view=cv,
+        inclusion=False,
+        repository=[repos_collection.repos_info[0]['id']],
+    ).create()
+    entities.ContentViewFilterRule(
+        content_view_filter=cvf,
+        start_date='2011-01-01',
+        types=['security', 'enhancement', 'bugfix'],
+    ).create()
+    cv.publish()
+    with session:
+        session.organization.select(org.name)
+        version = session.contentview.read_version(cv.name, version)
+        assert len(version['rpm_packages']['table'])
+        assert not version.get('errata') or not len(version['errata']['table'])
+
+
+@tier2
+def test_positive_remove_cv_version_from_default_env(session, module_org):
+    """Remove content view version from Library environment
+
+    :id: 43c83c15-c883-45a7-be05-d9b26da99e3c
+
+    :Steps:
+
+        1. Create a content view
+        2. Add a yum repo to it
+        3. Publish content view
+        4. remove the published version from Library environment
+
+    :expectedresults: content view version is removed from Library
+        environment
+
+    :CaseLevel: Integration
+    """
+    cv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with session:
+        # create a content view
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        cvv = session.contentview.search_version(cv_name, VERSION)[0]
+        assert ENVIRONMENT in cvv['Environments']
+        # remove the content view version from Library
+        session.contentview.remove_version(
+            cv_name, VERSION, False, [ENVIRONMENT])
+        cvv = session.contentview.search_version(cv_name, VERSION)[0]
+        assert ENVIRONMENT not in cvv['Environments']
+
+
+@tier2
+def test_positive_clone_within_same_env(session, module_org):
+    """attempt to create new content view based on existing
+    view within environment
+
+    :id: 862c385b-d98c-4c29-8345-fd7a5900483a
+
+    :expectedresults: Content view can be cloned
+
+    :BZ: 1461017
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    copy_cv_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with session:
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        # Copy the CV
+        session.contentview.copy(cv_name, copy_cv_name)
+        assert session.contentview.search(
+            copy_cv_name)[0]['Name'] == copy_cv_name
+        copy_cv = session.contentview.read(copy_cv_name)
+        assert copy_cv[
+            'repositories']['resources']['assigned'][0]['Name'] == repo_name
