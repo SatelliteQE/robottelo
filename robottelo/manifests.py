@@ -91,13 +91,9 @@ class ManifestCloner(object):
                 consumer_export.read()
             )
             consumer_export.seek(0)
-            signer = self.private_key.signer(
-                padding.PKCS1v15(), hashes.SHA256())
-            signer.update(consumer_export.read())
-            manifest_zip.writestr(
-                'signature',
-                signer.finalize()
-            )
+            signature = self.private_key.sign(
+                consumer_export.read(), padding.PKCS1v15(), hashes.SHA256())
+            manifest_zip.writestr('signature', signature)
         # Make sure that the file-like object is at the beginning and
         # ready to be read.
         manifest.seek(0)
