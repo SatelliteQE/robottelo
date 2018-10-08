@@ -275,7 +275,8 @@ def test_positive_list_host_based_on_rule_search_query(
         session.location.select(loc_name=module_loc.name)
         values = session.discoveryrule.read_all()
         assert discovery_rule.name in [rule['Name'] for rule in values]
-        values = session.discoveryrule.discovered_hosts(discovery_rule.name)
+        values = session.discoveryrule.read_discovered_hosts(
+            discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
         assert values['table'][0]['IP Address'] == ip_address
@@ -285,7 +286,8 @@ def test_positive_list_host_based_on_rule_search_query(
             'Auto Provision', [discovered_host['name']])
         assert not session.discoveredhosts.search(
             'name = "{0}"'.format(discovered_host['name']))
-        values = session.discoveryrule.associated_hosts(discovery_rule.name)
+        values = session.discoveryrule.read_associated_hosts(
+            discovery_rule.name)
         assert (values['searchbox']
                 == 'discovery_rule = "{0}"'.format(discovery_rule.name))
         assert len(values['table']) == 1
