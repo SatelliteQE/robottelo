@@ -162,57 +162,6 @@ class BookmarkTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.bookmark.search(name))
 
-    @tier2
-    def test_positive_create_bookmark_public(self):
-        """Create and check visibility of the (non)public bookmarks
-
-        :id: 93139529-7690-429b-83fe-3dcbac4f91dc
-
-        :Setup: Create a non-admin user with 'viewer' role
-
-        :Steps:
-
-            1. Navigate to the entity page
-            2. Input a random text into the search field
-            3. Choose "bookmark this search" from the search drop-down menu
-            4. Input a random name for a bookmark name
-            5. Verify the query field is automatically populated and the public
-               option is checked
-            6. Click the create button
-            7. Choose "bookmark this search" from the search drop-down menu
-            8. Input a random name for a bookmark name
-            9. Verify the query field is automatically populated and the public
-               option is unchecked
-            10. Click the create button
-            11. Verify that bookmark's name appears in the search dropdown
-            12. List the bookmarks (Navigate to Administer -> Bookmarks)
-            13. Login as the pre-created user
-            14. Navigate to the entity
-            15. Click the dropdown
-            16. Verify that the non-public bookmark is not listed
-
-        :expectedresults: No errors, Bookmark is displayed, controller matches
-            the entity the bookmark was created for
-
-        :CaseLevel: Integration
-        """
-        for entity in self.getOneEntity():
-            with self.subTest(entity):
-                with Session(self):
-                    name = gen_string(random.choice(STRING_TYPES))
-                    ui_lib = getattr(self, entity['name'].lower())
-                    ui_lib.create_a_bookmark(
-                        name=name,
-                        public=False,
-                        searchbox_query=gen_string(
-                            random.choice(STRING_TYPES)
-                        ),
-                    )
-                    self.assertIsNotNone(self.bookmark.search(name))
-                with Session(self, user=self.custom_user.login,
-                             password=self.custom_password):
-                    self.assertIsNone(self.bookmark.search(name))
-
     @tier1
     def test_negative_create_bookmark_no_name(self):
         """Create a bookmark with empty name
