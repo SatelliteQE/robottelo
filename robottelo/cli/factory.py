@@ -1287,7 +1287,8 @@ def make_sync_plan(options=None):
                                                 true/false, yes/no, 1/0.
         --interval INTERVAL                     how often synchronization
                                                 should run. One of 'none',
-                                                'hourly', 'daily', 'weekly'.
+                                                'hourly', 'daily', 'weekly'
+                                                'custom cron'.
                                                 Default: ""none""
         --name NAME                             sync plan name
         --organization ORGANIZATION_NAME        Organization name to search by
@@ -1298,6 +1299,8 @@ def make_sync_plan(options=None):
                                                 Date and time in YYYY-MM-DD
                                                 HH:MM:SS or ISO 8601 format
                                                 Default: "2014-10-07 08:50:35"
+        --cron-expression CRON EXPRESSION       Set this when interval is
+                                                custom cron
         -h, --help                              print help
 
     """
@@ -1314,8 +1317,8 @@ def make_sync_plan(options=None):
         u'organization-id': None,
         u'organization-label': None,
         u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        u'cron-expression': None,
     }
-
     return create_object(SyncPlan, args, options)
 
 

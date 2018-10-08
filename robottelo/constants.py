@@ -202,7 +202,8 @@ NOT_IMPLEMENTED = 'Test not implemented'
 SYNC_INTERVAL = {
     'hour': "hourly",
     'day': "daily",
-    'week': "weekly"
+    'week': "weekly",
+    'custom': "custom cron"
 }
 
 REPO_TYPE = {
