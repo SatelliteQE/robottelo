@@ -15,6 +15,7 @@
 :Upstream: No
 """
 
+from inflection import camelize
 from nailgun import entities
 
 from robottelo.cli.host import Host
@@ -33,8 +34,9 @@ def module_org():
 
 @fixture(scope='module')
 def module_subnet(module_org):
+    domain = entities.Domain(organization=[module_org]).create()
     return entities.Subnet(
-        domain=[entities.Domain(id=1)],
+        domain=[domain],
         gateway=settings.vlan_networking.gateway,
         ipam='DHCP',
         location=[entities.Location(id=DEFAULT_LOC_ID)],
@@ -163,12 +165,14 @@ def test_positive_run_custom_job_template_by_ip(
                 'search_query': 'name ^ {}'.format(hostname),
                 'template_content.command': 'ls',
             })
+            job_description = '{0} with inputs command="ls"'.format(
+                     camelize(job_template_name.lower()))
             session.jobinvocation.wait_job_invocation_state(
-                entity_name='Miscellaneous with inputs command=\"ls\"',
+                entity_name=job_description,
                 host_name=hostname
             )
             status = session.jobinvocation.read(
-                entity_name='Miscellaneous with inputs command=\"ls\"',
+                entity_name=job_description,
                 host_name=hostname
             )
             assert status['overview']['hosts_table'][0]['Status'] == 'success'
