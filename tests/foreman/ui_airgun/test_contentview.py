@@ -17,6 +17,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :Upstream: No
 """
+import datetime
 from pytest import raises
 
 from navmazing import NavigationTriesExceeded
@@ -31,11 +32,18 @@ from robottelo.api.utils import (
 )
 from robottelo.constants import (
     DISTRO_RHEL6,
+    DISTRO_RHEL7,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
+    FAKE_3_YUM_REPO,
+    FAKE_9_YUM_REPO,
+    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
+    FILTER_CONTENT_TYPE,
+    FILTER_ERRATA_TYPE,
+    FILTER_TYPE,
     PRDS,
     REPO_TYPE,
     REPOS,
@@ -52,6 +60,7 @@ from robottelo.decorators import (
 )
 from robottelo.products import (
     RepositoryCollection,
+    SatelliteToolsRepository,
     VirtualizationAgentsRepository,
 )
 
@@ -1016,3 +1025,346 @@ def test_positive_clone_within_same_env(session, module_org):
         copy_cv = session.contentview.read(copy_cv_name)
         assert copy_cv[
             'repositories']['resources']['assigned'][0]['Name'] == repo_name
+
+
+@tier2
+def test_positive_remove_filter(session, module_org):
+    """Create empty content views filter and remove it
+
+    :id: 6c6deae7-13f1-4638-a960-d3565d93fd64
+
+    :expectedresults: content views filter removed successfully
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    cv = entities.ContentView(organization=module_org).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        assert session.contentviewfilter.search(
+            cv.name, filter_name)[0]['Name'] == filter_name
+        session.contentviewfilter.delete(cv.name, filter_name)
+        assert not session.contentviewfilter.search(cv.name, filter_name)
+
+
+@tier2
+def test_positive_add_package_filter(session, module_org):
+    """Add package to content views filter
+
+    :id: 1cc8d921-92e5-4b51-8050-a7e775095f97
+
+    :expectedresults: content views filter created and selected packages can be
+        added for inclusion/exclusion
+
+    :CaseLevel: Integration
+    """
+    packages = (
+                ('cow', 'All Versions'),
+                ('bird', ('Equal To', '0.5')),
+                ('crow', ('Less Than', '0.5')),
+                ('bear', ('Range', '4.1', '4.6')))
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo]
+    ).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        for package_name, versions in packages:
+            session.contentviewfilter.add_package_rule(
+                cv.name, filter_name, package_name, None, versions)
+        cvf = session.contentviewfilter.read(cv.name, filter_name)
+        expected_packages = {
+            package_name for package_name, versions in packages}
+        actual_packages = {
+            row['RPM Name'] for row in cvf['content_tabs']['rpms']['table']}
+        assert expected_packages == actual_packages
+
+
+@tier2
+def test_positive_update_inclusive_filter_package_version(session, module_org):
+    """Update version of package inside inclusive cv package filter
+
+    :id: 8d6801de-ab82-49d6-bdeb-0f6e5c95b906
+
+    :expectedresults: Version was updated, next content view version contains
+        package with updated version
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_name = 'walrus'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo]
+    ).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, package_name, None, ('Equal To', '0.71-1'))
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'.format(package_name, '0.71')
+        )
+        assert len(packages) == 1
+        assert (
+            packages[0]['Name'] == package_name
+            and packages[0]['Version'] == '0.71'
+        )
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'.format(package_name, '5.21')
+        )
+        assert not packages
+        session.contentviewfilter.update_package_rule(
+            cv.name, filter_name, package_name,
+            {'Version': ('Equal To', '5.21-1')},
+            version='Version 0.71-1',
+        )
+        new_version = session.contentview.publish(cv.name)['Version']
+        packages = session.contentview.search_version_package(
+            cv.name, new_version,
+            'name = "{}" and version = "{}"'.format(package_name, '0.71')
+        )
+        assert not packages
+        packages = session.contentview.search_version_package(
+            cv.name, new_version,
+            'name = "{}" and version = "{}"'.format(package_name, '5.21')
+        )
+        assert len(packages) == 1
+        assert (
+            packages[0]['Name'] == package_name
+            and packages[0]['Version'] == '5.21'
+        )
+
+
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier3
+def test_positive_edit_rh_custom_spin(session):
+    """Edit content views for a custom rh spin.  For example, modify a filter
+
+    :id: 05639074-ef6d-4c6b-8ff6-53033821e686
+
+    :expectedresults: edited content view save is successful and info is
+        updated
+
+    :CaseLevel: System
+    """
+    filter_name = gen_string('alpha')
+    start_date = datetime.date(2016, 1, 1)
+    end_date = datetime.date(2016, 6, 1)
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[SatelliteToolsRepository()]
+    )
+    repos_collection.setup_content(
+        org.id, lce.id,
+        upload_manifest=True,
+    )
+    cv = entities.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']).read()
+    with session:
+        session.organization.select(org.name)
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['erratum by date and type'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.update(cv.name, filter_name, {
+            'content_tabs.erratum_date_range.security': False,
+            'content_tabs.erratum_date_range.enhancement': True,
+            'content_tabs.erratum_date_range.bugfix': True,
+            'content_tabs.erratum_date_range.date_type': 'Issued On',
+            'content_tabs.erratum_date_range.start_date': start_date.strftime(
+                '%m-%d-%Y'),
+            'content_tabs.erratum_date_range.end_date': end_date.strftime(
+                '%m-%d-%Y'),
+        })
+        cvf = session.contentviewfilter.read(cv.name, filter_name)
+        assert not cvf['content_tabs']['erratum_date_range']['security']
+        assert cvf['content_tabs']['erratum_date_range']['enhancement']
+        assert cvf['content_tabs']['erratum_date_range']['bugfix']
+        assert cvf['content_tabs']['erratum_date_range'][
+                   'date_type'] == 'Issued On'
+        assert cvf['content_tabs']['erratum_date_range'][
+                   'start_date'] == start_date.strftime('%Y-%m-%d')
+        assert cvf['content_tabs']['erratum_date_range'][
+                   'end_date'] == end_date.strftime('%Y-%m-%d')
+
+
+@tier2
+def test_positive_add_all_security_errata_by_id_filter(session, module_org):
+    """Create erratum filter to include only security errata and publish new
+    content view version
+
+    :id: bc0be8e8-af53-4db8-937d-93c49c937dcc
+
+    :customerscenario: true
+
+    :BZ: 1275756
+
+    :CaseImportance: High
+
+    :expectedresults: all security errata is present in content view version
+    """
+    version = 'Version 2.0'
+    filter_name = gen_string('alphanumeric')
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(
+        product=product,
+        url=FAKE_9_YUM_REPO,
+    ).create()
+    repo.sync()
+    content_view = entities.ContentView(
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    with session:
+        session.contentviewfilter.create(content_view.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['erratum by id'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        session.contentviewfilter.add_errata(
+            content_view.name, filter_name,
+            search_filters={
+                'security': True,
+                'bugfix': False,
+                'enhancement': False,
+            }
+        )
+        content_view.publish()
+        cvv = session.contentview.read_version(content_view.name, version)
+        assert len(cvv['errata']['table']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        assert all(
+            errata['Type'] == FILTER_ERRATA_TYPE['security']
+            for errata in cvv['errata']['table']
+        )
+
+
+@tier2
+def test_positive_add_package_group_filter(session, module_org):
+    """add package group to content views filter
+
+    :id: 8c02a432-8b2a-4ba3-9613-7070b2dc2bcb
+
+    :expectedresults: content views filter created and selected package
+        groups can be added for inclusion/exclusion
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_group = 'mammals'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo]
+    ).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package group'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        session.contentviewfilter.add_package_group(
+            cv.name, filter_name, package_group)
+        cvf = session.contentviewfilter.read(cv.name, filter_name)
+        assert cvf['content_tabs']['assigned'][0]['Name'] == package_group
+
+
+@tier2
+def test_positive_update_filter_affected_repos(session, module_org):
+    """Update content view package filter affected repos
+
+    :id: 8f095b11-fd63-4a23-9586-a85d6191314f
+
+    :expectedresults: Affected repos were updated, after new content view
+        version publishing only updated repos are affected by content view
+        filter
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo1_name = gen_string('alpha')
+    repo2_name = gen_string('alpha')
+    repo1_package_name = 'walrus'
+    repo2_package_name = 'Walrus'
+    create_sync_custom_repo(module_org.id, repo_name=repo1_name)
+    create_sync_custom_repo(
+        module_org.id, repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
+    repo1 = entities.Repository(name=repo1_name).search(
+        query={'organization_id': module_org.id})[0]
+    repo2 = entities.Repository(name=repo2_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo1, repo2]
+    ).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, repo1_package_name, None,
+            ('Equal To', '0.71-1')
+        )
+        session.contentviewfilter.update_repositories(
+            cv.name, filter_name, [repo1_name])
+        cv.publish()
+        # Verify filter affected repo1
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'.format(repo1_package_name, '0.71')
+        )
+        assert packages
+        assert (
+                packages[0]['Name'] == repo1_package_name
+                and packages[0]['Version'] == '0.71'
+        )
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'.format(repo1_package_name, '5.21')
+        )
+        assert not packages
+        # Verify repo2 was not affected and repo2 packages are present
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'
+            .format(repo2_package_name, '5.6.6')
+        )
+        assert packages
+        assert (
+                packages[0]['Name'] == repo2_package_name
+                and packages[0]['Version'] == '5.6.6'
+        )
