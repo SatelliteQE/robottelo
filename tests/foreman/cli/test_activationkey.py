@@ -288,19 +288,14 @@ class ActivationKeyTestCase(CLITestCase):
             with self.subTest(name), self.assertRaises(
                     CLIFactoryError) as raise_ctx:
                 self._make_activation_key({u'name': name})
-            content_to_validate = [u'Validation failed:']
-            if len(name) == 0:
-                content_to_validate.append(
+            if name in ['', ' ', '\t']:
+                self.assert_error_msg(
+                    raise_ctx,
                     u'Name must contain at least 1 character')
-            elif len(name) > 255:
-                content_to_validate.append(
+            if len(name) > 255:
+                self.assert_error_msg(
+                    raise_ctx,
                     u'Name is too long (maximum is 255 characters)')
-            else:
-                content_to_validate.append(name)
-            self.assert_error_msg(
-                raise_ctx,
-                *content_to_validate
-            )
 
     @tier1
     def test_negative_create_with_usage_limit_with_not_integers(self):
@@ -320,10 +315,24 @@ class ActivationKeyTestCase(CLITestCase):
             if not value.isdigit()
         ]
         invalid_values.append(0.5)
-        self.assert_negative_create_with_usage_limit(
-            invalid_values,
-            u"Error: option '--max-hosts': numeric value is required"
-        )
+        for limit in invalid_values:
+            with self.subTest(limit), self.assertRaises(
+                    CLIFactoryError) as raise_ctx:
+                self._make_activation_key({u'max-hosts': limit})
+            if type(limit) is int:
+                if limit < 1:
+                    self.assert_error_msg(
+                        raise_ctx,
+                        u'Max hosts cannot be less than one')
+            if type(limit) is str:
+                if limit in ['', ' ', '\t']:
+                    self.assert_error_msg(
+                        raise_ctx,
+                        u'Max hosts cannot be nil')
+                if len(limit) > 1 and limit.isalpha():
+                    self.assert_error_msg(
+                        raise_ctx,
+                        u'Max hosts is not a number')
 
     @tier1
     def test_negative_create_with_usage_limit_with_invalid_integers(self):
