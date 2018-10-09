@@ -1418,8 +1418,8 @@ class HostUpdateTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         new_env = make_environment({
-            'location-id': self.host_args.location.id,
-            'organization-id': self.host_args.organization.id,
+            'location-ids': self.host_args.location.id,
+            'organization-ids': self.host_args.organization.id,
         })
         Host.update({
             'environment-id': new_env['id'],
@@ -1440,8 +1440,8 @@ class HostUpdateTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         new_env = make_environment({
-            'location': self.host_args.location.name,
-            'organization': self.host_args.organization.name,
+            'locations': self.host_args.location.name,
+            'organizations': self.host_args.organization.name,
         })
         Host.update({
             'environment': new_env['name'],
