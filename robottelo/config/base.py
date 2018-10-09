@@ -356,32 +356,59 @@ class ClientsSettings(FeatureSettings):
 class ContainerRepositorySettings(FeatureSettings):
     """Settings for syncing containers from container registries"""
     section = 'container_repo'
-    repo_config_required = ['label', 'registry_url', 'registry_username', 'registry_password', 'repos_to_sync']
+
+    repo_config_required = ['label', 'registry_url', 'registry_username',
+                            'registry_password', 'repos_to_sync']
 
     def __init__(self, *args, **kwargs):
         super(ContainerRepositorySettings, self).__init__(*args, **kwargs)
         self.config_file = None
-        self.repo_configs = None
+        self.multi_registry_test_configs = None
+        self.yaml = None
+        self.long_pass_registry = None
 
     def read(self, reader):
         """Read container repo settings and associated yaml file"""
         self.config_file = reader.get(self.section, 'config_file')
         if self.config_file:
             with open(self.config_file) as cf:
-                self.repo_configs = yaml.safe_load(cf)
+                self.yaml = yaml.safe_load(cf)
+                self.long_pass_registry = self.yaml.get(
+                    'long_pass_test_registry', None)
+                self.multi_registry_test_configs = self.yaml.get(
+                    'multi_registry_test_configs', None)
 
     def validate(self):
         validation_errors = []
         if not self.config_file:
-            validation_errors.append('[{}] config_file must be provided'.format(self.section))
-        elif not self.repo_configs:
-            validation_errors.append('[{}] {} contains no container repo config information'.format(self.section,self.config_file))
+            validation_errors.append(
+                '[{}] config_file must be provided'.format(self.section))
         else:
-            # Go through the configs and check required values
-            for config in self.repo_configs:
-                for req in self.repo_config_required:
-                    if not config.get(req):
-                        validation_errors.append('[{}] {} is required in {}'.format(self.section, req, config))
+            if not self.long_pass_registry:
+                validation_errors.append(
+                    '[{}] contains no long_pass_registry'.format(self.section))
+            else:
+                validation_errors.extend(
+                    self._validate_registry_configs([self.long_pass_registry]))
+
+            if not self.multi_registry_test_configs:
+                validation_errors.append(
+                    '[{}] {} contains no multi_registry_test_configs'.format(
+                        self.section,self.config_file))
+            else:
+                validation_errors.extend(self._validate_registry_configs(
+                    self.multi_registry_test_configs))
+
+        return validation_errors
+
+    def _validate_registry_configs(self, configs):
+        validation_errors = []
+        for config in configs:
+            for req in self.repo_config_required:
+                if not config.get(req):
+                    validation_errors.append(
+                        '[{}] {} is required in {}'.format(self.section, req,
+                                                           config))
         return validation_errors
 
 

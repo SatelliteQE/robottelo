@@ -1912,7 +1912,7 @@ class FileRepositoryTestCase(APITestCase):
 
 class TokenAuthContainerRepositoryTestCase(APITestCase):
     """These test are similar to the ones in ``DockerRepositoryTestCase``,
-    but test with container registries that use really long (>255 or >1024)
+    but test with more container registries and registries that use really long (>255 or >1024)
     tokens for passwords.
 
     """
@@ -1921,12 +1921,10 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
     def setUp(cls):
         super(TokenAuthContainerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        #cls.org = entities.Organization(name='testorg1').create() # used for testing, will change to random org later
-        # cls.org = entities.Organization.search(name='testorg1') # used for testing, will change to random org later
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_redhat_registry_with_token(self):
+    def test_positive_create_with_long_token(self):
         """Create and sync Docker-type repo from the Red Hat Container registry
         Using token based auth, with very long tokens (>255 charaters).
 
@@ -1937,32 +1935,36 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         :return:
         """
         # First we want to confirm the provided token is > 255 charaters
-        self.assertGreater(len(settings.docker.redhat_registry_password), 255,
+        registry_config = settings.container_repo.long_pass_registry
+        self.assertGreater(len(registry_config['registry_password']), 255,
                            msg='Please use a longer (>255) token for '
-                               'redhat_registry_password')
+                               'long_pass_test_registry')
 
         product = entities.Product(organization=self.org).create()
-        for reponame in settings.docker.redhat_registry_repos:
+        for reponame in registry_config['repos_to_sync']:
             with self.subTest(reponame):
                 repo = entities.Repository(
                     content_type=u'docker',
                     docker_upstream_name=reponame,
                     name=reponame,
                     product=product,
-                    url=settings.docker.redhat_registry_url,
-                    upstream_username=settings.docker.redhat_registry_username,
-                    upstream_password=settings.docker.redhat_registry_password
+                    url=registry_config['registry_url'],
+                    upstream_username=registry_config['registry_username'],
+                    upstream_password=registry_config['registry_password']
                 ).create()
                 self.assertEqual(repo.name,reponame)
                 self.assertEqual(repo.docker_upstream_name, reponame)
                 self.assertEqual(repo.content_type, u'docker')
                 self.assertEqual(repo.upstream_username,
-                                 settings.docker.redhat_registry_username)
-        #TODO if we cant find a restrity with passwords >1024 we could just test creating the object with really long passwords, and not syncing it
+                                 registry_config['registry_username'])
+                repo.sync()
+                self.assertGreater(
+                    repo.read().content_counts['docker_manifest'], 1)
+
 
     @tier2
     @run_only_on('sat')
-    def test_positive_multi_repo(self):
+    def test_positive_multi_registry(self):
         """Create and sync Docker-type repo from the Red Hat Container registry
         Using token based auth, with very long tokens (>255 charaters).
 
@@ -1971,7 +1973,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         :expectedresults: multiple products and repos are created
 
         """
-        for config in settings.container_repo.repo_configs:
+        for config in settings.container_repo.registry_configs:
             product_name = config['label']
             with self.subTest(product_name):
                 product = entities.Product(organization=self.org,
@@ -1987,6 +1989,11 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                         upstream_username=config['registry_username'],
                         upstream_password=config['registry_password']
                     ).create()
-
-
-
+                    self.assertEqual(repo.name, repo_name)
+                    self.assertEqual(repo.docker_upstream_name, repo_name)
+                    self.assertEqual(repo.content_type, u'docker')
+                    self.assertEqual(repo.upstream_username,
+                                     config['registry_username'])
+                    repo.sync()
+                    self.assertGreater(
+                        repo.read().content_counts['docker_manifest'], 1)
