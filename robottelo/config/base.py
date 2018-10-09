@@ -6,7 +6,6 @@ import logging.config
 import os
 import sys
 import yaml
-import collections
 
 from functools import partial
 
@@ -394,7 +393,7 @@ class ContainerRepositorySettings(FeatureSettings):
             if not self.multi_registry_test_configs:
                 validation_errors.append(
                     '[{}] {} contains no multi_registry_test_configs'.format(
-                        self.section,self.config_file))
+                        self.section, self.config_file))
             else:
                 validation_errors.extend(self._validate_registry_configs(
                     self.multi_registry_test_configs))
