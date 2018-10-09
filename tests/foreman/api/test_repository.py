@@ -1912,8 +1912,10 @@ class FileRepositoryTestCase(APITestCase):
 
 class TokenAuthContainerRepositoryTestCase(APITestCase):
     """These test are similar to the ones in ``DockerRepositoryTestCase``,
-    but test with more container registries and registries that use really long (>255 or >1024)
-    tokens for passwords.
+    but test with more container registries and registries that use
+    really long (>255 or >1024)tokens for passwords.
+
+    These test require container registry configs in container_repo.yaml
 
     """
 
@@ -1926,11 +1928,12 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
     @run_only_on('sat')
     def test_positive_create_with_long_token(self):
         """Create and sync Docker-type repo from the Red Hat Container registry
-        Using token based auth, with very long tokens (>255 charaters).
+        Using token based auth, with very long tokens (>255 characters).
 
         :id: 79ce54cd-6353-457f-a6d1-08162a1bbe1d
 
-        :expectedresults: A repo is created
+        :expectedresults: repo from registry with long password can be created
+         and synced
 
         :return:
         """
@@ -1952,7 +1955,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                     upstream_username=registry_config['registry_username'],
                     upstream_password=registry_config['registry_password']
                 ).create()
-                self.assertEqual(repo.name,reponame)
+                self.assertEqual(repo.name, reponame)
                 self.assertEqual(repo.docker_upstream_name, reponame)
                 self.assertEqual(repo.content_type, u'docker')
                 self.assertEqual(repo.upstream_username,
@@ -1961,12 +1964,10 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                 self.assertGreater(
                     repo.read().content_counts['docker_manifest'], 1)
 
-
     @tier2
     @run_only_on('sat')
     def test_positive_multi_registry(self):
-        """Create and sync Docker-type repo from the Red Hat Container registry
-        Using token based auth, with very long tokens (>255 charaters).
+        """Create and sync Docker-type repos from multiple supported registries
 
         :id: 4f8ea85b-4c69-4da6-a8ef-bd467ee35147
 
