@@ -1935,7 +1935,6 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         :expectedresults: repo from registry with long password can be created
          and synced
 
-        :return:
         """
         # First we want to confirm the provided token is > 255 charaters
         registry_config = settings.container_repo.long_pass_registry
