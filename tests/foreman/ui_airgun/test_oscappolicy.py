@@ -247,7 +247,7 @@ def test_positive_check_dashboard(session, module_host_group, module_loc,
         session.oscappolicy.create({
             'create_policy.name': name,
             'scap_content.scap_content_resource': oscap_content_title,
-            'scap_content.xccdf_profile': 'C2S for Red Hat Enterprise Linux 7',
+            'scap_content.xccdf_profile': 'C2S for Red Hat Enterprise Linux 6',
             'schedule.period': 'Weekly',
             'schedule.period_selection.weekday': 'Friday',
             'locations.resources.assigned': [module_loc.name],
