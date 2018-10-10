@@ -43,21 +43,6 @@ def module_org():
     return entities.Organization().create()
 
 
-def test_positive_edit(session):
-    lce_path_name = gen_string('alpha')
-    new_name = gen_string('alpha')
-    with session:
-        session.lifecycleenvironment.create(
-            values={'name': lce_path_name}
-        )
-        session.lifecycleenvironment.update(
-            values={'details.name': new_name},
-            entity_name=lce_path_name,
-        )
-        lce_values = session.lifecycleenvironment.read_all()
-        assert new_name in lce_values['lce']
-
-
 @upgrade
 @tier2
 def test_positive_create_chain(session):

@@ -66,49 +66,6 @@ def module_org():
     return entities.Organization().create()
 
 
-def test_positive_create(session):
-    ak_name = gen_string('alpha')
-    with session:
-        session.activationkey.create({
-            'name': ak_name,
-            'hosts_limit': 2,
-            'description': gen_string('alpha'),
-        })
-        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-
-
-def test_positive_delete(session):
-    name = gen_string('alpha')
-    org = entities.Organization().create()
-    entities.ActivationKey(name=name, organization=org).create()
-    with session:
-        session.organization.select(org_name=org.name)
-        assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.delete(name)
-        assert not session.activationkey.search(name)
-
-
-def test_positive_edit(session):
-    name = gen_string('alpha')
-    new_name = gen_string('alpha')
-    description = gen_string('alpha')
-    org = entities.Organization().create()
-    entities.ActivationKey(name=name, organization=org).create()
-    with session:
-        session.organization.select(org_name=org.name)
-        assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.update(
-            name,
-            {
-                'details.name': new_name,
-                'details.description': description,
-            },
-        )
-        ak = session.activationkey.read(new_name)
-        assert ak['details']['name'] == new_name
-        assert ak['details']['description'] == description
-
-
 @tier2
 @upgrade
 @parametrize('cv_name', **valid_data_list('ui'))

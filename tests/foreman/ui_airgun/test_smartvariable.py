@@ -19,9 +19,9 @@ import yaml
 from nailgun import entities
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC_ID, ENVIRONMENT
+from robottelo.constants import DEFAULT_LOC_ID, CUSTOM_PUPPET_REPO, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import tier2, upgrade, fixture
 
 PUPPET_MODULES = [
     {'author': 'robottelo', 'name': 'ui_test_variables'}]
@@ -96,28 +96,6 @@ def module_host(
 @fixture(scope='module')
 def domain(module_host):
     return entities.Domain(id=module_host.domain.id).read()
-
-
-def test_positive_create(session, puppet_class):
-    """Creates a Smart Variable using different names.
-
-    :id: ee4a0e3c-9a41-4fe9-8730-faab663b9ed1
-
-    :steps: Creates a smart variable with valid name
-
-    :expectedresults: The smart variable is created successfully.
-
-    :CaseImportance: Critical
-    """
-    name = gen_string('alpha')
-    with session:
-        session.smartvariable.create({
-            'variable.key': name,
-            'variable.puppet_class': puppet_class.name
-        })
-        assert session.smartvariable.search(name)[0]['Variable'] == name
-        sv_values = session.smartvariable.read(name)
-        assert sv_values['variable']['key'] == name
 
 
 @tier2

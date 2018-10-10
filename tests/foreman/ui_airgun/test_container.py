@@ -1,3 +1,19 @@
+"""WebUI tests for the Docker feature.
+
+:Requirement: Docker
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 from nailgun import entities
 
 from robottelo.constants import (

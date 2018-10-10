@@ -20,22 +20,6 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import tier2
 
 
-def test_positive_create(session):
-    plan_name = gen_string('alpha')
-    description = gen_string('alpha')
-    with session:
-        session.syncplan.create({
-            'name': plan_name,
-            'description': description,
-            'interval': 'daily',
-        })
-        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
-        syncplan = session.syncplan.read(plan_name)
-        assert syncplan['details']['name'] == plan_name
-        assert syncplan['details']['description'] == description
-        assert syncplan['details']['interval'] == 'daily'
-
-
 @tier2
 def test_positive_create_with_start_time(session):
     """Create Sync plan with specified start time

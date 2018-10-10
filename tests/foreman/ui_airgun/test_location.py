@@ -32,38 +32,6 @@ from robottelo.decorators import (
 )
 
 
-def test_positive_create(session):
-    loc_name = gen_string('alpha')
-    with session:
-        session.location.create({
-            'name': loc_name,
-            'description': gen_string('alpha'),
-        })
-        assert session.location.search(loc_name)[0]['Name'] == loc_name
-
-
-def test_positive_create_with_parent(session):
-    loc_parent = entities.Location().create()
-    loc_child_name = gen_string('alpha')
-    with session:
-        session.location.create({
-            'name': loc_child_name,
-            'parent_location': loc_parent.name,
-        })
-        new_loc_name = "{}/{}".format(loc_parent.name, loc_child_name)
-        loc_values = session.location.read(new_loc_name)
-        assert loc_values['primary']['parent_location'] == loc_parent.name
-        assert loc_values['primary']['name'] == loc_child_name
-
-
-def test_positive_delete(session):
-    loc_name = gen_string('alpha')
-    with session:
-        session.location.create({'name': loc_name})
-        session.location.delete(loc_name)
-        assert not session.location.search(loc_name)
-
-
 @tier2
 def test_positive_update_subnet(session):
     """Add/Remove subnet from/to location
