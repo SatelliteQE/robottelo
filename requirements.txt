@@ -31,4 +31,5 @@ robozilla==0.2.6
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
 git+https://github.com/SatelliteQE/nailgun.git@6.4.z#egg=nailgun
 git+https://github.com/SatelliteQE/satellite6-upgrade.git#egg=satellite6-upgrade
+git+https://github.com/ManageIQ/wrapanapi.git#egg=wrapanapi
 --editable .

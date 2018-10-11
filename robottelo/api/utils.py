@@ -325,7 +325,8 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
         product=product,
-        url=settings.rhel7_os
+        url=settings.rhel7_os,
+        download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion
@@ -405,6 +406,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         subnet.dhcp = proxy
         subnet.tftp = proxy
         subnet.discovery = proxy
+        subnet.ipam = 'DHCP'
         subnet = subnet.update([
             'domain',
             'discovery',
@@ -413,6 +415,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             'location',
             'organization',
             'tftp',
+            'ipam'
         ])
     else:
         # Create new subnet
@@ -425,7 +428,8 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             dns=proxy,
             dhcp=proxy,
             tftp=proxy,
-            discovery=proxy
+            discovery=proxy,
+            ipam='DHCP'
         ).create()
 
     # Search if Libvirt compute-resource already exists
@@ -533,7 +537,12 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         'config_template',
         'ptable',
     ])
-
+    # kickstart_repository is the content view and lce bind repo
+    kickstart_repository = entities.Repository().search(query=dict(
+        content_view_id=content_view.id,
+        environment_id=lc_env.id,
+        name=repo.name
+    ))[0]
     # Create Hostgroup
     host_group = entities.HostGroup(
         architecture=arch,
@@ -546,7 +555,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         puppet_proxy=proxy,
         puppet_ca_proxy=proxy,
         content_source=proxy,
-        kickstart_repository=repo.id,
+        kickstart_repository=kickstart_repository,
         root_pass=gen_string('alphanumeric'),
         operatingsystem=os.id,
         organization=[org.id],
@@ -559,7 +568,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         'environment': environment.name,
         'ptable': ptable.name,
         'subnet': subnet.name,
-        'os': os.title
+        'os': os.title,
     }
 
 

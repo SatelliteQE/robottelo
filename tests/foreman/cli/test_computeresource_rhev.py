@@ -385,30 +385,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
             successfully
         """
 
-    @tier3
-    @run_only_on('sat')
-    @stubbed()
-    def test_positive_provision_rhev_with_host_group(self):
-        """Provision a host on RHEV compute resource with
-        the help of hostgroup.
-
-        :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
-
-        :setup: Hostgroup and provisioning setup like domain, subnet etc.
-
-        :steps:
-
-            1. Create a RHEV compute resource.
-            2. Create a host on RHEV compute resource using the Hostgroup
-            3. Use compute-attributes parameter to specify key-value parameters
-               regarding the virtual machine.
-            4. Provision the host.
-
-        :expectedresults: The host should be provisioned with host group
-
-        :caseautomation: notautomated
-        """
-
     @run_only_on('sat')
     @stubbed()
     @tier3
