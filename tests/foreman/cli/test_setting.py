@@ -373,6 +373,7 @@ class SettingTestCase(CLITestCase):
             updated_url = Settings.list({'search': 'name=rss_url'})[0]
             self.assertEqual(test_url, updated_url['value'])
 
+
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
 @tier1
 def test_negative_update_send_welcome_email(value):
