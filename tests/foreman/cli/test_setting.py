@@ -36,6 +36,32 @@ from robottelo.test import CLITestCase
 class SettingTestCase(CLITestCase):
     """Implements tests for Settings for CLI"""
 
+    @classmethod
+    def setUpClass(cls):
+        super(SettingTestCase, cls).setUpClass()
+        # Collect original defaults so we can reset them later
+        cls.default_settings = {k['name']: k['value'] for k in Settings.list()}
+
+    def setUp(self):
+        self.reset_settings = set()
+
+    def tearDown(self):
+        # Reset settings to defaults
+        for s in self.reset_settings:
+            Settings.set({'name': s, 'value': self.default_settings[s]})
+
+    def setSetting(self, name, value):
+        """
+        Wrapper around Settings.set to help us ensure settings are reset to
+        default values
+
+        :param name: Name of the setting to set
+        :param value: value to set
+        :return: None
+        """
+        self.reset_settings.add(name)
+        Settings.set({'name': name, 'value': value})
+
     @stubbed()
     @tier1
     def test_negative_update_hostname_with_empty_fact(self):
@@ -57,7 +83,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Hostname_prefix should be set without any text
         """
-        Settings.set({'name': "discovery_prefix", 'value': ""})
+        self.setSetting("discovery_prefix", "")
         discovery_prefix = Settings.list({
             'search': 'name=discovery_prefix'
         })[0]
@@ -72,10 +98,7 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Default set prefix should be updated with new value
         """
         hostname_prefix_value = gen_string('alpha')
-        Settings.set({
-            'name': "discovery_prefix",
-            'value': hostname_prefix_value
-        })
+        self.setSetting("discovery_prefix", hostname_prefix_value)
         discovery_prefix = Settings.list({
             'search': 'name=discovery_prefix'
         })[0]
@@ -123,7 +146,7 @@ class SettingTestCase(CLITestCase):
         """
         for login_text_value in valid_data_list():
             with self.subTest(login_text_value):
-                Settings.set({'name': "login_text", 'value': login_text_value})
+                self.setSetting("login_text", login_text_value)
                 login_text = Settings.list({'search': 'name=login_text'})[0]
                 self.assertEqual(login_text_value, login_text['value'])
 
@@ -140,7 +163,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Message on login screen should be removed
         """
-        Settings.set({'name': "login_text", 'value': ""})
+        self.setSetting('login_text', '')
         login_text = Settings.list({'search': 'name=login_text'})[0]
         self.assertEqual('', login_text['value'])
 
@@ -229,9 +252,7 @@ class SettingTestCase(CLITestCase):
                 # the parsing of the generated shell command
                 escaped_email = email.replace(
                     '"', r'\"').replace('`', r'\`')
-                Settings.set({
-                    'name': "email_reply_address",
-                    'value': escaped_email})
+                self.setSetting('email_reply_address', escaped_email)
                 email_reply_address = Settings.list({
                     'search': 'name=email_reply_address'
                 }, output_format='json')[0]
@@ -254,10 +275,7 @@ class SettingTestCase(CLITestCase):
         for email in invalid_emails_list():
             with self.subTest(email):
                 with self.assertRaises(CLIReturnCodeError):
-                    Settings.set({
-                        'name': 'email_reply_address',
-                        'value': email
-                    })
+                    self.setSetting('email_reply_address', email)
 
     @tier1
     def test_positive_update_email_subject_prefix(self):
@@ -272,10 +290,7 @@ class SettingTestCase(CLITestCase):
         :caseimportance: low
         """
         email_subject_prefix_value = gen_string('alpha')
-        Settings.set({
-            'name': "email_subject_prefix",
-            'value': email_subject_prefix_value
-        })
+        self.setSetting('email_subject_prefix', email_subject_prefix_value)
         email_subject_prefix = Settings.list({
             'search': 'name=email_subject_prefix'
         })[0]
@@ -315,7 +330,7 @@ class SettingTestCase(CLITestCase):
         :caseimportance: low
         """
         for value in ['true', 'false']:
-            Settings.set({'name': 'send_welcome_email', 'value': value})
+            self.setSetting('send_welcome_email', value)
             host_value = Settings.list(
               {'search': 'name=send_welcome_email'})[0]['value']
             assert value == host_value
@@ -332,12 +347,10 @@ class SettingTestCase(CLITestCase):
 
         :caseautomation: automated
         """
-        orig_value = Settings.list({'search': 'name=rss_enable'})[0]['value']
         for value in ['true', 'false']:
-            Settings.set({'name': 'rss_enable', 'value': value})
+            self.setSetting('rss_enable', value)
             rss_setting = Settings.list({'search': 'name=rss_enable'})[0]
             self.assertEqual(value, rss_setting['value'])
-        Settings.set({'name': 'rss_enable', 'value': orig_value})
 
     @tier1
     def test_positive_update_rssfeed_url(self):
@@ -355,13 +368,10 @@ class SettingTestCase(CLITestCase):
 
         :caseautomation: automated
         """
-        orig_url = Settings.list({'search': 'name=rss_url'})[0]['value']
         for test_url in valid_url_list():
-            Settings.set({'name': 'rss_url', 'value': test_url})
+            self.setSetting('rss_url', test_url)
             updated_url = Settings.list({'search': 'name=rss_url'})[0]
             self.assertEqual(test_url, updated_url['value'])
-        Settings.set({'name': 'rss_url', 'value': orig_url})
-
 
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
 @tier1
