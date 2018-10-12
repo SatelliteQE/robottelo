@@ -219,6 +219,7 @@ PRODUCT_KEY_RHEL = 'rhel'
 PRODUCT_KEY_SAT_TOOLS = 'rhst'
 PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
 PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
+PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
 
 _server_distro = None  # type: str
 
@@ -514,6 +515,11 @@ class VirtualizationAgentsRepository(GenericRHRepository):
     _distro = DISTRO_RHEL6
 
 
+class RHELCloudFormsTools(GenericRHRepository):
+    _distro = DISTRO_RHEL6
+    _key = PRODUCT_KEY_CLOUD_FORMS_TOOLS
+
+
 class RepositoryCollection(object):
     """Repository collection"""
     _distro = None  # type: str
@@ -625,8 +631,9 @@ class RepositoryCollection(object):
         for item in self._items:
             yield item
 
-    def setup(self, org_id, download_policy=DOWNLOAD_POLICY_ON_DEMAND):
-        # type: (int, str) -> Tuple[Dict, List[Dict]]
+    def setup(self, org_id, download_policy=DOWNLOAD_POLICY_ON_DEMAND,
+              synchronize=True):
+        # type: (int, str, bool) -> Tuple[Dict, List[Dict]]
         """Setup the repositories on server.
 
         Recommended usage: repository only setup, for full content setup see
@@ -635,7 +642,11 @@ class RepositoryCollection(object):
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created')
         setup_data = setup_cdn_and_custom_repositories(
-            org_id, self.repos_data, download_policy=download_policy)
+            org_id,
+            self.repos_data,
+            download_policy=download_policy,
+            synchronize=synchronize,
+        )
         self._custom_product_info, self._repos_info = setup_data
         return setup_data
 

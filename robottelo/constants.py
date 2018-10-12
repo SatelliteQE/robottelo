@@ -371,6 +371,16 @@ REPOS = {
         'distro': DISTRO_RHEL6,
         'key': 'rhva65',
     },
+    'rhct6': {
+        'name': 'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'version': '6Server',
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhct6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhct6',
+    },
     'rhaht': {
         'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
     },

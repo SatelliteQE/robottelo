@@ -3695,13 +3695,14 @@ def add_role_permissions(role_id, resource_permissions):
 
 
 def setup_cdn_and_custom_repositories(
-        org_id, repos, download_policy='on_demand'):
+        org_id, repos, download_policy='on_demand', synchronize=True):
     """Setup cdn and custom repositories
 
     :param int org_id: The organization id
     :param list repos: a list of dict repositories options
     :param str download_policy: update the repositories with this download
         policy
+    :param bool synchronize: Whether to synchronize the repositories.
     :return: a dict containing the content view and repos info
     """
     custom_product = None
@@ -3741,9 +3742,10 @@ def setup_cdn_and_custom_repositories(
                 'id': repo_info['id'],
             })
         repos_info.append(repo_info)
-    # Synchronize the repositories
-    for repo_info in repos_info:
-        Repository.synchronize({'id': repo_info['id']}, timeout=4800)
+    if synchronize:
+        # Synchronize the repositories
+        for repo_info in repos_info:
+            Repository.synchronize({'id': repo_info['id']}, timeout=4800)
     return custom_product, repos_info
 
 
