@@ -19,107 +19,17 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.datafactory import (
-    invalid_domain_names,
     valid_domain_names
 )
 from robottelo.decorators import (
     parametrize,
     tier2,
-    upgrade
 )
 
 
 @pytest.fixture
 def valid_domain_name():
     return list(valid_domain_names(interface='ui')['argvalues'])[0]
-
-
-@parametrize('name', **valid_domain_names(interface='ui', length=243))
-def test_positive_create_with_name(session, name):
-    """Create a new domain with name of 255 chars
-
-    :id: 6366fa30-c94f-4d98-9c7f-c590e709cf79
-
-    :expectedresults: Domain is created
-
-    :CaseImportance: Critical
-    """
-    with session:
-        session.domain.create({
-            'domain.dns_domain': name,
-            'domain.full_name': name,
-        })
-        assert session.domain.search(name), (
-            "Unable to find domain '{}' after creating"
-            .format(name)
-        )
-
-
-@upgrade
-def test_positive_delete(session, valid_domain_name):
-    """Delete a domain
-
-    :id: e05ec510-dfb0-4669-9371-7e594333d80c
-
-    :expectedresults: Domain is deleted
-
-    :CaseImportance: Critical
-    """
-    with session:
-        name = valid_domain_name
-        session.domain.create({
-            'domain.dns_domain': name,
-            'domain.full_name': name,
-        })
-        session.domain.delete(name)
-        assert not session.domain.search(name), (
-            "Deleted domain '{}' still exists in UI"
-            .format(name)
-        )
-
-
-@upgrade
-@parametrize('new_name', **valid_domain_names(interface='ui'))
-def test_positive_update(session, valid_domain_name, new_name):
-    """Update a domain with name and description
-
-    :id: 4a883383-da9c-4b03-bcb8-e1ffb203d19b
-
-    :expectedresults: Domain is updated
-
-    :CaseImportance: Critical
-    """
-    with session:
-        old_name = valid_domain_name
-        session.domain.create({
-            'domain.dns_domain': old_name,
-            'domain.full_name': old_name,
-        })
-        session.domain.update(old_name, {'domain.dns_domain': new_name})
-        assert session.domain.search(new_name), (
-            "Unable to find domain '{}' after changing name (old name: {})"
-            .format(new_name, old_name)
-        )
-
-
-@parametrize('name', **invalid_domain_names(interface='ui'))
-def test_negative_create_with_invalid_name(session, name):
-    """Try to create domain and use whitespace, blank, tab symbol or
-    too long string of different types as its name value
-
-    :id: 33c96cb6-711e-4a17-bce8-55e33ebcd342
-
-    :expectedresults: Domain is not created
-
-    :CaseImportance: Critical
-    """
-    with session:
-        with pytest.raises(AssertionError) as context:
-            session.domain.create({
-                'domain.dns_domain': name,
-                'domain.full_name': name,
-            })
-        assert 'errors present' in str(context.value)
 
 
 @tier2

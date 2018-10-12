@@ -22,17 +22,6 @@ from robottelo.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2
 
 
-def test_positive_create(session):
-    org_name = gen_string('alpha')
-    with session:
-        session.organization.create({
-            'name': org_name,
-            'label': gen_string('alpha'),
-            'description': gen_string('alpha'),
-        })
-        assert session.organization.search(org_name)[0]['Name'] == org_name
-
-
 @tier2
 def test_positive_update_user(session):
     """Add new user and then remove it from organization

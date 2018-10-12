@@ -18,7 +18,7 @@
 from pytest import raises
 
 from airgun.session import Session
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.decorators import fixture, stubbed, tier2
@@ -71,81 +71,6 @@ def reader_user(module_loc, module_org):
     ).create()
     reader_user.password = password
     return reader_user
-
-
-def test_positive_create(session, module_org):
-    name = gen_string('alpha')
-    search = gen_string('alpha')
-    hostname = gen_string('alpha')
-    hosts_limit = str(gen_integer(1, 100))
-    priority = str(gen_integer(1, 100))
-    enable = False
-    hg = entities.HostGroup(organization=[module_org]).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.discoveryrule.create({
-            'primary.name': name,
-            'primary.search': search,
-            'primary.host_group': hg.name,
-            'primary.hostname': hostname,
-            'primary.hosts_limit': hosts_limit,
-            'primary.priority': priority,
-            'primary.enabled': enable,
-        })
-        dr_val = session.discoveryrule.read(name)
-        assert dr_val['primary']['name'] == name
-        assert dr_val['primary']['host_group'] == hg.name
-        assert dr_val['primary']['hostname'] == hostname
-        assert dr_val['primary']['hosts_limit'] == hosts_limit
-        assert dr_val['primary']['priority'] == priority
-        assert dr_val['primary']['enabled'] == enable
-
-
-def test_positive_delete(session, module_org):
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg,
-        organization=[module_org]
-    ).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr.name in [rule['Name'] for rule in dr_val]
-        session.discoveryrule.delete(dr.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr.name not in [rule['Name'] for rule in dr_val]
-
-
-def test_positive_update(session, module_loc, module_org):
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg,
-        organization=[module_org]
-    ).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.discoveryrule.update(
-            dr.name, {'locations.resources.assigned': [module_loc.name]})
-        dr_val = session.discoveryrule.read(dr.name)
-        assert dr_val[
-                   'locations']['resources']['assigned'][0] == module_loc.name
-
-
-def test_positive_disable_and_enable(session, module_org):
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg,
-        organization=[module_org]
-    ).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        # enable checkbox is true, by default
-        session.discoveryrule.disable(dr.name)
-        dr_val = session.discoveryrule.read(dr.name)
-        assert (not dr_val['primary']['enabled'])
-        session.discoveryrule.enable(dr.name)
-        dr_val = session.discoveryrule.read(dr.name)
-        assert dr_val['primary']['enabled']
 
 
 @tier2

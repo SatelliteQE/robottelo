@@ -38,34 +38,6 @@ def oscap_tailoring_path():
     return settings.oscap.tailoring_path
 
 
-def test_positive_create(session, oscap_tailoring_path):
-    name = gen_string('alpha')
-    with session:
-        session.oscaptailoringfile.create({
-            'file_upload.name': name,
-            'file_upload.scap_file': oscap_tailoring_path
-        })
-        assert session.oscaptailoringfile.search(name)[0]['Name'] == name
-        oscap_tailor_val = session.oscaptailoringfile.read(name)
-        assert oscap_tailoring_path.rsplit(
-            '/', 1)[-1] == oscap_tailor_val['scap_file_name']
-
-
-def test_positive_update(session, oscap_tailoring_path):
-    name = gen_string('alpha')
-    org = entities.Organization().create()
-    with session:
-        session.oscaptailoringfile.create({
-            'file_upload.name': name,
-            'file_upload.scap_file': oscap_tailoring_path
-        })
-        session.oscaptailoringfile.update(name, {
-            'organizations.resources.assigned': [org.name]
-        })
-        tailor_val = session.oscaptailoringfile.read(name)
-        assert org.name in tailor_val['organizations']['resources']['assigned']
-
-
 @tier2
 @upgrade
 def test_positive_associate_tailoring_file_with_scap(

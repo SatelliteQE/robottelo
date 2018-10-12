@@ -33,7 +33,7 @@ from robottelo.constants import (
     FAKE_2_ERRATA_ID,
     FAKE_6_YUM_REPO,
 )
-from robottelo.datafactory import gen_string, gen_integer
+from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2, tier3, upgrade
 from robottelo.products import (
     YumRepository,
@@ -169,44 +169,6 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
                     product_version=repo.repo_data['version'],
                 ))
         return repos_urls
-
-
-def test_positive_create(session):
-    hc_name = gen_string('alpha')
-    with session:
-        session.hostcollection.create({
-            'name': hc_name,
-            'unlimited_hosts': False,
-            'max_hosts': 3,
-            'description': gen_string('alpha'),
-        })
-        assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
-
-
-def test_positive_edit(session, module_org):
-    host_collection = entities.HostCollection(organization=module_org).create()
-    new_data = {
-        'name': gen_string('alpha'),
-        'description': gen_string('alpha'),
-        'content_host_limit': str(gen_integer(10, 100)),
-    }
-    with session:
-        session.organization.select(org_name=module_org.name)
-        assert not session.hostcollection.search(new_data['name'])
-        session.hostcollection.update(host_collection.name, new_data)
-        assert not session.hostcollection.search(host_collection.name)
-        values = session.hostcollection.read(new_data['name'])
-        details_data = {
-            key: value
-            for key, value in values['details'].items()
-            if key in new_data
-        }
-        assert new_data == details_data
-        # update limit to unlimited
-        session.hostcollection.update(
-            new_data['name'], {'content_host_limit': 'Unlimited'})
-        values = session.hostcollection.read(new_data['name'])
-        assert values['details']['content_host_limit'] == 'Unlimited'
 
 
 @tier2

@@ -125,38 +125,17 @@ def test_positive_create_custom_location(session):
         assert not session.partitiontable.search(name)
 
 
-def test_positive_delete(session):
-    name = gen_string('alpha')
-    with session:
-        session.partitiontable.create({
-            'name': name,
-            'os_family_selection': {'os_family': 'Red Hat'},
-            'template': PARTITION_SCRIPT_DATA_FILE
-        }, )
-        session.partitiontable.delete(name)
-        assert not session.partitiontable.search(name)
-
-
-def test_positive_update(session):
-    old_name = gen_string('alpha')
-    new_name = gen_string('alpha')
-    with session:
-        session.partitiontable.create({
-            'name': old_name,
-            'os_family_selection': {'os_family': 'Debian'},
-            'template': PARTITION_SCRIPT_DATA_FILE,
-        })
-        session.partitiontable.update({
-            'name': new_name,
-            'os_family_selection': {'os_family': 'Red Hat'},
-            'template': PARTITION_SCRIPT_DATA_FILE,
-        }, old_name)
-        pt = session.partitiontable.read(new_name)
-        assert pt['os_family_selection']['os_family'] == 'Red Hat'
-        assert pt['name'] == new_name
-
-
+@tier2
 def test_positive_delete_with_lock_and_unlock(session):
+    """Create new partition table and lock it, try delete unlock and retry
+
+    :id: a5143f5b-7c8e-4700-a850-01815bb54760
+
+    :expectedresults: New partition table is created and not deleted when
+        locked and only deleted after unlock
+
+    :CaseLevel: Integration
+    """
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
     with session:
@@ -176,7 +155,16 @@ def test_positive_delete_with_lock_and_unlock(session):
         assert not session.partitiontable.search(name)
 
 
+@tier2
 def test_positive_clone(session):
+    """Create new partition table and clone it
+
+    :id: 6050f66f-82e0-4694-a482-5ea449ed9a9d
+
+    :expectedresults: New partition table is created and cloned successfully
+
+    :CaseLevel: Integration
+    """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     audit_comment = gen_string('alpha')

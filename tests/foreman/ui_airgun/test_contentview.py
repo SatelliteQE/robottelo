@@ -73,24 +73,6 @@ def module_org():
     return entities.Organization().create()
 
 
-def test_positive_create(session):
-    cv_name = gen_string('alpha')
-    label = gen_string('alpha')
-    description = gen_string('alpha')
-    with session:
-        session.contentview.create({
-            'name': cv_name,
-            'label': label,
-            'description': description,
-        })
-        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        cv_values = session.contentview.read(cv_name)
-        assert cv_values['details']['name'] == cv_name
-        assert cv_values['details']['label'] == label
-        assert cv_values['details']['description'] == description
-        assert cv_values['details']['composite'] == 'No'
-
-
 @tier2
 def test_positive_add_custom_content(session):
     """Associate custom content in a view

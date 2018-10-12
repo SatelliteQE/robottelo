@@ -33,36 +33,6 @@ def module_loc():
     return entities.Location().create()
 
 
-def test_positive_update_filter(session):
-    resource_name = 'Architecture'
-    permission_name = 'edit_architectures'
-    role = entities.Role().create()
-    permission = entities.Permission(resource_type=resource_name).search()
-    entities.Filter(permission=permission, role=role.id).create()
-    with session:
-        filter_values = session.filter.read(role.name, resource_name)
-        assert permission_name in filter_values['permission']['assigned']
-        session.filter.update(
-            role.name,
-            resource_name,
-            {'permission.unassigned': ['edit_architectures']}
-        )
-        filter_values = session.filter.read(role.name, resource_name)
-        assert permission_name in filter_values['permission']['unassigned']
-
-
-def test_positive_delete_filter(session):
-    resource_name = 'Architecture'
-    role = entities.Role().create()
-    permission = entities.Permission(resource_type=resource_name).search()
-    entities.Filter(permission=permission, role=role.id).create()
-    with session:
-        assert session.filter.search(
-            role.name, resource_name)[0]['Resource'] == resource_name
-        session.filter.delete(role.name, resource_name)
-        assert not session.filter.search(role.name, resource_name)
-
-
 @tier2
 def test_positive_create_filter_without_override(
         session, module_org, module_loc, test_name):

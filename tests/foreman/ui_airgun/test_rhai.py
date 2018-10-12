@@ -97,6 +97,7 @@ def test_positive_register_client_to_rhai(vm, autosession):
     assert result == "1", "Registered clients are not listed"
 
 
+@tier2
 def test_positive_unregister_client_to_rhai(vm, autosession):
     """Check client canceling registration to redhat-access-insights service.
 
@@ -104,6 +105,8 @@ def test_positive_unregister_client_to_rhai(vm, autosession):
 
     :expectedresults: Unregistered client should not appear in the Systems sub-
         menu of Red Hat Access Insights
+
+    :CaseLevel: Integration
     """
     vm.unregister()
     table = autosession.insightsinventory.search(vm.hostname)
