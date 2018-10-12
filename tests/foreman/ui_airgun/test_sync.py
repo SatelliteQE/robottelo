@@ -59,7 +59,7 @@ def module_org_with_manifest():
 
 
 @tier2
-def test_positive_sync_custom_repo(session, module_org, module_custom_product):
+def test_positive_sync_custom_repo(session, module_custom_product):
     """Create Content Custom Sync with minimal input parameters
 
     :id: 00fb0b04-0293-42c2-92fa-930c75acee89
@@ -120,8 +120,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 @skip_if_os('RHEL6')
 @tier2
 @upgrade
-def test_positive_sync_custom_ostree_repo(
-        session, module_org, module_custom_product):
+def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """Create custom ostree repository and sync it.
 
     :id: e4119b9b-0356-4661-a3ec-e5807224f7d2
