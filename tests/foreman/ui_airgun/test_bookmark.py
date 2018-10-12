@@ -1,3 +1,19 @@
+"""Test classes for Bookmark tests
+
+:Requirement: Bookmark
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 import random
 
 from airgun.session import Session
