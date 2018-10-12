@@ -52,8 +52,10 @@ def module_custom_product(module_org):
 
 
 @fixture(scope='module')
-def org_manifest(module_org):
-    manifests.upload_manifest_locked(module_org.id)
+def module_org_with_manifest():
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    return org
 
 
 @tier2
@@ -69,7 +71,6 @@ def test_positive_sync_custom_repo(session, module_org, module_custom_product):
     repo = entities.Repository(
         url=FAKE_1_YUM_REPO, product=module_custom_product).create()
     with session:
-        session.organization.select(org_name=module_org.name)
         results = session.sync_status.synchronize([
             (module_custom_product.name, repo.name)])
         assert len(results) == 1
@@ -80,7 +81,7 @@ def test_positive_sync_custom_repo(session, module_org, module_custom_product):
 @skip_if_not_set('fake_manifest')
 @tier2
 @upgrade
-def test_positive_sync_rh_repos(session, module_org, org_manifest):
+def test_positive_sync_rh_repos(session, module_org_with_manifest):
     """Create Content RedHat Sync with two repos.
 
     :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
@@ -99,7 +100,7 @@ def test_positive_sync_rh_repos(session, module_org, org_manifest):
         for distro, repo in zip(distros, repos)
     ]
     for repo_collection in repo_collections:
-        repo_collection.setup(module_org.id, synchronize=False)
+        repo_collection.setup(module_org_with_manifest.id, synchronize=False)
     repo_paths = [
         (
             repo.repo_data['product'],
@@ -110,7 +111,7 @@ def test_positive_sync_rh_repos(session, module_org, org_manifest):
         for repo in repos
     ]
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_manifest.name)
         results = session.sync_status.synchronize(repo_paths)
         assert len(results) == len(repo_paths)
         assert all([result == 'Syncing Complete.' for result in results])
@@ -136,7 +137,6 @@ def test_positive_sync_custom_ostree_repo(
         unprotected=False,
     ).create()
     with session:
-        session.organization.select(org_name=module_org.name)
         results = session.sync_status.synchronize([
             (module_custom_product.name, repo.name)])
         assert len(results) == 1
@@ -148,7 +148,7 @@ def test_positive_sync_custom_ostree_repo(
 @skip_if_not_set('fake_manifest')
 @tier2
 @upgrade
-def test_positive_sync_rh_ostree_repo(session, module_org, org_manifest):
+def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
     """Sync CDN based ostree repository.
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
@@ -163,14 +163,14 @@ def test_positive_sync_rh_ostree_repo(session, module_org, org_manifest):
     """
     enable_rhrepo_and_fetchid(
         basearch=None,
-        org_id=module_org.id,
+        org_id=module_org_with_manifest.id,
         product=PRDS['rhah'],
         repo=REPOS['rhaht']['name'],
         reposet=REPOSET['rhaht'],
         releasever=None,
     )
     with session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=module_org_with_manifest.name)
         results = session.sync_status.synchronize([
             (PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
