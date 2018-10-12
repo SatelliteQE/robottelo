@@ -50,22 +50,23 @@ def ui_entities(module_org):
         ui_entities.append(entity)
         # Some pages require at least 1 existing entity for search bar to
         # appear. Creating 1 entity for such pages
-        if entity.get('setup'):
+        entity_name, entity_setup = entity['name'], entity.get('setup')
+        if entity_setup:
             # entities with 1 organization
-            if entity['name'] in ('Host',):
-                entity['setup'](organization=module_org).create()
+            if entity_name in ('Host',):
+                entity_setup(organization=module_org).create()
             # entities with no organizations
-            elif entity['name'] in (
+            elif entity_name in (
                     'ComputeProfile',
                     'ConfigGroup',
                     'GlobalParameter',
                     'HardwareModel',
                     'PuppetClass',
                     'UserGroup'):
-                entity['setup']().create()
+                entity_setup().create()
             # entities with multiple organizations
             else:
-                entity['setup'](organization=[module_org]).create()
+                entity_setup(organization=[module_org]).create()
     return ui_entities
 
 
