@@ -1647,7 +1647,7 @@ ROLES_LOCKED = [
 
 BOOKMARK_ENTITIES = [
     {'name': 'ActivationKey', 'controller': 'katello_activation_keys'},
-    {'name': 'Dashboard', 'controller': 'dashboard', 'skip_for_ui': True},  #?
+    {'name': 'Dashboard', 'controller': 'dashboard', 'skip_for_ui': True},
     {'name': 'Fact', 'controller': 'fact_values', 'skip_for_ui': True},
     {'name': 'Audit', 'controller': 'audits', 'skip_for_ui': True},
     {'name': 'Report', 'controller': 'config_reports', 'skip_for_ui': True},
@@ -1661,7 +1661,10 @@ BOOKMARK_ENTITIES = [
         'name': 'Repository', 'controller': 'katello_repositories',
         'skip_for_ui': True
     },
-    {'name': 'ContentCredential', 'controller': 'katello_gpg_keys', 'skip_for_ui': True},
+    {
+        'name': 'ContentCredential', 'controller': 'katello_gpg_keys',
+        'skip_for_ui': ('bugzilla', 1638781)
+    },
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
     {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
