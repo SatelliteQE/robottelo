@@ -1666,14 +1666,17 @@ BOOKMARK_ENTITIES = [
         'name': 'Subscriptions', 'controller': 'katello_subscriptions',
         'skip_for_ui': True,
     },
-    {'name': 'Products', 'controller': 'katello_products'},
+    {'name': 'Product', 'controller': 'katello_products'},
     {
         'name': 'Repository', 'controller': 'katello_repositories',
         'skip_for_ui': True
     },
-    {'name': 'GPGKey', 'controller': 'katello_gpg_keys'},
+    {
+        'name': 'ContentCredential', 'controller': 'katello_gpg_keys',
+        'skip_for_ui': ('bugzilla', 1638781)
+    },
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
-    {'name': 'Content_Views', 'controller': 'katello_content_views'},
+    {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
     {
         'name': 'Package', 'controller': 'katello_erratum_packages',
@@ -1684,53 +1687,56 @@ BOOKMARK_ENTITIES = [
         'skip_for_ui': True
     },
     {
-        'name': 'DockerTag', 'controller': 'katello_docker_tags',
+        'name': 'ContainerImageTag', 'controller': 'katello_docker_tags',
         'skip_for_ui': True
     },
     {
         'name': 'Registry', 'controller': 'docker_registries',
         'skip_for_ui': ('redmine', 13436)
     },
-    {'name': 'Hosts', 'controller': 'hosts', 'setup': entities.Host},
+    {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host},
     {
         'name': 'ContentHost', 'controller': 'hosts',
         'skip_for_ui': True
     },
     {'name': 'HostCollection', 'controller': 'katello_host_collections'},
     {'name': 'Architecture', 'controller': 'architectures'},
-    {'name': 'HardwareModel', 'controller': 'models', 'setup': entities.Model},
+    {
+        'name': 'HardwareModel', 'controller': 'models',
+        'setup': entities.Model, 'skip_for_ui': True
+    },
     {
         'name': 'InstallationMedia', 'controller': 'media',
         'setup': entities.Media, 'skip_for_ui': True
     },
-    {'name': 'OperatingSys', 'controller': 'operatingsystems'},
+    {'name': 'OperatingSystem', 'controller': 'operatingsystems'},
     {
         'name': 'PartitionTable', 'controller': 'ptables',
         'setup': entities.PartitionTable, 'skip_for_ui': False
     },
-    {'name': 'Template', 'controller': 'provisioning_templates'},
+    {'name': 'ProvisioningTemplate', 'controller': 'provisioning_templates'},
     {
         'name': 'HostGroup', 'controller': 'hostgroups',
-        'setup': entities.HostGroup
+        'setup': entities.HostGroup, 'skip_for_ui': True
     },
     {
-        'name': 'DiscoveryRules', 'controller': 'discovery_rules',
+        'name': 'DiscoveryRule', 'controller': 'discovery_rules',
         'skip_for_ui': ('bugzilla', 1387569), 'setup': entities.DiscoveryRule
     },
     {
-        'name': 'GlobalParameters', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': ('bugzilla', 1456833)
+        'name': 'GlobalParameter', 'controller': 'common_parameters',
+        'setup': entities.CommonParameter, 'skip_for_ui': True
     },
     {
-        'name': 'ConfigGroups', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup, 'skip_for_ui': ('bugzilla', 1378084)
+        'name': 'ConfigGroup', 'controller': 'config_groups',
+        'setup': entities.ConfigGroup, 'skip_for_ui': True
     },
     {
-        'name': 'PuppetEnv', 'controller': 'environments',
-        'setup': entities.Environment, 'skip_for_ui': True
+        'name': 'PuppetEnvironment', 'controller': 'environments',
+        'setup': entities.Environment
     },
     {
-        'name': 'PuppetClasses', 'controller': 'puppetclasses',
+        'name': 'PuppetClass', 'controller': 'puppetclasses',
         'setup': entities.PuppetClass
     },
     {
@@ -1739,11 +1745,11 @@ BOOKMARK_ENTITIES = [
     },
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
-        'name': 'Compute_Resource', 'controller': 'compute_resources',
+        'name': 'ComputeResource', 'controller': 'compute_resources',
         'setup': entities.DockerComputeResource
     },
     {
-        'name': 'Compute_Profile', 'controller': 'compute_profiles',
+        'name': 'ComputeProfile', 'controller': 'compute_profiles',
         'setup': entities.ComputeProfile
     },
     {
@@ -1756,14 +1762,14 @@ BOOKMARK_ENTITIES = [
         'skip_for_ui': True
     },
     {'name': 'Location', 'controller': 'locations'},
-    {'name': 'Org', 'controller': 'organizations'},
+    {'name': 'Organization', 'controller': 'organizations'},
     {'name': 'User', 'controller': 'users'},
     {
         'name': 'UserGroup', 'controller': 'usergroups',
         'setup': entities.UserGroup
     },
     {'name': 'Role', 'controller': 'roles'},
-    {'name': 'Settings', 'controller': 'settings'},
+    {'name': 'Settings', 'controller': 'settings', 'skip_for_ui': True},
 ]
 
 STRING_TYPES = [
