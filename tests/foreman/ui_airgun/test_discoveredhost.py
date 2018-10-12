@@ -100,39 +100,6 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5,
         return bool(result.return_code)
 
 
-def test_positive_read_details_from_discovered_host(
-        session, module_org, module_loc, provisioning_env):
-    """Ensure discovered host details entity page is readable"""
-    os_family, _, os_release_full = provisioning_env['os'].partition(' ')
-    with LibvirtGuest() as pxe_host:
-        host_name = pxe_host.guest_name
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
-            assert discovered_host_values['Name'] == host_name
-            values = session.discoveredhosts.read(host_name)
-            assert (values['interfaces'][0]['IP address']
-                    == discovered_host_values['IP Address'])
-            assert (values['highlights']['ipaddress']
-                    == discovered_host_values['IP Address'])
-            assert (values['highlights']['productname']
-                    == discovered_host_values['Model'])
-            assert (values['storage']['blockdevice_vda_size']
-                    == discovered_host_values['Disks Size'])
-            assert (values['hardware']['processors::count']
-                    == discovered_host_values['CPUs'])
-            assert (values['network']['ipaddress_eth0']
-                    == discovered_host_values['IP Address'])
-            assert (values['software']['os::family'] == os_family)
-            assert (values['software']['os::release::full'] == os_release_full)
-            assert (values['miscellaneous'][
-                        'nmprimary_dhcp4_option_ip_address']
-                    == discovered_host_values['IP Address']
-                    )
-
-
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
