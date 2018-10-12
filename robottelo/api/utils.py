@@ -2,7 +2,7 @@
 """Module containing convenience functions for working with the API."""
 import time
 
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_mac, gen_string
 from inflector import Inflector
 from nailgun import entities, entity_mixins
 from nailgun.client import request
@@ -762,3 +762,35 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
                                           )
                 )
         time.sleep(2)
+
+
+def create_discovered_host(name=None, ip_address=None, mac_address=None,
+                           options=None):
+    """Creates a discovered host.
+
+    :param str name: Name of discovered host.
+    :param str ip_address: A valid ip address.
+    :param str mac_address: A valid mac address.
+    :param dict options: additional facts to add to discovered host
+    :returns dict of ``entities.DiscoveredHost`` facts.
+    """
+    if name is None:
+        name = gen_string('alpha')
+    if ip_address is None:
+        ip_address = gen_ipaddr()
+    if mac_address is None:
+        mac_address = gen_mac(multicast=False)
+    if options is None:
+        options = {}
+    facts = {
+            'name': name,
+            'discovery_bootip': ip_address,
+            'discovery_bootif': mac_address,
+            'interfaces': 'eth0',
+            'ipaddress': ip_address,
+            'ipaddress_eth0': ip_address,
+            'macaddress': mac_address,
+            'macaddress_eth0': mac_address,
+        }
+    facts.update(options)
+    return entities.DiscoveredHost().facts(json={'facts': facts})
