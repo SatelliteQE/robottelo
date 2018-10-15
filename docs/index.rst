@@ -30,7 +30,7 @@ On Fedora, you can install these with the following command::
     dnf install -y gcc git libffi-devel openssl-devel python-devel \
         redhat-rpm-config
 
-On Red Hat Enterprise Linux, you can install these with the following command::
+On Red Hat Enterprise Linux 7, you can install these with the following command::
 
     yum install -y gcc git libffi-devel openssl-devel python-devel \
         redhat-rpm-config
