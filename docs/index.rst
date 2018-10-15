@@ -43,6 +43,9 @@ Get the source code and install dependencies::
     $ git clone git://github.com/SatelliteQE/robottelo.git
     $ pip install -r requirements.txt
 
+**Notes:**
+    * For python 2.7, run ``pip install configparser`` for Satellite 6.2
+
 That's it! You can now go ahead and start testing The Foreman. However, there
 are a few other things you may wish to do before continuing:
 
