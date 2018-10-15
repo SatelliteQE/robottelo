@@ -29,11 +29,15 @@ On Fedora, you can install these with the following command::
 
     dnf install -y gcc git libffi-devel openssl-devel python-devel \
         redhat-rpm-config
+    
+    dnf install libxml2-devel
 
 On Red Hat Enterprise Linux 7, you can install these with the following command::
 
     yum install -y gcc git libffi-devel openssl-devel python-devel \
         redhat-rpm-config
+        
+    yum install libxml2-devel
 
 For more information, see `Paramiko: Installing
 <http://www.paramiko.org/installing.html>`_.
