@@ -25,9 +25,18 @@ ensure that Paramiko's dependencies build correctly:
 * Python development headers
 * libffi
 
-On Fedora, you can install these with the following command::
+On Fedora, you can install these with the following command:
 
-    dnf install -y gcc git libffi-devel openssl-devel python-devel \
+For python2.x::
+
+    dnf install -y gcc git libffi-devel openssl-devel python2-devel \
+        redhat-rpm-config
+    
+    dnf install libxml2-devel
+    
+For python3.x::
+
+    dnf install -y gcc git libffi-devel openssl-devel python3-devel \
         redhat-rpm-config
     
     dnf install libxml2-devel
