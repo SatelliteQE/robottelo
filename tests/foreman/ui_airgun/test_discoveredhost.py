@@ -15,16 +15,17 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 
 from robottelo import ssh
-from robottelo.api.utils import configure_provisioning
+from robottelo.api.utils import configure_provisioning, create_discovered_host
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
+    tier2,
     tier3,
     upgrade,
 )
@@ -36,42 +37,65 @@ pytestmark = [run_in_one_thread]
 
 @fixture(scope='module')
 def module_org():
-    return entities.Organization().create()
+    org = entities.Organization().create()
+    # Update default discovered host organization
+    discovery_org = entities.Setting().search(
+        query={'search': 'name="discovery_organization"'})[0]
+    default_discovery_org = discovery_org.value
+    discovery_org.value = org.name
+    discovery_org.update(['value'])
+    yield org
+    discovery_org.value = default_discovery_org
+    discovery_org.update(['value'])
 
 
 @fixture(scope='module')
 def module_loc(module_org):
-    return entities.Location(
+    loc = entities.Location(
         name=gen_string('alpha'),
         organization=[module_org],
     ).create()
+    # Update default discovered host location
+    discovery_loc = entities.Setting().search(
+        query={'search': 'name="discovery_location"'})[0]
+    default_discovery_loc = discovery_loc.value
+    discovery_loc.value = loc.name
+    discovery_loc.update(['value'])
+    yield loc
+    discovery_loc.value = default_discovery_loc
+    discovery_loc.update(['value'])
 
 
 @fixture(scope='module')
 def provisioning_env(module_org, module_loc):
     # Build PXE default template to get default PXE file
     entities.ConfigTemplate().build_pxe_default()
-    # Update default org and location params to place discovered host
-    discovery_loc = entities.Setting().search(
-        query={'search': 'name="discovery_location"'})[0]
-    default_discovery_loc = discovery_loc.value
-    discovery_loc.value = module_loc.name
-    discovery_loc.update(['value'])
-    discovery_org = entities.Setting().search(
-        query={'search': 'name="discovery_organization"'})[0]
-    default_discovery_org = discovery_org.value
-    discovery_org.value = module_org.name
-    discovery_org.update(['value'])
-    # we need the default RHEL os version
-    yield configure_provisioning(
+    return configure_provisioning(
         org=module_org,
         loc=module_loc,
-        os='Redhat {0}'.format(RHELRepository().repo_data['version'])
+        os='Redhat {0}'.format(RHELRepository().repo_data['version']),
     )
-    discovery_loc.value = default_discovery_loc
-    discovery_loc.update(['value'])
-    discovery_org.value = default_discovery_org
-    discovery_org.update(['value'])
+
+
+@fixture
+def discovered_host():
+    return create_discovered_host()
+
+
+@fixture(scope='module')
+def module_host_group(module_org, module_loc):
+    host = entities.Host(organization=module_org, location=module_loc)
+    host.create_missing()
+    return entities.HostGroup(
+        organization=[module_org],
+        location=[module_loc],
+        medium=host.medium,
+        root_pass=gen_string('alpha'),
+        operatingsystem=host.operatingsystem,
+        ptable=host.ptable,
+        domain=host.domain,
+        architecture=host.architecture,
+    ).create()
 
 
 def _is_host_reachable(host, retries=12, iteration_sleep=5,
@@ -156,11 +180,10 @@ def test_positive_pxe_less_with_dhcp_unattended(
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
+@tier2
 @upgrade
 def test_positive_provision_using_quick_host_button(
-        session, module_org, module_loc, provisioning_env):
+        session, module_org, module_loc, discovered_host, module_host_group):
     """Associate hostgroup while provisioning a discovered host from
     host properties model window and select quick host.
 
@@ -176,36 +199,27 @@ def test_positive_provision_using_quick_host_button(
 
     :CaseLevel: System
     """
-    with LibvirtGuest() as pxe_host:
-        host_name = pxe_host.guest_name
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
-            assert discovered_host_values['Name'] == host_name
-            session.discoveredhosts.provision(
-                host_name,
-                provisioning_env['host_group'],
-                module_org.name,
-                module_loc.name,
-            )
-            pxe_host_name = '{0}.{1}'.format(
-                host_name, provisioning_env['domain'])
-            # After this step we will be redirected to the created host details
-            # view.
-            values = session.host.get_details(pxe_host_name)
-            assert values['properties']['properties_table']['Status'] == 'OK'
-            # Check that provisioned host is not in the list of discovered
-            # hosts anymore
-            assert not session.discoveredhosts.search(
-                'name = {0}'.format(host_name))
+    discovered_host_name = discovered_host['name']
+    domain_name = module_host_group.domain.read().name
+    host_name = '{0}.{1}'.format(discovered_host_name, domain_name)
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        session.discoveredhosts.provision(
+            discovered_host_name,
+            module_host_group.name,
+            module_org.name,
+            module_loc.name,
+        )
+        values = session.host.get_details(host_name)
+        assert values['properties']['properties_table']['Status'] == 'OK'
+        assert not session.discoveredhosts.search(
+            'name = {0}'.format(discovered_host_name))
 
 
-@skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
+@tier2
 def test_positive_update_name(
-        session, module_org, module_loc, provisioning_env):
+        session, module_org, module_loc, module_host_group, discovered_host):
     """Update the discovered host name and provision it
 
     :id: 3770b007-5006-4815-ae03-fbd330aad304
@@ -217,39 +231,37 @@ def test_positive_update_name(
 
     :CaseLevel: System
     """
+    discovered_host_name = discovered_host['name']
+    domain_name = module_host_group.domain.read().name
     new_name = gen_string('alpha').lower()
-    with LibvirtGuest() as pxe_host:
-        host_name = pxe_host.guest_name
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
-            assert discovered_host_values['Name'] == host_name
-            session.discoveredhosts.provision(
-                host_name,
-                provisioning_env['host_group'],
-                module_org.name,
-                module_loc.name,
-                quick=False,
-                host_values={'host.name': new_name}
-            )
-            new_host_name = (
-                u'{0}.{1}'.format(new_name, provisioning_env['domain']))
-            assert (session.host.search(new_host_name)[0]['Name']
-                    == new_host_name)
-            values = session.host.get_details(new_host_name)
-            assert values['properties']['properties_table']['Status'] == 'OK'
-            assert not session.discoveredhosts.search(
-                'name = {0}'.format(host_name))
+    new_host_name = '{0}.{1}'.format(new_name, domain_name)
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        discovered_host_values = session.discoveredhosts.wait_for_entity(
+            discovered_host_name)
+        assert discovered_host_values['Name'] == discovered_host_name
+        session.discoveredhosts.provision(
+            discovered_host_name,
+            module_host_group.name,
+            module_org.name,
+            module_loc.name,
+            quick=False,
+            host_values={'host.name': new_name}
+        )
+        assert (session.host.search(new_host_name)[0]['Name']
+                == new_host_name)
+        values = session.host.get_details(new_host_name)
+        assert values['properties']['properties_table']['Status'] == 'OK'
+        assert not session.discoveredhosts.search(
+            'name = {0}'.format(discovered_host_name))
 
 
-@skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
+@tier2
 @upgrade
 def test_positive_manual_provision_host_with_rule(
-        session, module_org, module_loc, provisioning_env):
-    """Create a new discovery rule and manually provision a discovered host
+        session, module_org, module_loc, module_host_group):
+    """Create a new discovery rule and manually create a discovered host
     using that discovery rule.
 
     Set query as (e.g IP=IP_of_discovered_host)
@@ -260,42 +272,37 @@ def test_positive_manual_provision_host_with_rule(
 
     :expectedresults: Host should reboot and provision
 
-    :CaseLevel: System
+    :CaseLevel: Integration
+
+    :CaseImportance: High
     """
-    hostgroup = entities.HostGroup().search(
-        query=dict(search='name={0}'.format(provisioning_env['host_group']))
-    )[0]
-    with LibvirtGuest() as pxe_host:
-        host_name = pxe_host.guest_name
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
-            assert discovered_host_values['Name'] == host_name
-            host_ip = discovered_host_values['IP Address']
-            assert host_ip
-            entities.DiscoveryRule(
-                max_count=1,
-                hostgroup=hostgroup,
-                search_=host_ip,
-                location=[module_loc],
-                organization=[module_org],
-            ).create()
-            session.discoveredhosts.apply_action('Auto Provision', [host_name])
-            pxe_host_name = (
-                u'{0}.{1}'.format(host_name, provisioning_env['domain']))
-            assert (session.host.search(pxe_host_name)[0]['Name']
-                    == pxe_host_name)
-            values = session.host.get_details(pxe_host_name)
-            assert values['properties']['properties_table']['Status'] == 'OK'
-            assert not session.discoveredhosts.search(
-                'name = {0}'.format(host_name))
+    host_ip = gen_ipaddr()
+    discovered_host_name = create_discovered_host(ip_address=host_ip)['name']
+    domain = module_host_group.domain.read()
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        entities.DiscoveryRule(
+            max_count=1,
+            hostgroup=module_host_group,
+            search_='ip = {0}'.format(host_ip),
+            location=[module_loc],
+            organization=[module_org],
+        ).create()
+        session.discoveredhosts.apply_action(
+            'Auto Provision',
+            [discovered_host_name]
+        )
+        host_name = ('{0}.{1}'.format(discovered_host_name, domain.name))
+        assert (session.host.search(host_name)[0]['Name'] == host_name)
+        values = session.host.get_details(host_name)
+        assert values['properties']['properties_table']['Status'] == 'OK'
+        assert not session.discoveredhosts.search(
+            'name = {0}'.format(discovered_host_name))
 
 
-@skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
-def test_positive_delete(session, module_org, module_loc, provisioning_env):
+@tier2
+def test_positive_delete(session, module_org, module_loc, discovered_host):
     """Delete the selected discovered host
 
     :id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
@@ -304,117 +311,77 @@ def test_positive_delete(session, module_org, module_loc, provisioning_env):
 
     :expectedresults: Selected host should be removed successfully
 
-    :CaseLevel: System
+    :CaseLevel: Integration
+
+    :CaseImportance: High
     """
-    with LibvirtGuest() as pxe_host:
-        host_name = pxe_host.guest_name
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
-            assert discovered_host_values['Name'] == host_name
-            session.discoveredhosts.apply_action('Delete', [host_name])
-            assert not session.discoveredhosts.search(
-                'name = {0}'.format(host_name))
+
+    discovered_host_name = discovered_host['name']
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        session.discoveredhosts.apply_action('Delete', [discovered_host_name])
+        assert not session.discoveredhosts.search(
+            'name = {0}'.format(discovered_host_name))
 
 
 @skip_if_bug_open('bugzilla', 1634728)
-@skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
-def test_positive_update_default_org(
-        session, module_org, module_loc, provisioning_env):
-    """Change the default org of more than one discovered hosts
-    from 'Select Action' drop down
+@tier2
+def test_positive_update_default_taxonomies(session, module_org, module_loc):
+    """Change the default organization and location of more than one
+    discovered hosts from 'Select Action' drop down
 
-    :id: fe6ab6e0-c942-46c1-8ae2-4f4caf00e0d8
+    :id: 4b491121-f6ee-4a8c-bb0b-daa3d0a75add
 
     :Setup: Host should already be discovered
 
-    :expectedresults: Default org should be successfully changed for
-        multiple hosts
+    :expectedresults: Default Organization and Location should be successfully
+        changed for multiple hosts
 
     :BZ: 1634728
 
-    :CaseLevel: System
+    :CaseLevel: Integration
+
+    :CaseImportance: High
     """
+    host_names = [create_discovered_host()['name'] for _ in range(2)]
     new_org = entities.Organization().create()
     module_loc.organization.append(new_org)
     module_loc.update(['organization'])
-    with LibvirtGuest() as pxe_1_host, LibvirtGuest() as pxe_2_host:
-        host_names = [pxe_1_host.guest_name, pxe_2_host.guest_name]
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            for host_name in host_names:
-                host_values = session.discoveredhosts.wait_for_entity(
-                    host_name)
-                assert host_values['Name'] == host_name
-            values = session.discoveredhosts.search(
-                'name = "{0}" or name = "{1}"'.format(*host_names)
-            )
-            assert set(host_names) == {value['Name'] for value in values}
-            session.discoveredhosts.apply_action(
-                'Assign Organization',
-                host_names,
-                values=dict(organization=new_org.name)
-            )
-            assert not session.discoveredhosts.search(
-                'name = "{0}" or name = "{1}"'.format(*host_names)
-            )
-            session.organization.select(org_name=new_org.name)
-            values = session.discoveredhosts.search(
-                'name = "{0}" or name = "{1}"'.format(*host_names)
-            )
-            assert set(host_names) == {value['Name'] for value in values}
-
-
-@skip_if_bug_open('bugzilla', 1634728)
-@skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
-def test_positive_update_default_location(
-        session, module_org, module_loc, provisioning_env):
-    """Change the default location of more than one discovered hosts
-    from 'Select Action' drop down
-
-    :id: 537bfb51-144a-44be-a087-d2437f074464
-
-    :Setup: Host should already be discovered
-
-    :expectedresults: Default Location should be successfully changed for
-        multiple hosts
-
-    :BZ: 1634728
-
-    :CaseLevel: System
-    """
     new_loc = entities.Location(organization=[module_org]).create()
-    with LibvirtGuest() as pxe_1_host, LibvirtGuest() as pxe_2_host:
-        with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
-            host_names = [pxe_1_host.guest_name, pxe_2_host.guest_name]
-            for host_name in host_names:
-                host_values = session.discoveredhosts.wait_for_entity(
-                    host_name)
-                assert host_values['Name'] == host_name
-            values = session.discoveredhosts.search(
-                'name = "{0}" or name = "{1}"'.format(*host_names)
-            )
-            assert set(host_names) == {value['Name'] for value in values}
-            session.discoveredhosts.apply_action(
-                'Assign Location',
-                host_names,
-                values=dict(location=new_loc.name)
-            )
-            assert not session.discoveredhosts.search(
-                'name = "{0}" or name = "{1}"'.format(*host_names)
-            )
-            session.location.select(loc_name=new_loc.name)
-            values = session.discoveredhosts.search(
-                'name = "{0}" or name = "{1}"'.format(*host_names)
-            )
-            assert set(host_names) == {value['Name'] for value in values}
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        values = session.discoveredhosts.search(
+            'name = "{0}" or name = "{1}"'.format(*host_names)
+        )
+        assert set(host_names) == {value['Name'] for value in values}
+        session.discoveredhosts.apply_action(
+            'Assign Organization',
+            host_names,
+            values=dict(organization=new_org.name)
+        )
+        assert not session.discoveredhosts.search(
+            'name = "{0}" or name = "{1}"'.format(*host_names)
+        )
+        session.organization.select(org_name=new_org.name)
+        values = session.discoveredhosts.search(
+            'name = "{0}" or name = "{1}"'.format(*host_names)
+        )
+        assert set(host_names) == {value['Name'] for value in values}
+        session.discoveredhosts.apply_action(
+            'Assign Location',
+            host_names,
+            values=dict(location=new_loc.name)
+        )
+        assert not session.discoveredhosts.search(
+            'name = "{0}" or name = "{1}"'.format(*host_names)
+        )
+        session.location.select(loc_name=new_loc.name)
+        values = session.discoveredhosts.search(
+            'name = "{0}" or name = "{1}"'.format(*host_names)
+        )
+        assert set(host_names) == {value['Name'] for value in values}
 
 
 @skip_if_not_set('compute_resources', 'vlan_networking')
