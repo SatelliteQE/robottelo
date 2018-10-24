@@ -38,14 +38,14 @@ class NotRaisesValueHandler(object):
 
     def validate(self, exception):
         """Validate whether expected value is present in exception."""
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @property
     def value_name(self):
         """Property used to return expected value name (e.g. 'status code' or
         'return code').
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class APINotRaisesValueHandler(NotRaisesValueHandler):
