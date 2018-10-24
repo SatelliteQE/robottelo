@@ -743,7 +743,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Ensure all the symlinks on satellite are broken (pointing to
         # nonexistent files)
         result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \; -print'
+            'find {}/ -type l ! -exec test -e {{}} \\; -print'
             .format(cvv_repo_path)
         )
         self.assertEqual(result.return_code, 0)
@@ -772,7 +772,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Ensure all the symlinks on capsule are broken (pointing to
         # nonexistent files)
         result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \; -print'
+            'find {}/ -type l ! -exec test -e {{}} \\; -print'
             .format(lce_repo_path),
             hostname=self.capsule_hostname,
         )
@@ -1066,7 +1066,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Ensure there're no broken symlinks (pointing to nonexistent files) on
         # satellite
         result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \; -print'.format(
+            'find {}/ -type l ! -exec test -e {{}} \\; -print'.format(
                 cvv_repo_path))
         self.assertEqual(result.return_code, 0)
         broken_links = set(link for link in result.stdout if link)
@@ -1091,7 +1091,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Ensure there're no broken symlinks (pointing to nonexistent files) on
         # capsule
         result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \; -print'.format(
+            'find {}/ -type l ! -exec test -e {{}} \\; -print'.format(
                 lce_repo_path), hostname=self.capsule_hostname)
         self.assertEqual(result.return_code, 0)
         broken_links = set(link for link in result.stdout if link)
