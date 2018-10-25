@@ -58,12 +58,88 @@ from robottelo.decorators import (
     tier3,
     upgrade,
 )
+from robottelo.products import RepositoryCollection, SatelliteToolsRepository
 from robottelo.vm import VirtualMachine
 
 
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end_crud(session, module_org):
+    """Perform end to end testing for activation key component
+
+    :id: b6b98c45-e41e-4c7a-9be4-997273b7e24d
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    cv = entities.ContentView(organization=module_org).create()
+    cv.publish()
+    with session:
+        # Create activation key with content view and LCE assigned
+        session.activationkey.create({
+            'name': name,
+            'lce': {ENVIRONMENT: True},
+            'content_view': cv.name,
+        })
+        assert session.activationkey.search(name)[0]['Name'] == name
+        # Verify content view and LCE are assigned
+        ak_values = session.activationkey.read(name)
+        assert ak_values['details']['name'] == name
+        assert ak_values['details']['content_view'] == cv.name
+        assert ak_values['details']['lce'][ENVIRONMENT][ENVIRONMENT]
+        # Update activation key with new name
+        session.activationkey.update(name, {'details.name': new_name})
+        assert session.activationkey.search(new_name)[0]['Name'] == new_name
+        assert not session.activationkey.search(name)
+        # Delete activation key
+        session.activationkey.delete(new_name)
+        assert not session.activationkey.search(new_name)
+
+
+@tier3
+@upgrade
+def test_positive_end_to_end_register(session):
+    """Create activation key and use it during content host registering
+
+    :id: dfaecf6a-ba61-47e1-87c5-f8966a319b41
+
+    :expectedresults: Content host was registered successfully using activation
+        key, association is reflected on webUI
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[SatelliteToolsRepository()]
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    ak_name = repos_collection.setup_content_data['activation_key']['name']
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        repos_collection.setup_virtual_machine(vm)
+        with session:
+            session.organization.select(org.name)
+            chost = session.contenthost.read(vm.hostname)
+            assert (
+                    chost['details']['registered_by'] == 'Activation Key {}'
+                    .format(ak_name)
+            )
+            ak_values = session.activationkey.read(ak_name)
+            assert len(ak_values['content_hosts']['table']) == 1
+            assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
 @tier2
@@ -1030,3 +1106,126 @@ def test_positive_host_associations(session):
             ak2 = session.activationkey.read(ak2.name)
             assert len(ak2['content_hosts']['table']) == 1
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@tier3
+def test_positive_service_level_subscription_with_custom_product(session):
+    """Subscribe a host to activation key with Premium service level and with
+    custom product
+
+    :id: 195a8049-860e-494d-b7f0-0794384194f7
+
+    :customerscenario: true
+
+    :steps:
+        1. Create a product with custom repository synchronized
+        2. Create and Publish a content view with the created repository
+        3. Create an activation key and assign the created content view
+        4. Add a RedHat subscription to activation key (The product
+           subscription should be added automatically)
+        5. Set the activation service_level to Premium
+        6. Register a host to activation key
+        7. List consumed subscriptions on host
+        8. List the subscription in Content Host UI
+
+    :expectedresults:
+        1. The product subscription is listed in consumed subscriptions on host
+        2. The product subscription is listed in the contenthost subscriptions
+           UI
+
+    :BZ: 1394357
+
+    :CaseLevel: System
+    """
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    entities_ids = setup_org_for_a_custom_repo({
+        'url': FAKE_1_YUM_REPO,
+        'organization-id': org.id,
+    })
+    product = entities.Product(id=entities_ids['product-id']).read()
+    activation_key = entities.ActivationKey(
+        id=entities_ids['activationkey-id']).read()
+    # add the default RH subscription
+    subscription = entities.Subscription(organization=org).search(query={
+        'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
+    activation_key.add_subscriptions(data={
+        'quantity': 1,
+        'subscription_id': subscription.id,
+    })
+    # ensure all the needed subscriptions are attached to activation key
+    results = activation_key.subscriptions()['results']
+    assert (
+            {product.name, DEFAULT_SUBSCRIPTION_NAME} ==
+            {ak_subscription['name'] for ak_subscription in results}
+    )
+    # Set the activation service_level to Premium
+    activation_key.service_level = 'Premium'
+    activation_key = activation_key.update(['service_level'])
+    with VirtualMachine() as vm:
+        vm.install_katello_ca()
+        vm.register_contenthost(
+            org.label, activation_key=activation_key.name)
+        assert vm.subscribed
+        result = vm.run('subscription-manager list --consumed')
+        assert result.return_code == 0
+        assert 'Subscription Name:   {0}'.format(product.name) in '\n'.join(
+            result.stdout)
+        with session:
+            session.organization.select(org.name)
+            chost = session.contenthost.read(vm.hostname)
+            subscriptions = {
+                subs['Repository Name'] for subs
+                in chost['subscriptions']['resources']['assigned']
+            }
+            assert product.name in subscriptions
+
+
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier2
+def test_positive_delete_manifest(session):
+    """Check if deleting a manifest removes it from Activation key
+
+    :id: 512d8e41-b937-451e-a9c6-840457d3d7d4
+
+    :Steps:
+        1. Create Activation key
+        2. Associate a manifest to the Activation Key
+        3. Delete the manifest
+
+    :expectedresults: Deleting a manifest removes it from the Activation
+        key
+
+    :CaseLevel: Integration
+    """
+    # Upload manifest
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    # Create activation key
+    activation_key = entities.ActivationKey(
+        organization=org,
+    ).create()
+    # Associate a manifest to the activation key
+    subscription = entities.Subscription(organization=org).search(query={
+        'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
+    activation_key.add_subscriptions(data={
+        'quantity': 1,
+        'subscription_id': subscription.id,
+    })
+    with session:
+        session.organization.select(org.name)
+        # Verify subscription is assigned to activation key
+        ak = session.activationkey.read(activation_key.name)
+        assert (
+            ak['subscriptions']['resources']['assigned'][0]['Repository Name']
+            == DEFAULT_SUBSCRIPTION_NAME
+        )
+        # Delete the manifest
+        session.subscription.delete_manifest()
+        assert not session.subscription.has_manifest
+        # Verify subscription is not assigned to activation key anymore
+        ak = session.activationkey.read(activation_key.name)
+        assert not ak['subscriptions']['resources']['assigned']
