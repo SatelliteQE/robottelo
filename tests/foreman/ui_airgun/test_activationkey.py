@@ -1139,8 +1139,7 @@ def test_positive_service_level_subscription_with_custom_product(session):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    manifests.upload_manifest_locked(org.id)
     entities_ids = setup_org_for_a_custom_repo({
         'url': FAKE_1_YUM_REPO,
         'organization-id': org.id,
