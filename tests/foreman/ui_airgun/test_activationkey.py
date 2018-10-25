@@ -85,21 +85,23 @@ def test_positive_end_to_end_crud(session, module_org):
     cv = entities.ContentView(organization=module_org).create()
     cv.publish()
     with session:
+        # Create activation key with content view and LCE assigned
         session.activationkey.create({
             'name': name,
             'lce': {ENVIRONMENT: True},
             'content_view': cv.name,
         })
         assert session.activationkey.search(name)[0]['Name'] == name
+        # Verify content view and LCE are assigned
         ak_values = session.activationkey.read(name)
         assert ak_values['details']['name'] == name
         assert ak_values['details']['content_view'] == cv.name
         assert ak_values['details']['lce'][ENVIRONMENT][ENVIRONMENT]
-        # Update architecture with new name
+        # Update activation key with new name
         session.activationkey.update(name, {'details.name': new_name})
         assert session.activationkey.search(new_name)[0]['Name'] == new_name
         assert not session.activationkey.search(name)
-        # Delete architecture
+        # Delete activation key
         session.activationkey.delete(new_name)
         assert not session.activationkey.search(new_name)
 
