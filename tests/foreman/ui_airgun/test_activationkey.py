@@ -94,6 +94,7 @@ def test_positive_end_to_end_crud(session, module_org):
         ak_values = session.activationkey.read(name)
         assert ak_values['details']['name'] == name
         assert ak_values['details']['content_view'] == cv.name
+        assert ak_values['details']['lce'][ENVIRONMENT][ENVIRONMENT]
         # Update architecture with new name
         session.activationkey.update(name, {'details.name': new_name})
         assert session.activationkey.search(new_name)[0]['Name'] == new_name
@@ -135,9 +136,8 @@ def test_positive_end_to_end_register(session):
                     .format(ak_name)
             )
             ak_values = session.activationkey.read(ak_name)
-            assert len(ak_values['content_hosts']['table'])
-            assert ak_values[
-                       'content_hosts']['table'][0]['Name'] == vm.hostname
+            assert len(ak_values['content_hosts']['table']) == 1
+            assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
 @tier2
