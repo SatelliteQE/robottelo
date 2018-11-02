@@ -31,3 +31,14 @@ class VirtWhoConfig(Base):
         """Renders a deploy script for the specified virt-who configuration"""
         cls.command_sub = 'fetch'
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def deploy(cls, options=None):
+        """runs hammer virt-who-config deploy --id <x> which runs the script on
+        the satellite server
+
+        :param options: `id` required
+        :return: Results of the command
+        """
+        cls.command_sub = 'deploy'
+        return cls.execute(cls._construct_command(options))
