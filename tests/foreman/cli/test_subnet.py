@@ -165,7 +165,7 @@ class SubnetTestCase(CLITestCase):
         """
         gateway = gen_ipaddr(ip3=True)
         subnet = make_subnet({'gateway': gateway})
-        self.assertIn(gateway, subnet['gateway'])
+        self.assertIn(gateway, subnet['gateway-addr'])
 
     @run_only_on('sat')
     @tier1
@@ -293,8 +293,8 @@ class SubnetTestCase(CLITestCase):
         })
         # check - subnet is updated
         subnet = Subnet.info({u'id': subnet['id']})
-        self.assertEqual(subnet['network'], new_network)
-        self.assertEqual(subnet['mask'], new_mask)
+        self.assertEqual(subnet['network-addr'], new_network)
+        self.assertEqual(subnet['network-mask'], new_mask)
 
     @run_only_on('sat')
     @tier1
@@ -312,8 +312,8 @@ class SubnetTestCase(CLITestCase):
             with self.subTest(pool):
                 pool.sort()
                 # generate pool range from network address
-                ip_from = re.sub(r'\d+$', str(pool[0]), subnet['network'])
-                ip_to = re.sub(r'\d+$', str(pool[1]), subnet['network'])
+                ip_from = re.sub(r'\d+$', str(pool[0]), subnet['network-addr'])
+                ip_to = re.sub(r'\d+$', str(pool[1]), subnet['network-addr'])
                 Subnet.update({
                     u'from': ip_from,
                     u'id': subnet['id'],
@@ -365,7 +365,7 @@ class SubnetTestCase(CLITestCase):
                 opts = {u'id': subnet['id']}
                 # generate pool range from network address
                 for key, val in options.items():
-                    opts[key] = re.sub(r'\d+$', str(val), subnet['network'])
+                    opts[key] = re.sub(r'\d+$', str(val), subnet['network-addr'])
                 with self.assertRaisesRegex(
                     CLIReturnCodeError,
                     u'Could not update the subnet:'

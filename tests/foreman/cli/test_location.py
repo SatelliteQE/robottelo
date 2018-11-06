@@ -264,7 +264,7 @@ class LocationTestCase(CLITestCase):
         subnet = make_subnet()
         loc = make_location({'subnet-ids': subnet['id']})
         self.assertIn(subnet['name'], loc['subnets'][0])
-        self.assertIn(subnet['network'], loc['subnets'][0])
+        self.assertIn(subnet['network-addr'], loc['subnets'][0])
 
     @tier1
     @upgrade
@@ -282,7 +282,7 @@ class LocationTestCase(CLITestCase):
         subnet = make_subnet()
         loc = make_location({'subnets': subnet['name']})
         self.assertIn(subnet['name'], loc['subnets'][0])
-        self.assertIn(subnet['network'], loc['subnets'][0])
+        self.assertIn(subnet['network-addr'], loc['subnets'][0])
 
     @tier1
     def test_positive_create_with_environment_by_id(self):
