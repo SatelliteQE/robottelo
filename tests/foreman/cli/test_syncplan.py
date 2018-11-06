@@ -44,7 +44,8 @@ from robottelo.decorators import (
     tier1,
     tier3,
     tier4,
-    upgrade
+    upgrade,
+    stubbed
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -438,6 +439,19 @@ class SyncPlanTestCase(CLITestCase):
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=2)
             # validate the error message once unstubbed (#3611)
+
+    @stubbed
+    @tier4
+    @upgrade
+    def test_positive_synchronize_custom_product_custom_cron(self):
+        """Create a sync plan with custom cron with 1 min interval, add a
+        custom product and verify the product gets synchronized on the next
+        sync occurrence
+
+        :id: 5f398103-7c36-4524-a1cb-c258d97cecba
+
+        :expectedresults: Product is synchronized successfully.
+        """
 
     @tier4
     @upgrade
