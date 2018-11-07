@@ -97,8 +97,6 @@ class ContentViewTestCase(CLITestCase):
 
     org = None
     product = None
-    env1 = None
-    env2 = None
     rhel_content_org = None
     rhel_repo_name = None
     rhel_repo = None
@@ -161,27 +159,15 @@ class ContentViewTestCase(CLITestCase):
         })['lifecycle-environments']
         return {lce['name'] for lce in lifecycle_environments}
 
-    # pylint: disable=unexpected-keyword-arg
-    def setUp(self):
-        """Tests for content-view via Hammer CLI"""
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization, a life cycle environment,
+        and a product."""
+        super(ContentViewTestCase, cls).setUpClass()
+        cls.org = make_org(cached=True)
+        cls.environment = make_lifecycle_environment({u'organization-id': cls.org['id']})
+        cls.product = make_product({u'organization-id': cls.org['id']})
 
-        super(ContentViewTestCase, self).setUp()
-
-        if ContentViewTestCase.org is None:
-            ContentViewTestCase.org = make_org(cached=True)
-        if ContentViewTestCase.env1 is None:
-            ContentViewTestCase.env1 = make_lifecycle_environment(
-                {u'organization-id': ContentViewTestCase.org['id']})
-        if ContentViewTestCase.env2 is None:
-            ContentViewTestCase.env2 = make_lifecycle_environment(
-                {u'organization-id': ContentViewTestCase.org['id'],
-                 u'prior': ContentViewTestCase.env1['label']})
-        if ContentViewTestCase.product is None:
-            ContentViewTestCase.product = make_product(
-                {u'organization-id': ContentViewTestCase.org['id']},
-                cached=True)
-
-    # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name(self):
@@ -202,7 +188,6 @@ class ContentViewTestCase(CLITestCase):
                 })
                 self.assertEqual(content_view['name'], name)
 
-    # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
@@ -305,7 +290,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(result.stdout), 0)
         self.assertEqual(len(content_view['versions']), 1)
 
-    # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
     def test_positive_update_name_by_id(self):
@@ -408,7 +392,6 @@ class ContentViewTestCase(CLITestCase):
         cvf = ContentView.filter.info({'id': cvf['filter-id']})
         self.assertEqual('security', cvf['rules'][0]['types'])
 
-    # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
@@ -1933,11 +1916,11 @@ class ContentViewTestCase(CLITestCase):
         # Promote the Published version of CV to the next env
         ContentView.version_promote({
             u'id': new_cv['versions'][0]['id'],
-            u'to-lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.environment['id'],
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertIn(
-            {u'id': self.env1['id'], u'name': self.env1['name']},
+            {u'id': self.environment['id'], u'name': self.environment['name']},
             new_cv['lifecycle-environments'],
         )
 
@@ -1994,11 +1977,11 @@ class ContentViewTestCase(CLITestCase):
         # Promote the Published version of CV to the next env
         ContentView.version_promote({
             u'id': con_view['versions'][0]['id'],
-            u'to-lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.environment['id'],
         })
         con_view = ContentView.info({u'id': con_view['id']})
         self.assertIn(
-            {u'id': self.env1['id'], u'name': self.env1['name']},
+            {u'id': self.environment['id'], u'name': self.environment['name']},
             con_view['lifecycle-environments'],
         )
 
@@ -2014,6 +1997,7 @@ class ContentViewTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
+        print("Hello, the org ID is currently", self.org['id'])
         result = ContentView.list(
             {u'organization-id': self.org['id']},
             per_page=False,
@@ -2028,7 +2012,7 @@ class ContentViewTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ContentView.version_promote({
                 u'id': cvv['id'],
-                u'to-lifecycle-environment-id': self.env1['id'],
+                u'to-lifecycle-environment-id': self.environment['id'],
             })
 
     @tier2
@@ -2444,13 +2428,13 @@ class ContentViewTestCase(CLITestCase):
         # Promotion of version1 to Dev env
         ContentView.version_promote({
             u'id': version1_id,
-            u'to-lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.environment['id'],
         })
         # The only way to validate whether env has the version is to
         # validate that version has the env.
         version1 = ContentView.version_info({u'id': version1_id})
         self.assertIn(
-            self.env1['id'],
+            self.environment['id'],
             [env['id'] for env in version1['lifecycle-environments']],
             'Promotion of version1 not successful to the env',
         )
@@ -2471,13 +2455,13 @@ class ContentViewTestCase(CLITestCase):
         # Promotion of version2 to Dev env
         ContentView.version_promote({
             u'id': version2_id,
-            u'to-lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.environment['id'],
         })
         # Actual assert for this test happens here.
         # Test whether the version2 now belongs to next env
         version2 = ContentView.version_info({u'id': version2_id})
         self.assertIn(
-            self.env1['id'],
+            self.environment['id'],
             [env['id'] for env in version2['lifecycle-environments']],
             'Promotion of version2 not successful to the env',
         )
@@ -2533,14 +2517,14 @@ class ContentViewTestCase(CLITestCase):
         # Promotion of version1 to Dev env
         ContentView.version_promote({
             u'id': version1_id,
-            u'to-lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.environment['id'],
         })
         # The only way to validate whether env has the version is to
         # validate that version has the env.
         # Test whether the version1 now belongs to next env
         version1 = ContentView.version_info({u'id': version1_id})
         self.assertIn(
-            self.env1['id'],
+            self.environment['id'],
             [env['id'] for env in version1['lifecycle-environments']],
             'Promotion of version1 not successful to the env',
         )
@@ -2569,7 +2553,7 @@ class ContentViewTestCase(CLITestCase):
         # Promotion of version2 to next env
         ContentView.version_promote({
             u'id': version2_id,
-            u'to-lifecycle-environment-id': self.env1['id'],
+            u'to-lifecycle-environment-id': self.environment['id'],
         })
         # Actual assert for this test happens here.
         # Test that version1 does not exist in any/next env after,
@@ -4418,7 +4402,6 @@ class ContentViewTestCase(CLITestCase):
 
     # ROLES TESTING
 
-    # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
     def test_negative_user_with_no_create_view_cv_permissions(self):
@@ -4511,7 +4494,7 @@ class ContentViewTestCase(CLITestCase):
             ContentView.with_user(user['login'], password).version_promote({
                 'id': cvv['id'],
                 'organization-id': self.org['id'],
-                'to-lifecycle-environment-id': self.env1['id'],
+                'to-lifecycle-environment-id': self.environment['id'],
             })
 
     @run_only_on('sat')
@@ -4580,11 +4563,11 @@ class ContentViewTestCase(CLITestCase):
         ContentView.with_user(user['login'], password).version_promote({
             'id': cv['versions'][-1]['id'],
             'organization-id': self.org['id'],
-            'to-lifecycle-environment-id': self.env1['id'],
+            'to-lifecycle-environment-id': self.environment['id'],
         })
         cv = ContentView.info({'id': cv['id']})
         self.assertIn(
-            self.env1['id'],
+            self.environment['id'],
             [env['id'] for env in cv['lifecycle-environments']],
         )
 
