@@ -95,24 +95,24 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 7938bcc4-7107-40b0-bb88-6288ebec0dcd
 
+        :bz: 1078866, 1647323
+
         :expectedresults: no duplicated lines in usage message
 
         :CaseImportance: Critical
         """
         # org list --help:
-        result = Org.list({'help': True})
+        result = Org.list({'help': True}, output_format=None)
         # get list of lines and check they all are unique
-        lines = [line['message'] for line in result]
+        lines = [line for line in result if line != '']
         self.assertEqual(len(set(lines)), len(lines))
 
         # org info --help:info returns more lines (obviously), ignore exception
-        result = Org.info({'help': True})
+        result = Org.info({'help': True}, output_format=None)
 
         # get list of lines and check they all are unique
         lines = [line for line in result['options']]
         self.assertEqual(len(set(lines)), len(lines))
-
-    # CRUD
 
     @tier1
     def test_positive_create_with_name(self):
