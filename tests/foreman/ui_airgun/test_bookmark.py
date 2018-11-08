@@ -30,23 +30,6 @@ def module_org():
 
 
 @fixture(scope='module')
-def custom_user(module_org):
-    """Custom user with viewer role for tests validating 'public' bookmark
-    option.
-    """
-    viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
-    custom_password = gen_string('alphanumeric')
-    custom_user = entities.User(
-        default_organization=module_org,
-        organization=[module_org],
-        role=[viewer_role],
-        password=custom_password,
-    ).create()
-    custom_user.password = custom_password
-    return custom_user
-
-
-@fixture(scope='module')
 def ui_entities(module_org):
     """Collects the list of all applicable UI entities for testing and does all
     required preconditions.
@@ -94,7 +77,7 @@ def random_entity(ui_entities):
 
 @tier2
 def test_positive_create_bookmark_public(
-        session, random_entity, custom_user, test_name):
+        session, random_entity, module_viewer_user, test_name):
     """Create and check visibility of the (non)public bookmarks
 
     :id: 93139529-7690-429b-83fe-3dcbac4f91dc
@@ -130,7 +113,6 @@ def test_positive_create_bookmark_public(
                 'public': name == public_name,
             })
             assert session.bookmark.search(name)[0]['Name'] == name
-    with Session(
-            test_name, custom_user.login, custom_user.password) as session:
+    with Session(test_name, module_viewer_user.login, module_viewer_user.password) as session:
         assert session.bookmark.search(public_name)[0]['Name'] == public_name
         assert not session.bookmark.search(nonpublic_name)

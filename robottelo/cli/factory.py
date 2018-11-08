@@ -3870,13 +3870,20 @@ def setup_cdn_and_custom_repos_content(
     if missing_subscription_names:
         raise CLIFactoryError(
             u'Missing subscriptions: {0}'.format(missing_subscription_names))
-
-    return dict(
+    data = dict(
         activation_key=activation_key,
         content_view=content_view,
         product=custom_product,
         repos=repos_info,
     )
+    if lce_id:
+        lce = LifecycleEnvironment.info({
+            'id': lce_id,
+            'organization-id': org_id,
+        })
+        data['lce'] = lce
+
+    return data
 
 
 def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
