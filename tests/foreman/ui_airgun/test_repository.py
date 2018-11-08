@@ -81,7 +81,7 @@ def test_positive_create_in_different_orgs(session, module_org):
                 prod.name,
                 {
                     'name': repo_name,
-                    'label': org.name,
+                    'label': org.label,
                     'repo_type': REPO_TYPE['yum'],
                     'repo_content.upstream_url': FAKE_1_YUM_REPO,
                 }
@@ -90,7 +90,7 @@ def test_positive_create_in_different_orgs(session, module_org):
                 prod.name, repo_name)[0]['Name'] == repo_name
             values = session.repository.read(prod.name, repo_name)
             assert values['name'] == repo_name
-            assert values['label'] == org.name
+            assert values['label'] == org.label
 
 
 @tier2
@@ -132,7 +132,6 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
     product = entities.Product(organization=module_org).create()
     with Session(
             test_name, user=user_login, password=user_password) as session:
-        session.organization.select(org_name=module_org.name)
         # ensure that the created user is not a global admin user
         # check administer->organizations page
         with raises(NavigationTriesExceeded):
