@@ -26,11 +26,16 @@ from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import manifests
 from robottelo.api.utils import (
+    call_entity_method_with_timeout,
     create_sync_custom_repo,
     enable_sync_redhat_repo,
+    promote,
     upload_manifest,
 )
+from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_PTABLE,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     ENVIRONMENT,
@@ -41,13 +46,18 @@ from robottelo.constants import (
     FAKE_3_YUM_REPO,
     FAKE_9_YUM_REPO,
     FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
+    FEDORA23_OSTREE_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_TYPE,
     PRDS,
+    PUPPET_MODULE_CUSTOM_FILE_NAME,
+    PUPPET_MODULE_CUSTOM_NAME,
     REPO_TYPE,
     REPOS,
     REPOSET,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
@@ -58,6 +68,8 @@ from robottelo.decorators import (
     tier3,
     upgrade,
 )
+from robottelo.decorators.host import skip_if_os
+from robottelo.helpers import get_data_file
 from robottelo.products import (
     RepositoryCollection,
     SatelliteToolsRepository,
@@ -1350,3 +1362,503 @@ def test_positive_update_filter_affected_repos(session, module_org):
                 packages[0]['Name'] == repo2_package_name
                 and packages[0]['Version'] == '5.6.6'
         )
+
+
+@tier2
+def test_positive_search_composite(session):
+    """Search for content view by its composite property criteria
+
+    :id: 214a721b-3993-4251-9b7c-0f6d2446c1d1
+
+    :customerscenario: true
+
+    :expectedresults: Composite content view is successfully found
+
+    :BZ: 1259374
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    composite_name = gen_string('alpha')
+    with session:
+        session.contentview.create({
+            'name': composite_name, 'composite_view': True})
+        assert session.contentview.search('composite = true')[0]['Name'] == composite_name
+
+
+@tier2
+def test_positive_publish_with_force_puppet_env(session, module_org):
+    """Check that puppet environment will be created automatically once
+    content view that contains puppet module is published, no matter
+    whether 'Force Puppet' option is enabled or disabled for that content
+    view
+    Check that puppet environment will be created automatically once content
+    view without puppet module is published, only if 'Force Puppet' option is
+    enabled
+
+    :id: af553367-e621-41e8-86cb-091ba7ba6c0a
+
+    :customerscenario: true
+
+    :expectedresults: puppet environment is created only in expected cases
+
+    :BZ: 1437110
+
+    :CaseLevel: Integration
+    """
+    puppet_module = 'httpd'
+    create_sync_custom_repo(
+        module_org.id, repo_url=FAKE_0_PUPPET_REPO, repo_type=REPO_TYPE['puppet'])
+    with session:
+        for add_puppet in [True, False]:
+            for force_value in [True, False]:
+                cv_name = gen_string('alpha')
+                session.contentview.create({'name': cv_name})
+                session.contentview.update(
+                    cv_name, {'details.force_puppet': force_value})
+                if add_puppet:
+                    session.contentview.add_puppet_module(cv_name, puppet_module)
+                result = session.contentview.publish(cv_name)
+                assert result['Version'] == VERSION
+                env_name = 'KT_{0}_{1}_{2}_{3}'.format(
+                    module_org.name,
+                    ENVIRONMENT,
+                    cv_name,
+                    str(
+                        entities.ContentView(
+                            name=cv_name,
+                            organization=module_org,
+                        ).search()[0].id
+                    ),
+                )
+                if not add_puppet and not force_value:
+                    assert not session.puppetenvironment.search(env_name)
+                else:
+                    assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
+
+
+@tier2
+def test_positive_publish_with_repo_with_disabled_http(session, module_org):
+    """Attempt to publish content view with repository that set
+    'publish via http' to False
+
+    :id: 36ccb083-3433-4b54-911a-856e3dc85f39
+
+    :customerscenario: true
+
+    :steps:
+        1.  Create a repo with 'publish via http' set to true, url set to
+            some upstream repo
+        2.  Sync the repo
+        3.  Create a content view
+        4.  Set 'publish via http' to false
+        5.  Add this repo to the content view
+        6.  Publish the content view
+
+    :expectedresults: Content view is published successfully
+
+    :BZ: 1355752
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    product_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    # Creates a CV along with product and sync'ed repository
+    create_sync_custom_repo(
+        module_org.id,
+        product_name=product_name,
+        repo_name=repo_name,
+        repo_unprotected=True
+    )
+    with session:
+        # Create content-view
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        # Update repository publishing method
+        session.repository.update(
+            product_name, repo_name,
+            {'repo_content.publish_via_http': False}
+        )
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        # Publish content view
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+
+
+@tier3
+def test_positive_publish_promote_with_custom_puppet_module(session, module_org):
+    """Ensure that a custom puppet module file can be added to an existent
+     puppet repo and it's module added to content view
+
+    :id: 9562c548-5b65-4b79-acc7-382f8a21249d
+
+    :customerscenario: true
+
+    :steps:
+        1. Create a product with a puppet repository
+        2. Add a custom puppet module file
+        3. Create a content view and add The puppet module
+        4. Publish and promote the content view
+
+    :expectedresults:
+        1. Custom puppet module file successfully uploaded
+        2. Puppet module successfully added to content view
+        3. Content view successfully published and promoted
+
+    :BZ: 1335833
+
+    :CaseLevel: System
+    """
+    cv_name = gen_string('alpha')
+    env = entities.LifecycleEnvironment(organization=module_org).create()
+    # Creates new custom product via API's
+    product = entities.Product(organization=module_org).create()
+    # Creates new custom repository via API's
+    repo = entities.Repository(
+        url=FAKE_0_PUPPET_REPO,
+        content_type=REPO_TYPE['puppet'],
+        product=product,
+    ).create()
+    # Sync repo
+    call_entity_method_with_timeout(
+        entities.Repository(id=repo.id).sync, timeout=1500)
+
+    with session:
+        repo_values = session.repository.read(product.name, repo.name)
+        initial_modules_count = int(repo_values['content_counts']['Puppet Modules'])
+        session.repository.upload_content(
+            product.name, repo.name, get_data_file(PUPPET_MODULE_CUSTOM_FILE_NAME))
+        repo_values = session.repository.read(product.name, repo.name)
+        assert (
+            int(repo_values['content_counts']['Puppet Modules'])
+            == initial_modules_count + 1
+        )
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_puppet_module(cv_name, PUPPET_MODULE_CUSTOM_NAME)
+        cv = session.contentview.read(cv_name)
+        assert cv['puppet_modules']['table'][0]['Name'] == PUPPET_MODULE_CUSTOM_NAME
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, env.name)
+        assert 'Promoted to {}'.format(env.name) in result['Status']
+
+
+@tier3
+def test_positive_delete_with_kickstart_repo_and_host_group(session):
+    """Check that Content View associated with kickstart repository and
+    which is used by a host group can be removed from the system
+
+    :id: 7b076f55-72c9-4413-a592-92a47b51cb0a
+
+    :customerscenario: true
+
+    :expectedresults: Deletion was performed successfully
+
+    :BZ: 1417072
+
+    :CaseLevel: Integration
+    """
+    hg_name = gen_string('alpha')
+    sat_hostname = settings.server.hostname
+    org = entities.Organization().create()
+    # Create a new Lifecycle environment
+    lc_env = entities.LifecycleEnvironment(organization=org).create()
+
+    # Create a Product and Kickstart Repository for OS distribution content
+    product = entities.Product(organization=org).create()
+    repo = entities.Repository(product=product, url=settings.rhel6_os).create()
+
+    # Repo sync procedure
+    call_entity_method_with_timeout(repo.sync, timeout=3600)
+
+    # Create, Publish and promote CV
+    content_view = entities.ContentView(organization=org).create()
+    content_view.repository = [repo]
+    content_view = content_view.update(['repository'])
+    content_view.publish()
+    content_view = content_view.read()
+    promote(content_view.version[0], lc_env.id)
+    cv_name = content_view.name
+
+    # Get the Partition table ID
+    ptable = entities.PartitionTable().search(
+        query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+    # Get the arch ID
+    arch = entities.Architecture().search(
+        query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)}
+    )[0].read()
+    # Get the OS ID
+    os = entities.OperatingSystem().search(query={
+        u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
+                   .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+    })[0]
+    # Update the OS to associate arch and ptable
+    os.architecture = [arch]
+    os.ptable = [ptable]
+    os = os.update(['architecture', 'ptable'])
+    with session:
+        session.organization.select(org.name)
+        session.hostgroup.create({
+            'host_group.name': hg_name,
+            'host_group.lce': lc_env.name,
+            'host_group.content_view': content_view.name,
+            'host_group.content_source': sat_hostname,
+            'host_group.puppet_ca': sat_hostname,
+            'host_group.puppet_master': sat_hostname,
+            'operating_system.architecture': arch.name,
+            'operating_system.operating_system': '{} {}.{}'.format(
+                os.name, os.major, os.minor),
+            'operating_system.ptable': ptable.name,
+            'operating_system.media_type': 'Synced Content',
+            'operating_system.media_content.synced_content': repo.name,
+        })
+        assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        with raises(AssertionError) as context:
+            session.contentview.delete(cv_name)
+        assert 'Unable to delete content view' in str(context.value)
+        # remove the content view version
+        session.contentview.remove_version(cv_name, VERSION)
+        assert not session.contentview.search_version(cv_name, VERSION)
+        session.contentview.delete(cv_name)
+        assert not session.contentview.search(cv_name)
+
+
+@skip_if_os('RHEL6')
+@tier3
+def test_positive_custom_ostree_end_to_end(session, module_org):
+    """Create content view with custom ostree contents, publish and promote it
+    to Library +1 env. Then disassociate repository from that content view
+
+    :id: 869623c8-9547-4432-9e02-4aeece2efd2f
+
+    :steps:
+        1. Create ostree content and sync it
+        2. Create content view and add created repo to it
+        3. Publish that content view
+        4. Promote it to next environment
+        5. Remove repository from content view
+
+    :expectedresults: Content view works properly with custom OSTree repository and
+        has expected output after each step
+
+    :CaseLevel: System
+    """
+    repo_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    create_sync_custom_repo(
+        module_org.id,
+        repo_url=FEDORA23_OSTREE_REPO,
+        repo_type=REPO_TYPE['ostree'],
+        repo_name=repo_name,
+        repo_unprotected=False
+    )
+    with session:
+        # Create new content view
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+
+        # Add OSTree repository to content view
+        session.contentview.add_ostree_repo(cv_name, repo_name)
+        cv = session.contentview.read(cv_name)
+        assert cv['ostree_content']['resources']['assigned'][0]['Name'] == repo_name
+
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+        # Remove repository from content view
+        session.contentview.remove_ostree_repo(cv_name, repo_name)
+        cv = session.contentview.read(cv_name)
+        assert len(cv['ostree_content']['resources']['assigned']) == 0
+        assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
+
+
+@run_in_one_thread
+@skip_if_os('RHEL6')
+@tier3
+def test_positive_rh_ostree_end_to_end(session):
+    """Create content view with RH ostree contents, publish and promote it
+    to Library +1 env. Then disassociate repository from that content view
+
+    :id: 5773dde0-1862-420e-a347-b801c9af43d4
+
+    :steps:
+        1. Create RH ostree content and sync it
+        2. Create content view and add created repo to it
+        3. Publish that content view
+        4. Promote it to next environment
+        5. Remove repository from content view
+
+    :expectedresults: Content view works properly with RH OSTree repository and
+        has expected output after each step
+
+    :CaseLevel: System
+    """
+    cv_name = gen_string('alpha')
+    rh_repo = {
+        'name': REPOS['rhaht']['name'],
+        'product': PRDS['rhah'],
+        'reposet': REPOSET['rhaht'],
+        'basearch': None,
+        'releasever': None,
+    }
+    repo_name = rh_repo['name']
+    # Create new org to import manifest
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    enable_sync_redhat_repo(rh_repo, org.id)
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    with session:
+        session.organization.select(org.name)
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_ostree_repo(cv_name, repo_name)
+        cv = session.contentview.read(cv_name)
+        assert cv['ostree_content']['resources']['assigned'][0]['Name'] == repo_name
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # Remove repository from content view
+        session.contentview.remove_ostree_repo(cv_name, repo_name)
+        cv = session.contentview.read(cv_name)
+        assert len(cv['ostree_content']['resources']['assigned']) == 0
+        assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
+
+
+@skip_if_os('RHEL6')
+@upgrade
+@tier3
+def test_positive_mixed_content_end_to_end(session, module_org):
+    """Create a CV with ostree as well as yum and puppet type contents and
+    publish and promote them to next environment. Remove promoted version afterwards
+
+    :id: 6da1a167-cef8-420e-9fdd-bf357f820056
+
+    :expectedresults: CV should be published and promoted with custom
+        OSTree and all other contents. Then version is removed successfully
+
+    :CaseLevel: System
+    """
+    cv_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    ostree_repo_name = gen_string('alpha')
+    # Creates ostree content
+    entities.Repository(
+        name=ostree_repo_name,
+        url=FEDORA23_OSTREE_REPO,
+        content_type=REPO_TYPE['ostree'],
+        product=product,
+        unprotected=False,
+    ).create()
+    # Creates puppet module
+    puppet_module = 'httpd'
+    entities.Repository(
+        url=FAKE_0_PUPPET_REPO,
+        content_type=REPO_TYPE['puppet'],
+        product=product,
+    ).create()
+    yum_repo_name = gen_string('alpha')
+    # Creates yum repository
+    entities.Repository(
+        name=yum_repo_name,
+        url=FAKE_1_YUM_REPO,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    # Sync all repositories in the product
+    product.sync()
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    entities.ContentView(name=cv_name, organization=module_org).create()
+    with session:
+        session.contentview.add_yum_repo(cv_name, yum_repo_name)
+        session.contentview.add_puppet_module(cv_name, puppet_module)
+        session.contentview.add_ostree_repo(cv_name, ostree_repo_name)
+        cv = session.contentview.read(cv_name)
+        assert (
+            cv['repositories']['resources']['assigned'][0]['Name']
+            == yum_repo_name
+        )
+        assert cv['puppet_modules']['table'][0]['Name'] == puppet_module
+        assert (
+            cv['ostree_content']['resources']['assigned'][0]['Name']
+            == ostree_repo_name
+        )
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # remove the content view version
+        session.contentview.remove_version(cv_name, VERSION)
+        assert not session.contentview.search_version(cv_name, VERSION)
+
+
+@skip_if_os('RHEL6')
+@upgrade
+@tier3
+def test_positive_rh_mixed_content_end_to_end(session):
+    """Create a CV with RH ostree as well as RH yum contents and publish and promote
+    them to next environment. Remove promoted version afterwards
+
+    :id: 752f7b95-26af-4f20-a49d-7b31ae3d7a1a
+
+    :expectedresults: CV should be published and promoted with RH OSTree and all
+        other contents. Then version is removed successfully.
+
+    :CaseLevel: System
+    """
+    cv_name = gen_string('alpha')
+    rh_ah_repo = {
+        'name': REPOS['rhaht']['name'],
+        'product': PRDS['rhah'],
+        'reposet': REPOSET['rhaht'],
+        'basearch': None,
+        'releasever': None,
+    }
+    rh_st_repo = {
+        'name': REPOS['rhst7']['name'],
+        'product': PRDS['rhel'],
+        'reposet': REPOSET['rhst7'],
+        'basearch': 'x86_64',
+        'releasever': None,
+    }
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    for rh_repo in [rh_ah_repo, rh_st_repo]:
+        enable_sync_redhat_repo(rh_repo, org.id)
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    with session:
+        session.organization.select(org.name)
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, rh_st_repo['name'])
+        session.contentview.add_ostree_repo(cv_name, rh_ah_repo['name'])
+        cv = session.contentview.read(cv_name)
+        assert (
+            cv['repositories']['resources']['assigned'][0]['Name']
+            == rh_st_repo['name']
+        )
+        assert (
+            cv['ostree_content']['resources']['assigned'][0]['Name']
+            == rh_ah_repo['name']
+        )
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # remove the content view version
+        session.contentview.remove_version(cv_name, VERSION)
+        assert not session.contentview.search_version(cv_name, VERSION)
