@@ -139,7 +139,7 @@ def xdist_adapter(argvalues):
 
         dct = xdist_adapter(invalid_boolean_strings())
 
-        @pytest.mark.parametrize('value', \*\*dct)
+        @pytest.mark.parametrize('value', **dct)
         def test_something(value):
         #some code here
 
