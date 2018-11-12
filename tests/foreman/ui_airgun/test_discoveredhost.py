@@ -127,8 +127,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5,
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
-def test_positive_pxe_based_discovery(
-        session, module_org, module_loc, provisioning_env):
+def test_positive_pxe_based_discovery(session, provisioning_env):
     """Discover a host via PXE boot by setting "proxy.type=proxy" in
     PXE default
 
@@ -145,8 +144,6 @@ def test_positive_pxe_based_discovery(
     with LibvirtGuest() as pxe_host:
         host_name = pxe_host.guest_name
         with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
             discovered_host_values = session.discoveredhosts.wait_for_entity(
                 host_name)
             assert discovered_host_values['Name'] == host_name
@@ -155,8 +152,7 @@ def test_positive_pxe_based_discovery(
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @tier3
 @upgrade
-def test_positive_pxe_less_with_dhcp_unattended(
-        session, module_org, module_loc, provisioning_env):
+def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
     """Discover a host with dhcp via bootable discovery ISO by setting
     "proxy.type=proxy" in PXE default in unattended mode.
 
@@ -173,8 +169,6 @@ def test_positive_pxe_less_with_dhcp_unattended(
     with LibvirtGuest(boot_iso=True) as pxe_less_host:
         host_name = pxe_less_host.guest_name
         with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
             discovered_host_values = session.discoveredhosts.wait_for_entity(
                 host_name)
             assert discovered_host_values['Name'] == host_name
@@ -203,8 +197,6 @@ def test_positive_provision_using_quick_host_button(
     domain_name = module_host_group.domain.read().name
     host_name = '{0}.{1}'.format(discovered_host_name, domain_name)
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
         session.discoveredhosts.provision(
             discovered_host_name,
             module_host_group.name,
@@ -236,8 +228,6 @@ def test_positive_update_name(
     new_name = gen_string('alpha').lower()
     new_host_name = '{0}.{1}'.format(new_name, domain_name)
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
         discovered_host_values = session.discoveredhosts.wait_for_entity(
             discovered_host_name)
         assert discovered_host_values['Name'] == discovered_host_name
@@ -259,10 +249,10 @@ def test_positive_update_name(
 
 @tier2
 @upgrade
-def test_positive_manual_provision_host_with_rule(
+def test_positive_auto_provision_host_with_rule(
         session, module_org, module_loc, module_host_group):
-    """Create a new discovery rule and manually create a discovered host
-    using that discovery rule.
+    """Create a new discovery rule and automatically create host from discovered host using that
+    discovery rule.
 
     Set query as (e.g IP=IP_of_discovered_host)
 
@@ -279,30 +269,30 @@ def test_positive_manual_provision_host_with_rule(
     host_ip = gen_ipaddr()
     discovered_host_name = create_discovered_host(ip_address=host_ip)['name']
     domain = module_host_group.domain.read()
+    discovery_rule = entities.DiscoveryRule(
+        max_count=1,
+        hostgroup=module_host_group,
+        search_='ip = {0}'.format(host_ip),
+        location=[module_loc],
+        organization=[module_org],
+    ).create()
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
-        entities.DiscoveryRule(
-            max_count=1,
-            hostgroup=module_host_group,
-            search_='ip = {0}'.format(host_ip),
-            location=[module_loc],
-            organization=[module_org],
-        ).create()
         session.discoveredhosts.apply_action(
             'Auto Provision',
             [discovered_host_name]
         )
-        host_name = ('{0}.{1}'.format(discovered_host_name, domain.name))
-        assert (session.host.search(host_name)[0]['Name'] == host_name)
-        values = session.host.get_details(host_name)
-        assert values['properties']['properties_table']['Status'] == 'OK'
-        assert not session.discoveredhosts.search(
-            'name = {0}'.format(discovered_host_name))
+        host_name = '{0}.{1}'.format(discovered_host_name, domain.name)
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        host_values = session.host.get_details(host_name)
+        assert host_values['properties']['properties_table']['Status'] == 'OK'
+        assert host_values['properties']['properties_table']['IP Address'] == host_ip
+        assert (host_values['properties']['properties_table']['Comment']
+                == "Auto-discovered and provisioned via rule '{0}'".format(discovery_rule.name))
+        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
 @tier2
-def test_positive_delete(session, module_org, module_loc, discovered_host):
+def test_positive_delete(session, discovered_host):
     """Delete the selected discovered host
 
     :id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
@@ -318,11 +308,8 @@ def test_positive_delete(session, module_org, module_loc, discovered_host):
 
     discovered_host_name = discovered_host['name']
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
-        session.discoveredhosts.apply_action('Delete', [discovered_host_name])
-        assert not session.discoveredhosts.search(
-            'name = {0}'.format(discovered_host_name))
+        session.discoveredhosts.delete(discovered_host_name)
+        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
 @skip_if_bug_open('bugzilla', 1634728)
@@ -350,8 +337,6 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
     module_loc.update(['organization'])
     new_loc = entities.Location(organization=[module_org]).create()
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
         values = session.discoveredhosts.search(
             'name = "{0}" or name = "{1}"'.format(*host_names)
         )
@@ -386,7 +371,7 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
 
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
-def test_positive_reboot(session, module_org, module_loc, provisioning_env):
+def test_positive_reboot(session, provisioning_env):
     """Reboot a discovered host.
 
     :id: 5edc6831-bfc8-4e69-9029-b4c0caa3ee32
@@ -400,8 +385,6 @@ def test_positive_reboot(session, module_org, module_loc, provisioning_env):
     with LibvirtGuest() as pxe_host:
         host_name = pxe_host.guest_name
         with session:
-            session.organization.select(org_name=module_org.name)
-            session.location.select(loc_name=module_loc.name)
             discovered_host_values = session.discoveredhosts.wait_for_entity(
                 host_name)
             assert discovered_host_values['Name'] == host_name
