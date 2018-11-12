@@ -30,7 +30,6 @@ from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
-    run_in_one_thread,
     tier2,
     tier3,
     upgrade,
@@ -320,7 +319,6 @@ def test_positive_synchronize_custom_products_future_sync_date(
                 repo, ['erratum', 'package', 'package_group'])
 
 
-@run_in_one_thread
 @tier3
 @upgrade
 def test_positive_synchronize_rh_product_future_sync_date(session):
@@ -336,11 +334,7 @@ def test_positive_synchronize_rh_product_future_sync_date(session):
     delay = 5 * 60  # delay for sync date in seconds
     plan_name = gen_string('alpha')
     org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        entities.Subscription().upload(
-            data={'organization_id': org.id},
-            files={'content': manifest.content},
-        )
+    manifests.upload_manifest_locked(org.id)
     repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
