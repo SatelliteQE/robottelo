@@ -112,8 +112,8 @@ class SubnetTestCase(CLITestCase):
                     u'network': network,
                     u'to': to_ip,
                 })
-                self.assertEqual(subnet['from'], from_ip)
-                self.assertEqual(subnet['to'], to_ip)
+                self.assertEqual(subnet['start-of-ip-range'], from_ip)
+                self.assertEqual(subnet['end-of-ip-range'], to_ip)
 
     @run_only_on('sat')
     @tier1
@@ -320,8 +320,8 @@ class SubnetTestCase(CLITestCase):
                     u'to': ip_to,
                 })
                 subnet = Subnet.info({u'id': subnet['id']})
-                self.assertEqual(subnet['from'], ip_from)
-                self.assertEqual(subnet['to'], ip_to)
+                self.assertEqual(subnet['start-of-ip-range'], ip_from)
+                self.assertEqual(subnet['end-of-ip-range'], ip_to)
 
     @run_only_on('sat')
     @tier1
@@ -373,7 +373,7 @@ class SubnetTestCase(CLITestCase):
                     Subnet.update(opts)
                 # check - subnet is not updated
                 result = Subnet.info({u'id': subnet['id']})
-                for key in options.keys():
+                for key in ['start-of-ip-range', 'end-of-ip-range']:
                     self.assertEqual(result[key], subnet[key])
 
     @run_only_on('sat')
