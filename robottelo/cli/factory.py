@@ -12,6 +12,7 @@ import time
 
 from fauxfactory import (
     gen_alphanumeric,
+    gen_choice,
     gen_integer,
     gen_ipaddr,
     gen_mac,
@@ -86,6 +87,7 @@ from robottelo.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
+from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import bz_bug_is_open, cacheable
 from robottelo.helpers import (
     update_dictionary, default_url_on_new_port, get_available_capsule_port
@@ -1308,16 +1310,19 @@ def make_sync_plan(options=None):
     if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
+    interval = random.choice(list(SYNC_INTERVAL.values()))
+
     args = {
         u'description': gen_string('alpha', 20),
         u'enabled': 'true',
-        u'interval': random.choice(list(SYNC_INTERVAL.values())),
+        u'interval': interval,
         u'name': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
         u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        u'cron-expression': None,
+        u'cron-expression':
+            gen_choice(valid_cron_expressions()) if interval == 'custom cron' else None,
     }
     return create_object(SyncPlan, args, options)
 
