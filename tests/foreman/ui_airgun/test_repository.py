@@ -554,7 +554,8 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         assert repo_values['repo_content']['metadata_type'] == new_checksum_type
         assert repo_values['repo_content']['gpg_key'] == new_gpg_key.name
         assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
-        assert session.repository.delete(module_prod.name, new_repo_name)
+        session.repository.delete(module_prod.name, new_repo_name)
+        assert not session.repository.search(module_prod.name, new_repo_name)
 
 
 @tier2
@@ -660,7 +661,8 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         repo_values = session.repository.read(module_prod.name, new_repo_name)
         assert repo_values['name'] == new_repo_name
         assert repo_values['repo_content']['upstream_url'] == FEDORA23_OSTREE_REPO
-        assert session.repository.delete(module_prod.name, new_repo_name)
+        session.repository.delete(module_prod.name, new_repo_name)
+        assert not session.repository.search(module_prod.name, new_repo_name)
 
 
 @tier2
