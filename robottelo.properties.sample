@@ -251,13 +251,6 @@ ssh_key=
 # [ostree]
 # ostree_installer=OSTREE_INSTALLER
 
-# Section for declaring Sat5->Sat6 transition parameters
-# [transition]
-# URL of the  exported data archive (typically a .tgz containing a bunch of CSV
-# files together with repo data)
-# exported_data=http://example.org/sat5_export_data.tgz
-
-
 # Section for performance tests parameters.
 # [performance]
 # Control whether or not to time on hammer commands in robottelo/cli/base.py
