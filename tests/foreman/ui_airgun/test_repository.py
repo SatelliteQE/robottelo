@@ -15,8 +15,6 @@
 
 :Upstream: No
 """
-import time
-
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
@@ -556,16 +554,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         assert repo_values['repo_content']['metadata_type'] == new_checksum_type
         assert repo_values['repo_content']['gpg_key'] == new_gpg_key.name
         assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
-        session.repository.delete(module_prod.name, new_repo_name)
-        values = session.repository.search(module_prod.name, new_repo_name)
-        # a task is created for delete operation and we are not redirected to that task page.
-        # this operation can take some time.
-        for _ in range(10):
-            values = session.repository.search(module_prod.name, new_repo_name)
-            if not values:
-                break
-            time.sleep(2)
-        assert not values
+        assert session.repository.delete(module_prod.name, new_repo_name)
 
 
 @tier2
@@ -625,7 +614,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
             module_prod.name,
             repo_name,
             {
-                'repo_content.upstream_authorization': dict(username=''),
+                'repo_content.upstream_authorization': {},
             }
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
@@ -671,15 +660,7 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         repo_values = session.repository.read(module_prod.name, new_repo_name)
         assert repo_values['name'] == new_repo_name
         assert repo_values['repo_content']['upstream_url'] == FEDORA23_OSTREE_REPO
-        session.repository.delete(module_prod.name, new_repo_name)
-        # a task is created for delete operation and we are not redirected to that task page.
-        # this operation can take some time.
-        for _ in range(10):
-            repo_values = session.repository.search(module_prod.name, new_repo_name)
-            if not repo_values:
-                break
-            time.sleep(2)
-        assert not repo_values
+        assert session.repository.delete(module_prod.name, new_repo_name)
 
 
 @tier2
@@ -698,12 +679,12 @@ def test_positive_reposet_disable(session):
     repository_name = sat_tools_repo.data['repository']
     with session:
         session.organization.select(org.name)
-        session.redhat_repository.enable(
+        session.redhatrepository.enable(
             sat_tools_repo.data['repository-set'],
             sat_tools_repo.data['arch'],
             version=sat_tools_repo.data['releasever']
         )
-        results = session.redhat_repository.search(
+        results = session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
         assert results[0]['name'] == repository_name
         results = session.sync_status.synchronize([(
@@ -713,8 +694,8 @@ def test_positive_reposet_disable(session):
             repository_name
         )])
         assert results and all([result == 'Syncing Complete.' for result in results])
-        session.redhat_repository.disable(repository_name)
-        assert not session.redhat_repository.search(
+        session.redhatrepository.disable(repository_name)
+        assert not session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
 
 
@@ -743,12 +724,12 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
     with session:
         session.organization.select(org.name)
         # Enable RH repository
-        session.redhat_repository.enable(
+        session.redhatrepository.enable(
             sat_tools_repo.data['repository-set'],
             sat_tools_repo.data['arch'],
             version=sat_tools_repo.data['releasever']
         )
-        results = session.redhat_repository.search(
+        results = session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
         assert results[0]['name'] == repository_name
         # Sync the repo and verify sync was successful
@@ -762,10 +743,10 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
         # Delete manifest
         sub.delete_manifest(data={'organization_id': org.id})
         # Verify that the displayed repository name is correct
-        results = session.redhat_repository.search(
+        results = session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
         assert results[0]['name'] == repository_name_orphaned
         # Disable the orphaned repository
-        session.redhat_repository.disable(repository_name, orphaned=True)
-        assert not session.redhat_repository.search(
+        session.redhatrepository.disable(repository_name, orphaned=True)
+        assert not session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
