@@ -378,7 +378,8 @@ def test_positive_reboot(session, provisioning_env):
 
     :Setup: Host should already be discovered
 
-    :expectedresults: Host should be successfully rebooted.
+    :expectedresults: Discovered host without provision is going to shutdown after reboot command
+        is passed.
 
     :CaseLevel: System
     """
