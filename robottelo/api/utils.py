@@ -442,11 +442,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
                 id=comp_res[0].id).read()
             computeresource.location.append(loc)
             computeresource.organization.append(org)
-            computeresource = computeresource.update([
-                'location', 'organization'])
+            computeresource.update(['location', 'organization'])
         else:
             # Create Libvirt compute-resource
-            computeresource = entities.LibvirtComputeResource(
+            entities.LibvirtComputeResource(
                 provider=u'libvirt',
                 url=resource_url,
                 set_console_password=False,

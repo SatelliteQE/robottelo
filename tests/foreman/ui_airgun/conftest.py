@@ -5,6 +5,7 @@ from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 from robottelo.decorators import fixture
+from robottelo.constants import DEFAULT_LOC_ID, DEFAULT_ORG_ID
 
 
 LOGGER = logging.getLogger('robottelo')
@@ -17,11 +18,21 @@ def module_org():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    return nailgun.entities.Organization(id=1).read()
+    return nailgun.entities.Organization(id=DEFAULT_ORG_ID).read()
 
 
 @fixture(scope='module')
-def module_user(request, module_org):
+def module_loc():
+    """Shares the same location for all tests in specific test module.
+    Returns 'Default Location' by default, override this fixture on
+
+    :rtype: :class:`nailgun.entities.Organization`
+    """
+    return nailgun.entities.Location(id=DEFAULT_LOC_ID).read()
+
+
+@fixture(scope='module')
+def module_user(request, module_org, module_loc):
     """Creates admin user with default org set to module org and shares that
     user for all tests in the same test module. User's login contains test
     module name as a prefix.
@@ -36,6 +47,7 @@ def module_user(request, module_org):
     user = nailgun.entities.User(
         admin=True,
         default_organization=module_org,
+        default_location=module_loc,
         description='created automatically by airgun for module "{}"'.format(
             test_module_name),
         login=login,
