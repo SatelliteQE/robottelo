@@ -116,11 +116,18 @@ def test_positive_end_to_end(session, repos_collection, vm):
         )
         assert chost['provisioning_details']['name'] == vm.hostname
         assert (
-            chost['subscriptions']['resources']['assigned'][0]['Repository Name'] ==
-            repos_collection.custom_product['name']
+            repos_collection.custom_product['name'] in
+            {repo['Repository Name'] for repo in chost['subscriptions']['resources']['assigned']}
+
         )
         actual_repos = {repo['Repository Name'] for repo in chost['repository_sets']['table']}
-        expected_repos = {repo['name'] for repo in repos_collection.custom_repos_info}
+        expected_repos = {
+            repos_collection.repos_data[repo_index].get(
+                'repository-set',
+                repos_collection.repos_info[repo_index]['name']
+            )
+            for repo_index in range(len(repos_collection.repos_info))
+        }
         assert actual_repos == expected_repos
         # Install package
         result = session.contenthost.execute_package_action(
