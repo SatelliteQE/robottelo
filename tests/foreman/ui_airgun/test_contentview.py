@@ -1676,7 +1676,6 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
-@run_in_one_thread
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_rh_ostree_end_to_end(session):
@@ -1708,8 +1707,7 @@ def test_positive_rh_ostree_end_to_end(session):
     repo_name = rh_repo['name']
     # Create new org to import manifest
     org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    manifests.upload_manifest_locked(org.id)
     enable_sync_redhat_repo(rh_repo, org.id)
     lce = entities.LifecycleEnvironment(organization=org).create()
     with session:
@@ -1829,8 +1827,7 @@ def test_positive_rh_mixed_content_end_to_end(session):
         'releasever': None,
     }
     org = entities.Organization().create()
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
+    manifests.upload_manifest_locked(org.id)
     for rh_repo in [rh_ah_repo, rh_st_repo]:
         enable_sync_redhat_repo(rh_repo, org.id)
     lce = entities.LifecycleEnvironment(organization=org).create()
