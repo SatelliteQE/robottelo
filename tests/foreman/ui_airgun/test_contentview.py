@@ -1384,7 +1384,10 @@ def test_positive_search_composite(session):
     with session:
         session.contentview.create({
             'name': composite_name, 'composite_view': True})
-        assert session.contentview.search('composite = true')[0]['Name'] == composite_name
+        assert (
+            composite_name in
+            {ccv['Name'] for ccv in session.contentview.search('composite = true')}
+        )
 
 
 @tier2
@@ -1524,7 +1527,6 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
     # Sync repo
     call_entity_method_with_timeout(
         entities.Repository(id=repo.id).sync, timeout=1500)
-
     with session:
         repo_values = session.repository.read(product.name, repo.name)
         initial_modules_count = int(repo_values['content_counts']['Puppet Modules'])
@@ -1567,14 +1569,11 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     org = entities.Organization().create()
     # Create a new Lifecycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
-
     # Create a Product and Kickstart Repository for OS distribution content
     product = entities.Product(organization=org).create()
     repo = entities.Repository(product=product, url=settings.rhel6_os).create()
-
     # Repo sync procedure
     call_entity_method_with_timeout(repo.sync, timeout=3600)
-
     # Create, Publish and promote CV
     content_view = entities.ContentView(organization=org).create()
     content_view.repository = [repo]
@@ -1583,7 +1582,6 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     content_view = content_view.read()
     promote(content_view.version[0], lc_env.id)
     cv_name = content_view.name
-
     # Get the Partition table ID
     ptable = entities.PartitionTable().search(
         query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
@@ -1662,18 +1660,15 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
         # Create new content view
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-
         # Add OSTree repository to content view
         session.contentview.add_ostree_repo(cv_name, repo_name)
         cv = session.contentview.read(cv_name)
         assert cv['ostree_content']['resources']['assigned'][0]['Name'] == repo_name
-
         # Publish and promote CV to next environment
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
-
         # Remove repository from content view
         session.contentview.remove_ostree_repo(cv_name, repo_name)
         cv = session.contentview.read(cv_name)
