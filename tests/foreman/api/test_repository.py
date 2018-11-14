@@ -1973,7 +1973,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         :expectedresults: multiple products and repos are created
 
         """
-        for config in settings.container_repo.registry_configs:
+        for config in settings.container_repo.multi_registry_test_configs:
             product_name = config['label']
             with self.subTest(product_name):
                 product = entities.Product(organization=self.org,

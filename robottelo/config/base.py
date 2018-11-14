@@ -362,6 +362,7 @@ class ContainerRepositorySettings(FeatureSettings):
     def __init__(self, *args, **kwargs):
         super(ContainerRepositorySettings, self).__init__(*args, **kwargs)
         self.config_file = None
+        self.config = None
         self.multi_registry_test_configs = None
         self.yaml = None
         self.long_pass_registry = None
@@ -372,16 +373,21 @@ class ContainerRepositorySettings(FeatureSettings):
         if self.config_file:
             with open(self.config_file) as cf:
                 self.yaml = yaml.safe_load(cf)
-                self.long_pass_registry = self.yaml.get(
-                    'long_pass_test_registry', None)
-                self.multi_registry_test_configs = self.yaml.get(
-                    'multi_registry_test_configs', None)
+                self.config = self.yaml.get(self.section, None)
+                if self.config:
+                    self.long_pass_registry = self.config.get(
+                        'long_pass_test_registry', None)
+                    self.multi_registry_test_configs = self.config.get(
+                        'multi_registry_test_configs', None)
 
     def validate(self):
         validation_errors = []
         if not self.config_file:
             validation_errors.append(
                 '[{}] config_file must be provided'.format(self.section))
+        elif not self.config:
+            validation_errors.append("{} contains no {} entry".format(self.config_file,
+                                                                      self.section))
         else:
             if not self.long_pass_registry:
                 validation_errors.append(
