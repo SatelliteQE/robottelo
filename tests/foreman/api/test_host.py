@@ -37,7 +37,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
-    skip_if_bug_open,
     tier1,
     tier2,
     upgrade
@@ -1200,44 +1199,6 @@ class HostTestCase(APITestCase):
             host = host.update(['operatingsystem'])
         self.assertNotEqual(
             host.read().operatingsystem.read().name, new_os.name)
-
-    @tier1
-    @skip_if_bug_open('bugzilla', 1427192)
-    def test_positive_read_puppet_proxy_name(self):
-        """Read a hostgroup created with puppet proxy and inspect server's
-        response
-
-        @id: 8825462e-f1dc-4054-b7fb-69c2b10722a2
-
-        @expectedresults: Field 'puppet_proxy_name' is returned
-
-        @BZ: 1371900
-        """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        host = entities.Host(puppet_proxy=proxy).create().read_json()
-        self.assertIn('puppet_proxy_name', host)
-        self.assertEqual(proxy.name, host['puppet_proxy_name'])
-
-    @tier1
-    @skip_if_bug_open('bugzilla', 1427192)
-    def test_positive_read_puppet_ca_proxy_name(self):
-        """Read a hostgroup created with puppet ca proxy and inspect server's
-        response
-
-        @id: 8941395f-8040-4705-a981-5da21c47efd1
-
-        @expectedresults: Field 'puppet_ca_proxy_name' is returned
-
-        @BZ: 1371900
-        """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        host = entities.Host(puppet_ca_proxy=proxy).create().read_json()
-        self.assertIn('puppet_ca_proxy_name', host)
-        self.assertEqual(proxy.name, host['puppet_ca_proxy_name'])
 
 
 class HostInterfaceTestCase(APITestCase):
