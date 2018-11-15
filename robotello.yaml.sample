@@ -1,0 +1,26 @@
+---
+
+# Container registry and repo set information to use for container repo syncing.
+container_repo:
+    multi_registry_test_configs:
+        -   label: registry1
+            registry_url: https://registry2.example.com
+            registry_username: # Username
+            registry_password: #Token or password
+            repos_to_sync: [repo1, repo1/x1, repo2/x4]
+        -   label: registry2
+            registry_url: https://registry3.example.com
+            registry_username: #Username
+            registry_password: #Password or token
+            repos_to_sync: [repo2, repo3/x1, repo2/x4]
+
+
+    # RH Registry Token based auth
+    long_pass_test_registry:
+        label: rhregistry_tokenauth1
+        registry_url: https://registry.redhat.io
+        registry_username: # Username
+        registry_password: #Token or password needs to be > 255
+        repos_to_sync: [rhel7, rhscl/mysql-57-rhel7, rhscl/ruby-24-rhel7]
+
+
