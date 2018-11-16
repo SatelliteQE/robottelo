@@ -32,8 +32,8 @@ from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     FAKE_8_PUPPET_REPO,
-    FEDORA22_OSTREE_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA26_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     INVALID_URL,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
@@ -645,7 +645,7 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['ostree'],
-                'repo_content.upstream_url': FEDORA22_OSTREE_REPO,
+                'repo_content.upstream_url': FEDORA26_OSTREE_REPO,
             }
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
@@ -654,13 +654,13 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
             repo_name,
             {
                 'name': new_repo_name,
-                'repo_content.upstream_url': FEDORA23_OSTREE_REPO,
+                'repo_content.upstream_url': FEDORA27_OSTREE_REPO,
             }
         )
         assert not session.repository.search(module_prod.name, repo_name)
         repo_values = session.repository.read(module_prod.name, new_repo_name)
         assert repo_values['name'] == new_repo_name
-        assert repo_values['repo_content']['upstream_url'] == FEDORA23_OSTREE_REPO
+        assert repo_values['repo_content']['upstream_url'] == FEDORA27_OSTREE_REPO
         session.repository.delete(module_prod.name, new_repo_name)
         assert not session.repository.search(module_prod.name, new_repo_name)
 
