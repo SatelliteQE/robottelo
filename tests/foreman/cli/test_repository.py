@@ -43,7 +43,7 @@ from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.constants import (
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     CUSTOM_FILE_REPO,
     CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
@@ -1829,7 +1829,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                     u'name': name,
                     u'content-type': u'ostree',
                     u'publish-via-http': u'false',
-                    u'url': FEDORA23_OSTREE_REPO,
+                    u'url': FEDORA27_OSTREE_REPO,
                 })
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['content-type'], u'ostree')
@@ -1856,7 +1856,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                         u'content-type': u'ostree',
                         u'checksum-type': checksum_type,
                         u'publish-via-http': u'false',
-                        u'url': FEDORA23_OSTREE_REPO,
+                        u'url': FEDORA27_OSTREE_REPO,
                     })
 
     @tier1
@@ -1879,7 +1879,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                     self._make_repository({
                         u'content-type': u'ostree',
                         u'publish-via-http': u'true',
-                        u'url': FEDORA23_OSTREE_REPO,
+                        u'url': FEDORA27_OSTREE_REPO,
                     })
 
     @tier2
@@ -1896,7 +1896,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         # Synchronize it
         Repository.synchronize({'id': new_repo['id']})
@@ -1917,7 +1917,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         Repository.delete({
             u'name': new_repo['name'],
@@ -1941,7 +1941,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         Repository.delete({u'id': new_repo['id']})
         with self.assertRaises(CLIReturnCodeError):

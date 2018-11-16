@@ -46,7 +46,7 @@ from robottelo.constants import (
     FAKE_3_YUM_REPO,
     FAKE_9_YUM_REPO,
     FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_TYPE,
@@ -1651,7 +1651,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     create_sync_custom_repo(
         module_org.id,
-        repo_url=FEDORA23_OSTREE_REPO,
+        repo_url=FEDORA27_OSTREE_REPO,
         repo_type=REPO_TYPE['ostree'],
         repo_name=repo_name,
         repo_unprotected=False
@@ -1749,7 +1749,7 @@ def test_positive_mixed_content_end_to_end(session, module_org):
     # Creates ostree content
     entities.Repository(
         name=ostree_repo_name,
-        url=FEDORA23_OSTREE_REPO,
+        url=FEDORA27_OSTREE_REPO,
         content_type=REPO_TYPE['ostree'],
         product=product,
         unprotected=False,

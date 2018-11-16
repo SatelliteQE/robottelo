@@ -35,8 +35,8 @@ from robottelo.constants import (
     FAKE_5_YUM_REPO,
     FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
-    FEDORA22_OSTREE_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA26_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -1478,7 +1478,7 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         self.assertEqual(repo.content_type, 'ostree')
@@ -1496,7 +1496,7 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         new_name = gen_string('alpha')
@@ -1517,10 +1517,10 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
-        new_url = FEDORA22_OSTREE_REPO
+        new_url = FEDORA26_OSTREE_REPO
         repo.url = new_url
         repo = repo.update(['url'])
         self.assertEqual(new_url, repo.url)
@@ -1539,7 +1539,7 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         repo.delete()
