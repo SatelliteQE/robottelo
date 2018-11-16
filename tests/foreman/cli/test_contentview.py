@@ -66,7 +66,7 @@ from robottelo.constants import (
     FAKE_0_PUPPET_REPO,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_YUM_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -2225,7 +2225,7 @@ class ContentViewTestCase(CLITestCase):
             u'product-id': self.product['id'],
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         # Create new Docker repository
         docker_repo = make_repository({
@@ -4773,7 +4773,7 @@ class OstreeContentViewTestCase(CLITestCase):
             u'product-id': cls.product['id'],
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         Repository.synchronize({'id': cls.ostree_repo['id']})
         # Create new yum repository
