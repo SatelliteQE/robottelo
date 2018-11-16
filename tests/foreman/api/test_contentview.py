@@ -26,7 +26,7 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     FILTER_ERRATA_TYPE,
     PERMISSIONS,
     PRDS,
@@ -1582,7 +1582,7 @@ class OstreeContentViewTestCase(APITestCase):
         cls.ostree_repo = entities.Repository(
             product=cls.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         cls.ostree_repo.sync

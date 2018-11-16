@@ -31,8 +31,8 @@ from robottelo.constants import (
     FAKE_2_YUM_REPO,
     FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
-    FEDORA22_OSTREE_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA26_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPO_TAB,
@@ -479,7 +479,7 @@ class RepositoryTestCase(UITestCase):
                         session,
                         name=repo_name,
                         repo_type=REPO_TYPE['ostree'],
-                        url=FEDORA23_OSTREE_REPO,
+                        url=FEDORA27_OSTREE_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
 
@@ -502,7 +502,7 @@ class RepositoryTestCase(UITestCase):
         entities.Repository(
             name=repo_name,
             content_type='ostree',
-            url=FEDORA22_OSTREE_REPO,
+            url=FEDORA26_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -536,7 +536,7 @@ class RepositoryTestCase(UITestCase):
         entities.Repository(
             name=repo_name,
             content_type='ostree',
-            url=FEDORA22_OSTREE_REPO,
+            url=FEDORA26_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -569,7 +569,7 @@ class RepositoryTestCase(UITestCase):
         entities.Repository(
             name=repo_name,
             content_type='ostree',
-            url=FEDORA22_OSTREE_REPO,
+            url=FEDORA26_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -579,13 +579,13 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.update(
                 repo_name,
-                new_url=FEDORA23_OSTREE_REPO
+                new_url=FEDORA27_OSTREE_REPO
             )
             self.products.search_and_click(prod.name)
             # Validate the new repo URL
             self.assertTrue(
                 self.repository.validate_field(
-                    repo_name, 'url', FEDORA23_OSTREE_REPO
+                    repo_name, 'url', FEDORA27_OSTREE_REPO
                 )
             )
 

@@ -65,7 +65,7 @@ from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_9_YUM_REPO,
     FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_ERRATA_DATE,
@@ -2788,7 +2788,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         self.setup_to_create_cv(
             repo_name=repo_name,
-            repo_url=FEDORA23_OSTREE_REPO,
+            repo_url=FEDORA27_OSTREE_REPO,
             repo_type=REPO_TYPE['ostree'],
             repo_unprotected=False
         )
@@ -2857,7 +2857,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         self.setup_to_create_cv(
             repo_name=repo_name,
-            repo_url=FEDORA23_OSTREE_REPO,
+            repo_url=FEDORA27_OSTREE_REPO,
             repo_type=REPO_TYPE['ostree'],
             repo_unprotected=False
         )
@@ -2941,7 +2941,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -3061,7 +3061,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -3098,7 +3098,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -3137,7 +3137,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -3179,7 +3179,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -3224,7 +3224,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -3279,7 +3279,7 @@ class ContentViewTestCase(UITestCase):
         # Creates new ostree repository using api
         ostree_repo = entities.Repository(
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
