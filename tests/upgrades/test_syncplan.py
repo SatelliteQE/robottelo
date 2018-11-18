@@ -15,14 +15,13 @@
 :Upstream: No
 """
 
-
 from fauxfactory import gen_choice, gen_string
 from requests.exceptions import HTTPError
 
 from nailgun import entities
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import valid_cron_expressions
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import report_if_failed, skip_if_bug_open
 from robottelo.test import APITestCase
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
@@ -39,6 +38,7 @@ class ScenarioSyncPlan(APITestCase):
     3. Post upgrade, verify the sync plan exists and performs same as pre-upgrade.
 
     """
+    @report_if_failed
     @skip_if_bug_open('bugzilla', 1646988)
     @pre_upgrade
     def test_pre_sync_plan_migration(self):
@@ -77,7 +77,7 @@ class ScenarioSyncPlan(APITestCase):
         create_dict(scenario_dict)
 
     @skip_if_bug_open('bugzilla', 1646988)
-    @post_upgrade
+    @post_upgrade(depend_on='test_pre_sync_plan_migration')
     def test_post_sync_plan_migration(self):
         """Post-upgrade scenario that tests existing sync plans are working as
         expected after satellite upgrade with migrating from pulp to katello

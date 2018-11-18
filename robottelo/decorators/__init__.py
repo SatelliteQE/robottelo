@@ -17,6 +17,7 @@ from robozilla.decorators import (  # noqa
 from robottelo.config import settings
 from robottelo.constants import NOT_IMPLEMENTED
 from robottelo.host_info import get_host_sat_version
+from upgrade_tests.helpers.scenarios import create_dict
 
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
@@ -368,3 +369,25 @@ def skip_if_bug_open(bug_type, bug_id):
         )(func)
 
     return decorator
+
+
+def report_if_failed(func):
+    """report test status in global_dict if it is failed. This will be helpful
+    for skipping post_upgrade tests.
+
+    Decorating a method::
+
+        @report_if_failed
+        def test_pre_upgrade(self):
+            assert 0
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception:
+            status_dict = {
+                args[0].__class__.__name__:
+                    {'{0}'.format(func.__name__): "failed"}}
+            create_dict(status_dict)
+            raise
+    return wrapper
