@@ -18,6 +18,8 @@ import os
 
 import json
 
+import requests
+
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -1200,9 +1202,10 @@ class OpenScapTestCase(CLITestCase):
             'id': scap_policy['id'],
             'hosts': result['name'],
         })
-        data = entities.CompliancePolicies(id=scap_policy['id']).read().hosts
-        self.assertNotEqual(len(data[0]['name']), 0)
-        self.assertEqual(data[0]['name'], result['name'])
+        data = entities.Policies(id=scap_policy['id']).read()
+        location =
+        r = requests.get(location, auth=("admin", "changeme"), verify=False)
+        print(r.json())
 
     @run_only_on('sat')
     @stubbed()
