@@ -16,8 +16,79 @@
 """
 from nailgun import entities
 
-from robottelo.datafactory import valid_data_list
-from robottelo.decorators import parametrize, tier2
+from robottelo.constants import FAKE_1_YUM_REPO, REPO_TYPE, VALID_GPG_KEY_FILE
+from robottelo.datafactory import gen_string, valid_data_list
+from robottelo.decorators import fixture, parametrize, tier2
+from robottelo.helpers import read_data_file
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@tier2
+def test_positive_end_to_end(session, module_org):
+    """Perform end to end testing for product component
+
+    :id: d0e1f0d1-2380-4508-b270-62c1d8b3e2ff
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    product_name = gen_string('alpha')
+    new_product_name = gen_string('alpha')
+    product_label = gen_string('alpha')
+    product_description = gen_string('alpha')
+    gpg_key = entities.GPGKey(
+        content=read_data_file(VALID_GPG_KEY_FILE),
+        organization=module_org
+    ).create()
+    sync_plan = entities.SyncPlan(organization=module_org).create()
+    with session:
+        # Create new product using different parameters
+        session.product.create({
+            'name': product_name,
+            'label': product_label,
+            'gpg_key': gpg_key.name,
+            'sync_plan': sync_plan.name,
+            'description': product_description,
+        })
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        # Verify that created entity has expected parameters
+        product_values = session.product.read(product_name)
+        assert product_values['details']['name'] == product_name
+        assert product_values['details']['label'] == product_label
+        assert product_values['details']['gpg_key'] == gpg_key.name
+        assert product_values['details']['description'] == product_description
+        assert product_values['details']['sync_plan'] == sync_plan.name
+        # Update a product with a different name
+        session.product.update(
+            product_name, {'details.name': new_product_name}
+        )
+        assert not session.product.search(product_name)
+        assert session.product.search(new_product_name)[0]['Name'] == new_product_name
+        # Add a repo to product
+        session.repository.create(
+            new_product_name,
+            {
+                'name': gen_string('alpha'),
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+            }
+        )
+        # Synchronize the product
+        result = session.product.synchronize(new_product_name)
+        assert result['result'] == 'success'
+        product_values = session.product.read(new_product_name)
+        assert product_values['details']['repos_count'] == '1'
+        assert product_values['details']['sync_state'] == 'Syncing Complete.'
+        # Delete product
+        session.product.delete(new_product_name)
+        assert not session.product.search(new_product_name)
 
 
 @parametrize('product_name', **valid_data_list('ui'))
