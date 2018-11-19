@@ -1169,7 +1169,7 @@ class OpenScapTestCase(CLITestCase):
             scap_policy['id'])})
         self.assertIn(host_name, [host['name'] for host in hosts],
                       'The attached host is different')
-        self.assertGreater(len(hosts[0]['name']), 0,
+        self.assertGreater(len(hosts), 0,
                            'The policy has no hosts attached')
 
     @run_only_on('sat')
