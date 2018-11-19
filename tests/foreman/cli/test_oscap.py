@@ -30,7 +30,6 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
-from robottelo.cli.host import Host
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.user import User
 from robottelo.config import settings
@@ -1165,12 +1164,11 @@ class OpenScapTestCase(CLITestCase):
             'id': scap_policy['id'],
             'hosts': host_name,
         })
-        hosts = Host.list({'search': 'compliance_policy_id = {0}'.format(
-            scap_policy['id'])})
-        self.assertIn(host_name, [host['name'] for host in hosts],
+        data = entities.Policies(id=scap_policy['id']).read().hosts
+        self.assertNotEqual(len(data[0]['name']), 0,
+                            'The policy has no hosts attached')
+        self.assertIn(host_name, [host['name'] for host in data],
                       'The attached host is different')
-        self.assertGreater(len(hosts[0]['name']), 0,
-                           'The policy has no hosts attached')
 
     @run_only_on('sat')
     @stubbed()
