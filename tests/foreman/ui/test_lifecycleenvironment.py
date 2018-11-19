@@ -20,7 +20,6 @@ from itertools import chain
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import create_role_permissions
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_only_on,
@@ -30,9 +29,8 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import make_lifecycle_environment
-from robottelo.ui.locators import common_locators, locators, menu_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -170,90 +168,3 @@ class LifeCycleEnvironmentTestCase(UITestCase):
             body = session.nav.find_element(common_locators['body'])
             body_width = body.size['width']
             self.assertGreaterEqual(body_width - table_width, 0)
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_custom_user_view_lce(self):
-        """As a custom user attempt to view a lifecycle environment created
-        by admin user
-
-        :id: 768b647b-c530-4eca-9caa-38cf8622f36d
-
-        :BZ: 1420511
-
-        :Steps:
-
-            As an admin user:
-
-            1. Create an additional lifecycle environments other than Library
-            2. Create a user without administrator privileges
-            3. Create a role with the the following permissions:
-
-                * (Miscellaneous): access_dashboard
-                * Lifecycle Environment:
-
-                * edit_lifecycle_environments
-                * promote_or_remove_content_views_to_environment
-                * view_lifecycle_environments
-
-                * Location: view_locations
-                * Organization: view_organizations
-
-            4. Assign the created role to the custom user
-
-            As a custom user:
-
-            1. Log in
-            2. Navigate to Content -> Lifecycle Environments
-
-        :expectedresults: The additional lifecycle environment is viewable and
-            accessible by the custom user.
-
-        :CaseLevel: Integration
-        """
-        role_name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        user_login = gen_string('alpha')
-        user_password = gen_string('alpha')
-        org = entities.Organization().create()
-        role = entities.Role(name=role_name).create()
-        permissions_types_names = {
-            None: ['access_dashboard'],
-            'Organization': ['view_organizations'],
-            'Location': ['view_locations'],
-            'Katello::KTEnvironment': [
-                'view_lifecycle_environments',
-                'edit_lifecycle_environments',
-                'promote_or_remove_content_views_to_environments'
-            ]
-        }
-        create_role_permissions(role, permissions_types_names)
-        entities.User(
-            default_organization=org,
-            organization=[org],
-            role=[role],
-            login=user_login,
-            password=user_password
-        ).create()
-        # create a life cycle environment as admin user and ensure it's visible
-        with Session(self) as session:
-            make_lifecycle_environment(
-                session, org=org.name, name=env_name)
-            self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
-
-        # ensure the created user also can find the created life cycle
-        # environment link
-        with Session(self, user=user_login, password=user_password) as session:
-            # to ensure that the created user has only the assigned
-            # permissions, check that hosts menu tab does not exist
-            self.assertIsNone(
-                self.content_views.wait_until_element(
-                    menu_locators['menu.hosts'], timeout=1)
-            )
-            # assert that the created user is not a global admin user
-            # check administer->users page
-            with self.assertRaises(UINoSuchElementError):
-                session.nav.go_to_users()
-            # assert that the user can view the lvce created by admin user
-            self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
