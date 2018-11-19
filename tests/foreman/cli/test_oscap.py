@@ -30,7 +30,6 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
-from robottelo.cli.host import Host
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.user import User
 from robottelo.config import settings
@@ -55,7 +54,6 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import CLITestCase
-from nailgun import entities
 
 
 class OpenScapTestCase(CLITestCase):
@@ -957,8 +955,8 @@ class OpenScapTestCase(CLITestCase):
         })
         self.assertEqual(scap_policy['scap-content-id'], self.scap_id_rhel6)
         scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
-            OSCAP_DEFAULT_CONTENT['rhel_firefox'],
-            OSCAP_PROFILE['firefox']
+                OSCAP_DEFAULT_CONTENT['rhel_firefox'],
+                OSCAP_PROFILE['firefox']
         )
 
         Scappolicy.update({
@@ -1128,49 +1126,6 @@ class OpenScapTestCase(CLITestCase):
         Scappolicy.delete({'name': name})
         with self.assertRaises(CLIReturnCodeError):
             Scapcontent.info({'name': scap_policy['name']})
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_associate_scap_policy_with_single_server(self):
-        """Assign an audit policy to a single server
-
-        :id: 30566c27-f466-4b4d-beaf-0a5bfda98b89
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. At least 1 policy and host.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "update" as sub-command.
-            3. Pass host name as the parameter.
-
-        :expectedresults: The scap policy is updated.
-        """
-        host = entities.Host()
-        host.create()
-        name = gen_string('alpha')
-        scap_policy = make_scap_policy({
-            'name': name,
-            'scap-content-id': self.scap_id_rhel6,
-            'scap-content-profile-id': self.scap_profile_id_rhel6,
-            'period': OSCAP_PERIOD['weekly'].lower(),
-            'weekday': OSCAP_WEEKDAY['friday'].lower()
-        })
-        host_name = host.name + "." + host.domain.name
-        Scappolicy.update({
-            'id': scap_policy['id'],
-            'hosts': host_name,
-        })
-        hosts = Host.list({'search': 'compliance_policy_id = {0}'.format(
-            scap_policy['id'])})
-        self.assertIn(host_name, [host['name'] for host in hosts],
-                      'The attached host is different')
-        self.assertGreater(len(hosts), 0,
-                           'The policy has no hosts attached')
 
     @run_only_on('sat')
     @stubbed()
