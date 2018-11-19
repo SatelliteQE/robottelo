@@ -22,6 +22,7 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_host,
     make_hostgroup,
     make_scapcontent,
     make_scap_policy,
@@ -53,8 +54,12 @@ from robottelo.decorators import (
     tier4,
     upgrade
 )
+from robottelo.datafactory import (
+    valid_hosts_list,
+)
 from robottelo.test import CLITestCase
 from nailgun import entities
+from robottelo.cli.proxy import Proxy
 
 
 class OpenScapTestCase(CLITestCase):
@@ -120,6 +125,17 @@ class OpenScapTestCase(CLITestCase):
                 OSCAP_PROFILE['common']
             )
         )
+
+    def setUp(self):
+        """Find an existing puppet proxy.
+
+        Record information about this puppet proxy as ``self.puppet_proxy``.
+        """
+        super(OpenScapTestCase, self).setUp()
+        # Use the default installation smart proxy
+        self.puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
 
     @run_only_on('sat')
     @tier1
@@ -1149,26 +1165,40 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap policy is updated.
         """
-        host = entities.Host()
-        host.create()
-        name = gen_string('alpha')
+        hostgroup = make_hostgroup()
+        for name in valid_hosts_list():
+            with self.subTest(name):
+                host = entities.Host()
+                host.create_missing()
+                result = make_host({
+                    u'architecture-id': host.architecture.id,
+                    u'domain-id': host.domain.id,
+                    u'environment-id': host.environment.id,
+                    u'location-id': host.location.id,
+                    u'mac': host.mac,
+                    u'medium-id': host.medium.id,
+                    u'name': name,
+                    u'operatingsystem-id': host.operatingsystem.id,
+                    u'organization-id': host.organization.id,
+                    u'partition-table-id': host.ptable.id,
+                    u'puppet-proxy-id': self.puppet_proxy['id'],
+                    u'root-password': host.root_pass,
+                })
         scap_policy = make_scap_policy({
             'name': name,
             'scap-content-id': self.scap_id_rhel6,
             'scap-content-profile-id': self.scap_profile_id_rhel6,
             'period': OSCAP_PERIOD['weekly'].lower(),
-            'weekday': OSCAP_WEEKDAY['friday'].lower()
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'hostgroups': hostgroup['name']
         })
-        host_name = host.name + "." + host.domain.name
         Scappolicy.update({
             'id': scap_policy['id'],
-            'hosts': host_name,
+            'hosts': result['name'],
         })
         data = entities.Policies(id=scap_policy['id']).read().hosts
-        self.assertNotEqual(len(data[0]['name']), 0,
-                            'The policy has no hosts attached')
-        self.assertIn(host_name, [host['name'] for host in data],
-                      'The attached host is different')
+        self.assertNotEqual(len(data[0]['name']), 0)
+        self.assertEqual(data[0]['name'], result['name'])
 
     @run_only_on('sat')
     @stubbed()
