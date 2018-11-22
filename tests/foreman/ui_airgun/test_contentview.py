@@ -32,6 +32,7 @@ from robottelo.api.utils import (
     promote,
     upload_manifest,
 )
+from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
@@ -39,7 +40,13 @@ from robottelo.constants import (
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     ENVIRONMENT,
+    FAKE_0_INC_UPD_URL,
+    FAKE_0_INC_UPD_NEW_PACKAGE,
+    FAKE_0_INC_UPD_NEW_UPDATEFILE,
+    FAKE_0_INC_UPD_OLD_PACKAGE,
+    FAKE_0_INC_UPD_OLD_UPDATEFILE,
     FAKE_0_PUPPET_REPO,
+    FAKE_0_INC_UPD_ERRATA,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
@@ -69,12 +76,18 @@ from robottelo.decorators import (
     upgrade,
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file
+from robottelo.helpers import (
+    create_repo,
+    get_data_file,
+    repo_add_updateinfo,
+)
 from robottelo.products import (
     RepositoryCollection,
     SatelliteToolsRepository,
     VirtualizationAgentsRepository,
+    YumRepository,
 )
+from robottelo.vm import VirtualMachine
 
 
 VERSION = 'Version 1.0'
@@ -1854,3 +1867,194 @@ def test_positive_rh_mixed_content_end_to_end(session):
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
         assert not session.contentview.search_version(cv_name, VERSION)
+
+
+@tier2
+def test_positive_errata_inc_update_list_package(session):
+    """Publish incremental update with a new errata for a custom repo
+
+    :BZ: 1489778
+
+    :id: fb43791c-60ee-4190-86be-34ccba411396
+
+    :customerscenario: true
+
+    :expectedresults: New errata and corresponding package are present
+        in new content view version
+
+    :CaseImportance: High
+
+    :CaseLevel: Integration
+    """
+    # Create and publish a repo with 1 outdated package and some errata
+    repo_name = gen_string('alphanumeric')
+    repo_url = create_repo(
+        repo_name,
+        FAKE_0_INC_UPD_URL,
+        [FAKE_0_INC_UPD_OLD_PACKAGE]
+    )
+    result = repo_add_updateinfo(
+        repo_name, '{}{}'.format(
+            FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+    )
+    assert result.return_code == 0
+    # Create org, product, repo, sync & publish it
+    org = entities.Organization().create()
+    custom_repo_id = create_sync_custom_repo(org.id, repo_url=repo_url)
+    cv = entities.ContentView(
+        organization=org, repository=[custom_repo_id]).create()
+    cv.publish()
+    # Get published content-view version info
+    cvvs = entities.ContentView(id=cv.id).read().version
+    assert len(cvvs) == 1
+    cvv = cvvs[0].read()
+    # Add updated package to the repo and errata for the outdated package
+    create_repo(
+        repo_name,
+        FAKE_0_INC_UPD_URL,
+        [FAKE_0_INC_UPD_NEW_PACKAGE],
+        wipe_repodata=True,
+    )
+    result = repo_add_updateinfo(
+        repo_name, '{}{}'.format(
+            FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+    )
+    assert result.return_code == 0
+    # Sync the repo
+    entities.Repository(id=custom_repo_id).sync()
+    # Publish new CVV with the new errata
+    result = ContentView.version_incremental_update({
+        'content-view-version-id': cvv.id,
+        'errata-ids': FAKE_0_INC_UPD_ERRATA,
+    })
+    # Inc update output format is pretty weird - list of dicts where each
+    # key's value is actual line from stdout
+    result = [
+        line.strip()
+        for line_dict in result
+        for line in line_dict.values()
+    ]
+    # Verify both the package and the errata are present in output (were
+    # added successfully)
+    assert FAKE_0_INC_UPD_ERRATA in [line.strip() for line in result]
+    assert FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm') in [line.strip() for line in result]
+    cvvs = entities.ContentView(id=cv.id).read().version
+    cvv = cvvs[-1].read()
+    # Verify the package and the errata are shown on UI
+    with session:
+        session.organization.select(org.name)
+        version = session.contentview.read_version(cv.name, 'Version {}'.format(cvv.version))
+        errata = version['errata']['table']
+        assert len(errata) == 2
+        assert (FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata})
+        packages = version['rpm_packages']['table']
+        assert len(packages) == 2
+        packages = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
+        assert packages == {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
+
+
+@tier3
+def test_positive_composite_child_inc_update(session):
+    """Incremental update with a new errata on a child content view should
+    trigger incremental update of parent composite content view
+
+    :BZ: 1304891
+
+    :id: 1a870ad6-c79c-49fc-b449-8c7e74dd95ff
+
+    :customerscenario: true
+
+    :Steps:
+
+        1. Create and publish a repo with 1 outdated package and some
+           errata
+        2. Create org, product, repo, content view, then sync, publish and
+           promote it
+        3. Create another content view with Satellite tools in it, publish
+           and promote it to the same environment
+        4. Create composite content view, add content views from previous
+           steps in it (force using the latest versions)
+        5. Promote composite content view
+        6. Create activation key with subscriptions to both child content
+           views
+        7. Register a content host with activation key, install certs,
+           katello agent, enable repositories
+        8. Install outdated package in the content host
+        9. Add updated package to the repo and errata for the outdated
+           package
+        10. Sync the repo in satellite
+        11. On the WebUI, find new errata, make sure it's applicable for
+            the host
+        12. Install the errata to the host, agree with incremental update
+
+    :expectedresults:
+
+        1. Errata installation was successful
+        2. Incremental version of composite content view was published
+        3. Latest version of composite content view contains the errata and
+           updated package
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alphanumeric')
+    repo_url = create_repo(
+        repo_name,
+        FAKE_0_INC_UPD_URL,
+        [FAKE_0_INC_UPD_OLD_PACKAGE]
+    )
+    result = repo_add_updateinfo(
+        repo_name, '{}{}'.format(
+            FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+    )
+    assert result.return_code == 0
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            YumRepository(url=repo_url)
+        ]
+    )
+    content_data = repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    composite_cv = entities.ContentView(composite=True, organization=org).create()
+    composite_cv.component = [entities.ContentView(
+        id=content_data['content_view']['id']).read().version[0]]
+    composite_cv = composite_cv.update(['component'])
+    composite_cv.publish()
+    promote(composite_cv.read().version[0], lce.id)
+    entities.ActivationKey(
+        id=content_data['activation_key']['id'],
+        content_view=composite_cv
+    ).update(['content_view'])
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        repos_collection.setup_virtual_machine(vm)
+        result = vm.run('yum -y install {0}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm')))
+        assert result.return_code == 0
+        create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_NEW_PACKAGE],
+            wipe_repodata=True,
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+        )
+        assert result.return_code == 0
+        entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
+        with session:
+            session.organization.select(org.name)
+            result = session.errata.install(FAKE_0_INC_UPD_ERRATA, vm.hostname)
+            assert result['result'] == 'success'
+            expected_version = 'Version 1.1'
+            version = session.contentview.read_version(composite_cv.name, expected_version)
+            errata = version['errata']['table']
+            assert len(errata) > 1
+            assert (FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata})
+            packages = version['rpm_packages']['table']
+            assert len(packages) > 1
+            packages_data = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
+            assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
