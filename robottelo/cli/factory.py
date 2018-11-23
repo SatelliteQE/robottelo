@@ -3943,9 +3943,7 @@ def virt_who_hypervisor_config(
     :param bool exec_one_shot: whether to run the virt-who one-shot command
         after startup
     :param bool upload_manifest: whether to upload the organization manifest
-    http://sesame.lab.eng.rdu2.redhat.com/pub/rhel7.repo
     :param list extra_repos: (Optional) a list of repositories dict options to setup additionally.
-
     """
     if org_id is None:
         org = make_org()
