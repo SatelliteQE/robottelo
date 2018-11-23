@@ -174,7 +174,6 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
         assert (session.subscription.search(
             'name = "{0}"'.format(DEFAULT_SUBSCRIPTION_NAME))[0]['Name']
                 == DEFAULT_SUBSCRIPTION_NAME)
-        assert not session.browser.url.endswith('katello/403')
 
 
 @tier3
