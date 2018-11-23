@@ -3925,7 +3925,7 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
 def virt_who_hypervisor_config(
         config_id, virt_who_vm, org_id=None, lce_id=None,
         hypervisor_hostname=None, configure_ssh=False, hypervisor_user=None,
-        subscription_name=None, exec_one_shot=False, upload_manifest=True, added_repos=None):
+        subscription_name=None, exec_one_shot=False, upload_manifest=True, extra_repos=None):
     """
     Configure virtual machine as hypervisor virt-who service
 
@@ -3944,7 +3944,7 @@ def virt_who_hypervisor_config(
         after startup
     :param bool upload_manifest: whether to upload the organization manifest
     http://sesame.lab.eng.rdu2.redhat.com/pub/rhel7.repo
-    :param list added_repos: (Optional) a list of repositories dict options to setup additionally.
+    :param list extra_repos: (Optional) a list of repositories dict options to setup additionally.
 
     """
     if org_id is None:
@@ -3959,8 +3959,8 @@ def virt_who_hypervisor_config(
             'id': lce_id,
             'organization-id': org['id']
         })
-    if added_repos is None:
-        added_repos = []
+    if extra_repos is None:
+        extra_repos = []
     repos = [
         # Red Hat Satellite Tools
         {
@@ -3972,7 +3972,7 @@ def virt_who_hypervisor_config(
             'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
         },
     ]
-    repos.extend(added_repos)
+    repos.extend(extra_repos)
     content_setup_data = setup_cdn_and_custom_repos_content(
         org['id'],
         lce['id'],
@@ -3995,7 +3995,11 @@ def virt_who_hypervisor_config(
     )
     # configure manually RHEL custom repo url as sync time is very big
     # (more than 2 hours for RHEL 7Server) and not critical in this context.
-    rhel_repo_url = getattr(settings, 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7]))
+    rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
+    rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
+    if not rhel_repo_url:
+        raise ValueError('Settings option "{0}" is whether not set or does not exist'.format(
+            rhel_repo_option_name))
     virt_who_vm.configure_rhel_repo(rhel_repo_url)
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm

@@ -23,7 +23,11 @@ from pytest import skip
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
-from robottelo.cli.factory import make_virt_who_config, virt_who_hypervisor_config
+from robottelo.cli.factory import (
+    make_virt_who_config,
+    setup_virtual_machine,
+    virt_who_hypervisor_config
+)
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
@@ -51,7 +55,7 @@ if not setting_is_set('fake_manifest'):
 
 @tier2
 @upgrade
-def test_positive_end_to_end(session, module_org):
+def test_positive_end_to_end(session):
     """Upload a manifest with minimal input parameters, attempt to
     delete it with checking the warning message and hit 'Cancel' button after than delete it.
 
@@ -85,7 +89,6 @@ def test_positive_end_to_end(session, module_org):
     with manifests.clone() as manifest:
         with open(temporary_local_manifest_path, 'wb') as file_handler:
             file_handler.write(manifest.content.read())
-
     with session:
         session.organization.select(org.name)
         session.subscription.add_manifest(temporary_local_manifest_path)
@@ -127,7 +130,8 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
         default_organization=org,
     ).create()
     with Session(test_name, user=user.login, password=user_password) as session:
-        session.subscription.navigate_to(session.subscription, 'All')
+        assert not session.subscription.search('')
+        assert not session.subscription.has_manifest
         assert not session.browser.url.endswith('katello/403')
 
 
@@ -214,12 +218,12 @@ def test_positive_view_vdc_subscription_products(session):
     repos_collection.setup_content(
         org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME])
     with VirtualMachine() as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(
+        setup_virtual_machine(
+            vm,
             org.label,
-            activation_key=repos_collection.setup_content_data['activation_key']['name']
+            activation_key=repos_collection.setup_content_data['activation_key']['name'],
+            install_katello_agent=False
         )
-        assert vm.subscribed
         with session:
             session.organization.select(org.name)
             session.contenthost.add_subscription(vm.hostname, VDC_SUBSCRIPTION_NAME)
@@ -286,7 +290,7 @@ def test_positive_view_vdc_guest_subscription_products(session):
             hypervisor_hostname=provisioning_server,
             configure_ssh=True,
             subscription_name=VDC_SUBSCRIPTION_NAME,
-            added_repos=[rh_product_repository.data]
+            extra_repos=[rh_product_repository.data]
         )
         virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
         with session:
