@@ -132,7 +132,6 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
     with Session(test_name, user=user.login, password=user_password) as session:
         assert not session.subscription.search('')
         assert not session.subscription.has_manifest
-        assert not session.browser.url.endswith('katello/403')
 
 
 @skip_if_bug_open('bugzilla', 1651981)
