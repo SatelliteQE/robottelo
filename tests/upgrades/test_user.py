@@ -14,11 +14,16 @@
 
 :Upstream: No
 """
-
+from nailgun import entities
+import paramiko
+from robottelo.datafactory import gen_string
+from robottelo.test import APITestCase
 from upgrade_tests import pre_upgrade, post_upgrade
+from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
-class scenario_positive_create_sshkey_in_existing_users:
+class Test_scenario_positive_create_sshkey_in_existing_users(APITestCase):
+
     """SSH Key can be created in existing user post upgrade
 
     :id: e4338daa-272a-42e3-be45-77e1caea607f
@@ -34,7 +39,6 @@ class scenario_positive_create_sshkey_in_existing_users:
     :expectedresults: Satellite admin should be able to add SSH key in
         existing user post upgrade
     """
-
     @pre_upgrade
     def test_pre_create_sshkey_in_existing_user(self):
         """Create User in preupgrade version
@@ -44,6 +48,14 @@ class scenario_positive_create_sshkey_in_existing_users:
 
         :expectedresults: The user should be created successfully
         """
+        login_name = gen_string('alpha')
+        # Creating User
+        user = entities.User(login=login_name).create()
+        # Verify if created user exists
+        self.assertEqual(user.login, login_name)
+        # Adding the User details to dict
+        create_dict(
+            {self.__class__.__name__: {'user_login': user.login}})
 
     @post_upgrade
     def test_post_create_sshkey_in_existing_user(self):
@@ -53,9 +65,21 @@ class scenario_positive_create_sshkey_in_existing_users:
 
         :expectedresults: SSH Key should be added to the existing user
         """
+        ssh_name = gen_string('alpha')
+        ssh_key = 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
+        # Mapping the pre upgrade created user login
+        user_dict = get_entity_data(self.__class__.__name__)
+        # Check Same user exits
+        user = entities.User().search(query={'search': 'login={}'.format(user_dict['user_login'])})
+        self.assertEqual(user[0].login, user_dict['user_login'])
+        # Create SSHKey for User
+        user_sshkey = entities.SSHKey(
+            user=user[0].id, name=ssh_name, key=ssh_key).create()
+        # Check SSHKey assigned to same User
+        self.assertEqual(user_sshkey.user.id, user[0].id)
 
 
-class scenario_positive_existing_user_passwordless_access_to_host:
+class Test_scenario_positive_existing_user_passwordless_access_to_host:
     """Existing user can password-less access to provisioned host
 
     :id: d2d94447-5fc7-49cc-840e-06568d8a5141
