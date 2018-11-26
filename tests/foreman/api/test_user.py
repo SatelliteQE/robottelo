@@ -647,5 +647,7 @@ class SshKeyInUserTestCase(APITestCase):
         ssh_key = self.gen_ssh_rsakey()
         user_sshkey = entities.SSHKey(
             user=self.user, name=ssh_name, key=ssh_key).create()
-        self.assertEqual(ssh_name, user_sshkey.name)
-        self.assertEqual(ssh_key, user_sshkey.key)
+
+        result = entities.SSHKey(user=user_sshkey.user.id).search()
+        self.assertEqual(ssh_name, result[0].name)
+        self.assertEqual(ssh_key, result[0].key)
