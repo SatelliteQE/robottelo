@@ -58,7 +58,7 @@ class ScenarioSyncPlan(APITestCase):
         sync_plan_name = "Test_Sync_plan_Migration_{0}".format(gen_string('alpha'))
         sync_plan = entities.SyncPlan(
             organization=org,
-            name=self.sync_plan_name).create()
+            name=sync_plan_name).create()
         product = entities.Product(organization=org).create()
         entities.Repository(product=product).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
