@@ -20,7 +20,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2, upgrade
-from robottelo.manifests import upload_manifest_locked
+from robottelo.manifests import original_manifest, upload_manifest_locked
 
 
 @tier2
@@ -327,7 +327,6 @@ def test_positive_delete_with_manifest_lces(session):
         assert not session.organization.search(org.name)
 
 
-@skip_if_bug_open('bugzilla', 1651981)
 @skip_if_not_set('fake_manifest')
 @tier2
 @upgrade
@@ -345,9 +344,12 @@ def test_positive_download_debug_cert_after_refresh(session):
     :CaseImportance: Critical
     """
     org = entities.Organization().create()
-    upload_manifest_locked(org.id)
-    with session:
-        session.organization.select(org.name)
-        for _ in range(3):
-            assert org.download_debug_certificate()
-            session.subscription.refresh_manifest()
+    try:
+        upload_manifest_locked(org.id, original_manifest())
+        with session:
+            session.organization.select(org.name)
+            for _ in range(3):
+                assert org.download_debug_certificate()
+                session.subscription.refresh_manifest()
+    finally:
+        entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})
