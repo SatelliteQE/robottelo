@@ -25,8 +25,13 @@ def module_org():
     return entities.Organization().create()
 
 
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
 @tier2
-def test_positive_create_with_domain(session, module_org):
+def test_positive_create_with_domain(session, module_org, module_loc):
     """Create new subnet with domain in same organization
 
     :id: adbc7189-b451-49df-aa10-2ae732832dfe
@@ -36,7 +41,8 @@ def test_positive_create_with_domain(session, module_org):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    domain = entities.Domain(organization=[module_org]).create()
+    domain = entities.Domain(
+        organization=[module_org], location=[module_loc]).create()
     with session:
         session.subnet.create({
             'subnet.name': name,

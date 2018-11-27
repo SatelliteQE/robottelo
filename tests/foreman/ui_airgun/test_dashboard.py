@@ -56,7 +56,8 @@ def test_positive_host_configuration_status(session):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    host = entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    host = entities.Host(organization=org, location=loc).create()
     criteria_list = [
         'Hosts that had performed modifications without error',
         'Hosts in error state',
@@ -85,6 +86,7 @@ def test_positive_host_configuration_status(session):
 
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationStatus')
         for criteria in criteria_list:
             if criteria == 'Hosts with no reports':
@@ -127,9 +129,11 @@ def test_positive_host_configuration_chart(session):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    entities.Host(organization=org, location=loc).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
         assert dashboard_values['chart']['No report'] == '100%'
 
