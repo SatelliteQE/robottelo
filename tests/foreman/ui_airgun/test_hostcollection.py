@@ -49,6 +49,11 @@ def module_org():
 
 
 @fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
+@fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
 
@@ -172,7 +177,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
 
 
 @tier2
-def test_negative_install_via_remote_execution(session, module_org):
+def test_negative_install_via_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
 
@@ -187,7 +192,8 @@ def test_negative_install_via_remote_execution(session, module_org):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org).create())
+        hosts.append(entities.Host(
+            organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts],
         organization=module_org,
@@ -207,7 +213,7 @@ def test_negative_install_via_remote_execution(session, module_org):
 
 
 @tier2
-def test_negative_install_via_custom_remote_execution(session, module_org):
+def test_negative_install_via_custom_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
 
@@ -222,7 +228,8 @@ def test_negative_install_via_custom_remote_execution(session, module_org):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org).create())
+        hosts.append(entities.Host(
+            organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts],
         organization=module_org,
