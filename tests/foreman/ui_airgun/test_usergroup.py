@@ -26,7 +26,7 @@ from robottelo.decorators import (
 
 @tier2
 @upgrade
-def test_positive_delete_with_user(session, module_org):
+def test_positive_delete_with_user(session, module_org, module_loc):
     """Delete a Usergroup that contains a user
 
     :id: 2bda3db5-f54f-412f-831f-8e005631f271
@@ -42,6 +42,7 @@ def test_positive_delete_with_user(session, module_org):
         login=user_name,
         password=gen_string('alpha'),
         organization=[module_org],
+        location=[module_loc]
     ).create()
 
     with session:
