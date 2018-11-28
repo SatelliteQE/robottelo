@@ -77,9 +77,9 @@ class DiscoveredTestCase(CLITestCase):
         # Build PXE default template to get default PXE file
         Template.build_pxe_default()
         # let's just modify the timeouts to speed things up
-        ssh.command("sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g'"
+        ssh.command("sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
                     "/var/lib/tftpboot/pxelinux.cfg/default")
-        ssh.command("sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/'"
+        ssh.command("sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' "
                     "/var/lib/tftpboot/pxelinux.cfg/default")
 
         # Create Org and location
