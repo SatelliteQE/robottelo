@@ -308,13 +308,13 @@ def test_positive_host_collections(session):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    host = entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    host = entities.Host(organization=org, location=loc).create()
     host_collection = entities.HostCollection(
-        host=[host],
-        organization=org,
-    ).create()
+        host=[host], organization=org).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         values = session.dashboard.read('HostCollections')
         assert values['collections'][0]['Name'] == host_collection.name
         assert values['collections'][0]['Content Hosts'] == '1'
