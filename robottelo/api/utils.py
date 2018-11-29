@@ -62,6 +62,7 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
         payload['basearch'] = basearch
     if releasever is not None:
         payload['releasever'] = releasever
+    payload['product_id'] = product.id
     r_set.enable(data=payload)
     result = entities.Repository(name=repo).search(
         query={'organization_id': org_id})

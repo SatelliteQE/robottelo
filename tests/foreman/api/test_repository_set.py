@@ -53,8 +53,13 @@ class RepositorySetTestCase(APITestCase):
             name=REPOSET['rhva6'],
             product=product,
         ).search()[0]
-        reposet.enable(data={'basearch': 'x86_64', 'releasever': '6Server'})
-        repositories = reposet.available_repositories()['results']
+        data = {
+            'basearch': 'x86_64',
+            'releasever': '6Server',
+            'product_id': product.id
+        }
+        reposet.enable(data=data)
+        repositories = reposet.available_repositories(data=data)['results']
         self.assertTrue([
             repo['enabled']
             for repo
@@ -86,9 +91,14 @@ class RepositorySetTestCase(APITestCase):
             name=REPOSET['rhva6'],
             product=product,
         ).search()[0]
-        reposet.enable(data={'basearch': 'x86_64', 'releasever': '6Server'})
-        reposet.disable(data={'basearch': 'x86_64', 'releasever': '6Server'})
-        repositories = reposet.available_repositories()['results']
+        data = {
+            'basearch': 'x86_64',
+            'releasever': '6Server',
+            'product_id': product.id
+        }
+        reposet.enable(data=data)
+        reposet.disable(data=data)
+        repositories = reposet.available_repositories(data=data)['results']
         self.assertFalse([
             repo['enabled']
             for repo
