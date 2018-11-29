@@ -1136,19 +1136,6 @@ class UserWithCleanUpTestCase(CLITestCase):
         """
         self.assert_user_roles(self.stubbed_roles)
 
-    @tier2
-    @upgrade
-    def test_positive_update_all_roles(self):
-        """Update User with all roles
-
-        :id: fc520d70-36ff-4676-93c1-ca8ba6cd8efc
-
-        :expectedresults: User is updated
-
-        :CaseLevel: Integration
-        """
-        self.assert_user_roles(self.all_user_roles)
-
 
 class SshKeyInUserTestCase(CLITestCase):
     """Implements the SSH Key in User Tests"""
