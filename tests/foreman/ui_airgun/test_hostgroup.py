@@ -27,8 +27,13 @@ def module_org():
     return entities.Organization().create()
 
 
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
 @tier2
-def test_positive_end_to_end(session, module_org):
+def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for host group component
 
     :id: 537d95f2-fe32-4e06-a2cb-21c80fe8e2e2
@@ -45,7 +50,8 @@ def test_positive_end_to_end(session, module_org):
     architecture = entities.Architecture().create()
     os = entities.OperatingSystem(architecture=[architecture]).create()
     os_name = u'{0} {1}'.format(os.name, os.major)
-    domain = entities.Domain(organization=[module_org]).create()
+    domain = entities.Domain(
+        organization=[module_org], location=[module_loc]).create()
     with session:
         # Create host group with some data
         session.hostgroup.create({
