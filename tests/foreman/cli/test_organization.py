@@ -1531,6 +1531,7 @@ class OrganizationTestCase(CLITestCase):
     # Positive Delete
 
     @tier1
+    @run_in_one_thread
     @upgrade
     def test_positive_delete_by_id(self):
         """Delete an organization by ID
