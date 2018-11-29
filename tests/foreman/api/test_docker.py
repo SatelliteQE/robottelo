@@ -857,6 +857,7 @@ class DockerContentViewTestCase(APITestCase):
             self.assertEqual(len(comp_cvv.read().environment), i + 1)
 
     @tier2
+    @upgrade
     @run_only_on('sat')
     def test_positive_name_pattern_change(self):
         """Promote content view with Docker repository to lifecycle environment.
