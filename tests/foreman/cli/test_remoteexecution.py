@@ -934,31 +934,55 @@ class AnsibleREXTestCase(CLITestCase):
     """Test class for remote execution via Ansible"""
 
     @classmethod
-    @skip_if_not_set('clients')
+    @skip_if_not_set('clients', 'fake_manifest', 'vlan_networking')
     def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key
+        """
         super(AnsibleREXTestCase, cls).setUpClass()
-        cls.sat6_hostname = settings.server.hostname
-        # register and setup a host here and tests will share the host, step 0.
-        cls.org = make_org()
-        cls.client = VirtualMachine(distro=DISTRO_RHEL7)
-        cls.client.create()
-        cls.client.install_katello_ca()
-        cls.client.register_contenthost(
-            org=cls.org['label'],
+        cls.org = entities.Organization().create()
+        ssh.command(
+            '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
+        )
+        # create subnet for current org, default loc and domain
+        # add rex proxy to subnet, default is internal proxy (id 1)
+        # using API due BZ#1370460
+        cls.sn = entities.Subnet(
+            domain=[1],
+            gateway=settings.vlan_networking.gateway,
+            ipam='DHCP',
+            location=[DEFAULT_LOC_ID],
+            mask=settings.vlan_networking.netmask,
+            network=settings.vlan_networking.subnet,
+            organization=[cls.org.id],
+            remote_execution_proxy=[entities.SmartProxy(id=1)],
+        ).create()
+        # needed to work around BZ#1656480
+        ssh.command('''sed -i '/ProxyCommand/s/^/#/g' /etc/ssh/ssh_config''')
+
+    def setUp(self):
+        """Create VM, install katello-ca, register it, add remote execution key
+        """
+        super(AnsibleREXTestCase, self).setUp()
+        # Create VM and register content host
+        self.client = VirtualMachine(
+            distro=DISTRO_RHEL7,
+            provisioning_server=settings.compute_resources.libvirt_hostname,
+            bridge=settings.vlan_networking.bridge)
+        self.addCleanup(vm_cleanup, self.client)
+        self.client.create()
+        self.client.install_katello_ca()
+        # Register content host
+        self.client.register_contenthost(
+            org=self.org.label,
             lce='Library'
         )
-        cls.assertTrue(cls.client.subscribed, True)
-        Host.set_parameter({
-            'host': cls.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
+        self.assertTrue(self.client.subscribed)
+        add_remote_execution_ssh_key(self.client.ip_addr)
+        # add host to subnet
+        Host.update({
+            'name': self.client.hostname,
+            'subnet-id': self.sn.id,
         })
-        add_remote_execution_ssh_key(cls.client.ip_addr)
-
-    @classmethod
-    def tearDownClass(cls):
-        super(AnsibleREXTestCase, cls).tearDownClass()
-        cls.client.destroy()
 
     @tier3
     @upgrade
@@ -981,6 +1005,12 @@ class AnsibleREXTestCase(CLITestCase):
 
         :CaseLevel: System
         """
+        # set connecting to host via ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - Ansible Default',
             'inputs': 'command="ls"',
