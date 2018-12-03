@@ -1180,6 +1180,339 @@
       ]
     },
     {
+      "description": "Manage foreman ansible",
+      "name": "ansible",
+      "options": [
+        {
+          "help": "Print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Manage ansible roles",
+          "name": "roles",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Deletes Ansible role",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Import Ansible roles",
+              "name": "import",
+              "options": [
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Capsule to import from",
+                  "name": "proxy-id",
+                  "shortname": null,
+                  "value": "PROXY_ID"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show role",
+              "name": "info",
+              "options": [
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List Ansible roles",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Sort results",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Paginate results",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of entries per request",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Filter results",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Obsolete Ansible roles",
+              "name": "obsolete",
+              "options": [
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Capsule to import from",
+                  "name": "proxy-id",
+                  "shortname": null,
+                  "value": "PROXY_ID"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "description": "Manipulate architectures",
       "name": "architecture",
       "options": [
@@ -4123,7 +4456,7 @@
               "value": "PROVIDER"
             },
             {
-              "help": "For EC2 only",
+              "help": "For EC2 only, use 'us-gov-west-1' for GovCloud region",
               "name": "region",
               "shortname": null,
               "value": "REGION"
@@ -5180,7 +5513,7 @@
               "value": "PROVIDER"
             },
             {
-              "help": "For EC2 only",
+              "help": "For EC2 only, use 'us-gov-west-1' for GovCloud region",
               "name": "region",
               "shortname": null,
               "value": "REGION"
@@ -8798,211 +9131,1752 @@
         {
           "description": "Import or export activation keys",
           "name": "activation-keys",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Export one subscription per row, only process update subscriptions on import",
+              "name": "itemized-subscriptions",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export architectures",
           "name": "architectures",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export compute profiles",
           "name": "compute-profiles",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export compute resources",
           "name": "compute-resources",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export containers",
           "name": "containers",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export content hosts",
           "name": "content-hosts",
-          "options": [],
+          "options": [
+            {
+              "help": "When processing --itemized-subscriptions, clear existing subscriptions first",
+              "name": "clear-subscriptions",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Comma separated list of column names to export",
+              "name": "columns",
+              "shortname": null,
+              "value": "COLUMN_NAMES"
+            },
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Export one subscription per row, only process update subscriptions on import",
+              "name": "itemized-subscriptions",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export content-view-filters",
           "name": "content-view-filters",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export content-views",
           "name": "content-views",
-          "options": [],
+          "options": [
+            {
+              "help": "Publish and promote content view on import (default false)",
+              "name": "promote",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Publish content view on import (default false)",
+              "name": "publish",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export domains",
           "name": "domains",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Export into directory",
           "name": "export",
-          "options": [],
+          "options": [
+            {
+              "help": "Directory to export to",
+              "name": "dir",
+              "shortname": null,
+              "value": "DIRECTORY"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Csv file for settings",
+              "name": "settings",
+              "shortname": null,
+              "value": "FILE"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export host collections",
           "name": "host-collections",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export host-groups",
           "name": "host-groups",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export hosts",
           "name": "hosts",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import by directory",
           "name": "import",
-          "options": [],
+          "options": [
+            {
+              "help": "Directory to import from",
+              "name": "dir",
+              "shortname": null,
+              "value": "DIRECTORY"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Csv file for settings",
+              "name": "settings",
+              "shortname": null,
+              "value": "FILE"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export media",
           "name": "installation-media",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export job templates",
           "name": "job-templates",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export lifecycle environments",
           "name": "lifecycle-environments",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export locations",
           "name": "locations",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export operating systems",
           "name": "operating-systems",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export organizations",
           "name": "organizations",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export partition tables",
           "name": "partition-tables",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export products",
           "name": "products",
-          "options": [],
+          "options": [
+            {
+              "help": "Sync product repositories (default true) Default: true",
+              "name": "sync",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export provisioning templates",
           "name": "provisioning-templates",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Include locked templates (will fail if re-imported)",
+              "name": "include-locked",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export puppet environments",
           "name": "puppet-environments",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export puppet facts",
           "name": "puppet-facts",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export puppet reports",
           "name": "puppet-reports",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export reports",
           "name": "reports",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export roles",
           "name": "roles",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export settings",
           "name": "settings",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export smart proxies",
           "name": "smart-proxies",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import Satellite-5 splice data",
           "name": "splice",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Directory of Splice exported CSV files (default pwd)",
+              "name": "dir",
+              "shortname": null,
+              "value": "DIR"
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Directory of Splice product mapping files (default /usr/share/rhsm/product/RHEL-6)",
+              "name": "mapping-dir",
+              "shortname": null,
+              "value": "DIR"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export subnets",
           "name": "subnets",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export subscriptions",
           "name": "subscriptions",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export repository sync plans",
           "name": "sync-plans",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         },
         {
           "description": "Import or export users",
           "name": "users",
-          "options": [],
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
           "subcommands": []
         }
       ]
@@ -10401,8 +12275,1613 @@
     {
       "description": "Manipulate docker content",
       "name": "docker",
-      "options": [],
-      "subcommands": []
+      "options": [
+        {
+          "help": "Print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Manage docker containers",
+          "name": "container",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Create a container",
+              "name": "create",
+              "options": [
+                {
+                  "help": "One of true/false, yes/no, 1/0",
+                  "name": "attach-stderr",
+                  "shortname": null,
+                  "value": "ATTACH_STDERR"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0",
+                  "name": "attach-stdin",
+                  "shortname": null,
+                  "value": "ATTACH_STDIN"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0",
+                  "name": "attach-stdout",
+                  "shortname": null,
+                  "value": "ATTACH_STDOUT"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "capsule",
+                  "shortname": null,
+                  "value": "CAPSULE_NAME"
+                },
+                {
+                  "help": "Id of the capsule",
+                  "name": "capsule-id",
+                  "shortname": null,
+                  "value": "CAPSULE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "command",
+                  "shortname": null,
+                  "value": "COMMAND"
+                },
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "cpu-set",
+                  "shortname": null,
+                  "value": "CPU_SET"
+                },
+                {
+                  "help": "",
+                  "name": "cpu-shares",
+                  "shortname": null,
+                  "value": "CPU_SHARES"
+                },
+                {
+                  "help": "",
+                  "name": "entrypoint",
+                  "shortname": null,
+                  "value": "ENTRYPOINT"
+                },
+                {
+                  "help": "Optional array of environment variables hashes. e.g. 'environment_variables': [{'name' => 'example', 'value' => '123'}] Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "environment-variables",
+                  "shortname": null,
+                  "value": "ENVIRONMENT_VARIABLES"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "REPLACE locations with given ids Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "location-titles",
+                  "shortname": null,
+                  "value": "LOCATION_TITLES"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
+                  "help": "",
+                  "name": "memory",
+                  "shortname": null,
+                  "value": "MEMORY"
+                },
+                {
+                  "help": "",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "REPLACE organizations with given ids. Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organization-titles",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLES"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "registry",
+                  "shortname": null,
+                  "value": "REGISTRY_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "registry-id",
+                  "shortname": null,
+                  "value": "REGISTRY_ID"
+                },
+                {
+                  "help": "Name of the repository to use to create the container. e.g. centos",
+                  "name": "repository-name",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "Tag to use to create the container. e.g. latest",
+                  "name": "tag",
+                  "shortname": null,
+                  "value": "TAG"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0",
+                  "name": "tty",
+                  "shortname": null,
+                  "value": "TTY"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Delete a container",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show a container",
+              "name": "info",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List all containers",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Sort results",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Paginate results",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of entries per request",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Filter results",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show container logs",
+              "name": "logs",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0",
+                  "name": "stderr",
+                  "shortname": null,
+                  "value": "STDERR"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0",
+                  "name": "stdout",
+                  "shortname": null,
+                  "value": "STDOUT"
+                },
+                {
+                  "help": "Number of lines to tail. Default: 100",
+                  "name": "tail",
+                  "shortname": null,
+                  "value": "TAIL"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Power a container on",
+              "name": "start",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Run power operation on a container",
+              "name": "status",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Power a container off",
+              "name": "stop",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "description": "Manage docker manifests",
+          "name": "manifest",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Show a docker manifest",
+              "name": "info",
+              "options": [
+                {
+                  "help": "A docker manifest identifier",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "Repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List docker_manifests",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Field to sort the results on",
+                  "name": "by",
+                  "shortname": null,
+                  "value": "BY"
+                },
+                {
+                  "help": "Content view name to search by",
+                  "name": "content-view",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_NAME"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "content-view-filter",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_NAME"
+                },
+                {
+                  "help": "Filter identifier",
+                  "name": "content-view-filter-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_ID"
+                },
+                {
+                  "help": "Content view numeric identifier",
+                  "name": "content-view-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_ID"
+                },
+                {
+                  "help": "Content view version number",
+                  "name": "content-view-version",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_VERSION"
+                },
+                {
+                  "help": "Content view version identifier",
+                  "name": "content-view-version-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_ID"
+                },
+                {
+                  "help": "Environment name",
+                  "name": "environment",
+                  "shortname": null,
+                  "value": "ENVIRONMENT_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "environment-id",
+                  "shortname": null,
+                  "value": "ENVIRONMENT_ID"
+                },
+                {
+                  "help": "Whether or not to show all results One of true/false, yes/no, 1/0",
+                  "name": "full-result",
+                  "shortname": null,
+                  "value": "FULL_RESULT"
+                },
+                {
+                  "help": "Ids to filter content by Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "ids",
+                  "shortname": null,
+                  "value": "IDS"
+                },
+                {
+                  "help": "Sort field and order, eg. 'name DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Product name to search by",
+                  "name": "product",
+                  "shortname": null,
+                  "value": "PRODUCT_NAME"
+                },
+                {
+                  "help": "Product numeric identifier",
+                  "name": "product-id",
+                  "shortname": null,
+                  "value": "PRODUCT_ID"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "Repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "description": "Manage docker registries",
+          "name": "registry",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Create a docker registry",
+              "name": "create",
+              "options": [
+                {
+                  "help": "",
+                  "name": "description",
+                  "shortname": null,
+                  "value": "DESCRIPTION"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "REPLACE locations with given ids Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "location-titles",
+                  "shortname": null,
+                  "value": "LOCATION_TITLES"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
+                  "help": "",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "REPLACE organizations with given ids. Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organization-titles",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLES"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
+                },
+                {
+                  "help": "",
+                  "name": "password",
+                  "shortname": null,
+                  "value": "PASSWORD"
+                },
+                {
+                  "help": "",
+                  "name": "url",
+                  "shortname": null,
+                  "value": "URL"
+                },
+                {
+                  "help": "",
+                  "name": "username",
+                  "shortname": null,
+                  "value": "USERNAME"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Delete a docker registry",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show a docker registry",
+              "name": "info",
+              "options": [
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List all docker registries",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Sort results",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Paginate results",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of entries per request",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Filter results",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Update a docker registry",
+              "name": "update",
+              "options": [
+                {
+                  "help": "",
+                  "name": "description",
+                  "shortname": null,
+                  "value": "DESCRIPTION"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
+                  "help": "REPLACE locations with given ids Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Location title",
+                  "name": "location-title",
+                  "shortname": null,
+                  "value": "LOCATION_TITLE"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "location-titles",
+                  "shortname": null,
+                  "value": "LOCATION_TITLES"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "",
+                  "name": "new-name",
+                  "shortname": null,
+                  "value": "NEW_NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "REPLACE organizations with given ids. Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Organization title",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLE"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organization-titles",
+                  "shortname": null,
+                  "value": "ORGANIZATION_TITLES"
+                },
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
+                },
+                {
+                  "help": "",
+                  "name": "password",
+                  "shortname": null,
+                  "value": "PASSWORD"
+                },
+                {
+                  "help": "",
+                  "name": "url",
+                  "shortname": null,
+                  "value": "URL"
+                },
+                {
+                  "help": "",
+                  "name": "username",
+                  "shortname": null,
+                  "value": "USERNAME"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "description": "Manage docker tags",
+          "name": "tag",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Show a docker tag",
+              "name": "info",
+              "options": [
+                {
+                  "help": "A docker tag identifier",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "Repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List docker_tags",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Field to sort the results on",
+                  "name": "by",
+                  "shortname": null,
+                  "value": "BY"
+                },
+                {
+                  "help": "Content view name to search by",
+                  "name": "content-view",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_NAME"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "content-view-filter",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_NAME"
+                },
+                {
+                  "help": "Filter identifier",
+                  "name": "content-view-filter-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_ID"
+                },
+                {
+                  "help": "Content view numeric identifier",
+                  "name": "content-view-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_ID"
+                },
+                {
+                  "help": "Content view version number",
+                  "name": "content-view-version",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_VERSION"
+                },
+                {
+                  "help": "Content view version identifier",
+                  "name": "content-view-version-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_ID"
+                },
+                {
+                  "help": "Environment name",
+                  "name": "environment",
+                  "shortname": null,
+                  "value": "ENVIRONMENT_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "environment-id",
+                  "shortname": null,
+                  "value": "ENVIRONMENT_ID"
+                },
+                {
+                  "help": "Whether or not to show all results One of true/false, yes/no, 1/0",
+                  "name": "full-result",
+                  "shortname": null,
+                  "value": "FULL_RESULT"
+                },
+                {
+                  "help": "Ids to filter content by Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+                  "name": "ids",
+                  "shortname": null,
+                  "value": "IDS"
+                },
+                {
+                  "help": "Sort field and order, eg. 'name DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Product name to search by",
+                  "name": "product",
+                  "shortname": null,
+                  "value": "PRODUCT_NAME"
+                },
+                {
+                  "help": "Product numeric identifier",
+                  "name": "product-id",
+                  "shortname": null,
+                  "value": "PRODUCT_ID"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "Repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        }
+      ]
     },
     {
       "description": "Manipulate domains",
@@ -13269,7 +16748,32 @@
         {
           "description": "Set a global parameter",
           "name": "set",
-          "options": [],
+          "options": [
+            {
+              "help": "Should the value be hidden One of true/false, yes/no, 1/0",
+              "name": "hidden-value",
+              "shortname": null,
+              "value": "HIDDEN_VALUE"
+            },
+            {
+              "help": "Parameter name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "Parameter value",
+              "name": "value",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
           "subcommands": []
         }
       ]
@@ -13558,6 +17062,19 @@
       ],
       "subcommands": [
         {
+          "description": "",
+          "name": "ansible-roles",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Create a host",
           "name": "create",
           "options": [
@@ -13598,7 +17115,7 @@
               "value": "AUTOHEAL"
             },
             {
-              "help": "One of true/false, yes/no, 1/0 Default: \"true\"",
+              "help": "One of true/false, yes/no, 1/0",
               "name": "build",
               "shortname": null,
               "value": "BUILD"
@@ -13688,7 +17205,7 @@
               "value": "DOMAIN_ID"
             },
             {
-              "help": "One of true/false, yes/no, 1/0 Default: \"true\"",
+              "help": "Include this host within Satellite reporting One of true/false, yes/no, 1/0",
               "name": "enabled",
               "shortname": null,
               "value": "ENABLED"
@@ -18183,6 +21700,19 @@
       ],
       "subcommands": [
         {
+          "description": "",
+          "name": "ansible-roles",
+          "options": [
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Create a host group",
           "name": "create",
           "options": [
@@ -19702,6 +23232,43 @@
       ],
       "subcommands": [
         {
+          "description": "Cancel the job",
+          "name": "cancel",
+          "options": [
+            {
+              "help": "One of true/false, yes/no, 1/0",
+              "name": "force",
+              "shortname": null,
+              "value": "FORCE"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Scope by locations",
+              "name": "location-id",
+              "shortname": null,
+              "value": "LOCATION_ID"
+            },
+            {
+              "help": "Scope by organizations",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Create a job invocation",
           "name": "create",
           "options": [
@@ -20043,6 +23610,43 @@
               "name": "organization-title",
               "shortname": null,
               "value": "ORGANIZATION_TITLE"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Rerun the job",
+          "name": "rerun",
+          "options": [
+            {
+              "help": "One of true/false, yes/no, 1/0",
+              "name": "failed-only",
+              "shortname": null,
+              "value": "FAILED_ONLY"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Scope by locations",
+              "name": "location-id",
+              "shortname": null,
+              "value": "LOCATION_ID"
+            },
+            {
+              "help": "Scope by organizations",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
             },
             {
               "help": "Print help",
@@ -32195,13 +35799,13 @@
               "value": "DEB_RELEASES"
             },
             {
-              "help": "Docker manifest digest",
+              "help": "Container Image manifest digest",
               "name": "docker-digest",
               "shortname": null,
               "value": "DIGEST"
             },
             {
-              "help": "Docker tag",
+              "help": "Container Image tag",
               "name": "docker-tag",
               "shortname": null,
               "value": "TAG"
@@ -32765,6 +36369,12 @@
               "name": "search",
               "shortname": null,
               "value": "SEARCH"
+            },
+            {
+              "help": "If true, only return repository sets that are associated with an active Subscriptions One of true/false, yes/no, 1/0",
+              "name": "with-active-subscription",
+              "shortname": null,
+              "value": "WITH_ACTIVE_SUBSCRIPTION"
             },
             {
               "help": "Print help",
