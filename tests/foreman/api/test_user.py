@@ -508,12 +508,11 @@ class SshKeyInUserTestCase(APITestCase):
             'Fingerprint could not be generated'
         )
 
-
     @tier1
     def test_negative_create_ssh_key_with_invalid_name(self):
         """Attempt to add SSH key that has invalid name length
 
-        :id: e1e17839-a392-45bb-bb1e-28d3cd9dba1c 
+        :id: e1e17839-a392-45bb-bb1e-28d3cd9dba1c
 
         :steps:
 
@@ -524,15 +523,15 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        invalid_ssh_key_name = invalid_names_list()
+        invalid_ssh_key_name = gen_string('alpha', length=300)
         with self.assertRaises(HTTPError) as context:
             entities.SSHKey(
                 user=self.user,
-                name=invalid_ssh_key_name[0],
+                name=invalid_ssh_key_name,
                 key=self.gen_ssh_rsakey()
             ).create()
         self.assertRegexpMatches(
-            context.exception.response.text, 
+            context.exception.response.text,
             "Name is too long")
 
     @tier1
