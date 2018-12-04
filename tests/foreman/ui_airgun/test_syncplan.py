@@ -30,6 +30,7 @@ from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
+    skip_if_bug_open,
     tier2,
     tier3,
     upgrade,
@@ -216,6 +217,7 @@ def test_positive_synchronize_custom_product_past_sync_date(
 
 
 @tier3
+@skip_if_bug_open('bugzilla', 1655595)
 def test_positive_synchronize_custom_product_future_sync_date(
         session, module_org):
     """Create a sync plan with sync date in a future and sync one custom
@@ -264,6 +266,7 @@ def test_positive_synchronize_custom_product_future_sync_date(
 
 
 @tier3
+@skip_if_bug_open('bugzilla', 1655595)
 def test_positive_synchronize_custom_products_future_sync_date(
         session, module_org):
     """Create a sync plan with sync date in a future and sync multiple
@@ -321,6 +324,7 @@ def test_positive_synchronize_custom_products_future_sync_date(
 
 @tier3
 @upgrade
+@skip_if_bug_open('bugzilla', 1655595)
 def test_positive_synchronize_rh_product_future_sync_date(session):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
