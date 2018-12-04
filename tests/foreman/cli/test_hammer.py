@@ -22,6 +22,7 @@ from robottelo.cli import hammer
 from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
+from robozilla.decorators import bz_bug_is_open
 from six import StringIO
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
@@ -115,6 +116,12 @@ class HammerCommandsTestCase(CLITestCase):
                     subcommand['name']
                     for subcommand in expected['subcommands']
                 ])
+
+            # Below code is added as workaround for Bug 1655513 on Sat 6.4 release
+            # This will neglect null entry added for hammer ansible roles command
+            if bz_bug_is_open(1655513) and 'hammer ansible roles ' in command and 'help' in (
+                    command_options - expected_options):
+                expected_options.add("help")
 
             added_options = tuple(command_options - expected_options)
             removed_options = tuple(expected_options - command_options)
