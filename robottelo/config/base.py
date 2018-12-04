@@ -357,19 +357,22 @@ class DistroSettings(FeatureSettings):
         super(DistroSettings, self).__init__(*args, **kwargs)
         self.image_el6 = None
         self.image_el7 = None
+        self.image_sles11 = None
+        self.image_sles12 = None
 
     def read(self, reader):
         """Read distro settings."""
         self.image_el6 = reader.get('distro', 'image_el6')
         self.image_el7 = reader.get('distro', 'image_el7')
+        self.image_sles11 = reader.get('distro', 'image_sles11')
+        self.image_sles12 = reader.get('distro', 'image_sles12')
 
     def validate(self):
         """Validate distro settings."""
         validation_errors = []
-        if not all((self.image_el6, self.image_el7)):
-            validation_errors.append(
-                'Both [distro] image_el6 and image_el7 '
-                'options must be provided.')
+        if not all(self.__dict__.values()):
+            validation_errors.append('All [distro] %s options must be provided.'
+                                     % list(self.__dict__.keys()))
         return validation_errors
 
 
