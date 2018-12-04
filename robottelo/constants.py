@@ -250,6 +250,7 @@ PRDS = {
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
     'rhscl': 'Red Hat Software Collections for RHEL Server',
+    'rhae': 'Red Hat Ansible Engine',
 }
 
 REPOSET = {
@@ -269,6 +270,7 @@ REPOSET = {
               ' Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                ' Linux 7 Server'),
+    'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
 }
 
 REPOS = {
@@ -393,6 +395,16 @@ REPOS = {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                  ' Linux 7 Server x86_64 7Server'),
+    },
+    'rhae2': {
+        'id': 'rhel-7-server-ansible-2.7-rpms',
+        'name': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server x86_64',
+        'version': '2.7',
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhae2'],
+        'product': PRDS['rhae'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhae2',
     },
 }
 
