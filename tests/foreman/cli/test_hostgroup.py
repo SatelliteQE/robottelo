@@ -568,32 +568,32 @@ class HostGroupTestCase(CLITestCase):
         self.assertIn(org['id'], hostgroup['organizations'][0]['id'])
         self.assertIn(loc['id'], hostgroup['locations'][0]['id'])
         self.assertEqual(
-            env['id'], hostgroup['puppet-environment']['environment_id'])
+            env['id'], hostgroup['puppet-environment']['id'])
         self.assertEqual(
             proxy['id'],
-            hostgroup['puppet-master-proxy']['puppet_proxy_id']
+            hostgroup['puppet-master-proxy']['id']
         )
         self.assertEqual(
             proxy['id'],
-            hostgroup['puppet-master-proxy']['puppet_ca_proxy_id']
+            hostgroup['puppet-ca-proxy']['id']
         )
         self.assertEqual(
             domain['id'],
-            hostgroup['network']['domain']['domain_id']
+            hostgroup['network']['domain']['id']
         )
         self.assertEqual(
                 subnet['id'],
-                hostgroup['network']['domain']['subnet_id'])
+                hostgroup['network']['subnet-ipv4']['id'])
         self.assertEqual(
-            arch['id'], hostgroup['network']['domain']['architecture_id'])
+            arch['id'], hostgroup['operating-system']['architecture']['id'])
         self.assertEqual(
-            ptable['id'], hostgroup['network']['domain']['ptable_id'])
+            ptable['id'], hostgroup['operating-system']['partition-table']['id'])
         self.assertEqual(
             media['id'],
-            hostgroup['network']['domain']['medium_id']
+            hostgroup['operating-system']['medium']['id']
         )
         self.assertEqual(
-            os['id'], hostgroup['network']['domain']['operatingsystem_id'])
+            os['id'], hostgroup['operating-system']['operating-system']['id'])
 
     @skip_if_bug_open('bugzilla', 1354568)
     @run_only_on('sat')
