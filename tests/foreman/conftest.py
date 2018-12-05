@@ -8,8 +8,8 @@ try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
+from time import time
 from nailgun import entities
-
 from robottelo.cleanup import EntitiesCleaner
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
@@ -47,6 +47,8 @@ def pytest_report_header(config):
             scope = ''
         storage = settings.shared_function.storage
 
+    junit = getattr(config, "_xml", None)
+    junit.add_global_property("start_time", int(time() * 1000))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
             shared_function_enabled, scope, storage))
@@ -186,3 +188,8 @@ def pytest_collection_modifyitems(items, config):
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
+
+
+@pytest.fixture(autouse=True, scope="function")
+def record_test_timestamp_xml(record_property):
+    record_property("start_time", int(time() * 1000))
