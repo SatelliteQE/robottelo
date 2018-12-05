@@ -2630,6 +2630,10 @@ def make_lifecycle_environment(options=None):
                                     the new environment in the chain. It has to
                                     be either ‘Library’ or an environment at
                                     the end of a chain.
+        --registry-name-pattern REGISTRY_NAME_PATTERN    Pattern for container
+                                    image names
+        --registry-unauthenticated-pull REGISTRY_UNAUTHENTICATED_PULL Allow
+                                    unauthenticed pull of container images
         -h, --help                  print help
 
     """
@@ -2653,6 +2657,8 @@ def make_lifecycle_environment(options=None):
         u'organization-id': None,
         u'organization-label': None,
         u'prior': None,
+        u'registry-name-pattern': None,
+        u'registry-unauthenticated-pull': None,
     }
 
     return create_object(LifecycleEnvironment, args, options)
