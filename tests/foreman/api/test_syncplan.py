@@ -769,6 +769,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             repo, ['erratum', 'package', 'package_group'])
 
     @tier4
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -819,6 +820,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -944,6 +946,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @run_in_one_thread
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.

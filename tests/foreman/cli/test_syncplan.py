@@ -41,6 +41,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
+    skip_if_bug_open,
     tier1,
     tier3,
     tier4,
@@ -511,6 +512,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -564,6 +566,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -704,6 +707,7 @@ class SyncPlanTestCase(CLITestCase):
     @run_in_one_thread
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
