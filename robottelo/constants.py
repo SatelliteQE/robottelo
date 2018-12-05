@@ -542,6 +542,12 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
+CUSTOM_MODULE_STREAM_REPO_1 = (
+    u'https://dl.fedoraproject.org/pub/fedora/linux/updates/28/Modular/x86_64/'
+)
+CUSTOM_MODULE_STREAM_REPO_2 = (
+    u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
+)
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
 FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
 FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'

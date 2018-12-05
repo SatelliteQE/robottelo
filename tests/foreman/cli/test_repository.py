@@ -21,6 +21,7 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
+from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.file import File
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
@@ -47,6 +48,8 @@ from robottelo.constants import (
     CUSTOM_FILE_REPO,
     CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
+    CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
@@ -1788,6 +1791,148 @@ class RepositoryTestCase(CLITestCase):
         self.assertIn(
             "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD),
             result[0]['message'],
+        )
+
+    @tier1
+    def test_positive_create_get_update_delete_module_streams(self):
+        """Check module-stream get for each create, get, update, delete.
+
+        :id: e9001f76-9bc7-42a7-b8c9-2dccd5bf0b1f2f2e70b8-e446-4a28-9bae-fc870c80e83e
+
+        :Setup:
+            1. valid yum repo with Module Streams.
+        :Steps:
+            1. Create Yum Repository with url contain module-streams
+            2. Initialize synchronization
+            3. Another Repository with same Url
+            4. Module-Stream Get
+            5. Update the Module-Stream
+            6. Module-Stream Get
+            7. Delete Module-Stream
+            8. Module-Stream Get
+
+        :expectedresults: yum repository with modules is synced,
+         shows correct count and details with create, update, delete and
+         even duplicate repositories.
+
+        :CaseAutomation: automated
+        """
+        org = make_org()
+        # Create a product
+        product = make_product(
+            {'organization-id': org['id']})
+        repo = make_repository({
+            'product-id': product['id'],
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['module-streams'], '7',
+                         'Module Streams not synced correctly')
+
+        # adding repo with same yum url should not change count.
+        duplicate_repo = make_repository({
+            'product-id': product['id'],
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+        })
+        Repository.synchronize({'id': duplicate_repo['id']})
+
+        module_streams = ModuleStream.list({'organization-id': org['id']})
+        self.assertEqual(len(module_streams), 7,
+                         'Module Streams get worked correctly')
+        Repository.update({
+            'product-id': product['id'],
+            u'id': repo['id'],
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['module-streams'], '7',
+                         'Module Streams not synced correctly')
+
+        Repository.delete({'id': repo['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'id': repo['id']})
+
+    @tier1
+    def test_module_stream_list_validation(self):
+        """Check module-stream get with list on hammer.
+
+         :id: 9842a0c3-8532-4b16-a00a-534fc3b0a776ff89f23e-cd00-4d20-84d3-add0ea24abf8
+
+         :Setup:
+             1. valid yum repo with Module Streams.
+         :Steps:
+             1. Create Yum Repositories with url contain module-streams and Products
+             2. Initialize synchronization
+             3. Verify the module-stream list with various inputs options
+
+         :expectedresults: Verify the module-stream list response.
+
+         :CaseAutomation: automated
+         """
+        repo1 = self._make_repository({
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_1,
+        })
+        Repository.synchronize({'id': repo1['id']})
+        product2 = make_product_wait(
+            {u'organization-id': self.org['id']},
+        )
+        repo2 = self._make_repository({
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+            u'product-id': product2['id']
+        })
+        Repository.synchronize({'id': repo2['id']})
+        module_streams = ModuleStream.list()
+        self.assertGreater(len(module_streams), 11,
+                           'Module Streams get worked correctly')
+        module_streams = ModuleStream.list({'product-id': product2['id']})
+        self.assertEqual(len(module_streams), 7,
+                         'Module Streams get worked correctly')
+
+    @tier1
+    def test_module_stream_info_validation(self):
+        """Check module-stream get with info on hammer.
+
+         :id: ddbeb49e-d292-4dc4-8fb9-e9b768acc441a2c2e797-02b7-4b12-9f95-cffc93254198
+
+         :Setup:
+             1. valid yum repo with Module Streams.
+         :Steps:
+             1. Create Yum Repositories with url contain module-streams
+             2. Initialize synchronization
+             3. Verify the module-stream info with various inputs options
+
+         :expectedresults: Verify the module-stream info response.
+
+         :CaseAutomation: automated
+         """
+        product2 = make_product_wait(
+            {u'organization-id': self.org['id']},
+        )
+        repo2 = self._make_repository({
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+            u'product-id': product2['id']
+        })
+        Repository.synchronize({'id': repo2['id']})
+        module_streams = ModuleStream.list({
+            'repository-id': repo2['id'],
+            'search': 'name="walrus" and stream="5.21"'
+        })
+        actual_result = ModuleStream.info({u'id': module_streams[0]['id']})
+        expected_result = {
+            'module-stream-name': 'walrus',
+            'stream': '5.21',
+            'architecture': 'x86_64',
+         }
+        self.assertEqual(
+            expected_result,
+            {key: value for key, value in actual_result.items() if key in expected_result}
         )
 
 
