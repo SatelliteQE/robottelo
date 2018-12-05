@@ -285,6 +285,67 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    def test_positive_update_registry_name_pattern(self):
+        """Create lifecycle environment and then update registry name pattern
+
+        :id: 131aaed7-d74f-4c9a-be7e-04226d48e64a
+
+        :expectedresults: Lifecycle environment registry name pattern is updated
+
+
+        :CaseImportance: Critical
+        """
+        lce = make_lifecycle_environment({
+            'organization-id': self.org['id'],
+        })
+        registry_name_pattern = ("{}-<%= organization.label %>"
+                                 "/<%= repository.docker_upstream_name %>").format(
+                                     gen_string('alpha', 5))
+
+        LifecycleEnvironment.update({
+            'registry-name-pattern': registry_name_pattern,
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        result = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertGreater(len(result), 0)
+        self.assertEqual(result['registry-name-pattern'], registry_name_pattern)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_unauthenticated_pull(self):
+        """Create lifecycle environment and then update registry's
+        unauthenticated pull
+
+        :id: 8b73e0b7-30c9-4211-87a4-53dc0b0f3e21
+
+        :expectedresults: Lifecycle environment registry's unauthenticated pull
+            is updated
+
+
+        :CaseImportance: Critical
+        """
+        lce = make_lifecycle_environment({
+            'organization-id': self.org['id'],
+        })
+
+        LifecycleEnvironment.update({
+            'registry-unauthenticated-pull': 'true',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        result = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertGreater(len(result), 0)
+        self.assertEqual(result['unauthenticated-pull'], 'true')
+
+    @run_only_on('sat')
+    @tier1
     def test_positve_list_paths(self):
         """List the environment paths under a given organization
 

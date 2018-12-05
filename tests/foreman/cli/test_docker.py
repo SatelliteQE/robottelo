@@ -37,6 +37,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
@@ -1005,6 +1006,333 @@ class DockerContentViewTestCase(CLITestCase):
                 'id': comp_content_view['versions'][0]['id'],
             })
             self.assertEqual(len(cvv['lifecycle-environments']), i+1)
+
+    @tier2
+    @upgrade
+    @run_only_on('sat')
+    def test_positive_name_pattern_change(self):
+        """Promote content view with Docker repository to lifecycle environment.
+        Change registry name pattern for that environment. Verify that repository
+        name on product changed according to new pattern.
+
+        :id: 63c99ae7-238b-40ed-8cc1-d847eb4e6d65
+
+        :expectedresults: Container repository name is changed
+            according to new pattern.
+
+        :CaseLevel: Integration
+        """
+        pattern_prefix = gen_string('alpha', 5)
+        docker_upstream_name = 'hello-world'
+        new_pattern = ("{}-<%= content_view.label %>"
+                       + "/<%= repository.docker_upstream_name %>").format(
+                pattern_prefix)
+
+        repo = _make_docker_repo(
+                make_product_wait({'organization-id': self.org_id})['id'],
+                upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        LifecycleEnvironment.update({
+            'registry-name-pattern': new_pattern,
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        lce = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}-{}/{}".format(pattern_prefix,
+                                             content_view['label'],
+                                             docker_upstream_name).lower()
+        self.assertEqual(lce['registry-name-pattern'], new_pattern)
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_product_name_change_after_promotion(self):
+        """Promote content view with Docker repository to lifecycle environment.
+        Change product name. Verify that repository name on product changed
+        according to new pattern.
+
+        :id: 92279755-717c-415c-88b6-4cc1202072e2
+
+        :expectedresults: Container repository name is changed
+            according to new pattern.
+
+        :CaseLevel: Integration
+        """
+        old_prod_name = gen_string('alpha', 5)
+        new_prod_name = gen_string('alpha', 5)
+        docker_upstream_name = 'hello-world'
+        new_pattern = "<%= content_view.label %>/<%= product.name %>"
+
+        prod = make_product_wait({
+            'organization-id': self.org_id,
+            'name': old_prod_name
+        })
+        repo = _make_docker_repo(prod['id'],
+                                 upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        LifecycleEnvironment.update({
+            'registry-name-pattern': new_pattern,
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        lce = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        Product.update({
+            'name': new_prod_name,
+            'id': prod['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          old_prod_name).lower()
+        self.assertEqual(lce['registry-name-pattern'], new_pattern)
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][-1]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          new_prod_name).lower()
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_repo_name_change_after_promotion(self):
+        """Promote content view with Docker repository to lifecycle environment.
+        Change repository name. Verify that Docker repository name on product
+        changed according to new pattern.
+
+        :id: f094baab-e823-47e0-939d-bd0d88eb1538
+
+        :expectedresults: Container repository name is changed
+            according to new pattern.
+
+        :CaseLevel: Integration
+        """
+        old_repo_name = gen_string('alpha', 5)
+        new_repo_name = gen_string('alpha', 5)
+        docker_upstream_name = 'hello-world'
+        new_pattern = "<%= content_view.label %>/<%= repository.name %>"
+
+        prod = make_product_wait({'organization-id': self.org_id})
+        repo = _make_docker_repo(prod['id'],
+                                 name=old_repo_name,
+                                 upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        LifecycleEnvironment.update({
+            'registry-name-pattern': new_pattern,
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        lce = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        Repository.update({
+            'name': new_repo_name,
+            'id': repo['id'],
+            'product-id': prod['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          old_repo_name).lower()
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][-1]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          new_repo_name).lower()
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_set_non_unique_name_pattern_and_promote(self):
+        """Set registry name pattern to one that does not guarantee uniqueness.
+        Try to promote content view with multiple Docker repositories to
+        lifecycle environment. Verify that content has not been promoted.
+
+        :id: eaf5e7ac-93c9-46c6-b538-4d6bd73ab9fc
+
+        :expectedresults: Content view is not promoted
+
+        :CaseLevel: Integration
+        """
+        docker_upstream_names = ['hello-world', 'alpine']
+        new_pattern = "<%= organization.label %>"
+
+        lce = make_lifecycle_environment({
+            'organization-id': self.org_id,
+            'registry-name-pattern': new_pattern,
+        })
+
+        prod = make_product_wait({'organization-id': self.org_id})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        for docker_name in docker_upstream_names:
+            repo = _make_docker_repo(prod['id'],
+                                     upstream_name=docker_name)
+            Repository.synchronize({'id': repo['id']})
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': repo['id'],
+            })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.version_promote({
+                'id': content_view['versions'][0]['id'],
+                'to-lifecycle-environment-id': lce['id'],
+            })
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_promote_and_set_non_unique_name_pattern(self):
+        """Promote content view with multiple Docker repositories to
+        lifecycle environment. Set registry name pattern to one that
+        does not guarantee uniqueness. Verify that pattern has not been
+        changed.
+
+        :id: 9f952224-084f-48d1-b2ea-85f3621becea
+
+        :expectedresults: Registry name pattern is not changed
+
+        :CaseLevel: Integration
+        """
+        docker_upstream_names = ['hello-world', 'alpine']
+        new_pattern = "<%= organization.label %>"
+
+        prod = make_product_wait({'organization-id': self.org_id})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        for docker_name in docker_upstream_names:
+            repo = _make_docker_repo(prod['id'],
+                                     upstream_name=docker_name)
+            Repository.synchronize({'id': repo['id']})
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': repo['id'],
+            })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+
+        with self.assertRaises(CLIReturnCodeError):
+            LifecycleEnvironment.update({
+                'registry-name-pattern': new_pattern,
+                'id': lce['id'],
+                'organization-id': self.org_id,
+            })
 
 
 class DockerActivationKeyTestCase(CLITestCase):
