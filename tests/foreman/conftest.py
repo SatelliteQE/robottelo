@@ -46,9 +46,10 @@ def pytest_report_header(config):
         if not scope:
             scope = ''
         storage = settings.shared_function.storage
-
-    junit = getattr(config, "_xml", None)
-    junit.add_global_property("start_time", int(time() * 1000))
+    if pytest.config.pluginmanager.hasplugin("junitxml"):
+        junit = getattr(config, "_xml", None)
+        if junit is not None:
+            junit.add_global_property("start_time", int(time() * 1000))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
             shared_function_enabled, scope, storage))
