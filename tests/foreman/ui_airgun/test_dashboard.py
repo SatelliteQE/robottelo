@@ -22,6 +22,7 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier2,
@@ -50,18 +51,21 @@ def test_positive_host_configuration_status(session):
 
     :expectedresults: Each link shows the right info
 
+    :BZ: 1631219
+
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    host = entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    host = entities.Host(organization=org, location=loc).create()
     criteria_list = [
         'Hosts that had performed modifications without error',
         'Hosts in error state',
         'Good host reports in the last 30 minutes',
         'Hosts that had pending changes',
         'Out of sync hosts',
-        'Hosts with no reports',
         'Hosts with alerts disabled',
+        'Hosts with no reports',
     ]
     search_strings_list = [
         'last_report > \"30 minutes ago\" and (status.applied > 0 or'
@@ -70,13 +74,19 @@ def test_positive_host_configuration_status(session):
         ' status.failed_restarts > 0) and status.enabled = true',
         'last_report > \"30 minutes ago\" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'status.pending > 0 and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.pending > 0'
+        ' and status.enabled = true',
         'last_report < \"30 minutes ago\" and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.enabled = false',
         'not has last_report and status.enabled = true',
-        'status.enabled = false'
     ]
+    if bz_bug_is_open(1631219):
+        criteria_list.pop()
+        search_strings_list.pop()
+
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationStatus')
         for criteria in criteria_list:
             if criteria == 'Hosts with no reports':
@@ -119,9 +129,11 @@ def test_positive_host_configuration_chart(session):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    entities.Host(organization=org, location=loc).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
         assert dashboard_values['chart']['No report'] == '100%'
 
@@ -296,13 +308,13 @@ def test_positive_host_collections(session):
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
-    host = entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    host = entities.Host(organization=org, location=loc).create()
     host_collection = entities.HostCollection(
-        host=[host],
-        organization=org,
-    ).create()
+        host=[host], organization=org).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         values = session.dashboard.read('HostCollections')
         assert values['collections'][0]['Name'] == host_collection.name
         assert values['collections'][0]['Content Hosts'] == '1'

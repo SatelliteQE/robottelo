@@ -63,6 +63,13 @@ API_PATHS = {
         u'/katello/api/activation_keys/:id/releases',
         u'/katello/api/activation_keys/:id/remove_subscriptions',
     ),
+    u'ansible_roles': (
+        u'/ansible/api/ansible_roles',
+        u'/ansible/api/ansible_roles/:id',
+        u'/ansible/api/ansible_roles/:id',
+        u'/ansible/api/ansible_roles/import',
+        u'/ansible/api/ansible_roles/obsolete',
+    ),
     u'api': (),
     u'architectures': (
         u'/api/architectures',
@@ -83,6 +90,15 @@ API_PATHS = {
         u'/api/audits',
         u'/api/audits/:id',
     ),
+    u'auth_source_externals': (
+        u'/api/auth_source_externals',
+        u'/api/auth_source_externals/:id',
+        u'/api/auth_source_externals/:id',
+    ),
+    u'auth_source_internals': (
+        u'/api/auth_source_internals',
+        u'/api/auth_source_internals/:id',
+    ),
     u'auth_source_ldaps': (
         u'/api/auth_source_ldaps',
         u'/api/auth_source_ldaps',
@@ -90,6 +106,9 @@ API_PATHS = {
         u'/api/auth_source_ldaps/:id',
         u'/api/auth_source_ldaps/:id',
         u'/api/auth_source_ldaps/:id/test',
+    ),
+    u'auth_sources': (
+        u'/api/auth_sources',
     ),
     u'autosign': (
         u'/api/smart_proxies/:smart_proxy_id/autosign',
@@ -159,12 +178,12 @@ API_PATHS = {
         u'/api/compute_resources/:id/refresh_cache',
     ),
     u'configs': (
-        u'/foreman_virt_who_configure/api/configs',
-        u'/foreman_virt_who_configure/api/configs',
-        u'/foreman_virt_who_configure/api/configs/:id',
-        u'/foreman_virt_who_configure/api/configs/:id',
-        u'/foreman_virt_who_configure/api/configs/:id',
-        u'/foreman_virt_who_configure/api/configs/:id/deploy_script',
+        u'/foreman_virt_who_configure/api/v2/configs',
+        u'/foreman_virt_who_configure/api/v2/configs',
+        u'/foreman_virt_who_configure/api/v2/configs/:id',
+        u'/foreman_virt_who_configure/api/v2/configs/:id',
+        u'/foreman_virt_who_configure/api/v2/configs/:id',
+        u'/foreman_virt_who_configure/api/v2/configs/:id/deploy_script',
     ),
     u'config_groups': (
         u'/api/config_groups',
@@ -189,6 +208,15 @@ API_PATHS = {
         u'/api/config_templates/:id',
         u'/api/config_templates/:id/clone',
         u'/api/config_templates/build_pxe_default',
+    ),
+    u'content_credentials': (
+        u'/katello/api/content_credentials',
+        u'/katello/api/content_credentials',
+        u'/katello/api/content_credentials/:id',
+        u'/katello/api/content_credentials/:id',
+        u'/katello/api/content_credentials/:id',
+        u'/katello/api/content_credentials/:id/content',
+        u'/katello/api/content_credentials/:id/content',
     ),
     u'content_uploads': (
         u'/katello/api/repositories/:repository_id/content_uploads',
@@ -259,6 +287,10 @@ API_PATHS = {
     u'dashboard': (
         u'/api/dashboard',
     ),
+    u'debs': (
+        u'/katello/api/debs/:id',
+        u'/katello/api/debs/compare',
+    ),
     u'discovered_hosts': (
         u'/api/v2/discovered_hosts',
         u'/api/v2/discovered_hosts',
@@ -285,11 +317,15 @@ API_PATHS = {
         u'/bootdisk/api/hosts/:host_id',
     ),
     u'docker_manifests': (
-        u'/katello/api/compare',
         u'/katello/api/docker_manifests/:id',
+        u'/katello/api/docker_manifests/compare',
+    ),
+    u'docker_manifest_lists': (
+        u'/katello/api/docker_manifest_lists/:id',
+        u'/katello/api/docker_manifest_lists/compare',
     ),
     u'docker_tags': (
-        u'/katello/api/compare',
+        u'/katello/api/docker_tags/compare',
         u'/katello/api/docker_tags/:id',
     ),
     u'domains': (
@@ -308,7 +344,8 @@ API_PATHS = {
         u'/api/smart_proxies/:id/import_puppetclasses',
     ),
     u'errata': (
-        u'/katello/api/compare',
+        u'/katello/api/content_view_versions/:id/available_errata',
+        u'/katello/api/errata/compare',
         u'/katello/api/errata/:id',
     ),
     u'external_usergroups': (
@@ -323,7 +360,7 @@ API_PATHS = {
         u'/api/fact_values',
     ),
     u'file_units': (
-        u'/katello/api/compare',
+        u'/katello/api/files/compare',
         u'/katello/api/files/:id',
     ),
     u'filters': (
@@ -354,6 +391,7 @@ API_PATHS = {
         u'/katello/api/gpg_keys/:id',
         u'/katello/api/gpg_keys/:id',
         u'/katello/api/gpg_keys/:id',
+        u'/katello/api/gpg_keys/:id/content',
         u'/katello/api/gpg_keys/:id/content',
     ),
     u'home': (
@@ -388,7 +426,7 @@ API_PATHS = {
         u'/api/hosts/subscriptions',
     ),
     u'host_tracer': (
-        u'/api/hosts/:host_id/tracer',
+        u'/api/hosts/:host_id/traces',
     ),
     u'hostgroup_classes': (
         u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
@@ -402,6 +440,9 @@ API_PATHS = {
         u'/api/hostgroups/:id',
         u'/api/hostgroups/:id',
         u'/api/hostgroups/:id/clone',
+        u'/api/hostgroups/play_roles',
+        u'/api/hostgroups/:id/play_roles',
+        u'/api/hostgroups/:id/rebuild_config',
     ),
     u'hosts': (
         u'/api/hosts',
@@ -413,29 +454,31 @@ API_PATHS = {
         u'/api/hosts/:id/enc',
         u'/api/hosts/:id/boot',
         u'/api/hosts/:id/disassociate',
+        u'/api/hosts/:id/play_roles',
         u'/api/hosts/:id/power',
-        u'/api/hosts/:id/puppetrun',
         u'/api/hosts/:id/rebuild_config',
         u'/api/hosts/:id/status',
         u'/api/hosts/:id/status/:type',
         u'/api/hosts/:id/template/:kind',
         u'/api/hosts/:id/vm_compute_attributes',
         u'/api/hosts/facts',
+        u'/api/hosts/play_roles',
     ),
     u'hosts_bulk_actions': (
         u'/api/hosts/bulk/add_host_collections',
+        u'/api/hosts/bulk/add_subscriptions',
+        u'/api/hosts/bulk/auto_attach',
         u'/api/hosts/bulk/applicable_errata',
         u'/api/hosts/bulk/available_incremental_updates',
         u'/api/hosts/bulk/content_overrides',
         u'/api/hosts/bulk/destroy',
         u'/api/hosts/bulk/environment_content_view',
         u'/api/hosts/bulk/install_content',
+        u'/api/hosts/bulk/installable_errata',
         u'/api/hosts/bulk/release_version',
         u'/api/hosts/bulk/remove_content',
         u'/api/hosts/bulk/remove_host_collections',
-        u'/api/hosts/bulk/subscriptions/add_subscriptions',
-        u'/api/hosts/bulk/subscriptions/auto_attach',
-        u'/api/hosts/bulk/subscriptions/remove_subscriptions',
+        u'/api/hosts/bulk/remove_subscriptions',
         u'/api/hosts/bulk/update_content',
     ),
     u'host_errata': (
@@ -449,6 +492,13 @@ API_PATHS = {
         u'/api/hosts/:host_id/packages/install',
         u'/api/hosts/:host_id/packages/remove',
         u'/api/hosts/:host_id/packages/upgrade_all',
+    ),
+    u'http_proxies': (
+        u'/api/http_proxies',
+        u'/api/http_proxies',
+        u'/api/http_proxies/:id',
+        u'/api/http_proxies/:id',
+        u'/api/http_proxies/:id',
     ),
     u'images': (
         u'/api/compute_resources/:compute_resource_id/images',
@@ -468,7 +518,9 @@ API_PATHS = {
         u'/api/job_invocations',
         u'/api/job_invocations',
         u'/api/job_invocations/:id',
+        u'/api/job_invocations/:id/cancel',
         u'/api/job_invocations/:id/hosts/:host_id',
+        u'/api/job_invocations/:id/rerun',
     ),
     u'job_templates': (
         u'/api/job_templates',
@@ -542,8 +594,8 @@ API_PATHS = {
         u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
     ),
     u'ostree_branches': (
-        u'/katello/api/compare',
         u'/katello/api/ostree_branches/:id',
+        u'/katello/api/ostree_branches/compare',
     ),
     u'override_values': (
         u'/api/smart_variables/:smart_variable_id/override_values',
@@ -553,14 +605,14 @@ API_PATHS = {
         u'/api/smart_variables/:smart_variable_id/override_values/:id',
     ),
     u'package_groups': (
-        u'/katello/api/compare',
         u'/katello/api/package_group',
         u'/katello/api/package_group',
         u'/katello/api/package_groups/:id',
+        u'/katello/api/package_groups/compare',
     ),
     u'packages': (
-        u'/katello/api/compare',
         u'/katello/api/packages/:id',
+        u'/katello/api/packages/compare'
     ),
     u'parameters': (
         u'/api/hosts/:host_id/parameters',
@@ -574,6 +626,12 @@ API_PATHS = {
         u'/api/permissions',
         u'/api/permissions/:id',
         u'/api/permissions/resource_types',
+    ),
+    u'personal_access_tokens': (
+        u'/api/users/:user_id/personal_access_tokens',
+        u'/api/users/:user_id/personal_access_tokens',
+        u'/api/users/:user_id/personal_access_tokens/:id',
+        u'/api/users/:user_id/personal_access_tokens/:id',
     ),
     u'ping': (
         u'/katello/api/ping',
@@ -612,6 +670,7 @@ API_PATHS = {
         u'/api/provisioning_templates/:id/clone',
         u'/api/provisioning_templates/:id/export',
         u'/api/provisioning_templates/build_pxe_default',
+        u'/api/provisioning_templates/import',
     ),
     u'ptables': (
         u'/api/ptables',
@@ -621,6 +680,7 @@ API_PATHS = {
         u'/api/ptables/:id',
         u'/api/ptables/:id/clone',
         u'/api/ptables/:id/export',
+        u'/api/ptables/import',
     ),
     u'puppetclasses': (
         u'/api/puppetclasses',
@@ -629,8 +689,11 @@ API_PATHS = {
         u'/api/puppetclasses/:id',
         u'/api/puppetclasses/:id',
     ),
+    u'puppet_hosts': (
+        u'/api/hosts/:id/puppetrun',
+    ),
     u'puppet_modules': (
-        u'/katello/api/compare',
+        u'/katello/api/puppet_modules/compare',
         u'/katello/api/puppet_modules/:id',
     ),
     u'realms': (
@@ -704,7 +767,7 @@ API_PATHS = {
         u'/api/compliance/scap_contents/:id',
         u'/api/compliance/scap_contents/:id',
         u'/api/compliance/scap_contents/:id',
-        u'/api/compliance/scap_contents/:id/xml'
+        u'/api/compliance/scap_contents/:id/xml',
     ),
     u'settings': (
         u'/api/settings',
@@ -755,7 +818,6 @@ API_PATHS = {
     ),
     u'subscriptions': (
         u'/katello/api/activation_keys/:activation_key_id/subscriptions',
-        u'/katello/api/activation_keys/:activation_key_id/subscriptions/:id',
         u'/katello/api/organizations/:organization_id/subscriptions',
         u'/katello/api/organizations/:organization_id/subscriptions/delete_manifest',
         u'/katello/api/organizations/:organization_id/subscriptions/:id',
@@ -787,6 +849,17 @@ API_PATHS = {
     u'tasks': (
         u'/api/orchestration/:id/tasks',
     ),
+    u'table_preferences': (
+        u'/api/users/:user_id/table_preferences/:name',
+        u'/api/users/:user_id/table_preferences/:name',
+        u'/api/users/:user_id/table_preferences',
+        u'/api/users/:user_id/table_preferences',
+        u'/api/users/:user_id/table_preferences/:name',
+    ),
+    u'template': (
+        u'/api/templates/export',
+        u'/api/templates/import',
+    ),
     u'template_combinations': (
         u'/api/config_templates/:config_template_id/template_combinations',
         u'/api/config_templates/:config_template_id/template_combinations',
@@ -801,8 +874,17 @@ API_PATHS = {
         '/api/templates/:template_id/template_inputs/:id',
         '/api/templates/:template_id/template_inputs/:id',
     ),
+    u'template_invocations': (
+        u'/api/job_invocations/:job_invocation_id/template_invocations',
+    ),
     u'template_kinds': (
         u'/api/template_kinds',
+    ),
+    u'upstream_subscriptions': (
+        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
+        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
+        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
+        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
     ),
     u'usergroups': (
         u'/api/usergroups',

@@ -50,8 +50,11 @@ def ipa_data():
 
 
 @skip_if_not_set('ldap')
+@tier2
 def test_positive_create_with_ad(session, ldap_data):
     """Create LDAP authentication with AD
+
+    :id: 02ca85b7-5029-4618-a835-63b002767cf7
 
     :steps:
 
@@ -81,8 +84,11 @@ def test_positive_create_with_ad(session, ldap_data):
 
 
 @skip_if_not_set('ldap')
+@tier2
 def test_positive_delete_with_ad(session, ldap_data):
     """Delete LDAP authentication with AD
+
+    :id: 3cf59a72-ca99-40b1-bbd3-c1c80a4ae741
 
     :steps:
 

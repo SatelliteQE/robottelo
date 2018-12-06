@@ -939,8 +939,45 @@ class AnsibleREXTestCase(CLITestCase):
         super(AnsibleREXTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
         # register and setup a host here and tests will share the host, step 0.
+        cls.org = entities.Organization().create()
+        # create subnet for current org, default loc and domain
+        # add rex proxy to subnet, default is internal proxy (id 1)
+        # using API due BZ#1370460
+        cls.sn = entities.Subnet(
+            domain=[1],
+            gateway=settings.vlan_networking.gateway,
+            ipam='DHCP',
+            location=[DEFAULT_LOC_ID],
+            mask=settings.vlan_networking.netmask,
+            network=settings.vlan_networking.subnet,
+            organization=[cls.org.id],
+            remote_execution_proxy=[entities.SmartProxy(id=1)],
+        ).create()
+        # Create VM and register content host
+        cls.client = VirtualMachine(
+            distro=DISTRO_RHEL7,
+            provisioning_server=settings.compute_resources.libvirt_hostname,
+            bridge=settings.vlan_networking.bridge)
+        cls.addCleanup(vm_cleanup, cls.client)
+        cls.client.create()
+        cls.client.install_katello_ca()
+        cls.client.register_contenthost(
+            org=cls.org['label'],
+            lce='Library'
+        )
+        cls.assertTrue(cls.client.subscribed)
+        Host.set_parameter({
+            'host': cls.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        add_remote_execution_ssh_key(cls.client.ip_addr)
 
-    @stubbed()
+    @classmethod
+    def tearDownClass(cls):
+        super(AnsibleREXTestCase, cls).tearDownClass()
+        cls.client.destroy()
+
     @tier3
     @upgrade
     def test_positive_run_job(self):
@@ -958,10 +995,25 @@ class AnsibleREXTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseLevel: System
         """
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - Ansible Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
+                    )
+                )
+            raise AssertionError(result)
 
     @stubbed()
     @tier3

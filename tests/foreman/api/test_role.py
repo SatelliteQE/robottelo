@@ -31,6 +31,7 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import APITestCase
+from robozilla.decorators import skip_if_bug_open
 
 
 class RoleTestCase(APITestCase):
@@ -116,6 +117,98 @@ class CannedRoleTestCases(APITestCase):
             }
         )
         return entities.Role(id=org_admin['id']).read()
+
+    def create_org_admin_user(
+            self, role_taxos, user_taxos, same_taxos):
+        """Helper function to create an Org Admin user by assigning org admin
+        role and assign taxonomies to Role and User
+
+        The taxonomies for role and user will be assigned based on parameters
+
+        :param role_taxos bool: Whether or not to assign taxonomies to Role
+            If True, self.role_orgs and self.role_locs will be assigned else []
+        :param user_taxos bool: Whether or not to assign taxonomies to User
+            If True and if same_taxos True => self.role_orgs, self.role_locs
+            will be assigned
+            elseif True and if same_taxos False => self.filter_orgs,
+            self.filter_locs will be assigned
+            else []
+        :param same_taxos: Whether or not taxonomies of role and user should
+            be same. Check user_taxos param description
+        :return User: Returns the ```nailgun.entities.User``` object with
+            passwd attr
+        """
+        # Create Org Admin Role
+        orgs = [self.role_org.id] if role_taxos else []
+        locs = [self.role_loc.id] if role_taxos else []
+        org_admin = self.create_org_admin_role(orgs=orgs, locs=locs)
+        # Create Org Admin User
+        orgs = (
+            [self.role_org.id] if same_taxos else [self.filter_org.id]
+        ) if user_taxos else []
+        locs = (
+            [self.role_loc.id] if same_taxos else [self.filter_loc.id]
+        ) if user_taxos else []
+        user_login = gen_string('alpha')
+        user_passwd = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_passwd,
+            organization=orgs,
+            location=locs,
+            role=[org_admin.id]
+        ).create()
+        user.passwd = user_passwd
+        return user
+
+    def create_simple_user(self, filter_taxos=None, role=None):
+        """Creates simple user and assigns taxonomies
+
+        :param filter_taxos bool: Whether to assign filter taxonomies created
+            in setupclass method.
+            If true, self.filter_orgs and filter_locs else self.role_orgs
+            and role_locs
+        :param role nailgun.entities.Role: Nailgun Role entity assign to user
+        :return User: Returns the ```nailgun.entities.User``` object with
+            passwd attr
+        """
+        user_passwd = gen_string('alphanumeric')
+        user = entities.User(
+            login=gen_string('alpha'),
+            password=user_passwd,
+            organization=(
+                [self.filter_org.id] if filter_taxos else [self.role_org.id]),
+            location=(
+                [self.filter_loc.id] if filter_taxos else [self.role_loc.id]),
+            role=role or []
+        ).create()
+        user.passwd = user_passwd
+        return user
+
+    def create_domain(self, orgs, locs):
+        """Creates domain in given orgs and locs
+
+        :param orgs list: List of Organization ids
+        :param locs list: List of Location ids
+        :return Domain: Returns the ```nailgun.entities.Domain``` object
+        """
+        return entities.Domain(
+            name=gen_string('alpha'),
+            organization=orgs,
+            location=locs,
+        ).create()
+
+    def user_config(self, user):
+        """Returns The ```nailgun.confin.ServerConfig``` for given user
+
+        :param user: The nailgun.entities.User object of an user with passwd
+            parameter
+        """
+        return ServerConfig(
+            auth=(user.login, user.passwd),
+            url=self.sat_url,
+            verify=False
+        )
 
     @classmethod
     def setUpClass(cls):
@@ -425,6 +518,7 @@ class CannedRoleTestCases(APITestCase):
         self.assertNotEqual(self.filter_org.id, filtr.organization[0].id)
         self.assertNotEqual(self.filter_loc.id, filtr.location[0].id)
 
+    @skip_if_bug_open('bugzilla', 1637436)
     @tier1
     def test_positive_create_org_admin_from_clone(self):
         """Create Org Admin role which has access to most of the resources
@@ -472,7 +566,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(self.role_org.id, org_admin.organization[0].id)
         self.assertEqual(self.role_loc.id, org_admin.location[0].id)
 
-    @stubbed()
     @tier3
     def test_negative_access_entities_from_org_admin(self):
         """User can not access resources in taxonomies assigned to role if
@@ -493,8 +586,15 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=False)
+        domain = self.create_domain(
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        sc = self.user_config(user)
+        # Getting the domain from user
+        with self.assertRaises(HTTPError):
+            entities.Domain(sc, id=domain.id).read()
 
-    @stubbed()
     @tier3
     def test_negative_access_entities_from_user(self):
         """User can not access resources within its own taxonomies if assigned
@@ -515,6 +615,14 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=False)
+        domain = self.create_domain(
+            orgs=[self.filter_org.id], locs=[self.filter_loc.id])
+        sc = self.user_config(user)
+        # Getting the domain from user
+        with self.assertRaises(HTTPError):
+            entities.Domain(sc, id=domain.id).read()
 
     @tier2
     def test_positive_override_cloned_role_filter(self):
@@ -554,7 +662,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(self.role_org.id, filter_cloned.organization[0].id)
         self.assertEqual(self.role_loc.id, filter_cloned.location[0].id)
 
-    @stubbed()
     @tier2
     def test_positive_emptiness_of_filter_taxonomies_on_role_clone(self):
         """Taxonomies of filters in cloned role are set to None for filters that
@@ -579,31 +686,28 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id,
+            override=True,
+            organization=[self.filter_org],
+            location=[self.filter_loc]
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={'name': gen_string('alpha')})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        filter_cloned = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertFalse(filter_cloned.organization)
+        self.assertFalse(filter_cloned.location)
+        self.assertTrue(filter_cloned.override)
 
-    @stubbed()
-    @tier2
-    def test_positive_override_empty_filter_taxonomies_in_cloned_role(self):
-        """Taxonomies of filters in cloned role can be overridden for filters that
-        are overridden in parent role
-
-        :id: f393f303-e754-48e2-abce-9b1713a3c054
-
-        :steps:
-
-            1. Create a role with an overridden filter
-            2. Overridden filter should have taxonomies assigned
-            3. In cloned role, override 'parent roles overridden filter' by
-                assigning some taxonomies to it
-
-        :expectedresults: The taxonomies should be able to assign to
-            'parent roles overridden filter' in cloned role
-
-        :caseautomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
     @tier2
     def test_positive_clone_role_having_overridden_filter_with_taxonomies(self):# noqa
         """When taxonomies assigned to cloned role, Unlimited and Override flag
@@ -625,8 +729,30 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id,
+            override=True,
+            organization=[self.filter_org],
+            location=[self.filter_loc]
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={
+                'name': gen_string('alpha'),
+                'organization_ids': [self.role_org.id],
+                'location_ids': [self.role_loc.id]})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertTrue(cloned_filter.unlimited)
+        self.assertTrue(cloned_filter.override)
 
-    @stubbed()
     @tier2
     def test_positive_clone_role_having_non_overridden_filter_with_taxonomies(self):# noqa
         """When taxonomies assigned to cloned role, Neither unlimited nor
@@ -648,8 +774,27 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={
+                'name': gen_string('alpha'),
+                'organization_ids': [self.role_org.id],
+                'location_ids': [self.role_loc.id]})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertFalse(cloned_filter.unlimited)
+        self.assertFalse(cloned_filter.override)
 
-    @stubbed()
     @tier2
     def test_positive_clone_role_having_unlimited_filter_with_taxonomies(self):
         """When taxonomies assigned to cloned role, Neither unlimited nor
@@ -670,8 +815,28 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id,
+            unlimited=True
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={
+                'name': gen_string('alpha'),
+                'organization_ids': [self.role_org.id],
+                'location_ids': [self.role_loc.id]})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertFalse(cloned_filter.unlimited)
+        self.assertFalse(cloned_filter.override)
 
-    @stubbed()
     @tier2
     def test_positive_clone_role_having_overridden_filter_without_taxonomies(self):# noqa
         """When taxonomies not assigned to cloned role, Unlimited and override
@@ -692,8 +857,28 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id,
+            override=True,
+            organization=[self.filter_org],
+            location=[self.filter_loc]
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={'name': gen_string('alpha')})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertTrue(cloned_filter.unlimited)
+        self.assertTrue(cloned_filter.override)
 
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1488908)
     @tier2
     def test_positive_clone_role_without_taxonomies_non_overided_filter(self):
         """When taxonomies not assigned to cloned role, only unlimited but not
@@ -716,8 +901,25 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={'name': gen_string('alpha')})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertTrue(cloned_filter.unlimited)
+        self.assertFalse(cloned_filter.override)
 
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1488908)
     @tier2
     def test_positive_clone_role_without_taxonomies_unlimited_filter(self):
         """When taxonomies not assigned to cloned role, Unlimited and override
@@ -739,6 +941,24 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        role = entities.Role(
+            name=gen_string('alpha'),
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        dom_perm = entities.Permission(resource_type='Domain').search()
+        entities.Filter(
+            permission=dom_perm,
+            role=role.id,
+            unlimited=True
+        ).create()
+        cloned_role = entities.Role(id=role.id).clone(
+            data={'name': gen_string('alpha')})
+        cloned_role_filter = entities.Role(
+            id=cloned_role['id']).read().filters[0]
+        cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
+        self.assertTrue(cloned_filter.unlimited)
+        self.assertFalse(cloned_filter.override)
 
     @tier2
     def test_positive_force_unlimited(self):
@@ -873,7 +1093,6 @@ class CannedRoleTestCases(APITestCase):
                     [sub.id for sub in entities.Subnet(sc).search()]
                 )
 
-    @stubbed()
     @tier3
     def test_positive_user_group_users_access_contradict_as_org_admins(self):
         """Users in usergroup can/cannot have access to the resources in
@@ -901,8 +1120,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
-    @tier3
+    @tier2
     def test_negative_assign_org_admin_to_user_group(self):
         """Users in usergroup can not have access to the resources in
         taxonomies if the taxonomies of Org Admin role is not same
@@ -922,6 +1140,24 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
         """
+        org_admin = self.create_org_admin_role(
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        user_one = self.create_simple_user(filter_taxos=True)
+        user_two = self.create_simple_user(filter_taxos=True)
+        ug_name = gen_string('alpha')
+        user_group = entities.UserGroup(
+            name=ug_name,
+            role=[org_admin.id],
+            user=[user_one.id, user_two.id]
+        ).create()
+        self.assertEqual(user_group.name, ug_name)
+        dom = self.create_domain(
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        for user in [user_one, user_two]:
+            with self.subTest(user):
+                sc = self.user_config(user)
+                with self.assertRaises(HTTPError):
+                    entities.Domain(sc, id=dom.id).read()
 
     @tier2
     def test_negative_assign_taxonomies_by_org_admin(self):
@@ -1013,7 +1249,6 @@ class CannedRoleTestCases(APITestCase):
         user = entities.User(id=user.id).read()
         self.assertNotIn(org_admin.id, [role.id for role in user.role])
 
-    @stubbed()
     @tier2
     def test_positive_taxonomies_control_to_superadmin_with_org_admin(self):
         """Super Admin can access entities in taxonomies assigned to Org Admin
@@ -1032,8 +1267,26 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=True)
+        sc = self.user_config(user)
+        # Creating resource
+        dom_name = gen_string('alpha')
+        dom = entities.Domain(
+            sc,
+            name=dom_name,
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        self.assertEqual(dom_name, dom.name)
+        with self.assertNotRaises(HTTPError):
+            entities.Subnet().search(
+                query={
+                    'organization-id': self.role_org.id,
+                    'location-id': self.role_loc.id
+                }
+            )
 
-    @stubbed()
     @tier2
     def test_positive_taxonomies_control_to_superadmin_without_org_admin(self):
         """Super Admin can access entities in taxonomies assigned to Org Admin
@@ -1054,6 +1307,31 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=True)
+        sc = self.user_config(user)
+        # Creating resource
+        dom_name = gen_string('alpha')
+        dom = entities.Domain(
+            sc,
+            name=dom_name,
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        self.assertEqual(dom_name, dom.name)
+        user_role = entities.Role(id=user.role[0].id).read()
+        entities.Role(id=user_role.id).delete()
+        entities.User(id=user.id).delete()
+        with self.assertRaises(HTTPError):
+            user_role.read()
+            user.read()
+        with self.assertNotRaises(HTTPError):
+            entities.Domain().search(
+                query={
+                    'organization-id': self.role_org.id,
+                    'location-id': self.role_loc.id
+                }
+            )
 
     @tier1
     @upgrade
@@ -1100,7 +1378,6 @@ class CannedRoleTestCases(APITestCase):
                 location=[self.role_loc]
             ).create()
 
-    @stubbed()
     @tier1
     def test_negative_modify_roles_by_org_admin(self):
         """Org Admin has no permissions to modify existing roles
@@ -1117,6 +1394,15 @@ class CannedRoleTestCases(APITestCase):
         :expectedresults: Org Admin should not have permissions to update
             existing roles
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=True)
+        test_role = entities.Role().create()
+        sc = self.user_config(user)
+        test_role = entities.Role(sc, id=test_role.id).read()
+        with self.assertRaises(HTTPError):
+            test_role.organization = [self.role_org]
+            test_role.location = [self.role_loc]
+            test_role.update(['organization', 'location'])
 
     @tier2
     def test_negative_admin_permissions_to_org_admin(self):
@@ -1211,7 +1497,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(user_login, user.login)
         self.assertEqual(org_admin.id, user.role[0].id)
 
-    @stubbed()
     @tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self):
         """Org Admin can access users inside its taxonomies
@@ -1233,8 +1518,13 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=True)
+        test_user = self.create_simple_user(filter_taxos=False)
+        sc = self.user_config(user)
+        with self.assertNotRaises(HTTPError):
+            entities.User(sc, id=test_user.id).read()
 
-    @stubbed()
     @tier2
     def test_negative_access_users_outside_org_admin_taxonomies(self):
         """Org Admin can not access users outside its taxonomies
@@ -1256,6 +1546,12 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
+        user = self.create_org_admin_user(
+            role_taxos=True, user_taxos=True, same_taxos=True)
+        test_user = self.create_simple_user(filter_taxos=True)
+        sc = self.user_config(user)
+        with self.assertRaises(HTTPError):
+            entities.User(sc, id=test_user.id).read()
 
     @tier1
     def test_negative_create_taxonomies_by_org_admin(self):
@@ -1300,9 +1596,9 @@ class CannedRoleTestCases(APITestCase):
             loc = entities.Location(sc, name=loc_name).create()
         self.assertEqual(loc_name, loc.name)
 
-    @stubbed()
+    @upgrade
     @tier1
-    def test_negative_access_all_global_entities_by_org_admin(self):
+    def test_positive_access_all_global_entities_by_org_admin(self):
         """Org Admin can access all global entities in any taxonomies
         regardless of its own assigned taxonomies
 
@@ -1320,6 +1616,37 @@ class CannedRoleTestCases(APITestCase):
         :expectedresults: Org Admin should have access to all the global
             entities in any taxonomies
         """
+        org_admin = self.create_org_admin_role(
+            orgs=[self.role_org.id])
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
+            role=[org_admin.id],
+            organization=[self.role_org, self.filter_org],
+            location=[self.role_loc, self.filter_loc]
+        ).create()
+        self.assertEqual(user_login, user.login)
+        sc = ServerConfig(
+            auth=(user_login, user_pass),
+            url=self.sat_url,
+            verify=False
+        )
+        with self.assertNotRaises(HTTPError):
+            entities.Architecture(sc).search()
+            entities.Audit(sc).search()
+            entities.Bookmark(sc).search()
+            entities.CommonParameter(sc).search()
+            entities.DockerComputeResource(sc).search()
+            entities.LibvirtComputeResource(sc).search()
+            entities.OVirtComputeResource(sc).search()
+            entities.VMWareComputeResource(sc).search()
+            entities.ConfigGroup(sc).search()
+            entities.DockerHubContainer(sc).search()
+            entities.DockerRegistryContainer(sc).search()
+            entities.Errata(sc).search()
+            entities.OperatingSystem(sc).search()
 
     @stubbed()
     @tier3

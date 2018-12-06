@@ -15,448 +15,438 @@
 :Upstream: No
 """
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo import manifests
-from robottelo.api.utils import upload_manifest
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
-from robottelo.decorators import run_in_one_thread, skip_if_not_set, stubbed
-from robottelo.test import UITestCase
-from robottelo.ui.factory import set_context
-from robottelo.ui.session import Session
+from robottelo.api.utils import upload_manifest as up_man
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL7
+from robottelo.decorators import fixture, parametrize, stubbed
 from robottelo.vm import VirtualMachine
 
 
-@run_in_one_thread
-class RHAITestCase(UITestCase):
-
-    @classmethod
-    def setUpClass(cls):  # noqa
-        super(RHAITestCase, cls).setUpClass()
-        # Create a new organization with prefix 'insights'
-        org = entities.Organization(
-            name='insights_{0}'.format(gen_string('alpha', 6))
-        ).create()
-
-        # Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-
-        # Create activation key using default CV and library environment
-        activation_key = entities.ActivationKey(
-            auto_attach=True,
-            content_view=org.default_content_view.id,
-            environment=org.library.id,
-            name=gen_string('alpha'),
-            organization=org,
-        ).create()
-
-        # Walk through the list of subscriptions.
-        # Find the "Red Hat Employee Subscription" and attach it to the
-        # recently-created activation key.
-        for subs in entities.Subscription(organization=org).search():
-            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                # 'quantity' must be 1, not subscription['quantity']. Greater
-                # values produce this error: "RuntimeError: Error: Only pools
-                # with multi-entitlement product subscriptions can be added to
-                # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': subs.id,
-                })
-                break
-        cls.org_label = org.label
-        cls.ak_name = activation_key.name
-        cls.org_name = org.name
-
-    @skip_if_not_set('clients')
-    def test_positive_register_client_to_rhai(self):
-        """Check client registration to redhat-access-insights service.
-
-        :id: f3aefdb3-ac99-402d-afd9-e53e9ee1e8d7
-
-        :expectedresults: Registered client should appear in the Systems sub-
-            menu of Red Hat Access Insights
-        """
-        # Register a VM to Access Insights Service
-        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
-            try:
-                vm.configure_rhai_client(self.ak_name, self.org_label,
-                                         DISTRO_RHEL6)
-
-                with Session(self) as session:
-                    # view clients registered to Red Hat Access Insights
-                    set_context(session, org=self.org_name, force_context=True)
-                    self.assertIsNotNone(
-                        session.rhai_inventory.search(vm.hostname)
-                    )
-                    result = session.rhai_inventory.get_total_systems()
-                    self.assertIn("1", result,
-                                  'Registered clients are not listed')
-            finally:
-                vm.get('/var/log/redhat-access-insights/'
-                       'redhat-access-insights.log',
-                       './insights_client_registration.log')
-
-    def test_negative_org_not_selected(self):
-        """Verify that user attempting to access RHAI is directed to select an
-        Organization if there is no organization selected
-
-        :id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
-
-        :expectedresults: 'Organization Selection Required' message must be
-            displayed if the user tries to view Access Insights overview
-            without selecting an org
-        """
-        with Session(self) as session:
-            # Given that the user does not specify any Organization
-            set_context(session, org='Any Organization', force_context=True)
-            # 'Organization Selection Required' message must be present
-            msg = session.rhai_overview.get_organization_selection_message()
-            self.assertIsNotNone(msg)
-            self.assertIn("Organization Selection Required", msg)
+pytestmark = pytest.mark.usefixtures("attach_subscription")
+
+NAV_ITEMS = [
+    ("insightsaction", "Details"),
+    ("insightsinventory", "All"),
+    ("insightsoverview", "Details"),
+    ("insightsplan", "All"),
+    ("insightsrule", "All")
+]
+
+
+@fixture(scope="module")
+def module_org():
+    org = entities.Organization(name="insights_{0}".format(
+        gen_string("alpha", 6))).create()
+    with manifests.clone() as manifest:
+        up_man(org.id, manifest.content)
+    yield org
+    org.delete()
+
+
+@fixture(scope="module")
+def activation_key(module_org):
+    ak = entities.ActivationKey(
+        auto_attach=True,
+        content_view=module_org.default_content_view.id,
+        environment=module_org.library.id,
+        name=gen_string("alpha"),
+        organization=module_org
+    ).create()
+    yield ak
+    ak.delete()
 
-    @skip_if_not_set('clients')
-    def test_positive_unregister_client_from_rhai(self):
-        """Verify that 'Unregister' a system from RHAI works correctly then the
-        system should not be able to use the service.
+
+@fixture(scope="module")
+def attach_subscription(module_org, activation_key):
+    for subs in entities.Subscription(organization=module_org).search():
+        if subs.read_json()["product_name"] == DEFAULT_SUBSCRIPTION_NAME:
+            # "quantity" must be 1, not subscription["quantity"]. Greater
+            # values produce this error: "RuntimeError: Error: Only pools
+            # with multi-entitlement product subscriptions can be added to
+            # the activation key with a quantity greater than one."
+            activation_key.add_subscriptions(data={
+                "quantity": 1,
+                "subscription_id": subs.id,
+            })
+            break
+    else:
+        raise Exception("{} organization doesn't have any subscription".format(
+            module_org.name))
 
-        :id: 580f9704-8c6d-4f63-b027-68a6ac97af77
 
-        :expectedresults: Once the system is unregistered from the RHAI web
-            interface then the unregistered system should return `1` on running
-            the service 'redhat-access-insights'
-        """
-        # Register a VM to Access Insights Service
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            try:
-                vm.configure_rhai_client(self.ak_name, self.org_label,
-                                         DISTRO_RHEL7)
+@fixture
+def vm(activation_key, module_org):
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        vm.configure_rhai_client(
+            activation_key=activation_key.name,
+            org=module_org.label,
+            rhel_distro=DISTRO_RHEL7)
+        yield vm
 
-                with Session(self) as session:
-                    set_context(session, org=self.org_name, force_context=True)
-                    session.rhai_inventory.unregister_system(vm.hostname)
 
-                result = vm.run('redhat-access-insights')
-                self.assertEqual(result.return_code, 1,
-                                 "System has not been unregistered")
-            finally:
-                vm.get('/var/log/redhat-access-insights/'
-                       'redhat-access-insights.log',
-                       './insights_unregister.log')
+def test_positive_register_client_to_rhai(vm, autosession):
+    """Check client registration to redhat-access-insights service.
 
-    @stubbed
-    def test_positive_rule_disable_enable(self):
-        """Tests Insights rule can be disabled and enabled
+    :id: 9815151e-d50d-4160-9d29-ae7c89422e18
 
-        :id: ca61b798-7502-43a0-9045-392b350fdded
+    :expectedresults: Registered client should appear in the Systems sub-
+        menu of Red Hat Access Insights
+    """
+    table = autosession.insightsinventory.search(vm.hostname)
+    assert table[0]["System Name"].text == vm.hostname
+    result = autosession.insightsinventory.total_systems
+    assert result == "1", "Registered clients are not listed"
 
-        :Steps:
 
-            0. Create a VM and register to insights within org having manifest
+def test_positive_unregister_client_to_rhai(vm, autosession):
+    """Check client canceling registration to redhat-access-insights service.
 
-            1. Navigate to Insights -> Rules
+    :id: 70d1045b-7d9d-472e-8ce9-8a5b81c41a85
 
-            2. Disable the chosen rule (assert)
+    :expectedresults: Unregistered client should not appear in the Systems sub-
+        menu of Red Hat Access Insights
+    """
+    vm.unregister()
+    table = autosession.insightsinventory.search(vm.hostname)
+    assert not table[0].is_displayed
+    result = autosession.insightsinventory.total_systems
+    assert result == "0", "The client is still registered"
 
-            3. Enable chosen rule (assert)
 
-        :expectedresults: rule is disabled, rule is enabled
+@parametrize("nav_item", NAV_ITEMS, ids=lambda nav_item: nav_item[0])
+def test_rhai_navigation(autosession, nav_item):
+    """Test navigation across RHAI tab
 
-        :caseautomation: notautomated
+    :id: 1f5faa05-83c2-43b3-925a-78c77d30d1ef
 
-        :CaseLevel: System
-        """
+    :expectedresults: All pages should be opened correctly without 500 error
+    """
+    entity_name, destination = nav_item
+    entity = getattr(autosession, entity_name)
+    view = entity.navigate_to(entity, destination)
+    assert view.is_displayed
 
 
-@run_in_one_thread
-class RHAIPlannerTestCase(RHAITestCase):
-    """Tests Insights Planner related cases"""
+@stubbed
+def test_negative_org_not_selected():
+    """Verify that user attempting to access RHAI is directed to select an
+    Organization if there is no organization selected
 
-    @classmethod
-    def setUpClass(cls):  # noqa
-        super(RHAIPlannerTestCase, cls).setUpClass()
+    :id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
 
-    @stubbed
-    def test_positive_playbook_run(self):
-        """Tests Planner playbook runs successfully
+    :expectedresults: 'Organization Selection Required' message must be
+        displayed if the user tries to view Access Insights overview
+        without selecting an org
+    """
 
-        :id: b4cce0dc-c98e-4e1a-9dac-cdee3be05227
 
-        :Steps:
+@stubbed
+def test_positive_rule_disable_enable():
+    """Tests Insights rule can be disabled and enabled
 
-            0. Create a VM and register to insights within org having manifest
+    :id: ca61b798-7502-43a0-9045-392b350fdded
 
-            1. Navigate to Insights -> Planner
+    :Steps:
 
-            2. Create a plan
+        0. Create a VM and register to insights within org having manifest
 
-            3. Assign specific host to the plan
+        1. Navigate to Insights -> Rules
 
-            4. Assign a rule with ansible support to the plan
+        2. Disable the chosen rule (assert)
 
-            5. Run Playbook
+        3. Enable chosen rule (assert)
 
-            6. Check the result at the host
+    :expectedresults: rule is disabled, rule is enabled
 
+    :caseautomation: notautomated
 
-        :expectedresults: playbook run finished successfully
+    :CaseLevel: System
+    """
 
-        :caseautomation: notautomated
 
-        :CaseLevel: System
-        """
+@stubbed
+def test_positive_playbook_run():
+    """Tests Planner playbook runs successfully
 
-    @stubbed
-    def test_positive_playbook_customized_run(self):
-        """Tests Planner playbook customized run is successful
+    :id: b4cce0dc-c98e-4e1a-9dac-cdee3be05227
 
-        :id: eee4556d-69b9-4e89-88b7-3cc34a3fe3b2
+    :Steps:
 
-        :Steps:
+        0. Create a VM and register to insights within org having manifest
 
-            0. Create a VM and register to insights within org having manifest
+        1. Navigate to Insights -> Planner
 
-            1. Navigate to Insights -> Planner
+        2. Create a plan
 
-            2. Create a plan
+        3. Assign specific host to the plan
 
-            3. Assign specific host to the plan
+        4. Assign a rule with ansible support to the plan
 
-            4. Assign a rule with ansible support to the plan
+        5. Run Playbook
 
-            5. Customize Playbook Run
+        6. Check the result at the host
 
-            6. Run the customized job
 
-            7. Check the result at the host
+    :expectedresults: playbook run finished successfully
 
+    :caseautomation: notautomated
 
-        :expectedresults: customized playbook run finished successfully
+    :CaseLevel: System
+    """
 
-        :caseautomation: notautomated
 
-        :CaseLevel: System
-        """
+@stubbed
+def test_positive_playbook_customized_run():
+    """Tests Planner playbook customized run is successful
 
-    @stubbed
-    def test_positive_playbook_download(self):
-        """Tests Planner playbook download is successful
+    :id: eee4556d-69b9-4e89-88b7-3cc34a3fe3b2
 
-        :id: 7e9ed852-3f23-4256-862c-1d05058e8a95
+    :Steps:
 
-        :Steps:
+        0. Create a VM and register to insights within org having manifest
 
-            0. Create a VM and register to insights within org having manifest
+        1. Navigate to Insights -> Planner
 
-            1. Navigate to Insights -> Planner
+        2. Create a plan
 
-            2. Create a plan
+        3. Assign specific host to the plan
 
-            3. Assign specific host to the plan
+        4. Assign a rule with ansible support to the plan
 
-            4. Assign a rule with ansible support to the plan
+        5. Customize Playbook Run
 
-            5. Download Playbook
+        6. Run the customized job
 
-            6. Check the downloaded result
+        7. Check the result at the host
 
-        :expectedresults: sane playbook downloaded
 
-        :caseautomation: notautomated
+    :expectedresults: customized playbook run finished successfully
 
-        :CaseLevel: System
-        """
+    :caseautomation: notautomated
 
-    @stubbed
-    def test_positive_plan_export_csv(self):
-        """Tests Insights plan is exported to csv successfully
+    :CaseLevel: System
+    """
 
-        :id: 4bf67758-e07a-41de-974f-9eda753d28e1
 
-        :Steps:
+@stubbed
+def test_positive_playbook_download():
+    """Tests Planner playbook download is successful
 
-            0. Create a VM and register to insights within org having manifest
+    :id: 7e9ed852-3f23-4256-862c-1d05058e8a95
 
-            1. Navigate to Insights -> Planner
+    :Steps:
 
-            2. Create a plan
+        0. Create a VM and register to insights within org having manifest
 
-            3. Assign specific host to the plan
+        1. Navigate to Insights -> Planner
 
-            4. Assign any rule to the plan
+        2. Create a plan
 
-            5. Export CSV
+        3. Assign specific host to the plan
 
-            6. Check the exported plan CSV
+        4. Assign a rule with ansible support to the plan
 
+        5. Download Playbook
 
-        :expectedresults: plan exported to sane csv file
+        6. Check the downloaded result
 
-        :caseautomation: notautomated
+    :expectedresults: sane playbook downloaded
 
-        :CaseLevel: System
-        """
+    :caseautomation: notautomated
 
-    @stubbed
-    def test_positive_plan_edit_remove_system(self):
-        """Tests Insights plan can be edited by removing a system from it
+    :CaseLevel: System
+    """
 
-        :id: d4ea837e-48b0-4482-a1a7-0507346519d7
 
-        :Steps:
+@stubbed
+def test_positive_plan_export_csv():
+    """Tests Insights plan is exported to csv successfully
 
-            0. Create a VM and register to insights within org having manifest
+    :id: 4bf67758-e07a-41de-974f-9eda753d28e1
 
-            1. Navigate to Insights -> Planner
+    :Steps:
 
-            2. Create a plan
+        0. Create a VM and register to insights within org having manifest
 
-            3. Assign specific host to the plan
+        1. Navigate to Insights -> Planner
 
-            4. Assign any rule to the plan
+        2. Create a plan
 
-            5. Edit the plan and remove assigned system
+        3. Assign specific host to the plan
 
-            6. Check the plan become empty
+        4. Assign any rule to the plan
 
+        5. Export CSV
 
-        :expectedresults: plan becomes empty
+        6. Check the exported plan CSV
 
-        :caseautomation: notautomated
 
-        :CaseLevel: System
-        """
+    :expectedresults: plan exported to sane csv file
 
-    @stubbed
-    def test_positive_plan_edit_remove_rule(self):
-        """Tests Insights plan can be edited by removing a rule from it
+    :caseautomation: notautomated
 
-        :id: dd05f149-b6ca-4845-8824-87e21d7b46e1
+    :CaseLevel: System
+    """
 
-        :Steps:
 
-            0. Create a VM and register to insights within org having manifest
+@stubbed
+def test_positive_plan_edit_remove_system():
+    """Tests Insights plan can be edited by removing a system from it
 
-            1. Navigate to Insights -> Planner
+    :id: d4ea837e-48b0-4482-a1a7-0507346519d7
 
-            2. Create a plan
+    :Steps:
 
-            3. Assign specific host to the plan
+        0. Create a VM and register to insights within org having manifest
 
-            4. Assign any rule to the plan
+        1. Navigate to Insights -> Planner
 
-            5. Edit the plan and remove assigned rule
+        2. Create a plan
 
-            6. Check the plan do not contain the rule
+        3. Assign specific host to the plan
 
+        4. Assign any rule to the plan
 
-        :expectedresults: rule is not present in the plan
+        5. Edit the plan and remove assigned system
 
-        :caseautomation: notautomated
+        6. Check the plan become empty
 
-        :CaseLevel: System
-        """
 
+    :expectedresults: plan becomes empty
 
-@run_in_one_thread
-class RHAIInventoryTestCase(RHAITestCase):
-    """Tests Insights Inventory related cases"""
+    :caseautomation: notautomated
 
-    @classmethod
-    def setUpClass(cls):  # noqa
-        super(RHAIInventoryTestCase, cls).setUpClass()
+    :CaseLevel: System
+    """
 
-    @stubbed
-    def test_positive_inventory_export_csv(self):
-        """Tests Insights inventory can be exported to csv
 
-        :id: df4085f4-b058-4c2f-974f-89bc90d83c9c
+@stubbed
+def test_positive_plan_edit_remove_rule():
+    """Tests Insights plan can be edited by removing a rule from it
 
-        :Steps:
+    :id: dd05f149-b6ca-4845-8824-87e21d7b46e1
 
-            0. Create a VM and register to insights within org having manifest
+    :Steps:
 
-            1. Navigate to Insights -> Inventory
+        0. Create a VM and register to insights within org having manifest
 
-            2. Export CSV
+        1. Navigate to Insights -> Planner
 
+        2. Create a plan
 
-        :expectedresults: inventory is exported in sane csv file
+        3. Assign specific host to the plan
 
-        :caseautomation: notautomated
+        4. Assign any rule to the plan
 
-        :CaseLevel: System
-        """
+        5. Edit the plan and remove assigned rule
 
-    @stubbed
-    def test_positive_inventory_create_new_plan(self):
-        """Tests Insights plan can be created using chosen inventory
+        6. Check the plan do not contain the rule
 
-        :id: 5af59eb0-b5d3-4ddb-9c34-f5f0d79353cc
 
-        :Steps:
+    :expectedresults: rule is not present in the plan
 
-            0. Create a VM and register to insights within org having manifest
+    :caseautomation: notautomated
 
-            1. Navigate to Insights -> Inventory
+    :CaseLevel: System
+    """
 
-            2. In Actions select Create new Plan/Playbook for a system
 
-        :expectedresults: new plan is created and involves the chosen system
+@stubbed
+def test_positive_inventory_export_csv():
+    """Tests Insights inventory can be exported to csv
 
-        :caseautomation: notautomated
+    :id: df4085f4-b058-4c2f-974f-89bc90d83c9c
 
-        :CaseLevel: System
-        """
+    :Steps:
 
-    @stubbed
-    def test_positive_inventory_add_to_existing_plan(self):
-        """Tests Insights inventory system can be added to the existing plan
+        0. Create a VM and register to insights within org having manifest
 
-        :id: 1a1923d0-22d3-4ecc-b9cb-ec8ebc2d9155
+        1. Navigate to Insights -> Inventory
 
-        :Steps:
+        2. Export CSV
 
-            0. Create a VM and register to insights within org having manifest
 
-            1. Navigate to Insights -> Inventory
+    :expectedresults: inventory is exported in sane csv file
 
-            2. In Actions select Create new Plan/Playbook for a system1
+    :caseautomation: notautomated
 
-            3. In Actions select Add to existing Plan/Playbook for a system2
+    :CaseLevel: System
+    """
 
-            4. Check that original plan contains also system2
 
+@stubbed
+def test_positive_inventory_create_new_plan():
+    """Tests Insights plan can be created using chosen inventory
 
-        :expectedresults: existing plan gets extended of new system
+    :id: 5af59eb0-b5d3-4ddb-9c34-f5f0d79353cc
 
-        :caseautomation: notautomated
+    :Steps:
 
-        :CaseLevel: System
-        """
+        0. Create a VM and register to insights within org having manifest
 
-    @stubbed
-    def test_positive_inventory_group_systems(self):
-        """Tests Insights inventory systems can be grouped
+        1. Navigate to Insights -> Inventory
 
-        :id: d6a2496f-b038-4d2b-80f9-95ef00225eb7
+        2. In Actions select Create new Plan/Playbook for a system
 
-        :Steps:
+    :expectedresults: new plan is created and involves the chosen system
 
-            0. Create a VM and register to insights within org having manifest
+    :caseautomation: notautomated
 
-            1. Navigate to Insights -> Inventory
+    :CaseLevel: System
+    """
 
-            2. In Actions select Group systems and create new system group
 
-            3. Check that selected system(s) are grouped in system group
+@stubbed
+def test_positive_inventory_add_to_existing_plan():
+    """Tests Insights inventory system can be added to the existing plan
 
+    :id: 1a1923d0-22d3-4ecc-b9cb-ec8ebc2d9155
 
-        :expectedresults: systems are groupped in new Insights system group
+    :Steps:
 
-        :caseautomation: notautomated
+        0. Create a VM and register to insights within org having manifest
 
-        :CaseLevel: System
-        """
+        1. Navigate to Insights -> Inventory
+
+        2. In Actions select Create new Plan/Playbook for a system1
+
+        3. In Actions select Add to existing Plan/Playbook for a system2
+
+        4. Check that original plan contains also system2
+
+
+    :expectedresults: existing plan gets extended of new system
+
+    :caseautomation: notautomated
+
+    :CaseLevel: System
+    """
+
+
+@stubbed
+def test_positive_inventory_group_systems():
+    """Tests Insights inventory systems can be grouped
+
+    :id: d6a2496f-b038-4d2b-80f9-95ef00225eb7
+
+    :Steps:
+
+        0. Create a VM and register to insights within org having manifest
+
+        1. Navigate to Insights -> Inventory
+
+        2. In Actions select Group systems and create new system group
+
+        3. Check that selected system(s) are grouped in system group
+
+
+    :expectedresults: systems are groupped in new Insights system group
+
+    :caseautomation: notautomated
+
+    :CaseLevel: System
+    """

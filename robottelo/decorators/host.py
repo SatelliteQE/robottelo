@@ -29,7 +29,7 @@ def skip_if_os(*versions):
         def test_hostgroup_create():
             # test code continues here
 
-    :param  tuple versions: \*args containing host versions for which test
+    :param  tuple versions: args containing host versions for which test
             must be skipped
     :returns: ``unittest2.skipIf``
     """

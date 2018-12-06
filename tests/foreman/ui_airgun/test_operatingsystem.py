@@ -17,25 +17,13 @@
 from nailgun import entities
 
 from robottelo.constants import DEFAULT_TEMPLATE, HASH_TYPE
-from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize, tier2
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture, tier2
 
 
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
-
-
-@parametrize('name', **valid_data_list('ui'))
-def test_positive_create(session, name):
-    major_version = gen_string('numeric', 2)
-    with session:
-        session.operatingsystem.create({
-            'operating_system.name': name,
-            'operating_system.major': major_version
-        })
-        os_full_name = '{} {}'.format(name, major_version)
-        assert session.operatingsystem.search(name)[0]['Title'] == os_full_name
 
 
 @tier2
@@ -68,17 +56,6 @@ def test_positive_update_with_params(session):
         assert len(values['parameters']) == 1
         assert values['parameters']['os_params'][0]['name'] == param_name
         assert values['parameters']['os_params'][0]['value'] == param_value
-
-
-def test_positive_delete(session):
-    name = gen_string('alpha')
-    major = gen_string('numeric', 2)
-    entities.OperatingSystem(name=name, major=major).create()
-    os_full_name = '{} {}'.format(name, major)
-    with session:
-        assert session.operatingsystem.search(name)[0]['Title'] == os_full_name
-        session.operatingsystem.delete(os_full_name)
-        assert not session.operatingsystem.search(name)
 
 
 @tier2

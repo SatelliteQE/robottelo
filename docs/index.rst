@@ -25,15 +25,28 @@ ensure that Paramiko's dependencies build correctly:
 * Python development headers
 * libffi
 
-On Fedora, you can install these with the following command::
+On Fedora, you can install these with the following command:
 
-    dnf install -y gcc git libffi-devel openssl-devel python-devel \
+For python2.x::
+
+    dnf install -y gcc git libffi-devel openssl-devel python2-devel \
         redhat-rpm-config
+    
+    dnf install libxml2-devel
+    
+For python3.x::
 
-On Red Hat Enterprise Linux, you can install these with the following command::
+    dnf install -y gcc git libffi-devel openssl-devel python3-devel \
+        redhat-rpm-config
+    
+    dnf install libxml2-devel
+
+On Red Hat Enterprise Linux 7, you can install these with the following command::
 
     yum install -y gcc git libffi-devel openssl-devel python-devel \
         redhat-rpm-config
+        
+    yum install libxml2-devel
 
 For more information, see `Paramiko: Installing
 <http://www.paramiko.org/installing.html>`_.
@@ -42,6 +55,9 @@ Get the source code and install dependencies::
 
     $ git clone git://github.com/SatelliteQE/robottelo.git
     $ pip install -r requirements.txt
+
+**Notes:**
+    * For python 2.7, run ``pip install configparser`` for Satellite 6.2
 
 That's it! You can now go ahead and start testing The Foreman. However, there
 are a few other things you may wish to do before continuing:

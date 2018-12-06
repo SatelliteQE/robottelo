@@ -36,17 +36,6 @@ class TestGPGKeyProductAssociate(object):
         cls.key_path = get_data_file(VALID_GPG_KEY_FILE)
         cls.organization = entities.Organization().create()
 
-    def test_positive_create_via_import(self, session):
-        name = gen_string('alpha')
-        with session:
-            session.organization.select(org_name=self.organization.name)
-            session.contentcredential.create({
-                'name': name,
-                'content_type': 'GPG Key',
-                'upload_file': self.key_path
-            })
-            assert session.contentcredential.search(name)[0]['Name'] == name
-
     @tier2
     def test_positive_add_empty_product(self, session):
         """Create gpg key with valid name and valid gpg key then associate
@@ -274,7 +263,8 @@ class TestGPGKeyProductAssociate(object):
             assert len(values['products']['table']) == 1
             assert values['products']['table'][0]['Name'] == product_name
             assert len(values['repositories']['table']) == 1
-            assert values['repositories']['table'][0]['Name'] == repo_name
+            assert (values['repositories']['table'][0]['Name'].split(' ')[-1]
+                    == repo_name)
 
     @tier2
     def test_positive_update_key_for_empty_product(self, session):

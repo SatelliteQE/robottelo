@@ -18,8 +18,6 @@
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -27,18 +25,16 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import (
-    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
-    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
     upgrade
 )
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_lifecycle_environment, make_org
-from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.factory import make_org
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -268,76 +264,6 @@ class OrganizationTestCase(UITestCase):
                     entities.Organization(name=org_name).create()
                     self.org.delete(org_name, dropdown_present=True)
 
-    @run_in_one_thread
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    @upgrade
-    def test_verify_bugzilla_1225588(self):
-        """Create Organization with valid values and upload manifest.
-        Then try to delete that organization.
-
-        :id: 851c8557-a406-4a70-9c8b-94bcf0482f8d
-
-        :expectedresults: Organization is deleted successfully.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Critical
-        """
-        org_name = gen_string('alphanumeric')
-        org = entities.Organization(name=org_name).create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        with Session(self) as session:
-            make_lifecycle_environment(session, org_name, name='DEV')
-            make_lifecycle_environment(
-                session, org_name, name='QE', prior='DEV'
-            )
-            # Org cannot be deleted when selected,
-            # So switching to Default Org and then deleting.
-            session.nav.go_to_select_org('Default Organization')
-            self.org.delete(org_name, dropdown_present=True)
-            for _ in range(10):
-                status = self.org.search(org_name)
-                if status is None:
-                    break
-            self.assertIsNone(status)
-
-    @run_in_one_thread
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    @upgrade
-    def test_verify_bugzilla_1259248(self):
-        """Create organization with valid manifest. Download debug
-        certificate for that organization and refresh added manifest for few
-        times in a row
-
-        :id: 1fcd7cd1-8ba1-434f-b9fb-c4e920046eb4
-
-        :expectedresults: Scenario passed successfully
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Critical
-        """
-        org = entities.Organization().create()
-        sub = entities.Subscription(organization=org)
-        with manifests.original_manifest() as manifest:
-            upload_manifest(org.id, manifest.content)
-        try:
-            with Session(self) as session:
-                for _ in range(3):
-                    self.assertIsNotNone(org.download_debug_certificate())
-                    session.nav.go_to_select_org(org.name)
-                    session.nav.go_to_red_hat_subscriptions()
-                    self.subscriptions.refresh()
-                    self.assertIsNone(session.nav.wait_until_element(
-                        common_locators['notif.error'], timeout=5))
-                    self.assertTrue(session.nav.wait_until_element(
-                        common_locators['alert.success'], timeout=180))
-        finally:
-            sub.delete_manifest(data={'organization_id': org.id})
-
     @tier1
     def test_positive_update_name(self):
         """Create organization with valid values then update its name.
@@ -379,42 +305,6 @@ class OrganizationTestCase(UITestCase):
                     error = session.nav.wait_until_element(
                         common_locators['name_haserror'])
                     self.assertIsNotNone(error)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1321543)
-    @tier2
-    def test_positive_create_with_all_environment(self):
-        """Create organization with environment. Check and uncheck
-        'all environments' setting. Verify that environment is assigned to
-        organization and vice versa organization is assigned to environment
-
-        :id: 7637d83b-3b40-4951-bdda-cdf78aa141f3
-
-        :customerscenario: true
-
-        :expectedresults: Organization and environment entities assigned to
-            each other
-
-        :BZ: 1479736
-
-        :CaseLevel: Integration
-        """
-        org_name = gen_string('alpha')
-        env = entities.Environment().create()
-        with Session(self):
-            self.assertIsNotNone(self.org.create_with_entity(
-                org_name, 'envs', env.name))
-            for value in [True, False]:
-                self.org.assign_value(locators['org.all_environments'], value)
-                self.org.click(common_locators['submit'])
-                self.environment.search_and_click(env.name)
-                self.environment.click(tab_locators['tab_org'])
-                self.assertIsNotNone(self.environment.wait_until_element(
-                    common_locators['entity_deselect'] % org_name))
-                self.org.search_and_click(org_name)
-                self.org.click(tab_locators['context.tab_env'])
-                self.assertIsNotNone(self.org.wait_until_element(
-                    common_locators['entity_deselect'] % env.name))
 
     @run_only_on('sat')
     @stubbed()

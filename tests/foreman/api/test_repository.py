@@ -35,8 +35,8 @@ from robottelo.constants import (
     FAKE_5_YUM_REPO,
     FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
-    FEDORA22_OSTREE_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA26_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -1441,23 +1441,17 @@ class DockerRepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         product = entities.Product(organization=self.org).create()
-        repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=settings.docker.private_registry_name,
-            name=gen_string('alpha'),
-            product=product,
-            url=settings.docker.private_registry_url,
-            upstream_username=settings.docker.private_registry_username,
-        ).create()
-
-        with self.assertRaises(TaskFailedError) as excinfo:
-            repo.sync()
-        # assert error message includes the proper pulp_docker error code
-        # DKR1007 = Error("DKR1007", _("Could not fetch repository %(repo)s
-        # from registry %(registry)s - ""%(reason)s"),
-        # in this case reason = "Unauthorized or Not Found"
-        self.assertIn("DKR1007", str(excinfo.exception))
-        self.assertIn("Unauthorized or Not Found", str(excinfo.exception))
+        with self.assertRaises(HTTPError) as excinfo:
+            entities.Repository(
+                content_type=u'docker',
+                docker_upstream_name=settings.docker.private_registry_name,
+                name=gen_string('alpha'),
+                product=product,
+                url=settings.docker.private_registry_url,
+                upstream_username=settings.docker.private_registry_username,
+            ).create()
+        self.assertIn("422", str(excinfo.exception))
+        self.assertIn("Unprocessable Entity", str(excinfo.exception))
 
 
 class OstreeRepositoryTestCase(APITestCase):
@@ -1484,7 +1478,7 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         self.assertEqual(repo.content_type, 'ostree')
@@ -1502,7 +1496,7 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         new_name = gen_string('alpha')
@@ -1523,10 +1517,10 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
-        new_url = FEDORA22_OSTREE_REPO
+        new_url = FEDORA26_OSTREE_REPO
         repo.url = new_url
         repo = repo.update(['url'])
         self.assertEqual(new_url, repo.url)
@@ -1545,7 +1539,7 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = entities.Repository(
             product=self.product,
             content_type='ostree',
-            url=FEDORA23_OSTREE_REPO,
+            url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
         repo.delete()

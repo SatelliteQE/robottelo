@@ -17,6 +17,7 @@
 """
 import pytest
 
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
@@ -29,8 +30,9 @@ from robottelo.datafactory import (
     valid_url_list,
     xdist_adapter
 )
-from robottelo.decorators import stubbed, tier1
+from robottelo.decorators import stubbed, run_in_one_thread, tier1
 from robottelo.test import CLITestCase
+from time import sleep
 
 
 class SettingTestCase(CLITestCase):
@@ -380,3 +382,64 @@ def test_negative_update_send_welcome_email(value):
     """
     with pytest.raises(CLIReturnCodeError):
         Settings.set({'name': 'send_welcome_email', 'value': value})
+
+
+@run_in_one_thread
+class BruteForceLogin(CLITestCase):
+    """automate brute force protection limit configurable function"""
+    @classmethod
+    def setUpClass(cls):
+        super(BruteForceLogin, cls).setUpClass()
+        cls.host_value = Settings.list({
+            'search': 'name=failed_login_attempts_limit'})[0]['value']
+
+    @classmethod
+    def tearDownClass(cls):
+        super(BruteForceLogin, cls).tearDownClass()
+        # reset failed_login_attempts_limit value
+        sleep(301)
+        Settings.set({
+            u'name': u'failed_login_attempts_limit',
+            u'value': cls.host_value})
+
+    @tier1
+    def test_positive_failed_login_attempts_limit(self):
+        """automate brute force protection limit configurable function
+
+         :id: f95407ed-451b-4387-ac9b-2959ae2f51ae
+
+         :steps:
+            1. Make sure login works.
+            2. Save current value and set it to some lower value:
+            3. Try to login with wrong password till failed_login_attempts_limit
+            4. Make sure login now does not work:
+            5. Wait timeout - 5 minutes + 1 second
+            6. Verify you can now login fine
+            7. Return the setting to previous value
+
+         :expectedresults: failed_login_attempts_limit works as expected
+
+         :caseautomation: automated
+         """
+        result = ssh.command(
+            'hammer -u {0} -p {1} user list'
+            .format(self.foreman_user, self.foreman_password))
+        self.assertEqual(result.return_code, 0)
+        Settings.set({
+            u'name': u'failed_login_attempts_limit',
+            u'value': '5'
+        })
+        for i in range(5):
+            output = ssh.command(
+                'hammer -u {0} -p BAD_PASS user list'.format(
+                    self.foreman_user))
+            self.assertEqual(output.return_code, 129)
+        result = ssh.command(
+            'hammer -u {0} -p {1} user list'
+            .format(self.foreman_user, self.foreman_password))
+        self.assertEqual(result.return_code, 129)
+        sleep(301)
+        result = ssh.command(
+            'hammer -u {0} -p {1} user list'
+            .format(self.foreman_user, self.foreman_password))
+        self.assertEqual(result.return_code, 0)

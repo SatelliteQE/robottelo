@@ -18,10 +18,11 @@
 from pytest import raises
 
 from airgun.session import Session
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 
-from robottelo.decorators import fixture, stubbed, tier2
+from robottelo.api.utils import create_discovered_host
+from robottelo.decorators import fixture, run_in_one_thread, tier2
 
 
 @fixture(scope='module')
@@ -37,6 +38,25 @@ def manager_loc():
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@fixture
+def module_discovery_env(module_org, module_loc):
+    discovery_loc = entities.Setting().search(
+        query={'search': 'name="discovery_location"'})[0]
+    default_discovery_loc = discovery_loc.value
+    discovery_loc.value = module_loc.name
+    discovery_loc.update(['value'])
+    discovery_org = entities.Setting().search(
+        query={'search': 'name="discovery_organization"'})[0]
+    default_discovery_org = discovery_org.value
+    discovery_org.value = module_org.name
+    discovery_org.update(['value'])
+    yield
+    discovery_loc.value = default_discovery_loc
+    discovery_loc.update(['value'])
+    discovery_org.value = default_discovery_org
+    discovery_org.update(['value'])
 
 
 @fixture
@@ -71,81 +91,6 @@ def reader_user(module_loc, module_org):
     ).create()
     reader_user.password = password
     return reader_user
-
-
-def test_positive_create(session, module_org):
-    name = gen_string('alpha')
-    search = gen_string('alpha')
-    hostname = gen_string('alpha')
-    hosts_limit = str(gen_integer(1, 100))
-    priority = str(gen_integer(1, 100))
-    enable = False
-    hg = entities.HostGroup(organization=[module_org]).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.discoveryrule.create({
-            'primary.name': name,
-            'primary.search': search,
-            'primary.host_group': hg.name,
-            'primary.hostname': hostname,
-            'primary.hosts_limit': hosts_limit,
-            'primary.priority': priority,
-            'primary.enabled': enable,
-        })
-        dr_val = session.discoveryrule.read(name)
-        assert dr_val['primary']['name'] == name
-        assert dr_val['primary']['host_group'] == hg.name
-        assert dr_val['primary']['hostname'] == hostname
-        assert dr_val['primary']['hosts_limit'] == hosts_limit
-        assert dr_val['primary']['priority'] == priority
-        assert dr_val['primary']['enabled'] == enable
-
-
-def test_positive_delete(session, module_org):
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg,
-        organization=[module_org]
-    ).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr.name in [rule['Name'] for rule in dr_val]
-        session.discoveryrule.delete(dr.name)
-        dr_val = session.discoveryrule.read_all()
-        assert dr.name not in [rule['Name'] for rule in dr_val]
-
-
-def test_positive_update(session, module_loc, module_org):
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg,
-        organization=[module_org]
-    ).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.discoveryrule.update(
-            dr.name, {'locations.resources.assigned': [module_loc.name]})
-        dr_val = session.discoveryrule.read(dr.name)
-        assert dr_val[
-                   'locations']['resources']['assigned'][0] == module_loc.name
-
-
-def test_positive_disable_and_enable(session, module_org):
-    hg = entities.HostGroup(organization=[module_org]).create()
-    dr = entities.DiscoveryRule(
-        hostgroup=hg,
-        organization=[module_org]
-    ).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        # enable checkbox is true, by default
-        session.discoveryrule.disable(dr.name)
-        dr_val = session.discoveryrule.read(dr.name)
-        assert (not dr_val['primary']['enabled'])
-        session.discoveryrule.enable(dr.name)
-        dr_val = session.discoveryrule.read(dr.name)
-        assert dr_val['primary']['enabled']
 
 
 @tier2
@@ -271,24 +216,82 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
         assert dr.name in [rule['Name'] for rule in dr_val]
 
 
-@stubbed()
+@run_in_one_thread
 @tier2
-def test_positive_list_host_based_on_rule_search_query():
+def test_positive_list_host_based_on_rule_search_query(
+        session, module_org, module_loc, module_discovery_env):
     """List all the discovered hosts resolved by given rule's search query
-    e.g. all hosts with cpu_count = 1
+    e.g. all discovered hosts with cpu_count = 2, and list rule's associated
+    hosts.
 
     :id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
 
     :Steps:
 
-        1. discovered a host with cpu_count = 2
+        1. discovered host with cpu_count = 2
         2. Define a rule 'rule1' with search query cpu_count = 2
         3. Click on 'Discovered Hosts' from rule1
+        4. Auto Provision the discovered host
+        5. Click on 'Associated Hosts' from rule1
 
-    :expectedresults: All hosts based on rule's search query( w/ cpu_count
-        = 2) should be listed
+    :expectedresults:
 
-    :caseautomation: notautomated
+        1. After step 3, the rule's Discovered host should be listed.
+        2. The rule's Associated Host should be listed.
 
     :CaseLevel: Integration
     """
+    ip_address = gen_ipaddr()
+    cpu_count = gen_integer(2, 10)
+    rule_search = 'cpu_count = {0}'.format(cpu_count)
+    # any way create a host to be sure that this org has more than one host
+    host = entities.Host(organization=module_org, location=module_loc).create()
+    host_group = entities.HostGroup(
+        organization=[module_org],
+        location=[module_loc],
+        medium=host.medium,
+        root_pass=gen_string('alpha'),
+        operatingsystem=host.operatingsystem,
+        ptable=host.ptable,
+        domain=host.domain,
+        architecture=host.architecture,
+    ).create()
+    discovery_rule = entities.DiscoveryRule(
+        hostgroup=host_group,
+        search_=rule_search,
+        organization=[module_org],
+        location=[module_loc]
+    ).create()
+    discovered_host = create_discovered_host(
+        ip_address=ip_address,
+        options={'physicalprocessorcount': cpu_count}
+    )
+    # create an other discovered host with an other cpu count
+    create_discovered_host(options={'physicalprocessorcount': cpu_count+1})
+    provisioned_host_name = '{0}.{1}'.format(
+        discovered_host['name'], host.domain.read().name)
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        values = session.discoveryrule.read_all()
+        assert discovery_rule.name in [rule['Name'] for rule in values]
+        values = session.discoveryrule.read_discovered_hosts(
+            discovery_rule.name)
+        assert values['searchbox'] == rule_search
+        assert len(values['table']) == 1
+        assert values['table'][0]['IP Address'] == ip_address
+        assert values['table'][0]['CPUs'] == str(cpu_count)
+        # auto provision the discovered host
+        session.discoveredhosts.apply_action(
+            'Auto Provision', [discovered_host['name']])
+        assert not session.discoveredhosts.search(
+            'name = "{0}"'.format(discovered_host['name']))
+        values = session.discoveryrule.read_associated_hosts(
+            discovery_rule.name)
+        assert (values['searchbox']
+                == 'discovery_rule = "{0}"'.format(discovery_rule.name))
+        assert len(values['table']) == 1
+        assert values['table'][0]['Name'] == provisioned_host_name
+        values = session.host.get_details(provisioned_host_name)
+        assert (values['properties']['properties_table']['IP Address']
+                == ip_address)

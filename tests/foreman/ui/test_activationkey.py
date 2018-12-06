@@ -19,29 +19,19 @@
 import re
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
-from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
-    ENVIRONMENT,
-    FAKE_1_YUM_REPO,
-)
+from robottelo.constants import DISTRO_RHEL6, ENVIRONMENT
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     stubbed,
     tier1,
-    tier2,
     tier3,
     upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_activationkey, set_context
-from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -427,60 +417,6 @@ class ActivationKeyTestCase(UITestCase):
                 self.assertIsNotNone(chost_url_id)
                 self.assertEqual(int(chost_url_id.group(0)), chost_id)
 
-    @run_in_one_thread
-    @skip_if_not_set('fake_manifest')
-    @tier2
-    def test_positive_delete_manifest(self):
-        """Check if deleting a manifest removes it from Activation key
-
-        :id: 512d8e41-b937-451e-a9c6-840457d3d7d4
-
-        :Steps:
-            1. Create Activation key
-            2. Associate a manifest to the Activation Key
-            3. Delete the manifest
-
-        :expectedresults: Deleting a manifest removes it from the Activation
-            key
-
-        :CaseLevel: Integration
-        """
-        # Upload manifest
-        org = entities.Organization().create()
-        sub = entities.Subscription(organization=org)
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        # Create activation key
-        activation_key = entities.ActivationKey(
-            organization=org,
-        ).create()
-        # Associate a manifest to the activation key
-        for subs in sub.search():
-            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': subs.id,
-                })
-                break
-        with Session(self) as session:
-            session.nav.go_to_select_org(org.name)
-            # Verify subscription is assigned to activation key
-            self.assertIsNotNone(
-                self.activationkey.search_key_subscriptions(
-                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME
-                )
-            )
-            # Delete the manifest
-            self.navigator.go_to_red_hat_subscriptions()
-            self.subscriptions.delete()
-            self.assertIsNotNone(self.subscriptions.wait_until_element(
-                    locators['subs.import_history.deleted']))
-            self.assertIsNone(
-                self.activationkey.search_key_subscriptions(
-                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME
-                )
-            )
-
     @run_only_on('sat')
     @stubbed()
     @tier3
@@ -546,84 +482,3 @@ class ActivationKeyTestCase(UITestCase):
                         self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)
                     self.assertIsNone(self.activationkey.search(new_name))
-
-    @run_only_on('sat')
-    @skip_if_not_set('clients', 'fake_manifest')
-    @tier3
-    def test_positive_service_level_subscription_with_custom_product(self):
-        """Subscribe a host to activation key with Premium service level and
-         with custom product
-
-        :id: 195a8049-860e-494d-b7f0-0794384194f7
-
-        :customerscenario: true
-
-        :steps:
-            1. Create a product with custom repository synchronized
-            2. Create and Publish a content view with the created repository
-            3. Create an activation key and assign the created content view
-            4. Add a RedHat subscription to activation key (The product
-               subscription should be added automatically)
-            5. Set the activation service_level to Premium
-            6. Register a host to activation key
-            7. List consumed subscriptions on host
-            8. List the subscription in Content Host UI
-
-        :expectedresults:
-            1. The product subscription is listed in consumed subscriptions on
-               host
-            2. The product subscription is listed in the contenthost
-               subscriptions UI
-
-        :BZ: 1394357
-
-        :CaseLevel: System
-        """
-        org = entities.Organization().create()
-        self.upload_manifest(org.id, manifests.clone())
-        subscription = entities.Subscription(organization=org)
-        entities_ids = setup_org_for_a_custom_repo({
-            'url': FAKE_1_YUM_REPO,
-            'organization-id': org.id,
-        })
-        product = entities.Product(id=entities_ids['product-id']).read()
-        activation_key = entities.ActivationKey(
-            id=entities_ids['activationkey-id']).read()
-        # add the default RH subscription
-        for sub in subscription.search():
-            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': sub.id,
-                })
-                break
-        # ensure all the needed subscriptions are attached to activation key
-        results = activation_key.subscriptions()['results']
-        self.assertEqual(
-            {product.name, DEFAULT_SUBSCRIPTION_NAME},
-            {ak_subscription['name'] for ak_subscription in results}
-        )
-        activation_key.service_level = 'Premium'
-        activation_key = activation_key.update(['service_level'])
-        with VirtualMachine() as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(
-                org.label, activation_key=activation_key.name)
-            self.assertTrue(vm.subscribed)
-            result = vm.run('subscription-manager list --consumed')
-            self.assertEqual(result.return_code, 0)
-            self.assertIn('Subscription Name:   {0}'.format(product.name),
-                          '\n'.join(result.stdout))
-            with Session(self) as session:
-                set_context(session, org=org.name)
-                self.contenthost.search_and_click(vm.hostname)
-                self.contenthost.click(
-                    tab_locators['contenthost.tab_subscriptions'])
-                self.contenthost.click(
-                    tab_locators['contenthost.tab_subscriptions_subscriptions']
-                )
-                self.assertIsNotNone(
-                    self.contenthost.wait_until_element(
-                        locators['contenthost.subscription_select']
-                        % product.name)
-                )

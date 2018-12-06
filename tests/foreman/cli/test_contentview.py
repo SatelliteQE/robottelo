@@ -22,6 +22,7 @@ from robottelo import manifests, ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
@@ -51,6 +52,8 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     RPM_TO_UPLOAD,
     CUSTOM_PUPPET_REPO,
+    CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     DEFAULT_CV,
     DEFAULT_LOC,
     DISTRO_RHEL7,
@@ -66,7 +69,7 @@ from robottelo.constants import (
     FAKE_0_PUPPET_REPO,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_YUM_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -2201,6 +2204,58 @@ class ContentViewTestCase(CLITestCase):
             'Publishing new version of CV was not successful',
         )
 
+    @upgrade
+    @tier2
+    def test_positive_publish_custom_content_module_stream(self):
+        """attempt to publish a content view containing custom content
+        module streams
+
+        :id: 435e49f0-2891-4b04-98b1-bf303dd3a135
+
+        :setup: Multiple repositories for an org and custom content synced
+
+        :expectedresults: Content view published with module streams
+            and count should be correct each time even after republishing CV
+
+        :CaseLevel: Integration
+        """
+        software_repo = make_repository({u'product-id': self.product['id'],
+                                         u'content-type': u'yum',
+                                         u'url': CUSTOM_MODULE_STREAM_REPO_1})
+
+        animal_repo = make_repository({u'product-id': self.product['id'],
+                                       u'content-type': u'yum',
+                                       u'url': CUSTOM_MODULE_STREAM_REPO_2})
+
+        # Sync REPO's
+        Repository.synchronize({'id': animal_repo['id']})
+        Repository.synchronize({'id': software_repo['id']})
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': animal_repo['id'],
+        })
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv_version_1 = ContentView.info({u'id': new_cv['id']})['versions'][0]
+        module_streams = ModuleStream.list({'content-view-version-id': (new_cv_version_1['id'])})
+        self.assertGreater(
+            len(module_streams), 37,
+            'Module Streams are not associated with Content View')
+        # Publish another new version of CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': software_repo['id'],
+        })
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv_version_2 = ContentView.info({u'id': new_cv['id']})['versions'][1]
+        module_streams = ModuleStream.list({'content-view-version-id': new_cv_version_2['id']})
+        self.assertGreater(
+            len(module_streams), 44,
+            'Module Streams are not associated with Content View')
+
     @tier2
     @run_only_on('sat')
     def test_positive_republish_after_content_removed(self):
@@ -2225,7 +2280,7 @@ class ContentViewTestCase(CLITestCase):
             u'product-id': self.product['id'],
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         # Create new Docker repository
         docker_repo = make_repository({
@@ -4773,7 +4828,7 @@ class OstreeContentViewTestCase(CLITestCase):
             u'product-id': cls.product['id'],
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         Repository.synchronize({'id': cls.ostree_repo['id']})
         # Create new yum repository

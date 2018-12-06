@@ -202,7 +202,8 @@ NOT_IMPLEMENTED = 'Test not implemented'
 SYNC_INTERVAL = {
     'hour': "hourly",
     'day': "daily",
-    'week': "weekly"
+    'week': "weekly",
+    'custom': "custom cron"
 }
 
 REPO_TYPE = {
@@ -249,6 +250,7 @@ PRDS = {
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
     'rhscl': 'Red Hat Software Collections for RHEL Server',
+    'rhae': 'Red Hat Ansible Engine',
 }
 
 REPOSET = {
@@ -268,6 +270,7 @@ REPOSET = {
               ' Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                ' Linux 7 Server'),
+    'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
 }
 
 REPOS = {
@@ -283,6 +286,19 @@ REPOS = {
         'distro_repository': True,
         'key': 'rhel',
         'version': '7.5',
+    },
+    'rhel6': {
+        'id': 'rhel-6-server-rpms',
+        'name': 'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL6,
+        'reposet': REPOSET['rhel6'],
+        'product': PRDS['rhel'],
+        'major_version': RHEL_6_MAJOR_VERSION,
+        'distro_repository': True,
+        'key': 'rhel',
+        'version': '6.8',
     },
     'rhsc7': {
         'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
@@ -344,6 +360,7 @@ REPOS = {
         'reposet': REPOSET['rhva6'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL6,
+        'releasever': '6Server',
         'key': 'rhva6',
     },
     'rhva65': {
@@ -357,6 +374,16 @@ REPOS = {
         'distro': DISTRO_RHEL6,
         'key': 'rhva65',
     },
+    'rhct6': {
+        'name': 'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server',
+        'releasever': '6Server',
+        'version': '6Server',
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhct6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhct6',
+    },
     'rhaht': {
         'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
     },
@@ -368,6 +395,16 @@ REPOS = {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                  ' Linux 7 Server x86_64 7Server'),
+    },
+    'rhae2': {
+        'id': 'rhel-7-server-ansible-2.7-rpms',
+        'name': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server x86_64',
+        'version': '2.7',
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhae2'],
+        'product': PRDS['rhae'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhae2',
     },
 }
 
@@ -505,6 +542,12 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
+CUSTOM_MODULE_STREAM_REPO_1 = (
+    u'https://dl.fedoraproject.org/pub/fedora/linux/updates/28/Modular/x86_64/'
+)
+CUSTOM_MODULE_STREAM_REPO_2 = (
+    u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
+)
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
 FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
 FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
@@ -541,8 +584,8 @@ FAKE_5_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet05'
 FAKE_6_PUPPET_REPO = u'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
 FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
 FAKE_8_PUPPET_REPO = u'https://omaciel.fedorapeople.org/f4cb00ed/'
-FEDORA22_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/22/'
-FEDORA23_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/23/'
+FEDORA26_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/26/'
+FEDORA27_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/27/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
 FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
@@ -1642,14 +1685,17 @@ BOOKMARK_ENTITIES = [
         'name': 'Subscriptions', 'controller': 'katello_subscriptions',
         'skip_for_ui': True,
     },
-    {'name': 'Products', 'controller': 'katello_products'},
+    {'name': 'Product', 'controller': 'katello_products'},
     {
         'name': 'Repository', 'controller': 'katello_repositories',
         'skip_for_ui': True
     },
-    {'name': 'GPGKey', 'controller': 'katello_gpg_keys'},
+    {
+        'name': 'ContentCredential', 'controller': 'katello_gpg_keys',
+        'skip_for_ui': ('bugzilla', 1638781)
+    },
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
-    {'name': 'Content_Views', 'controller': 'katello_content_views'},
+    {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
     {
         'name': 'Package', 'controller': 'katello_erratum_packages',
@@ -1660,53 +1706,56 @@ BOOKMARK_ENTITIES = [
         'skip_for_ui': True
     },
     {
-        'name': 'DockerTag', 'controller': 'katello_docker_tags',
+        'name': 'ContainerImageTag', 'controller': 'katello_docker_tags',
         'skip_for_ui': True
     },
     {
         'name': 'Registry', 'controller': 'docker_registries',
         'skip_for_ui': ('redmine', 13436)
     },
-    {'name': 'Hosts', 'controller': 'hosts', 'setup': entities.Host},
+    {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host},
     {
         'name': 'ContentHost', 'controller': 'hosts',
         'skip_for_ui': True
     },
     {'name': 'HostCollection', 'controller': 'katello_host_collections'},
     {'name': 'Architecture', 'controller': 'architectures'},
-    {'name': 'HardwareModel', 'controller': 'models', 'setup': entities.Model},
+    {
+        'name': 'HardwareModel', 'controller': 'models',
+        'setup': entities.Model, 'skip_for_ui': True
+    },
     {
         'name': 'InstallationMedia', 'controller': 'media',
         'setup': entities.Media, 'skip_for_ui': True
     },
-    {'name': 'OperatingSys', 'controller': 'operatingsystems'},
+    {'name': 'OperatingSystem', 'controller': 'operatingsystems'},
     {
         'name': 'PartitionTable', 'controller': 'ptables',
         'setup': entities.PartitionTable, 'skip_for_ui': False
     },
-    {'name': 'Template', 'controller': 'provisioning_templates'},
+    {'name': 'ProvisioningTemplate', 'controller': 'provisioning_templates'},
     {
         'name': 'HostGroup', 'controller': 'hostgroups',
-        'setup': entities.HostGroup
+        'setup': entities.HostGroup, 'skip_for_ui': True
     },
     {
-        'name': 'DiscoveryRules', 'controller': 'discovery_rules',
+        'name': 'DiscoveryRule', 'controller': 'discovery_rules',
         'skip_for_ui': ('bugzilla', 1387569), 'setup': entities.DiscoveryRule
     },
     {
-        'name': 'GlobalParameters', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': ('bugzilla', 1456833)
+        'name': 'GlobalParameter', 'controller': 'common_parameters',
+        'setup': entities.CommonParameter, 'skip_for_ui': True
     },
     {
-        'name': 'ConfigGroups', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup, 'skip_for_ui': ('bugzilla', 1378084)
+        'name': 'ConfigGroup', 'controller': 'config_groups',
+        'setup': entities.ConfigGroup, 'skip_for_ui': True
     },
     {
-        'name': 'PuppetEnv', 'controller': 'environments',
-        'setup': entities.Environment, 'skip_for_ui': True
+        'name': 'PuppetEnvironment', 'controller': 'environments',
+        'setup': entities.Environment
     },
     {
-        'name': 'PuppetClasses', 'controller': 'puppetclasses',
+        'name': 'PuppetClass', 'controller': 'puppetclasses',
         'setup': entities.PuppetClass
     },
     {
@@ -1715,11 +1764,11 @@ BOOKMARK_ENTITIES = [
     },
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
-        'name': 'Compute_Resource', 'controller': 'compute_resources',
+        'name': 'ComputeResource', 'controller': 'compute_resources',
         'setup': entities.DockerComputeResource
     },
     {
-        'name': 'Compute_Profile', 'controller': 'compute_profiles',
+        'name': 'ComputeProfile', 'controller': 'compute_profiles',
         'setup': entities.ComputeProfile
     },
     {
@@ -1732,14 +1781,14 @@ BOOKMARK_ENTITIES = [
         'skip_for_ui': True
     },
     {'name': 'Location', 'controller': 'locations'},
-    {'name': 'Org', 'controller': 'organizations'},
+    {'name': 'Organization', 'controller': 'organizations'},
     {'name': 'User', 'controller': 'users'},
     {
         'name': 'UserGroup', 'controller': 'usergroups',
         'setup': entities.UserGroup
     },
     {'name': 'Role', 'controller': 'roles'},
-    {'name': 'Settings', 'controller': 'settings'},
+    {'name': 'Settings', 'controller': 'settings', 'skip_for_ui': True},
 ]
 
 STRING_TYPES = [

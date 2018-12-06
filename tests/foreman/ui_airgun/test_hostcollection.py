@@ -33,7 +33,7 @@ from robottelo.constants import (
     FAKE_2_ERRATA_ID,
     FAKE_6_YUM_REPO,
 )
-from robottelo.datafactory import gen_string, gen_integer
+from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2, tier3, upgrade
 from robottelo.products import (
     YumRepository,
@@ -46,6 +46,11 @@ from robottelo.vm import VirtualMachine
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
 
 
 @fixture(scope='module')
@@ -171,46 +176,8 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
         return repos_urls
 
 
-def test_positive_create(session):
-    hc_name = gen_string('alpha')
-    with session:
-        session.hostcollection.create({
-            'name': hc_name,
-            'unlimited_hosts': False,
-            'max_hosts': 3,
-            'description': gen_string('alpha'),
-        })
-        assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
-
-
-def test_positive_edit(session, module_org):
-    host_collection = entities.HostCollection(organization=module_org).create()
-    new_data = {
-        'name': gen_string('alpha'),
-        'description': gen_string('alpha'),
-        'content_host_limit': str(gen_integer(10, 100)),
-    }
-    with session:
-        session.organization.select(org_name=module_org.name)
-        assert not session.hostcollection.search(new_data['name'])
-        session.hostcollection.update(host_collection.name, new_data)
-        assert not session.hostcollection.search(host_collection.name)
-        values = session.hostcollection.read(new_data['name'])
-        details_data = {
-            key: value
-            for key, value in values['details'].items()
-            if key in new_data
-        }
-        assert new_data == details_data
-        # update limit to unlimited
-        session.hostcollection.update(
-            new_data['name'], {'content_host_limit': 'Unlimited'})
-        values = session.hostcollection.read(new_data['name'])
-        assert values['details']['content_host_limit'] == 'Unlimited'
-
-
 @tier2
-def test_negative_install_via_remote_execution(session, module_org):
+def test_negative_install_via_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
 
@@ -225,7 +192,8 @@ def test_negative_install_via_remote_execution(session, module_org):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org).create())
+        hosts.append(entities.Host(
+            organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts],
         organization=module_org,
@@ -245,7 +213,7 @@ def test_negative_install_via_remote_execution(session, module_org):
 
 
 @tier2
-def test_negative_install_via_custom_remote_execution(session, module_org):
+def test_negative_install_via_custom_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
 
@@ -260,7 +228,8 @@ def test_negative_install_via_custom_remote_execution(session, module_org):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org).create())
+        hosts.append(entities.Host(
+            organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts],
         organization=module_org,
@@ -294,12 +263,14 @@ def test_positive_add_host(session):
     """
     hc_name = gen_string('alpha')
     org = entities.Organization().create()
+    loc = entities.Location().create()
     cv = entities.ContentView(organization=org).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     cv.publish()
     promote(cv.read().version[0], lce.id)
     host = entities.Host(
         organization=org,
+        location=loc,
         content_facet_attributes={
             'content_view_id': cv.id,
             'lifecycle_environment_id': lce.id,
@@ -307,6 +278,7 @@ def test_positive_add_host(session):
     ).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         session.hostcollection.create({'name': hc_name})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)

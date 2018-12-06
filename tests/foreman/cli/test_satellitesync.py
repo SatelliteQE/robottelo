@@ -20,21 +20,24 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests, ssh
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org,
+    make_product,
+    make_repository,
+)
+from robottelo.cli.package import Package
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
+from robottelo.cli.settings import Settings
+from robottelo.cli.subscription import Subscription
 from robottelo.constants import (
     ENVIRONMENT,
     PRDS,
     REPOS,
     REPOSET,
 )
-from robottelo.cli.factory import (
-    make_org,
-    make_product,
-    make_repository,
-)
-from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.settings import Settings
-from robottelo.cli.subscription import Subscription
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -230,11 +233,83 @@ class RepositoryExportTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
 
-class InterSatelliteSyncTestCase(CLITestCase):
-    """Implements InterSatellite Sync tests in CLI"""
+class ContentViewSync(CLITestCase):
+    """Implements Content View Export Import tests in CLI"""
+
+    export_base = '$HOME'
+
+    @classmethod
+    def setUpClass(cls):
+        """Create Directory for all CV Sync Tests in /tmp"""
+        super(ContentViewSync, cls).setUpClass()
+        cls.exporting_org = make_org()
+        cls.exporting_prod = gen_string('alpha')
+        product = make_product({
+            'organization-id': cls.exporting_org['id'],
+            'name': cls.exporting_prod
+        })
+        cls.exporting_repo = gen_string('alpha')
+        repo = make_repository({
+            'name': cls.exporting_repo,
+            'download-policy': 'immediate',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': repo['id']})
+        cls.exporting_cv = gen_string('alpha')
+        content_view = make_content_view({
+            'name': cls.exporting_cv,
+            'organization-id': cls.exporting_org['id']
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': cls.exporting_org['id'],
+            'repository-id': repo['id']
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cls.exporting_cvv_id = content_view['versions'][0]['id']
+
+    def setUp(self):
+        """Creates export directory where the CV version contents will be exported"""
+        super(ContentViewSync, self).setUp()
+        result = ssh.command('mktemp -d -p {}'.format(self.export_base))
+        self.assertEqual(result.return_code, 0)
+        self.export_dir = result.stdout[0]
+
+    def tearDown(self):
+        """Deletes Directory created for CV export Test during setUp"""
+        super(ContentViewSync, self).tearDown()
+        ssh.command('rm -rf {}'.format(self.export_dir))
+
+    def set_importing_org(self, product, repo, cv):
+        """Sets same CV, product and repository in importing organization as
+        exporting organization
+
+        :param str product: The product name same as exporting product
+        :param str repo: The repo name same as exporting repo
+        :param str cv: The cv name same as exporting cv
+        """
+        self.importing_org = make_org()
+        importing_prod = make_product({
+            'organization-id': self.importing_org['id'],
+            'name': product
+        })
+        importing_repo = make_repository({
+            'name': repo,
+            'download-policy': 'immediate',
+            'product-id': importing_prod['id']
+        })
+        self.importing_cv = make_content_view({
+            'name': cv,
+            'organization-id': self.importing_org['id']
+        })
+        ContentView.add_repository({
+            'id': self.importing_cv['id'],
+            'organization-id': self.importing_org['id'],
+            'repository-id': importing_repo['id']
+        })
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     @upgrade
     def test_positive_export_import_cv(self):
@@ -244,21 +319,38 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps:
 
-            1. Export whole CV version contents to a directory specified in
-               settings.
-            2. Copy exported contents to /var/www/html/pub/export directory.
-            3. Import these copied contents from some other org/satellite.
+            1. Export whole CV version contents to a directory
+            3. Import those contents from some other org/satellite.
 
         :expectedresults:
 
             1. Whole CV version contents has been exported to directory
-               specified in settings.
             2. All The exported contents has been imported in org/satellite.
-
-        :caseautomation: notautomated
 
         :CaseLevel: System
         """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_dir),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}.tar'.format(self.export_dir, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
+        self.set_importing_org(self.exporting_prod, self.exporting_repo, self.exporting_cv)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        importing_cvv_id = ContentView.info({
+            u'id': self.importing_cv['id']
+        })['versions'][0]['id']
+        imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
+        self.assertEqual(len(exported_packages), len(imported_packages))
+
+
+class InterSatelliteSyncTestCase(CLITestCase):
+    """Implements InterSatellite Sync tests in CLI"""
 
     @run_only_on('sat')
     @stubbed()

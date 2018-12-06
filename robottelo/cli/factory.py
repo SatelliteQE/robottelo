@@ -12,6 +12,7 @@ import time
 
 from fauxfactory import (
     gen_alphanumeric,
+    gen_choice,
     gen_integer,
     gen_ipaddr,
     gen_mac,
@@ -75,6 +76,7 @@ from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     DEFAULT_TEMPLATE,
     DISTRO_RHEL7,
+    DISTROS_MAJOR_VERSION,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
@@ -86,6 +88,7 @@ from robottelo.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
+from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import bz_bug_is_open, cacheable
 from robottelo.helpers import (
     update_dictionary, default_url_on_new_port, get_available_capsule_port
@@ -1287,7 +1290,8 @@ def make_sync_plan(options=None):
                                                 true/false, yes/no, 1/0.
         --interval INTERVAL                     how often synchronization
                                                 should run. One of 'none',
-                                                'hourly', 'daily', 'weekly'.
+                                                'hourly', 'daily', 'weekly'
+                                                'custom cron'.
                                                 Default: ""none""
         --name NAME                             sync plan name
         --organization ORGANIZATION_NAME        Organization name to search by
@@ -1298,6 +1302,8 @@ def make_sync_plan(options=None):
                                                 Date and time in YYYY-MM-DD
                                                 HH:MM:SS or ISO 8601 format
                                                 Default: "2014-10-07 08:50:35"
+        --cron-expression CRON EXPRESSION       Set this when interval is
+                                                custom cron
         -h, --help                              print help
 
     """
@@ -1314,8 +1320,11 @@ def make_sync_plan(options=None):
         u'organization-id': None,
         u'organization-label': None,
         u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        u'cron-expression': None,
     }
-
+    if (options.get('interval', args['interval']) == SYNC_INTERVAL['custom']
+            and not options.get('cron-expression')):
+        args['cron-expression'] = gen_choice(valid_cron_expressions())
     return create_object(SyncPlan, args, options)
 
 
@@ -3695,13 +3704,14 @@ def add_role_permissions(role_id, resource_permissions):
 
 
 def setup_cdn_and_custom_repositories(
-        org_id, repos, download_policy='on_demand'):
+        org_id, repos, download_policy='on_demand', synchronize=True):
     """Setup cdn and custom repositories
 
     :param int org_id: The organization id
     :param list repos: a list of dict repositories options
     :param str download_policy: update the repositories with this download
         policy
+    :param bool synchronize: Whether to synchronize the repositories.
     :return: a dict containing the content view and repos info
     """
     custom_product = None
@@ -3741,9 +3751,10 @@ def setup_cdn_and_custom_repositories(
                 'id': repo_info['id'],
             })
         repos_info.append(repo_info)
-    # Synchronize the repositories
-    for repo_info in repos_info:
-        Repository.synchronize({'id': repo_info['id']}, timeout=4800)
+    if synchronize:
+        # Synchronize the repositories
+        for repo_info in repos_info:
+            Repository.synchronize({'id': repo_info['id']}, timeout=4800)
     return custom_product, repos_info
 
 
@@ -3919,7 +3930,7 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
 def virt_who_hypervisor_config(
         config_id, virt_who_vm, org_id=None, lce_id=None,
         hypervisor_hostname=None, configure_ssh=False, hypervisor_user=None,
-        subscription_name=None, exec_one_shot=False, upload_manifest=True):
+        subscription_name=None, exec_one_shot=False, upload_manifest=True, extra_repos=None):
     """
     Configure virtual machine as hypervisor virt-who service
 
@@ -3937,6 +3948,7 @@ def virt_who_hypervisor_config(
     :param bool exec_one_shot: whether to run the virt-who one-shot command
         after startup
     :param bool upload_manifest: whether to upload the organization manifest
+    :param list extra_repos: (Optional) a list of repositories dict options to setup additionally.
     """
     if org_id is None:
         org = make_org()
@@ -3950,19 +3962,9 @@ def virt_who_hypervisor_config(
             'id': lce_id,
             'organization-id': org['id']
         })
-    rh_product_arch = REPOS['rhel7']['arch']
-    rh_product_releasever = REPOS['rhel7']['releasever']
+    if extra_repos is None:
+        extra_repos = []
     repos = [
-        # Red Hat Enterprise Linux 7
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhel7'],
-            'repository': REPOS['rhel7']['name'],
-            'repository-id': REPOS['rhel7']['id'],
-            'releasever': rh_product_releasever,
-            'arch': rh_product_arch,
-            'cdn': True,
-        },
         # Red Hat Satellite Tools
         {
             'product': PRDS['rhel'],
@@ -3973,6 +3975,7 @@ def virt_who_hypervisor_config(
             'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
         },
     ]
+    repos.extend(extra_repos)
     content_setup_data = setup_cdn_and_custom_repos_content(
         org['id'],
         lce['id'],
@@ -3993,6 +3996,14 @@ def virt_who_hypervisor_config(
         ],
         install_katello_agent=False,
     )
+    # configure manually RHEL custom repo url as sync time is very big
+    # (more than 2 hours for RHEL 7Server) and not critical in this context.
+    rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
+    rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
+    if not rhel_repo_url:
+        raise ValueError('Settings option "{0}" is whether not set or does not exist'.format(
+            rhel_repo_option_name))
+    virt_who_vm.configure_rhel_repo(rhel_repo_url)
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
         hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(

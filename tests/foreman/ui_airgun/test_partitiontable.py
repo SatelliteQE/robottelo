@@ -19,13 +19,12 @@ from fauxfactory import gen_string
 from pytest import raises
 
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.decorators import run_only_on, tier2
+from robottelo.decorators import tier2
 from robottelo.helpers import get_data_file
 
 PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_default_for_organization(session):
     """Create new partition table with enabled 'default' option. Check
@@ -51,7 +50,6 @@ def test_positive_create_default_for_organization(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_custom_organization(session):
     """Create new partition table with disabled 'default' option. Check
@@ -77,7 +75,6 @@ def test_positive_create_custom_organization(session):
         assert not session.partitiontable.search(name)
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_default_for_location(session):
     """Create new partition table with enabled 'default' option. Check
@@ -103,7 +100,6 @@ def test_positive_create_default_for_location(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@run_only_on('sat')
 @tier2
 def test_positive_create_custom_location(session):
     """Create new partition table with disabled 'default' option. Check
@@ -129,61 +125,16 @@ def test_positive_create_custom_location(session):
         assert not session.partitiontable.search(name)
 
 
-def test_positive_delete(session):
-    """Delete a partition table
-
-    :customerscenario: true
-
-    :expectedresults: Partition table is deleted
-
-    :CaseImportance: Critical
-    """
-    name = gen_string('alpha')
-    with session:
-        session.partitiontable.create({
-            'name': name,
-            'os_family_selection': {'os_family': 'Red Hat'},
-            'template': PARTITION_SCRIPT_DATA_FILE
-        }, )
-        session.partitiontable.delete(name)
-        assert not session.partitiontable.search(name)
-
-
-def test_positive_update(session):
-    """Update partition table with its name, layout and OS family
-
-    :customerscenario: true
-
-    :expectedresults: Partition table is updated
-
-    :CaseImportance: Critical
-    """
-    old_name = gen_string('alpha')
-    new_name = gen_string('alpha')
-    with session:
-        session.partitiontable.create({
-            'name': old_name,
-            'os_family_selection': {'os_family': 'Debian'},
-            'template': PARTITION_SCRIPT_DATA_FILE,
-        })
-        session.partitiontable.update({
-            'name': new_name,
-            'os_family_selection': {'os_family': 'Red Hat'},
-            'template': PARTITION_SCRIPT_DATA_FILE,
-        }, old_name)
-        pt = session.partitiontable.read(new_name)
-        assert pt['os_family_selection']['os_family'] == 'Red Hat'
-        assert pt['name'] == new_name
-
-
+@tier2
 def test_positive_delete_with_lock_and_unlock(session):
-    """Lock and unlock the partition table,
-    to prevent partition table from deletion.
+    """Create new partition table and lock it, try delete unlock and retry
 
-    :expectedresults: Partition table is locked, cannot be deleted,
-        unlocked and then successfully deleted.
+    :id: a5143f5b-7c8e-4700-a850-01815bb54760
 
-    :CaseImportance: Critical
+    :expectedresults: New partition table is created and not deleted when
+        locked and only deleted after unlock
+
+    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
@@ -204,13 +155,15 @@ def test_positive_delete_with_lock_and_unlock(session):
         assert not session.partitiontable.search(name)
 
 
+@tier2
 def test_positive_clone(session):
-    """Clone the partition table from existing partition table
-    and change parameters in cloned partition table
+    """Create new partition table and clone it
 
-    :expectedresults: Partition table is cloned.
+    :id: 6050f66f-82e0-4694-a482-5ea449ed9a9d
 
-    :CaseImportance: Critical
+    :expectedresults: New partition table is created and cloned successfully
+
+    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')

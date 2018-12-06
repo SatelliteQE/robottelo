@@ -63,9 +63,11 @@ class HostTestCase(APITestCase):
             CUSTOM_PUPPET_REPO,
             organization_id=cls.org.id
         )
-        cls.env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cls.cv.name)}
-        )[0].read()
+        cls.env = entities.Environment().search(query={
+            'search': u'content_view="{0}" and organization_id={1}'.format(
+                cls.cv.name, cls.org.id)})[0].read()
+        cls.env.location.append(cls.loc)
+        cls.env.update(['location'])
         cls.lce = entities.LifecycleEnvironment().search(query={
             'search': 'name={0} and organization_id={1}'.format(
                 ENVIRONMENT, cls.org.id)
@@ -1425,6 +1427,8 @@ class HostTestCase(APITestCase):
         self.assertIsNotNone(content_source_id)
         self.assertEqual(content_source_id, proxy.id)
 
+    @upgrade
+    @tier2
     def test_positive_read_enc_information(self):
         """Attempt to read host ENC information
 

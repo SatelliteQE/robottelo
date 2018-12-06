@@ -288,19 +288,14 @@ class ActivationKeyTestCase(CLITestCase):
             with self.subTest(name), self.assertRaises(
                     CLIFactoryError) as raise_ctx:
                 self._make_activation_key({u'name': name})
-            content_to_validate = [u'Validation failed:']
-            if len(name) == 0:
-                content_to_validate.append(
+            if name in ['', ' ', '\t']:
+                self.assert_error_msg(
+                    raise_ctx,
                     u'Name must contain at least 1 character')
-            elif len(name) > 255:
-                content_to_validate.append(
+            if len(name) > 255:
+                self.assert_error_msg(
+                    raise_ctx,
                     u'Name is too long (maximum is 255 characters)')
-            else:
-                content_to_validate.append(name)
-            self.assert_error_msg(
-                raise_ctx,
-                *content_to_validate
-            )
 
     @tier1
     def test_negative_create_with_usage_limit_with_not_integers(self):
@@ -320,10 +315,19 @@ class ActivationKeyTestCase(CLITestCase):
             if not value.isdigit()
         ]
         invalid_values.append(0.5)
-        self.assert_negative_create_with_usage_limit(
-            invalid_values,
-            u"Error: option '--max-hosts': numeric value is required"
-        )
+        for limit in invalid_values:
+            with self.subTest(limit), self.assertRaises(
+                    CLIFactoryError) as raise_ctx:
+                self._make_activation_key({u'max-hosts': limit})
+            if type(limit) is int:
+                if limit < 1:
+                    self.assert_error_msg(
+                        raise_ctx,
+                        u'Max hosts cannot be less than one')
+            if type(limit) is str:
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Numeric value is required.')
 
     @tier1
     def test_negative_create_with_usage_limit_with_invalid_integers(self):
@@ -915,7 +919,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': new_ak['id'],
             u'subscription-id': subscription_result[-1]['id'],
         })
-        self.assertIn('Subscription added to activation key', result)
+        self.assertIn('Subscription added to activation key.', result)
         ak_subs_info = ActivationKey.subscriptions({
             u'id': new_ak['id'],
             u'organization-id': org['id'],
@@ -1193,7 +1197,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': ackey_id,
             u'subscription-id': subs_id[0]['id'],
         })
-        self.assertIn('Subscription added to activation key', result)
+        self.assertIn('Subscription added to activation key.', result)
 
     @tier1
     def test_positive_copy_by_parent_id(self):
@@ -1214,7 +1218,7 @@ class ActivationKeyTestCase(CLITestCase):
                     u'new-name': new_name,
                     u'organization-id': self.org['id'],
                 })
-                self.assertEqual(result[0], u'Activation key copied')
+                self.assertEqual(result[0], u'Activation key copied.')
 
     @tier1
     def test_positive_copy_by_parent_name(self):
@@ -1232,7 +1236,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'new-name': gen_string('alpha'),
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result[0], u'Activation key copied')
+        self.assertEqual(result[0], u'Activation key copied.')
 
     @tier1
     def test_negative_copy_with_same_name(self):
@@ -1293,7 +1297,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'new-name': new_name,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result[0], u'Activation key copied')
+        self.assertEqual(result[0], u'Activation key copied.')
         result = ActivationKey.subscriptions({
             u'name': new_name,
             u'organization-id': org['id'],
@@ -1351,7 +1355,7 @@ class ActivationKeyTestCase(CLITestCase):
                     u'organization-id': self.org['id'],
                 })
                 self.assertEqual(
-                    u'Activation key updated', result[0]['message'])
+                    u'Activation key updated.', result[0]['message'])
 
     @tier1
     def test_negative_update_autoattach(self):

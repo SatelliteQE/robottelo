@@ -91,13 +91,9 @@ class ManifestCloner(object):
                 consumer_export.read()
             )
             consumer_export.seek(0)
-            signer = self.private_key.signer(
-                padding.PKCS1v15(), hashes.SHA256())
-            signer.update(consumer_export.read())
-            manifest_zip.writestr(
-                'signature',
-                signer.finalize()
-            )
+            signature = self.private_key.sign(
+                consumer_export.read(), padding.PKCS1v15(), hashes.SHA256())
+            manifest_zip.writestr('signature', signature)
         # Make sure that the file-like object is at the beginning and
         # ready to be read.
         manifest.seek(0)
@@ -190,7 +186,7 @@ def original_manifest():
 
 
 @lock_function
-def upload_manifest_locked(org_id, manifest,  interface=INTERFACE_API):
+def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API):
     """Upload a manifest with locking, using the requested interface.
 
     :type org_id: int
@@ -222,6 +218,8 @@ def upload_manifest_locked(org_id, manifest,  interface=INTERFACE_API):
             'upload manifest with interface "{0}" not supported'
             .format(interface)
         )
+    if manifest is None:
+        manifest = clone()
     if interface == INTERFACE_API:
         with manifest:
             result = entities.Subscription().upload(

@@ -912,25 +912,6 @@ class SSHClientSettings(FeatureSettings):
         return []
 
 
-class TransitionSettings(FeatureSettings):
-    """Transition settings definitions."""
-    def __init__(self, *args, **kwargs):
-        super(TransitionSettings, self).__init__(*args, **kwargs)
-        self.exported_data = None
-
-    def read(self, reader):
-        """Read transition settings."""
-        self.exported_data = reader.get('transition', 'exported_data')
-
-    def validate(self):
-        """Validate transition settings."""
-        validation_errors = []
-        if self.exported_data is None:
-            validation_errors.append(
-                '[transition] exported_data must be provided.')
-        return validation_errors
-
-
 class VlanNetworkSettings(FeatureSettings):
     """Vlan Network settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -1095,7 +1076,6 @@ class Settings(object):
         self.rhev = RHEVSettings()
         self.ssh_client = SSHClientSettings()
         self.shared_function = SharedFunctionSettings()
-        self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
         self.upgrade = UpgradeSettings()
         self.vmware = VmWareSettings()

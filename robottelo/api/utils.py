@@ -2,7 +2,7 @@
 """Module containing convenience functions for working with the API."""
 import time
 
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_mac, gen_string
 from inflector import Inflector
 from nailgun import entities, entity_mixins
 from nailgun.client import request
@@ -20,7 +20,6 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
-from robottelo.decorators import bz_bug_is_open
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -63,16 +62,10 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
         payload['basearch'] = basearch
     if releasever is not None:
         payload['releasever'] = releasever
+    payload['product_id'] = product.id
     r_set.enable(data=payload)
     result = entities.Repository(name=repo).search(
         query={'organization_id': org_id})
-    if bz_bug_is_open(1252101):
-        for _ in range(5):
-            if len(result) > 0:
-                break
-            time.sleep(5)
-            result = entities.Repository(name=repo).search(
-                query={'organization_id': org_id})
     return result[0].id
 
 
@@ -325,7 +318,8 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
         product=product,
-        url=settings.rhel7_os
+        url=settings.rhel7_os,
+        download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion
@@ -405,6 +399,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         subnet.dhcp = proxy
         subnet.tftp = proxy
         subnet.discovery = proxy
+        subnet.ipam = 'DHCP'
         subnet = subnet.update([
             'domain',
             'discovery',
@@ -413,6 +408,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             'location',
             'organization',
             'tftp',
+            'ipam'
         ])
     else:
         # Create new subnet
@@ -425,7 +421,8 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             dns=proxy,
             dhcp=proxy,
             tftp=proxy,
-            discovery=proxy
+            discovery=proxy,
+            ipam='DHCP'
         ).create()
 
     # Search if Libvirt compute-resource already exists
@@ -446,11 +443,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
                 id=comp_res[0].id).read()
             computeresource.location.append(loc)
             computeresource.organization.append(org)
-            computeresource = computeresource.update([
-                'location', 'organization'])
+            computeresource.update(['location', 'organization'])
         else:
             # Create Libvirt compute-resource
-            computeresource = entities.LibvirtComputeResource(
+            entities.LibvirtComputeResource(
                 provider=u'libvirt',
                 url=resource_url,
                 set_console_password=False,
@@ -533,7 +529,12 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         'config_template',
         'ptable',
     ])
-
+    # kickstart_repository is the content view and lce bind repo
+    kickstart_repository = entities.Repository().search(query=dict(
+        content_view_id=content_view.id,
+        environment_id=lc_env.id,
+        name=repo.name
+    ))[0]
     # Create Hostgroup
     host_group = entities.HostGroup(
         architecture=arch,
@@ -546,7 +547,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         puppet_proxy=proxy,
         puppet_ca_proxy=proxy,
         content_source=proxy,
-        kickstart_repository=repo.id,
+        kickstart_repository=kickstart_repository,
         root_pass=gen_string('alphanumeric'),
         operatingsystem=os.id,
         organization=[org.id],
@@ -559,7 +560,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         'environment': environment.name,
         'ptable': ptable.name,
         'subnet': subnet.name,
-        'os': os.title
+        'os': os.title,
     }
 
 
@@ -762,3 +763,35 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
                                           )
                 )
         time.sleep(2)
+
+
+def create_discovered_host(name=None, ip_address=None, mac_address=None,
+                           options=None):
+    """Creates a discovered host.
+
+    :param str name: Name of discovered host.
+    :param str ip_address: A valid ip address.
+    :param str mac_address: A valid mac address.
+    :param dict options: additional facts to add to discovered host
+    :returns dict of ``entities.DiscoveredHost`` facts.
+    """
+    if name is None:
+        name = gen_string('alpha')
+    if ip_address is None:
+        ip_address = gen_ipaddr()
+    if mac_address is None:
+        mac_address = gen_mac(multicast=False)
+    if options is None:
+        options = {}
+    facts = {
+            'name': name,
+            'discovery_bootip': ip_address,
+            'discovery_bootif': mac_address,
+            'interfaces': 'eth0',
+            'ipaddress': ip_address,
+            'ipaddress_eth0': ip_address,
+            'macaddress': mac_address,
+            'macaddress_eth0': mac_address,
+        }
+    facts.update(options)
+    return entities.DiscoveredHost().facts(json={'facts': facts})

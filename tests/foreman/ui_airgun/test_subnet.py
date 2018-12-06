@@ -25,44 +25,13 @@ def module_org():
     return entities.Organization().create()
 
 
-def test_positive_create(session):
-    subnet = entities.Subnet()
-    subnet.create_missing()
-    name = subnet.name
-    with session:
-        session.subnet.create({
-            'subnet.name': name,
-            'subnet.protocol': 'IPv4',
-            'subnet.network_address': subnet.network,
-            'subnet.network_mask': subnet.mask,
-            'subnet.boot_mode': 'Static',
-        })
-        assert session.subnet.search(name)[0]['Name'] == name
-        subnet_values = session.subnet.read(name)
-        assert subnet_values['subnet']['protocol'] == 'IPv4'
-        assert subnet_values['subnet']['network_address'] == subnet.network
-        assert subnet_values['subnet']['network_mask'] == subnet.mask
-
-
-def test_positive_create_v6(session):
-    name = gen_string('alpha')
-    ip_address = gen_ipaddr(ipv6=True)
-    with session:
-        session.subnet.create({
-            'subnet.name': name,
-            'subnet.protocol': 'IPv6',
-            'subnet.network_address': ip_address,
-            'subnet.network_prefix': 12
-        })
-        assert session.subnet.search(name)[0]['Name'] == name
-        subnet_values = session.subnet.read(name)
-        assert subnet_values['subnet']['protocol'] == 'IPv6'
-        assert subnet_values['subnet']['network_address'] == ip_address
-        assert subnet_values['subnet']['network_prefix'] == '12'
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
 
 
 @tier2
-def test_positive_create_with_domain(session, module_org):
+def test_positive_create_with_domain(session, module_org, module_loc):
     """Create new subnet with domain in same organization
 
     :id: adbc7189-b451-49df-aa10-2ae732832dfe
@@ -72,7 +41,8 @@ def test_positive_create_with_domain(session, module_org):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    domain = entities.Domain(organization=[module_org]).create()
+    domain = entities.Domain(
+        organization=[module_org], location=[module_loc]).create()
     with session:
         session.subnet.create({
             'subnet.name': name,

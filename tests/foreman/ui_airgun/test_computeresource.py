@@ -1,15 +1,46 @@
-from robottelo.datafactory import gen_string, valid_data_list
-from robottelo.decorators import fixture, parametrize, tier2
-from robottelo.config import settings
-from nailgun import entities
-from robottelo.constants import FOREMAN_PROVIDERS
+"""Test for Compute Resource UI
+
+:Requirement: Computeresource
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: UI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 import requests
+from nailgun import entities
+
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture, parametrize, run_in_one_thread, tier2
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_PROVIDERS
 
 
 @fixture(scope='module')
 def module_ca_cert():
-    return None if settings.rhev.ca_cert is None else \
-                       requests.get(settings.rhev.ca_cert).content.decode()
+    return (
+        None
+        if settings.rhev.ca_cert is None
+        else requests.get(settings.rhev.ca_cert).content.decode()
+    )
+
+
+@fixture(scope='module')
+def rhev_data():
+    return {
+        'rhev_url': settings.rhev.hostname,
+        'username': settings.rhev.username,
+        'password': settings.rhev.password,
+        'datacenter': settings.rhev.datacenter,
+        'vm_name': settings.rhev.vm_name,
+    }
 
 
 @fixture(scope='module')
@@ -17,327 +48,161 @@ def module_org():
     return entities.Organization().create()
 
 
-@parametrize('name', **valid_data_list('ui'))
-def test_positive_create_docker(session, name):
-    docker_url = settings.docker.external_url
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['docker'],
-            'provider_content.url': docker_url,
-        })
-        assert session.computeresource.search(name)[0]['Name'] == name
-
-
-@parametrize('name', **valid_data_list('ui'))
-def test_positive_create_ec2(session, name):
-    ec2_access_key = settings.ec2.access_key
-    ec2_secret_key = settings.ec2.secret_key
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['ec2'],
-            'provider_content.access_key': ec2_access_key,
-            'provider_content.secret_key': ec2_secret_key,
-        })
-        assert session.computeresource.search(name)[0]['Name'] == name
-
-
-@parametrize('name', **valid_data_list('ui'))
-def test_positive_create_libvirt(session, name):
-    libvirt_url = settings.compute_resources.libvirt_hostname
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'provider_content.url': libvirt_url,
-            'provider_content.display_type': 'VNC',
-            'provider_content.console_passwords': True,
-        })
-        assert session.computeresource.search(name)[0]['Name'] == name
-
-
-@parametrize('name', **valid_data_list('ui'))
-def test_positive_create_vmware(session, name):
-    vmware_vcenter = settings.vmware.vcenter
-    vmware_user = settings.vmware.username
-    vmware_password = settings.vmware.password
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['vmware'],
-            'provider_content.vcenter': vmware_vcenter,
-            'provider_content.user': vmware_user,
-            'provider_content.password': vmware_password,
-        })
-        assert session.computeresource.search(name)[0]['Name'] == name
-
-
-@parametrize('name', **valid_data_list('ui'))
-def test_positive_create_rhv(session, name):
-    rhev_url = settings.rhev.hostname
-    username = settings.rhev.username
-    password = settings.rhev.password
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_url,
-            'provider_content.user': username,
-            'provider_content.password': password,
-        })
-        assert session.computeresource.search(name)[0]['Name'] == name
-
-
-def test_positive_rename(session):
-    name = gen_string('alpha')
-    ak_name = gen_string('alpha')
-    docker_url = settings.docker.external_url
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['docker'],
-            'provider_content.url': docker_url,
-        })
-        session.computeresource.edit(name, {
-            'name': ak_name,
-        })
-        assert session.computeresource.search(ak_name)[0]['Name'] == ak_name
-
-
-def test_positive_delete(session):
-    name = gen_string('alpha')
-    docker_url = settings.docker.external_url
-    with session:
-        session.computeresource.create({
-            'name': name,
-            'description': gen_string('alpha'),
-            'provider': FOREMAN_PROVIDERS['docker'],
-            'provider_content.url': docker_url,
-        })
-        session.computeresource.delete(name)
-        assert not session.computeresource.search(name)
-
-
-def add_rhev(session, version, module_ca_cert):
-    rhev_url = settings.rhev.hostname
-    username = settings.rhev.username
-    password = settings.rhev.password
-    datacenter = settings.rhev.datacenter
-    name = gen_string('alpha')
-    # Our currently used testing RHEV uses custom cert.
-    # We need to manually specify it.
-    # However, that means we're not testing the ability to automatically fill a
-    # self-signed certificate upon clicking Load Datacenters / Test Connection.
-    session.computeresource.create({
-        'name': name,
-        'provider': FOREMAN_PROVIDERS['rhev'],
-        'provider_content.url': rhev_url,
-        'provider_content.user': username,
-        'provider_content.password': password,
-        'provider_content.api4': version == 4,
-        'provider_content.datacenter.value': datacenter,
-        'provider_content.certification_authorities': module_ca_cert
-    })
-    found = session.computeresource.search(name)[0]
-    assert found['Name'] == name
-    assert session.computeresource.read(
-        name)['provider_content']['api4'] == (version == 4)
-    return found
-
-
 @tier2
-def test_positive_v3_wui_can_add_resource(session, module_ca_cert):
-    """Create new RHEV Compute Resource using APIv3 and autoloaded cert
+@parametrize('version', [True, False])
+def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
+    """Create new RHEV Compute Resource using APIv3/APIv4 and autoloaded cert
 
     :id: f75e994a-6da1-40a3-9685-42387388b300
+
+    :expectedresults: resource created successfully and has expected protocol
+        version
+
+    :CaseLevel: Integration
     """
+    # Our RHEV testing uses custom cert which we specify manually.
+    # That means we're not testing the ability to automatically fill a
+    # self-signed certificate upon clicking Load Datacenters / Test Connection.
+    name = gen_string('alpha')
     with session:
-        add_rhev(session, 3, module_ca_cert)
+        session.computeresource.create({
+            'name': name,
+            'provider': FOREMAN_PROVIDERS['rhev'],
+            'provider_content.url': rhev_data['rhev_url'],
+            'provider_content.user': rhev_data['username'],
+            'provider_content.password': rhev_data['password'],
+            'provider_content.api4': version,
+            'provider_content.datacenter.value': rhev_data['datacenter'],
+            'provider_content.certification_authorities': module_ca_cert
+        })
+        resource_values = session.computeresource.read(name)
+        assert resource_values['name'] == name
+        assert resource_values['provider_content']['api4'] == version
 
 
 @tier2
-def test_positive_v4_wui_can_add_resource(session, module_ca_cert):
-    """Create new RHEV Compute Resource using APIv3 and autoloaded cert
+@parametrize('version', [True, False])
+def test_positive_edit_resource_description(
+        session, module_ca_cert, rhev_data, version):
+    """Edit RHEV Compute Resource with another description
 
-    :id: f75e994a-6da1-40a3-9685-42387388b301
+    :id: f75544b1-3943-4cc6-98d1-f2d0fbe7244c
+
+    :expectedresults: resource updated successfully and has new description
+
+    :CaseLevel: Integration
     """
+    name = gen_string('alpha')
+    description = gen_string('alpha')
+    new_description = gen_string('alpha')
     with session:
-        add_rhev(session, 4, module_ca_cert)
-
-
-def edit_rhev(session, module_org, cr, description, version):
-    session.computeresource.edit(
-        name=cr['Name'], values={'description': description})
-    assert session.computeresource.read(
-        cr['Name'])['description'] == description
+        session.computeresource.create({
+            'name': name,
+            'description': description,
+            'provider': FOREMAN_PROVIDERS['rhev'],
+            'provider_content.url': rhev_data['rhev_url'],
+            'provider_content.user': rhev_data['username'],
+            'provider_content.password': rhev_data['password'],
+            'provider_content.api4': version,
+            'provider_content.datacenter.value': rhev_data['datacenter'],
+            'provider_content.certification_authorities': module_ca_cert
+        })
+        resource_values = session.computeresource.read(name)
+        assert resource_values['description'] == description
+        session.computeresource.edit(name, {'description': new_description})
+        resource_values = session.computeresource.read(name)
+        assert resource_values['description'] == new_description
 
 
 @tier2
-@parametrize('description', **valid_data_list('ui'))
-def test_positive_v3_wui_can_edit_resource(
-        session, module_org, module_ca_cert, description):
-    """Edit a RHEV Compute Resource using APIv3
+@parametrize('version', [True, False])
+def test_positive_list_resource_vms(
+        session, module_ca_cert, rhev_data, version):
+    """List VMs for RHEV Compute Resource
 
-    :id: f75e994a-6da1-40a3-9685-42387388b302
+    :id: eea2f2b1-e9f4-448d-8c54-51fb25af3d5f
+
+    :expectedresults: VMs listed for provided compute resource
+
+    :CaseLevel: Integration
     """
+    name = gen_string('alpha')
     with session:
-        rhev3 = add_rhev(session, 3, module_ca_cert)
-        edit_rhev(session, module_org, rhev3, description, 3)
+        session.computeresource.create({
+            'name': name,
+            'provider': FOREMAN_PROVIDERS['rhev'],
+            'provider_content.url': rhev_data['rhev_url'],
+            'provider_content.user': rhev_data['username'],
+            'provider_content.password': rhev_data['password'],
+            'provider_content.api4': version,
+            'provider_content.datacenter.value': rhev_data['datacenter'],
+            'provider_content.certification_authorities': module_ca_cert
+        })
+        vm = session.computeresource.list_vms(name, rhev_data['vm_name'])
+        assert vm['Name'].read() == rhev_data['vm_name']
 
 
 @tier2
-@parametrize('description', **valid_data_list('ui'))
-def test_positive_v4_wui_can_edit_resource(
-        session, module_org, module_ca_cert, description):
-    """Edit a RHEV Compute Resource using APIv3
+def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
+    """Edit RHEV Compute Resource with another protocol version
 
-    :id: f75e994a-6da1-40a3-9685-42387388b303
+    :id: 6e7985b6-a605-4fb8-8710-17a046bdac53
+
+    :expectedresults: resource updated successfully and switched to another
+        protocol version
+
+    :CaseLevel: Integration
     """
+    name = gen_string('alpha')
     with session:
-        rhev4 = add_rhev(session, 4, module_ca_cert)
-        edit_rhev(session, module_org, rhev4, description, 4)
-
-
-def list_VMs(session, rhev, version):
-    expected_vm_name = settings.rhev.vm_name
-    vm = session.computeresource.list_vms(
-            rhev['Name'], expected_vm_name)
-    assert vm is not None
+        session.computeresource.create({
+            'name': name,
+            'provider': FOREMAN_PROVIDERS['rhev'],
+            'provider_content.url': rhev_data['rhev_url'],
+            'provider_content.user': rhev_data['username'],
+            'provider_content.password': rhev_data['password'],
+            'provider_content.api4': False,
+            'provider_content.datacenter.value': rhev_data['datacenter'],
+            'provider_content.certification_authorities': module_ca_cert
+        })
+        resource_values = session.computeresource.read(name)
+        assert not resource_values['provider_content']['api4']
+        session.computeresource.edit(name, {'provider_content.api4': True})
+        resource_values = session.computeresource.read(name)
+        assert resource_values['provider_content']['api4']
 
 
 @tier2
-def test_positive_v3_wui_virtual_machines_get_loaded(
-        session, module_ca_cert):
-    """List VMs using API v3
+@parametrize('version', [True, False])
+@run_in_one_thread
+def test_positive_resource_vm_power_management(
+        session, module_ca_cert, rhev_data, version):
+    """Read current RHEV Compute Resource virtual machine power status and
+    change it to opposite one
 
-    :id: f75e994a-6da1-40a3-9685-42387388b304
+    :id: 47aea4b7-9258-4863-8966-900bc9e94116
+
+    :expectedresults: virtual machine is powered on or powered off depending on
+        its initial state
+
+    :CaseLevel: Integration
     """
+    name = gen_string('alpha')
     with session:
-        rhev3 = add_rhev(session, 3, module_ca_cert)
-        list_VMs(session, rhev3, 3)
-
-
-@tier2
-def test_positive_v4_wui_virtual_machines_get_loaded(
-        session, module_ca_cert):
-    """List VMs using API v3
-
-    :id: f75e994a-6da1-40a3-9685-42387388b305
-    """
-    with session:
-        rhev4 = add_rhev(session, 4, module_ca_cert)
-        list_VMs(session, rhev4, 4)
-
-
-def switch_rhev_version(session, rhev, from_version):
-    to_version = False if from_version == 4 else True
-    orig_version = not to_version
-    session.computeresource.edit(
-        name=rhev['Name'], values={'provider_content.api4': to_version})
-    assert session.computeresource.read(
-        rhev['Name'])['provider_content']['api4'] == to_version
-    session.computeresource.edit(
-        name=rhev['Name'], values={'provider_content.api4': orig_version})
-
-
-@tier2
-def test_positive_v3_wui_can_switch_resource_to_v4(
-        session, module_ca_cert):
-    """Switch RHEV API v3 to v4
-    Used API version should also be verified manually as described in
-    https://url.corp.redhat.com/f7d3374
-
-    :id: f75e994a-6da1-40a3-9685-42387388b306
-    """
-    with session:
-        rhev3 = add_rhev(session, 3, module_ca_cert)
-        switch_rhev_version(session, rhev3, 3)
-
-
-@tier2
-def test_positive_v4_wui_can_switch_resource_to_v3(
-        session, module_ca_cert):
-    """Switch RHEV API v4 to v3
-    Used API version should also be verified manually as described in
-    https://url.corp.redhat.com/f7d3374
-
-    :id: f75e994a-6da1-40a3-9685-42387388b307
-    """
-    with session:
-        rhev4 = add_rhev(session, 4, module_ca_cert)
-        switch_rhev_version(session, rhev4, 4)
-
-
-def vm_poweron(session, rhev):
-    vm_name = settings.rhev.vm_name
-    # power off first - nailgun can't do this,
-    # it can only poweroff/on hosts, this is a plain unassociated VM
-    session.computeresource.vm_poweroff(rhev['Name'], vm_name)
-    assert not session.computeresource.vm_status(rhev['Name'], vm_name)
-    session.computeresource.vm_poweron(rhev['Name'], vm_name)
-    assert session.computeresource.vm_status(rhev['Name'], vm_name)
-
-
-def vm_poweroff(session, rhev):
-    vm_name = settings.rhev.vm_name
-    # power off first - nailgun can't do this,
-    # it can only poweroff/on hosts, this is a plain unassociated VM
-    session.computeresource.vm_poweron(rhev['Name'], vm_name)
-    assert session.computeresource.vm_status(rhev['Name'], vm_name)
-    session.computeresource.vm_poweroff(rhev['Name'], vm_name)
-    assert not session.computeresource.vm_status(rhev['Name'], vm_name)
-
-
-@tier2
-def test_positive_v3_wui_virtual_machines_can_be_powered_on(
-        session, module_ca_cert):
-    """Power on a machine on RHEV using APIv3
-
-    :id: f75e994a-6da1-40a3-9685-42387388b308
-    """
-    with session:
-        rhev3 = add_rhev(session, 3, module_ca_cert)
-        vm_poweron(session, rhev3)
-
-
-@tier2
-def test_positive_v4_wui_virtual_machines_can_be_powered_on(
-        session, module_ca_cert):
-    """Power on a machine on RHEV using APIv4
-
-    :id: f75e994a-6da1-40a3-9685-42387388b309
-    """
-    with session:
-        rhev4 = add_rhev(session, 4, module_ca_cert)
-        vm_poweron(session, rhev4)
-
-
-@tier2
-def test_positive_v3_wui_virtual_machines_can_be_powered_off(
-        session, module_ca_cert):
-    """Power off a machine on RHEV using APIv3
-
-    :id: f75e994a-6da1-40a3-9685-42387388b30a
-    """
-    with session:
-        rhev3 = add_rhev(session, 3, module_ca_cert)
-        vm_poweroff(session, rhev3)
-
-
-@tier2
-def test_positive_v4_wui_virtual_machines_can_be_powered_off(
-        session, module_ca_cert):
-    """Power off a machine on RHEV using APIv4
-
-    :id: f75e994a-6da1-40a3-9685-42387388b30b
-    """
-    with session:
-        rhev4 = add_rhev(session, 4, module_ca_cert)
-        vm_poweroff(session, rhev4)
+        session.computeresource.create({
+            'name': name,
+            'provider': FOREMAN_PROVIDERS['rhev'],
+            'provider_content.url': rhev_data['rhev_url'],
+            'provider_content.user': rhev_data['username'],
+            'provider_content.password': rhev_data['password'],
+            'provider_content.api4': version,
+            'provider_content.datacenter.value': rhev_data['datacenter'],
+            'provider_content.certification_authorities': module_ca_cert
+        })
+        status = session.computeresource.vm_status(name, rhev_data['vm_name'])
+        if status:
+            session.computeresource.vm_poweroff(name, rhev_data['vm_name'])
+        else:
+            session.computeresource.vm_poweron(name, rhev_data['vm_name'])
+        assert session.computeresource.vm_status(
+            name, rhev_data['vm_name']) is not status
