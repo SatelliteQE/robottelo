@@ -1311,20 +1311,20 @@ def make_sync_plan(options=None):
     if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
-    interval = random.choice(list(SYNC_INTERVAL.values()))
-
     args = {
         u'description': gen_string('alpha', 20),
         u'enabled': 'true',
-        u'interval': interval,
+        u'interval': random.choice(list(SYNC_INTERVAL.values())),
         u'name': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
         u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        u'cron-expression':
-            gen_choice(valid_cron_expressions()) if interval == 'custom cron' else None,
+        u'cron-expression': None,
     }
+    if (options.get('interval', args['interval']) == SYNC_INTERVAL['custom']
+            and not options.get('cron-expression')):
+        args['cron-expression'] = gen_choice(valid_cron_expressions())
     return create_object(SyncPlan, args, options)
 
 
