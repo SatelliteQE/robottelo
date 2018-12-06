@@ -7,6 +7,7 @@ import six
 import tempfile
 from robottelo.config import settings
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli import virt_who_config
 
 from nailgun import entities
 
@@ -23,6 +24,8 @@ VIRTWHO_CONFIGD_LOCAL = os.path.join(get_project_root(), 'data', 'virtwho-config
 
 class VirtWhoConfigIncorrectException(Exception):
     """Raised when there was some issue found when verifiying the virt-who config"""
+    def __init__(self):
+        su
 
 
 
@@ -49,12 +52,12 @@ class VirtWhoHypervisorConfig(object):
 
 
     def delete_configfile(self, restart_virtwho):
-        pass
+        raise NotImplemented
 
     def verify(self, expected, verify_section_name= True, ignore_fields=[]):
         """
 
-        :param expected: nailgun.VirtWhoConfig object to verify against
+        :param expected: dict to verify against
         :param verify_sysconfig: Whether to verify the config items that live in /etc/sysconfig/virtwho
         :return: list of tuples containing mismatches between the configuration in the form (keyname, expected, actual)
         """
@@ -66,7 +69,7 @@ class VirtWhoHypervisorConfig(object):
         section_ok = (not verify_section_name) or (
                     self.configfile_data.has_section(expect_section_name) and (
                         len(self.configfile_data.sections()) == 1) and (
-                        len(self.configfile_data.defaults() == 0)))
+                        len(self.configfile_data.defaults()) == 0))
         if not section_ok:
             verify_errors.append("Expection single section {!r}, got {!r}".format(expect_section_name, self.configfile_data.sections()))
         else:
@@ -76,8 +79,8 @@ class VirtWhoHypervisorConfig(object):
                     verify_errors.append("{} section {} does not have field {}".format(
                         self.config_file_name, expect_section_name, expect_k))
                 elif expect_v != actual_v:
-                    verify_errors.append("{} section {} expected {}, got {}".format(
-                        self.config_file_name, expect_section_name, expect_v, actual_v))
+                    verify_errors.append("{} {}.{} expected {!r}, got {!r}".format(
+                        self.config_file_name, expect_section_name, expect_k, expect_v, actual_v))
 
         return verify_errors
 
@@ -142,3 +145,6 @@ def make_expected_configfile_section_from_api(vhc, ignore_fields=None):
         d['encrypted_password'] = enc_pass
 
     return d
+
+def deploy_virt_who_config(config_id, org_id):
+    return virt_who_config.VirtWhoConfig.deploy({'id':config_id, 'organization-id': org_id})

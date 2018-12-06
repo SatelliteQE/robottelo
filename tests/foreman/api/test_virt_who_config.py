@@ -14,9 +14,53 @@
 
 :Upstream: No
 """
-
+from fauxfactory import gen_integer, gen_string, gen_utf8
+from nailgun import entities
 from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
 from robottelo.test import TestCase, APITestCase
+from robottelo.config import settings
+from robottelo.virt_who_configure import VirtWhoHypervisorConfig, deploy_virt_who_config, make_expected_configfile_section_from_api
+
+class VirtWhoConfigApiTestCase(APITestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(VirtWhoConfigApiTestCase, cls).setUpClass()
+        cls.org =  entities.Organization().create()
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_config_create(self):
+        """ Create a config, deploy it, verify the resulting config files
+
+        :id: 558ebdaa-8e29-47c3-b859-a56f2d28a335
+
+        :steps:
+            1. Create a virt-who config object
+            2. Deploy config on Satellite Server
+            3. Verify the config files
+
+        :expectedresults:
+            The config files have the expected config
+        """
+        vhc_name = "example_config{}".format(gen_integer())
+        vhc = entities.VirtWhoConfig(name=vhc_name, organization=self.org,
+                                     hypervisor_server=settings.clients.provisioning_server,
+                                     satellite_url=settings.server.hostname,
+                                     hypervisor_type='libvirt',
+                                     hypervisor_username='root',
+                                     hypervisor_id='hostname',
+                                     hypervisor_password='' ).create()
+
+
+        deploy_virt_who_config(vhc.id, self.org.id)
+        sc = VirtWhoHypervisorConfig(vhc.id)
+        expected = make_expected_configfile_section_from_api(vhc)
+        errors = sc.verify(expected)
+        self.assertEqual(len(errors), 0, errors)
+
+
+
 
 
 class VirtWhoConfigTestCase(APITestCase):
