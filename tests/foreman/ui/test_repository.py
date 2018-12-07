@@ -20,8 +20,7 @@ import time
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo import manifests, ssh
-from robottelo.api.utils import upload_manifest
+from robottelo import ssh
 from robottelo.constants import (
     CHECKSUM_TYPE,
     DOWNLOAD_POLICIES,
@@ -31,15 +30,11 @@ from robottelo.constants import (
     FAKE_2_YUM_REPO,
     FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
-    FEDORA22_OSTREE_REPO,
-    FEDORA23_OSTREE_REPO,
-    PRDS,
+    FEDORA26_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     PUPPET_MODULE_NTP_PUPPETLABS,
-    REPO_TAB,
     REPO_TYPE,
-    REPOS,
     RPM_TO_UPLOAD,
-    SAT6_TOOLS_TREE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
@@ -49,7 +44,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -479,7 +473,7 @@ class RepositoryTestCase(UITestCase):
                         session,
                         name=repo_name,
                         repo_type=REPO_TYPE['ostree'],
-                        url=FEDORA23_OSTREE_REPO,
+                        url=FEDORA27_OSTREE_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
 
@@ -502,7 +496,7 @@ class RepositoryTestCase(UITestCase):
         entities.Repository(
             name=repo_name,
             content_type='ostree',
-            url=FEDORA22_OSTREE_REPO,
+            url=FEDORA26_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -536,7 +530,7 @@ class RepositoryTestCase(UITestCase):
         entities.Repository(
             name=repo_name,
             content_type='ostree',
-            url=FEDORA22_OSTREE_REPO,
+            url=FEDORA26_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -569,7 +563,7 @@ class RepositoryTestCase(UITestCase):
         entities.Repository(
             name=repo_name,
             content_type='ostree',
-            url=FEDORA22_OSTREE_REPO,
+            url=FEDORA26_OSTREE_REPO,
             product=prod,
             unprotected=False,
         ).create()
@@ -579,13 +573,13 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.update(
                 repo_name,
-                new_url=FEDORA23_OSTREE_REPO
+                new_url=FEDORA27_OSTREE_REPO
             )
             self.products.search_and_click(prod.name)
             # Validate the new repo URL
             self.assertTrue(
                 self.repository.validate_field(
-                    repo_name, 'url', FEDORA23_OSTREE_REPO
+                    repo_name, 'url', FEDORA27_OSTREE_REPO
                 )
             )
 
@@ -1245,84 +1239,6 @@ class RepositoryTestCase(UITestCase):
                 modules_num,
                 len(self.repository.find_elements(
                     locators['repo.content.puppet_modules']))
-            )
-
-    @run_in_one_thread
-    @tier2
-    def test_positive_reposet_disable(self):
-        """Enable RH repo, sync it and then disable
-
-        :id: de596c56-1327-49e8-86d5-a1ab907f26aa
-
-        :expectedresults: RH repo was disabled
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        with Session(self) as session:
-            repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
-            session.nav.go_to_select_org(org.name)
-            # Enable RH repository
-            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
-            session.nav.go_to_sync_status()
-            # Sync the repo and verify sync was successful
-            self.assertTrue(self.sync.sync_noversion_rh_repos(
-                PRDS['rhel'], [REPOS['rhst6']['name']]
-            ))
-            # Click the checkbox once more to disable the repo
-            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
-            # Verify the repo is disabled
-            self.assertFalse(
-                self.sync.wait_until_element(
-                    locators['rh.repo_checkbox'] % repos[0][0][0]['repo_name']
-                ).is_selected()
-            )
-
-    @run_in_one_thread
-    @tier2
-    def test_positive_reposet_disable_after_manifest_deleted(self):
-        """Enable RH repo and sync it. Remove manifest and then disable
-        repository
-
-        :id: f22baa8e-80a4-4487-b1bd-f7265555d9a3
-
-        :customerscenario: true
-
-        :expectedresults: RH repo was disabled
-
-        :BZ: 1344391
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        sub = entities.Subscription(organization=org)
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        with Session(self) as session:
-            repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
-            session.nav.go_to_select_org(org.name)
-            # Enable RH repository
-            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
-            session.nav.go_to_sync_status()
-            # Sync the repo and verify sync was successful
-            self.assertTrue(self.sync.sync_noversion_rh_repos(
-                PRDS['rhel'], [REPOS['rhst6']['name']]
-            ))
-            # Delete manifest
-            sub.delete_manifest(data={'organization_id': org.id})
-            # Disable the repo
-            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
-            # Verify that product name is correct
-            prod_loc = 'rh.{0}_prd_expander'.format(REPO_TAB['rpms'].lower())
-            self.assertIsNotNone(self.sync.wait_until_element(
-                locators[prod_loc] % (PRDS['rhel'] + ' (Orphaned)')))
-            # Verify the repo is disabled
-            self.assertFalse(
-                self.sync.wait_until_element(
-                    locators['rh.repo_checkbox'] % repos[0][0][0]['repo_name']
-                ).is_selected()
             )
 
     @tier1

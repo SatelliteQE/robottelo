@@ -41,10 +41,12 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
+    skip_if_bug_open,
     tier1,
     tier3,
     tier4,
-    upgrade
+    upgrade,
+    stubbed
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -439,6 +441,19 @@ class SyncPlanTestCase(CLITestCase):
             self.validate_task_status(repo['id'], max_tries=2)
             # validate the error message once unstubbed (#3611)
 
+    @stubbed
+    @tier4
+    @upgrade
+    def test_positive_synchronize_custom_product_custom_cron(self):
+        """Create a sync plan with custom cron with 1 min interval, add a
+        custom product and verify the product gets synchronized on the next
+        sync occurrence
+
+        :id: 5f398103-7c36-4524-a1cb-c258d97cecba
+
+        :expectedresults: Product is synchronized successfully.
+        """
+
     @tier4
     @upgrade
     def test_positive_synchronize_custom_product_past_sync_date(self):
@@ -497,6 +512,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -550,6 +566,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -690,6 +707,7 @@ class SyncPlanTestCase(CLITestCase):
     @run_in_one_thread
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.

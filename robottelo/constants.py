@@ -202,7 +202,8 @@ NOT_IMPLEMENTED = 'Test not implemented'
 SYNC_INTERVAL = {
     'hour': "hourly",
     'day': "daily",
-    'week': "weekly"
+    'week': "weekly",
+    'custom': "custom cron"
 }
 
 REPO_TYPE = {
@@ -249,6 +250,7 @@ PRDS = {
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
     'rhscl': 'Red Hat Software Collections for RHEL Server',
+    'rhae': 'Red Hat Ansible Engine',
 }
 
 REPOSET = {
@@ -268,6 +270,7 @@ REPOSET = {
               ' Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                ' Linux 7 Server'),
+    'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
 }
 
 REPOS = {
@@ -392,6 +395,16 @@ REPOS = {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                  ' Linux 7 Server x86_64 7Server'),
+    },
+    'rhae2': {
+        'id': 'rhel-7-server-ansible-2.7-rpms',
+        'name': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server x86_64',
+        'version': '2.7',
+        'arch': 'x86_64',
+        'reposet': REPOSET['rhae2'],
+        'product': PRDS['rhae'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhae2',
     },
 }
 
@@ -529,6 +542,12 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
+CUSTOM_MODULE_STREAM_REPO_1 = (
+    u'https://dl.fedoraproject.org/pub/fedora/linux/updates/28/Modular/x86_64/'
+)
+CUSTOM_MODULE_STREAM_REPO_2 = (
+    u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
+)
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
 FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
 FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
@@ -565,8 +584,8 @@ FAKE_5_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet05'
 FAKE_6_PUPPET_REPO = u'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
 FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
 FAKE_8_PUPPET_REPO = u'https://omaciel.fedorapeople.org/f4cb00ed/'
-FEDORA22_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/22/'
-FEDORA23_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/23/'
+FEDORA26_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/26/'
+FEDORA27_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/27/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
 FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'

@@ -509,6 +509,32 @@ class SshKeyInUserTestCase(APITestCase):
         )
 
     @tier1
+    def test_negative_create_ssh_key_with_invalid_name(self):
+        """Attempt to add SSH key that has invalid name length
+
+        :id: e1e17839-a392-45bb-bb1e-28d3cd9dba1c
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Attempt to add invalid ssh Key name to above user
+
+        :expectedresults: Satellite should raise Name is too long assertion
+
+        :CaseImportance: Critical
+        """
+        invalid_ssh_key_name = gen_string('alpha', length=300)
+        with self.assertRaises(HTTPError) as context:
+            entities.SSHKey(
+                user=self.user,
+                name=invalid_ssh_key_name,
+                key=self.gen_ssh_rsakey()
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Name is too long")
+
+    @tier1
     @upgrade
     def test_positive_create_multiple_ssh_key_types(self):
         """Multiple types of ssh keys can be added to user

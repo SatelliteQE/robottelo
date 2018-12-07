@@ -264,7 +264,7 @@ class LocationTestCase(CLITestCase):
         subnet = make_subnet()
         loc = make_location({'subnet-ids': subnet['id']})
         self.assertIn(subnet['name'], loc['subnets'][0])
-        self.assertIn(subnet['network'], loc['subnets'][0])
+        self.assertIn(subnet['network-addr'], loc['subnets'][0])
 
     @tier1
     @upgrade
@@ -282,7 +282,7 @@ class LocationTestCase(CLITestCase):
         subnet = make_subnet()
         loc = make_location({'subnets': subnet['name']})
         self.assertIn(subnet['name'], loc['subnets'][0])
-        self.assertIn(subnet['network'], loc['subnets'][0])
+        self.assertIn(subnet['network-addr'], loc['subnets'][0])
 
     @tier1
     def test_positive_create_with_environment_by_id(self):
@@ -554,14 +554,14 @@ class LocationTestCase(CLITestCase):
         subnet = [make_subnet() for _ in range(2)]
         loc = make_location({'subnets': subnet[0]['name']})
         self.assertIn(subnet[0]['name'], loc['subnets'][0])
-        self.assertIn(subnet[0]['network'], loc['subnets'][0])
+        self.assertIn(subnet[0]['network-addr'], loc['subnets'][0])
         Location.update({
             'id': loc['id'],
             'subnets': subnet[1]['name'],
         })
         loc = Location.info({'id': loc['id']})
         self.assertIn(subnet[1]['name'], loc['subnets'][0])
-        self.assertIn(subnet[1]['network'], loc['subnets'][0])
+        self.assertIn(subnet[1]['network-addr'], loc['subnets'][0])
 
     @tier1
     def test_positive_update_from_compresources_to_compresource(self):

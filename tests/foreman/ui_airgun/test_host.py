@@ -280,13 +280,15 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    host = entities.Host(organization=org).create()
+    loc = entities.Location().create()
+    host = entities.Host(organization=org, location=loc).create()
     env = entities.Environment(
-        name=gen_string('alpha'), organization=[org]).create()
+        organization=[org], location=[loc]).create()
     hostgroup = entities.HostGroup(
-        environment=env, organization=[org]).create()
+        environment=env, organization=[org], location=[loc]).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         session.host.apply_action(
             'Change Environment',
             [host.name],
@@ -486,7 +488,8 @@ def test_positive_export(session):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    hosts = [entities.Host(organization=org).create() for _ in range(3)]
+    loc = entities.Location().create()
+    hosts = [entities.Host(organization=org, location=loc).create() for _ in range(3)]
     expected_fields = set(
         (host.name,
          host.operatingsystem.read().title,
@@ -495,6 +498,7 @@ def test_positive_export(session):
     )
     with session:
         session.organization.select(org.name)
+        session.location.select(loc.name)
         file_path = session.host.export()
         assert os.path.isfile(file_path)
         with open(file_path, newline='') as csvfile:

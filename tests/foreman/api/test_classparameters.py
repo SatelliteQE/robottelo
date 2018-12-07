@@ -767,7 +767,7 @@ class SmartClassParametersTestCase(APITestCase):
             ])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Default value \w+ is not one of"
+            "Validation failed: Default value \\w+ is not one of"
         )
         self.assertNotEqual(sc_param.read().default_value, value)
 

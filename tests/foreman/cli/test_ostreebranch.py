@@ -28,7 +28,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
-from robottelo.constants import FEDORA23_OSTREE_REPO
+from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
@@ -61,7 +61,7 @@ class OstreeBranchTestCase(CLITestCase):
                 u'product-id': cls.product['id'],
                 u'content-type': u'ostree',
                 u'publish-via-http': u'false',
-                u'url': FEDORA23_OSTREE_REPO,
+                u'url': FEDORA27_OSTREE_REPO,
             },
             credentials
         )

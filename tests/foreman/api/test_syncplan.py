@@ -19,7 +19,7 @@ http://www.katello.org/docs/api/apidoc/sync_plans.html
 :Upstream: No
 """
 from datetime import datetime, timedelta
-from fauxfactory import gen_string
+from fauxfactory import gen_string, gen_choice
 from nailgun import client, entities
 from random import sample
 from robottelo import manifests
@@ -29,11 +29,12 @@ from robottelo.api.utils import (
     wait_for_syncplan_tasks
 )
 from robottelo.config import settings
-from robottelo.constants import PRDS, REPOS, REPOSET
+from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import (
     filtered_datapoint,
     invalid_values_list,
     valid_data_list,
+    valid_cron_expressions
 )
 from requests.exceptions import HTTPError
 from robottelo.decorators import (
@@ -381,6 +382,32 @@ class SyncPlanUpdateTestCase(APITestCase):
                     interval
                 )
 
+    @tier1
+    @run_only_on('sat')
+    def test_positive_update_interval_custom_cron(self):
+        """Create a sync plan and update its interval to custom cron.
+
+        :id: 26c58319-cae0-4b0c-b388-2a1fe3f22344
+
+        :expectedresults: A sync plan is created and its interval can be
+            updated to custom cron.
+
+        :CaseImportance: Critical
+        """
+        for interval in valid_sync_interval():
+            sync_plan = entities.SyncPlan(
+                description=gen_string('alpha'),
+                organization=self.org,
+                interval=interval
+            ).create()
+
+            sync_plan.interval = SYNC_INTERVAL['custom']
+            sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+            self.assertEqual(
+                sync_plan.update(['interval', 'cron_expression']).interval,
+                SYNC_INTERVAL['custom']
+            )
+
     @run_only_on('sat')
     @tier1
     def test_positive_update_sync_date(self):
@@ -574,6 +601,36 @@ class SyncPlanProductTestCase(APITestCase):
             syncplan.remove_products(data={'product_ids': [product.id]})
             self.assertEqual(len(syncplan.read().product), 0)
 
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_remove_products_custom_cron(self):
+        """Create a sync plan with two products having custom_cron interval
+         and then remove both products from it.
+
+         :id: 5ce34eaa-3574-49ba-ab02-aa25515394aa
+
+         :expectedresults: A sync plan can be created and both products can be
+            removed from it.
+         :CaseLevel: Integration
+        """
+        cron_expression = gen_choice(valid_cron_expressions())
+
+        syncplan = entities.SyncPlan(organization=self.org,
+                                     interval='custom cron',
+                                     cron_expression=cron_expression
+                                     ).create()
+        products = [
+            entities.Product(organization=self.org).create() for _ in range(2)
+        ]
+        syncplan.add_products(data={
+            'product_ids': [product.id for product in products],
+        })
+        self.assertEqual(len(syncplan.read().product), 2)
+        syncplan.remove_products(data={
+            'product_ids': [product.id for product in products],
+        })
+        self.assertEqual(len(syncplan.read().product), 0)
+
 
 class SyncPlanSynchronizeTestCase(APITestCase):
     """Tests specific to synchronizing sync plans."""
@@ -712,6 +769,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             repo, ['erratum', 'package', 'package_group'])
 
     @tier4
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -762,6 +820,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -887,6 +946,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @run_in_one_thread
     @tier4
     @upgrade
+    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -1125,5 +1185,35 @@ class SyncPlanDeleteTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         product.sync()
         sync_plan.delete()
+        with self.assertRaises(HTTPError):
+            sync_plan.read()
+
+    @tier2
+    @run_only_on('sat')
+    @upgrade
+    def test_positive_delete_synced_product_custom_cron(self):
+        """Create a sync plan with custom cron with one synced
+        product and delete it.
+
+        :id: f13936f5-7522-43b8-a986-26795637cde9
+
+        :expectedresults: A sync plan is created with one synced product and
+            sync plan can be deleted.
+
+        :CaseLevel: Integration
+        """
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            interval='custom cron',
+            cron_expression=gen_choice((valid_cron_expressions()))).create()
+        product = entities.Product(organization=self.org).create()
+        entities.Repository(product=product).create()
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        product.sync()
+        product = product.read()
+        self.assertEqual(product.sync_plan.id, sync_plan.id)
+        sync_plan.delete()
+        product = product.read()
+        self.assertIsNone(product.sync_plan)
         with self.assertRaises(HTTPError):
             sync_plan.read()

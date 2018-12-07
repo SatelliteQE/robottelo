@@ -20,7 +20,6 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
-from robottelo.decorators import bz_bug_is_open
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -63,16 +62,10 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
         payload['basearch'] = basearch
     if releasever is not None:
         payload['releasever'] = releasever
+    payload['product_id'] = product.id
     r_set.enable(data=payload)
     result = entities.Repository(name=repo).search(
         query={'organization_id': org_id})
-    if bz_bug_is_open(1252101):
-        for _ in range(5):
-            if len(result) > 0:
-                break
-            time.sleep(5)
-            result = entities.Repository(name=repo).search(
-                query={'organization_id': org_id})
     return result[0].id
 
 
@@ -450,11 +443,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
                 id=comp_res[0].id).read()
             computeresource.location.append(loc)
             computeresource.organization.append(org)
-            computeresource = computeresource.update([
-                'location', 'organization'])
+            computeresource.update(['location', 'organization'])
         else:
             # Create Libvirt compute-resource
-            computeresource = entities.LibvirtComputeResource(
+            entities.LibvirtComputeResource(
                 provider=u'libvirt',
                 url=resource_url,
                 set_console_password=False,

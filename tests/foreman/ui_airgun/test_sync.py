@@ -21,7 +21,7 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import (
     DISTRO_RHEL6, DISTRO_RHEL7,
     FAKE_1_YUM_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     REPOS,
     REPOSET,
     PRDS,
@@ -131,7 +131,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """
     repo = entities.Repository(
         content_type='ostree',
-        url=FEDORA23_OSTREE_REPO,
+        url=FEDORA27_OSTREE_REPO,
         product=module_custom_product,
         unprotected=False,
     ).create()

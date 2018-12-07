@@ -5,7 +5,6 @@ from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 from robottelo.decorators import fixture
-from robottelo.constants import DEFAULT_LOC_ID, DEFAULT_ORG_ID
 
 
 LOGGER = logging.getLogger('robottelo')
@@ -18,21 +17,11 @@ def module_org():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    return nailgun.entities.Organization(id=DEFAULT_ORG_ID).read()
+    return nailgun.entities.Organization(id=1).read()
 
 
 @fixture(scope='module')
-def module_loc():
-    """Shares the same location for all tests in specific test module.
-    Returns 'Default Location' by default, override this fixture on
-
-    :rtype: :class:`nailgun.entities.Organization`
-    """
-    return nailgun.entities.Location(id=DEFAULT_LOC_ID).read()
-
-
-@fixture(scope='module')
-def module_user(request, module_org, module_loc):
+def module_user(request, module_org):
     """Creates admin user with default org set to module org and shares that
     user for all tests in the same test module. User's login contains test
     module name as a prefix.
@@ -47,7 +36,6 @@ def module_user(request, module_org, module_loc):
     user = nailgun.entities.User(
         admin=True,
         default_organization=module_org,
-        default_location=module_loc,
         description='created automatically by airgun for module "{}"'.format(
             test_module_name),
         login=login,
@@ -81,24 +69,6 @@ def test_name(request):
     # test name, e.g. 'test_positive_create'
     name.append(request.node.name)
     return '.'.join(name)
-
-
-@fixture()
-def session(test_name, module_user):
-    """Session fixture which automatically initializes (but does not start!)
-    airgun UI session and correctly passes current test name to it. Uses shared
-    module user credentials to log in.
-
-
-    Usage::
-
-        def test_foo(session):
-            with session:
-                # your ui test steps here
-                session.architecture.create({'name': 'bar'})
-
-    """
-    return Session(test_name, module_user.login, module_user.password)
 
 
 @fixture()

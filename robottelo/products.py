@@ -220,6 +220,7 @@ PRODUCT_KEY_SAT_TOOLS = 'rhst'
 PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
 PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
 PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
+PRODUCT_KEY_ANSIBLE_ENGINE = 'rhae2'
 
 _server_distro = None  # type: str
 
@@ -518,6 +519,11 @@ class VirtualizationAgentsRepository(GenericRHRepository):
 class RHELCloudFormsTools(GenericRHRepository):
     _distro = DISTRO_RHEL6
     _key = PRODUCT_KEY_CLOUD_FORMS_TOOLS
+
+
+class RHELAnsibleEngineRepository(GenericRHRepository):
+    """Red Hat Ansible Engine Repository"""
+    _key = PRODUCT_KEY_ANSIBLE_ENGINE
 
 
 class RepositoryCollection(object):
