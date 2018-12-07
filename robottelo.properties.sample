@@ -164,6 +164,8 @@ ssh_key=
 # [clients]
 # Provisioning server hostname where the clients will be created
 # provisioning_server=
+# Comma separated list of distributions, see robottelo/constants.py::DISTRO_*
+# distros=rhel6, rhel7
 
 # Path on the provisioning server where the virtual images will be stored. If
 # not specified in the configuration, the default libvirt path will be used

@@ -336,11 +336,13 @@ class ClientsSettings(FeatureSettings):
         super(ClientsSettings, self).__init__(*args, **kwargs)
         self.image_dir = None
         self.provisioning_server = None
+        self.distros = None
 
     def read(self, reader):
         """Read clients settings."""
         self.image_dir = reader.get('clients', 'image_dir')
         self.provisioning_server = reader.get('clients', 'provisioning_server')
+        self.distros = [x.strip() for x in reader.get('clients', 'distros', "rhel7").split(",")]
 
     def validate(self):
         """Validate clients settings."""
