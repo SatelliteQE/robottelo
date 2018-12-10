@@ -16,11 +16,47 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from pytest import raises
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2, upgrade
 from robottelo.manifests import original_manifest, upload_manifest_locked
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session):
+    """Perform end to end testing for organization component
+
+    :id: 91003f52-63a6-4b0d-9b68-2b5717fd200e
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    label = gen_string('alphanumeric')
+    description = gen_string('alpha')
+    with session:
+        session.organization.create({
+            'name': name, 'label': label, 'description': description,
+        })
+        assert session.organization.search(name)[0]['Name'] == name
+        org_values = session.organization.read(name)
+        assert org_values['primary']['name'] == name
+        assert org_values['primary']['label'] == label
+        assert org_values['primary']['description'] == description
+        session.organization.update(name, {'primary.name': new_name})
+        assert session.organization.search(new_name)[0]['Name'] == new_name
+        with raises(AssertionError):
+            session.organization.delete(new_name)
+        session.organization.select(DEFAULT_ORG)
+        session.organization.delete(new_name)
+        assert not session.organization.search(new_name)
 
 
 @tier2
