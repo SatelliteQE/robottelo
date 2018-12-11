@@ -986,18 +986,20 @@ class AnsibleREXTestCase(CLITestCase):
 
     @tier3
     @upgrade
-    def test_positive_run_job(self):
-        """Tests Ansible REX job runs successfully
+    def test_positive_run_effective_user_job(self):
+        """Tests Ansible REX job having effective user runs successfully
 
-        :id: a0aba09f-1296-4bb7-8123-75c7a9b17e26
+        :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
 
         :Steps:
 
             0. Create a VM and register to SAT and prepare for REX (ssh key)
 
-            1. Run Ansible Command job for the host
+            1. Run Ansible Command job for the host to create a user
 
-            2. Check the job result at the host
+            2. Run Ansible Command job using effective user
+
+            3. Check the job result at the host is done under that user
 
         :expectedresults: multiple asserts along the code
 
@@ -1011,10 +1013,31 @@ class AnsibleREXTestCase(CLITestCase):
             'name': 'remote_execution_connect_by_ip',
             'value': 'True',
         })
+        # create a user on client via remote job
+        username = gen_string('alpha')
+        filename = gen_string('alpha')
+        make_user_job = make_job_invocation({
+            'job-template': 'Run Command - Ansible Default',
+            'inputs': "command='useradd {0}'".format(username),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        try:
+            self.assertEqual(make_user_job[u'success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': make_user_job[u'id'],
+                    'host': self.client.hostname})
+                    )
+                )
+            raise AssertionError(result)
+        # create a file as new user
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - Ansible Default',
-            'inputs': 'command="ls"',
+            'inputs': "command='touch /home/{0}/{1}'".format(
+                username, filename),
             'search-query': "name ~ {0}".format(self.client.hostname),
+            'effective-user': '{0}'.format(username),
         })
         try:
             self.assertEqual(invocation_command['success'], u'1')
@@ -1026,31 +1049,14 @@ class AnsibleREXTestCase(CLITestCase):
                     )
                 )
             raise AssertionError(result)
+        # check the file owner
+        result = ssh.command(
+            '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
+            hostname=self.client.ip_addr
+        )
+        # assert the file is owned by the effective user
+        self.assertEqual(username, result.stdout[0], "file ownership mismatch")
 
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_run_effective_user_job(self):
-        """Tests Ansible REX job having effective user runs successfully
-
-        :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
-
-        :Steps:
-
-            0. Create a VM and register to SAT and prepare for REX (ssh key)
-
-            1. Run Ansible Command job for the host under different user
-
-            2. Check the job result at the host is done under that user
-
-        :expectedresults: multiple asserts along the code
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
     @tier3
     @upgrade
     def test_positive_run_reccuring_job(self):
@@ -1068,16 +1074,54 @@ class AnsibleREXTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseLevel: System
         """
+        # set connecting to host by ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - Ansible Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+            'cron-line': '* * * * *',  # every minute
+            'max-iteration': 2,  # just two runs
+        })
+        JobInvocation.get_output({
+            'id': invocation_command[u'id'],
+            'host': self.client.hostname
+        })
+        try:
+            self.assertEqual(invocation_command['status'], u'queued')
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
+                    )
+                )
+            raise AssertionError(result)
+        # Wait until the job runs
+        pending_state = u'1'
+        for _ in range(5):
+            if pending_state != u'0':
+                invocation_info = JobInvocation.info({
+                    'id': invocation_command[u'id']})
+                pending_state = invocation_info[u'pending']
+                sleep(30)
+        rec_logic = RecurringLogic.info({
+            'id': invocation_command['recurring-logic-id']})
+        self.assertEqual(rec_logic['state'], u'finished')
+        self.assertEqual(rec_logic['iteration'], u'2')
 
-    @stubbed()
     @tier3
     @upgrade
-    def test_positive_run_packages_job(self):
-        """Tests Ansible REX job can change presence of packages successfully
+    def test_positive_run_packages_and_services_job(self):
+        """Tests Ansible REX job can install packages and start services
 
         :id: 47ed82fb-77ca-43d6-a52e-f62bae5d3a42
 
@@ -1089,35 +1133,91 @@ class AnsibleREXTestCase(CLITestCase):
 
             2. Check the package is present at the host
 
-        :expectedresults: multiple asserts along the code
+            3. Run Ansible Service job for the host to start a service
 
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_run_services_job(self):
-        """Tests Ansible REX job can change state of services successfully
-
-        :id: 599f646f-9abf-43f2-bfa3-192d1ec2a888
-
-        :Steps:
-
-            0. Create a VM and register to SAT and prepare for REX (ssh key)
-
-            1. Run Ansible Services job for the host to start a service
-
-            2. Check the service is running at the host
+            4. Check the service is started on the host
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseLevel: System
         """
+        # set connecting to host by ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        packages = ["cow"]
+        # Create a custom repo
+        repo = entities.Repository(
+            content_type='yum',
+            product=entities.Product(organization=self.org).create(),
+            url=FAKE_0_YUM_REPO,
+        ).create()
+        repo.sync()
+        prod = repo.product.read()
+        subs = entities.Subscription().search(
+            query={'search': 'name={0}'.format(prod.name)}
+        )
+        self.assertGreater(
+            len(subs), 0, 'No subscriptions matching the product returned'
+        )
+        ak = entities.ActivationKey(
+            organization=self.org,
+            content_view=self.org.default_content_view,
+            environment=self.org.library
+        ).create()
+        ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
+        self.client.register_contenthost(
+            org=self.org.label, activation_key=ak.name
+        )
+
+        # install package
+        invocation_command = make_job_invocation({
+            'job-template': 'Package Action - Ansible Default',
+            'inputs': 'state=latest, name={}'.format(*packages),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
+                    )
+                )
+            raise AssertionError(result)
+        result = ssh.command(
+            "rpm -q {0}".format(*packages),
+            hostname=self.client.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # start a service
+        service = "postfix"
+        invocation_command = make_job_invocation({
+            'job-template': 'Service Action - Ansible Default',
+            'inputs': 'state=started, name={}'.format(service),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
+                    )
+                )
+            raise AssertionError(result)
+        result = ssh.command(
+            "systemctl status {0}".format(service),
+            hostname=self.client.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
 
     @stubbed()
     @tier3
