@@ -365,8 +365,6 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
     """
     name = gen_string('alpha')
     new_organization = entities.Organization().create()
-    module_loc.organization.extend([new_organization])
-    module_loc.update(['organization'])
     with session:
         session.computeresource.create({
             'name': name,
@@ -433,11 +431,12 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
         assert values['user_data'] is False
         assert values['image'] == rhev_data['image_name']
         session.computeresource.update_image(cr_name, image_name, dict(name=new_image_name))
-        assert not session.computeresource.search_images(cr_name, image_name)
+        assert session.computeresource.search_images(cr_name, image_name)[0] != image_name
         assert (session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
                 == new_image_name)
         session.computeresource.delete_image(cr_name, new_image_name)
-        assert not session.computeresource.search_images(cr_name, new_image_name)
+        assert (session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+                != new_image_name)
 
 
 @skip_if_not_set('vlan_networking')
