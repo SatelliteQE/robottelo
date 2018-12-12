@@ -96,6 +96,7 @@ class DockerManifestTestCase(CLITestCase):
     """Tests related to docker manifest command"""
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1658274)
     def test_positive_read_docker_tags(self):
         """docker manifest displays tags information for a docker manifest
 
@@ -126,6 +127,7 @@ class DockerManifestTestCase(CLITestCase):
         manifests = [
             m_iter for m_iter in manifests_list if not m_iter['tag-name'] == ''
         ]
+        self.assertTrue(manifests)
         tags_list = Docker.tag.list({
             u'repository-id': repository['id'],
         })
