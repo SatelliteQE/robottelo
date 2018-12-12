@@ -514,7 +514,9 @@ def test_negative_add_dupe_repos(session, module_org):
         session.contentview.add_yum_repo(cv_name, repo_name)
         with raises(NoSuchElementException) as context:
             session.contentview.add_yum_repo(cv_name, repo_name)
-        assert 'Could not find element' and repo_name in str(context.value)
+        error_message = str(context.value)
+        assert 'Could not find an element' in error_message
+        assert 'checkbox' in error_message
 
 
 @tier2
