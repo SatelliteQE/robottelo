@@ -1436,8 +1436,8 @@ class SELinuxTestCase(TestCase):
                 'pattern': r'ERROR'
             },
         )
-        datetime_pattern = r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
-        datetime_format = '%Y-%m-%d %H:%M:%S'
+        datetime_pattern = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
+        datetime_format = '%Y-%m-%dT%H:%M:%S'
 
         try:
             logs = [
