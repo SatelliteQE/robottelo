@@ -17,9 +17,9 @@
 import time
 
 from datetime import timedelta
+from fauxfactory import gen_choice
 from nailgun import entities
 from pytest import raises
-
 from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -27,7 +27,10 @@ from robottelo.api.utils import (
     wait_for_syncplan_tasks
 )
 from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
-from robottelo.datafactory import gen_string
+from robottelo.datafactory import (
+    gen_string,
+    valid_cron_expressions
+)
 from robottelo.decorators import (
     fixture,
     skip_if_bug_open,
@@ -127,6 +130,53 @@ def test_positive_end_to_end(session):
         assert not session.syncplan.search(plan_name)
 
 
+@tier2
+def test_positive_end_to_end_custom_cron(session):
+    """Perform end to end scenario for sync plan component with custom cron
+
+    :id: 48c88529-6318-47b0-97bc-eb46aae0294a
+
+    :expectedresults: All CRUD actions for component finished successfully
+
+    :CaseLevel: Integration
+    """
+    plan_name = gen_string('alpha')
+    description = gen_string('alpha')
+    cron_expression = gen_choice(valid_cron_expressions())
+    with session:
+        startdate = (
+                session.browser.get_client_datetime() + timedelta(minutes=10))
+        # Create new sync plan and check all values in entity that was created
+        session.syncplan.create({
+            'name': plan_name,
+            'interval': SYNC_INTERVAL['custom'],
+            'description': description,
+            'cron_expression': cron_expression,
+            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+            'date_time.hours': startdate.strftime('%H'),
+            'date_time.minutes': startdate.strftime('%M'),
+        })
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
+        syncplan_values = session.syncplan.read(plan_name)
+        assert syncplan_values['details']['interval'] == SYNC_INTERVAL['custom']
+        assert syncplan_values['details']['cron_expression'] == cron_expression
+        assert syncplan_values['details']['recurring_logic'].isdigit()
+        time = syncplan_values['details']['date_time'].rpartition(':')[0]
+        assert time == startdate.strftime("%Y/%m/%d %H:%M")
+        # Update sync plan with new description
+        session.syncplan.update(
+            plan_name,
+            {'details.interval': SYNC_INTERVAL['day']
+             }
+        )
+        syncplan_values = session.syncplan.read(plan_name)
+        assert syncplan_values['details']['interval'] == SYNC_INTERVAL['day']
+        assert not syncplan_values['details']['cron_expression']
+        # Delete sync plan
+        session.syncplan.delete(plan_name)
+        assert not session.syncplan.search(plan_name)
+
+
 @tier3
 def test_negative_synchronize_custom_product_past_sync_date(
         session, module_org):
@@ -213,7 +263,7 @@ def test_positive_synchronize_custom_product_past_sync_date(
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
-            assert repo_values['content_counts'][repo_type] > '0'
+            assert int(repo_values['content_counts'][repo_type]) > 0
 
 
 @tier3
@@ -262,7 +312,7 @@ def test_positive_synchronize_custom_product_future_sync_date(
         session.syncplan.search(plan_name)
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
-            assert repo_values['content_counts'][repo_type] > '0'
+            assert int(repo_values['content_counts'][repo_type]) > 0
 
 
 @tier3
@@ -374,7 +424,7 @@ def test_positive_synchronize_rh_product_future_sync_date(session):
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(PRDS['rhel'], repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
-            assert repo_values['content_counts'][repo_type] > '0'
+            assert int(repo_values['content_counts'][repo_type]) > 0
 
 
 @tier3
@@ -422,7 +472,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
-            assert repo_values['content_counts'][repo_type] > '0'
+            assert (repo_values['content_counts'][repo_type]) > 0
 
 
 @tier3
@@ -472,4 +522,106 @@ def test_positive_synchronize_custom_product_weekly_recurrence(
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
-            assert repo_values['content_counts'][repo_type] > '0'
+            assert int(repo_values['content_counts'][repo_type]) > 0
+
+
+@tier3
+def test_positive_synchronize_custom_product_custom_cron_real_time(
+        session, module_org):
+    """Create a sync plan with real datetime as a sync date,
+    add a custom product and verify the product gets synchronized
+    on the next sync occurrence based on custom cron interval
+
+    :id: c551ef9a-6e5a-435a-b24d-e86de203a2bb
+
+    :expectedresults: Product is synchronized successfully.
+
+    :CaseLevel: System
+    """
+    plan_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(product=product).create()
+    with session:
+        startdate = session.browser.get_client_datetime()
+        next_sync = (3 * 60)
+        # forming cron expression sync repo after 3 min
+        cron_cofficient = (int(startdate.strftime('%M')) + 3)/2
+        session.syncplan.create({
+            'name': plan_name,
+            'interval': SYNC_INTERVAL['custom'],
+            'cron_expression': '*/{} * * * *'.format(cron_cofficient),
+            'description': 'sync plan create with start time',
+            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+            'date_time.hours': startdate.strftime('%H'),
+            'date_time.minutes': startdate.strftime('%M'),
+        })
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
+        session.syncplan.add_product(plan_name, product.name)
+        with raises(AssertionError) as context:
+            validate_task_status(repo.id, max_tries=2)
+        assert 'No task was found using query' in str(context.value)
+        validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Waiting part of delay that left and check that product was synced
+        time.sleep(next_sync)
+        validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
+        validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+        repo_values = session.repository.read(product.name, repo.name)
+        for repo_type in ['Packages', 'Errata', 'Package Groups']:
+            assert int(repo_values['content_counts'][repo_type]) > 0
+        # Delete sync plan
+        session.syncplan.delete(plan_name)
+        assert not session.syncplan.search(plan_name)
+
+
+@tier3
+def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
+        session, module_org):
+    """Create a sync plan with past datetime as a sync date,
+    add a custom product and verify the product gets synchronized
+    on the next sync occurrence based on custom cron interval
+
+    :id: 4d9ed0bf-a63c-44de-846d-7cf302273bcc
+
+    :expectedresults: Product is synchronized successfully.
+
+    :CaseLevel: System
+    """
+    interval = 60 * 60  # 'hourly' sync interval in seconds
+    delay = 5 * 60
+    plan_name = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(product=product).create()
+    with session:
+        startdate = (
+            session.browser.get_client_datetime()
+            - timedelta(seconds=(interval - delay))
+        )
+        session.syncplan.create({
+            'name': plan_name,
+            'interval': SYNC_INTERVAL['custom'],
+            'cron_expression': '*/5 * * * *',
+            'description': 'sync plan create with start time',
+            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+            'date_time.hours': startdate.strftime('%H'),
+            'date_time.minutes': startdate.strftime('%M'),
+        })
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
+        session.syncplan.add_product(plan_name, product.name)
+        # Waiting part of delay and check that product was not synced
+        time.sleep(delay/4)
+        with raises(AssertionError) as context:
+            validate_task_status(repo.id, max_tries=2)
+        assert 'No task was found using query' in str(context.value)
+        validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Waiting part of delay that left and check that product was synced
+        time.sleep(delay * 3/4)
+        validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
+        validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+        repo_values = session.repository.read(product.name, repo.name)
+        for repo_type in ['Packages', 'Errata', 'Package Groups']:
+            assert int(repo_values['content_counts'][repo_type]) > 0
+        # Delete sync plan
+        session.syncplan.delete(plan_name)
+        assert not session.syncplan.search(plan_name)
