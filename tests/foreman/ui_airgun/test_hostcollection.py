@@ -74,7 +74,7 @@ def module_repos_collection(module_org, module_lce):
 
 
 @fixture
-def vm_content_hosts(request, module_repos_collection):
+def vm_content_hosts(request, module_loc, module_repos_collection):
     clients = []
     for _ in range(2):
         client = VirtualMachine(distro=module_repos_collection.distro)
@@ -82,6 +82,10 @@ def vm_content_hosts(request, module_repos_collection):
         request.addfinalizer(client.destroy)
         client.create()
         module_repos_collection.setup_virtual_machine(client)
+        # update client host location
+        host = entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0]
+        host.location = module_loc
+        host.update(['location'])
     return clients
 
 
