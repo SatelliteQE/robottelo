@@ -160,12 +160,10 @@ def test_positive_update_template(session, module_org):
     with session:
         os_full_name = '{} {}'.format(name, major_version)
         values = session.operatingsystem.read(os_full_name)
-        assert values['templates']['resources'][
-            'Provisioning template *'] == DEFAULT_TEMPLATE
+        assert values['templates']['resources']['Provisioning template'] == DEFAULT_TEMPLATE
         session.operatingsystem.update(
             os_full_name,
-            {'templates.resources': {'Provisioning template *': template.name}}
+            {'templates.resources': {'Provisioning template': template.name}}
         )
         values = session.operatingsystem.read(os_full_name)
-        assert values['templates']['resources'][
-            'Provisioning template *'] == template.name
+        assert values['templates']['resources']['Provisioning template'] == template.name
