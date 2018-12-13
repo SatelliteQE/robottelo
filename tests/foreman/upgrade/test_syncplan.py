@@ -28,7 +28,7 @@ from upgrade_tests import post_upgrade, pre_upgrade
 def test_pre_sync_plan_migration(save_test_data):
     """Pre-upgrade scenario that creates sync plan and assigns repo to sync plan
 
-    :id: badaeec2-d42f-41d5-bd85-4b23d6d5a724
+    :id: 0e8e993a-43d2-41e3-b7e3-72f9d5578270
 
     :steps:
         1. Create Product and Repository
@@ -65,7 +65,7 @@ def test_post_sync_plan_migration(pre_upgrade_data):
     """Post-upgrade scenario that tests existing sync plans are working as
     expected after satellite upgrade with migrating from pulp to katello
 
-    :id: badaeec2-d42f-41d5-bd85-4b23d6d5a724
+    :id: 61f65f5d-351c-4aa4-83dc-71afae5dc1e0
 
     :steps:
         1. Verify sync plan exists and works as earlier
