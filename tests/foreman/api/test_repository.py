@@ -1453,6 +1453,112 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("422", str(excinfo.exception))
         self.assertIn("Unprocessable Entity", str(excinfo.exception))
 
+    @run_only_on('sat')
+    @tier2
+    @upgrade
+    def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
+        """Check if only whitelisted tags are synchronized
+
+        :id: abd584ef-f616-49d8-ab30-ae32e4e8a685
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = ['latest']
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_tags_whitelist=tags,
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertEqual(repo.content_counts['docker_tag'], 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_synchronize_docker_repo_set_tags_later(self):
+        """Verify that adding tags whitelist after synchronizing repository
+        doesn't affect already synchronized content
+
+        :id: 6838e152-5fd9-4f25-ae04-67760571f6ba
+
+        :expectedresults: Non-whitelisted tags are not removed
+        """
+        tags = ['latest']
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertIsNone(repo.docker_tags_whitelist)
+        self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
+
+        repo.docker_tags_whitelist = tags
+        repo.update(['docker_tags_whitelist'])
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
+        """Set tags whitelist to contain both valid and invalid (non-existing)
+        tags. Check if only whitelisted tags are synchronized
+
+        :id: 7b66171f-5bf1-443b-9ca3-9614d66a0c6b
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = ['latest', gen_string('alpha')]
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_tags_whitelist=tags,
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertEqual(repo.content_counts['docker_tag'], 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_invalid_tags(self):
+        """Set tags whitelist to contain only invalid (non-existing)
+        tags. Check that no data is synchronized.
+
+        :id: c419da6a-1530-4f66-8f8e-d4ec69633356
+
+        :expectedresults: Tags are not synchronized
+        """
+        tags = [gen_string('alpha') for _ in range(3)]
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_tags_whitelist=tags,
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertEqual(repo.content_counts['docker_tag'], 0)
+
 
 class OstreeRepositoryTestCase(APITestCase):
     """Tests specific to using ``OSTree`` repositories."""
