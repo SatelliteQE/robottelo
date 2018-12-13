@@ -962,6 +962,9 @@ def make_repository_with_credentials(options=None, credentials=None):
         --content-type CONTENT_TYPE             type of repo (either 'yum',
                                                 'puppet', 'docker' or 'ostree',
                                                 defaults to 'yum')
+        --docker-tags-whitelist DOCKER_TAGS_WHITELIST Comma separated list of
+                                                tags to sync for Container Image
+                                                repository
         --docker-upstream-name DOCKER_UPSTREAM_NAME name of the upstream docker
                                                 repository
         --download-policy DOWNLOAD_POLICY       download policy for yum repos
@@ -1012,6 +1015,7 @@ def make_repository_with_credentials(options=None, credentials=None):
     args = {
         u'checksum-type': None,
         u'content-type': u'yum',
+        u'docker-tags-whitelist': None,
         u'docker-upstream-name': None,
         u'download-policy': None,
         u'gpg-key': None,
