@@ -461,12 +461,16 @@ class TemplateSyncTestCase(APITestCase):
                 'search': 'name~robottelo',
                 'organization_id': org.id})
         self.assertEqual(len(ptables), 1)
+        # Skipping Job Template part untill
+        # <https://github.com/SatelliteQE/nailgun/pull/402> gets merged
+        '''
         jtemplates = entities.JobTemplate().search(
             query={
                 'per_page': 1000,
                 'search': 'name~robottelo',
                 'organization_id': org.id})
         self.assertEqual(len(jtemplates), 1)
+        '''
 
     @tier1
     def test_negative_import_filtered_templates_from_git(self):
@@ -513,12 +517,16 @@ class TemplateSyncTestCase(APITestCase):
                 'search': 'name~jenkins',
                 'organization_id': org.id})
         self.assertEqual(len(ptables), 1)
+        # Skipping Job Template part untill
+        # <https://github.com/SatelliteQE/nailgun/pull/402> gets merged
+        '''
         jtemplates = entities.JobTemplate().search(
             query={
                 'per_page': 1000,
                 'search': 'name~jenkins',
                 'organization_id': org.id})
         self.assertEqual(len(jtemplates), 1)
+        '''
 
     @stubbed()
     @tier1
