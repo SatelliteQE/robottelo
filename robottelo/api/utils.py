@@ -827,3 +827,16 @@ def check_create_os_with_title(os_title):
             minor=os_version_minor,
         ).create()
     return os
+
+
+def attach_custom_product_subscription(prod_name=None, host_name=None):
+    """ Attach custom product subscription to client host
+    :param str prod_name: custom product name
+    :param str host_name: client host name
+    """
+    host = entities.Host().search(
+        query={'search': '{0}'.format(host_name)})[0]
+    product_subscription = entities.Subscription().search(
+        query={'search': 'name={0}'.format(prod_name)})[0]
+    entities.HostSubscription(host=host.id).add_subscriptions(
+        data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})
