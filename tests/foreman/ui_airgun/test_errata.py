@@ -57,11 +57,14 @@ def test_end_to_end(session):
         'topic': '',
         'description': 'Sea_Erratum',
         'solution': '',
-        'affected_packages': [
+    }
+    ERRATA_PACKAGES = {
+        'independent_packages': [
             'penguin-0.9.1-1.noarch',
             'shark-0.1-1.noarch',
             'walrus-5.21-1.noarch'
-        ]
+        ],
+        'module_stream_packages': [],
     }
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -81,6 +84,7 @@ def test_end_to_end(session):
             session.organization.select(org.name)
             errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
             assert errata['details'] == ERRATA_DETAILS
+            assert errata['packages'] == ERRATA_PACKAGES
             assert (
                 errata['repositories']['table'][0]['Name'] ==
                 repos_collection.custom_repos_info[-1]['name']
