@@ -19,6 +19,7 @@
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.docker import Docker
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
 from robottelo.cli.module_stream import ModuleStream
@@ -990,6 +991,104 @@ class RepositoryTestCase(CLITestCase):
         # Verify it has finished
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['sync']['status'], 'Success')
+
+    @run_only_on('sat')
+    @tier2
+    @upgrade
+    def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
+        """Check if only whitelisted tags are synchronized
+
+        :id: aa820c65-2de1-4b32-8890-98bd8b4320dc
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = 'latest'
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'alpine',
+            'url': DOCKER_REGISTRY_HUB,
+            'docker-tags-whitelist': tags,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertIn(tags, repo['container-image-tags-filter'])
+        self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_synchronize_docker_repo_set_tags_later(self):
+        """Verify that adding tags whitelist after synchronizing repository
+        doesn't affect already synchronized content
+
+        :id: 97f2087f-6041-4242-8b7c-be53c68f46ff
+
+        :expectedresults: Non-whitelisted tags are not removed
+        """
+        tags = 'latest'
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'hello-world',
+            'url': DOCKER_REGISTRY_HUB,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        # Field is displayed only if there is any content
+        with self.assertRaises(KeyError):
+            repo['container-image-tags-filter']
+        self.assertGreaterEqual(int(repo['content-counts']['container-image-tags']), 2)
+
+        Repository.update({
+            'id': repo['id'],
+            'docker-tags-whitelist': tags,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertIn(tags, repo['container-image-tags-filter'])
+        self.assertGreaterEqual(int(repo['content-counts']['container-image-tags']), 2)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
+        """Set tags whitelist to contain both valid and invalid (non-existing)
+        tags. Check if only whitelisted tags are synchronized
+
+        :id: 75668da8-cc94-4d39-ade1-d3ef91edc812
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = ['latest', gen_string('alpha')]
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'alpine',
+            'url': DOCKER_REGISTRY_HUB,
+            'docker-tags-whitelist': ",".join(tags),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
+        self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_invalid_tags(self):
+        """Set tags whitelist to contain only invalid (non-existing)
+        tags. Check that no data is synchronized.
+
+        :id: da05cdb1-2aea-48b9-9424-6cc700bc1194
+
+        :expectedresults: Tags are not synchronized
+        """
+        tags = [gen_string('alpha') for _ in range(3)]
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'alpine',
+            'url': DOCKER_REGISTRY_HUB,
+            'docker-tags-whitelist': ",".join(tags),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
+        self.assertEqual(int(repo['content-counts']['container-image-tags']), 0)
 
     @run_only_on('sat')
     @tier2
