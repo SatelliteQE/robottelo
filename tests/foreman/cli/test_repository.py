@@ -19,7 +19,6 @@
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.docker import Docker
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
 from robottelo.cli.module_stream import ModuleStream
