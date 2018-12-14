@@ -1481,8 +1481,9 @@ class DockerRepositoryTestCase(APITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_synchronize_docker_repo_set_tags_later(self):
-        """Verify that adding tags whitelist after synchronizing repository
-        doesn't affect already synchronized content
+        """Verify that adding tags whitelist and re-syncing after
+        synchronizing full repository doesn't remove content that was
+        already pulled in
 
         :id: 6838e152-5fd9-4f25-ae04-67760571f6ba
 
