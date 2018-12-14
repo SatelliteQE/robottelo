@@ -795,3 +795,14 @@ def create_discovered_host(name=None, ip_address=None, mac_address=None,
         }
     facts.update(options)
     return entities.DiscoveredHost().facts(json={'facts': facts})
+
+
+def update_vm_host_location(vm_client, location_id):
+    """Update vm client host location.
+
+    :param vm_client: A subscribed Virtual Machine client instance.
+    :param location_id: The location id to update the vm_client host with.
+    """
+    host = entities.Host().search(query={'search': 'name={0}'.format(vm_client.hostname)})[0]
+    host.location = entities.Location(id=location_id)
+    host.update(['location'])
