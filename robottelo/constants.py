@@ -1663,6 +1663,7 @@ ROLES = [
     'Virt-who Viewer',
     'Manager',
     'Viewer',
+    'System Admin',
 ]
 
 ROLES_UNLOCKED = [
