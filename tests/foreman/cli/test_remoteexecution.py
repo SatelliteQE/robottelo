@@ -23,12 +23,10 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_job_invocation,
     make_job_template,
-    make_location,
     make_org
 )
 from robottelo.cli.host import Host
@@ -183,44 +181,6 @@ class JobTemplateTestCase(CLITestCase):
         JobTemplate.delete({u'name': template_name})
         with self.assertRaises(CLIReturnCodeError):
             JobTemplate.info({u'name': template_name})
-
-    @tier1
-    def test_positive_list_job_template_with_saved_org_and_loc(self):
-        """List available job templates with saved default organization and
-        location in config
-
-        :id: 4fd05dd7-53e3-41ba-ba90-6181a7190ad8
-
-        :expectedresults: The Job Template can be listed without errors
-
-        :BZ: 1368173
-
-        :CaseImportance: Critical
-        """
-        template_name = gen_string('alpha')
-        location = make_location()
-        make_job_template({
-            u'organizations': self.organization['name'],
-            u'name': template_name,
-            u'file': TEMPLATE_FILE,
-        })
-        templates = JobTemplate.list({
-            'organization-id': self.organization['id']})
-        self.assertGreaterEqual(len(templates), 1)
-        Defaults.add({
-            u'param-name': 'organization_id',
-            u'param-value': self.organization['id'],
-        })
-        Defaults.add({
-            u'param-name': 'location_id',
-            u'param-value': location['id'],
-        })
-        try:
-            templates = JobTemplate.list()
-            self.assertGreaterEqual(len(templates), 1)
-        finally:
-            Defaults.delete({u'param-name': 'organization_id'})
-            Defaults.delete({u'param-name': 'location_id'})
 
     @tier1
     def test_positive_view_dump(self):
