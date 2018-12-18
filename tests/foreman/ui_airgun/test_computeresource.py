@@ -517,26 +517,20 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
             cr_name, COMPUTE_PROFILE_LARGE)['provider_content']
         # assert main compute resource profile data updated updated successfully.
         excluded_keys = ['network_interfaces', 'storage']
-        assert (
-            {key: value for key, value
-             in cr_profile_data.items() if key not in excluded_keys}
-            ==
-            {
-                key: value for key, value in provider_content_values.items()
-                if key not in excluded_keys and key in cr_profile_data
-             }
-        )
+        expected_value = {key: value for key, value in cr_profile_data.items()
+                          if key not in excluded_keys}
+        provided_value = {key: value for key, value in provider_content_values.items()
+                          if key not in excluded_keys and key in cr_profile_data}
+        assert provided_value == expected_value
         # assert compute resource profile network and storage data updated successfully.
         for excluded_key in excluded_keys:
             for index, expected_value in enumerate(cr_profile_data[excluded_key]):
-                assert (
-                    expected_value ==
-                    {
+                provided_value = {
                         key: value
                         for key, value in provider_content_values[excluded_key][index].items()
                         if key in expected_value
-                    }
-                )
+                }
+                assert provided_value == expected_value
 
 
 @tier2
