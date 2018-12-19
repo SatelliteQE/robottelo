@@ -18,7 +18,7 @@ import requests
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, parametrize, run_in_one_thread, tier2
+from robottelo.decorators import fixture, parametrize, run_in_one_thread, tier2, skip_if_bug_open
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 
@@ -206,3 +206,73 @@ def test_positive_resource_vm_power_management(
             session.computeresource.vm_poweron(name, rhev_data['vm_name'])
         assert session.computeresource.vm_status(
             name, rhev_data['vm_name']) is not status
+
+
+@skip_if_bug_open('bugzilla', 1636067)
+@tier2
+@parametrize('version', [True, False])
+def test_positive_VM_import(session, module_ca_cert, module_org,
+                            rhev_data, version):
+    """Import an existing VM as a Host
+
+    :id: 47aea4b7-9258-4863-8966-9a0bc9e94116
+
+    :expectedresults: VM is shown as Host in Foreman
+
+    :CaseLevel: Integration
+    """
+    # create entities for hostgroup
+    location = entities.Location().create()
+    entities.SmartProxy(id=1, location=[2, location.id]).update()
+    domain = entities.Domain(organization=[module_org.id],
+                             location=[location]).create()
+    subnet = entities.Subnet(organization=[module_org.id],
+                             location=[location], domain=[domain]).create()
+    architecture = entities.Architecture().create()
+    ptable = entities.PartitionTable(organization=[module_org.id],
+                                     location=[location]).create()
+    operatingsystem = entities.OperatingSystem(architecture=[architecture],
+                                               ptable=[ptable]).create()
+    medium = entities.Media(organization=[module_org.id], location=[location],
+                            operatingsystem=[operatingsystem]).create()
+    le = entities.LifecycleEnvironment(name="Library",
+                                       organization=module_org.id).search()[0].read().id
+    cv = entities.ContentView(organization=[module_org.id]).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    entities.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=le,
+        content_view=cv,
+        content_source=1,
+    ).create()
+
+    name = gen_string('alpha')
+    with session:
+
+        session.computeresource.create({
+            'name': name,
+            'provider': FOREMAN_PROVIDERS['rhev'],
+            'provider_content.url': rhev_data['rhev_url'],
+            'provider_content.user': rhev_data['username'],
+            'provider_content.password': rhev_data['password'],
+            'provider_content.api4': version,
+            'provider_content.datacenter.value': rhev_data['datacenter'],
+            'provider_content.certification_authorities': module_ca_cert,
+            'locations.resources.assigned': [location.name],
+        })
+        session.hostgroup.update(hostgroup_name, {'deploy_on': name+" (RHV)"})
+        session.computeresource.vm_import(name, rhev_data['vm_name'],
+                                          hostgroup_name, location.name)
+        assert session.host.search(rhev_data['vm_name']) is not None
+    entities.Host(name=rhev_data['vm_name']).search()[0].delete()
