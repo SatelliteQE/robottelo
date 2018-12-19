@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import pytest
+
 from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
@@ -37,13 +39,17 @@ from robottelo.constants import (
     VDC_SUBSCRIPTION_NAME,
     VIRT_WHO_HYPERVISOR_TYPES
 )
-from robottelo.decorators import fixture, skip_if_not_set, tier3, upgrade
+from robottelo.decorators import fixture, setting_is_set, skip_if_not_set, tier3, upgrade
 from robottelo.products import (
     YumRepository,
     RepositoryCollection,
     SatelliteToolsRepository,
 )
 from robottelo.vm import VirtualMachine
+
+
+if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
+    pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
 
 @fixture(scope='module')
@@ -83,7 +89,6 @@ def set_ignore_facts_for_os(value=False):
     ignore_setting.update({'value'})
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_positive_end_to_end(session, repos_collection, vm):
     """Create all entities required for content host, set up host, register it
@@ -150,7 +155,6 @@ def test_positive_end_to_end(session, repos_collection, vm):
         assert not session.contenthost.search(vm.hostname)
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_positive_search_by_subscription_status(session, vm):
     """Register host into the system and search for it afterwards by
@@ -174,7 +178,6 @@ def test_positive_search_by_subscription_status(session, vm):
         assert vm.hostname not in {host['Name'] for host in result}
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_negative_install_package(session, vm):
     """Attempt to install non-existent package to a host remotely
@@ -198,7 +201,6 @@ def test_negative_install_package(session, vm):
         assert result['result'] == 'warning'
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
@@ -221,7 +223,6 @@ def test_positive_remove_package(session, vm):
         assert not packages
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_positive_upgrade_package(session, vm):
     """Upgrade a host package remotely
@@ -244,7 +245,6 @@ def test_positive_upgrade_package(session, vm):
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 @upgrade
 def test_positive_install_package_group(session, vm):
@@ -268,7 +268,6 @@ def test_positive_install_package_group(session, vm):
             assert packages[0]['Installed Package'] == package
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_positive_remove_package_group(session, vm):
     """Remove a package group from a host remotely
@@ -291,7 +290,6 @@ def test_positive_remove_package_group(session, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
     """Search for host's errata by non-admin user with enough permissions
@@ -315,7 +313,6 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 @upgrade
 def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm):
@@ -357,7 +354,6 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
-@skip_if_not_set('clients', 'fake_manifest')
 @tier3
 @upgrade
 def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request):
