@@ -806,3 +806,24 @@ def update_vm_host_location(vm_client, location_id):
     host = entities.Host().search(query={'search': 'name={0}'.format(vm_client.hostname)})[0]
     host.location = entities.Location(id=location_id)
     host.update(['location'])
+
+
+def check_create_os_with_title(os_title):
+    """Check if the OS is present, if not create the required OS
+
+    :param os_title: OS title to check, and create (like: RedHat 7.5)
+    :return: Created or found OS
+    """
+    # Check if OS that image needs is present or no, If not create the OS
+    result = entities.OperatingSystem().search(query={'search': 'title="{0}"'.format(os_title)})
+    if result:
+        os = result[0]
+    else:
+        os_name, _, os_version = os_title.partition(' ')
+        os_version_major, os_version_minor = os_version.split('.')
+        os = entities.OperatingSystem(
+            name=os_name,
+            major=os_version_major,
+            minor=os_version_minor,
+        ).create()
+    return os
