@@ -1681,16 +1681,16 @@ class DockerClientTestCase(CLITestCase):
 
         :id: cefa74e1-e40d-4f47-853b-1268643cea2f
 
-        :Steps:
+        :steps:
 
-        1. Publish and promote content view with Docker content
-        2. Set "Unauthenticated Pull" option to false
-        3. Try to search for docker images on Satellite
-        4. Use Docker client to login to Satellite docker hub
-        5. Search for docker images
-        6. Use Docker client to log out of Satellite docker hub
-        7. Set "Unauthenticated Pull" option to true
-        8. Search for docker images
+            1. Publish and promote content view with Docker content
+            2. Set "Unauthenticated Pull" option to false
+            3. Try to search for docker images on Satellite
+            4. Use Docker client to login to Satellite docker hub
+            5. Search for docker images
+            6. Use Docker client to log out of Satellite docker hub
+            7. Set "Unauthenticated Pull" option to true
+            8. Search for docker images
 
         :expectedresults: Client can search for docker images stored
             on Satellite instance
