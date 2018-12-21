@@ -20,7 +20,8 @@ from six.moves.urllib.parse import urljoin
 from fauxfactory import gen_string
 from nailgun import client, entities
 from nailgun.entity_mixins import TaskFailedError
-from requests.exceptions import HTTPError, SSLError
+from OpenSSL import SSL
+from requests.exceptions import HTTPError
 from robottelo import manifests, ssh
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -1190,7 +1191,7 @@ class RepositoryTestCase(APITestCase):
         self.assertTrue(repo_data_file_url.startswith(
             'https://{0}'.format(settings.server.hostname)))
         # try to access repository data without organization debug certificate
-        with self.assertRaises(SSLError):
+        with self.assertRaises(SSL.Error):
             client.get(repo_data_file_url, verify=False)
         # get the organization debug certificate
         cert_content = self.org.download_debug_certificate()
