@@ -979,11 +979,24 @@ PERMISSIONS = {
         'destroy_reports',
         'upload_reports',
     ],
+    'ReportTemplate': [
+        'edit_report_templates',
+        'destroy_report_templates',
+        'generate_report_templates',
+        'create_report_templates',
+        'view_report_templates',
+        'lock_report_templates',
+    ],
     'Role': [
         'view_roles',
         'create_roles',
         'edit_roles',
         'destroy_roles',
+        'escalate_roles',
+    ],
+    'Setting': [
+        'view_settings',
+        'edit_settings',
     ],
     'SmartProxy': [
         'view_smart_proxies',
