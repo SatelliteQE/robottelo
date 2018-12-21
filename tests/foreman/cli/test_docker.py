@@ -1710,7 +1710,6 @@ class DockerClientTestCase(CLITestCase):
         repo = _make_docker_repo(
                 product['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
         content_view = make_content_view({
             'composite': False,
             'organization-id': self.org['id'],
@@ -1734,7 +1733,8 @@ class DockerClientTestCase(CLITestCase):
             'id': lce['id'],
             'organization-id': self.org['id'],
         })
-        expected_pattern = "{}-{}/{}".format(
+        docker_repo_uri = " {}/{}-{}/{} ".format(
+                settings.server.hostname,
                 pattern_prefix,
                 content_view['label'],
                 docker_upstream_name
@@ -1750,7 +1750,10 @@ class DockerClientTestCase(CLITestCase):
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
-        self.assertLessEqual(len(result.stdout), 2)
+        self.assertNotIn(
+                docker_repo_uri,
+                "\n".join(result.stdout)
+        )
 
         # 4. Use Docker client to login to Satellite docker hub
         result = ssh.command(
@@ -1769,9 +1772,8 @@ class DockerClientTestCase(CLITestCase):
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
-        self.assertGreater(len(result.stdout), 2)
         self.assertIn(
-                "{}/{}".format(settings.server.hostname, expected_pattern),
+                docker_repo_uri,
                 "\n".join(result.stdout)
         )
 
@@ -1795,14 +1797,10 @@ class DockerClientTestCase(CLITestCase):
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
-        self.assertGreater(len(result.stdout), 2)
         self.assertIn(
-                "{}/{}".format(settings.server.hostname, expected_pattern),
+                docker_repo_uri,
                 "\n".join(result.stdout)
         )
-
-        # cleanup: remove lce so test can be re-run
-        LifecycleEnvironment.delete({'id': lce['id']})
 
     @stubbed()
     @run_only_on('sat')
