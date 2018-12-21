@@ -1699,16 +1699,16 @@ class DockerClientTestCase(CLITestCase):
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'alpine'
-        registry_name_pattern = ("{}-<%= content_view.label %>"
-                                 "/<%= repository.docker_upstream_name %>").format(
-                pattern_prefix)
+        registry_name_pattern = (
+            "{}-<%= content_view.label %>/<%= repository.docker_upstream_name %>"
+        ).format(pattern_prefix)
 
         # Satellite setup: create product and add Docker repository;
         # create content view and add Docker repository;
         # create lifecycle environment and promote content view to it
         product = make_product_wait({'organization-id': self.org['id']})
-        repo = _make_docker_repo(product['id'],
-                                 upstream_name=docker_upstream_name)
+        repo = _make_docker_repo(
+                product['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         content_view = make_content_view({
@@ -1734,16 +1734,21 @@ class DockerClientTestCase(CLITestCase):
             'id': lce['id'],
             'organization-id': self.org['id'],
         })
-        expected_pattern = "{}-{}/{}".format(pattern_prefix,
-                                             content_view['label'],
-                                             docker_upstream_name).lower()
+        expected_pattern = "{}-{}/{}".format(
+                pattern_prefix,
+                content_view['label'],
+                docker_upstream_name
+        ).lower()
 
         # 3. Try to search for docker images on Satellite
         remote_search_command = 'docker search {0}/{1}'.format(
                 settings.server.hostname,
-                docker_upstream_name)
-        result = ssh.command(remote_search_command,
-                             hostname=self.docker_host.ip_addr)
+                docker_upstream_name
+        )
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
         self.assertEqual(result.return_code, 0)
         self.assertLessEqual(len(result.stdout), 2)
 
@@ -1752,20 +1757,23 @@ class DockerClientTestCase(CLITestCase):
                 'docker login -u {} -p {} {}'.format(
                         settings.server.admin_username,
                         settings.server.admin_password,
-                        settings.server.hostname),
+                        settings.server.hostname
+                ),
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 5. Search for docker images
-        result = ssh.command(remote_search_command,
-                             hostname=self.docker_host.ip_addr)
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
         self.assertEqual(result.return_code, 0)
         self.assertGreater(len(result.stdout), 2)
-        print("{}".format(result.stdout))
-        self.assertIn("{}/{}".format(settings.server.hostname,
-                                     expected_pattern),
-                      "\n".join(result.stdout))
+        self.assertIn(
+                "{}/{}".format(settings.server.hostname, expected_pattern),
+                "\n".join(result.stdout)
+        )
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
@@ -1782,13 +1790,16 @@ class DockerClientTestCase(CLITestCase):
         })
 
         # 8. Search for docker images
-        result = ssh.command(remote_search_command,
-                             hostname=self.docker_host.ip_addr)
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
         self.assertEqual(result.return_code, 0)
         self.assertGreater(len(result.stdout), 2)
-        self.assertIn("{}/{}".format(settings.server.hostname,
-                                     expected_pattern),
-                      "\n".join(result.stdout))
+        self.assertIn(
+                "{}/{}".format(settings.server.hostname, expected_pattern),
+                "\n".join(result.stdout)
+        )
 
         # cleanup: remove lce so test can be re-run
         LifecycleEnvironment.delete({'id': lce['id']})
