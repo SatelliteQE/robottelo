@@ -601,6 +601,7 @@ class RepositoryTestCase(APITestCase):
             repo.update(['download_policy'])
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1654944)
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with
         download policy
