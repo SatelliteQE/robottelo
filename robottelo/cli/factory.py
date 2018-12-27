@@ -3342,8 +3342,10 @@ def configure_env_for_provision(org=None, loc=None):
         'organization-ids': org['id'],
     })
 
-    # Search for SmartProxy, and associate location
-    puppet_proxy = Proxy.info({'id': Proxy.list()[0]['id']})
+    # Get default capsule and associate location
+    puppet_proxy = Proxy.info({'id': Proxy.list({
+        u'search': settings.server.hostname
+    })[0]['id']})
     Proxy.update({
         'id': puppet_proxy['id'],
         'locations': list(
