@@ -144,6 +144,11 @@ def test_positive_end_to_end(session, repos_collection, vm):
             for repo_index in range(len(repos_collection.repos_info))
         }
         assert actual_repos == expected_repos
+        # Update description
+        new_description = gen_string('alpha')
+        session.contenthost.update(vm.hostname, {'details.description': new_description})
+        chost = session.contenthost.read(vm.hostname)
+        assert chost['details']['description'] == new_description
         # Install package
         result = session.contenthost.execute_package_action(
             vm.hostname,
@@ -430,7 +435,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
             u'name': vm.hostname,
             u'facts': facts,
         })
-        session.browser.refresh()
+        session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname)['details']['os']
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
@@ -440,7 +445,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
             u'name': vm.hostname,
             u'facts': facts,
         })
-        session.browser.refresh()
+        session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname)['details']['os']
         # Check that host OS was changed to new value
         assert os != updated_os
