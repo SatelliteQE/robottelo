@@ -19,6 +19,7 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
+from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.cli.factory import make_virt_who_config, virt_who_hypervisor_config
 from robottelo.config import settings
@@ -30,7 +31,6 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_1_ERRATA_ID,
     FAKE_1_YUM_REPO,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -39,10 +39,19 @@ from robottelo.constants import (
     VDC_SUBSCRIPTION_NAME,
     VIRT_WHO_HYPERVISOR_TYPES
 )
-from robottelo.decorators import fixture, setting_is_set, skip_if_not_set, tier3, upgrade
+from robottelo.decorators import (
+    bz_bug_is_open,
+    fixture,
+    setting_is_set,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier3,
+    upgrade,
+)
 from robottelo.products import (
     YumRepository,
     RepositoryCollection,
+    RHELAnsibleEngineRepository,
     SatelliteToolsRepository,
 )
 from robottelo.vm import VirtualMachine
@@ -64,7 +73,8 @@ def repos_collection(module_org):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
-            SatelliteToolsRepository(cdn=True),
+            RHELAnsibleEngineRepository(cdn=True),
+            SatelliteToolsRepository(),
             YumRepository(url=FAKE_1_YUM_REPO),
             YumRepository(url=FAKE_6_YUM_REPO)
         ]
@@ -145,14 +155,15 @@ def test_positive_end_to_end(session, repos_collection, vm):
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.contenthost.install_errata(vm.hostname, FAKE_1_ERRATA_ID)
+        result = session.contenthost.install_errata(vm.hostname, FAKE_2_ERRATA_ID)
         assert result['result'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
         # Delete content host
         session.contenthost.delete(vm.hostname)
-        assert not session.contenthost.search(vm.hostname)
+        if not bz_bug_is_open(1662325):
+            assert not session.contenthost.search(vm.hostname)
 
 
 @tier3
@@ -290,6 +301,7 @@ def test_positive_remove_package_group(session, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
+@skip_if_bug_open('bugzilla', 1662405)
 @tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
     """Search for host's errata by non-admin user with enough permissions
@@ -309,6 +321,11 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     with Session(
             test_name, user=module_viewer_user.login, password=module_viewer_user.password
     ) as session:
+        if bz_bug_is_open(1652938):
+            try:
+                session.contenthost.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
         chost = session.contenthost.read(vm.hostname)
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
@@ -413,6 +430,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
             u'name': vm.hostname,
             u'facts': facts,
         })
+        session.browser.refresh()
         updated_os = session.contenthost.read(vm.hostname)['details']['os']
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
@@ -422,6 +440,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
             u'name': vm.hostname,
             u'facts': facts,
         })
+        session.browser.refresh()
         updated_os = session.contenthost.read(vm.hostname)['details']['os']
         # Check that host OS was changed to new value
         assert os != updated_os

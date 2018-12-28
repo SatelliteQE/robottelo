@@ -21,6 +21,7 @@ from fauxfactory import (
 )
 from os import chmod
 from robottelo import manifests, ssh
+from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -3734,18 +3735,29 @@ def setup_cdn_and_custom_repositories(
         if not cdn and not custom_repo_url:
             raise CLIFactoryError(u'Custom repository with url not supplied')
         if cdn:
-            RepositorySet.enable({
-                u'organization-id': org_id,
-                u'product': repo['product'],
-                u'name': repo['repository-set'],
-                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                u'releasever': repo.get('releasever'),
-            })
-            repo_info = Repository.info({
-                u'organization-id': org_id,
-                u'name': repo['repository'],
-                u'product': repo['product'],
-            })
+            if bz_bug_is_open(1655239):
+                rh_repo_id = enable_rhrepo_and_fetchid(
+                    repo.get('arch', DEFAULT_ARCHITECTURE),
+                    org_id,
+                    repo['product'],
+                    repo['repository'],
+                    repo['repository-set'],
+                    repo.get('releasever')
+                )
+                repo_info = Repository.info({'id': rh_repo_id})
+            else:
+                RepositorySet.enable({
+                    u'organization-id': org_id,
+                    u'product': repo['product'],
+                    u'name': repo['repository-set'],
+                    u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                    u'releasever': repo.get('releasever'),
+                })
+                repo_info = Repository.info({
+                    u'organization-id': org_id,
+                    u'name': repo['repository'],
+                    u'product': repo['product'],
+                })
         else:
             if custom_product is None:
                 custom_product = make_product_wait({
@@ -3855,7 +3867,8 @@ def setup_cdn_and_custom_repos_content(
         needed_subscription_names.append(custom_product['name'])
     added_subscription_names = []
     for subscription in subscriptions:
-        if subscription['name'] in needed_subscription_names:
+        if (subscription['name'] in needed_subscription_names
+                and subscription['name'] not in added_subscription_names):
             ActivationKey.add_subscription({
                 u'id': activation_key['id'],
                 u'subscription-id': subscription['id'],
@@ -4036,7 +4049,9 @@ def virt_who_hypervisor_config(
 
     # upload the virt-who config deployment script
     _, temp_virt_who_deploy_file_path = mkstemp(
-        suffix='-virt_who_deploy-{0}'.format(config_id))
+        suffix='-virt_who_deploy-{0}'.format(config_id),
+        dir=settings.tmp_dir,
+    )
     VirtWhoConfig.fetch({
         'id': config_id,
         'output': temp_virt_who_deploy_file_path
