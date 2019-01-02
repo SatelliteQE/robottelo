@@ -179,7 +179,7 @@ ssh_key=
 # image_el6=rhel68
 # image_el7=rhel73
 # image_sles11=sles-11-4
-# image_sles11=sles-12-3
+# image_sles12=sles-12-3
 
 
 # For tests that uses the docker feature
