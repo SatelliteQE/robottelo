@@ -1,13 +1,10 @@
 """Tests for :mod:`robottelo.vm`."""
-import six
 import unittest2
 from robottelo import ssh
+from robottelo.config.base import DistroSettings
 from robottelo.vm import VirtualMachine, VirtualMachineError
 
-if six.PY2:
-    from mock import call, patch
-else:
-    from unittest.mock import call, patch
+from unittest.mock import call, patch
 
 
 class VirtualMachineTestCase(unittest2.TestCase):
@@ -20,6 +17,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
         self.settings_patcher = patch('robottelo.vm.settings', spec=True)
         self.settings = self.settings_patcher.start()
         self.settings.clients.provisioning_server = None
+        self.settings.distro = DistroSettings()
 
     def tearDown(self):
         super(VirtualMachineTestCase, self).tearDown()

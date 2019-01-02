@@ -26,6 +26,8 @@ BZ_CLOSED_STATUSES = [
 
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
+DISTRO_SLES11 = "sles11"
+DISTRO_SLES12 = "sles12"
 
 RHEL_6_MAJOR_VERSION = 6
 RHEL_7_MAJOR_VERSION = 7
@@ -977,11 +979,24 @@ PERMISSIONS = {
         'destroy_reports',
         'upload_reports',
     ],
+    'ReportTemplate': [
+        'edit_report_templates',
+        'destroy_report_templates',
+        'generate_report_templates',
+        'create_report_templates',
+        'view_report_templates',
+        'lock_report_templates',
+    ],
     'Role': [
         'view_roles',
         'create_roles',
         'edit_roles',
         'destroy_roles',
+        'escalate_roles',
+    ],
+    'Setting': [
+        'view_settings',
+        'edit_settings',
     ],
     'SmartProxy': [
         'view_smart_proxies',
@@ -1648,6 +1663,7 @@ ROLES = [
     'Virt-who Viewer',
     'Manager',
     'Viewer',
+    'System Admin',
 ]
 
 ROLES_UNLOCKED = [

@@ -18,7 +18,7 @@ import time
 
 from nailgun import entities
 
-from robottelo.api.utils import promote
+from robottelo.api.utils import promote, update_vm_host_location
 from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_DEFAULT,
@@ -74,7 +74,7 @@ def module_repos_collection(module_org, module_lce):
 
 
 @fixture
-def vm_content_hosts(request, module_repos_collection):
+def vm_content_hosts(request, module_loc, module_repos_collection):
     clients = []
     for _ in range(2):
         client = VirtualMachine(distro=module_repos_collection.distro)
@@ -82,6 +82,7 @@ def vm_content_hosts(request, module_repos_collection):
         request.addfinalizer(client.destroy)
         client.create()
         module_repos_collection.setup_virtual_machine(client)
+        update_vm_host_location(client, module_loc.id)
     return clients
 
 

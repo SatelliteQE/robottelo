@@ -194,11 +194,15 @@ class CapsuleVirtualMachine(VirtualMachine):
                 Host.delete({'name': self._capsule_hostname})
                 # try delete the capsule
             except Exception as exp:
-                # do nothing, only log the exception
+                # log the exception
                 # as maybe that the host was not registered or setup does not
                 # reach that stage
                 # or maybe that the capsule was not registered or setup does
                 # not reach that stage
+                # Destroys the Capsule VM on the provisioning server if
+                # exception has 'return_code=70(Error: host not found)'
+                if exp.return_code == 70:
+                    super(CapsuleVirtualMachine, self).destroy()
                 if bz_bug_is_open('1622064'):
                     logger.warn('Failed to cleanup the host: {0}\n{1}'.format(
                         self.hostname, exp))

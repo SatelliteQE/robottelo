@@ -164,6 +164,8 @@ ssh_key=
 # [clients]
 # Provisioning server hostname where the clients will be created
 # provisioning_server=
+# Comma separated list of distributions, see robottelo/constants.py::DISTRO_*
+# distros=rhel6, rhel7
 
 # Path on the provisioning server where the virtual images will be stored. If
 # not specified in the configuration, the default libvirt path will be used
@@ -176,6 +178,8 @@ ssh_key=
 # [distro]
 # image_el6=rhel68
 # image_el7=rhel73
+# image_sles11=sles-11-4
+# image_sles11=sles-12-3
 
 
 # For tests that uses the docker feature

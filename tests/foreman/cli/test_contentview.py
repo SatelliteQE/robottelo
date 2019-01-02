@@ -2242,7 +2242,7 @@ class ContentViewTestCase(CLITestCase):
         new_cv_version_1 = ContentView.info({u'id': new_cv['id']})['versions'][0]
         module_streams = ModuleStream.list({'content-view-version-id': (new_cv_version_1['id'])})
         self.assertGreater(
-            len(module_streams), 37,
+            len(module_streams), 6,
             'Module Streams are not associated with Content View')
         # Publish another new version of CV
         ContentView.add_repository({
