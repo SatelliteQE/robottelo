@@ -11,6 +11,7 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 """
 import logging
 import os
+import six
 
 from fauxfactory import gen_string
 
@@ -19,6 +20,12 @@ from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_SLES11, DISTRO_SLES12, REPOS
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.host_info import get_host_os_version
+from six.moves.urllib.parse import urlunsplit
+# This conditional is here to centralize use of urljoin
+if six.PY3:  # pragma: no cover
+    from urllib.parse import urljoin  # noqa
+else:  # pragma: no cover
+    from urlparse import urljoin  # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -380,6 +387,25 @@ gpgcheck=0'''.format(name, url)
             raise VirtualMachineError(
                 'Failed to download and install the katello-ca rpm')
 
+    def install_capsule_katello_ca(self, capsule=None):
+        """Downloads and installs katello-ca rpm on the virtual machine.
+
+        :param: str capsule: Capsule hostname
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
+        installed.
+        """
+        url = urlunsplit(('http', capsule, 'pub/'))
+        ca_url = urljoin(
+            url, 'katello-ca-consumer-latest.noarch.rpm')
+        ssh.command(
+            u'rpm -Uvh {0}'.format(ca_url),
+            self.ip_addr
+        )
+        result = ssh.command(
+            u'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
+        if result.return_code != 0:
+            raise VirtualMachineError('Failed to install the katello-ca rpm')
+
     def register_contenthost(self, org, activation_key=None, lce=None,
                              force=True, releasever=None, username=None,
                              password=None, auto_attach=False):
@@ -447,6 +473,34 @@ gpgcheck=0'''.format(name, url)
             remove_katello_ca(hostname=self.ip_addr)
         except AssertionError:
             raise VirtualMachineError('Failed to remove the katello-ca rpm')
+
+    def remove_capsule_katello_ca(self, capsule=None):
+        """Removes katello-ca rpm and reset rhsm.conf from the virtual machine.
+
+        :param: str capsule: Capsule hostname
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't removed.
+        """
+        ssh.command(
+            'yum erase -y $(rpm -qa |grep katello-ca-consumer)',
+            self.ip_addr
+        )
+        result = ssh.command(
+            'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
+        if result.return_code == 0:
+            raise VirtualMachineError('Failed to remove the katello-ca rpm')
+        rhsm_updates = [
+            's/^hostname.*/hostname=subscription.rhn.redhat.com/',
+            's|^prefix.*|prefix=/subscription|',
+            's|^baseurl.*|baseurl=https://cdn.redhat.com|',
+            's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
+        ]
+        for command in rhsm_updates:
+            result = ssh.command(
+                'sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command),
+                self.ip_addr
+            )
+            if result.return_code != 0:
+                raise VirtualMachineError('Failed to reset the rhsm.conf')
 
     def unregister(self):
         """Run subscription-manager unregister.
