@@ -697,6 +697,7 @@ PERMISSIONS = {
         'destroy_registries',
         'download_bootdisk',
         'edit_recurring_logics',
+        'escalate_roles',
         'logs',
         'my_organizations',
         'rh_telemetry_api',
@@ -992,7 +993,6 @@ PERMISSIONS = {
         'create_roles',
         'edit_roles',
         'destroy_roles',
-        'escalate_roles',
     ],
     'Setting': [
         'view_settings',
@@ -1153,6 +1153,7 @@ PERMISSIONS_UI = {
         'attachments',
         'configuration',
         'download_bootdisk',
+        'escalate_roles',
         'logs',
         'my_organizations',
         'rh_telemetry_api',
