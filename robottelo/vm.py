@@ -508,14 +508,15 @@ gpgcheck=0'''.format(name, url)
             .format(rhel_repo)
         )
 
-    def configure_puppet(self, rhel_repo=None):
+    def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.
-
+        :param proxy_hostname: external capsule hostname
         :param rhel_repo: Red Hat repository link from properties file.
         :return: None.
-
         """
-        sat6_hostname = settings.server.hostname
+        if proxy_hostname is None:
+            proxy_hostname = settings.server.hostname
+
         self.configure_rhel_repo(rhel_repo)
         puppet_conf = (
             'pluginsync      = true\n'
@@ -524,24 +525,22 @@ gpgcheck=0'''.format(name, url)
             'daemon          = false\n'
             'ca_server       = {0}\n'
             'server          = {1}\n'
-            .format(sat6_hostname, sat6_hostname)
-        )
+            .format(proxy_hostname, proxy_hostname))
         result = self.run(u'yum install puppet -y')
         if result.return_code != 0:
             raise VirtualMachineError(
                 'Failed to install the puppet rpm')
         self.run(
             'echo "{0}" >> /etc/puppet/puppet.conf'
-            .format(puppet_conf)
-        )
-        # This particular puppet run on client would populate a cert on sat6
-        # under the capsule --> certifcates or via cli "puppet cert list", so
-        # that we sign it.
+            .format(puppet_conf))
+        # This particular puppet run on client would populate a cert on
+        # sat6 under the capsule --> certifcates or on capsule via cli "puppet
+        # cert list", so that we sign it.
         self.run(u'puppet agent -t')
-        ssh.command(u'puppet cert sign --all')
+        ssh.command(cmd=u'puppet cert sign --all', hostname=proxy_hostname)
         # This particular puppet run would create the host entity under
-        # 'All Hosts' and let's redirect stderr to /dev/null as errors at this
-        # stage can be ignored.
+        # 'All Hosts' and let's redirect stderr to /dev/null as errors at
+        #  this stage can be ignored.
         self.run(u'puppet agent -t 2> /dev/null')
 
     def execute_foreman_scap_client(self, policy_id=None):
