@@ -20,12 +20,14 @@ import time
 from fabric.api import execute
 from nailgun import entities
 from robottelo.test import APITestCase
-from robottelo.api.utils import attach_custom_product_subscription
+from robottelo.api.utils import (
+    attach_custom_product_subscription,
+    call_entity_method_with_timeout
+)
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.constants import FAKE_REPO_ZOO3
 from upgrade_tests.helpers.scenarios import (
-    call_entity_method_with_timeout,
     create_dict,
     dockerize,
     get_entity_data
