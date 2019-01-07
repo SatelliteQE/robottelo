@@ -863,7 +863,7 @@ class RepositoryTestCase(APITestCase):
             with self.subTest(url):
                 new_repo.url = url
                 with self.assertRaises(HTTPError):
-                    new_repo = new_repo.update()
+                    new_repo.update(['url'])
 
     @run_only_on('sat')
     @tier1
@@ -888,7 +888,7 @@ class RepositoryTestCase(APITestCase):
             with self.subTest(url):
                 new_repo.url = url
                 with self.assertRaises(HTTPError):
-                    new_repo = new_repo.update()
+                    new_repo.update(['url'])
 
     @tier2
     def test_positive_synchronize(self):
