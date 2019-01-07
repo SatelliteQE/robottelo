@@ -1689,8 +1689,10 @@ class DockerClientTestCase(CLITestCase):
             4. Use Docker client to login to Satellite docker hub
             5. Search for docker images
             6. Use Docker client to log out of Satellite docker hub
-            7. Set "Unauthenticated Pull" option to true
-            8. Search for docker images
+            7. Try to search for docker images (ensure last search result
+               is caused by change of Satellite option and not login/logout)
+            8. Set "Unauthenticated Pull" option to true
+            9. Search for docker images
 
         :expectedresults: Client can search for docker images stored
             on Satellite instance
@@ -1784,14 +1786,25 @@ class DockerClientTestCase(CLITestCase):
         )
         self.assertEqual(result.return_code, 0)
 
-        # 7. Set "Unauthenticated Pull" option to true
+        # 7. Try to search for docker images
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertNotIn(
+                docker_repo_uri,
+                "\n".join(result.stdout)
+        )
+
+        # 8. Set "Unauthenticated Pull" option to true
         LifecycleEnvironment.update({
             'registry-unauthenticated-pull': 'true',
             'id': lce['id'],
             'organization-id': self.org['id'],
         })
 
-        # 8. Search for docker images
+        # 9. Search for docker images
         result = ssh.command(
                 remote_search_command,
                 hostname=self.docker_host.ip_addr
