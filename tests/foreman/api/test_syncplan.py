@@ -71,7 +71,7 @@ def valid_sync_dates():
 @filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
-    return [u'hourly', u'daily', u'weekly']
+    return [u'hourly', u'daily', u'weekly', u'custom cron']
 
 
 class SyncPlanTestCase(APITestCase):
@@ -377,10 +377,12 @@ class SyncPlanUpdateTestCase(APITestCase):
                 )[0]
                 sync_plan = sync_plan.create()
                 sync_plan.interval = interval
-                self.assertEqual(
-                    sync_plan.update(['interval']).interval,
-                    interval
-                )
+                if (interval == 'custom cron'):
+                    sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+                    sync_plan = sync_plan.update(['interval', 'cron_expression'])
+                else:
+                    sync_plan = sync_plan.update(['interval'])
+                self.assertEqual(sync_plan.interval, interval)
 
     @tier1
     @run_only_on('sat')
