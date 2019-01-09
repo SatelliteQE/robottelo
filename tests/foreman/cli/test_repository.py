@@ -1239,7 +1239,7 @@ class RepositoryTestCase(CLITestCase):
                          'content not ignored correctly')
         self.assertEqual(repo['content-counts']['errata'], '2',
                          'content not synced correctly')
-        if not bz_bug_is_open(1335621):
+        if not bz_bug_is_open(1664549):
             self.assertEqual(repo['content-counts']['source-rpms'], '3',
                              'content not synced correctly')
         result = ssh.command(
