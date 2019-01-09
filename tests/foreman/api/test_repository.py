@@ -735,7 +735,7 @@ class RepositoryTestCase(APITestCase):
             organization=self.org,
         ).create()
         repo.gpg_key = gpg_key_2
-        repo = repo.update()
+        repo = repo.update(['gpg_key'])
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
     @run_only_on('sat')
