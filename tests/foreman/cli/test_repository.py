@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+from wait_for import wait_for
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
@@ -123,6 +124,21 @@ class RepositoryTestCase(CLITestCase):
             options[u'product-id'] = self.product['id']
 
         return make_repository(options)
+
+    def _get_image_tags_count(self, repo=None):
+        repo_detail = Repository.info({'id': repo['id']})
+        return repo_detail
+
+    def _validated_image_tags_count(self, repo=None):
+        if bz_bug_is_open(1664631):
+            wait_for(
+                lambda: int(self._get_image_tags_count(repo=repo)
+                            ['content-counts']['container-image-tags']) > 0,
+                timeout=30,
+                delay=2,
+                logger=self.logger
+            )
+        return self._get_image_tags_count(repo=repo)
 
     @tier1
     @upgrade
@@ -1010,7 +1026,7 @@ class RepositoryTestCase(CLITestCase):
             'docker-tags-whitelist': tags,
         })
         Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
         self.assertIn(tags, repo['container-image-tags-filter'])
         self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
 
@@ -1032,20 +1048,21 @@ class RepositoryTestCase(CLITestCase):
             'url': DOCKER_REGISTRY_HUB,
         })
         Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
         # Field is displayed only if there is any content
         with self.assertRaises(KeyError):
             repo['container-image-tags-filter']
-        self.assertGreaterEqual(int(repo['content-counts']['container-image-tags']), 2)
-
+        self.assertGreaterEqual(int(repo['content-counts']
+                                    ['container-image-tags']), 2)
         Repository.update({
             'id': repo['id'],
             'docker-tags-whitelist': tags,
         })
         Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
         self.assertIn(tags, repo['container-image-tags-filter'])
-        self.assertGreaterEqual(int(repo['content-counts']['container-image-tags']), 2)
+        self.assertGreaterEqual(int(repo['content-counts']
+                                    ['container-image-tags']), 2)
 
     @run_only_on('sat')
     @tier2
@@ -1065,7 +1082,7 @@ class RepositoryTestCase(CLITestCase):
             'docker-tags-whitelist': ",".join(tags),
         })
         Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
         [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
         self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
 
