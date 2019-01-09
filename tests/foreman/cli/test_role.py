@@ -1397,7 +1397,9 @@ class SystemAdminTestCases(CLITestCase):
                           'id': search_filter['id']
                             }).values()
                       )
-        org_admin = User.with_user().info({'id': org_admin['id']})
+        org_admin = User.with_user(
+            username=system_admin['login'],
+            password=common_pass).info({'id': org_admin['id']})
         # Asserts Created Org Admin
         self.assertIn(org_role['name'], org_admin['roles'])
         self.assertIn(org['name'], org_admin['organizations'])
