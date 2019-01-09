@@ -30,6 +30,7 @@ from robottelo.cli.job_template import JobTemplate
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
     tier1,
+    run_in_one_thread,
     upgrade
 )
 from robottelo.test import CLITestCase
@@ -162,6 +163,7 @@ class JobTemplateTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             JobTemplate.info({u'name': template_name})
 
+    @run_in_one_thread
     @tier1
     def test_positive_list_job_template_with_saved_org_and_loc(self):
         """List available job templates with saved default organization and
