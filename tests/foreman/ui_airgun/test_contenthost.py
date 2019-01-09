@@ -86,7 +86,7 @@ def repos_collection(module_org):
 @fixture
 def vm(repos_collection):
     """Virtual machine registered in satellite with katello-agent installed"""
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+    with VirtualMachine(distro=repos_collection.distro) as vm:
         repos_collection.setup_virtual_machine(vm)
         yield vm
 
