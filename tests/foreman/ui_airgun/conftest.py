@@ -4,8 +4,8 @@ import nailgun.entities
 from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
-from robottelo.decorators import fixture
 from robottelo.constants import DEFAULT_LOC_ID, DEFAULT_ORG_ID
+from robottelo.decorators import fixture
 
 
 LOGGER = logging.getLogger('robottelo')
@@ -59,7 +59,26 @@ def module_user(request, module_org, module_loc):
         LOGGER.debug('Deleting session user %r', user.login)
         user.delete(synchronous=False)
     except HTTPError as err:
-        LOGGER.warn('Unable to delete session user: %s', str(err))
+        LOGGER.warning('Unable to delete session user: %s', str(err))
+
+
+@fixture(scope='module')
+def module_viewer_user(module_org):
+    """Custom user with viewer role for tests validating visibility of entities or fields created
+    by some other user. Created only when accessed, unlike `module_user`.
+    """
+    viewer_role = nailgun.entities.Role().search(query={'search': 'name="Viewer"'})[0]
+    custom_password = gen_string('alphanumeric')
+    custom_user = nailgun.entities.User(
+        admin=False,
+        default_organization=module_org,
+        location=[DEFAULT_LOC_ID],
+        organization=[module_org],
+        role=[viewer_role],
+        password=custom_password,
+    ).create()
+    custom_user.password = custom_password
+    return custom_user
 
 
 @fixture()
