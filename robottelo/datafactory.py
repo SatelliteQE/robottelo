@@ -684,11 +684,11 @@ def valid_cron_expressions():
     """Returns a list of valid cron expressions"""
     return [
         # After 30 min
-        "0 */30 * * *",
+        "*/30 * * * *",
         # At noon every day
-        "0 0 12 * * ",
+        "0 12 * * * ",
         # Weekdays at 2:00am
-        "0 0 2 * 1-5",
+        "0 2 * * 1-5",
         # At 15 minutes past the hour, between 01:00 AM and 05:59 AM,
         # on day 2 of the month
         "15 1-5 2 * *"
