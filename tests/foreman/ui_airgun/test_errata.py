@@ -535,20 +535,20 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
     """
     host_name = rhva_vm.hostname
     with session:
-        content_host_values = session.contenthost.read_details(host_name)
+        content_host_values = session.contenthost.read(host_name, 'details')
         for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert int(content_host_values[errata_type]) == 0
+            assert int(content_host_values['details'][errata_type]) == 0
         assert _install_client_package(rhva_vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # navigate to content host main page by making a search, to refresh the details page
         session.contenthost.search(host_name)
-        content_host_values = session.contenthost.read_details(host_name)
-        assert int(content_host_values['security']) == 1
+        content_host_values = session.contenthost.read(host_name, 'details')
+        assert int(content_host_values['details']['security']) == 1
         assert _install_client_package(rhva_vm, RHVA_PACKAGE, errata_applicability=True)
         # navigate to content host main page by making a search, to refresh the details page
         session.contenthost.search(host_name)
-        content_host_values = session.contenthost.read_details(host_name)
+        content_host_values = session.contenthost.read(host_name, 'details')
         for errata_type in ('bug_fix', 'enhancement'):
-            assert int(content_host_values[errata_type]) == 1
+            assert int(content_host_values['details'][errata_type]) == 1
 
 
 @tier3
