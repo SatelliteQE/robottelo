@@ -42,6 +42,7 @@ from robottelo.constants import (
 from robottelo.decorators import (
     bz_bug_is_open,
     fixture,
+    run_in_one_thread,
     setting_is_set,
     skip_if_bug_open,
     skip_if_not_set,
@@ -376,6 +377,7 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
+@run_in_one_thread
 @tier3
 @upgrade
 def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request):
