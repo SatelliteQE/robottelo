@@ -313,12 +313,12 @@ class YumRepository(BaseRepository):
 
 
 class DockerRepository(BaseRepository):
-    """Custom Yum repository"""
+    """Custom Docker repository"""
     _type = REPO_TYPE_DOCKER  # type: str
 
 
 class PuppetRepository(BaseRepository):
-    """Custom Yum repository"""
+    """Custom Puppet repository"""
     _type = REPO_TYPE_PUPPET  # type: str
 
 
