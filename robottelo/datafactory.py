@@ -686,7 +686,7 @@ def valid_cron_expressions():
         # After 30 min
         "*/30 * * * *",
         # At noon every day
-        "0 12 * * * ",
+        "0 12 * * *",
         # Weekdays at 2:00am
         "0 2 * * 1-5",
         # At 15 minutes past the hour, between 01:00 AM and 05:59 AM,
