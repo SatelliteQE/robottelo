@@ -98,7 +98,7 @@ class Scenario_capsule_sync(APITestCase):
         content_view = content_view.update(['repository'])
         content_view.publish()
         promote(content_view.read().version[0], ak_env.id)
-        self.assertEqual(content_view.read().environment[0].id, ak_env.id)
+        self.assertEqual(content_view.read().environment[-1].id, ak_env.id)
 
         global_dict = {self.__class__.__name__: {
             'env_name': ak_env.name}}
@@ -214,7 +214,7 @@ class Scenario_capsule_sync_2(APITestCase):
         content_view = content_view.update(['repository'])
         content_view.publish()
         promote(content_view.read().version[0], ak_env.id)
-        self.assertEqual(content_view.read().environment[0].id, ak_env.id)
+        self.assertEqual(content_view.read().environment[-1].id, ak_env.id)
         wait_untill_capsule_sync(self.cap_host)
         org_name = entities.Organization().search(
             query={'search': 'id={}'.format(self.org_id)})[0].label
