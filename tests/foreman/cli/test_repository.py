@@ -795,8 +795,8 @@ class RepositoryTestCase(CLITestCase):
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    u'Validation failed: Download policy cannot be set for '
-                    'non-yum repositories'
+                    u'Download policy Cannot set attribute '
+                    'download_policy for content type'
                 ):
                     self._make_repository({
                         u'content-type': content_type,
