@@ -18,6 +18,7 @@ from random import choice
 
 import pytest
 from nailgun import entities
+from wrapanapi.systems.virtualcenter import vim, VMWareSystem
 
 from robottelo.api.utils import check_create_os_with_title
 from robottelo.datafactory import gen_string
@@ -32,6 +33,53 @@ from robottelo.constants import COMPUTE_PROFILE_LARGE, FOREMAN_PROVIDERS, VMWARE
 
 if not setting_is_set('vmware'):
     pytest.skip('skipping tests due to missing vmware settings', allow_module_level=True)
+
+
+def _get_normalized_size(size):
+    """Convert a size in bytes to KB or MB or GB or TB
+
+    example :
+
+        _get_normalized_size(2527070196732)
+        return '2.3 TB'
+
+    :return a string size number + the corresponding suffix  B or KB or MB or GB or TB
+    """
+    suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
+    suffix_index = 0
+    while size > 1024 and suffix_index < 4:
+        suffix_index += 1
+        size = size / 1024.0
+    if size >= 100:
+        size = round(size, 0)
+    else:
+        size = round(size, 2)
+    if size == int(size):
+        size = int(size)
+    return '{0} {1}'.format(size, suffixes[suffix_index])
+
+
+def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datastore']):
+    """Return the datastore string summary for data_store_name
+
+    For "Local-Ironforge" datastore the string looks Like:
+
+        "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
+     """
+    system = VMWareSystem(
+        hostname=settings.vmware.vcenter,
+        username=settings.vmware.username,
+        password=settings.vmware.password
+    )
+    data_store_summary = [h for h in system.get_obj_list(vim.Datastore)
+                          if h.host and h.name == data_store_name][0].summary
+    uncommitted = data_store_summary.uncommitted or 0
+    capacity = _get_normalized_size(data_store_summary.capacity)
+    free_space = _get_normalized_size(data_store_summary.freeSpace)
+    prov = _get_normalized_size(data_store_summary.capacity + uncommitted
+                                - data_store_summary.freeSpace)
+    return '{0} (free: {1}, prov: {2}, total: {3})'.format(
+        data_store_name, free_space, prov, capacity)
 
 
 @fixture(scope='module')
@@ -307,6 +355,7 @@ def test_positive_access_vmware_with_custom_profile(session,  module_vmware_sett
     :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
+    data_store_summary_string = _get_vmware_datastore_summary_string()
     cr_profile_data = dict(
         cpus='2',
         cores_per_socket='2',
@@ -332,13 +381,13 @@ def test_positive_access_vmware_with_custom_profile(session,  module_vmware_sett
                 controller=VMWARE_CONSTANTS.get('scsicontroller'),
                 disks=[
                     dict(
-                        data_store=VMWARE_CONSTANTS.get('datastore'),
+                        data_store=data_store_summary_string,
                         size='10 GB',
                         thin_provision=True,
                         eager_zero=True,
                     ),
                     dict(
-                        data_store=VMWARE_CONSTANTS.get('datastore'),
+                        data_store=data_store_summary_string,
                         size='20 GB',
                         thin_provision=False,
                         eager_zero=False,
@@ -349,7 +398,7 @@ def test_positive_access_vmware_with_custom_profile(session,  module_vmware_sett
                 controller=VMWARE_CONSTANTS.get('scsicontroller'),
                 disks=[
                     dict(
-                        data_store=VMWARE_CONSTANTS.get('datastore'),
+                        data_store=data_store_summary_string,
                         size='30 GB',
                         thin_provision=False,
                         eager_zero=True,

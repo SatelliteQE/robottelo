@@ -2385,7 +2385,7 @@ VMWARE_CONSTANTS = {
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
-    'datastore': 'Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)',
+    'datastore': 'Local-Ironforge',
     'network_interfaces': 'qe_%s'
 }
 
