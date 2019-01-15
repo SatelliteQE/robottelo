@@ -15,6 +15,8 @@
 
 :Upstream: No
 """
+from random import shuffle, randint
+
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
@@ -26,6 +28,7 @@ from robottelo.constants import (
     CHECKSUM_TYPE,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
+    DOCKER_UPSTREAM_NAME,
     DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
     FAKE_1_PUPPET_REPO,
@@ -380,6 +383,33 @@ def test_positive_sync_custom_repo_docker(session, module_org):
     with session:
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
+
+
+@tier2
+@upgrade
+def test_positive_sync_docker_via_sync_status(session, module_org):
+    """Create custom docker repo and sync it via the sync status page.
+
+    :id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
+
+    :expectedresults: Sync procedure for specific docker repository is
+        successful
+
+    :CaseLevel: Integration
+    """
+    product = entities.Product(organization=module_org).create()
+    repo_name = gen_string('alphanumeric')
+    with session:
+        session.repository.create(
+            product.name,
+            {'name': repo_name,
+             'repo_type': REPO_TYPE['docker'],
+             'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
+             'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME}
+        )
+        assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
+        result = session.sync_status.synchronize([(product.name, repo_name)])
+        assert result[0] == 'Syncing Complete.'
 
 
 @tier2
@@ -752,3 +782,38 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
         session.redhatrepository.disable(repository_name, orphaned=True)
         assert not session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
+
+
+@tier2
+def test_positive_delete_random_docker_repo(session, module_org):
+    """Create Docker-type repositories on multiple products and
+    delete a random repository from a random product.
+
+    :id: a3dce435-c46e-41d7-a2f8-29421f7427f5
+
+    :expectedresults: Random repository can be deleted from random product
+        without altering the other products.
+
+    :CaseLevel: Integration
+    """
+    entities_list = []
+    products = [
+        entities.Product(organization=module_org).create()
+        for _
+        in range(randint(2, 5))
+    ]
+    for product in products:
+        repo = entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=product,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        entities_list.append((product.name, repo.name))
+    with session:
+        # Delete a random repository
+        shuffle(entities_list)
+        del_entity = entities_list.pop()
+        session.repository.delete(*del_entity)
+        # Check whether others repositories are not touched
+        for product_name, repo_name in entities_list:
+            assert session.repository.search(product_name, repo_name)[0]['Name'] == repo_name
