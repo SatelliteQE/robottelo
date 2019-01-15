@@ -1178,7 +1178,7 @@ def test_positive_delete_non_default_version(session):
 
     :id: 1c1beb36-e06b-419f-96db-43b4d85c5e25
 
-    :expectedresults: Deletion was plerformed successfully
+    :expectedresults: Deletion was performed successfully
 
     :CaseLevel: Integration
     """
