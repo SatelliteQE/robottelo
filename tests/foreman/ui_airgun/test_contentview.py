@@ -35,6 +35,7 @@ from robottelo.api.utils import (
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_PTABLE,
@@ -2669,3 +2670,91 @@ def test_positive_composite_child_inc_update(session):
             assert len(packages) > 1
             packages_data = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
             assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
+
+
+@tier3
+def test_positive_module_stream_end_to_end(session, module_org):
+    """Create content view with custom module_stream contents, publish and promote it
+    to Library +1 env. Then disassociate repository from that content view
+
+    :id: 66955a89-14ed-414e-a15a-6ed9ede520ea
+
+    :steps:
+        1. Create yum repo with module_stream content and sync it
+        2. Create content view and add created repo to it
+        3. Publish that content view
+        4. Promote it to next environment
+
+    :expectedresults: Content view works properly with module_streams and
+        count shown should be correct
+
+    :CaseLevel: System
+    """
+    repo_name = gen_string('alpha')
+    env_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    # Creates a CV along with product and sync'ed repository
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=CUSTOM_MODULE_STREAM_REPO_2
+    )
+    with session:
+        # Create Life-cycle environment
+        session.lifecycleenvironment.create({'name': env_name})
+        # Create content-view
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        # Add repository to selected CV
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, env_name)
+        assert 'Promoted to {}'.format(env_name) in result['Status']
+        assert '7 Module Streams' in result['Content']
+        # remove the content view version
+        session.contentview.remove_version(cv_name, VERSION)
+        assert not session.contentview.search_version(cv_name, VERSION)
+        session.contentview.delete(cv_name)
+        assert not session.contentview.search(cv_name)
+
+
+@tier2
+def test_positive_search_module_streams_in_content_view(session, module_org):
+    """Search module streams in content view version
+
+    :id: 7f5273ff-e80f-459d-adf4-b517b6d60fdc
+
+    :expectedresults: Searching for module streams should work inside content
+        view version
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    module_stream = 'walrus'
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=CUSTOM_MODULE_STREAM_REPO_2
+    )
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo]
+    ).create()
+    with session:
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        for module_version in ['0.71', '5.21']:
+            module_streams = session.contentview.search_version_module_stream(
+                cv.name,
+                VERSION,
+                'name = "{}" and stream = "{}"'.format(module_stream, module_version)
+            )
+            assert len(module_streams) == 1
+            assert (
+                    module_streams[0]['Name'] == module_stream
+                    and module_streams[0]['Stream'] == module_version
+            )

@@ -21,6 +21,7 @@ from pytest import raises
 from airgun.session import Session
 from robottelo.api.utils import create_role_permissions
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_NAME,
@@ -29,6 +30,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_3_CUSTOM_PACKAGE_NAME,
     REPO_TYPE,
 )
 from robottelo.datafactory import gen_string
@@ -252,6 +254,56 @@ def test_positive_search_lce_content_view_packages_by_name(
             assert len(result) == package['packages_count']
             for entry in result:
                 assert entry['Name'].startswith(package['name'])
+
+
+@tier3
+def test_positive_search_lce_content_view_module_streams_by_name(
+        session, module_org):
+    """Search Lifecycle Environment content view module streams by name
+
+    :id: e67893b2-a56e-4eac-87e6-63be897ba912
+
+    :customerscenario: true
+
+    :steps:
+        1. Create a product with a repository synchronized
+            - The repository must contain at least two module stream names P1 and
+              P2
+            - P1 has two module streams
+            - P2 has three module streams
+        2. Create a content view with the repository and publish it
+        3. Go to Lifecycle Environment > Library > ModuleStreams
+        4. Select the content view
+        5. Search by module stream names
+
+    :expectedresults: only the searched module streams where found
+
+    :CaseLevel: System
+    """
+    module_streams = [
+        {
+            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+            'streams_count': 2
+        },
+        {
+            'name': FAKE_3_CUSTOM_PACKAGE_NAME,
+            'streams_count': 3
+        },
+    ]
+    product = entities.Product(organization=module_org).create()
+    repository = entities.Repository(
+        product=product, url=CUSTOM_MODULE_STREAM_REPO_2).create()
+    repository.sync()
+    content_view = entities.ContentView(
+        organization=module_org, repository=[repository]).create()
+    content_view.publish()
+    with session:
+        for module in module_streams:
+            result = session.lifecycleenvironment.search_module_stream(
+                ENVIRONMENT, module['name'], cv_name=content_view.name)
+            assert len(result) == module['streams_count']
+            for entry in result:
+                assert entry['Name'].startswith(module['name'])
 
 
 @tier2
