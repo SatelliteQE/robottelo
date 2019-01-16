@@ -150,11 +150,11 @@ class ScenarioBug1429201(APITestCase):
         container_ids = dockerize(self.ak_name, 'rhel7')
         # Subscription manager needs time to register
         execute(docker_wait_until_repo_list,
-                container_ids.values()[0],
+                list(container_ids.values())[0],
                 host=self.docker_vm)
         result = execute(
             docker_execute_command,
-            container_ids.values()[0],
+            list(container_ids.values())[0],
             'yum list {0} | grep {0}'.format(self.rpm1_name.split('-')[0]),
             host=self.docker_vm
             )
@@ -168,7 +168,7 @@ class ScenarioBug1429201(APITestCase):
             hammer.get_attribute_value(prd_info, self.prd_name, 'name')
         )
         self.assertIsNotNone(container_ids)
-        self.assertIn(self.repo_name, result.values()[0])
+        self.assertIn(self.repo_name, list(result.values())[0])
         global_dict = {self.__class__.__name__: {
             'prd_name': self.prd_name,
             'ak_name': self.ak_name,
@@ -252,23 +252,23 @@ class ScenarioBug1429201(APITestCase):
         )
         run('foreman-rake katello:delete_orphaned_content')
         execute(refresh_subscriptions_on_docker_clients,
-                container_ids.values(),
+                list(container_ids.values()),
                 host=self.docker_vm
                 )
         # Subscription manager needs time to register
         execute(docker_wait_until_repo_list,
-                container_ids.values()[0],
+                list(container_ids.values())[0],
                 host=self.docker_vm)
         result_fail = execute(
             docker_execute_command,
-            container_ids.values()[0],
+            list(container_ids.values())[0],
             'yum list {0} | grep {0}'.format(self.rpm1_name.split('-')[0]),
             quiet=True,
             host=self.docker_vm
         )  # should be error
         result_pass = execute(
             docker_execute_command,
-            container_ids.values()[0],
+            list(container_ids.values())[0],
             'yum install -y {0}'.format(self.rpm2_name.split('-')[0]),
             host=self.docker_vm
         )  # should be successful
@@ -277,5 +277,5 @@ class ScenarioBug1429201(APITestCase):
             hammer.get_attribute_value(ak_info, pkcl_ak_name, 'name')
         )
         self.assertIsNotNone(container_ids)
-        self.assertIn('Error', result_fail.values()[0])
-        self.assertIn('Complete', result_pass.values()[0])
+        self.assertIn('Error', list(result_fail.values())[0])
+        self.assertIn('Complete', list(result_pass.values())[0])
