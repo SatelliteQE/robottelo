@@ -23,6 +23,7 @@ from robottelo.cli.base import CLIBaseError, CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
+    CLIFactoryError,
     make_architecture,
     make_content_view,
     make_domain,
@@ -707,7 +708,7 @@ class HostGroupTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with self.assertRaises(CLIBaseError):
+        with self.assertRaises(CLIFactoryError):
             make_hostgroup({
                 'content-source-id': gen_integer(10000, 99999),
                 'organization-ids': self.org['id'],
