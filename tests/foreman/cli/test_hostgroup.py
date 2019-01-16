@@ -19,7 +19,7 @@ from random import choice
 
 from fauxfactory import gen_integer, gen_string
 from robottelo.cleanup import capsule_cleanup
-from robottelo.cli.base import CLIBaseError, CLIReturnCodeError
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -859,7 +859,7 @@ class HostGroupTestCase(CLITestCase):
             'content-source-id': content_source['id'],
             'organization-ids': self.org['id'],
         })
-        with self.assertRaises(CLIBaseError):
+        with self.assertRaises(CLIReturnCodeError):
             HostGroup.update({
                 'id': hostgroup['id'],
                 'content-source-id': gen_integer(10000, 99999),
