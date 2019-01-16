@@ -292,9 +292,11 @@ def md5_by_url(url, hostname=None):
     return result.stdout[0]
 
 
-def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
+def add_remote_execution_ssh_key(hostname, key_path=None,
+                                 proxy_hostname=None, **kwargs):
     """Add remote execution keys to the client
 
+    :param str proxy_hostname: external capsule hostname
     :param str hostname: The client hostname
     :param str key: Path to a key on the satellite server
     :param dict kwargs: directly passed to `ssh.add_authorized_key`
@@ -303,7 +305,8 @@ def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
     # get satellite box ssh-key or defaults to foreman-proxy
     key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     # This connection defaults to settings.server
-    server_key = ssh.command('cat %s' % key_path).stdout
+    server_key = ssh.command(cmd='cat %s' % key_path, output_format='plain',
+                             hostname=proxy_hostname).stdout
     # Sometimes stdout contains extra empty string. Skipping it
     if isinstance(server_key, list):
         server_key = server_key[0]
