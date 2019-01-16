@@ -293,13 +293,13 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
         )
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=self.org.label)
-        client_container_id = rhel7_client.values()[0]
+        client_container_id = list(rhel7_client.values())[0]
         product, yum_repo = create_yum_test_repo(
             product_name=self.prod_name, repo_url=FAKE_REPO_ZOO3, org=self.org)
         update_product_subscription_in_ak(
             product=product, yum_repo=yum_repo, ak=ak, org=self.org)
         attach_custom_product_subscription(
-            prod_name=product.name, host_name=str(rhel7_client.keys()[0]).lower())
+            prod_name=product.name, host_name=str(list(rhel7_client.keys())[0]).lower())
         # Refresh subscriptions on client
         execute(
             docker_execute_command,
@@ -331,7 +331,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
         :expectedresults: The package is installed in client
          """
         client = get_entity_data(self.__class__.__name__)
-        client_name = str(client.keys()[0]).lower()
+        client_name = str(list(client.keys())[0]).lower()
         client_id = entities.Host().search(
             query={'search': 'name={}'.format(client_name)}
         )[0].id
@@ -344,7 +344,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
         # Validate if that package is really installed
         installed_package = execute(
             docker_execute_command,
-            client.values()[0],
+            list(client.values())[0],
             'rpm -q {}'.format(self.package_name),
             host=self.docker_vm
         )[self.docker_vm]
@@ -413,8 +413,8 @@ class Scenario_upgrade_new_client_and_package_installation(APITestCase):
         )
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=org.label)
-        client_container_id = rhel7_client.values()[0]
-        client_name = rhel7_client.keys()[0].lower()
+        client_container_id = list(rhel7_client.values())[0]
+        client_name = list(rhel7_client.keys())[0].lower()
         product, yum_repo = create_yum_test_repo(
             product_name=self.prod_name, repo_url=FAKE_REPO_ZOO3, org=org)
         update_product_subscription_in_ak(
