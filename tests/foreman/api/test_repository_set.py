@@ -23,11 +23,18 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import run_in_one_thread, run_only_on, tier1, upgrade
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    upgrade,
+)
 from robottelo.test import APITestCase
 
 
 @run_in_one_thread
+@skip_if_bug_open('bugzilla', 1655239)
 class RepositorySetTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
