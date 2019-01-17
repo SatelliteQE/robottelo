@@ -30,23 +30,17 @@ On Fedora, you can install these with the following command:
 For python2.x::
 
     dnf install -y gcc git libffi-devel openssl-devel python2-devel \
-        redhat-rpm-config
-    
-    dnf install libxml2-devel
-    
+        redhat-rpm-config libcurl-devel libxml2-devel
+
 For python3.x::
 
     dnf install -y gcc git libffi-devel openssl-devel python3-devel \
-        redhat-rpm-config
-    
-    dnf install libxml2-devel
+        redhat-rpm-config libcurl-devel libxml2-devel
 
 On Red Hat Enterprise Linux 7, you can install these with the following command::
 
     yum install -y gcc git libffi-devel openssl-devel python-devel \
-        redhat-rpm-config
-        
-    yum install libxml2-devel
+        redhat-rpm-config libcurl-devel libxml2-devel
 
 For more information, see `Paramiko: Installing
 <http://www.paramiko.org/installing.html>`_.
@@ -54,10 +48,12 @@ For more information, see `Paramiko: Installing
 Get the source code and install dependencies::
 
     $ git clone git://github.com/SatelliteQE/robottelo.git
+    $ export PYCURL_SSL_LIBRARY=<ssl library>
     $ pip install -r requirements.txt
 
 **Notes:**
     * For python 2.7, run ``pip install configparser`` for Satellite 6.2
+    * To determine ssl library, check http://pycurl.io/docs/latest/install.html#ssl
 
 That's it! You can now go ahead and start testing The Foreman. However, there
 are a few other things you may wish to do before continuing:
