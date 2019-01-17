@@ -546,6 +546,7 @@ class LDAPIPASettings(FeatureSettings):
         self.hostname_ipa = None
         self.password_ipa = None
         self.username_ipa = None
+        self.user_ipa = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -554,6 +555,7 @@ class LDAPIPASettings(FeatureSettings):
         self.hostname_ipa = reader.get('ipa', 'hostname_ipa')
         self.password_ipa = reader.get('ipa', 'password_ipa')
         self.username_ipa = reader.get('ipa', 'username_ipa')
+        self.user_ipa = reader.get('ipa', 'user_ipa')
 
     def validate(self):
         """Validate LDAP freeIPA settings."""
@@ -561,7 +563,7 @@ class LDAPIPASettings(FeatureSettings):
         if not all(vars(self).values()):
             validation_errors.append(
                 'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
-                ' password_ipa, username_ipa options must be provided.'
+                ' password_ipa, username_ipa, user_ipa options must be provided.'
             )
         return validation_errors
 

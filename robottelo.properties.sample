@@ -150,6 +150,7 @@ ssh_key=
 # password_ipa=
 # basedn_ipa=
 # grpbasedn_ipa=
+# user_ipa=
 
 # Fake manifest testing.
 # [fake_manifest]
