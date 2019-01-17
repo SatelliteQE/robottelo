@@ -92,7 +92,7 @@ def parse_help(output):
         'options': [],
     }
     option_regex = re.compile(
-        r'^ (-(?P<shortname>\w), )?(--(?P<name>[\w-]+))?'
+        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w-]+))?'
         r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>\w+))?\s+(?P<help>.*)$'
     )
     subcommand_regex = re.compile(
