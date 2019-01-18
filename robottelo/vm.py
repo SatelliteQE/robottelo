@@ -394,7 +394,7 @@ gpgcheck=0'''.format(name, url)
         :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
         installed.
         """
-        url = urlunsplit(('http', capsule, 'pub/'))
+        url = urlunsplit(('http', capsule, 'pub/', '', ''))
         ca_url = urljoin(
             url, 'katello-ca-consumer-latest.noarch.rpm')
         ssh.command(
