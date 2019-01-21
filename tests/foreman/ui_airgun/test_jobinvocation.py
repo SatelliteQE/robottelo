@@ -153,9 +153,11 @@ def test_positive_run_custom_job_template_by_ip(
                 'template.template_editor.rendering_options': 'Input',
                 'template.template_editor.editor': '<%= input("command") %>',
                 'job.provider_type': 'SSH',
-                'job.template_input.name': 'command',
-                'job.template_input.required': True,
-                'job.template_input.input_type': 'User input',
+                'inputs': [{
+                    'name': 'command',
+                    'required': True,
+                    'input_type': 'User input',
+                }],
             })
             assert session.jobtemplate.search(
                 job_template_name)[0]['Name'] == job_template_name
