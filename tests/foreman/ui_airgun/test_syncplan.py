@@ -542,18 +542,19 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
     with session:
-        startdate = session.browser.get_client_datetime()
+        start_date = session.browser.get_client_datetime()
         next_sync = (3 * 60)
         # forming cron expression sync repo after 3 min
-        cron_cofficient = (int(startdate.strftime('%M')) + 3)/2
+        expected_next_run_time = start_date + timedelta(seconds=next_sync)
+        cron_expression = '{} * * * *'.format(expected_next_run_time.minute)
         session.syncplan.create({
             'name': plan_name,
             'interval': SYNC_INTERVAL['custom'],
-            'cron_expression': '*/{} * * * *'.format(cron_cofficient),
+            'cron_expression': cron_expression,
             'description': 'sync plan create with start time',
-            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
-            'date_time.hours': startdate.strftime('%H'),
-            'date_time.minutes': startdate.strftime('%M'),
+            'date_time.start_date': start_date.strftime("%Y-%m-%d"),
+            'date_time.hours': start_date.strftime('%H'),
+            'date_time.minutes': start_date.strftime('%M'),
         })
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         session.syncplan.add_product(plan_name, product.name)
