@@ -18,7 +18,7 @@ import time
 
 from nailgun import entities
 
-from robottelo.api.utils import promote
+from robottelo.api.utils import promote, update_vm_host_location
 from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_DEFAULT,
@@ -49,6 +49,11 @@ def module_org():
 
 
 @fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
+@fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
 
@@ -69,7 +74,7 @@ def module_repos_collection(module_org, module_lce):
 
 
 @fixture
-def vm_content_hosts(request, module_repos_collection):
+def vm_content_hosts(request, module_loc, module_repos_collection):
     clients = []
     for _ in range(2):
         client = VirtualMachine(distro=module_repos_collection.distro)
@@ -77,6 +82,7 @@ def vm_content_hosts(request, module_repos_collection):
         request.addfinalizer(client.destroy)
         client.create()
         module_repos_collection.setup_virtual_machine(client)
+        update_vm_host_location(client, module_loc.id)
     return clients
 
 
@@ -172,7 +178,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
 
 
 @tier2
-def test_negative_install_via_remote_execution(session, module_org):
+def test_negative_install_via_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
 
@@ -187,7 +193,8 @@ def test_negative_install_via_remote_execution(session, module_org):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org).create())
+        hosts.append(entities.Host(
+            organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts],
         organization=module_org,
@@ -207,7 +214,7 @@ def test_negative_install_via_remote_execution(session, module_org):
 
 
 @tier2
-def test_negative_install_via_custom_remote_execution(session, module_org):
+def test_negative_install_via_custom_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
 
@@ -222,7 +229,8 @@ def test_negative_install_via_custom_remote_execution(session, module_org):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org).create())
+        hosts.append(entities.Host(
+            organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts],
         organization=module_org,
@@ -256,12 +264,14 @@ def test_positive_add_host(session):
     """
     hc_name = gen_string('alpha')
     org = entities.Organization().create()
+    loc = entities.Location().create()
     cv = entities.ContentView(organization=org).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     cv.publish()
     promote(cv.read().version[0], lce.id)
     host = entities.Host(
         organization=org,
+        location=loc,
         content_facet_attributes={
             'content_view_id': cv.id,
             'lifecycle_environment_id': lce.id,
@@ -269,6 +279,7 @@ def test_positive_add_host(session):
     ).create()
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         session.hostcollection.create({'name': hc_name})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)

@@ -1650,27 +1650,6 @@ class CannedRoleTestCases(APITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_access_entities_from_ldap_org_admin(self):
-        """LDAP User can access resources within its taxonomies if assigned
-        role has permission for same taxonomies
-
-        :id: 214ee608-6f69-434a-bd6d-804129ac5574
-
-        :steps:
-
-            1. Create Org Admin and assign taxonomies to it
-            2. Create LDAP user with same taxonomies as role above
-            3. Assign Org Admin role to user above
-            4. Login with LDAP user and attempt to access resources
-
-        :expectedresults: LDAP User should be able to access all the resources
-            and permissions in taxonomies selected in Org Admin role
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
     def test_negative_access_entities_from_ldap_org_admin(self):
         """LDAP User can not access resources in taxonomies assigned to role if
         its own taxonomies are not same as its role

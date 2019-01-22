@@ -22,11 +22,19 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest as up_man
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL7
-from robottelo.decorators import fixture, stubbed
+from robottelo.decorators import fixture, parametrize, stubbed
 from robottelo.vm import VirtualMachine
 
 
 pytestmark = pytest.mark.usefixtures("attach_subscription")
+
+NAV_ITEMS = [
+    ("insightsaction", "Details"),
+    ("insightsinventory", "All"),
+    ("insightsoverview", "Details"),
+    ("insightsplan", "All"),
+    ("insightsrule", "All")
+]
 
 
 @fixture(scope="module")
@@ -107,6 +115,20 @@ def test_positive_unregister_client_to_rhai(vm, autosession):
     assert not table[0].is_displayed
     result = autosession.insightsinventory.total_systems
     assert result == "0", "The client is still registered"
+
+
+@parametrize("nav_item", NAV_ITEMS, ids=lambda nav_item: nav_item[0])
+def test_rhai_navigation(autosession, nav_item):
+    """Test navigation across RHAI tab
+
+    :id: 1f5faa05-83c2-43b3-925a-78c77d30d1ef
+
+    :expectedresults: All pages should be opened correctly without 500 error
+    """
+    entity_name, destination = nav_item
+    entity = getattr(autosession, entity_name)
+    view = entity.navigate_to(entity, destination)
+    assert view.is_displayed
 
 
 @stubbed

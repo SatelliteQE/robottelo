@@ -336,11 +336,13 @@ class ClientsSettings(FeatureSettings):
         super(ClientsSettings, self).__init__(*args, **kwargs)
         self.image_dir = None
         self.provisioning_server = None
+        self.distros = None
 
     def read(self, reader):
         """Read clients settings."""
         self.image_dir = reader.get('clients', 'image_dir')
         self.provisioning_server = reader.get('clients', 'provisioning_server')
+        self.distros = [x.strip() for x in reader.get('clients', 'distros', "rhel7").split(",")]
 
     def validate(self):
         """Validate clients settings."""
@@ -357,19 +359,22 @@ class DistroSettings(FeatureSettings):
         super(DistroSettings, self).__init__(*args, **kwargs)
         self.image_el6 = None
         self.image_el7 = None
+        self.image_sles11 = None
+        self.image_sles12 = None
 
     def read(self, reader):
         """Read distro settings."""
         self.image_el6 = reader.get('distro', 'image_el6')
         self.image_el7 = reader.get('distro', 'image_el7')
+        self.image_sles11 = reader.get('distro', 'image_sles11')
+        self.image_sles12 = reader.get('distro', 'image_sles12')
 
     def validate(self):
         """Validate distro settings."""
         validation_errors = []
-        if not all((self.image_el6, self.image_el7)):
-            validation_errors.append(
-                'Both [distro] image_el6 and image_el7 '
-                'options must be provided.')
+        if not all(self.__dict__.values()):
+            validation_errors.append('All [distro] %s options must be provided.'
+                                     % list(self.__dict__.keys()))
         return validation_errors
 
 
@@ -541,6 +546,7 @@ class LDAPIPASettings(FeatureSettings):
         self.hostname_ipa = None
         self.password_ipa = None
         self.username_ipa = None
+        self.user_ipa = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -549,6 +555,7 @@ class LDAPIPASettings(FeatureSettings):
         self.hostname_ipa = reader.get('ipa', 'hostname_ipa')
         self.password_ipa = reader.get('ipa', 'password_ipa')
         self.username_ipa = reader.get('ipa', 'username_ipa')
+        self.user_ipa = reader.get('ipa', 'user_ipa')
 
     def validate(self):
         """Validate LDAP freeIPA settings."""
@@ -556,7 +563,7 @@ class LDAPIPASettings(FeatureSettings):
         if not all(vars(self).values()):
             validation_errors.append(
                 'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
-                ' password_ipa, username_ipa options must be provided.'
+                ' password_ipa, username_ipa, user_ipa options must be provided.'
             )
         return validation_errors
 
@@ -912,25 +919,6 @@ class SSHClientSettings(FeatureSettings):
         return []
 
 
-class TransitionSettings(FeatureSettings):
-    """Transition settings definitions."""
-    def __init__(self, *args, **kwargs):
-        super(TransitionSettings, self).__init__(*args, **kwargs)
-        self.exported_data = None
-
-    def read(self, reader):
-        """Read transition settings."""
-        self.exported_data = reader.get('transition', 'exported_data')
-
-    def validate(self):
-        """Validate transition settings."""
-        validation_errors = []
-        if self.exported_data is None:
-            validation_errors.append(
-                '[transition] exported_data must be provided.')
-        return validation_errors
-
-
 class VlanNetworkSettings(FeatureSettings):
     """Vlan Network settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -1095,7 +1083,6 @@ class Settings(object):
         self.rhev = RHEVSettings()
         self.ssh_client = SSHClientSettings()
         self.shared_function = SharedFunctionSettings()
-        self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
         self.upgrade = UpgradeSettings()
         self.vmware = VmWareSettings()

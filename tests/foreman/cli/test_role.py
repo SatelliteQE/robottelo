@@ -19,9 +19,17 @@ from fauxfactory import gen_string
 from math import ceil
 from random import choice
 from robottelo.cli.base import CLIDataBaseError, CLIReturnCodeError
-from robottelo.cli.factory import make_filter, make_role
+from robottelo.cli.factory import (
+    make_filter,
+    make_role,
+    make_user,
+    make_org,
+    make_location
+)
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
+from robottelo.cli.user import User
+from robottelo.cli.settings import Settings
 from robottelo.constants import PERMISSIONS, ROLES
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
@@ -1265,3 +1273,133 @@ class CannedRoleTestCases(CLITestCase):
 
         :CaseLevel: System
         """
+
+
+class SystemAdminTestCases(CLITestCase):
+    """Test class for System Admin role end to end CLI"""
+
+    def tearDown(self):
+        """Will reset the changed value of settings"""
+        Settings.set({
+            'name': "outofsync_interval",
+            'value': "30"
+        })
+
+    @upgrade
+    @tier3
+    def test_system_admin_role_end_to_end(self):
+        """Test System admin role with a end to end workflow
+
+        :id: da6b3549-d1cf-44fc-869f-08d15d407fa2
+
+        :steps:
+
+            1. Create a System admin role user1
+            2. Login with the user1 and change global settings
+                "Out of sync interval" to 31
+            3. Create user2 with system admin role
+            4. Login with user2 to create a Organization
+            5. Clone a Org-admin role
+            6. Edit the Architecture Filter and search name  =  x86_64
+            7. Create a User with Cloned Org admin
+            8. Login with user.
+
+        :expectedresults:
+
+            1. User should be assigned with System Admin role.
+            2. User with sys admin role should be able to update settings
+            3. User with sys admin role should be able to create users and
+                assign Organizations to them.
+            4. System Admin role should be able to create Organization admins
+            5. User with sys admin role should be able to edit filters on roles
+
+        :CaseLevel: System
+        """
+        org = make_org()
+        location = make_location()
+        common_pass = gen_string('alpha')
+        role = Role.info({'name': 'System admin'})
+        system_admin_1 = make_user({
+            'password': common_pass,
+            'organization-ids': org['id'],
+            'location-ids': location['id']
+            })
+        User.add_role({
+            'id': system_admin_1['id'],
+            'role-id': role['id']
+            })
+        Settings.with_user(
+            username=system_admin_1['login'],
+            password=common_pass).set({
+                'name': "outofsync_interval",
+                'value': "32"
+                })
+        sync_time = Settings.list({
+            'search': 'name=outofsync_interval'
+            })[0]
+        # Asserts if the setting was updated successfully
+        self.assertEqual('32', sync_time['value'])
+
+        # Create another System Admin user using the first one
+        system_admin = User.with_user(
+                username=system_admin_1['login'],
+                password=common_pass).create({
+                    u'auth-source-id': 1,
+                    u'firstname': gen_string('alpha'),
+                    u'lastname': gen_string('alpha'),
+                    u'login': gen_string('alpha'),
+                    u'mail': '{0}@example.com'.format(gen_string('alpha')),
+                    u'password': common_pass,
+                    u'organizations': org['name'],
+                    u'role-ids': role['id'],
+                    u'locations': location['name']
+                    })
+        # Create the Org Admin user
+        org_role = Role.with_user(
+            username=system_admin['login'],
+            password=common_pass).clone({
+                'name': 'Organization admin',
+                'new-name': gen_string('alpha'),
+                'organization-ids': org['id'],
+                'location-ids': location['id']
+                })
+        org_admin = User.with_user(
+                username=system_admin['login'],
+                password=common_pass).create({
+                    u'auth-source-id': 1,
+                    u'firstname': gen_string('alpha'),
+                    u'lastname': gen_string('alpha'),
+                    u'login': gen_string('alpha'),
+                    u'mail': '{0}@example.com'.format(gen_string('alpha')),
+                    u'password': common_pass,
+                    u'organizations': org['name'],
+                    u'role-ids': org_role['id'],
+                    u'location-ids': location['id']
+                    })
+        # Assert if the cloning was successful
+        self.assertIsNotNone(org_role['id'])
+        org_role_filters = Role.filters({'id': org_role['id']})
+        search_filter = None
+        for arch_filter in org_role_filters:
+            if arch_filter['resource-type'] == 'Architecture':
+                search_filter = arch_filter
+                break
+        Filter.with_user(
+            username=system_admin['login'],
+            password=common_pass).update({
+                'role-id': org_role['id'],
+                'id': arch_filter['id'],
+                'search': 'name=x86_64'
+                })
+        # Asserts if the filter is updated
+        self.assertIn('name=x86_64',
+                      Filter.info({
+                          'id': search_filter['id']
+                            }).values()
+                      )
+        org_admin = User.with_user(
+            username=system_admin['login'],
+            password=common_pass).info({'id': org_admin['id']})
+        # Asserts Created Org Admin
+        self.assertIn(org_role['name'], org_admin['roles'])
+        self.assertIn(org['name'], org_admin['organizations'])

@@ -20,7 +20,6 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
-from robottelo.decorators import bz_bug_is_open
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -63,16 +62,10 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
         payload['basearch'] = basearch
     if releasever is not None:
         payload['releasever'] = releasever
+    payload['product_id'] = product.id
     r_set.enable(data=payload)
     result = entities.Repository(name=repo).search(
         query={'organization_id': org_id})
-    if bz_bug_is_open(1252101):
-        for _ in range(5):
-            if len(result) > 0:
-                break
-            time.sleep(5)
-            result = entities.Repository(name=repo).search(
-                query={'organization_id': org_id})
     return result[0].id
 
 
@@ -450,11 +443,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
                 id=comp_res[0].id).read()
             computeresource.location.append(loc)
             computeresource.organization.append(org)
-            computeresource = computeresource.update([
-                'location', 'organization'])
+            computeresource.update(['location', 'organization'])
         else:
             # Create Libvirt compute-resource
-            computeresource = entities.LibvirtComputeResource(
+            entities.LibvirtComputeResource(
                 provider=u'libvirt',
                 url=resource_url,
                 set_console_password=False,
@@ -803,3 +795,48 @@ def create_discovered_host(name=None, ip_address=None, mac_address=None,
         }
     facts.update(options)
     return entities.DiscoveredHost().facts(json={'facts': facts})
+
+
+def update_vm_host_location(vm_client, location_id):
+    """Update vm client host location.
+
+    :param vm_client: A subscribed Virtual Machine client instance.
+    :param location_id: The location id to update the vm_client host with.
+    """
+    host = entities.Host().search(query={'search': 'name={0}'.format(vm_client.hostname)})[0]
+    host.location = entities.Location(id=location_id)
+    host.update(['location'])
+
+
+def check_create_os_with_title(os_title):
+    """Check if the OS is present, if not create the required OS
+
+    :param os_title: OS title to check, and create (like: RedHat 7.5)
+    :return: Created or found OS
+    """
+    # Check if OS that image needs is present or no, If not create the OS
+    result = entities.OperatingSystem().search(query={'search': 'title="{0}"'.format(os_title)})
+    if result:
+        os = result[0]
+    else:
+        os_name, _, os_version = os_title.partition(' ')
+        os_version_major, os_version_minor = os_version.split('.')
+        os = entities.OperatingSystem(
+            name=os_name,
+            major=os_version_major,
+            minor=os_version_minor,
+        ).create()
+    return os
+
+
+def attach_custom_product_subscription(prod_name=None, host_name=None):
+    """ Attach custom product subscription to client host
+    :param str prod_name: custom product name
+    :param str host_name: client host name
+    """
+    host = entities.Host().search(
+        query={'search': '{0}'.format(host_name)})[0]
+    product_subscription = entities.Subscription().search(
+        query={'search': 'name={0}'.format(prod_name)})[0]
+    entities.HostSubscription(host=host.id).add_subscriptions(
+        data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})

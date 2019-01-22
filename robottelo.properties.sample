@@ -150,6 +150,7 @@ ssh_key=
 # password_ipa=
 # basedn_ipa=
 # grpbasedn_ipa=
+# user_ipa=
 
 # Fake manifest testing.
 # [fake_manifest]
@@ -164,6 +165,8 @@ ssh_key=
 # [clients]
 # Provisioning server hostname where the clients will be created
 # provisioning_server=
+# Comma separated list of distributions, see robottelo/constants.py::DISTRO_*
+# distros=rhel6, rhel7
 
 # Path on the provisioning server where the virtual images will be stored. If
 # not specified in the configuration, the default libvirt path will be used
@@ -176,6 +179,8 @@ ssh_key=
 # [distro]
 # image_el6=rhel68
 # image_el7=rhel73
+# image_sles11=sles-11-4
+# image_sles12=sles-12-3
 
 
 # For tests that uses the docker feature
@@ -250,13 +255,6 @@ ssh_key=
 # Atomic Ostree Kickstart Installer
 # [ostree]
 # ostree_installer=OSTREE_INSTALLER
-
-# Section for declaring Sat5->Sat6 transition parameters
-# [transition]
-# URL of the  exported data archive (typically a .tgz containing a bunch of CSV
-# files together with repo data)
-# exported_data=http://example.org/sat5_export_data.tgz
-
 
 # Section for performance tests parameters.
 # [performance]

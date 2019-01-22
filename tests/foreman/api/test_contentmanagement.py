@@ -272,6 +272,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
+    @skip_if_bug_open('bugzilla', 1664288)
     @tier4
     def test_positive_checksum_sync(self):
         """Synchronize repository to capsule, update repository's checksum
@@ -1116,6 +1117,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         broken_links = set(link for link in result.stdout if link)
         self.assertEqual(len(broken_links), 0)
 
+    @skip_if_bug_open('bugzilla', 1655243)
     @tier4
     def test_positive_sync_puppet_module_with_versions(self):
         """Ensure it's possible to sync multiple versions of the same puppet
