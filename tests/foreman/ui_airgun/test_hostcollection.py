@@ -241,8 +241,6 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
             packages=FAKE_0_CUSTOM_PACKAGE_NAME,
             action='install',
             action_via='via remote execution - customize first',
-            job_values=dict(search_query='host_collection_id = {0}'.format(
-                host_collection.id))
         )
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
