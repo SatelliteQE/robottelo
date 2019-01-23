@@ -107,7 +107,7 @@ class OpenScapTestCase(CLITestCase):
             local_file=settings.oscap.content_path,
             remote_file="/tmp/{0}".format(cls.file_name)
         )
-        cls.title = 'rhel-6-content'
+        cls.title = gen_string('alpha')
         result = [scap['title'] for scap in Scapcontent.list() if
                   scap.get('title') in cls.title]
         if not result:
