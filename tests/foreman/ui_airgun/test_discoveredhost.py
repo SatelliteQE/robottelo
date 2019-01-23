@@ -314,7 +314,6 @@ def test_positive_delete(session, discovered_host):
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1634728)
 @tier2
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one
