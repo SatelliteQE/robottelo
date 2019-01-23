@@ -37,7 +37,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     setting_is_set,
     tier2,
@@ -134,7 +133,6 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
         assert not session.subscription.has_manifest
 
 
-@skip_if_bug_open('bugzilla', 1651981)
 @tier2
 @upgrade
 def test_positive_access_with_non_admin_user_with_manifest(test_name):
