@@ -585,7 +585,7 @@ class TestAnsibleREX():
             raise AssertionError(result)
         # Wait until the job runs
         pending_state = u'1'
-        for _ in range(5):
+        for _ in range(10):
             if pending_state != u'0':
                 invocation_info = JobInvocation.info({
                     'id': invocation_command[u'id']})
