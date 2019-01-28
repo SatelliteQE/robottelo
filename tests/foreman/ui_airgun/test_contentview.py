@@ -582,12 +582,11 @@ def test_positive_check_composite_cv_addition_list_versions(session):
         })
         assert session.contentview.search(
             composite_cv)[0]['Name'] == composite_cv
-        ccv_values = session.contentview.read(composite_cv)
-        assert len(ccv_values['content_views']['resources']['unassigned']) == 1
-        assert (
-            ccv_values['content_views']['resources']['unassigned'][0]['Version']
-            == 'Always Use Latest (Currently 2.0) 2.0'
-        )
+        cv_values = session.contentview.search_content_view(
+            composite_cv, non_composite_cv, assigned=False)
+        assert len(cv_values) == 1
+        assert cv_values[0]['Name'] == non_composite_cv
+        assert cv_values[0]['Version'] == 'Always Use Latest (Currently 2.0) 2.0'
 
 
 @tier2
