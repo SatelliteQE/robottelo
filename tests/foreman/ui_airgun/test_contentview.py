@@ -70,6 +70,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
+    bz_bug_is_open,
     fixture,
     skip_if_not_set,
     run_in_one_thread,
@@ -1943,6 +1944,11 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
         for add_puppet in [True, False]:
             for force_value in [True, False]:
                 cv_name = gen_string('alpha')
+                if bz_bug_is_open(1652938):
+                    try:
+                        session.contentview.search('')
+                    except (NavigationTriesExceeded, NoSuchElementException):
+                        session.browser.refresh()
                 session.contentview.create({'name': cv_name})
                 session.contentview.update(
                     cv_name, {'details.force_puppet': force_value})
