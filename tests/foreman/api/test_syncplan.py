@@ -410,6 +410,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     sync_plan.update(['interval', 'cron_expression']).interval,
                     SYNC_INTERVAL['custom']
                 )
+
     @run_only_on('sat')
     @tier1
     def test_positive_update_sync_date(self):
