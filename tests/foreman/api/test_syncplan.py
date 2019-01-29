@@ -397,18 +397,19 @@ class SyncPlanUpdateTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
-            sync_plan = entities.SyncPlan(
-                description=gen_string('alpha'),
-                organization=self.org,
-                interval=interval
-            ).create()
+            if interval != SYNC_INTERVAL['custom']:
+                sync_plan = entities.SyncPlan(
+                    description=gen_string('alpha'),
+                    organization=self.org,
+                    interval=interval
+                ).create()
 
-            sync_plan.interval = SYNC_INTERVAL['custom']
-            sync_plan.cron_expression = gen_choice(valid_cron_expressions())
-            self.assertEqual(
-                sync_plan.update(['interval', 'cron_expression']).interval,
-                SYNC_INTERVAL['custom']
-            )
+                sync_plan.interval = SYNC_INTERVAL['custom']
+                sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+                self.assertEqual(
+                    sync_plan.update(['interval', 'cron_expression']).interval,
+                    SYNC_INTERVAL['custom']
+                )
 
     @run_only_on('sat')
     @tier1
