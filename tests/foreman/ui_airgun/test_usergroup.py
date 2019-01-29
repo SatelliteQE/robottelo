@@ -44,7 +44,6 @@ def test_positive_delete_with_user(session, module_org, module_loc):
         organization=[module_org],
         location=[module_loc]
     ).create()
-
     with session:
         session.usergroup.create({
             'usergroup.name': group_name,
@@ -53,3 +52,48 @@ def test_positive_delete_with_user(session, module_org, module_loc):
         session.usergroup.delete(group_name)
         assert not session.usergroup.search(group_name)
         assert session.user.search(user_name) is not None
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, module_org, module_loc):
+    """Perform end to end testing for usergroup component
+
+    :id: c1c7c383-b118-4caf-a5ef-4e75fdbbacdc
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    user = entities.User(
+        password=gen_string('alpha'),
+        organization=[module_org],
+        location=[module_loc]
+    ).create()
+    user_group = entities.UserGroup().create()
+    with session:
+        # Create new user group with assigned entities
+        session.usergroup.create({
+            'usergroup.name': name,
+            'usergroup.users': {'assigned': [user.login]},
+            'usergroup.usergroups': {'assigned': [user_group.name]},
+            'roles.admin': True,
+            'roles.resources': {'assigned': ['Viewer']},
+        })
+        assert session.usergroup.search(name)[0]['Name'] == name
+        usergroup_values = session.usergroup.read(name)
+        assert usergroup_values['usergroup']['name'] == name
+        assert usergroup_values['usergroup']['usergroups']['assigned'][0] == user_group.name
+        assert usergroup_values['usergroup']['users']['assigned'][0] == user.login
+        assert usergroup_values['roles']['admin'] is True
+        assert usergroup_values['roles']['resources']['assigned'][0] == 'Viewer'
+        # Update user group with new name
+        session.usergroup.update(name, {'usergroup.name': new_name})
+        assert session.usergroup.search(new_name)[0]['Name'] == new_name
+        # Delete user group
+        session.usergroup.delete(new_name)
+        assert not session.usergroup.search(new_name)
