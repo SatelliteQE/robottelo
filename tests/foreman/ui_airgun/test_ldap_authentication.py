@@ -14,17 +14,33 @@
 
 :Upstream: No
 """
+from navmazing import NavigationTriesExceeded
+from pytest import raises
+from widgetastic.exceptions import NoSuchElementException
 
+from airgun.session import Session
 from nailgun import entities
+
 from robottelo.config import settings
-from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
+from robottelo.constants import (
+    ANY_CONTEXT,
+    LDAP_ATTR,
+    LDAP_SERVER_TYPE,
+    PERMISSIONS,
+    PERMISSIONS_UI,
+)
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
+    bz_bug_is_open,
     fixture,
+    run_in_one_thread,
     skip_if_not_set,
     tier2,
     upgrade,
 )
+
+
+pytestmark = [run_in_one_thread]
 
 
 @fixture(scope='module')
@@ -47,6 +63,60 @@ def ipa_data():
         'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
         'ldap_ipa_hostname': settings.ipa.hostname_ipa,
     }
+
+
+@fixture(scope='module')
+def auth_source(ldap_data, module_org, module_loc):
+    return entities.AuthSourceLDAP(
+        onthefly_register=True,
+        account=ldap_data['ldap_user_name'],
+        account_password=ldap_data['ldap_user_passwd'],
+        base_dn=ldap_data['base_dn'],
+        groups_base=ldap_data['group_base_dn'],
+        attr_firstname=LDAP_ATTR['firstname'],
+        attr_lastname=LDAP_ATTR['surname'],
+        attr_login=LDAP_ATTR['login_ad'],
+        server_type=LDAP_SERVER_TYPE['API']['ad'],
+        attr_mail=LDAP_ATTR['mail'],
+        name=gen_string('alpha'),
+        host=ldap_data['ldap_hostname'],
+        tls=False,
+        port='389',
+        organization=[module_org],
+        location=[module_loc],
+    ).create()
+
+
+@fixture()
+def ldap_user_name(ldap_data, test_name):
+    """Add LDAP user to satellite by logging in, return username to test and delete the user (if
+    still exists) when test finishes.
+    """
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ):
+        pass
+    yield ldap_data['ldap_user_name']
+    users = entities.User().search(query={
+        'search': 'login="{}"'.format(ldap_data['ldap_user_name'])
+    })
+    if users:
+        users[0].delete()
+
+
+@fixture()
+def ldap_usergroup_name():
+    """Return some random usergroup name, and attempt to delete such usergroup when test finishes.
+    """
+    usergroup_name = gen_string('alphanumeric')
+    yield usergroup_name
+    user_groups = entities.UserGroup().search(query={
+        'search': 'name="{}"'.format(usergroup_name)
+    })
+    if user_groups:
+        user_groups[0].delete()
 
 
 @skip_if_not_set('ldap')
@@ -241,3 +311,262 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
         assert ldap_source[
             'attribute_mappings']['last_name'] == LDAP_ATTR['surname']
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
+
+
+@tier2
+def test_positive_add_katello_role(
+        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    """Associate katello roles to User Group.
+    [belonging to external AD User Group.]
+
+    :id: aa5e3bf4-cb42-43a4-93ea-a2eea54b847a
+
+    :Steps:
+
+        1. Create an UserGroup.
+        2. Assign some foreman roles to UserGroup.
+        3. Create and associate an External AD UserGroup.
+
+    :expectedresults: Whether a User belonging to User Group is able to
+        access katello entities as per roles.
+
+    :CaseLevel: Integration
+    """
+    katello_role = gen_string('alpha')
+    ak_name = gen_string('alpha')
+    with session:
+        session.role.create({'name': katello_role})
+        session.filter.create(
+            katello_role,
+            {
+                'resource_type': 'Activation Keys',
+                'permission.assigned': PERMISSIONS_UI['Activation Keys'],
+            }
+        )
+        session.usergroup.create({
+            'usergroup.name': ldap_usergroup_name,
+            'roles.resources.assigned': [katello_role],
+            'external_groups.name': 'foobargroup',
+            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+        })
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.usergroup.refresh_external_group(ldap_usergroup_name, 'foobargroup')
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as session:
+        if bz_bug_is_open(1652938):
+            try:
+                session.activationkey.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
+        session.activationkey.create({'name': ak_name})
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
+        current_user = session.activationkey.read(ak_name)['current_user']
+        assert current_user == ldap_data['ldap_user_name']
+
+
+@tier2
+@upgrade
+def test_positive_delete_external_roles(
+        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    """Deleted AD UserGroup roles get pushed down to user
+
+    :id: 479bc8fe-f6a3-4c89-8c7e-3d997315383f
+
+    :setup: delete roles from an AD UserGroup
+
+    :steps:
+        1. Create an UserGroup.
+        2. Assign some roles to UserGroup.
+        3. Create an External AD UserGroup as per the UserGroup name in AD.
+        4. Login to sat6 with the AD user.
+        5. Unassign some of the existing roles of the UserGroup.
+        6. Login to sat6 with LDAP user that is part of aforementioned
+           UserGroup.
+
+    :expectedresults: User no longer has access to all deleted functional
+        areas that were assigned to aforementioned UserGroup.
+
+    :CaseLevel: Integration
+    """
+    foreman_role = gen_string('alpha')
+    location_name = gen_string('alpha')
+    with session:
+        session.role.create({'name': foreman_role})
+        session.filter.create(
+            foreman_role,
+            {
+                'resource_type': 'Location',
+                'permission.assigned': PERMISSIONS['Location'],
+            }
+        )
+        session.usergroup.create({
+            'usergroup.name': ldap_usergroup_name,
+            'roles.resources.assigned': [foreman_role],
+            'external_groups.name': 'foobargroup',
+            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+        })
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.organization.select(ANY_CONTEXT['org'])
+        session.location.select(ANY_CONTEXT['location'])
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        with Session(
+                test_name,
+                ldap_data['ldap_user_name'],
+                ldap_data['ldap_user_passwd'],
+        ) as ldapsession:
+            ldapsession.location.create({'name': location_name})
+            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+            current_user = ldapsession.location.read(location_name)['current_user']
+            assert current_user == ldap_data['ldap_user_name']
+        session.usergroup.update(
+            ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role]})
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.location.create({'name': gen_string('alpha')})
+
+
+@tier2
+def test_positive_update_external_user_roles(
+        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    """Assure that user has roles/can access feature areas for
+    additional roles assigned outside any roles assigned by his group
+
+    :id: a487f7d6-22f2-4e42-b34f-8d984f721c83
+
+    :setup: Assign roles to UserGroup and configure external UserGroup
+        subsequently assign specified roles to the user(s).  roles that are
+        not part of the larger UserGroup
+
+    :steps:
+        1. Create an UserGroup.
+        2. Assign some roles to UserGroup.
+        3. Create an External AD UserGroup as per the UserGroup name in AD.
+        4. Assign some more roles to a User(which is part of external AD
+           UserGroup) at the User level.
+        5. Login to sat6 with the above AD user and attempt to access areas
+           assigned specifically to user.
+
+    :expectedresults: User can access not only those feature areas in his
+        UserGroup but those additional feature areas / roles assigned
+        specifically to user
+
+    :CaseLevel: Integration
+    """
+    foreman_role = gen_string('alpha')
+    katello_role = gen_string('alpha')
+    ak_name = gen_string('alpha')
+    location_name = gen_string('alpha')
+    with session:
+        session.role.create({'name': foreman_role})
+        session.filter.create(
+            foreman_role,
+            {
+                'resource_type': 'Location',
+                'permission.assigned': PERMISSIONS['Location'],
+            }
+        )
+        session.usergroup.create({
+            'usergroup.name': ldap_usergroup_name,
+            'roles.resources.assigned': [foreman_role],
+            'external_groups.name': 'foobargroup',
+            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+        })
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        with Session(
+                test_name,
+                ldap_data['ldap_user_name'],
+                ldap_data['ldap_user_passwd'],
+        ) as ldapsession:
+            ldapsession.location.create({'name': location_name})
+            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+            current_user = ldapsession.location.read(location_name)['current_user']
+            assert current_user == ldap_data['ldap_user_name']
+        session.role.create({'name': katello_role})
+        session.filter.create(
+            katello_role,
+            {
+                'resource_type': 'Activation Keys',
+                'permission.assigned': PERMISSIONS_UI['Activation Keys'],
+            }
+        )
+        session.user.update(
+            ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role]})
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as session:
+        if bz_bug_is_open(1652938):
+            try:
+                session.activationkey.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
+        session.activationkey.create({'name': ak_name})
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
+        current_user = session.activationkey.read(ak_name)['current_user']
+        assert current_user == ldap_data['ldap_user_name']
+
+
+@tier2
+def test_positive_add_admin_role_with_org_loc(
+        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
+        module_org):
+    """Associate Admin role to User Group with org and loc set.
+    [belonging to external AD User Group.]
+
+    :id: 00841778-f89e-4445-a6c6-f1470b6da32e
+
+    :setup: LDAP Auth Source should be created with Org and Location
+            Associated.
+
+    :Steps:
+        1. Create an UserGroup.
+        2. Assign admin role to UserGroup.
+        3. Create and associate an External AD UserGroup.
+
+    :expectedresults: Whether a User belonging to User Group is able to
+        access some of the pages, with the associated org and loc
+        in LDAP Auth source page as the context set.
+
+    :CaseImportance: Critical
+    """
+    ak_name = gen_string('alpha')
+    location_name = gen_string('alpha')
+    with session:
+        session.usergroup.create({
+            'usergroup.name': ldap_usergroup_name,
+            'roles.admin': True,
+            'external_groups.name': 'foobargroup',
+            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+        })
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as session:
+        session.location.create({'name': location_name})
+        assert session.location.search(location_name)[0]['Name'] == location_name
+        location = session.location.read(location_name)
+        assert location['current_user'] == ldap_data['ldap_user_name']
+        assert location['primary']['name'] == location_name
+        if bz_bug_is_open(1652938):
+            try:
+                session.activationkey.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
+        session.organization.select(module_org.name)
+        session.activationkey.create({'name': ak_name})
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
+        ak = session.activationkey.read(ak_name)
+        assert ak['details']['name'] == ak_name
