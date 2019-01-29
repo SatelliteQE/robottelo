@@ -57,8 +57,8 @@ class KatelloCertsCheckTestCase(TestCase):
 
     def validate_output(self, result):
         expected_result = set(
-            ['--server-cert', '--server-key', '--certs-update-server',
-                '--foreman-proxy-fqdn', '--certs-tar', '--server-ca-cert'])
+            ['--scenario', '--certs-server-cert', '--certs-server-key', '--certs-update-server',
+                '--certs-server-ca-cert', '--certs-update-server-ca'])
         self.assertEqual(result.return_code, 0)
         self.assertIn(self.SUCCESS_MSG, result.stdout)
         # validate all checks passed
