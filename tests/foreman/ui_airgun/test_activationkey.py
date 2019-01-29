@@ -913,7 +913,7 @@ def test_positive_add_docker_repo_cv(session, module_org):
             'lce': {lce.name: True},
             'content_view': content_view.name,
         })
-        ak = session.activationkey.read(ak_name)
+        ak = session.activationkey.read(ak_name, 'details')
         assert ak['details']['content_view'] == content_view.name
         assert ak['details']['lce'][lce.name][lce.name]
 
@@ -961,7 +961,7 @@ def test_positive_add_docker_repo_ccv(session, module_org):
             'lce': {lce.name: True},
             'content_view': composite_cv.name,
         })
-        ak = session.activationkey.read(ak_name)
+        ak = session.activationkey.read(ak_name, 'details')
         assert ak['details']['content_view'] == composite_cv.name
         assert ak['details']['lce'][lce.name][lce.name]
 

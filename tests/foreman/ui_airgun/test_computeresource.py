@@ -214,6 +214,8 @@ def test_positive_list_containers(session, module_org, module_loc):
     :expectedresults: Compute Resource can be created, listed and existing
         running instances can be listed.
 
+    :BZ: 1466240, 1478966
+
     :CaseLevel: Integration
     """
     compute_resource = entities.DockerComputeResource(

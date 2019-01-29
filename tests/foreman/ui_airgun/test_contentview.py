@@ -429,7 +429,7 @@ def test_positive_add_docker_repo(session, module_org, module_prod):
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
-        cv = session.contentview.read(content_view.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
         assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
 
 
@@ -460,7 +460,7 @@ def test_positive_add_docker_repos(session, module_org, module_prod):
     with session:
         for repo in repos:
             session.contentview.add_docker_repo(content_view.name, repo.name)
-        cv = session.contentview.read(content_view.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
         assert (
             {repo.name for repo in repos} ==
             {repo['Name'] for repo in cv['docker_repositories']['resources']['assigned']}
@@ -496,7 +496,7 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
             except NoSuchElementException:
                 session.browser.refresh()
         session.contentview.add_docker_repo(content_view.name, repo.name)
-        cv = session.contentview.read(content_view.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
         assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
         assert cv['docker_repositories']['resources']['assigned'][0]['Sync State'] == 'Success'
 
@@ -530,7 +530,7 @@ def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
         result = session.contentview.publish(content_view.name)
         assert result['Version'] == VERSION
         session.contentview.add_cv(composite_cv.name, content_view.name)
-        ccv = session.contentview.read(composite_cv.name)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
         assert ccv['content_views']['resources']['assigned'][0]['Name'] == content_view.name
         assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
 
@@ -567,7 +567,7 @@ def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
     with session:
         for cv in cvs:
             session.contentview.add_cv(composite_cv.name, cv)
-        ccv = session.contentview.read(composite_cv.name)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
         assert set(cvs) == {cv['Name'] for cv in ccv['content_views']['resources']['assigned']}
         assert all(
             '1 Repositories' in cv['Content']
@@ -599,7 +599,7 @@ def test_positive_publish_with_docker_repo(session, module_org, module_prod):
         session.contentview.add_docker_repo(content_view.name, repo.name)
         result = session.contentview.publish(content_view.name)
         assert result['Version'] == VERSION
-        cv = session.contentview.read(content_view.name)
+        cv = session.contentview.read(content_view.name, 'versions')
         assert cv['versions']['table'][0]['Version'] == VERSION
 
 
@@ -634,7 +634,7 @@ def test_positive_publish_with_docker_repo_composite(session, module_org, module
         session.contentview.add_cv(composite_cv.name, content_view.name)
         result = session.contentview.publish(composite_cv.name)
         assert result['Version'] == VERSION
-        ccv = session.contentview.read(composite_cv.name)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
         assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
 
 
