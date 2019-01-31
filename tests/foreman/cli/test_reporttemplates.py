@@ -26,7 +26,7 @@ class ReportTemplateTestCase(CLITestCase):
     """Report Templates CLI tests."""
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_report_help_base(self):
         """Base level hammer help includes report-templates
 
@@ -44,7 +44,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_report_help_command(self):
         """Command level hammer help contains usage details
 
@@ -62,7 +62,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_report_help_subcommand(self):
         """Subcommand level hammer help contains usage details
 
@@ -80,7 +80,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_create_report(self):
         """Create report template
 
@@ -98,7 +98,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_list_reports(self):
         """List report templates
 
@@ -116,7 +116,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_read_report(self):
         """Read report template
 
@@ -134,7 +134,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_update_report(self):
         """Update report template
 
@@ -152,7 +152,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_delete_report(self):
         """Delete report template
 
@@ -170,7 +170,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_generate_report_nofilter(self):
         """Generate Host Status report
 
@@ -188,7 +188,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_generate_report_filter(self):
         """Generate Host Status report
 
@@ -206,7 +206,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_lock_report(self):
         """Lock report template
 
@@ -224,7 +224,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_unlock_report(self):
         """Unlock report template
 
@@ -242,7 +242,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_report_add_userinput(self):
         """Add user input to template
 
@@ -260,7 +260,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_dump_report(self):
         """Export report template
 
@@ -278,7 +278,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_clone_locked_report(self):
         """Clone locked report template
 
@@ -296,7 +296,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_generate_report_sanitized(self):
         """Generate report template where there are values in comma outputted which might brake CSV format
 
@@ -315,7 +315,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_negative_create_report_without_name(self):
         """Try to create a report template with empty name
 
@@ -333,7 +333,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_negative_delete_locked_report(self):
         """Try to delete a locked report template
 
