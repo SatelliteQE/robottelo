@@ -708,10 +708,10 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     :param repo_name: If repo_backend_id can not be passed, pass the repo_name
     """
     if repo_name:
-            repo_backend_id = entities.Repository().search(query={
-                        'search': 'name="{0}"'.format(repo_name),
-                        'per_page': 1000,
-                    })[0].backend_identifier
+        repo_backend_id = entities.Repository().search(query={
+                    'search': 'name="{0}"'.format(repo_name),
+                    'per_page': 1000,
+                })[0].backend_identifier
     # Fetch the Pulp password
     pulp_pass = ssh.command(
         'grep "^default_password" /etc/pulp/server.conf |'
