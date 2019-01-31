@@ -18,6 +18,8 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 :Upstream: No
 """
 import datetime
+from random import randint
+
 from pytest import raises
 
 from navmazing import NavigationTriesExceeded
@@ -41,6 +43,7 @@ from robottelo.constants import (
     DEFAULT_PTABLE,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
+    DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
     FAKE_0_INC_UPD_URL,
     FAKE_0_INC_UPD_NEW_PACKAGE,
@@ -99,6 +102,11 @@ VERSION = 'Version 1.0'
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_prod(module_org):
+    return entities.Product(organization=module_org).create()
 
 
 @tier2
@@ -398,6 +406,433 @@ def test_positive_add_rh_content(session):
             cv['repositories']['resources']['assigned'][0]['Name'] ==
             rh_repo['name']
         )
+
+
+@tier2
+def test_positive_add_docker_repo(session, module_org, module_prod):
+    """Add one Docker-type repository to a non-composite content view
+
+    :id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
+
+    :expectedresults: The repo is added to a non-composite content view
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
+        assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
+
+
+@tier2
+def test_positive_add_docker_repos(session, module_org, module_prod):
+    """Add multiple Docker-type repositories to a non-composite
+    content view.
+
+    :id: 60d0ea23-fe8c-49f3-bed9-cc062ab1118d
+
+    :expectedresults: The repos are added to a non-composite content
+        view.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repos = [
+        entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=module_prod,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        for _ in range(randint(2, 3))
+    ]
+    with session:
+        for repo in repos:
+            session.contentview.add_docker_repo(content_view.name, repo.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
+        assert (
+            {repo.name for repo in repos} ==
+            {repo['Name'] for repo in cv['docker_repositories']['resources']['assigned']}
+        )
+
+
+@tier2
+def test_positive_add_synced_docker_repo(session, module_org, module_prod):
+    """Create and sync a docker repository, then add it to content view
+
+    :id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
+
+    :expectedresults: Synchronized docker repository was successfully added
+        to content view.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        result = session.sync_status.synchronize([(module_prod.name, repo.name)])
+        assert result[0] == 'Syncing Complete.'
+        if bz_bug_is_open(1652938):
+            try:
+                session.contentview.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
+        assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
+        assert cv['docker_repositories']['resources']['assigned'][0]['Sync State'] == 'Success'
+
+
+@tier2
+def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
+    """Add one docker repository to a composite content view
+
+    :id: 76b68407-b429-4ad7-b8b5-bfde327a0404
+
+    :expectedresults: The repository is added to a content view which
+        is then added to a composite content view.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        result = session.contentview.publish(content_view.name)
+        assert result['Version'] == VERSION
+        session.contentview.add_cv(composite_cv.name, content_view.name)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
+        assert ccv['content_views']['resources']['assigned'][0]['Name'] == content_view.name
+        assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
+
+
+@tier2
+def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
+    """Add multiple docker repositories to a composite content view.
+
+    :id: 30187102-7106-45de-a68b-e32fbaecedb9
+
+    :expectedresults: The repository is added to a random number of content
+        views which are then added to a composite content view.
+
+    :CaseLevel: Integration
+    """
+    cvs = []
+    for _ in range(randint(2, 3)):
+        repo = entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=module_prod,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        content_view = entities.ContentView(
+            composite=False,
+            organization=module_org,
+            repository=[repo]
+        ).create()
+        content_view.publish()
+        cvs.append(content_view.name)
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    with session:
+        for cv in cvs:
+            session.contentview.add_cv(composite_cv.name, cv)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
+        assert set(cvs) == {cv['Name'] for cv in ccv['content_views']['resources']['assigned']}
+        assert all(
+            '1 Repositories' in cv['Content']
+            for cv in ccv['content_views']['resources']['assigned']
+        )
+
+
+@tier2
+def test_positive_publish_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it once.
+
+    :id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
+
+    :expectedresults: The repo is added to a content view which is then
+        successfully published.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        result = session.contentview.publish(content_view.name)
+        assert result['Version'] == VERSION
+        cv = session.contentview.read(content_view.name, 'versions')
+        assert cv['versions']['table'][0]['Version'] == VERSION
+
+
+@tier2
+def test_positive_publish_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it once.
+
+    :id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
+
+    :expectedresults: The docker repository is added to a content view
+        which is then published only once and then added to a composite
+        content view which is also published only once.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    with session:
+        session.contentview.add_cv(composite_cv.name, content_view.name)
+        result = session.contentview.publish(composite_cv.name)
+        assert result['Version'] == VERSION
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
+        assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
+
+
+@tier2
+def test_positive_publish_multiple_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it multiple times.
+
+    :id: acc703b7-6e99-48d7-96ce-ea0985409ef9
+
+    :expectedresults: Content view with docker repo is successfully published
+        multiple times.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    with session:
+        for version in range(randint(2, 5)):
+            result = session.contentview.publish(content_view.name)
+            assert result['Version'] == 'Version {}.0'.format(version + 1)
+
+
+@tier2
+def test_positive_publish_multiple_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it multiple times.
+
+    :id: 07755bff-9071-45e5-b861-77a5c2fed3d9
+
+    :expectedresults: Composite content view with docker repo is successfully
+        published multiple times.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    with session:
+        session.contentview.add_cv(composite_cv.name, content_view.name)
+        for version in range(randint(2, 5)):
+            result = session.contentview.publish(composite_cv.name)
+            assert result['Version'] == 'Version {}.0'.format(version + 1)
+
+
+@tier2
+def test_positive_promote_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it.
+    Then promote it to the next available lifecycle environment.
+
+    :id: c7e8c4a2-9676-429b-a452-f50d7bdd78b3
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environment.
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    with session:
+        result = session.contentview.promote(content_view.name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert lce.name in result['Environments']
+
+
+@tier2
+def test_positive_promote_multiple_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it.
+    Then promote it to multiple available lifecycle-environments.
+
+    :id: c23d582e-502c-49ac-83f7-dcf0f192cbc6
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environments.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    with session:
+        for _ in range(randint(2, 3)):
+            lce = entities.LifecycleEnvironment(organization=module_org).create()
+            result = session.contentview.promote(content_view.name, VERSION, lce.name)
+            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert lce.name in result['Environments']
+
+
+@tier2
+def test_positive_promote_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it.
+    Then promote it to the next available lifecycle-environment.
+
+    :id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environment.
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    content_view = content_view.read()
+    composite_cv = entities.ContentView(
+        component=[content_view.version[-1]],
+        composite=True,
+        organization=module_org,
+    ).create()
+    composite_cv.publish()
+    with session:
+        result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert lce.name in result['Environments']
+
+
+@tier2
+@upgrade
+def test_positive_promote_multiple_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it
+    Then promote it to the multiple available lifecycle environments.
+
+    :id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environments.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    content_view = content_view.read()
+    composite_cv = entities.ContentView(
+        component=[content_view.version[-1]],
+        composite=True,
+        organization=module_org,
+    ).create()
+    composite_cv.publish()
+    with session:
+        for _ in range(randint(2, 3)):
+            lce = entities.LifecycleEnvironment(organization=module_org).create()
+            result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
+            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert lce.name in result['Environments']
 
 
 @tier2

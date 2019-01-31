@@ -15,6 +15,8 @@
 
 :Upstream: No
 """
+from random import shuffle, randint
+
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
@@ -752,3 +754,38 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
         session.redhatrepository.disable(repository_name, orphaned=True)
         assert not session.redhatrepository.search(
             'name = "{0}"'.format(repository_name), category='Enabled')
+
+
+@tier2
+def test_positive_delete_random_docker_repo(session, module_org):
+    """Create Docker-type repositories on multiple products and
+    delete a random repository from a random product.
+
+    :id: a3dce435-c46e-41d7-a2f8-29421f7427f5
+
+    :expectedresults: Random repository can be deleted from random product
+        without altering the other products.
+
+    :CaseLevel: Integration
+    """
+    entities_list = []
+    products = [
+        entities.Product(organization=module_org).create()
+        for _
+        in range(randint(2, 5))
+    ]
+    for product in products:
+        repo = entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=product,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        entities_list.append((product.name, repo.name))
+    with session:
+        # Delete a random repository
+        shuffle(entities_list)
+        del_entity = entities_list.pop()
+        session.repository.delete(*del_entity)
+        # Check whether others repositories are not touched
+        for product_name, repo_name in entities_list:
+            assert session.repository.search(product_name, repo_name)[0]['Name'] == repo_name
