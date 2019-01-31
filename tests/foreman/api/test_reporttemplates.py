@@ -24,7 +24,7 @@ class ComputeResourceTestCase(APITestCase):
     """Tests for ``katello/api/v2/report_templates``."""
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_create_report(self):
         """Create report template
 
@@ -42,7 +42,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_list_reports(self):
         """List report templates
 
@@ -60,7 +60,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_read_report(self):
         """Read report template
 
@@ -78,7 +78,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_update_report(self):
         """Update report template
 
@@ -96,7 +96,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_delete_report(self):
         """Delete report template
 
@@ -114,7 +114,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_generate_report_nofilter(self):
         """Generate Host Status report
 
@@ -132,7 +132,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_generate_report_filter(self):
         """Generate Host Status report
 
@@ -150,7 +150,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_report_add_userinput(self):
         """Add user input to template
 
@@ -168,7 +168,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_lock_report(self):
         """Lock report template
 
@@ -186,7 +186,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_unlock_report(self):
         """Unlock report template
 
@@ -204,7 +204,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_export_report(self):
         """Export report template
 
@@ -222,7 +222,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_clone_locked_report(self):
         """Clone locked report template
 
@@ -240,7 +240,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_generate_report_sanitized(self):
         """Generate report template where there are values in comma outputted which might brake CSV format
 
@@ -259,7 +259,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_negative_create_report_without_name(self):
         """Try to create a report template with empty name
 
@@ -277,7 +277,7 @@ class ComputeResourceTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed
+    @stubbed()
     def test_negative_delete_locked_report(self):
         """Try to delete a locked report template
 
