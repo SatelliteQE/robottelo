@@ -186,12 +186,13 @@ def original_manifest():
 
 
 @lock_function
-def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API):
+def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API, timeout=None):
     """Upload a manifest with locking, using the requested interface.
 
     :type org_id: int
     :type manifest: robottelo.manifests.Manifest
     :type interface: str
+    :type timeout: int
 
     :returns: the upload result
 
@@ -220,6 +221,12 @@ def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API):
         )
     if manifest is None:
         manifest = clone()
+    if timeout is None:
+        # Set the timeout to 1500 seconds to align with the API timeout.
+        # And as we are in locked state, other functions/tests can try to upload the manifest in
+        # other processes and we do not want to be interrupted by the default configuration
+        # ssh_client timeout.
+        timeout = 1500
     if interface == INTERFACE_API:
         with manifest:
             result = entities.Subscription().upload(
@@ -234,6 +241,6 @@ def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API):
         result = Subscription.upload({
             'file': manifest.filename,
             'organization-id': org_id,
-        })
+        }, timeout=timeout)
 
     return result
