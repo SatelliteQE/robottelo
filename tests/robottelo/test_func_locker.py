@@ -126,7 +126,7 @@ def simple_recursive_combined_function():
     be expected
     """
     with locking_function(simple_recursive_combined_function):
-            pass
+        pass
     return 'I should not be reached'
 
 
