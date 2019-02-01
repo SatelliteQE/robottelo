@@ -90,12 +90,16 @@ def test_positive_end_to_end(session):
             file_handler.write(manifest.content.read())
     with session:
         session.organization.select(org.name)
-        session.subscription.add_manifest(temporary_local_manifest_path)
+        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
+        # the consumer uuid, that will be displayed in flash error messages
+        # Note: this happen only when using clone manifest.
+        session.subscription.add_manifest(temporary_local_manifest_path,
+                                          ignore_error_messages=['404 Not Found'])
         assert session.subscription.has_manifest
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
         assert session.subscription.has_manifest
-        session.subscription.delete_manifest()
+        session.subscription.delete_manifest(ignore_error_messages=['404 Not Found'])
         assert not session.subscription.has_manifest
 
 
