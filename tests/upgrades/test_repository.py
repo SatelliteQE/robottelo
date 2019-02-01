@@ -61,7 +61,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         rake_repo_save = '; repo.save!(validate: false)'
         result = run("echo '{0}{1}{2}'|foreman-rake console".format(rake_repo, rake_username,
                                                                     rake_repo_save))
-        self.assertEqual('true', result[-4:])
+        self.assertIn('true', result)
 
         global_dict = {
             self.__class__.__name__: {'repo_id': custom_repo}
@@ -88,4 +88,4 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         rake_repo = 'repo = Katello::Repository.find_by_id({0})'.format(repo_id)
         rake_username = '; repo.upstream_username'
         result = run("echo '{0}{1}'|foreman-rake console".format(rake_repo, rake_username))
-        self.assertNotEqual('"{0}"'.format(self.upstream_username), result[-11:])
+        self.assertNotIn(self.upstream_username, result)
