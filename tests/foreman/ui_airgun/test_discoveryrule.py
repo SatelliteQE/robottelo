@@ -23,6 +23,7 @@ from nailgun import entities
 
 from robottelo.api.utils import create_discovered_host
 from robottelo.decorators import fixture, run_in_one_thread, tier2
+from robozilla.decorators import skip_if_bug_open
 
 
 @fixture(scope='module')
@@ -217,6 +218,7 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
 
 
 @run_in_one_thread
+@skip_if_bug_open('bugzilla', 1658659)
 @tier2
 def test_positive_list_host_based_on_rule_search_query(
         session, module_org, module_loc, module_discovery_env):

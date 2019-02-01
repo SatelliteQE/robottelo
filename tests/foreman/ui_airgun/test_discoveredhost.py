@@ -15,15 +15,17 @@
 
 :Upstream: No
 """
+import pytest
+
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import configure_provisioning, create_discovered_host
 from robottelo.decorators import (
+    bz_bug_is_open,
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier2,
     tier3,
@@ -84,6 +86,8 @@ def discovered_host():
 
 @fixture(scope='module')
 def module_host_group(module_org, module_loc):
+    if bz_bug_is_open(1658659):
+        pytest.skip('Skipping Hostgroup create and test untill 1658659 fixed.')
     host = entities.Host(organization=module_org, location=module_loc)
     host.create_missing()
     return entities.HostGroup(
@@ -174,7 +178,6 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_bug_open('bugzilla', 1665471)
 @tier2
 @upgrade
 def test_positive_provision_using_quick_host_button(
@@ -248,7 +251,6 @@ def test_positive_update_name(
             'name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1665471)
 @tier2
 @upgrade
 def test_positive_auto_provision_host_with_rule(
