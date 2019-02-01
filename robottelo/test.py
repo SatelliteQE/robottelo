@@ -203,7 +203,7 @@ class TestCase(unittest2.TestCase):
             cls.__module__, cls.__name__))
 
     @classmethod
-    def upload_manifest(cls, org_id, manifest, interface=None):
+    def upload_manifest(cls, org_id, manifest, interface=None, timeout=None):
         """Upload manifest locked using the default TestCase manifest if
         interface not specified.
 
@@ -221,8 +221,11 @@ class TestCase(unittest2.TestCase):
         """
         if interface is None:
             interface = cls._default_interface
+        if timeout is None:
+            # upload the manifest with default ssh client command timeout.
+            timeout = settings.ssh_client.command_timeout
         return manifests.upload_manifest_locked(
-            org_id, manifest, interface=interface)
+            org_id, manifest, interface=interface, timeout=timeout)
 
     def assertNotRaises(self, expected_exception, callableObj=None,
                         expected_value=None, value_handler=None, *args,
