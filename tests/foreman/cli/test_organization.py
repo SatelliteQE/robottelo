@@ -47,6 +47,7 @@ from robottelo.datafactory import (
     valid_org_names_list,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -352,184 +353,85 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org['subnets']), 0)
 
     @tier2
-    def test_positive_add_user_by_name(self):
-        """Add an user to organization by its name
+    def test_positive_add_and_remove_users(self):
+        """Add and remove (admi) user to organization
 
         :id: c35b2e88-a65f-4eea-ba55-89cef59f30be
 
-        :expectedresults: User is added to the org
+        :expectedresults: Users are added and removed from the org
+
+        :steps:
+            1. create and delete user by name
+            2. create and delete user by id
+            3. create and delete admin user by name
+            4. create and delete admin user by id
+
+        :bz: 1395229
 
         :CaseLevel: Integration
         """
         org = make_org()
         user = make_user()
+        admin_user = make_user({'admin': '1'})
+        self.assertEqual(admin_user['admin'], 'yes')
+
+        # add and remove user and admin user by name
         Org.add_user({
             'name': org['name'],
             'user': user['login'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertIn(user['login'], org['users'])
-
-    @tier2
-    def test_positive_add_user_by_id(self):
-        """Add an user to organization by its ID
-
-        :id: 1cd4e912-dd59-4cf7-b1a3-87b130972f8d
-
-        :expectedresults: User is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user()
-        Org.add_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_user_by_id(self):
-        """Remove an user from organization by its ID
-
-        :id: 6e292d5f-3bce-48c5-88d7-2c94f7db51c1
-
-        :expectedresults: The user is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user()
-        Org.add_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        Org.remove_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_user_by_name(self):
-        """Remove an user from organization by its login and organization name
-
-        :id: 98cf1224-750a-449b-8807-638ef07a55e5
-
-        :expectedresults: The user is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user()
         Org.add_user({
             'name': org['name'],
-            'user': user['login'],
+            'user': admin_user['login'],
         })
-        Org.remove_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(user['login'], org['users'])
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(user['login'], org_info['users'],
+                      "Failed to add user by name")
+        self.assertIn(admin_user['login'], org_info['users'],
+                      "Failed to add admin user by name")
+        if not bz_bug_is_open(1395229):
+            Org.remove_user({
+                'name': org['name'],
+                'user': user['login'],
+            })
+            Org.remove_user({
+                'name': org['name'],
+                'user': admin_user['login'],
+            })
+            org_info = Org.info({'name': org['name']})
+            self.assertNotIn(user['login'], org_info['users'],
+                             "Failed to remove user by name")
+            self.assertNotIn(admin_user['login'], org_info['users'],
+                             "Failed to remove admin user by name")
 
-    @tier2
-    def test_positive_add_admin_user_by_id(self):
-        """Add an admin user to an organization by user ID and the organization
-        ID
-
-        :id: 176f1d07-c24c-481d-912e-045ec9cbfa67
-
-        :expectedresults: The user is added to the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
+        # add and remove user and admin user by id
         Org.add_user({
             'id': org['id'],
             'user-id': user['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertIn(user['login'], org['users'])
-
-    @tier2
-    def test_positive_add_admin_user_by_name(self):
-        """Add an admin user to an organization by user login and the
-        organization name
-
-        :id: 31e9ceeb-1ae2-4c95-8b60-c5774e570476
-
-        :expectedresults: The user is added to the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
-        Org.add_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_admin_user_by_id(self):
-        """Remove an admin user from organization by user ID and the
-        organization ID
-
-        :id: 7ecfb7d0-35af-48ba-a460-70da81ade4bd
-
-        :expectedresults: The admin user is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
         Org.add_user({
             'id': org['id'],
-            'user-id': user['id'],
+            'user-id': admin_user['id'],
         })
-        Org.remove_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_admin_user_by_name(self):
-        """Remove an admin user from organization by user login and the
-        organization name
-
-        :id: 41f0d3e6-3b4b-4a3e-b3d1-3126a10ed433
-
-        :expectedresults: The user is added then removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        Org.add_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        Org.remove_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(user['login'], org['users'])
+        org_info = Org.info({'id': org['id']})
+        self.assertIn(user['login'], org_info['users'],
+                      "Failed to add user by id")
+        self.assertIn(admin_user['login'], org_info['users'],
+                      "Failed to add admin user by id")
+        if not bz_bug_is_open(1395229):
+            Org.remove_user({
+                'id': org['id'],
+                'user-id': user['id'],
+            })
+            Org.remove_user({
+                'id': org['id'],
+                'user-id': admin_user['id'],
+            })
+            org_info = Org.info({'id': org['id']})
+            self.assertNotIn(user['login'], org_info['users'],
+                             "Failed to remove user by id")
+            self.assertNotIn(admin_user['login'], org_info['users'],
+                             "Failed to remove admin user by id")
 
     @run_only_on('sat')
     @tier2
