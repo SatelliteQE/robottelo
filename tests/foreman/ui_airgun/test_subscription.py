@@ -45,7 +45,7 @@ from robottelo.decorators import (
 )
 from robottelo.products import RepositoryCollection, RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
-
+import time
 pytestmark = [run_in_one_thread]
 
 if not setting_is_set('fake_manifest'):
@@ -310,3 +310,45 @@ def test_positive_view_vdc_guest_subscription_products(session):
             content_products = session.subscription.content_products(
                 VDC_SUBSCRIPTION_NAME, virt_who=True)
             assert content_products and product_name in content_products
+
+
+@tier2
+def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
+    """Ensures that no column headers from checkboxes show up in the table after
+    unticking everything from selectable customizable column
+
+    :id: 88e140c7-ab4b-4d85-85bd-d3eff12162d7
+
+    :steps:
+        1. Login and go to Content -> Subscription
+        2. Click selectable customizable column icon next to search button
+        3. Iterate through list of checkboxes
+        4. Unchecks all ticked checkboxes
+        5. Verify that the table header column doesn't have any headers from
+           checkboxes
+
+        Note: Table header will always contain 'Select all rows' header in htlm,
+        but will not be displayed in UI
+
+    :expectedresults:
+        1. No column headers show up
+    """
+    checkbox_dict = {
+        'Name': False,
+        'Type': False,
+        'SKU': False,
+        'Contract': False,
+        'Start Date': False,
+        'End Date': False,
+        'Requires Virt-Who': False,
+        'Consumed': False,
+        'Entitlements': False
+    }
+
+    with session:
+        headers = session.subscription.filter_columns(checkbox_dict)
+        assert headers[0] not in list(checkbox_dict)
+        time.sleep(3)
+        checkbox_dict.update((k, True) for k in checkbox_dict)
+        col = session.subscription.filter_columns(checkbox_dict)
+        assert list(col[1:]) == list(checkbox_dict)
