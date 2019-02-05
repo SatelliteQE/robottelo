@@ -1884,7 +1884,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    @skip_if_bug_open('bugzilla', 1658444)
+    @skip_if_bug_open('bugzilla', 1672491)
     def test_positive_synchronize_ostree_repo(self):
         """Synchronize ostree repo
 
@@ -1893,6 +1893,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         :expectedresults: Ostree repository is created and synced
 
         :CaseLevel: Integration
+        :BZ: 1658444, 1672491
         """
         new_repo = self._make_repository({
             u'content-type': u'ostree',
