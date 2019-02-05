@@ -812,104 +812,49 @@ class OrganizationTestCase(CLITestCase):
             "Failed to remove template by id"
         )
 
-    @run_only_on('sat')
     @tier2
-    def test_positive_add_domain_by_name(self):
-        """Add a domain to organization by its name
+    def test_positive_add_and_remove_domains(self):
+        """Add and remove domains to organization
 
         :id: 97359ffe-4ce6-4e44-9e3f-583d3fdebbc8
 
-        :expectedresults: Domain is added to organization
+        :expectedresults: Domains are handled correctly
+
+        :bz: 1395229
+
+        :steps:
+            1. Add and remove domain by name
+            2. Add and remove domain by id
 
         :CaseLevel: Integration
         """
         org = make_org()
-        domain = make_domain()
+        domain_a = make_domain()
+        domain_b = make_domain()
         Org.add_domain({
-            'domain': domain['name'],
+            'domain-id': domain_a['id'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_domain_by_id(self):
-        """Add a domain to organization by its ID
-
-        :id: 33df2dc5-33ea-416d-bf13-f90aaf327e18
-
-        :expectedresults: Domain is added to organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        domain = make_domain()
         Org.add_domain({
-            'domain-id': domain['id'],
+            'domain': domain_b['name'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_domain_by_name(self):
-        """Remove a domain from organization by its name
-
-        :id: 59ab55ab-782b-4ee2-b347-f1a1e37c55aa
-
-        :expectedresults: Domain is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        domain = make_domain()
-        Org.add_domain({
-            'domain': domain['name'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['domains']), 2,
+                         "Failed to add domains")
+        self.assertIn(domain_a['name'], org_info['domains'])
+        self.assertIn(domain_b['name'], org_info['domains'])
         Org.remove_domain({
-            'domain': domain['name'],
+            'domain': domain_a['name'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_domain_by_id(self):
-        """Remove a domain from organization by its ID
-
-        :id: 01ef8a26-e944-4cda-b60a-2b9d86a8051f
-
-        :expectedresults: Domain is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        domain = make_domain()
-        Org.add_domain({
-            'domain-id': domain['id'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
         Org.remove_domain({
-            'domain-id': domain['id'],
+            'domain-id': domain_b['id'],
             'id': org['id'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 0)
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['domains']), 0,
+                         "Failed to remove domains")
 
     @run_only_on('sat')
     @tier2
