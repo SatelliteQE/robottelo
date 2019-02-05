@@ -683,106 +683,53 @@ class OrganizationTestCase(CLITestCase):
         response = LifecycleEnvironment.list(lc_env_attrs)
         self.assertEqual(len(response), 0)
 
-    @run_only_on('sat')
-    @run_in_one_thread
-    @tier2
-    def test_positive_add_capsule_by_name(self):
-        """Add a capsule to organization by its name
-
-        :id: dbf9dd74-3b9e-4124-9468-b0eb978897df
-
-        :expectedresults: Capsule is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        proxy = self._make_proxy()
-        self.addCleanup(org_cleanup, org['id'])
-
-        Org.add_smart_proxy({
-            'name': org['name'],
-            'smart-proxy': proxy['name'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(proxy['name'], org['smart-proxies'])
-
-    @run_only_on('sat')
-    @run_in_one_thread
-    @tier2
-    def test_positive_add_capsule_by_id(self):
-        """Add a capsule to organization by its ID
-
-        :id: 0a64ebbe-d357-4ca8-b19e-86ea0963dc71
-
-        :expectedresults: Capsule is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        proxy = self._make_proxy()
-        self.addCleanup(org_cleanup, org['id'])
-
-        Org.add_smart_proxy({
-            'name': org['name'],
-            'smart-proxy-id': proxy['id'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(proxy['name'], org['smart-proxies'])
-
-    @run_only_on('sat')
     @run_in_one_thread
     @tier2
     @upgrade
-    def test_positive_remove_capsule_by_id(self):
-        """Remove a capsule from organization by its id
+    def test_positive_add_and_remove_capsules(self):
+        """Add and remove a capsule from organization
 
         :id: 71af64ec-5cbb-4dd8-ba90-652e302305ec
 
-        :expectedresults: Capsule is removed from the org
+        :expectedresults: Capsules are handled correctly
+
+        :steps:
+            1. add and remove capsule by ip
+            2. add and remove capsule by name
 
         :CaseLevel: Integration
         """
         org = make_org()
         proxy = self._make_proxy()
         self.addCleanup(org_cleanup, org['id'])
-
         Org.add_smart_proxy({
             'id': org['id'],
             'smart-proxy-id': proxy['id'],
         })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(proxy['name'], org_info['smart-proxies'],
+                      "Failed to add capsule by id")
         Org.remove_smart_proxy({
             'id': org['id'],
             'smart-proxy-id': proxy['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(proxy['name'], org['smart-proxies'])
-
-    @run_only_on('sat')
-    @run_in_one_thread
-    @tier2
-    def test_positive_remove_capsule_by_name(self):
-        """Remove a capsule from organization by its name
-
-        :id: f56eaf46-fef5-4b52-819f-e30e61f0ec4a
-
-        :expectedresults: Capsule is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        proxy = self._make_proxy()
-        self.addCleanup(org_cleanup, org['id'])
-
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(proxy['name'], org_info['smart-proxies'],
+                         "Failed to remove capsule by id")
         Org.add_smart_proxy({
             'name': org['name'],
             'smart-proxy': proxy['name'],
         })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(proxy['name'], org_info['smart-proxies'],
+                      "Failed to add capsule by name")
         Org.remove_smart_proxy({
             'name': org['name'],
             'smart-proxy': proxy['name'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(proxy['name'], org['smart-proxies'])
+        org_info = Org.info({'name': org['name']})
+        self.assertNotIn(proxy['name'], org_info['smart-proxies'],
+                         "Failed to add capsule by name")
 
     @skip_if_bug_open('bugzilla', 1395229)
     @skip_if_bug_open('bugzilla', 1473387)
