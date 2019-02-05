@@ -524,129 +524,68 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertNotIn(hostgroup['name'], org['hostgroups'])
 
-    @run_only_on('sat')
-    @skip_if_not_set('compute_resources')
-    @tier2
-    def test_positive_add_compresource_by_name(self):
-        """Add a compute resource to organization by its name
-
-        :id: 4bc1f281-ef8e-450b-8ef6-f8d11da5324f
-
-        :expectedresults: Compute Resource is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        compute_res = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            )
-        })
-        Org.add_compute_resource({
-            'compute-resource': compute_res['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(org['compute-resources'][0], compute_res['name'])
-
-    @tier2
-    def test_positive_add_compresource_by_id(self):
-        """Add a compute resource to organization by its ID
-
-        :id: 355e20c5-ec04-49f7-a0ae-0864a3fe0f3f
-
-        :expectedresults: Compute Resource is added to the org
-
-        :CaseLevel: Integration
-        """
-        compute_res = make_compute_resource()
-        org = make_org({'compute-resource-ids': compute_res['id']})
-        self.assertEqual(len(org['compute-resources']), 1)
-        self.assertEqual(org['compute-resources'][0], compute_res['name'])
-
-    @tier2
-    def test_positive_add_compresources_by_id(self):
-        """Add multiple compute resources to organization by their IDs
-
-        :id: 65846f05-583b-4914-ad0a-9251ca585af5
-
-        :expectedresults: All compute resources are added to the org
-
-        :CaseLevel: Integration
-        """
-        cr_amount = random.randint(3, 5)
-        resources = [make_compute_resource() for _ in range(cr_amount)]
-        org = make_org({
-            'compute-resource-ids':
-                [resource['id'] for resource in resources],
-        })
-        self.assertEqual(len(org['compute-resources']), cr_amount)
-        for resource in resources:
-            self.assertIn(resource['name'], org['compute-resources'])
-
-    @run_only_on('sat')
     @skip_if_not_set('compute_resources')
     @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     @upgrade
-    def test_positive_remove_compresource_by_id(self):
-        """Remove a compute resource from organization by its ID
+    def test_positive_add_and_remove_compresources(self):
+        """amd and remove a compute resource from organization
 
         :id: 415c14ab-f879-4ed8-9ba7-8af4ada2e277
 
-        :expectedresults: Compute resource is removed from the org
+        :expectedresults: Compute resource are handled as expected
+
+        :bz: 1395229
+
+        :steps:
+            1. Add and remove compute resource by id
+            2. Add and remove compute resource by name
 
         :CaseLevel: Integration
         """
         org = make_org()
-        compute_res = make_compute_resource({
+        compute_res_a = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': u'qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            )
+        })
+        compute_res_b = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': u'qemu+ssh://root@{0}/system'.format(
                 settings.compute_resources.libvirt_hostname
             )
         })
         Org.add_compute_resource({
-            'compute-resource-id': compute_res['id'],
+            'compute-resource-id': compute_res_a['id'],
             'id': org['id'],
-        })
-        Org.remove_compute_resource({
-            'compute-resource-id': compute_res['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(compute_res['name'], org['compute-resources'])
-
-    @run_only_on('sat')
-    @skip_if_not_set('compute_resources')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_compresource_by_name(self):
-        """Remove a compute resource from organization by its name
-
-        :id: 1b1313a8-8326-4b33-8113-17c5cf0d4ffb
-
-        :expectedresults: Compute resource is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        compute_res = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            )
         })
         Org.add_compute_resource({
-            'compute-resource': compute_res['name'],
+            'compute-resource': compute_res_b['name'],
             'name': org['name'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['compute-resources']), 2,
+                         "Failed to add compute resources")
+        Org.remove_compute_resource({
+            'compute-resource-id': compute_res_a['id'],
+            'id': org['id'],
         })
         Org.remove_compute_resource({
-            'compute-resource': compute_res['name'],
+            'compute-resource': compute_res_b['name'],
             'name': org['name'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(compute_res['name'], org['compute-resources'])
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(
+            compute_res_a['name'],
+            org_info['compute-resources'],
+            "Failed to remove cr by id"
+        )
+        self.assertNotIn(
+            compute_res_b['name'],
+            org_info['compute-resources'],
+            "Failed to remove cr by name"
+        )
 
     @run_only_on('sat')
     @tier2
