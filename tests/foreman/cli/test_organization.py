@@ -741,123 +741,22 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_add_template_by_name(self):
-        """Add a provisioning template to organization by its name
+    def test_positive_add_and_remove_templates(self):
+        """Add and remove provisioning templates to organization
 
         :id: bd46a192-488f-4da0-bf47-1f370ae5f55c
 
-        :expectedresults: Template is added to the org
+        :expectedresults: Templates are handled as expected
 
-        :CaseLevel: Integration
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                org = make_org()
-                template = make_template({
-                    'content': gen_string('alpha'),
-                    'name': name,
-                })
-                Org.add_config_template({
-                    'config-template': template['name'],
-                    'name': org['name'],
-                })
-                org = Org.info({'name': org['name']})
-                self.assertIn(
-                    u'{0} ({1})'. format(template['name'], template['type']),
-                    org['templates']
-                )
-
-    @tier2
-    def test_positive_add_template_by_id(self):
-        """Add a provisioning template to organization by its ID
-
-        :id: 4dd119bf-e9e1-4c9a-9b6b-b2c1cc7bc015
-
-        :expectedresults: Template is added to the org
-
-        :CaseLevel: Integration
-        """
-        conf_templ = make_template()
-        org = make_org()
-        Org.add_config_template({
-            'config-template-id': conf_templ['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(
-            u'{0} ({1})'.format(conf_templ['name'], conf_templ['type']),
-            org['templates']
-        )
-
-    @tier2
-    def test_positive_add_templates_by_id(self):
-        """Add multiple provisioning templates to organization by their IDs
-
-        :id: 24cf7c8f-1e3b-4f37-b66d-24e6c125c752
-
-        :expectedresults: All provisioning templates are added to the org
-
-        :CaseLevel: Integration
-        """
-        templates_amount = random.randint(3, 5)
-        templates = [make_template() for _ in range(templates_amount)]
-        org = make_org({
-            'config-template-ids':
-                [template['id'] for template in templates],
-        })
-        self.assertGreaterEqual(len(org['templates']), templates_amount)
-        for template in templates:
-            self.assertIn(
-                u'{0} ({1})'.format(template['name'], template['type']),
-                org['templates']
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_remove_template_by_id(self):
-        """Remove a provisioning template from organization by its ID
-
-        :id: 8f3e05c2-6c0d-48a6-a311-41ad032b7977
-
-        :expectedresults: Template is removed from the org
+        :steps:
+            1. Add and remove template by id
+            2. Add and remove template by name
 
         :CaseLevel: Integration
         """
         org = make_org()
-        template = make_template({'content': gen_string('alpha')})
-        # Add config-template
-        Org.add_config_template({
-            'config-template-id': template['id'],
-            'id': org['id'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
-            result['templates'],
-        )
-        # Remove config-template
-        Org.remove_config_template({
-            'config-template-id': template['id'],
-            'id': org['id'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertNotIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
-            result['templates'],
-        )
 
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_remove_template_by_name(self):
-        """ARemove a provisioning template from organization by its name
-
-        :id: 6db69282-8a0a-40cb-b494-8f555772ca81
-
-        :expectedresults: Template is removed from the org
-
-        :CaseLevel: Integration
-        """
+        # create and remove templates by name
         for name in valid_data_list():
             with self.subTest(name):
                 org = make_org()
@@ -870,21 +769,48 @@ class OrganizationTestCase(CLITestCase):
                     'name': org['name'],
                     'config-template': template['name'],
                 })
-                result = Org.info({'name': org['name']})
+                org_info = Org.info({'name': org['name']})
                 self.assertIn(
                     u'{0} ({1})'. format(template['name'], template['type']),
-                    result['templates'],
+                    org_info['templates'],
+                    "Failed to add template by name"
                 )
                 # Remove config-template
                 Org.remove_config_template({
                     'config-template': template['name'],
                     'name': org['name'],
                 })
-                result = Org.info({'name': org['name']})
+                org_info = Org.info({'name': org['name']})
                 self.assertNotIn(
                     u'{0} ({1})'. format(template['name'], template['type']),
-                    result['templates'],
+                    org_info['templates'],
+                    "Failed to remove template by name"
                 )
+
+        # create and remove templates by id
+        template = make_template({'content': gen_string('alpha')})
+        # Add config-template
+        Org.add_config_template({
+            'config-template-id': template['id'],
+            'id': org['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            org_info['templates'],
+            "Failed to add template by name"
+        )
+        # Remove config-template
+        Org.remove_config_template({
+            'config-template-id': template['id'],
+            'id': org['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            org_info['templates'],
+            "Failed to remove template by id"
+        )
 
     @run_only_on('sat')
     @tier2
