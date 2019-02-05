@@ -51,7 +51,6 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import CLITestCase
-from robozilla.decorators import skip_if_bug_open
 
 
 class ExportDirectoryNotSet(Exception):
@@ -317,6 +316,7 @@ class ContentViewSync(CLITestCase):
         })
         self.importing_repo = make_repository({
             'name': repo,
+            'mirror-on-sync': 'no',
             'download-policy': 'immediate',
             'product-id': self.importing_prod['id']
         })
@@ -346,6 +346,7 @@ class ContentViewSync(CLITestCase):
         cls.exporting_repo_name = gen_string('alpha')
         cls.exporting_repo = make_repository({
             'name': cls.exporting_repo_name,
+            'mirror-on-sync': 'no',
             'download-policy': 'immediate',
             'product-id': product['id']
         })
@@ -385,7 +386,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
@@ -404,7 +406,6 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
 
-    @skip_if_bug_open('bugzilla', 1655239)
     @tier3
     @upgrade
     def test_positive_export_import_redhat_cv(self):
@@ -425,6 +426,8 @@ class ContentViewSync(CLITestCase):
             1. CV version redhat contents has been exported to directory
             2. All The exported redhat contents has been imported in org/satellite
 
+        :bz: 1655239
+
         :CaseLevel: System
         """
         rhel_repo = ContentViewSync._enable_rhel_content(self.exporting_org)
@@ -435,7 +438,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -478,12 +482,13 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         result = ssh.command("tar -t -f {}".format(exported_tar))
-        contents_tar = 'export-{cvv_id}/export-{cvv_id}-repos.tar'.format(
-            cvv_id=self.exporting_cvv_id)
+        contents_tar = 'export-{cv_name}-{cvv_id}/export-{cv_name}-{cvv_id}-repos.tar'.format(
+            cv_name=self.exporting_cv_name, cvv_id=self.exporting_cvv_id)
         self.assertIn(contents_tar, result.stdout)
         cvv_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(cvv_packages) > 0)
@@ -528,7 +533,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': promoted_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
@@ -569,7 +575,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         self.set_importing_org(
             self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
         ContentView.version_import({
@@ -610,7 +617,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
@@ -626,7 +634,8 @@ class ContentViewSync(CLITestCase):
             })
         self.assert_error_msg(
             error,
-            'A CV version already exists with the same major and minor version'
+            "the Content View '{0}' is greater or equal to the version you "
+            "are trying to import".format(self.exporting_cv_name)
         )
 
     @tier1
@@ -653,7 +662,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         importing_org = make_org()
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_import({
@@ -662,7 +672,9 @@ class ContentViewSync(CLITestCase):
             })
         self.assert_error_msg(
             error,
-            'Unable to sync repositories, no library repository found'
+            'Error: The Content View {} is not present on this server, '
+            'please create the Content View and try the import again'.format(
+                self.exporting_cv_name)
         )
 
     @tier1
@@ -689,7 +701,8 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
-        exported_tar = '{0}/export-{1}.tar'.format(self.export_base, self.exporting_cvv_id)
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
         importing_org = make_org()
         make_content_view({
             'name': self.exporting_cv_name,
