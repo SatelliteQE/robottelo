@@ -856,38 +856,18 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org_info['domains']), 0,
                          "Failed to remove domains")
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_lce(self):
-        """Add a lifecycle environment to organization
-
-        :id: 3620eeac-bf4e-4055-a6b4-4da10efbbfa2
-
-        :expectedresults: Lifecycle environment is added to the org
-
-        :CaseLevel: Integration
-        """
-        # Create a lifecycle environment.
-        org_id = make_org()['id']
-        lc_env_name = make_lifecycle_environment(
-            {'organization-id': org_id})['name']
-        # Read back information about the lifecycle environment. Verify the
-        # sanity of that information.
-        response = LifecycleEnvironment.list({
-            'name': lc_env_name,
-            'organization-id': org_id,
-        })
-        self.assertEqual(response[0]['name'], lc_env_name)
-
-    @run_only_on('sat')
     @tier2
     @upgrade
-    def test_positive_remove_lce(self):
+    def test_positive_add_and_remove_lce(self):
         """Remove a lifecycle environment from organization
 
         :id: bfa9198e-6078-4f10-b79a-3d7f51b835fd
 
-        :expectedresults: Lifecycle environment is removed from the org
+        :expectedresults: Lifecycle environment is handled as expected
+
+        :steps:
+            1. create and add lce to org
+            2. remove lce from org
 
         :CaseLevel: Integration
         """
