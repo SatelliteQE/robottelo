@@ -650,94 +650,50 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_add_medium_by_id(self):
-        """Add a medium to organization by its ID
+    def test_positive_add_and_remove_media(self):
+        """Add and remove medium to organization
 
         :id: c2943a81-c8f7-44c4-926b-388055d7c290
 
-        :expectedresults: Medium is added to the org
+        :expectedresults: Media are handled as expected
+
+        :bz: 1395229
+
+        :steps:
+            1. add and remove medium by id
+            2. add and remove medium by name
 
         :CaseLevel: Integration
         """
         org = make_org()
-        medium = make_medium()
+        medium_a = make_medium()
+        medium_b = make_medium()
         Org.add_medium({
             'id': org['id'],
-            'medium-id': medium['id'],
+            'medium-id': medium_a['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertIn(medium['name'], org['installation-media'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_medium_by_name(self):
-        """Add a medium to organization by its name
-
-        :id: dcbaf2bb-ebb9-4430-8584-08b4cad00ad5
-
-        :expectedresults: Medium is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        medium = make_medium()
         Org.add_medium({
             'name': org['name'],
-            'medium': medium['name'],
+            'medium': medium_b['name'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertIn(medium['name'], org['installation-media'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_medium_by_id(self):
-        """Remove a medium from organization by its ID
-
-        :id: 703103d8-f4d4-4070-bd6b-1fd239a92fa5
-
-        :expectedresults: Medium is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        medium = make_medium()
-        Org.add_medium({
-            'id': org['id'],
-            'medium-id': medium['id'],
+        org_info = Org.info({'id': org['id']})
+        self.assertIn(medium_a['name'], org_info['installation-media'],
+                      "Failed to add medium by id")
+        self.assertIn(medium_b['name'], org_info['installation-media'],
+                      "Failed to add medium by name")
+        Org.remove_medium({
+            'name': org['name'],
+            'medium': medium_a['name'],
         })
         Org.remove_medium({
             'id': org['id'],
-            'medium-id': medium['id'],
+            'medium-id': medium_b['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(medium['name'], org['installation-media'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_medium_by_name(self):
-        """Remove a medium from organization by its name
-
-        :id: feb6c092-3459-496d-a403-69b540ba469a
-
-        :expectedresults: Medium is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        medium = make_medium()
-        Org.add_medium({
-            'name': org['name'],
-            'medium': medium['name'],
-        })
-        Org.remove_medium({
-            'name': org['name'],
-            'medium': medium['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(medium['name'], org['installation-media'])
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(medium_a['name'], org_info['installation-media'],
+                         "Failed to remove medium by name")
+        self.assertNotIn(medium_b['name'], org_info['installation-media'],
+                         "Failed to remove medium by id")
 
     @run_only_on('sat')
     @tier2
