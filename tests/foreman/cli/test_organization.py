@@ -433,96 +433,51 @@ class OrganizationTestCase(CLITestCase):
             self.assertNotIn(admin_user['login'], org_info['users'],
                              "Failed to remove admin user by id")
 
-    @run_only_on('sat')
     @tier2
-    def test_positive_add_hostgroup_by_id(self):
-        """Add a hostgroup to organization by its ID
-
-        :id: 4edbb371-fbb0-4918-b4ac-afa3ab30cee0
-
-        :expectedresults: Hostgroup is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup-id': hostgroup['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_hostgroup_by_name(self):
-        """Add a hostgroup to organization by its name
-
-        :id: 9cb2ef26-a98a-43a4-977c-d97c82509508
-
-        :expectedresults: Hostgroup is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup': hostgroup['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_hostgroup_by_name(self):
-        """Remove a hostgroup from an organization by its name
-
-        :id: 8b2804c9-cefe-4a8a-b3a4-12ea131cdef0
-
-        :expectedresults: Hostgroup is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup': hostgroup['name'],
-            'name': org['name'],
-        })
-        Org.remove_hostgroup({
-            'hostgroup': hostgroup['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_hostgroup_by_id(self):
-        """Remove a hostgroup from an organization by its ID
+    def test_positive_add_and_remove_hostgroups(self):
+        """add and remove a hostgroup from an organization
 
         :id: 34e2c7c8-dc20-4709-a5a9-83c0dee9d84d
 
-        :expectedresults: Hostgroup is removed from the org
+        :expectedresults: Hostgroups are handled as expected
+
+        :bz: 1395229
+
+        :steps:
+            1. add and remove hostgroup by name
+            2. add and remove hostgroup by id
 
         :CaseLevel: Integration
         """
         org = make_org()
-        hostgroup = make_hostgroup()
+        hostgroup_a = make_hostgroup()
+        hostgroup_b = make_hostgroup()
         Org.add_hostgroup({
-            'hostgroup-id': hostgroup['id'],
+            'hostgroup-id': hostgroup_a['id'],
+            'id': org['id'],
+        })
+        Org.add_hostgroup({
+            'hostgroup': hostgroup_b['name'],
+            'name': org['name'],
+        })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(hostgroup_a['name'], org_info['hostgroups'],
+                      "Failed to add hostgroup by id")
+        self.assertIn(hostgroup_b['name'], org_info['hostgroups'],
+                      "Failed to add hostgroup by name")
+        Org.remove_hostgroup({
+            'hostgroup-id': hostgroup_b['id'],
             'id': org['id'],
         })
         Org.remove_hostgroup({
-            'hostgroup-id': hostgroup['id'],
-            'id': org['id'],
+            'hostgroup': hostgroup_a['name'],
+            'name': org['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(hostgroup['name'], org['hostgroups'])
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(hostgroup_a['name'], org_info['hostgroups'],
+                         "Failed to remove hostgroup by name")
+        self.assertNotIn(hostgroup_b['name'], org_info['hostgroups'],
+                         "Failed to remove hostgroup by id")
 
     @skip_if_not_set('compute_resources')
     @skip_if_bug_open('bugzilla', 1395229)
