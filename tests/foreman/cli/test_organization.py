@@ -253,104 +253,48 @@ class OrganizationTestCase(CLITestCase):
             self.assertTrue(len(result_list), 1)
             self.assertEqual(result_list[0]['name'], org['name'])
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_subnet_by_name(self):
-        """Add a subnet to organization by its name
-
-        :id: 1f464eba-d024-4f37-87c2-5cfff1ac1e23
-
-        :expectedresults: Subnet is added to the org
-
-        :CaseLevel: Integration
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                org = make_org()
-                new_subnet = make_subnet({'name': name})
-                Org.add_subnet({
-                    'name': org['name'],
-                    'subnet': new_subnet['name'],
-                })
-                org = Org.info({'id': org['id']})
-                self.assertIn(name, org['subnets'][0])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_subnet_by_id(self):
-        """Add a subnet to organization by its ID
-
-        :id: f65e4264-4aad-42f8-b74f-933741d9f7ab
-
-        :expectedresults: Subnet is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        new_subnet = make_subnet()
-        Org.add_subnet({
-            'name': org['name'],
-            'subnet-id': new_subnet['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(new_subnet['name'], org['subnets'][0])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     @upgrade
-    def test_positive_remove_subnet_by_name(self):
-        """Remove a subnet from organization by its name
+    def test_positive_add_and_remove_subnets(self):
+        """add and remove a subnet from organization
 
         :id: adb5310b-76c5-4aca-8220-fdf0fe605cb0
 
-        :expectedresults: Subnet is removed from the org
+        :bz:
+            1. Add and remove subnet by name
+            2. Add and remove subnet by id
+
+        :expectedresults: Subnets are handled as expected
+
+        :bz: 1395229
 
         :CaseLevel: Integration
         """
         org = make_org()
-        subnet = make_subnet()
+        subnet_a = make_subnet()
+        subnet_b = make_subnet()
         Org.add_subnet({
             'name': org['name'],
-            'subnet': subnet['name'],
+            'subnet': subnet_a['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 1)
-        self.assertIn(subnet['name'], org['subnets'][0])
-        Org.remove_subnet({
-            'name': org['name'],
-            'subnet': subnet['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_subnet_by_id(self):
-        """Remove a subnet from organization by its ID
-
-        :id: 4868ef18-983a-48b4-940a-e1b55f01f0b6
-
-        :expectedresults: Subnet is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        subnet = make_subnet()
         Org.add_subnet({
             'name': org['name'],
-            'subnet': subnet['name'],
+            'subnet-id': subnet_b['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 1)
-        self.assertIn(subnet['name'], org['subnets'][0])
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['subnets']), 2,
+                         "Failed to add subnets")
         Org.remove_subnet({
             'name': org['name'],
-            'subnet-id': subnet['id'],
+            'subnet': subnet_a['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 0)
+        Org.remove_subnet({
+            'name': org['name'],
+            'subnet-id': subnet_b['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['subnets']), 0,
+                         "Failed to remove subnets")
 
     @tier2
     def test_positive_add_and_remove_users(self):
