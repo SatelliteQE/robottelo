@@ -784,110 +784,52 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'name': org['name']})
         self.assertNotIn(proxy['name'], org['smart-proxies'])
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_location_by_id(self):
-        """Add a location to organization by its id
-
-        :id: 83848f18-2cca-457c-af57-e6249386c81c
-
-        :expectedresults: Location is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location-id': loc['id'],
-            'name': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_location_by_name(self):
-        """Add a location to organization by its name
-
-        :id: f39522e8-5280-429e-b954-79153c2c73c2
-
-        :expectedresults: Location is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location': loc['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
-
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
     @skip_if_bug_open('bugzilla', 1473387)
     @tier2
     @upgrade
-    def test_positive_remove_location_by_id(self):
-        """Remove a location from organization by its id
+    def test_positive_add_and_remove_locations(self):
+        """Add and remove a locations from organization
 
         :id: 37b63e5c-8fd5-439c-9540-972b597b590a
 
-        :expectedresults: Location is removed from the org
+        :expectedresults: Locations are handled
 
         :BZ: 1395229, 1473387
+
+        :steps:
+            1. add and remove locations by name
+            2. add and remove locations by id
 
         :CaseLevel: Integration
         """
         org = make_org()
-        loc = make_location()
+        loc_a = make_location()
+        loc_b = make_location()
         Org.add_location({
-            'location-id': loc['id'],
+            'location-id': loc_a['id'],
             'name': org['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
-        Org.remove_location({
-            'location-id': loc['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @skip_if_bug_open('bugzilla', 1473387)
-    @tier2
-    def test_positive_remove_location_by_name(self):
-        """Remove a location from organization by its name
-
-        :id: 35770afa-1623-448c-af4f-a702851063db
-
-        :expectedresults: Location is removed from the org
-
-        :BZ: 1395229, 1473387
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
         Org.add_location({
-            'location': loc['name'],
+            'location': loc_b['name'],
             'name': org['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['locations']), 2,
+                         "Failed to add locations")
+        self.assertIn(loc_a['name'], org_info['locations'])
+        self.assertIn(loc_b['name'], org_info['locations'])
         Org.remove_location({
-            'location': loc['name'],
+            'location-id': loc_a['id'],
             'id': org['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 0)
+        Org.remove_location({
+            'location': loc_b['name'],
+            'id': org['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn('locations', org_info,
+                         "Failed to remove locations")
 
     @run_only_on('sat')
     @tier1
