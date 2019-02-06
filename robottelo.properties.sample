@@ -154,7 +154,10 @@ ssh_key=
 
 # Fake manifest testing.
 # [fake_manifest]
-# URL of the base manifest
+# Comma-separated list of urls for multiple manifessts
+# e.g. url=name1=http://url/1,name2=http://url/2,...
+# url=http://url is supported for backward compatibility and is equal to:
+# url=default=http://url
 # url=http://example.org/valid-redhat-manifest.zip
 # URL of the key file
 # key_url=http://example.org/fake_manifest.key
