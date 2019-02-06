@@ -493,8 +493,14 @@ class FakeManifestSettings(FeatureSettings):
             'fake_manifest', 'cert_url')
         self.key_url = reader.get(
             'fake_manifest', 'key_url')
-        self.url = reader.get(
-            'fake_manifest', 'url')
+        url = {}
+        try:
+            url = reader.get(
+                'fake_manifest', 'url', cast=dict)
+        except ValueError:
+            url['default'] = reader.get(
+                'fake_manifest', 'url')
+        self.url = url
 
     def validate(self):
         """Validate fake manifest settings."""
@@ -503,6 +509,11 @@ class FakeManifestSettings(FeatureSettings):
             validation_errors.append(
                 'All [fake_manifest] cert_url, key_url, url options must '
                 'be provided.'
+            )
+        if type(self.url) == dict and self.url.get('default') is None:
+            validation_errors.append(
+                'URL with key "default" is required if multiple URLs '
+                'are provided'
             )
         return validation_errors
 
