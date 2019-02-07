@@ -44,6 +44,9 @@ from robottelo.decorators import (
 pytestmark = [run_in_one_thread]
 
 
+EXTERNAL_GROUP_NAME = 'foobargroup'
+
+
 @fixture(scope='module')
 def ldap_data():
     return {
@@ -347,12 +350,12 @@ def test_positive_add_katello_role(
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [katello_role],
-            'external_groups.name': 'foobargroup',
+            'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
-        session.usergroup.refresh_external_group(ldap_usergroup_name, 'foobargroup')
+        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
     with Session(
             test_name,
             ldap_data['ldap_user_name'],
@@ -365,7 +368,7 @@ def test_positive_add_katello_role(
                 session.browser.refresh()
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name)['current_user']
+        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
         assert current_user == ldap_data['ldap_user_name']
 
 
@@ -409,7 +412,7 @@ def test_positive_update_external_roles(
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [foreman_role],
-            'external_groups.name': 'foobargroup',
+            'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
@@ -421,7 +424,7 @@ def test_positive_update_external_roles(
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name)['current_user']
+            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert current_user == ldap_data['ldap_user_name']
         session.role.create({'name': katello_role})
         session.filter.create(
@@ -433,7 +436,7 @@ def test_positive_update_external_roles(
         )
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.assigned': [katello_role]})
-        session.usergroup.refresh_external_group(ldap_usergroup_name, 'foobargroup')
+        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
     with Session(
             test_name,
             ldap_data['ldap_user_name'],
@@ -446,7 +449,7 @@ def test_positive_update_external_roles(
                 session.browser.refresh()
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name)['current_user']
+        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
         assert current_user == ldap_data['ldap_user_name']
 
 
@@ -488,7 +491,7 @@ def test_positive_delete_external_roles(
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [foreman_role],
-            'external_groups.name': 'foobargroup',
+            'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
@@ -502,7 +505,7 @@ def test_positive_delete_external_roles(
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name)['current_user']
+            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert current_user == ldap_data['ldap_user_name']
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role]})
@@ -558,7 +561,7 @@ def test_positive_update_external_user_roles(
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [foreman_role],
-            'external_groups.name': 'foobargroup',
+            'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
@@ -570,7 +573,7 @@ def test_positive_update_external_user_roles(
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name)['current_user']
+            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert current_user == ldap_data['ldap_user_name']
         session.role.create({'name': katello_role})
         session.filter.create(
@@ -594,7 +597,7 @@ def test_positive_update_external_user_roles(
                 session.browser.refresh()
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name)['current_user']
+        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
         assert current_user == ldap_data['ldap_user_name']
 
 
@@ -627,7 +630,7 @@ def test_positive_add_admin_role_with_org_loc(
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.admin': True,
-            'external_groups.name': 'foobargroup',
+            'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
@@ -639,7 +642,7 @@ def test_positive_add_admin_role_with_org_loc(
     ) as session:
         session.location.create({'name': location_name})
         assert session.location.search(location_name)[0]['Name'] == location_name
-        location = session.location.read(location_name)
+        location = session.location.read(location_name, ['current_user', 'primary'])
         assert location['current_user'] == ldap_data['ldap_user_name']
         assert location['primary']['name'] == location_name
         if bz_bug_is_open(1652938):
@@ -650,7 +653,7 @@ def test_positive_add_admin_role_with_org_loc(
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        ak = session.activationkey.read(ak_name)
+        ak = session.activationkey.read(ak_name, 'details.name')
         assert ak['details']['name'] == ak_name
 
 
@@ -690,12 +693,12 @@ def test_positive_add_katello_role_with_org_loc(
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [katello_role.name],
-            'external_groups.name': 'foobargroup',
+            'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
-        session.usergroup.refresh_external_group(ldap_usergroup_name, 'foobargroup')
+        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
         with Session(
                 test_name,
                 ldap_data['ldap_user_name'],
@@ -707,7 +710,7 @@ def test_positive_add_katello_role_with_org_loc(
                 except NoSuchElementException:
                     ldapsession.browser.refresh()
             ldapsession.hostgroup.create({'host_group.name': name})
-        hostgroup = session.hostgroup.read(name)
+        hostgroup = session.hostgroup.read(name, ['organizations', 'locations'])
         assert len(hostgroup['organizations']['resources']['assigned']) == 1
         assert module_org.name in hostgroup['organizations']['resources']['assigned']
         assert len(hostgroup['locations']['resources']['assigned']) == 1
