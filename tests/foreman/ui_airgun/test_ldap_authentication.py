@@ -21,6 +21,7 @@ from widgetastic.exceptions import NoSuchElementException
 from airgun.session import Session
 from nailgun import entities
 
+from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
@@ -651,3 +652,63 @@ def test_positive_add_admin_role_with_org_loc(
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         ak = session.activationkey.read(ak_name)
         assert ak['details']['name'] == ak_name
+
+
+@tier2
+def test_positive_add_katello_role_with_org_loc(
+        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
+        module_org, module_loc):
+    """Associate katello roles to User Group with org and loc set.
+    [belonging to external AD User Group.]
+
+    :id: a2ebd4de-eb0a-47da-81e8-00942eedcbf6
+
+    :setup: LDAP Auth Source should be created with Org and Location
+            Associated.
+
+    :Steps:
+
+        1. Create an UserGroup.
+        2. Assign some foreman roles to UserGroup.
+        3. Create and associate an External AD UserGroup.
+
+    :expectedresults: Whether a User belonging to User Group is able to
+        access katello entities as per roles, with the associated org and
+        loc in LDAP Auth source page as the context set.
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    user_permissions = {
+        'Hostgroup': PERMISSIONS['Hostgroup'],
+        'Location': ['assign_locations'],
+        'Organization': ['assign_organizations'],
+    }
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
+    with session:
+        session.usergroup.create({
+            'usergroup.name': ldap_usergroup_name,
+            'roles.resources.assigned': [katello_role.name],
+            'external_groups.name': 'foobargroup',
+            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+        })
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.usergroup.refresh_external_group(ldap_usergroup_name, 'foobargroup')
+        with Session(
+                test_name,
+                ldap_data['ldap_user_name'],
+                ldap_data['ldap_user_passwd'],
+        ) as ldapsession:
+            if bz_bug_is_open(1652938):
+                try:
+                    ldapsession.hostgroup.search('')
+                except NoSuchElementException:
+                    ldapsession.browser.refresh()
+            ldapsession.hostgroup.create({'host_group.name': name})
+        hostgroup = session.hostgroup.read(name)
+        assert len(hostgroup['organizations']['resources']['assigned']) == 1
+        assert module_org.name in hostgroup['organizations']['resources']['assigned']
+        assert len(hostgroup['locations']['resources']['assigned']) == 1
+        assert module_loc.name in hostgroup['locations']['resources']['assigned']

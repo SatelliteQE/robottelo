@@ -220,6 +220,31 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    def test_positive_delete_external(self):
+        """Delete External AD User Group
+
+        :id: 364e9ddc-4ab7-46a9-b52c-8159aab7f811
+
+        :Steps:
+
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD.
+            4. Delete the External AD UserGroup.
+               Note:- Deletion as of sat6.1 is possible only via CLI and not
+               via UI.
+
+        :expectedresults: Deletion of External AD User Group should be possible
+            and the user should not be able to perform the roles that were
+            assigned to it at the UserGroup level.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier2
     def test_positive_add_external_user(self):
         """New user added to UserGroup at AD side inherits roles in Sat6
 
