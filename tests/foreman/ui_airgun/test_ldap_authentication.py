@@ -24,11 +24,9 @@ from nailgun import entities
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import (
-    ANY_CONTEXT,
     LDAP_ATTR,
     LDAP_SERVER_TYPE,
     PERMISSIONS,
-    PERMISSIONS_UI,
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
@@ -336,20 +334,14 @@ def test_positive_add_katello_role(
 
     :CaseLevel: Integration
     """
-    katello_role = gen_string('alpha')
     ak_name = gen_string('alpha')
+    user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
     with session:
-        session.role.create({'name': katello_role})
-        session.filter.create(
-            katello_role,
-            {
-                'resource_type': 'Activation Keys',
-                'permission.assigned': PERMISSIONS_UI['Activation Keys'],
-            }
-        )
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [katello_role],
+            'roles.resources.assigned': [katello_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
@@ -396,22 +388,18 @@ def test_positive_update_external_roles(
 
     :CaseLevel: Integration
     """
-    foreman_role = gen_string('alpha')
-    katello_role = gen_string('alpha')
     ak_name = gen_string('alpha')
     location_name = gen_string('alpha')
+    foreman_role = entities.Role().create()
+    katello_role = entities.Role().create()
+    foreman_permissions = {'Location': PERMISSIONS['Location']}
+    katello_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    create_role_permissions(foreman_role, foreman_permissions)
+    create_role_permissions(katello_role, katello_permissions)
     with session:
-        session.role.create({'name': foreman_role})
-        session.filter.create(
-            foreman_role,
-            {
-                'resource_type': 'Location',
-                'permission.assigned': PERMISSIONS['Location'],
-            }
-        )
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role],
+            'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
@@ -426,16 +414,8 @@ def test_positive_update_external_roles(
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert current_user == ldap_data['ldap_user_name']
-        session.role.create({'name': katello_role})
-        session.filter.create(
-            katello_role,
-            {
-                'resource_type': 'Activation Keys',
-                'permission.assigned': PERMISSIONS_UI['Activation Keys'],
-            }
-        )
         session.usergroup.update(
-            ldap_usergroup_name, {'roles.resources.assigned': [katello_role]})
+            ldap_usergroup_name, {'roles.resources.assigned': [katello_role.name]})
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
     with Session(
             test_name,
@@ -477,26 +457,18 @@ def test_positive_delete_external_roles(
 
     :CaseLevel: Integration
     """
-    foreman_role = gen_string('alpha')
     location_name = gen_string('alpha')
+    foreman_role = entities.Role().create()
+    foreman_permissions = {'Location': PERMISSIONS['Location']}
+    create_role_permissions(foreman_role, foreman_permissions)
     with session:
-        session.role.create({'name': foreman_role})
-        session.filter.create(
-            foreman_role,
-            {
-                'resource_type': 'Location',
-                'permission.assigned': PERMISSIONS['Location'],
-            }
-        )
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role],
+            'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.organization.select(ANY_CONTEXT['org'])
-        session.location.select(ANY_CONTEXT['location'])
         session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
         with Session(
                 test_name,
@@ -508,7 +480,7 @@ def test_positive_delete_external_roles(
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert current_user == ldap_data['ldap_user_name']
         session.usergroup.update(
-            ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role]})
+            ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]})
     with Session(
             test_name,
             ldap_data['ldap_user_name'],
@@ -545,22 +517,18 @@ def test_positive_update_external_user_roles(
 
     :CaseLevel: Integration
     """
-    foreman_role = gen_string('alpha')
-    katello_role = gen_string('alpha')
     ak_name = gen_string('alpha')
     location_name = gen_string('alpha')
+    foreman_role = entities.Role().create()
+    katello_role = entities.Role().create()
+    foreman_permissions = {'Location': PERMISSIONS['Location']}
+    katello_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    create_role_permissions(foreman_role, foreman_permissions)
+    create_role_permissions(katello_role, katello_permissions)
     with session:
-        session.role.create({'name': foreman_role})
-        session.filter.create(
-            foreman_role,
-            {
-                'resource_type': 'Location',
-                'permission.assigned': PERMISSIONS['Location'],
-            }
-        )
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role],
+            'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': 'LDAP-' + auth_source.name,
         })
@@ -575,16 +543,8 @@ def test_positive_update_external_user_roles(
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert current_user == ldap_data['ldap_user_name']
-        session.role.create({'name': katello_role})
-        session.filter.create(
-            katello_role,
-            {
-                'resource_type': 'Activation Keys',
-                'permission.assigned': PERMISSIONS_UI['Activation Keys'],
-            }
-        )
         session.user.update(
-            ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role]})
+            ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]})
     with Session(
             test_name,
             ldap_data['ldap_user_name'],
