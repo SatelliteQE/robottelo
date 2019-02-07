@@ -117,23 +117,46 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert template['type']['snippet']
         assert module_org.name in template['organizations']['resources']['assigned']
         assert module_loc.name in template['locations']['resources']['assigned']
-        for index, template_input in enumerate(template_inputs):
-            # Normalize the expected template input
-            expected_template_input = {key: value for key, value in template_input.items()
-                                       if not key.startswith('input_content.')}
-            expected_template_input['input_content'] = {}
-            for key, value in template_input.items():
-                if key.startswith('input_content.'):
-                    expected_template_input['input_content'][key.split('.')[1]] = value
-            assert template['inputs'][index] == expected_template_input
+        assert len(template['inputs']) == 3
+        assert template['inputs'][0]['name'] == template_inputs[0]['name']
+        assert template['inputs'][0]['required'] == template_inputs[0]['required']
+        assert template['inputs'][0]['input_type'] == template_inputs[0]['input_type']
+        assert (template['inputs'][0]['input_content']['puppet_class_name']
+                == template_inputs[0]['input_content.puppet_class_name'])
+        assert (template['inputs'][0]['input_content']['puppet_parameter_name']
+                == template_inputs[0]['input_content.puppet_parameter_name'])
+        assert (template['inputs'][0]['input_content']['description']
+                == template_inputs[0]['input_content.description'])
+        assert template['inputs'][1]['name'] == template_inputs[1]['name']
+        assert template['inputs'][1]['required'] == template_inputs[1]['required']
+        assert template['inputs'][1]['input_type'] == template_inputs[1]['input_type']
+        assert (template['inputs'][1]['input_content']['fact_name']
+                == template_inputs[1]['input_content.fact_name'])
+        assert (template['inputs'][1]['input_content']['description']
+                == template_inputs[1]['input_content.description'])
+        assert template['inputs'][2]['name'] == template_inputs[2]['name']
+        assert template['inputs'][2]['required'] == template_inputs[2]['required']
+        assert template['inputs'][2]['input_type'] == template_inputs[2]['input_type']
+        assert (template['inputs'][2]['input_content']['options']
+                == template_inputs[2]['input_content.options'])
+        assert (template['inputs'][2]['input_content']['advanced']
+                == template_inputs[2]['input_content.advanced'])
+        assert (template['inputs'][2]['input_content']['description']
+                == template_inputs[2]['input_content.description'])
 
-        for index, expected_job_foreign_input_set in enumerate(job_foreign_input_sets):
-            actual_job_foreign_input_set = {
-                key: value for key, value in template['job']['foreign_input_sets'][index].items()
-                if key in expected_job_foreign_input_set
-            }
-            assert actual_job_foreign_input_set == expected_job_foreign_input_set
-
+        assert len(template['job']['foreign_input_sets']) == 2
+        assert (template['job']['foreign_input_sets'][0]['target_template']
+                == job_foreign_input_sets[0]['target_template'])
+        assert (template['job']['foreign_input_sets'][0]['include_all']
+                == job_foreign_input_sets[0]['include_all'])
+        assert (template['job']['foreign_input_sets'][0]['exclude']
+                == job_foreign_input_sets[0]['exclude'])
+        assert (template['job']['foreign_input_sets'][1]['target_template']
+                == job_foreign_input_sets[1]['target_template'])
+        assert (template['job']['foreign_input_sets'][1]['include_all']
+                == job_foreign_input_sets[1]['include_all'])
+        assert (template['job']['foreign_input_sets'][1]['include']
+                == job_foreign_input_sets[1]['include'])
         template_values = session.jobtemplate.read(
             template_name,
             editor_view_option='Preview',

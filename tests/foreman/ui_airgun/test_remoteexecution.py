@@ -15,6 +15,7 @@
 :Upstream: No
 """
 import datetime
+import time
 
 from nailgun import entities
 
@@ -24,6 +25,7 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier3, upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
+from wait_for import wait_for
 
 
 def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
@@ -32,7 +34,7 @@ def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
     :param VirtualMachine vm_client: where vm_client is VirtualMachine instance.
     :param str org_label: The organization label.
     :param int subnet: (Optioanl) Nailgun subnet entity id, to be used by the vm_client host.
-    :param bool by_ip: Whether remote execution will be affected by ip.
+    :param bool by_ip: Whether remote execution will use ip or host name to access server.
     """
     vm_client.install_katello_ca()
     vm_client.register_contenthost(org_label, lce='Library')
@@ -221,7 +223,7 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
 
     :CaseLevel: System
     """
-    job_time = 180
+    job_time = 5 * 60
     hostname = module_vm_client_by_ip.hostname
     with session:
         plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
@@ -235,8 +237,39 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
                 'schedule': 'Schedule future execution',
                 'schedule_content.start_at': plan_time.strftime("%Y-%m-%d %H:%M"),
             },
-            timeout=job_time
+            wait_for_results=False,
         )
+        # Note that to create this host scheduled job we spent some time from that plan_time, as it
+        # was calculated before creating the job
+        job_left_time = (plan_time - datetime.datetime.now()).total_seconds()
+        # assert that we have time left to wait, otherwise we have to use more job time,
+        # the job_time must be significantly greater than job creation time.
+        assert job_left_time > 0
+        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
+        assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
+        # sleep 3/4 of the left time
+        time.sleep(job_left_time * 3/4)
+        job_status = session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')
+        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
+        assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
+        # recalculate the job left time to be more accurate
+        job_left_time = (plan_time - datetime.datetime.now()).total_seconds()
+        # the last read time should not take more than 1/4 of the last left time
+        assert job_left_time > 0
+        # sleep the rest the job left time and ensure that the host job status is "success"
+        # but as we will be at the exact launch time and to let enough time to the UI to be
+        # notified, wait for additional 20 seconds (note that the UI event scheduler has a 10
+        # second period)
+        time.sleep(job_left_time + 20)
+        # after this last sleep the job should be started but may be in state running as we must be
+        # at the launch time limits, wait the job to exit the "running" state.
+        wait_for(
+            lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
+                        'overview']['hosts_table'][0]['Status'] != 'running',
+            timeout=20,
+            delay=1,
+        )
+        job_status = session.jobinvocation.read('Run ls', hostname, 'overview')
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
