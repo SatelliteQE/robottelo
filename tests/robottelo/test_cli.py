@@ -254,7 +254,7 @@ class BaseCliTestCase(unittest2.TestCase):
             self, construct, execute, base_method, cmd_sub,
             ignore_stderr=False, **base_method_kwargs):
         """Asssert Base class method successfully executed """
-        self.assertEquals(
+        self.assertEqual(
             execute.return_value,
             base_method(**base_method_kwargs)
         )
@@ -393,7 +393,7 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_list_with_default_per_page(self, construct, execute):
         """Check list method set per_page as 1000 by default"""
-        self.assertEquals(
+        self.assertEqual(
             execute.return_value,
             Base.list(options={'organization-id': 1})
         )
@@ -477,9 +477,9 @@ class CLIErrorTests(unittest2.TestCase):
     """Tests for the CLIError cli class"""
 
     def test_error_msg_is_exposed(self):
-        """Check if message error is exposed to assertRaisesRegexp"""
+        """Check if message error is exposed to assertRaisesRegex"""
         msg = u'organization-id option is required for Foo.create'
-        with self.assertRaisesRegexp(CLIError, msg):
+        with self.assertRaisesRegex(CLIError, msg):
             raise CLIError(msg)
 
 
@@ -495,16 +495,16 @@ class CLIBaseErrorTestCase(unittest2.TestCase):
         self.assertEqual(error.message, error.msg)
 
     def test_return_code_is_exposed(self):
-        """Check if return_code is exposed to assertRaisesRegexp"""
-        with self.assertRaisesRegexp(CLIBaseError, u'1'):
+        """Check if return_code is exposed to assertRaisesRegex"""
+        with self.assertRaisesRegex(CLIBaseError, u'1'):
             raise CLIBaseError(1, u'stderr', u'msg')
 
     def test_stderr_is_exposed(self):
-        """Check if stderr is exposed to assertRaisesRegexp"""
-        with self.assertRaisesRegexp(CLIBaseError, u'stderr'):
+        """Check if stderr is exposed to assertRaisesRegex"""
+        with self.assertRaisesRegex(CLIBaseError, u'stderr'):
             raise CLIBaseError(1, u'stderr', u'msg')
 
     def test_message_is_exposed(self):
-        """Check if message is exposed to assertRaisesRegexp"""
-        with self.assertRaisesRegexp(CLIBaseError, u'msg'):
+        """Check if message is exposed to assertRaisesRegex"""
+        with self.assertRaisesRegex(CLIBaseError, u'msg'):
             raise CLIBaseError(1, u'stderr', u'msg')
