@@ -457,7 +457,7 @@ def is_ssh_pub_key(key):
 
     # 2) The second part (key string) should be a valid base64
     try:
-        base64.decodestring(key_string.encode('ascii'))
+        base64.decodebytes(key_string.encode('ascii'))
     except base64.binascii.Error:
         return False
 
