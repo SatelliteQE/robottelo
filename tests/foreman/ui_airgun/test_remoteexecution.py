@@ -256,16 +256,20 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         job_left_time = (plan_time - datetime.datetime.now()).total_seconds()
         # the last read time should not take more than 1/4 of the last left time
         assert job_left_time > 0
-        # sleep the rest the job left time and ensure that the host job status is "success"
-        # but as we will be at the exact launch time and to let enough time to the UI to be
-        # notified, wait for additional 20 seconds (note that the UI event scheduler has a 10
-        # second period)
-        time.sleep(job_left_time + 20)
-        # after this last sleep the job should be started but may be in state running as we must be
-        # at the launch time limits, wait the job to exit the "running" state.
+        # sleep the rest the job left time
+        time.sleep(job_left_time)
+        # after this last sleep we should be at the exact plan_time
+        # wait the job to change status to "running"
         wait_for(
             lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
-                        'overview']['hosts_table'][0]['Status'] != 'running',
+                        'overview']['hosts_table'][0]['Status'] == 'running',
+            timeout=20,
+            delay=1,
+        )
+        # wait the job to change status to "success"
+        wait_for(
+            lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
+                        'overview']['hosts_table'][0]['Status'] == 'success',
             timeout=20,
             delay=1,
         )
