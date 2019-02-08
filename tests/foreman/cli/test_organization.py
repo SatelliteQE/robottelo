@@ -298,7 +298,7 @@ class OrganizationTestCase(CLITestCase):
 
     @tier2
     def test_positive_add_and_remove_users(self):
-        """Add and remove (admi) user to organization
+        """Add and remove (admin) user to organization
 
         :id: c35b2e88-a65f-4eea-ba55-89cef59f30be
 
@@ -428,7 +428,7 @@ class OrganizationTestCase(CLITestCase):
     @tier2
     @upgrade
     def test_positive_add_and_remove_compresources(self):
-        """amd and remove a compute resource from organization
+        """Add and remove a compute resource from organization
 
         :id: 415c14ab-f879-4ed8-9ba7-8af4ada2e277
 
