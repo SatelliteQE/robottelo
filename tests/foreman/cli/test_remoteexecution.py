@@ -591,6 +591,8 @@ class TestAnsibleREX():
                     'id': invocation_command[u'id']})
                 pending_state = invocation_info[u'pending']
                 sleep(30)
+            else:
+                break
         rec_logic = RecurringLogic.info({
             'id': invocation_command['recurring-logic-id']})
         assert rec_logic['state'] == u'finished'
