@@ -335,6 +335,7 @@ def test_positive_add_katello_role(
     :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
+    auth_source_name = 'LDAP-' + auth_source.name
     user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
     katello_role = entities.Role().create()
     create_role_permissions(katello_role, user_permissions)
@@ -343,10 +344,10 @@ def test_positive_add_katello_role(
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [katello_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+            'external_groups.auth_source': auth_source_name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
     with Session(
             test_name,
@@ -389,6 +390,7 @@ def test_positive_update_external_roles(
     :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
+    auth_source_name = 'LDAP-' + auth_source.name
     location_name = gen_string('alpha')
     foreman_role = entities.Role().create()
     katello_role = entities.Role().create()
@@ -401,10 +403,10 @@ def test_positive_update_external_roles(
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+            'external_groups.auth_source': auth_source_name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
         with Session(
                 test_name,
                 ldap_data['ldap_user_name'],
@@ -457,6 +459,7 @@ def test_positive_delete_external_roles(
 
     :CaseLevel: Integration
     """
+    auth_source_name = 'LDAP-' + auth_source.name
     location_name = gen_string('alpha')
     foreman_role = entities.Role().create()
     foreman_permissions = {'Location': PERMISSIONS['Location']}
@@ -466,10 +469,10 @@ def test_positive_delete_external_roles(
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+            'external_groups.auth_source': auth_source_name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
         with Session(
                 test_name,
                 ldap_data['ldap_user_name'],
@@ -518,6 +521,7 @@ def test_positive_update_external_user_roles(
     :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
+    auth_source_name = 'LDAP-' + auth_source.name
     location_name = gen_string('alpha')
     foreman_role = entities.Role().create()
     katello_role = entities.Role().create()
@@ -530,10 +534,10 @@ def test_positive_update_external_user_roles(
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+            'external_groups.auth_source': auth_source_name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
         with Session(
                 test_name,
                 ldap_data['ldap_user_name'],
@@ -585,16 +589,17 @@ def test_positive_add_admin_role_with_org_loc(
     :CaseImportance: Critical
     """
     ak_name = gen_string('alpha')
+    auth_source_name = 'LDAP-' + auth_source.name
     location_name = gen_string('alpha')
     with session:
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
             'roles.admin': True,
             'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+            'external_groups.auth_source': auth_source_name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
     with Session(
             test_name,
             ldap_data['ldap_user_name'],
@@ -641,6 +646,7 @@ def test_positive_add_katello_role_with_org_loc(
 
     :CaseLevel: Integration
     """
+    auth_source_name = 'LDAP-' + auth_source.name
     name = gen_string('alpha')
     user_permissions = {
         'Hostgroup': PERMISSIONS['Hostgroup'],
@@ -654,10 +660,10 @@ def test_positive_add_katello_role_with_org_loc(
             'usergroup.name': ldap_usergroup_name,
             'roles.resources.assigned': [katello_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': 'LDAP-' + auth_source.name,
+            'external_groups.auth_source': auth_source_name,
         })
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.user.update(ldap_data['ldap_user_name'], {'user.auth': 'LDAP-' + auth_source.name})
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
         with Session(
                 test_name,
