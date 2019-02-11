@@ -1815,6 +1815,137 @@ class DockerClientTestCase(CLITestCase):
                 "\n".join(result.stdout)
         )
 
+    @run_only_on('sat')
+    @skip_if_not_set('docker')
+    @tier3
+    def test_positive_container_admin_end_to_end_pull(self):
+        """Verify that docker command line can be used against
+        Satellite server to pull in container images stored
+        on Satellite instance.
+
+        :id: 2a331f88-406b-4a5c-ae70-302a9994077f
+
+        :steps:
+
+            1. Publish and promote content view with Docker content
+            2. Set "Unauthenticated Pull" option to false
+            3. Try to pull in docker image from Satellite
+            4. Use Docker client to login to Satellite container registry
+            5. Pull in docker image
+            6. Use Docker client to log out of Satellite container registry
+            7. Try to pull in docker image (ensure next pull result
+               is caused by change of Satellite option and not login/logout)
+            8. Set "Unauthenticated Pull" option to true
+            9. Pull in docker image
+
+        :expectedresults: Client can pull in docker images stored
+            on Satellite instance
+
+        :CaseLevel: System
+        """
+        pattern_prefix = gen_string('alpha', 5)
+        docker_upstream_name = 'alpine'
+        registry_name_pattern = (
+            "{}-<%= content_view.label %>/<%= repository.docker_upstream_name %>"
+        ).format(pattern_prefix)
+
+        # Satellite setup: create product and add Docker repository;
+        # create content view and add Docker repository;
+        # create lifecycle environment and promote content view to it
+        product = make_product_wait({'organization-id': self.org['id']})
+        repo = _make_docker_repo(
+                product['id'], upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org['id'],
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        LifecycleEnvironment.update({
+            'registry-name-pattern': registry_name_pattern,
+            'registry-unauthenticated-pull': 'false',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        docker_repo_uri = "{}/{}-{}/{}".format(
+                settings.server.hostname,
+                pattern_prefix,
+                content_view['label'],
+                docker_upstream_name
+        ).lower()
+
+        # 3. Try to pull in docker image from Satellite
+        docker_pull_command = 'docker pull {0}'.format(docker_repo_uri)
+        result = ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 1)
+
+        # 4. Use Docker client to login to Satellite docker hub
+        result = ssh.command(
+                'docker login -u {} -p {} {}'.format(
+                        settings.server.admin_username,
+                        settings.server.admin_password,
+                        settings.server.hostname
+                ),
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 5. Pull in docker image
+        # publishing takes few seconds sometimes
+        retries = 20 if bz_bug_is_open(1452149) else 1
+        for i in range(retries):
+            result = ssh.command(
+                    docker_pull_command,
+                    hostname=self.docker_host.ip_addr
+            )
+            if result.return_code == 0:
+                break
+            sleep(2)
+        self.assertEqual(result.return_code, 0)
+
+        # 6. Use Docker client to log out of Satellite docker hub
+        result = ssh.command(
+                'docker logout {}'.format(settings.server.hostname),
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 7. Try to pull in docker image
+        result = ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 1)
+
+        # 8. Set "Unauthenticated Pull" option to true
+        LifecycleEnvironment.update({
+            'registry-unauthenticated-pull': 'true',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+
+        # 9. Pull in docker image
+        result = ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
     @stubbed()
     @run_only_on('sat')
     @skip_if_not_set('docker')
