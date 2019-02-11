@@ -1879,7 +1879,7 @@ class DockerClientTestCase(CLITestCase):
             'id': lce['id'],
             'organization-id': self.org['id'],
         })
-        docker_repo_uri = " {}/{}-{}/{} ".format(
+        docker_repo_uri = "{}/{}-{}/{}".format(
                 settings.server.hostname,
                 pattern_prefix,
                 content_view['label'],
@@ -1887,9 +1887,9 @@ class DockerClientTestCase(CLITestCase):
         ).lower()
 
         # 3. Try to pull in docker image from Satellite
-        remote_pull_command = 'docker pull {0}'.format(docker_repo_uri)
+        docker_pull_command = 'docker pull {0}'.format(docker_repo_uri)
         result = ssh.command(
-                remote_pull_command,
+                docker_pull_command,
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 1)
@@ -1907,10 +1907,10 @@ class DockerClientTestCase(CLITestCase):
 
         # 5. Pull in docker image
         # publishing takes few seconds sometimes
-        retries = 20 #if bz_bug_is_open(1452149) else 1
+        retries = 20 if bz_bug_is_open(1452149) else 1
         for i in range(retries):
             result = ssh.command(
-                    remote_pull_command,
+                    docker_pull_command,
                     hostname=self.docker_host.ip_addr
             )
             if result.return_code == 0:
@@ -1927,7 +1927,7 @@ class DockerClientTestCase(CLITestCase):
 
         # 7. Try to pull in docker image
         result = ssh.command(
-                remote_pull_command,
+                docker_pull_command,
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 1)
@@ -1941,7 +1941,7 @@ class DockerClientTestCase(CLITestCase):
 
         # 9. Pull in docker image
         result = ssh.command(
-                remote_pull_command,
+                docker_pull_command,
                 hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
