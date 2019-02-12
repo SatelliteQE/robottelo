@@ -623,13 +623,13 @@ def test_positive_add_admin_role_with_org_loc(
 
 
 @tier2
-def test_positive_add_katello_role_with_org_loc(
+def test_positive_add_foreman_role_with_org_loc(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
         module_org, module_loc):
-    """Associate katello roles to User Group with org and loc set.
+    """Associate foreman roles to User Group with org and loc set.
     [belonging to external AD User Group.]
 
-    :id: a2ebd4de-eb0a-47da-81e8-00942eedcbf6
+    :id: b39d7b2a-6d78-4c35-969a-37c8317ce64f
 
     :setup: LDAP Auth Source should be created with Org and Location
             Associated.
@@ -641,7 +641,7 @@ def test_positive_add_katello_role_with_org_loc(
         3. Create and associate an External AD UserGroup.
 
     :expectedresults: Whether a User belonging to User Group is able to
-        access katello entities as per roles, with the associated org and
+        access foreman entities as per roles, with the associated org and
         loc in LDAP Auth source page as the context set.
 
     :CaseLevel: Integration
@@ -653,12 +653,12 @@ def test_positive_add_katello_role_with_org_loc(
         'Location': ['assign_locations'],
         'Organization': ['assign_organizations'],
     }
-    katello_role = entities.Role().create()
-    create_role_permissions(katello_role, user_permissions)
+    foreman_role = entities.Role().create()
+    create_role_permissions(foreman_role, user_permissions)
     with session:
         session.usergroup.create({
             'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [katello_role.name],
+            'roles.resources.assigned': [foreman_role.name],
             'external_groups.name': EXTERNAL_GROUP_NAME,
             'external_groups.auth_source': auth_source_name,
         })
@@ -681,3 +681,75 @@ def test_positive_add_katello_role_with_org_loc(
         assert module_org.name in hostgroup['organizations']['resources']['assigned']
         assert len(hostgroup['locations']['resources']['assigned']) == 1
         assert module_loc.name in hostgroup['locations']['resources']['assigned']
+
+
+@tier2
+def test_positive_add_katello_role_with_org(
+        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
+        module_org):
+    """Associate katello roles to User Group with org set.
+    [belonging to external AD User Group.]
+
+    :id: a2ebd4de-eb0a-47da-81e8-00942eedcbf6
+
+    :setup: LDAP Auth Source should be created with Organization associated.
+
+    :Steps:
+        1. Create an UserGroup.
+        2. Assign some katello roles to UserGroup.
+        3. Create and associate an External AD UserGroup.
+
+    :expectedresults: Whether a User belonging to User Group is able to
+        access katello entities as per roles, with the associated org
+        in LDAP Auth source page as the context set.
+
+    :CaseLevel: Integration
+    """
+    auth_source_name = 'LDAP-' + auth_source.name
+    ak_name = gen_string('alpha')
+    user_permissions = {
+        'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
+        'Location': ['assign_locations'],
+        'Organization': ['assign_organizations'],
+    }
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
+    different_org = entities.Organization().create()
+    with session:
+        session.usergroup.create({
+            'usergroup.name': ldap_usergroup_name,
+            'roles.resources.assigned': [katello_role.name],
+            'external_groups.name': EXTERNAL_GROUP_NAME,
+            'external_groups.auth_source': auth_source_name,
+        })
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.user.update(ldap_data['ldap_user_name'], {'user.auth': auth_source_name})
+        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
+        with Session(
+                test_name,
+                ldap_data['ldap_user_name'],
+                ldap_data['ldap_user_passwd'],
+        ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.architecture.search('')
+            if bz_bug_is_open(1652938):
+                try:
+                    ldapsession.activationkey.search('')
+                except NoSuchElementException:
+                    ldapsession.browser.refresh()
+            ldapsession.activationkey.create({'name': ak_name})
+        # Since it's not possible to fetch assigned organization via UI directly,
+        # verify AK can be found in right org, can't be found in wrong one and
+        # double check via API
+        if bz_bug_is_open(1652938):
+            try:
+                session.activationkey.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
+        results = session.activationkey.search(ak_name)
+        assert results[0]['Name'] == ak_name
+        session.organization.select(different_org.name)
+        assert not session.activationkey.search(ak_name)
+    ak = entities.ActivationKey(organization=module_org).search(
+        query={'search': 'name={}'.format(ak_name)})[0].read()
+    assert ak.organization.id == module_org.id
