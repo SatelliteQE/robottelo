@@ -20,7 +20,7 @@ from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
 from robottelo.test import TestCase, APITestCase
 from robottelo.config import settings
 from robottelo.virt_who_configure import VirtWhoHypervisorConfig, deploy_virt_who_config, \
-    make_expected_configfile_section_from_api, cleanup_virt_who, wait_for_virtwho_report_task
+    make_expected_configfile_section_from_api, cleanup_virt_who
 from requests.exceptions import HTTPError
 
 
@@ -67,7 +67,6 @@ class VirtWhoConfigApiTestCase(APITestCase):
         # wait_for_virtwho_report_task doesn't seem to be reliable, and
         # will sometimes fail. Need to look more into this.
         # wait_for_virtwho_report_task(vhc.id)
-
 
     @run_only_on('sat')
     @tier1
