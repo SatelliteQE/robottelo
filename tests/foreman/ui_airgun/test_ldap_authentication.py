@@ -354,6 +354,8 @@ def test_positive_add_katello_role(
             ldap_data['ldap_user_name'],
             ldap_data['ldap_user_passwd'],
     ) as session:
+        with raises(NavigationTriesExceeded):
+            session.architecture.search('')
         if bz_bug_is_open(1652938):
             try:
                 session.activationkey.search('')
@@ -412,6 +414,8 @@ def test_positive_update_external_roles(
                 ldap_data['ldap_user_name'],
                 ldap_data['ldap_user_passwd'],
         ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
@@ -478,6 +482,8 @@ def test_positive_delete_external_roles(
                 ldap_data['ldap_user_name'],
                 ldap_data['ldap_user_passwd'],
         ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
@@ -554,6 +560,8 @@ def test_positive_update_external_user_roles(
             ldap_data['ldap_user_name'],
             ldap_data['ldap_user_passwd'],
     ) as session:
+        with raises(NavigationTriesExceeded):
+            ldapsession.architecture.search('')
         if bz_bug_is_open(1652938):
             try:
                 session.activationkey.search('')
@@ -670,6 +678,8 @@ def test_positive_add_foreman_role_with_org_loc(
                 ldap_data['ldap_user_name'],
                 ldap_data['ldap_user_passwd'],
         ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.architecture.search('')
             if bz_bug_is_open(1652938):
                 try:
                     ldapsession.hostgroup.search('')
