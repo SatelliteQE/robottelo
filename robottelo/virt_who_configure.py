@@ -20,10 +20,10 @@ VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
 VIRTWHO_CONFIGD_LOCAL = os.path.join(get_project_root(), 'data', 'virtwho-configs')
 
 
-def wait_for_virtwho_report_task(config_id, poll_rate=20):
+def wait_for_virtwho_report_task(config_id, poll_timeout=600, poll_rate=30):
     search = 'label=Actions::Katello::Host::Hypervisors '\
              'and user=virt_who_reporter_{}'.format(config_id)
-    return wait_for_tasks(search, poll_rate=poll_rate)
+    return wait_for_tasks(search, poll_timeout=poll_timeout, poll_rate=poll_rate)
 
 
 class VirtWhoHypervisorConfig(object):
