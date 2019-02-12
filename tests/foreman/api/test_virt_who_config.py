@@ -14,12 +14,16 @@
 
 :Upstream: No
 """
+
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
 from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
 from robottelo.test import TestCase, APITestCase
 from robottelo.config import settings
-from robottelo.virt_who_configure import VirtWhoHypervisorConfig, deploy_virt_who_config, make_expected_configfile_section_from_api
+from robottelo.virt_who_configure import VirtWhoHypervisorConfig, deploy_virt_who_config, \
+    make_expected_configfile_section_from_api, cleanup_virt_who, wait_for_virtwho_report_task
+from requests.exceptions import HTTPError
+
 
 class VirtWhoConfigApiTestCase(APITestCase):
 
@@ -27,6 +31,9 @@ class VirtWhoConfigApiTestCase(APITestCase):
     def setUpClass(cls):
         super(VirtWhoConfigApiTestCase, cls).setUpClass()
         cls.org =  entities.Organization().create()
+
+    def tearDown(self):
+        cleanup_virt_who()
 
     @run_only_on('sat')
     @tier1
@@ -60,7 +67,40 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(len(errors), 0, errors)
 
 
+    @run_only_on('sat')
+    @tier1
+    def test_positive_config_delete(self):
+        """ Create multiple configs, deploy them, then try to delete them
 
+        :id: b46cf8c1-b122-4011-a029-42dbc587e74c
+
+        :steps:
+            1. Create a virt-who config objects
+            2. Deploy config on Satellite Server
+            3. Delete the config
+
+        :expectedresults:
+            The configs are deleted
+        """
+        vhc_name = "example_config{}".format(gen_integer())
+        vhc = entities.VirtWhoConfig(name=vhc_name, organization=self.org,
+                                     hypervisor_server=settings.clients.provisioning_server,
+                                     satellite_url=settings.server.hostname,
+                                     hypervisor_type='libvirt',
+                                     hypervisor_username='root',
+                                     hypervisor_id='hostname',
+                                     hypervisor_password='' ).create()
+        deploy_virt_who_config(vhc.id, self.org.id)
+        sc = VirtWhoHypervisorConfig(vhc.id)
+        expected = make_expected_configfile_section_from_api(vhc)
+        errors = sc.verify(expected)
+        self.assertEqual(len(errors), 0, errors)
+
+        wait_for_virtwho_report_task(vhc.id) #wait for virt-who reports?
+        # Delete the config
+        vhc.delete()
+        with self.assertRaises(HTTPError):
+            vhc.read()
 
 
 class VirtWhoConfigTestCase(APITestCase):

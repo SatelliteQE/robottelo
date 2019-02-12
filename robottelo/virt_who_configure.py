@@ -8,6 +8,7 @@ import tempfile
 from robottelo.config import settings
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli import virt_who_config
+from robottelo.api.utils import wait_for_tasks
 
 from nailgun import entities
 
@@ -15,20 +16,17 @@ from robottelo import ssh
 from robottelo.config.base import get_project_root
 from six.moves.configparser import ConfigParser
 
+VIRTWHO_CONFIG_FILE_PATTERN='virt-who-config-{}.conf'
 VIRTWHO_CONFIGD="/etc/virt-who.d/"
+VIRTWHO_CONFIG_FILE_PATH_PATTERN=VIRTWHO_CONFIGD+VIRTWHO_CONFIG_FILE_PATTERN
 VIRTWHO_SYSCONFIG="/etc/sysconfig/virt-who"
 VIRTWHO_CONFIGD_LOCAL = os.path.join(get_project_root(), 'data', 'virtwho-configs')
 
 
-
-
-class VirtWhoConfigIncorrectException(Exception):
-    """Raised when there was some issue found when verifiying the virt-who config"""
-    def __init__(self):
-        su
-
-
-
+def wait_for_virtwho_report_task(config_id, poll_rate=20):
+    search = 'label=Actions::Katello::Host::Hypervisors '\
+             'and user=virt_who_reporter_{}'.format(config_id)
+    return wait_for_tasks(search, poll_rate=poll_rate)
 
 
 class VirtWhoHypervisorConfig(object):
@@ -36,7 +34,7 @@ class VirtWhoHypervisorConfig(object):
     def __init__(self, config_id, server=None):
         self.server= server if server else settings.server.hostname
         self.config_id = config_id
-        self.config_file_name = 'virt-who-config-{}.conf'.format(self.config_id)
+        self.config_file_name = VIRTWHO_CONFIG_FILE_PATTERN.format(self.config_id)
         self.remote_path = os.path.join(VIRTWHO_CONFIGD, self.config_file_name)
         self.configfile_data= self._read_config_file()
 
@@ -48,8 +46,6 @@ class VirtWhoHypervisorConfig(object):
         with open(local_path) as local_fp:
             parser.read_file(local_fp)
         return parser
-
-
 
     def delete_configfile(self, restart_virtwho):
         raise NotImplemented
@@ -83,27 +79,6 @@ class VirtWhoHypervisorConfig(object):
                         self.config_file_name, expect_section_name, expect_k, expect_v, actual_v))
 
         return verify_errors
-
-
-
-
-
-
-
-
-class VirtWhoServerConfig(object):
-
-    def __init__(self, server):
-        self.server = server
-        self.sysconfig_data = None
-
-    #TODO need to parse sysconfig
-    def _read_sysconfig(self):
-        pass
-
-    #Verify section name
-
-
 
 
 def encrypt_virt_who_password(password, server=None):
@@ -146,5 +121,17 @@ def make_expected_configfile_section_from_api(vhc, ignore_fields=None):
 
     return d
 
+
 def deploy_virt_who_config(config_id, org_id):
     return virt_who_config.VirtWhoConfig.deploy({'id':config_id, 'organization-id': org_id})
+
+
+def cleanup_virt_who(server=None):
+    if not server:
+        server=settings.server.hostname
+
+    path = VIRTWHO_CONFIG_FILE_PATH_PATTERN.format('*')
+
+    ssh.command("rm -rf {}".format(path), hostname=server)
+    ssh.command("systemctl stop virt-who", hostname=server)
+    ssh.command("systemctl disable virt-who", hostname=server)
