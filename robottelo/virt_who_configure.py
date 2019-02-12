@@ -45,7 +45,7 @@ class VirtWhoHypervisorConfig(object):
         return parser
 
     def delete_configfile(self, restart_virtwho):
-        raise NotImplemented
+        raise NotImplementedError
 
     def verify(self, expected, verify_section_name=True, ignore_fields=[]):
         """
