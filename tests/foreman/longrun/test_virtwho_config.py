@@ -1,16 +1,25 @@
-from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
+"""Test for virt-who configure API
+
+:Requirement: Virtwho-configure
+
+:CaseLevel: Acceptance
+
+:CaseComponent: API
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:CaseAutomation: notautomated
+
+:Upstream: No
+"""
+
+from robottelo.decorators import run_only_on, stubbed, tier3
 from robottelo.test import TestCase
 
 
-
 class VirtWhoConfigLongRunTestCase(TestCase):
-
-
-    @tier3
-    def test_virtwho_debug(self):
-        pass
-
-
 
     @run_only_on('sat')
     @stubbed()
@@ -19,7 +28,7 @@ class VirtWhoConfigLongRunTestCase(TestCase):
         """End to End scenarios. For all supported Hypervisors
            (Libvirt, vmware, RHEV, Hyper-V, Xen)
 
-        :id: ce67645a-8435-4e2a-9fd5-c54f2a11c44b
+        :id: e3199512-f622-4ba6-9293-7557f378376f
 
         :steps:
             1. Associate a VDC subscription to the hypervisor host
@@ -37,4 +46,3 @@ class VirtWhoConfigLongRunTestCase(TestCase):
             2. Repeat for each supported hypervisor (Libvirt, vmware, RHEV,
                Hyper-V, Xen)
         """
-

@@ -3,23 +3,20 @@
 """
 
 import os
-import six
 import tempfile
 from robottelo.config import settings
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli import virt_who_config
 from robottelo.api.utils import wait_for_tasks
 
-from nailgun import entities
-
 from robottelo import ssh
 from robottelo.config.base import get_project_root
 from six.moves.configparser import ConfigParser
 
-VIRTWHO_CONFIG_FILE_PATTERN='virt-who-config-{}.conf'
-VIRTWHO_CONFIGD="/etc/virt-who.d/"
-VIRTWHO_CONFIG_FILE_PATH_PATTERN=VIRTWHO_CONFIGD+VIRTWHO_CONFIG_FILE_PATTERN
-VIRTWHO_SYSCONFIG="/etc/sysconfig/virt-who"
+VIRTWHO_CONFIG_FILE_PATTERN = 'virt-who-config-{}.conf'
+VIRTWHO_CONFIGD = "/etc/virt-who.d/"
+VIRTWHO_CONFIG_FILE_PATH_PATTERN = VIRTWHO_CONFIGD + VIRTWHO_CONFIG_FILE_PATTERN
+VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
 VIRTWHO_CONFIGD_LOCAL = os.path.join(get_project_root(), 'data', 'virtwho-configs')
 
 
@@ -32,11 +29,11 @@ def wait_for_virtwho_report_task(config_id, poll_rate=20):
 class VirtWhoHypervisorConfig(object):
 
     def __init__(self, config_id, server=None):
-        self.server= server if server else settings.server.hostname
+        self.server = server if server else settings.server.hostname
         self.config_id = config_id
         self.config_file_name = VIRTWHO_CONFIG_FILE_PATTERN.format(self.config_id)
         self.remote_path = os.path.join(VIRTWHO_CONFIGD, self.config_file_name)
-        self.configfile_data= self._read_config_file()
+        self.configfile_data = self._read_config_file()
 
     def _read_config_file(self):
         # Read the virt-who-<id> config file)
@@ -50,12 +47,13 @@ class VirtWhoHypervisorConfig(object):
     def delete_configfile(self, restart_virtwho):
         raise NotImplemented
 
-    def verify(self, expected, verify_section_name= True, ignore_fields=[]):
+    def verify(self, expected, verify_section_name=True, ignore_fields=[]):
         """
 
         :param expected: dict to verify against
-        :param verify_sysconfig: Whether to verify the config items that live in /etc/sysconfig/virtwho
-        :return: list of tuples containing mismatches between the configuration in the form (keyname, expected, actual)
+        :param verify_section_name: Whether to verify the section name in the virt-who-config file
+        :param ignore_fields: List of fields in virt-who-config file to ignore
+        :return: list of tuples of mismatches in the form (field, expected, actual)
         """
         ignore_fields = set(ignore_fields)
         ignore_fields.update(['rhsm_encrypted_password'])
@@ -67,9 +65,10 @@ class VirtWhoHypervisorConfig(object):
                         len(self.configfile_data.sections()) == 1) and (
                         len(self.configfile_data.defaults()) == 0))
         if not section_ok:
-            verify_errors.append("Expection single section {!r}, got {!r}".format(expect_section_name, self.configfile_data.sections()))
+            verify_errors.append("Expect single section {!r}, got {!r}".format(
+                expect_section_name, self.configfile_data.sections()))
         else:
-            for expect_k,expect_v in expected.items():
+            for expect_k, expect_v in expected.items():
                 actual_v = self.configfile_data[expect_section_name].get(expect_k, None)
                 if not actual_v:
                     verify_errors.append("{} section {} does not have field {}".format(
@@ -99,7 +98,7 @@ def make_expected_configfile_section_from_api(vhc, ignore_fields=None):
         ignore_fields = set()
     vhc_entity = vhc.read(ignore=ignore_fields)
     enc_pass = None
-    if 'hypervisor_password' not in ignore_fields and hasattr(vhc,'hypervisor_password'):
+    if 'hypervisor_password' not in ignore_fields and hasattr(vhc, 'hypervisor_password'):
         # Can't readthis via api, so only check it if the original object has it set.
         enc_pass = encrypt_virt_who_password(vhc.hypervisor_password)
 
@@ -123,12 +122,12 @@ def make_expected_configfile_section_from_api(vhc, ignore_fields=None):
 
 
 def deploy_virt_who_config(config_id, org_id):
-    return virt_who_config.VirtWhoConfig.deploy({'id':config_id, 'organization-id': org_id})
+    return virt_who_config.VirtWhoConfig.deploy({'id': config_id, 'organization-id': org_id})
 
 
 def cleanup_virt_who(server=None):
     if not server:
-        server=settings.server.hostname
+        server = settings.server.hostname
 
     path = VIRTWHO_CONFIG_FILE_PATH_PATTERN.format('*')
 
