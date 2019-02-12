@@ -14,8 +14,7 @@
 
 :Upstream: No
 """
-
-from fauxfactory import gen_integer, gen_string, gen_utf8
+from fauxfactory import gen_integer
 from nailgun import entities
 from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
 from robottelo.test import TestCase, APITestCase
@@ -30,7 +29,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         super(VirtWhoConfigApiTestCase, cls).setUpClass()
-        cls.org =  entities.Organization().create()
+        cls.org = entities.Organization().create()
 
     def tearDown(self):
         cleanup_virt_who()
@@ -57,15 +56,13 @@ class VirtWhoConfigApiTestCase(APITestCase):
                                      hypervisor_type='libvirt',
                                      hypervisor_username='root',
                                      hypervisor_id='hostname',
-                                     hypervisor_password='' ).create()
-
+                                     hypervisor_password='').create()
 
         deploy_virt_who_config(vhc.id, self.org.id)
         sc = VirtWhoHypervisorConfig(vhc.id)
         expected = make_expected_configfile_section_from_api(vhc)
         errors = sc.verify(expected)
         self.assertEqual(len(errors), 0, errors)
-
 
     @run_only_on('sat')
     @tier1
@@ -89,14 +86,14 @@ class VirtWhoConfigApiTestCase(APITestCase):
                                      hypervisor_type='libvirt',
                                      hypervisor_username='root',
                                      hypervisor_id='hostname',
-                                     hypervisor_password='' ).create()
+                                     hypervisor_password='').create()
         deploy_virt_who_config(vhc.id, self.org.id)
         sc = VirtWhoHypervisorConfig(vhc.id)
         expected = make_expected_configfile_section_from_api(vhc)
         errors = sc.verify(expected)
         self.assertEqual(len(errors), 0, errors)
 
-        wait_for_virtwho_report_task(vhc.id) #wait for virt-who reports?
+        wait_for_virtwho_report_task(vhc.id)
         # Delete the config
         vhc.delete()
         with self.assertRaises(HTTPError):
