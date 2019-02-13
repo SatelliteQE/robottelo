@@ -53,7 +53,6 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -1638,7 +1637,7 @@ class DockerClientTestCase(CLITestCase):
                             'docker pull {0}'.format(repo['published-at']),
                             hostname=self.docker_host.ip_addr
                     ),
-                    num_sec=20 if bz_bug_is_open(1452149) else 1,
+                    num_sec=60,
                     delay=2,
                     fail_condition=lambda out: out.return_code != 0,
                     logger=self.logger
@@ -1913,7 +1912,7 @@ class DockerClientTestCase(CLITestCase):
                         docker_pull_command,
                         hostname=self.docker_host.ip_addr
                 ),
-                num_sec=40 if bz_bug_is_open(1452149) else 1,
+                num_sec=60,
                 delay=2,
                 fail_condition=lambda out: out.return_code != 0,
                 logger=self.logger
