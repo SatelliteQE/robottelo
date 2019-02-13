@@ -17,6 +17,7 @@
 import time
 
 from nailgun import entities
+from pytest import raises
 
 from robottelo.api.utils import promote, update_vm_host_location
 from robottelo.config import settings
@@ -175,6 +176,48 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
                 product_version=repo.repo_data['version'],
             ))
     return repos_urls
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, module_org, module_loc):
+    """Perform end to end testing for host collection component
+
+    :id: 1d40bc74-8e05-42fa-b6e3-2999dc3b730d
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    hc_name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    description = gen_string('alpha')
+    host = entities.Host(
+        organization=module_org, location=module_loc).create()
+    with session:
+        # Create new host collection
+        session.hostcollection.create({
+            'name': hc_name,
+            'unlimited_hosts': False,
+            'max_hosts': 2,
+            'description': description
+        })
+        assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
+        session.hostcollection.associate_host(hc_name, host.name)
+        hc_values = session.hostcollection.read(hc_name)
+        assert hc_values['details']['name'] == hc_name
+        assert hc_values['details']['description'] == description
+        assert hc_values['details']['content_hosts'] == '1'
+        assert hc_values['details']['content_host_limit'] == '2'
+        assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
+        # Update host collection with new name
+        session.hostcollection.update(hc_name, {'details.name': new_name})
+        assert session.hostcollection.search(new_name)[0]['Name'] == new_name
+        # Delete host collection
+        session.hostcollection.delete(new_name)
+        assert not session.hostcollection.search(new_name)
 
 
 @tier2
@@ -544,3 +587,51 @@ def test_positive_change_assigned_content(
             ]
             assert len(client_repo_urls) > 0
             assert set(expected_repo_urls) == set(client_repo_urls)
+
+
+@tier3
+def test_negative_hosts_limit(session, module_org, module_loc):
+    """Check that Host limit actually limits usage
+
+    :id: 57b70977-2110-47d9-be3b-461ad15c70c7
+
+    :Steps:
+        1. Create Host Collection entity that can contain only one Host
+            (using Host Limit field)
+        2. Create Host and add it to Host Collection. Check that it was
+            added successfully
+        3. Create one more Host and try to add it to Host Collection
+        4. Check that expected error is shown
+
+    :expectedresults: Second host is not added to Host Collection and
+        appropriate error is shown
+
+    :CaseLevel: System
+    """
+    hc_name = gen_string('alpha')
+    org = entities.Organization().create()
+    cv = entities.ContentView(organization=org).create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    cv.publish()
+    promote(cv.read().version[0], lce.id)
+    hosts = []
+    for _ in range(2):
+        hosts.append(entities.Host(
+            organization=module_org,
+            location=module_loc,
+            content_facet_attributes={
+                'content_view_id': cv.id,
+                'lifecycle_environment_id': lce.id,
+            },
+        ).create())
+    assert len(hosts) == 2
+    with session:
+        session.hostcollection.create({
+            'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 1})
+        assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
+        session.hostcollection.associate_host(hc_name, hosts[0].name)
+        with raises(AssertionError) as context:
+            session.hostcollection.associate_host(hc_name, hosts[1].name)
+        assert "cannot have more than 1 host(s) associated with host collection '{}'".format(
+            hc_name
+        ) in str(context.value)
