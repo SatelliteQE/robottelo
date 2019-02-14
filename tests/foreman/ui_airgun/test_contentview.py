@@ -29,6 +29,7 @@ from widgetastic.exceptions import NoSuchElementException
 from robottelo import manifests
 from robottelo.api.utils import (
     call_entity_method_with_timeout,
+    create_role_permissions,
     create_sync_custom_repo,
     enable_sync_redhat_repo,
     promote,
@@ -2770,7 +2771,7 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
 
 
 @tier2
-def test_positive_admin_user_actions(session, module_org, test_name):
+def test_positive_non_admin_user_actions(session, module_org, test_name):
     """Attempt to manage content views
 
     :id: c4d270fc-a3e6-4ae2-a338-41d864a5622a
@@ -2801,33 +2802,20 @@ def test_positive_admin_user_actions(session, module_org, test_name):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     # create a role with all content views permissions
     role = entities.Role().create()
-    entities.Filter(
-        organization=[module_org],
-        permission=entities.Permission(
-            resource_type='Katello::ContentView').search(),
-        role=role,
-        search=None
-    ).create()
-    # create environment permissions with read only and promote access
-    # to content views
-    env_permissions_entities = entities.Permission(
-        resource_type='Katello::KTEnvironment').search()
-    user_env_permissions = [
-        'promote_or_remove_content_views_to_environments',
-        'view_lifecycle_environments'
-    ]
-    user_env_permissions_entities = [
-        entity
-        for entity in env_permissions_entities
-        if entity.name in user_env_permissions
-    ]
-    entities.Filter(
-        organization=[module_org],
-        permission=user_env_permissions_entities,
-        role=role,
-        # allow access only to the mentioned here environments
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': PERMISSIONS['Katello::ContentView']}
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
         search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
-    ).create()
+    )
     # create a user and assign the above created role
     entities.User(
         default_organization=module_org,
@@ -2876,7 +2864,7 @@ def test_positive_admin_user_actions(session, module_org, test_name):
             'docker_repositories',
             'ostree_content'
         ]:
-            assert cv[tab_name] is not None
+            assert cv.get(tab_name) is not None
         session.contentview.update(cv_name, {'details.name': cv_new_name})
         assert session.contentview.search(cv_new_name)[0]['Name'] == cv_new_name
         # Publish and promote CV to next environment
@@ -2887,7 +2875,7 @@ def test_positive_admin_user_actions(session, module_org, test_name):
 
 
 @tier2
-def test_negative_non_admin_user_actions(session, module_org, test_name):
+def test_negative_read_only_user_actions(session, module_org, test_name):
     """Attempt to manage content views
 
     :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
@@ -2911,34 +2899,20 @@ def test_negative_non_admin_user_actions(session, module_org, test_name):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     # create a role with content views read only permissions
     role = entities.Role().create()
-    entities.Filter(
-        organization=[module_org],
-        permission=entities.Permission(
-            resource_type='Katello::ContentView').search(
-            filters={'name': 'view_content_views'}),
-        role=role,
-        search=None
-    ).create()
-    # create environment permissions with read only and promote access
-    # to content views
-    env_permissions_entities = entities.Permission(
-        resource_type='Katello::KTEnvironment').search()
-    user_env_permissions = [
-        'promote_or_remove_content_views_to_environments',
-        'view_lifecycle_environments'
-    ]
-    user_env_permissions_entities = [
-        entity
-        for entity in env_permissions_entities
-        if entity.name in user_env_permissions
-    ]
-    entities.Filter(
-        organization=[module_org],
-        permission=user_env_permissions_entities,
-        role=role,
-        # allow access only to the mentioned here environments
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': ['view_content_views']}
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
         search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
-    ).create()
+    )
     # create a user and assign the above created role
     entities.User(
         default_organization=module_org,
@@ -3003,44 +2977,29 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     cv = entities.ContentView(organization=module_org).create()
     role = entities.Role().create()
-    cv_permissions_entities = entities.Permission(
-        resource_type='Katello::ContentView').search()
-    user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
-    user_cv_permissions.remove('view_content_views')
-    user_cv_permissions_entities = [
-        entity
-        for entity in cv_permissions_entities
-        if entity.name in user_cv_permissions
-    ]
-    # ensure I have some content views permissions
-    assert len(user_cv_permissions_entities) > 0
-    assert len(user_cv_permissions) == len(user_cv_permissions_entities)
-    entities.Filter(
-        organization=[module_org],
-        permission=user_cv_permissions_entities,
-        role=role,
-        search=None
-    ).create()
-    # create environment permissions with read only and promote access
-    # to content views
-    env_permissions_entities = entities.Permission(
-        resource_type='Katello::KTEnvironment').search()
-    user_env_permissions = [
-        'promote_or_remove_content_views_to_environments',
-        'view_lifecycle_environments'
-    ]
-    user_env_permissions_entities = [
-        entity
-        for entity in env_permissions_entities
-        if entity.name in user_env_permissions
-    ]
-    entities.Filter(
-        organization=[module_org],
-        permission=user_env_permissions_entities,
-        role=role,
-        # allow access only to the mentioned here environments
+    create_role_permissions(
+        role,
+        {
+            'Katello::ContentView': [
+                'create_content_views',
+                'edit_content_views',
+                'destroy_content_views',
+                'publish_content_views',
+                'promote_or_remove_content_views',
+                'export_content_views',
+            ]
+        }
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
         search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
-    ).create()
+    )
     # create a user and assign the above created role
     entities.User(
         default_organization=module_org,
