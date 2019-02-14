@@ -45,7 +45,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     job_category = gen_string('alpha')
     description_format = gen_string('alpha')
     template_user_input_name = gen_string('alpha')
-    template_editor_value = f'<%= input("{template_user_input_name}") %>'
+    template_editor_value = '<%= input("{0}") %>'.format(template_user_input_name)
     template_inputs = [
         {
             'name': gen_string('alpha'),
