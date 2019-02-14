@@ -135,17 +135,21 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
         name=name,
         organization=module_org,
     ).create()
-    # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key,
-        organization=module_org,
-    ).create()
+    # Creates new product
+    product = entities.Product(organization=module_org).create()
     # Creates new repository without GPGKey
     repo = entities.Repository(
         url=FAKE_1_YUM_REPO,
         product=product,
     ).create()
     with session:
+        values = session.contentcredential.read(name)
+        assert len(values['products']['table']) == 0
+        assert len(values['repositories']['table']) == 0
+        # Associate gpg key with a product
+        session.product.update(
+            product.name, {'details.gpg_key': gpg_key.name}
+        )
         values = session.contentcredential.read(name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
@@ -225,16 +229,23 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
         name=name,
         organization=module_org,
     ).create()
-    # Creates new product without selecting GPGkey
+    # Creates new product
     product = entities.Product(organization=module_org).create()
-    # Creates new repository with GPGKey
+    # Creates new repository
     repo = entities.Repository(
         url=FAKE_1_YUM_REPO,
         product=product,
-        gpg_key=gpg_key,
     ).create()
     with session:
         values = session.contentcredential.read(name)
+        assert len(values['products']['table']) == 0
+        assert len(values['repositories']['table']) == 0
+        # Associate gpg key with repository
+        session.repository.update(
+            product.name, repo.name, {'repo_content.gpg_key': gpg_key.name}
+        )
+        values = session.contentcredential.read(name)
+        assert len(values['products']['table']) == 0
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
         assert (
