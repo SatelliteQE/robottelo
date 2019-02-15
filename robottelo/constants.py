@@ -213,6 +213,7 @@ REPOSET = {
     'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
+    'rhel7ks': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
     'rhva6': (
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
@@ -232,6 +233,19 @@ REPOSET = {
 }
 
 REPOS = {
+    'rhel7ks': {
+        'id': None,
+        'name': 'Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.6',
+        'releasever': '7.6',
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL7,
+        'reposet': REPOSET['rhel7ks'],
+        'product': PRDS['rhel'],
+        'major_version': None,
+        'distro_repository': False,
+        'key': 'rhel',
+        'version': '7.6',
+    },
     'rhel7': {
         'id': 'rhel-7-server-rpms',
         'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
