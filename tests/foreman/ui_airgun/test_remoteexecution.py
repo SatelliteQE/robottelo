@@ -181,7 +181,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org):
             _setup_vm_client_host(client, module_org.label)
         with session:
             hosts = session.host.search(
-                ' or '.join([f'name="{hostname}"' for hostname in host_names]))
+                ' or '.join(['name="{0}"'.format(hostname) for hostname in host_names]))
             assert set(host['Name'] for host in hosts) == set(host_names)
             job_status = session.host.schedule_remote_job(
                 host_names,
