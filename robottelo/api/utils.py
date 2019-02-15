@@ -588,14 +588,16 @@ def get_role_by_bz(bz_id):
     return role.read()
 
 
-def create_role_permissions(role, permissions_types_names):  # pragma: no cover
+def create_role_permissions(role, permissions_types_names, search=None):  # pragma: no cover
     """Create role permissions found in dict permissions_types_names.
 
     :param role: nailgun.entities.Role
     :param permissions_types_names: a dict containing resource types
-        and permission names to add to the role, example usage.
+        and permission names to add to the role.
+    :param search: string that contains search criteria that should be applied
+        to the filter
 
-          ::
+          example usage::
 
            permissions_types_names = {
                None: ['access_dashboard'],
@@ -608,7 +610,11 @@ def create_role_permissions(role, permissions_types_names):  # pragma: no cover
                ]
            }
            role = entities.Role(name='example_role_name').create()
-           create_role_permissions(role, permissions_types_names)
+           create_role_permissions(
+               role,
+               permissions_types_names,
+               'name = {0}'.format(lce.name)
+           )
     """
     for resource_type, permissions_name in permissions_types_names.items():
         if resource_type is None:
@@ -664,7 +670,7 @@ def create_role_permissions(role, permissions_types_names):  # pragma: no cover
         entities.Filter(
             permission=permissions_entities,
             role=role,
-            search=None
+            search=search
         ).create()
 
 

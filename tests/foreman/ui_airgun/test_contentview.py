@@ -21,7 +21,9 @@ import datetime
 from random import randint
 
 from pytest import raises
+from selenium.common.exceptions import InvalidElementStateException
 
+from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 from nailgun import entities
 from widgetastic.exceptions import NoSuchElementException
@@ -29,6 +31,7 @@ from widgetastic.exceptions import NoSuchElementException
 from robottelo import manifests
 from robottelo.api.utils import (
     call_entity_method_with_timeout,
+    create_role_permissions,
     create_sync_custom_repo,
     enable_sync_redhat_repo,
     promote,
@@ -62,6 +65,7 @@ from robottelo.constants import (
     FILTER_CONTENT_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_TYPE,
+    PERMISSIONS,
     PRDS,
     PUPPET_MODULE_CUSTOM_FILE_NAME,
     PUPPET_MODULE_CUSTOM_NAME,
@@ -3199,3 +3203,255 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
                     module_streams[0]['Name'] == module_stream
                     and module_streams[0]['Stream'] == module_version
             )
+
+
+@tier2
+def test_positive_non_admin_user_actions(session, module_org, test_name):
+    """Attempt to manage content views
+
+    :id: c4d270fc-a3e6-4ae2-a338-41d864a5622a
+
+    :steps: with global admin account:
+
+        1. create a user with all content views permissions
+        2. create lifecycle environment
+        3. create 2 content views (one to delete, the other to manage)
+
+    :setup: create a user with all content views permissions
+
+    :expectedresults: Custom user can Read, Modify, Delete, Publish, Promote
+        the content views
+
+    :BZ: 1461017
+
+    :CaseLevel: Integration
+    """
+    # note: the user to be created should not have permissions to access
+    # products repositories
+    repo_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    cv_new_name = gen_string('alpha')
+    cv_copy_name = gen_string('alpha')
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    # create a role with all content views permissions
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': PERMISSIONS['Katello::ContentView']}
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
+        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password,
+        mail='test@test.com',
+    ).create()
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    # create a content view with the main admin account
+    with session:
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        # Copy the CV
+        session.contentview.copy(cv_name, cv_copy_name)
+        assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as session:
+        with raises(NavigationTriesExceeded):
+            session.organization.create({
+                'name': gen_string('alpha'),
+                'label': gen_string('alpha'),
+            })
+        # assert the user can view all the content views created
+        # by admin user
+        if bz_bug_is_open(1652938):
+            try:
+                session.contentview.search('')
+            except (NavigationTriesExceeded, NoSuchElementException):
+                session.browser.refresh()
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
+        # assert that the user can delete a content view
+        session.contentview.delete(cv_copy_name)
+        assert not session.contentview.search(cv_copy_name)
+        # check that cv tabs are accessible
+        cv = session.contentview.read(cv_name)
+        for tab_name in [
+            'details',
+            'versions',
+            'repositories',
+            'filters',
+            'puppet_modules',
+            'docker_repositories',
+            'ostree_content'
+        ]:
+            assert cv.get(tab_name) is not None
+        session.contentview.update(cv_name, {'details.name': cv_new_name})
+        assert session.contentview.search(cv_new_name)[0]['Name'] == cv_new_name
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_new_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_new_name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
+@tier2
+def test_negative_read_only_user_actions(session, module_org, test_name):
+    """Attempt to manage content views
+
+    :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
+
+    :setup:
+
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
+
+    :expectedresults: User with read only role for content view cannot
+        Modify, Delete, Publish, Promote the content views
+
+    :CaseLevel: Integration
+    """
+    # create a content view read only user with lifecycle environment
+    # permissions: view_lifecycle_environments and
+    # promote_or_remove_content_views_to_environments
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    # create a role with content views read only permissions
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': ['view_content_views']}
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
+        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    repo_id = create_sync_custom_repo(module_org.id)
+    yum_repo = entities.Repository(id=repo_id).read()
+    cv = entities.ContentView(
+        organization=module_org, repository=[yum_repo]).create()
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as custom_session:
+        with raises(NavigationTriesExceeded):
+            custom_session.location.create({
+                'name': gen_string('alpha'),
+                'label': gen_string('alpha'),
+            })
+        if bz_bug_is_open(1652938):
+            try:
+                custom_session.contentview.search('')
+            except (NavigationTriesExceeded, NoSuchElementException):
+                custom_session.browser.refresh()
+        assert custom_session.contentview.search(cv.name)[0]['Name'] == cv.name
+        with raises(InvalidElementStateException):
+            custom_session.contentview.update(cv.name, {'details.name': gen_string('alpha')})
+        with raises(NavigationTriesExceeded) as context:
+            custom_session.contentview.publish(cv.name)
+        assert 'failed to reach [Publish]' in str(context.value)
+    with session:
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+    with Session(test_name, user=user_login, password=user_password) as session:
+        if bz_bug_is_open(1652938):
+            try:
+                session.contentview.search('')
+            except (NavigationTriesExceeded, NoSuchElementException):
+                session.browser.refresh()
+        with raises(NavigationTriesExceeded) as context:
+            session.contentview.promote(cv.name, VERSION, lce.name)
+        assert 'failed to reach [Promote]' in str(context.value)
+
+
+@tier2
+def test_negative_non_readonly_user_actions(module_org, test_name):
+    """Attempt to view content views
+
+    :id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
+
+    :setup: create a user with the Content View without the content views
+        read role
+
+    :expectedresults: the user cannot access content views web resources
+
+    :CaseLevel: Integration
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with all content views permissions except
+    # view_content_views
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    cv = entities.ContentView(organization=module_org).create()
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {
+            'Katello::ContentView': [
+                'create_content_views',
+                'edit_content_views',
+                'destroy_content_views',
+                'publish_content_views',
+                'promote_or_remove_content_views',
+                'export_content_views',
+            ]
+        }
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
+        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as session:
+        with raises(NavigationTriesExceeded):
+            session.user.create({
+                'user.login': gen_string('alpha'),
+                'user.auth': 'INTERNAL',
+                'user.password': gen_string('alpha'),
+                'user.confirm': gen_string('alpha'),
+            })
+        with raises(NavigationTriesExceeded) as context:
+            session.contentview.search(cv.name)
+        assert 'Navigation failed to reach [All]' in str(context.value)
