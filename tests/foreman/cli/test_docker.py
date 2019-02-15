@@ -16,9 +16,9 @@
 :Upstream: No
 """
 from random import choice, randint
-from time import sleep
 
 from fauxfactory import gen_alpha, gen_string, gen_url
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -53,7 +53,6 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -1633,15 +1632,16 @@ class DockerClientTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         try:
             # publishing takes few seconds sometimes
-            retries = 10 if bz_bug_is_open(1452149) else 1
-            for i in range(retries):
-                result = ssh.command(
-                    'docker pull {0}'.format(repo['published-at']),
-                    hostname=self.docker_host.ip_addr
-                )
-                if result.return_code == 0:
-                    break
-                sleep(2)
+            result, _ = wait_for(
+                    lambda: ssh.command(
+                            'docker pull {0}'.format(repo['published-at']),
+                            hostname=self.docker_host.ip_addr
+                    ),
+                    num_sec=60,
+                    delay=2,
+                    fail_condition=lambda out: out.return_code != 0,
+                    logger=self.logger
+            )
             self.assertEqual(result.return_code, 0)
             try:
                 result = ssh.command(
@@ -1907,15 +1907,16 @@ class DockerClientTestCase(CLITestCase):
 
         # 5. Pull in docker image
         # publishing takes few seconds sometimes
-        retries = 20 if bz_bug_is_open(1452149) else 1
-        for i in range(retries):
-            result = ssh.command(
-                    docker_pull_command,
-                    hostname=self.docker_host.ip_addr
-            )
-            if result.return_code == 0:
-                break
-            sleep(2)
+        result, _ = wait_for(
+                lambda: ssh.command(
+                        docker_pull_command,
+                        hostname=self.docker_host.ip_addr
+                ),
+                num_sec=60,
+                delay=2,
+                fail_condition=lambda out: out.return_code != 0,
+                logger=self.logger
+        )
         self.assertEqual(result.return_code, 0)
 
         # 6. Use Docker client to log out of Satellite docker hub
