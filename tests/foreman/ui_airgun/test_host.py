@@ -573,7 +573,7 @@ def test_negative_delete_primary_interface(session, module_host_template):
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    host_name = f'{name}.{module_host_template.domain.name}'
+    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     interface_id = gen_string('alpha')
     with session:
         create_fake_host(session, module_host_template, interface_id=interface_id,
@@ -805,7 +805,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             with pytest.raises(NoSuchElementException) as context:
                 values = {host_field['name']: host_field['unexpected_value']}
                 values.update(host_field.get('other_fields_values', {}))
-                session.host.read_create_form(values)
+                session.host.helper.form_create_fill_read(values)
             error_message = str(context.value)
             assert host_field['unexpected_value'] in error_message
             # After the NoSuchElementException from FilteredDropdown, airgun is not able to
@@ -814,7 +814,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             session.browser.refresh()
             values = {host_field['name']: host_field['expected_value']}
             values.update(host_field.get('other_fields_values', {}))
-            create_values = session.host.read_create_form(values)
+            create_values = session.host.helper.form_create_fill_read(values)
             tab_name, field_name = host_field['name'].split('.')
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
@@ -831,8 +831,8 @@ def test_positive_update_name(session, module_host_template):
     """
     name = gen_string('alpha').lower()
     new_name = gen_string('alpha').lower()
-    host_name = f'{name}.{module_host_template.domain.name}'
-    new_host_name = f'{new_name}.{module_host_template.domain.name}'
+    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
+    new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
     with session:
         create_fake_host(session, module_host_template, extra_values={'host.name': name})
         assert session.host.search(host_name)[0]['Name'] == host_name
@@ -855,9 +855,9 @@ def test_positive_update_name_with_prefix(session, module_host_template):
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    new_name = f'new{gen_string("alpha").lower()}'
-    host_name = f'{name}.{module_host_template.domain.name}'
-    new_host_name = f'{new_name}.{module_host_template.domain.name}'
+    new_name = 'new{0}'.format(gen_string("alpha").lower())
+    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
+    new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
     with session:
         create_fake_host(session, module_host_template, extra_values={'host.name': name})
         assert session.host.search(host_name)[0]['Name'] == host_name
@@ -890,7 +890,7 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
-        values = session.host.search(f'params.{param_name} = {param_value}')
+        values = session.host.search('params.{0} = {1}'.format(param_name, param_value))
         assert len(values) == 1
         assert values[0]['Name'] == param_host.name
 
@@ -921,7 +921,7 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
         for param_value, host in zip(param_values, hosts):
-            values = session.host.search(f'params.{param_name} = {param_value}')
+            values = session.host.search('params.{0} = {1}'.format(param_name, param_value))
             assert len(values) == 1
             assert values[0]['Name'] == host.name
 
@@ -956,7 +956,7 @@ def test_positive_search_by_parameter_with_prefix(session, module_loc):
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter with 'not' prefix returns both hosts
-        values = session.host.search(f'not params.{param_name} = {search_param_value}')
+        values = session.host.search('not params.{0} = {1}'.format(param_name, search_param_value))
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
@@ -997,7 +997,7 @@ def test_positive_search_by_parameter_with_operator(session, module_loc):
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter with '<>' operator returns both hosts
-        values = session.host.search(f'params.{param_name} <> {search_param_value}')
+        values = session.host.search('params.{0} <> {1}'.format(param_name, search_param_value))
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
@@ -1023,7 +1023,7 @@ def test_positive_search_with_org_and_loc_context(session):
         session.location.update(loc.name, {'capsules.all_capsules': True})
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.host.search(f'name = "{host.name}"')[0]['Name'] == host.name
+        assert session.host.search('name = "{0}"'.format(host.name))[0]['Name'] == host.name
         assert session.host.search(host.name)[0]['Name'] == host.name
 
 
@@ -1046,7 +1046,7 @@ def test_positive_search_by_org(session, module_loc):
     org = host.organization.read()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
-        assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
+        assert session.host.search('organization = "{0}"'.format(org.name))[0]['Name'] == host.name
 
 
 @tier2
@@ -1065,7 +1065,7 @@ def test_positive_validate_inherited_cv_lce(session, module_org, module_loc, mod
     :BZ: 1391656
     """
     name = gen_string('alpha').lower()
-    host_name = f'{name}.{module_host_template.domain.name}'
+    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     lce = make_lifecycle_environment({'organization-id': module_org.id})
     content_view = make_content_view({'organization-id': module_org.id})
     ContentView.publish({'id': content_view['id']})
@@ -1080,7 +1080,7 @@ def test_positive_validate_inherited_cv_lce(session, module_org, module_loc, mod
         'lifecycle-environment-id': lce['id'],
         'organization-ids': module_org.id,
     })
-    puppet_proxy = Proxy.list({'search': f'name = {settings.server.hostname}'})[0]
+    puppet_proxy = Proxy.list({'search': 'name = {0}'.format(settings.server.hostname)})[0]
     make_host({
         'architecture-id': module_host_template.architecture.id,
         'domain-id': module_host_template.domain.id,
@@ -1124,10 +1124,10 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
             'host_group.puppet_environment': env_name
         })
         assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
-        values = session.host.read_create_form(
+        values = session.host.helper.form_create_fill_read(
             {'host.hostgroup': hg_name}, ['host.puppet_environment'])
         assert values['host']['puppet_environment'] == env_name
-        values = session.host.read_create_form(
+        values = session.host.helper.form_create_fill_read(
             {'host.inherit_puppet_environment': False},
             ['host.puppet_environment']
         )
@@ -1160,19 +1160,19 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
         session.contentview.publish(content_view)
         published_puppet_env = [
             env.name for env in entities.Environment().search(
-                query=dict(search=f'organization_id={module_org.id}', per_page=1000)
+                query=dict(search='organization_id={0}'.format(module_org.id), per_page=1000)
             )
             if content_view in env.name
         ][0]
-        values = session.host.read_create_form(
+        values = session.host.helper.form_create_fill_read(
             {'host.lce': ENVIRONMENT, 'host.content_view': content_view},
             ['host.puppet_environment']
         )
         assert values['host']['puppet_environment'] == published_puppet_env
-        values = session.host.read_create_form({'host.puppet_environment': puppet_env})
+        values = session.host.helper.form_create_fill_read({'host.puppet_environment': puppet_env})
         assert values['host']['puppet_environment'] == puppet_env
         # reset_puppet_environment
-        values = session.host.read_create_form(
+        values = session.host.helper.form_create_fill_read(
             {'host.reset_puppet_environment': True},
             ['host.puppet_environment']
         )
@@ -1199,7 +1199,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    host_name = f'{name}.{module_host_template.domain.name}'
+    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     param_name = gen_string('alpha').lower()
     # long string that should be escaped and affected by line break with
     # yaml dump by default
