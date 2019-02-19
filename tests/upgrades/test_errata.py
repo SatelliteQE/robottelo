@@ -6,11 +6,11 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Upgrade
+:CaseComponent: API
 
 :TestType: Functional
 
-:CaseImportance: Low
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -52,9 +52,9 @@ class Scenario_errata_count(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.docker_vm = os.environ.get('DOCKER_VM')
-        cls.org = entities.Organization(id=1).read()
 
     def _run_goferd(self, client_container_id):
+        """Start the goferd process."""
         kwargs = {'host': self.docker_vm}
         execute(
             docker_execute_command,
@@ -64,6 +64,7 @@ class Scenario_errata_count(APITestCase):
         )
 
     def _check_package_installed(self, client_container_id, package):
+        """Verify if packge is installed on docker content host."""
         kwargs = {'host': self.docker_vm}
         docker_execute_command
         installed_package = execute(
@@ -75,6 +76,7 @@ class Scenario_errata_count(APITestCase):
         self.assertIn(package, installed_package)
 
     def _install_package(self, client_container_id, package):
+        """Install packge on docker content host."""
         kwargs = {'host': self.docker_vm}
         execute(
             docker_execute_command,
@@ -85,6 +87,7 @@ class Scenario_errata_count(APITestCase):
         self._check_package_installed(client_container_id, package)
 
     def _create_custom_rhel_tools_repos(self, client_os, product):
+        """Install packge on docker content host."""
         rhel_repo_url = os.environ.get('{}_CUSTOM_REPO'.format(client_os.upper()))
 
         tools_repo_url = os.environ.get(
@@ -106,7 +109,7 @@ class Scenario_errata_count(APITestCase):
     @pre_upgrade
     def test_pre_scenario_generate_errata_for_client(self):
         """Create product and repo from which the errata will be generated for the
-        Satellite client or content host
+        Satellite client or content host.
 
         :id: 88fd28e6-b4df-46c0-91d6-784859fd1c21
 
@@ -129,51 +132,41 @@ class Scenario_errata_count(APITestCase):
 
         """
         client_os = DISTRO_DEFAULT
-        # Step 1: Create  Life Cycle Environment, Product and Custom Yum Repo
+        org = entities.Organization().create()
         environment = entities.LifecycleEnvironment(
-            organization=self.org
+            organization=org
         ).search(query={'search': 'name=Library'})[0]
 
-        product = entities.Product(organization=self.org).create()
+        product = entities.Product(organization=org).create()
         custom_yum_repo = entities.Repository(product=product,
                                               content_type='yum',
                                               url=FAKE_9_YUM_REPO
                                               ).create()
 
-        # Step 2: Create custom tools, rhel repos and sync them
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(client_os, product)
         product.sync()
-        product = product.read()
-
-        # Step 3: Create content view and publish it
-        content_view = entities.ContentView(organization=self.org).create()
+        content_view = entities.ContentView(organization=org).create()
         content_view.repository = [custom_yum_repo, tools_repo, rhel_repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
         content_view = content_view.read()
-
-        # Step 4: Create activation key and add subscription.
         ak = entities.ActivationKey(
             content_view=content_view,
-            organization=self.org.id,
+            organization=org.id,
             environment=environment
         ).create()
-        subscription = entities.Subscription(organization=self.org).search(query={
+        subscription = entities.Subscription(organization=org).search(query={
             'search': 'name={}'.format(product.name)
         })[0]
+
         ak.add_subscriptions(data={
             'subscription_id': subscription.id})
-
-        # Step 5: Registering Docker Content Host RHEL7
         rhel7_client = dockerize(
-            ak_name=ak.name, distro='rhel7', org_label=self.org.label)
+            ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = list(rhel7_client.values())[0]
-
-        # Step 6: Check katello agent and goferd service running on host
         self._install_package(client_container_id, 'katello-agent')
         self._run_goferd(client_container_id)
 
-        # Step 7: Generate Errata by Installing Outdated/Older Packages
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
             self._install_package(client_container_id, package)
         host = entities.Host().search(query={
@@ -183,7 +176,6 @@ class Scenario_errata_count(APITestCase):
             'errata_counts']['total']
         self.assertGreater(applicable_errata_count, 1)
 
-        # Step 8: Collect the erratum list
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
             'order': 'updated ASC',
             'per_page': 1000,
@@ -200,7 +192,7 @@ class Scenario_errata_count(APITestCase):
     @post_upgrade
     def test_post_scenario_errata_count_installtion(self):
         """Post-upgrade scenario that installs the package on pre-upgrade
-        client remotely and then verifies if the package installed
+        client remotely and then verifies if the package installed.
 
         :id: 88fd28e6-b4df-46c0-91d6-784859fd1c21
 
@@ -217,9 +209,7 @@ class Scenario_errata_count(APITestCase):
             1. errata count, erratum list should same after satellite upgrade
             2. Installation of errata should be pass successfully
          """
-        # Step 1: Recovered all required data for post_upgrade verification
         entity_data = get_entity_data(self.__class__.__name__)
-
         client = entity_data.get('rhel_client')
         client_container_id = list(client.values())[0]
         custom_repo_id = entity_data.get('custom_repo_id')
@@ -231,21 +221,15 @@ class Scenario_errata_count(APITestCase):
         applicable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
 
-        # Step 2: Verifying errata count has not changed on satellite
         self.assertGreater(applicable_errata_count, 1)
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
             'order': 'updated ASC',
             'per_page': 1000,
         })
-
-        # Step 3: Run goferd
         self._run_goferd(client_container_id)
-
-        # Step 4: Verifying the errata_ids
         errata_ids = [errata.errata_id for errata in erratum_list]
         self.assertEqual(sorted(errata_ids), sorted(FAKE_9_YUM_ERRATUM))
 
-        # Step 5: Verifying installation errata passes successfully
         for errata in FAKE_9_YUM_ERRATUM:
             host.errata_apply(data={'errata_ids': [errata]})
             host = host.read()
@@ -255,6 +239,5 @@ class Scenario_errata_count(APITestCase):
             0
         )
 
-        # Step 6 : Verify that package installation passed successfully
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
             self._check_package_installed(client_container_id, package)
