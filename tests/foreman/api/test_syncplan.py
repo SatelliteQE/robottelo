@@ -193,19 +193,19 @@ class SyncPlanCreateTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
-            if interval != SYNC_INTERVAL['custom']:
+            if interval == SYNC_INTERVAL['custom']:
+                sync_plan = entities.SyncPlan(
+                    description=gen_string('alpha'),
+                    organization=self.org,
+                    interval=interval,
+                    cron_expression=gen_choice((valid_cron_expressions()))
+                ).create()
+
+            else:
                 sync_plan = entities.SyncPlan(
                      description=gen_string('alpha'),
                      organization=self.org,
                      interval=interval
-                ).create()
-
-            elif (interval == 'custom cron'):
-                sync_plan = entities.SyncPlan(
-                    description=gen_string('alpha'),
-                    organization=self.org,
-                    interval='custom cron',
-                    cron_expression=gen_choice((valid_cron_expressions()))
                 ).create()
 
                 self.assertEqual(sync_plan.interval, interval)
