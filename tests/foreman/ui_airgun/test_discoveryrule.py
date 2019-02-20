@@ -310,15 +310,14 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseImportance: High
     """
-
     rule_name = gen_string('alpha')
-    search = f'cpu_count = {gen_integer(1, 5)}'
+    search = 'cpu_count = {0}'.format(gen_integer(1, 5))
     hg_name = gen_string('alpha')
     hostname = gen_string('alpha')
     hosts_limit = str(gen_integer(0, 100))
     priority = str(gen_integer(1, 100))
     new_rule_name = gen_string('alpha')
-    new_search = f'cpu_count = {gen_integer(6, 10)}'
+    new_search = 'cpu_count = {0}'.format(gen_integer(6, 10))
     new_hg_name = gen_string('alpha')
     new_hostname = gen_string('alpha')
     new_hosts_limit = str(gen_integer(101, 200))
