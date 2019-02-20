@@ -52,10 +52,17 @@ class Scenario_errata_count(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.docker_vm = os.environ.get('DOCKER_VM')
+        cls.client_os = DISTRO_DEFAULT
 
     def _run_goferd(self, client_container_id):
         """Start the goferd process."""
-        kwargs = {'host': self.docker_vm}
+        kwargs = {'async': True, 'host': self.docker_vm}
+        execute(
+            docker_execute_command,
+            client_container_id,
+            'pkill -f gofer',
+            **kwargs
+        )
         execute(
             docker_execute_command,
             client_container_id,
@@ -75,26 +82,30 @@ class Scenario_errata_count(APITestCase):
         )[self.docker_vm]
         self.assertIn(package, installed_package)
 
-    def _install_package(self, client_container_id, package):
+    def _install_or_update_package(self, client_container_id, package, update=False):
         """Install packge on docker content host."""
         kwargs = {'host': self.docker_vm}
+        if update:
+            command = 'yum update -y {}'.format(package)
+        else:
+            command = 'yum install -y {}'.format(package)
         execute(
             docker_execute_command,
             client_container_id,
-            'yum install -y {}'.format(package),
+            command,
             **kwargs
         )[self.docker_vm]
         self._check_package_installed(client_container_id, package)
 
-    def _create_custom_rhel_tools_repos(self, client_os, product):
+    def _create_custom_rhel_tools_repos(self, product):
         """Install packge on docker content host."""
-        rhel_repo_url = os.environ.get('{}_CUSTOM_REPO'.format(client_os.upper()))
+        rhel_repo_url = os.environ.get('{}_CUSTOM_REPO'.format(self.client_os.upper()))
 
         tools_repo_url = os.environ.get(
-            'TOOLS_{}'.format(client_os.upper()))
+            'TOOLS_{}'.format(self.client_os.upper()))
         if None in [rhel_repo_url, tools_repo_url]:
             raise ValueError('The Tools Repo URL/RHEL Repo url environment variable for '
-                             'OS {} is not provided!'.format(client_os))
+                             'OS {} is not provided!'.format(self.client_os))
         tools_repo = entities.Repository(product=product,
                                          content_type='yum',
                                          url=tools_repo_url
@@ -105,6 +116,15 @@ class Scenario_errata_count(APITestCase):
                                         ).create()
         call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
         return tools_repo, rhel_repo
+
+    def _publish_content_view(self, org, repolist):
+        """publish content view and return content view"""
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = repolist
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        return content_view
 
     @pre_upgrade
     def test_pre_scenario_generate_errata_for_client(self):
@@ -131,7 +151,6 @@ class Scenario_errata_count(APITestCase):
             2. errata count, erratum list will be generated to satellite client/content host
 
         """
-        client_os = DISTRO_DEFAULT
         org = entities.Organization().create()
         environment = entities.LifecycleEnvironment(
             organization=org
@@ -143,13 +162,10 @@ class Scenario_errata_count(APITestCase):
                                               url=FAKE_9_YUM_REPO
                                               ).create()
 
-        tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(client_os, product)
+        tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
         product.sync()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = [custom_yum_repo, tools_repo, rhel_repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
+        repolist = [custom_yum_repo, tools_repo, rhel_repo]
+        content_view = self._publish_content_view(org=org, repolist=repolist)
         ak = entities.ActivationKey(
             content_view=content_view,
             organization=org.id,
@@ -164,18 +180,16 @@ class Scenario_errata_count(APITestCase):
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = list(rhel7_client.values())[0]
-        self._install_package(client_container_id, 'katello-agent')
+        self._install_or_update_package(client_container_id, 'katello-agent')
         self._run_goferd(client_container_id)
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
-            self._install_package(client_container_id, package)
+            self._install_or_update_package(client_container_id, package)
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
-        host = host.read()
         applicable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         self.assertGreater(applicable_errata_count, 1)
-
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
             'order': 'updated ASC',
             'per_page': 1000,
@@ -185,7 +199,9 @@ class Scenario_errata_count(APITestCase):
         scenario_dict = {self.__class__.__name__: {
             'rhel_client': rhel7_client,
             'activation_key': ak.name,
-            'custom_repo_id': custom_yum_repo.id
+            'custom_repo_id': custom_yum_repo.id,
+            'product_id': product.id,
+            'conten_view_id': content_view.id
         }}
         create_dict(scenario_dict)
 
@@ -200,7 +216,7 @@ class Scenario_errata_count(APITestCase):
 
             1. Recovered pre_upgrade data for post_upgrade verification
             2. Verifying errata count has not changed on satellite
-            3. Run goferd
+            3. Update Katello-agent and Restart goferd
             4. Verifying the errata_ids
             5. Verifying installation errata passes successfully
             6. Verifying that package installation passed successfully by remote docker exec
@@ -213,31 +229,44 @@ class Scenario_errata_count(APITestCase):
         client = entity_data.get('rhel_client')
         client_container_id = list(client.values())[0]
         custom_repo_id = entity_data.get('custom_repo_id')
+        product_id = entity_data.get('product_id')
+        conten_view_id = entity_data.get('conten_view_id')
+        product = entities.Product(id=product_id).read()
+        content_view = entities.ContentView(id=conten_view_id).read()
         custom_yum_repo = entities.Repository(id=custom_repo_id).read()
         activation_key = entity_data.get('activation_key')
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(activation_key)})[0]
-        host = host.read()
+
         applicable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
+        tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
+        product.sync()
+        for repo in (tools_repo, rhel_repo):
+            content_view.repository.append(repo)
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
 
+        self._install_or_update_package(client_container_id,
+                                        "katello-agent",
+                                        update=True)
+        self._run_goferd(client_container_id)
         self.assertGreater(applicable_errata_count, 1)
+
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
             'order': 'updated ASC',
             'per_page': 1000,
         })
-        self._run_goferd(client_container_id)
         errata_ids = [errata.errata_id for errata in erratum_list]
         self.assertEqual(sorted(errata_ids), sorted(FAKE_9_YUM_ERRATUM))
 
         for errata in FAKE_9_YUM_ERRATUM:
             host.errata_apply(data={'errata_ids': [errata]})
-            host = host.read()
             applicable_errata_count -= 1
         self.assertEqual(
             host.content_facet_attributes['errata_counts']['total'],
             0
         )
-
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
             self._check_package_installed(client_container_id, package)
