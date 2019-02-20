@@ -1,4 +1,6 @@
 import logging
+import os
+import signal
 
 import nailgun.entities
 from airgun.session import Session
@@ -9,6 +11,33 @@ from robottelo.decorators import fixture
 
 
 LOGGER = logging.getLogger('robottelo')
+
+SESSION_TIMEOUT = 7000
+
+
+class SessionTimeoutError(Exception):
+    """Raised when UI session timeout"""
+
+
+def _signal_session_timeout(signum, frame):
+    """Raise exception when signal alarm call this function"""
+    LOGGER.error('UI Session reached timeout value "%s" and will be interrupted', SESSION_TIMEOUT)
+    raise SessionTimeoutError('Session timeout')
+
+
+def _signal_session_clear():
+    """Clear the signal alarm"""
+    if os.name == 'posix':
+        LOGGER.info('UI Session clear timeout alarm')
+        signal.alarm(0)
+
+
+def _signal_session_init():
+    """Initiate a signal alarm for UI session"""
+    if os.name == 'posix':
+        signal.signal(signal.SIGALRM, _signal_session_timeout)
+        signal.alarm(SESSION_TIMEOUT)
+        LOGGER.info('UI Session set alarm to timeout after %s', SESSION_TIMEOUT)
 
 
 @fixture(scope='module')
@@ -117,7 +146,12 @@ def session(test_name, module_user):
                 session.architecture.create({'name': 'bar'})
 
     """
-    return Session(test_name, module_user.login, module_user.password)
+    session = Session(test_name, module_user.login, module_user.password)
+    _signal_session_init()
+    try:
+        yield session
+    finally:
+        _signal_session_clear()
 
 
 @fixture()
