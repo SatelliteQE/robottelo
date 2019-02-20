@@ -43,7 +43,7 @@ from robottelo.constants import (
     VALID_GPG_KEY_BETA_FILE,
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, run_in_one_thread, tier2, upgrade
+from robottelo.decorators import fixture, run_in_one_thread, skip_if_bug_open, tier2, upgrade
 from robottelo.helpers import read_data_file
 from robottelo.products import SatelliteToolsRepository
 
@@ -703,6 +703,7 @@ def test_positive_reposet_disable(session):
             'name = "{0}"'.format(repository_name), category='Enabled')
 
 
+@skip_if_bug_open('bugzilla', 1670125)
 @run_in_one_thread
 @tier2
 def test_positive_reposet_disable_after_manifest_deleted(session):
