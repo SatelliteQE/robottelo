@@ -202,6 +202,7 @@ from robottelo.constants import (
     REPO_TYPE,
     REPOS,
 )
+from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import get_host_info
 from robottelo import manifests
 if TYPE_CHECKING:
@@ -220,6 +221,7 @@ PRODUCT_KEY_SAT_TOOLS = 'rhst'
 PRODUCT_KEY_SAT_CAPSULE = 'rhsc'
 PRODUCT_KEY_VIRT_AGENTS = 'rhva6'
 PRODUCT_KEY_CLOUD_FORMS_TOOLS = 'rhct6'
+PRODUCT_KEY_ANSIBLE_ENGINE = 'rhae2'
 
 _server_distro = None  # type: str
 
@@ -311,12 +313,12 @@ class YumRepository(BaseRepository):
 
 
 class DockerRepository(BaseRepository):
-    """Custom Yum repository"""
+    """Custom Docker repository"""
     _type = REPO_TYPE_DOCKER  # type: str
 
 
 class PuppetRepository(BaseRepository):
-    """Custom Yum repository"""
+    """Custom Puppet repository"""
     _type = REPO_TYPE_PUPPET  # type: str
 
 
@@ -520,6 +522,11 @@ class RHELCloudFormsTools(GenericRHRepository):
     _key = PRODUCT_KEY_CLOUD_FORMS_TOOLS
 
 
+class RHELAnsibleEngineRepository(GenericRHRepository):
+    """Red Hat Ansible Engine Repository"""
+    _key = PRODUCT_KEY_ANSIBLE_ENGINE
+
+
 class RepositoryCollection(object):
     """Repository collection"""
     _distro = None  # type: str
@@ -583,6 +590,9 @@ class RepositoryCollection(object):
 
     @property
     def rh_repos_info(self):  # type: () -> List[Dict]
+        if bz_bug_is_open(1660133):
+            return [repo_info
+                    for item, repo_info in zip(self._items, self._repos_info) if item.cdn]
         return [
             repo_info
             for repo_info in self._repos_info
@@ -591,6 +601,9 @@ class RepositoryCollection(object):
 
     @property
     def custom_repos_info(self):  # type: () -> List[Dict]
+        if bz_bug_is_open(1660133):
+            return [repo_info
+                    for item, repo_info in zip(self._items, self._repos_info) if not item.cdn]
         return [
             repo_info
             for repo_info in self._repos_info
@@ -669,10 +682,11 @@ class RepositoryCollection(object):
         if self._repos_info:
             raise RepositoryAlreadyCreated(
                 'Repositories already created can not setup content')
-        if upload_manifest and self.need_subscription:
+        if self.need_subscription:
             # upload manifest only if needed
-            manifests.upload_manifest_locked(
-                org_id, manifests.clone(), interface=manifests.INTERFACE_CLI)
+            if upload_manifest:
+                manifests.upload_manifest_locked(
+                    org_id, manifests.clone(), interface=manifests.INTERFACE_CLI)
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [DEFAULT_SUBSCRIPTION_NAME]

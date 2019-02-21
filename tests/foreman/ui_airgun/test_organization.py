@@ -16,10 +16,47 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from pytest import raises
 
 from robottelo.config import settings
-from robottelo.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2
+from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2, upgrade
+from robottelo.manifests import original_manifest, upload_manifest_locked
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session):
+    """Perform end to end testing for organization component
+
+    :id: 91003f52-63a6-4b0d-9b68-2b5717fd200e
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    label = gen_string('alphanumeric')
+    description = gen_string('alpha')
+    with session:
+        session.organization.create({
+            'name': name, 'label': label, 'description': description,
+        })
+        assert session.organization.search(name)[0]['Name'] == name
+        org_values = session.organization.read(name)
+        assert org_values['primary']['name'] == name
+        assert org_values['primary']['label'] == label
+        assert org_values['primary']['description'] == description
+        session.organization.update(name, {'primary.name': new_name})
+        assert session.organization.search(new_name)[0]['Name'] == new_name
+        with raises(AssertionError):
+            session.organization.delete(new_name)
+        session.organization.select(DEFAULT_ORG)
+        session.organization.delete(new_name)
+        assert not session.organization.search(new_name)
 
 
 @tier2
@@ -293,3 +330,62 @@ def test_positive_update_location(session):
         assert len(org_values['locations']['resources']['assigned']) == 0
         assert location.name in org_values[
             'locations']['resources']['unassigned']
+
+
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_delete_with_manifest_lces(session):
+    """Create Organization with valid values and upload manifest.
+    Then try to delete that organization.
+
+    :id: 851c8557-a406-4a70-9c8b-94bcf0482f8d
+
+    :expectedresults: Organization is deleted successfully.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    org = entities.Organization().create()
+    upload_manifest_locked(org.id)
+    with session:
+        session.organization.select(org.name)
+        session.lifecycleenvironment.create({'name': 'DEV'})
+        session.lifecycleenvironment.create(
+            {'name': 'QE'},
+            prior_entity_name='DEV',
+        )
+        # Org cannot be deleted when selected,
+        # So switching to Default Org and then deleting.
+        session.organization.select(DEFAULT_ORG)
+        session.organization.delete(org.name)
+        assert not session.organization.search(org.name)
+
+
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_download_debug_cert_after_refresh(session):
+    """Create organization with valid manifest. Download debug
+    certificate for that organization and refresh added manifest for few
+    times in a row
+
+    :id: 1fcd7cd1-8ba1-434f-b9fb-c4e920046eb4
+
+    :expectedresults: Scenario passed successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    org = entities.Organization().create()
+    try:
+        upload_manifest_locked(org.id, original_manifest())
+        with session:
+            session.organization.select(org.name)
+            for _ in range(3):
+                assert org.download_debug_certificate()
+                session.subscription.refresh_manifest()
+    finally:
+        entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})

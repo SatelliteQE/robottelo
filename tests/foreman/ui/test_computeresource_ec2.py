@@ -17,9 +17,7 @@ from fauxfactory import gen_string
 
 from robottelo.config import settings
 from robottelo.constants import (
-    AWS_EC2_FLAVOR_T2_MICRO,
     COMPUTE_PROFILE_LARGE,
-    EC2_REGION_CA_CENTRAL_1,
     FOREMAN_PROVIDERS,
 )
 from robottelo.decorators import (
@@ -82,13 +80,13 @@ class Ec2ComputeResourceTestCase(UITestCase):
         ]
         name = gen_string('alpha')
         with Session(self) as session:
-                make_resource(
-                    session,
-                    name=name,
-                    provider_type=FOREMAN_PROVIDERS['ec2'],
-                    parameter_list=parameter_list
-                )
-                self.assertIsNotNone(self.compute_resource.search(name))
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['ec2'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @stubbed()
@@ -112,48 +110,6 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-
-    @tier1
-    @run_only_on('sat')
-    def test_positive_create_ec2_with_custom_region(self):
-        """Create a new ec2 compute resource with custom region
-
-        :id: aeb0c52e-34dd-4574-af34-a6d8721724a7
-
-        :customerscenario: true
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a valid name to ec2 compute resource.
-            4. Test the connection using Load Regions.
-            5. Provide a valid custom region
-
-        :expectedresults: An ec2 compute resource is created
-            successfully.
-
-        :BZ: 1456942
-
-        :Caseautomation: Automated
-
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['Access Key', self.aws_access_key, 'field'],
-            ['Secret Key', self.aws_secret_key, 'field'],
-            ['Region', EC2_REGION_CA_CENTRAL_1, 'special select']
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['ec2'],
-                parameter_list=parameter_list
-            )
-            self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @stubbed()
@@ -202,30 +158,6 @@ class Ec2ComputeResourceTestCase(UITestCase):
         :Caseautomation: notautomated
 
         :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_positive_update_ec2_organization(self):
-        """Update An ec2 compute resource organization
-
-        :id: ee286e04-0012-4573-86aa-8930efe89ec6
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a valid name to ec2 compute resource.
-            4. Test the connection using Load Regions and submit.
-            5. Create a new organization.
-            6. Add the CR to new organization.
-
-        :expectedresults: The ec2 compute resource is updated
-
-        :Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -361,49 +293,6 @@ class Ec2ComputeResourceTestCase(UITestCase):
                     name,
                     COMPUTE_PROFILE_LARGE
                 )
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_access_ec2_with_custom_profile(self):
-        """Associate custom (3-Large) compute profile to ec2 compute resource
-
-        :id: 88cb2f19-4f6e-4533-859b-59c7d99c206f
-
-        :setup: ec2 hostname and credentials, custom flavor.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Select the created ec2 CR.
-            4. Click Compute Profile tab.
-            5. Edit (3-Large) with valid configurations and submit.
-
-        :expectedresults: The compute resource created and opened successfully
-
-        :Caseautomation: Automated
-        """
-        parameter_list = [
-            ['Access Key', self.aws_access_key, 'field'],
-            ['Secret Key', self.aws_secret_key, 'field'],
-            ['Region', self.aws_region, 'special select']
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['ec2'],
-                parameter_list=parameter_list
-            )
-            self.compute_resource.set_profile_values(
-                name, COMPUTE_PROFILE_LARGE,
-                flavor=AWS_EC2_FLAVOR_T2_MICRO,
-                availability_zone=self.aws_availability_zone,
-                subnet=self.aws_subnet,
-                security_groups=self.aws_security_groups,
-                managed_ip=self.aws_managed_ip,
             )
 
     @run_only_on('sat')

@@ -12,6 +12,7 @@ import time
 
 from fauxfactory import (
     gen_alphanumeric,
+    gen_choice,
     gen_integer,
     gen_ipaddr,
     gen_mac,
@@ -20,6 +21,7 @@ from fauxfactory import (
 )
 from os import chmod
 from robottelo import manifests, ssh
+from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -75,6 +77,7 @@ from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     DEFAULT_TEMPLATE,
     DISTRO_RHEL7,
+    DISTROS_MAJOR_VERSION,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
@@ -86,6 +89,7 @@ from robottelo.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
+from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import bz_bug_is_open, cacheable
 from robottelo.helpers import (
     update_dictionary, default_url_on_new_port, get_available_capsule_port
@@ -959,6 +963,9 @@ def make_repository_with_credentials(options=None, credentials=None):
         --content-type CONTENT_TYPE             type of repo (either 'yum',
                                                 'puppet', 'docker' or 'ostree',
                                                 defaults to 'yum')
+        --docker-tags-whitelist DOCKER_TAGS_WHITELIST Comma separated list of
+                                                tags to sync for Container Image
+                                                repository
         --docker-upstream-name DOCKER_UPSTREAM_NAME name of the upstream docker
                                                 repository
         --download-policy DOWNLOAD_POLICY       download policy for yum repos
@@ -1009,6 +1016,7 @@ def make_repository_with_credentials(options=None, credentials=None):
     args = {
         u'checksum-type': None,
         u'content-type': u'yum',
+        u'docker-tags-whitelist': None,
         u'docker-upstream-name': None,
         u'download-policy': None,
         u'gpg-key': None,
@@ -1287,7 +1295,8 @@ def make_sync_plan(options=None):
                                                 true/false, yes/no, 1/0.
         --interval INTERVAL                     how often synchronization
                                                 should run. One of 'none',
-                                                'hourly', 'daily', 'weekly'.
+                                                'hourly', 'daily', 'weekly'
+                                                'custom cron'.
                                                 Default: ""none""
         --name NAME                             sync plan name
         --organization ORGANIZATION_NAME        Organization name to search by
@@ -1298,6 +1307,8 @@ def make_sync_plan(options=None):
                                                 Date and time in YYYY-MM-DD
                                                 HH:MM:SS or ISO 8601 format
                                                 Default: "2014-10-07 08:50:35"
+        --cron-expression CRON EXPRESSION       Set this when interval is
+                                                custom cron
         -h, --help                              print help
 
     """
@@ -1314,8 +1325,11 @@ def make_sync_plan(options=None):
         u'organization-id': None,
         u'organization-label': None,
         u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        u'cron-expression': None,
     }
-
+    if (options.get('interval', args['interval']) == SYNC_INTERVAL['custom']
+            and not options.get('cron-expression')):
+        args['cron-expression'] = gen_choice(valid_cron_expressions())
     return create_object(SyncPlan, args, options)
 
 
@@ -2621,6 +2635,10 @@ def make_lifecycle_environment(options=None):
                                     the new environment in the chain. It has to
                                     be either ‘Library’ or an environment at
                                     the end of a chain.
+        --registry-name-pattern REGISTRY_NAME_PATTERN    Pattern for container
+                                    image names
+        --registry-unauthenticated-pull REGISTRY_UNAUTHENTICATED_PULL Allow
+                                    unauthenticed pull of container images
         -h, --help                  print help
 
     """
@@ -2644,6 +2662,8 @@ def make_lifecycle_environment(options=None):
         u'organization-id': None,
         u'organization-label': None,
         u'prior': None,
+        u'registry-name-pattern': None,
+        u'registry-unauthenticated-pull': None,
     }
 
     return create_object(LifecycleEnvironment, args, options)
@@ -3342,8 +3362,10 @@ def configure_env_for_provision(org=None, loc=None):
         'organization-ids': org['id'],
     })
 
-    # Search for SmartProxy, and associate location
-    puppet_proxy = Proxy.info({'id': Proxy.list()[0]['id']})
+    # get default capsule and associate location
+    puppet_proxy = Proxy.info({'id': Proxy.list({
+        u'search': settings.server.hostname
+    })[0]['id']})
     Proxy.update({
         'id': puppet_proxy['id'],
         'locations': list(
@@ -3713,18 +3735,29 @@ def setup_cdn_and_custom_repositories(
         if not cdn and not custom_repo_url:
             raise CLIFactoryError(u'Custom repository with url not supplied')
         if cdn:
-            RepositorySet.enable({
-                u'organization-id': org_id,
-                u'product': repo['product'],
-                u'name': repo['repository-set'],
-                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                u'releasever': repo.get('releasever'),
-            })
-            repo_info = Repository.info({
-                u'organization-id': org_id,
-                u'name': repo['repository'],
-                u'product': repo['product'],
-            })
+            if bz_bug_is_open(1655239):
+                rh_repo_id = enable_rhrepo_and_fetchid(
+                    repo.get('arch', DEFAULT_ARCHITECTURE),
+                    org_id,
+                    repo['product'],
+                    repo['repository'],
+                    repo['repository-set'],
+                    repo.get('releasever')
+                )
+                repo_info = Repository.info({'id': rh_repo_id})
+            else:
+                RepositorySet.enable({
+                    u'organization-id': org_id,
+                    u'product': repo['product'],
+                    u'name': repo['repository-set'],
+                    u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                    u'releasever': repo.get('releasever'),
+                })
+                repo_info = Repository.info({
+                    u'organization-id': org_id,
+                    u'name': repo['repository'],
+                    u'product': repo['product'],
+                })
         else:
             if custom_product is None:
                 custom_product = make_product_wait({
@@ -3834,7 +3867,8 @@ def setup_cdn_and_custom_repos_content(
         needed_subscription_names.append(custom_product['name'])
     added_subscription_names = []
     for subscription in subscriptions:
-        if subscription['name'] in needed_subscription_names:
+        if (subscription['name'] in needed_subscription_names
+                and subscription['name'] not in added_subscription_names):
             ActivationKey.add_subscription({
                 u'id': activation_key['id'],
                 u'subscription-id': subscription['id'],
@@ -3849,13 +3883,20 @@ def setup_cdn_and_custom_repos_content(
     if missing_subscription_names:
         raise CLIFactoryError(
             u'Missing subscriptions: {0}'.format(missing_subscription_names))
-
-    return dict(
+    data = dict(
         activation_key=activation_key,
         content_view=content_view,
         product=custom_product,
         repos=repos_info,
     )
+    if lce_id:
+        lce = LifecycleEnvironment.info({
+            'id': lce_id,
+            'organization-id': org_id,
+        })
+        data['lce'] = lce
+
+    return data
 
 
 def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
@@ -3921,7 +3962,7 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
 def virt_who_hypervisor_config(
         config_id, virt_who_vm, org_id=None, lce_id=None,
         hypervisor_hostname=None, configure_ssh=False, hypervisor_user=None,
-        subscription_name=None, exec_one_shot=False, upload_manifest=True):
+        subscription_name=None, exec_one_shot=False, upload_manifest=True, extra_repos=None):
     """
     Configure virtual machine as hypervisor virt-who service
 
@@ -3939,6 +3980,7 @@ def virt_who_hypervisor_config(
     :param bool exec_one_shot: whether to run the virt-who one-shot command
         after startup
     :param bool upload_manifest: whether to upload the organization manifest
+    :param list extra_repos: (Optional) a list of repositories dict options to setup additionally.
     """
     if org_id is None:
         org = make_org()
@@ -3952,19 +3994,9 @@ def virt_who_hypervisor_config(
             'id': lce_id,
             'organization-id': org['id']
         })
-    rh_product_arch = REPOS['rhel7']['arch']
-    rh_product_releasever = REPOS['rhel7']['releasever']
+    if extra_repos is None:
+        extra_repos = []
     repos = [
-        # Red Hat Enterprise Linux 7
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhel7'],
-            'repository': REPOS['rhel7']['name'],
-            'repository-id': REPOS['rhel7']['id'],
-            'releasever': rh_product_releasever,
-            'arch': rh_product_arch,
-            'cdn': True,
-        },
         # Red Hat Satellite Tools
         {
             'product': PRDS['rhel'],
@@ -3975,6 +4007,7 @@ def virt_who_hypervisor_config(
             'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
         },
     ]
+    repos.extend(extra_repos)
     content_setup_data = setup_cdn_and_custom_repos_content(
         org['id'],
         lce['id'],
@@ -3995,6 +4028,14 @@ def virt_who_hypervisor_config(
         ],
         install_katello_agent=False,
     )
+    # configure manually RHEL custom repo url as sync time is very big
+    # (more than 2 hours for RHEL 7Server) and not critical in this context.
+    rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
+    rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
+    if not rhel_repo_url:
+        raise ValueError('Settings option "{0}" is whether not set or does not exist'.format(
+            rhel_repo_option_name))
+    virt_who_vm.configure_rhel_repo(rhel_repo_url)
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
         hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(
@@ -4008,7 +4049,9 @@ def virt_who_hypervisor_config(
 
     # upload the virt-who config deployment script
     _, temp_virt_who_deploy_file_path = mkstemp(
-        suffix='-virt_who_deploy-{0}'.format(config_id))
+        suffix='-virt_who_deploy-{0}'.format(config_id),
+        dir=settings.tmp_dir,
+    )
     VirtWhoConfig.fetch({
         'id': config_id,
         'output': temp_virt_who_deploy_file_path

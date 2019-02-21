@@ -163,15 +163,15 @@ class LocatorTestCase(unittest2.TestCase):
 
         self.assertTrue(root['content_env']._is_root)
         self.assertFalse(root["content_env.edit_description"]._is_root)
-        self.assertEquals(root["content_env.edit_description"][0], 'xpath')
-        self.assertEquals(
+        self.assertEqual(root["content_env.edit_description"][0], 'xpath')
+        self.assertEqual(
             root["content_env.edit_description"][1],
             ("//form[@bst-edit-textarea='environment.description']"
              "//i[contains(@class,'fa-edit')]")
         )
         self.assertIn('save',
                       root["content_env.edit_description_textarea"].keys())
-        self.assertEquals(
+        self.assertEqual(
             root["content_env.edit_description_textarea.save"][1],
             "//form[@bst-edit-textarea='environment.description']//button"
         )

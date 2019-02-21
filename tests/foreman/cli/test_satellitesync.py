@@ -20,30 +20,41 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests, ssh
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_lifecycle_environment,
+    make_org,
+    make_product,
+    make_repository,
+)
+from robottelo.cli.package import Package
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
+from robottelo.cli.settings import Settings
+from robottelo.cli.subscription import Subscription
 from robottelo.constants import (
     ENVIRONMENT,
     PRDS,
     REPOS,
     REPOSET,
 )
-from robottelo.cli.factory import (
-    make_org,
-    make_product,
-    make_repository,
-)
-from robottelo.cli.repository import Repository
-from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.settings import Settings
-from robottelo.cli.subscription import Subscription
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     stubbed,
+    tier1,
+    tier2,
     tier3,
     upgrade
 )
 from robottelo.test import CLITestCase
+
+
+class ExportDirectoryNotSet(Exception):
+    """Raise when export Directory is not set or found"""
 
 
 @run_in_one_thread
@@ -230,35 +241,531 @@ class RepositoryExportTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
 
-class InterSatelliteSyncTestCase(CLITestCase):
-    """Implements InterSatellite Sync tests in CLI"""
+class ContentViewSync(CLITestCase):
+    """Implements Content View Export Import tests in CLI"""
+
+    export_base = '/var/lib/pulp/katello-export'
+
+    @staticmethod
+    def _create_cv(cv_name, repo, organization, publish=True):
+        """Creates CV in organization with given name and repository"""
+        content_view = make_content_view({
+            'name': cv_name,
+            'organization-id': organization['id']
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': organization['id'],
+            'repository-id': repo['id']
+        })
+        content_view = ContentView.info({
+            'name': cv_name,
+            'organization-id': organization['id']
+        })
+        cvv_id = None
+        if publish:
+            ContentView.publish({u'id': content_view['id']})
+            content_view = ContentView.info({u'id': content_view['id']})
+            cvv_id = content_view['versions'][0]['id']
+        return content_view, cvv_id
+
+    @staticmethod
+    def _enable_rhel_content(organization, sync=True):
+        """Enable/Synchronize rhel content"""
+        manifests.upload_manifest_locked(
+            organization['id'], interface=manifests.INTERFACE_CLI)
+        RepositorySet.enable({
+            'basearch': 'x86_64',
+            'name': REPOSET['rhva6'],
+            'organization-id': organization['id'],
+            'product': PRDS['rhel'],
+            'releasever': '6Server',
+        })
+        repo = Repository.info({
+            'name': REPOS['rhva6']['name'],
+            'organization-id': organization['id'],
+            'product': PRDS['rhel'],
+        })
+        # Update the download policy to 'immediate'
+        Repository.update({
+            'download-policy': 'immediate',
+            'id': repo['id'],
+        })
+        if sync:
+            # Synchronize the repository
+            Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({
+            'name': REPOS['rhva6']['name'],
+            'organization-id': organization['id'],
+            'product': PRDS['rhel'],
+        })
+        return repo
+
+    def set_importing_org(self, product, repo, cv):
+        """Sets same CV, product and repository in importing organization as
+        exporting organization
+
+        :param str product: The product name same as exporting product
+        :param str repo: The repo name same as exporting repo
+        :param str cv: The cv name same as exporting cv
+        """
+        self.importing_org = make_org()
+        self.importing_prod = make_product({
+            'organization-id': self.importing_org['id'],
+            'name': product
+        })
+        self.importing_repo = make_repository({
+            'name': repo,
+            'mirror-on-sync': 'no',
+            'download-policy': 'immediate',
+            'product-id': self.importing_prod['id']
+        })
+        self.importing_cv = make_content_view({
+            'name': cv,
+            'organization-id': self.importing_org['id']
+        })
+        ContentView.add_repository({
+            'id': self.importing_cv['id'],
+            'organization-id': self.importing_org['id'],
+            'repository-id': self.importing_repo['id']
+        })
+
+    @classmethod
+    def setUpClass(cls):
+        """Create Directory for all CV Sync Tests in export_base directory"""
+        super(ContentViewSync, cls).setUpClass()
+        if ssh.command('[ -d {} ]'.format(cls.export_base)).return_code == 1:
+            raise ExportDirectoryNotSet(
+                'Export Directory "{}" is not set/found.'.format(cls.export_base))
+        cls.exporting_org = make_org()
+        cls.exporting_prod_name = gen_string('alpha')
+        product = make_product({
+            'organization-id': cls.exporting_org['id'],
+            'name': cls.exporting_prod_name
+        })
+        cls.exporting_repo_name = gen_string('alpha')
+        cls.exporting_repo = make_repository({
+            'name': cls.exporting_repo_name,
+            'mirror-on-sync': 'no',
+            'download-policy': 'immediate',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': cls.exporting_repo['id']})
+        cls.exporting_cv_name = gen_string('alpha')
+        cls.exporting_cv, cls.exporting_cvv_id = ContentViewSync._create_cv(
+            cls.exporting_cv_name, cls.exporting_repo, cls.exporting_org)
+
+    def tearDown(self):
+        """Deletes Directory created for CV export Test during setUp"""
+        super(ContentViewSync, self).tearDown()
+        ssh.command('rm -rf {}/*'.format(self.export_base))
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
-    @upgrade
     def test_positive_export_import_cv(self):
         """Export CV version contents in directory and Import them.
 
-        :id: b08e9f24-f18e-43b7-9189-ad7b596ccb5b
+        :id: b4fb9386-9b6a-4fc5-a8bf-96d7c80af93e
 
         :steps:
 
-            1. Export whole CV version contents to a directory specified in
-               settings.
-            2. Copy exported contents to /var/www/html/pub/export directory.
-            3. Import these copied contents from some other org/satellite.
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Import those contents from some other org/satellite.
 
         :expectedresults:
 
-            1. Whole CV version contents has been exported to directory
-               specified in settings.
-            2. All The exported contents has been imported in org/satellite.
-
-        :caseautomation: notautomated
+            1. CV version custom contents has been exported to directory
+            2. All The exported custom contents has been imported in org/satellite
 
         :CaseLevel: System
         """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
+        self.assertTrue(len(exported_packages) > 0)
+        self.set_importing_org(
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        importing_cvv = ContentView.info({
+            u'id': self.importing_cv['id']
+        })['versions']
+        self.assertTrue(len(importing_cvv) >= 1)
+        imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
+        self.assertTrue(len(imported_packages) > 0)
+        self.assertEqual(len(exported_packages), len(imported_packages))
+
+    @tier3
+    @upgrade
+    def test_positive_export_import_redhat_cv(self):
+        """Export CV version redhat contents in directory and Import them
+
+        :id: f6bd7fa9-396e-44ac-92a3-ab87ce1a7ef5
+
+        :steps:
+
+            1. Enable product and repository with redhat contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Import those contents from some other org/satellite.
+
+        :expectedresults:
+
+            1. CV version redhat contents has been exported to directory
+            2. All The exported redhat contents has been imported in org/satellite
+
+        :bz: 1655239
+
+        :CaseLevel: System
+        """
+        rhel_repo = ContentViewSync._enable_rhel_content(self.exporting_org)
+        rhel_cv_name = gen_string('alpha')
+        _, exporting_cvv_id = ContentViewSync._create_cv(
+            rhel_cv_name, rhel_repo, self.exporting_org)
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
+        self.assertTrue(len(exported_packages) > 0)
+        imp_rhel_repo = ContentViewSync._enable_rhel_content(self.importing_org, sync=False)
+        importing_cv, _ = ContentViewSync._create_cv(
+            rhel_cv_name, imp_rhel_repo, self.importing_org, publish=False)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        importing_cvv_id = ContentView.info({
+            u'id': importing_cv['id']
+        })['versions'][0]['id']
+        imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
+        self.assertTrue(len(imported_packages) > 0)
+        self.assertEqual(len(exported_packages), len(imported_packages))
+
+    @tier2
+    def test_positive_exported_cv_tar_contents(self):
+        """Exported CV version contents in export directory are same as CVv contents
+
+        :id: 35cc3b20-0fbc-4177-a89c-b4c8d7389a77
+
+        :steps:
+
+            1. Enable product and repository with contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Validate contents in a directory.
+
+        :expectedresults:
+
+            1. The CVv should be exported to specified location with contents tar and json
+
+        :CaseLevel: Integration
+        """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        result = ssh.command("tar -t -f {}".format(exported_tar))
+        contents_tar = 'export-{cv_name}-{cvv_id}/export-{cv_name}-{cvv_id}-repos.tar'.format(
+            cv_name=self.exporting_cv_name, cvv_id=self.exporting_cvv_id)
+        self.assertIn(contents_tar, result.stdout)
+        cvv_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
+        self.assertTrue(len(cvv_packages) > 0)
+        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
+        exported_packages = ssh.command("tar -tf {0}/{1} | grep .rpm | wc -l".format(
+            self.export_base, contents_tar))
+        self.assertEqual(len(cvv_packages), int(exported_packages.stdout[0]))
+
+    @tier1
+    @upgrade
+    def test_positive_export_import_promoted_cv(self):
+        """Export promoted CV version contents in directory and Import them.
+
+        :id: 315ef1f0-e2ad-43ec-adff-453fb71654a7
+
+        :steps:
+
+            1. Create product and repository with contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Promote the CV.
+            5. Export CV version contents to a directory
+            6. Import those contents from some other org/satellite.
+
+        :expectedresults:
+
+            1. Promoted CV version contents has been exported to directory
+            2. Promoted CV version contents has been imported successfully
+            3. The imported CV should only be published and not promoted
+
+        :CaseLevel: System
+        """
+        env = make_lifecycle_environment({u'organization-id': self.exporting_org['id']})
+        ContentView.version_promote({
+            u'id': self.exporting_cvv_id,
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        promoted_cvv_id = ContentView.info({
+            u'id': self.exporting_cv['id'],
+        })['versions'][-1]['id']
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': promoted_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
+        self.set_importing_org(
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        importing_cvv = ContentView.info({
+            u'id': self.importing_cv['id']
+        })['versions']
+        self.assertEqual(len(importing_cvv), 1)
+        imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
+        self.assertEqual(len(exported_packages), len(imported_packages))
+
+    @tier2
+    def test_positive_repo_contents_of_imported_cv(self):
+        """Repo contents of imported CV are same as repo contents of exported CV
+
+        :id: 76305fb9-2afd-46f8-842a-03bb706fa3fa
+
+        :steps:
+
+            1. Enable product and repository with contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Import those contents from some other org/satellite
+
+        :expectedresults:
+
+            1. The contents in repo of imported CV are same as repo of exported CV
+
+        :CaseLevel: Integration
+        """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        self.set_importing_org(
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        exported_repo = Repository.info({'id': self.exporting_repo['id']})
+        imported_repo = Repository.info({'id': self.importing_repo['id']})
+        self.assertEqual(
+            exported_repo['content-counts']['packages'],
+            imported_repo['content-counts']['packages'])
+        self.assertEqual(
+            exported_repo['content-counts']['errata'],
+            imported_repo['content-counts']['errata'])
+
+    @tier1
+    def test_negative_reimport_cv_with_same_major_minor(self):
+        """Reimport CV version with same major and minor fails
+
+        :id: 15a7ddd3-c1a5-4b22-8460-6cb2b8ea4ef9
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Import those contents from some other org/satellite.
+            6. Attempt to reimport the those contents(without changing version in json)
+
+        :expectedresults:
+
+            1. Reimporting the contents with same major and minor fails
+            2. Satellite displays an error 'A CV version already exists with the same major and
+                minor version'
+        """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        self.set_importing_org(
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_import({
+                'export-tar': exported_tar,
+                'organization-id': self.importing_org['id']
+            })
+        self.assert_error_msg(
+            error,
+            "the Content View '{0}' is greater or equal to the version you "
+            "are trying to import".format(self.exporting_cv_name)
+        )
+
+    @tier1
+    def test_negative_import_cv_without_replicating_import_part(self):
+        """Import CV version without creating same CV and repo at importing side
+
+        :id: 4cc69666-407f-4d66-b3d2-8fe2ed135a5f
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Don't create replica CV and repo at importing org/satellite
+            6. Attempt to import the exported contents
+
+        :expectedresults:
+
+            1. Error 'Unable to sync repositories, no library repository found' should be
+                displayed
+        """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        importing_org = make_org()
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_import({
+                'export-tar': exported_tar,
+                'organization-id': importing_org['id']
+            })
+        self.assert_error_msg(
+            error,
+            'Error: The Content View {} is not present on this server, '
+            'please create the Content View and try the import again'.format(
+                self.exporting_cv_name)
+        )
+
+    @tier1
+    def test_negative_import_without_associating_repo_to_cv(self):
+        """Importing CV version without associating repo to CV at importing side throws error
+
+        :id: 3d20612f-b769-462e-9829-f13fd81bd4c7
+
+        :steps:
+
+            1. Create product and repository with custom contents
+            2. Sync the repository
+            3. Create CV with above product and publish
+            4. Export CV version contents to a directory
+            5. Create replica CV but don't associate repo to CV at importing org/satellite
+            6. Import those contents from some other org/satellite.
+
+        :expectedresults:
+
+            1. Error 'Unable to sync repositories, no library repository found' should be
+                displayed
+        """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        importing_org = make_org()
+        make_content_view({
+            'name': self.exporting_cv_name,
+            'organization-id': importing_org['id']
+        })
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_import({
+                'export-tar': exported_tar,
+                'organization-id': importing_org['id']
+            })
+        self.assert_error_msg(
+            error,
+            'Unable to sync repositories, no library repository found'
+        )
+
+    @tier1
+    def test_negative_export_cv_with_on_demand_repo(self):
+        """Exporting CV version having on_demand repo throws error
+
+        :id: f8b86d0e-e1a7-4e19-bb82-6de7d16c6676
+
+        :steps:
+
+            1. Create product and on-demand repository with custom contents
+            2. Sync the repository
+            3. Create CV with above product and publish
+            4. Attempt to export CV version contents to a directory
+
+        :expectedresults:
+
+            1. Export fails with error 'All exported repositories must be set to an immediate
+                download policy and re-synced' should be displayed.
+
+        """
+        exporting_org = make_org()
+        exporting_prod = gen_string('alpha')
+        product = make_product({
+            'organization-id': exporting_org['id'],
+            'name': exporting_prod
+        })
+        exporting_repo = gen_string('alpha')
+        repo = make_repository({
+            'name': exporting_repo,
+            'download-policy': 'on_demand',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': repo['id']})
+        exporting_cv = gen_string('alpha')
+        _, exporting_cvv_id = ContentViewSync._create_cv(
+            exporting_cv, repo, exporting_org)
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_export({
+                'export-dir': '{}'.format(self.export_base),
+                'id': exporting_cvv_id
+            })
+        self.assert_error_msg(
+            error,
+            'All exported repositories must be set to an immediate download policy and re-synced'
+        )
+
+
+class InterSatelliteSyncTestCase(CLITestCase):
+    """Implements InterSatellite Sync tests in CLI"""
 
     @run_only_on('sat')
     @stubbed()

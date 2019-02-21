@@ -26,6 +26,8 @@ from robottelo.datafactory import (
     valid_names_list,
     valid_org_names_list,
     valid_usernames_list,
+    valid_cron_expressions
+
 )
 
 if six.PY2:
@@ -62,6 +64,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_names_list()), 15)
         self.assertEqual(len(valid_org_names_list()), 7)
         self.assertEqual(len(valid_usernames_list()), 6)
+        self.assertEqual(len((valid_cron_expressions())), 4)
         with mock.patch('robottelo.datafactory.bz_bug_is_open',
                         return_value=True):
             self.assertEqual(len(valid_docker_repository_names()), 6)
@@ -89,6 +92,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_names_list()), 1)
         self.assertEqual(len(valid_org_names_list()), 1)
         self.assertEqual(len(valid_usernames_list()), 1)
+        self.assertEqual(len((valid_cron_expressions())), 1)
 
     @mock.patch('robottelo.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string):
@@ -130,6 +134,7 @@ class TestReturnTypes(unittest2.TestCase):
         14. :meth:`robottelo.datafactory.invalid_id_list`
         15. :meth:`robottelo.datafactory.invalid_interfaces_list`
         16. :meth:`robottelo.datafactory.valid_interfaces_list`
+        17. :meth:`robottelo.datafactory.valid_cron_expressions`
 
         """
         with mock.patch('robottelo.datafactory.bz_bug_is_open',
@@ -149,6 +154,7 @@ class TestReturnTypes(unittest2.TestCase):
                     valid_labels_list(),
                     valid_names_list(),
                     valid_org_names_list(),
+                    valid_cron_expressions(),
                     valid_usernames_list()):
                 self.assertIsInstance(item, six.text_type)
             for item in invalid_id_list():

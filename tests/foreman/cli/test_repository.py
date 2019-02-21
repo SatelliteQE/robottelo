@@ -15,12 +15,14 @@
 
 :Upstream: No
 """
+from wait_for import wait_for
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
+from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.file import File
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
@@ -43,10 +45,12 @@ from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.constants import (
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     CUSTOM_FILE_REPO,
     CUSTOM_LOCAL_FOLDER,
     CUSTOM_FILE_REPO_FILES_COUNT,
+    CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
@@ -120,6 +124,21 @@ class RepositoryTestCase(CLITestCase):
             options[u'product-id'] = self.product['id']
 
         return make_repository(options)
+
+    def _get_image_tags_count(self, repo=None):
+        repo_detail = Repository.info({'id': repo['id']})
+        return repo_detail
+
+    def _validated_image_tags_count(self, repo=None):
+        if bz_bug_is_open(1664631):
+            wait_for(
+                lambda: int(self._get_image_tags_count(repo=repo)
+                            ['content-counts']['container-image-tags']) > 0,
+                timeout=30,
+                delay=2,
+                logger=self.logger
+            )
+        return self._get_image_tags_count(repo=repo)
 
     @tier1
     @upgrade
@@ -763,6 +782,7 @@ class RepositoryTestCase(CLITestCase):
             })
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1654944)
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with download
         policy
@@ -791,8 +811,8 @@ class RepositoryTestCase(CLITestCase):
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    u'Validation failed: Download policy cannot be set for '
-                    'non-yum repositories'
+                    u'Download policy Cannot set attribute '
+                    'download_policy for content type'
                 ):
                     self._make_repository({
                         u'content-type': content_type,
@@ -990,6 +1010,106 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
+    def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
+        """Check if only whitelisted tags are synchronized
+
+        :id: aa820c65-2de1-4b32-8890-98bd8b4320dc
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = 'latest'
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'alpine',
+            'url': DOCKER_REGISTRY_HUB,
+            'docker-tags-whitelist': tags,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
+        self.assertIn(tags, repo['container-image-tags-filter'])
+        self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_synchronize_docker_repo_set_tags_later(self):
+        """Verify that adding tags whitelist and re-syncing after
+        synchronizing full repository doesn't remove content that was
+        already pulled in
+
+        :id: 97f2087f-6041-4242-8b7c-be53c68f46ff
+
+        :expectedresults: Non-whitelisted tags are not removed
+        """
+        tags = 'latest'
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'hello-world',
+            'url': DOCKER_REGISTRY_HUB,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
+        # Field is displayed only if there is any content
+        with self.assertRaises(KeyError):
+            repo['container-image-tags-filter']
+        self.assertGreaterEqual(int(repo['content-counts']
+                                    ['container-image-tags']), 2)
+        Repository.update({
+            'id': repo['id'],
+            'docker-tags-whitelist': tags,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
+        self.assertIn(tags, repo['container-image-tags-filter'])
+        self.assertGreaterEqual(int(repo['content-counts']
+                                    ['container-image-tags']), 2)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
+        """Set tags whitelist to contain both valid and invalid (non-existing)
+        tags. Check if only whitelisted tags are synchronized
+
+        :id: 75668da8-cc94-4d39-ade1-d3ef91edc812
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = ['latest', gen_string('alpha')]
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'alpine',
+            'url': DOCKER_REGISTRY_HUB,
+            'docker-tags-whitelist': ",".join(tags),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = self._validated_image_tags_count(repo=repo)
+        [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
+        self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_invalid_tags(self):
+        """Set tags whitelist to contain only invalid (non-existing)
+        tags. Check that no data is synchronized.
+
+        :id: da05cdb1-2aea-48b9-9424-6cc700bc1194
+
+        :expectedresults: Tags are not synchronized
+        """
+        tags = [gen_string('alpha') for _ in range(3)]
+        repo = self._make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': 'alpine',
+            'url': DOCKER_REGISTRY_HUB,
+            'docker-tags-whitelist': ",".join(tags),
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
+        self.assertEqual(int(repo['content-counts']['container-image-tags']), 0)
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
         removed from repository
@@ -1136,7 +1256,7 @@ class RepositoryTestCase(CLITestCase):
                          'content not ignored correctly')
         self.assertEqual(repo['content-counts']['errata'], '2',
                          'content not synced correctly')
-        if not bz_bug_is_open(1335621):
+        if not bz_bug_is_open(1664549):
             self.assertEqual(repo['content-counts']['source-rpms'], '3',
                              'content not synced correctly')
         result = ssh.command(
@@ -1790,6 +1910,148 @@ class RepositoryTestCase(CLITestCase):
             result[0]['message'],
         )
 
+    @tier1
+    def test_positive_create_get_update_delete_module_streams(self):
+        """Check module-stream get for each create, get, update, delete.
+
+        :id: e9001f76-9bc7-42a7-b8c9-2dccd5bf0b1f2f2e70b8-e446-4a28-9bae-fc870c80e83e
+
+        :Setup:
+            1. valid yum repo with Module Streams.
+        :Steps:
+            1. Create Yum Repository with url contain module-streams
+            2. Initialize synchronization
+            3. Another Repository with same Url
+            4. Module-Stream Get
+            5. Update the Module-Stream
+            6. Module-Stream Get
+            7. Delete Module-Stream
+            8. Module-Stream Get
+
+        :expectedresults: yum repository with modules is synced,
+         shows correct count and details with create, update, delete and
+         even duplicate repositories.
+
+        :CaseAutomation: automated
+        """
+        org = make_org()
+        # Create a product
+        product = make_product(
+            {'organization-id': org['id']})
+        repo = make_repository({
+            'product-id': product['id'],
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['module-streams'], '7',
+                         'Module Streams not synced correctly')
+
+        # adding repo with same yum url should not change count.
+        duplicate_repo = make_repository({
+            'product-id': product['id'],
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+        })
+        Repository.synchronize({'id': duplicate_repo['id']})
+
+        module_streams = ModuleStream.list({'organization-id': org['id']})
+        self.assertEqual(len(module_streams), 7,
+                         'Module Streams get worked correctly')
+        Repository.update({
+            'product-id': product['id'],
+            u'id': repo['id'],
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['module-streams'], '7',
+                         'Module Streams not synced correctly')
+
+        Repository.delete({'id': repo['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'id': repo['id']})
+
+    @tier1
+    def test_module_stream_list_validation(self):
+        """Check module-stream get with list on hammer.
+
+         :id: 9842a0c3-8532-4b16-a00a-534fc3b0a776ff89f23e-cd00-4d20-84d3-add0ea24abf8
+
+         :Setup:
+             1. valid yum repo with Module Streams.
+         :Steps:
+             1. Create Yum Repositories with url contain module-streams and Products
+             2. Initialize synchronization
+             3. Verify the module-stream list with various inputs options
+
+         :expectedresults: Verify the module-stream list response.
+
+         :CaseAutomation: automated
+         """
+        repo1 = self._make_repository({
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_1,
+        })
+        Repository.synchronize({'id': repo1['id']})
+        product2 = make_product_wait(
+            {u'organization-id': self.org['id']},
+        )
+        repo2 = self._make_repository({
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+            u'product-id': product2['id']
+        })
+        Repository.synchronize({'id': repo2['id']})
+        module_streams = ModuleStream.list()
+        self.assertGreater(len(module_streams), 11,
+                           'Module Streams get worked correctly')
+        module_streams = ModuleStream.list({'product-id': product2['id']})
+        self.assertEqual(len(module_streams), 7,
+                         'Module Streams get worked correctly')
+
+    @tier1
+    def test_module_stream_info_validation(self):
+        """Check module-stream get with info on hammer.
+
+         :id: ddbeb49e-d292-4dc4-8fb9-e9b768acc441a2c2e797-02b7-4b12-9f95-cffc93254198
+
+         :Setup:
+             1. valid yum repo with Module Streams.
+         :Steps:
+             1. Create Yum Repositories with url contain module-streams
+             2. Initialize synchronization
+             3. Verify the module-stream info with various inputs options
+
+         :expectedresults: Verify the module-stream info response.
+
+         :CaseAutomation: automated
+         """
+        product2 = make_product_wait(
+            {u'organization-id': self.org['id']},
+        )
+        repo2 = self._make_repository({
+            u'content-type': u'yum',
+            u'url': CUSTOM_MODULE_STREAM_REPO_2,
+            u'product-id': product2['id']
+        })
+        Repository.synchronize({'id': repo2['id']})
+        module_streams = ModuleStream.list({
+            'repository-id': repo2['id'],
+            'search': 'name="walrus" and stream="5.21"'
+        })
+        actual_result = ModuleStream.info({u'id': module_streams[0]['id']})
+        expected_result = {
+            'module-stream-name': 'walrus',
+            'stream': '5.21',
+            'architecture': 'x86_64',
+         }
+        self.assertEqual(
+            expected_result,
+            {key: value for key, value in actual_result.items() if key in expected_result}
+        )
+
 
 class OstreeRepositoryTestCase(CLITestCase):
     """Ostree Repository CLI tests."""
@@ -1829,7 +2091,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                     u'name': name,
                     u'content-type': u'ostree',
                     u'publish-via-http': u'false',
-                    u'url': FEDORA23_OSTREE_REPO,
+                    u'url': FEDORA27_OSTREE_REPO,
                 })
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['content-type'], u'ostree')
@@ -1856,7 +2118,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                         u'content-type': u'ostree',
                         u'checksum-type': checksum_type,
                         u'publish-via-http': u'false',
-                        u'url': FEDORA23_OSTREE_REPO,
+                        u'url': FEDORA27_OSTREE_REPO,
                     })
 
     @tier1
@@ -1879,7 +2141,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                     self._make_repository({
                         u'content-type': u'ostree',
                         u'publish-via-http': u'true',
-                        u'url': FEDORA23_OSTREE_REPO,
+                        u'url': FEDORA27_OSTREE_REPO,
                     })
 
     @tier2
@@ -1896,7 +2158,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         # Synchronize it
         Repository.synchronize({'id': new_repo['id']})
@@ -1917,7 +2179,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         Repository.delete({
             u'name': new_repo['name'],
@@ -1941,7 +2203,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({
             u'content-type': u'ostree',
             u'publish-via-http': u'false',
-            u'url': FEDORA23_OSTREE_REPO,
+            u'url': FEDORA27_OSTREE_REPO,
         })
         Repository.delete({u'id': new_repo['id']})
         with self.assertRaises(CLIReturnCodeError):

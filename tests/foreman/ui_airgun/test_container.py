@@ -37,10 +37,11 @@ def module_org():
 
 
 @fixture(scope='module')
-def module_docker_cr(module_org):
+def module_docker_cr(module_org, module_loc):
     docker_url = settings.docker.external_url
     return entities.DockerComputeResource(
         organization=[module_org],
+        location=[module_loc],
         url=docker_url,
     ).create()
 

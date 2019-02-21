@@ -325,14 +325,9 @@ class ActivationKeyTestCase(CLITestCase):
                         raise_ctx,
                         u'Max hosts cannot be less than one')
             if type(limit) is str:
-                if limit in ['', ' ', '\t']:
-                    self.assert_error_msg(
-                        raise_ctx,
-                        u'Max hosts cannot be nil')
-                if len(limit) > 1 and limit.isalpha():
-                    self.assert_error_msg(
-                        raise_ctx,
-                        u'Max hosts is not a number')
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Numeric value is required.')
 
     @tier1
     def test_negative_create_with_usage_limit_with_invalid_integers(self):
@@ -924,7 +919,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': new_ak['id'],
             u'subscription-id': subscription_result[-1]['id'],
         })
-        self.assertIn('Subscription added to activation key', result)
+        self.assertIn('Subscription added to activation key.', result)
         ak_subs_info = ActivationKey.subscriptions({
             u'id': new_ak['id'],
             u'organization-id': org['id'],
@@ -1202,7 +1197,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': ackey_id,
             u'subscription-id': subs_id[0]['id'],
         })
-        self.assertIn('Subscription added to activation key', result)
+        self.assertIn('Subscription added to activation key.', result)
 
     @tier1
     def test_positive_copy_by_parent_id(self):
@@ -1223,7 +1218,7 @@ class ActivationKeyTestCase(CLITestCase):
                     u'new-name': new_name,
                     u'organization-id': self.org['id'],
                 })
-                self.assertEqual(result[0], u'Activation key copied')
+                self.assertEqual(result[0], u'Activation key copied.')
 
     @tier1
     def test_positive_copy_by_parent_name(self):
@@ -1241,7 +1236,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'new-name': gen_string('alpha'),
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result[0], u'Activation key copied')
+        self.assertEqual(result[0], u'Activation key copied.')
 
     @tier1
     def test_negative_copy_with_same_name(self):
@@ -1302,7 +1297,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'new-name': new_name,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result[0], u'Activation key copied')
+        self.assertEqual(result[0], u'Activation key copied.')
         result = ActivationKey.subscriptions({
             u'name': new_name,
             u'organization-id': org['id'],
@@ -1360,7 +1355,7 @@ class ActivationKeyTestCase(CLITestCase):
                     u'organization-id': self.org['id'],
                 })
                 self.assertEqual(
-                    u'Activation key updated', result[0]['message'])
+                    u'Activation key updated.', result[0]['message'])
 
     @tier1
     def test_negative_update_autoattach(self):

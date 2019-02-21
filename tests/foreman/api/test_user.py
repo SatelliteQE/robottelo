@@ -22,8 +22,10 @@ import json
 import paramiko
 
 from nailgun import entities
+from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
 from robottelo.config import settings
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
@@ -34,7 +36,7 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     invalid_names_list
 )
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1, tier2, tier3, upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
@@ -509,6 +511,32 @@ class SshKeyInUserTestCase(APITestCase):
         )
 
     @tier1
+    def test_negative_create_ssh_key_with_invalid_name(self):
+        """Attempt to add SSH key that has invalid name length
+
+        :id: e1e17839-a392-45bb-bb1e-28d3cd9dba1c
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Attempt to add invalid ssh Key name to above user
+
+        :expectedresults: Satellite should raise Name is too long assertion
+
+        :CaseImportance: Critical
+        """
+        invalid_ssh_key_name = gen_string('alpha', length=300)
+        with self.assertRaises(HTTPError) as context:
+            entities.SSHKey(
+                user=self.user,
+                name=invalid_ssh_key_name,
+                key=self.gen_ssh_rsakey()
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Name is too long")
+
+    @tier1
     @upgrade
     def test_positive_create_multiple_ssh_key_types(self):
         """Multiple types of ssh keys can be added to user
@@ -649,3 +677,255 @@ class SshKeyInUserTestCase(APITestCase):
             user=self.user, name=ssh_name, key=ssh_key).create()
         self.assertEqual(ssh_name, user_sshkey.name)
         self.assertEqual(ssh_key, user_sshkey.key)
+
+
+@run_in_one_thread
+class ActiveDirectoryUserTestCase(APITestCase):
+    """Implements the LDAP auth User Tests with Active Directory"""
+
+    @classmethod
+    @skip_if_not_set('ldap')
+    def setUpClass(cls):
+        """Fetch necessary properties from settings and Create ldap auth source"""
+        super(ActiveDirectoryUserTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location(organization=[cls.org]).create()
+        cls.sat_url = 'https://{}'.format(settings.server.hostname)
+        cls.ldap_user_name = settings.ldap.username
+        cls.ldap_user_passwd = settings.ldap.password
+        cls.authsource = entities.AuthSourceLDAP(
+            onthefly_register=True,
+            account=cls.ldap_user_name,
+            account_password=cls.ldap_user_passwd,
+            base_dn=settings.ldap.basedn,
+            groups_base=settings.ldap.grpbasedn,
+            attr_firstname=LDAP_ATTR['firstname'],
+            attr_lastname=LDAP_ATTR['surname'],
+            attr_login=LDAP_ATTR['login_ad'],
+            server_type=LDAP_SERVER_TYPE['API']['ad'],
+            attr_mail=LDAP_ATTR['mail'],
+            name=gen_string('alpha'),
+            host=settings.ldap.hostname,
+            tls=False,
+            port='389',
+            location=[cls.loc],
+            organization=[cls.org],
+        ).create()
+
+    def tearDown(self):
+        for user in entities.User().search(query={'search': u'login={}'.format(
+                self.ldap_user_name)}):
+            user.delete()
+        super(ActiveDirectoryUserTestCase, self).tearDown()
+
+    @tier2
+    @upgrade
+    def test_positive_create_in_ldap_mode(self):
+        """Create User in ldap mode
+
+        :id: 6f8616b1-5380-40d2-8678-7c4434050cfb
+
+        :expectedresults: User is created without specifying the password
+
+        :CaseLevel: Integration
+        """
+        for username in valid_usernames_list():
+            with self.subTest(username):
+                user = entities.User(
+                    login=username,
+                    auth_source=self.authsource,
+                    password='',
+                ).create()
+                self.assertEqual(user.login, username)
+
+    @tier3
+    @skip_if_not_set('ldap')
+    def test_positive_ad_basic_no_roles(self):
+        """Login with LDAP Auth- AD for user with no roles/rights
+
+        :id: 3910c6eb-6eff-4ab7-a50d-ba40f5c24c08
+
+        :setup: assure properly functioning AD server for authentication
+
+        :steps: Login to server with an AD user.
+
+        :expectedresults: Log in to foreman successfully but cannot access entities.
+
+        :CaseLevel: System
+        """
+        sc = ServerConfig(
+            auth=(self.ldap_user_name, self.ldap_user_passwd),
+            url=self.sat_url,
+            verify=False
+        )
+        with self.assertRaises(HTTPError):
+            entities.Architecture(sc).search()
+
+    @tier3
+    @upgrade
+    @skip_if_not_set('ldap')
+    def test_positive_access_entities_from_ldap_org_admin(self):
+        """LDAP User can access resources within its taxonomies if assigned
+        role has permission for same taxonomies
+
+        :id: 522063ad-8d39-4f05-bfd3-dfa0fa73f4e1
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create LDAP user with same taxonomies as role above
+            3. Assign Org Admin role to user above
+            4. Login with LDAP user and attempt to access resources
+
+        :expectedresults: LDAP User should be able to access all the resources
+            and permissions in taxonomies selected in Org Admin role
+
+        :CaseLevel: System
+        """
+        role_name = gen_string('alpha')
+        default_org_admin = entities.Role().search(
+            query={'search': u'name="Organization admin"'})
+        org_admin = entities.Role(id=default_org_admin[0].id).clone(
+            data={
+                'role': {
+                    'name': role_name,
+                    'organization': self.org.name,
+                    'location': self.loc.name
+                }
+            }
+        )
+        sc = ServerConfig(
+            auth=(self.ldap_user_name, self.ldap_user_passwd),
+            url=self.sat_url,
+            verify=False
+        )
+        with self.assertRaises(HTTPError):
+            entities.Architecture(sc).search()
+        user = entities.User().search(query={'search': u'login={}'.format(self.ldap_user_name)})[0]
+        user.role = [entities.Role(id=org_admin['id']).read()]
+        user.update(['role'])
+        with self.assertNotRaises(HTTPError):
+            for entity in [
+                entities.Architecture, entities.Audit, entities.Bookmark,
+                entities.CommonParameter, entities.DockerComputeResource,
+                entities.LibvirtComputeResource, entities.OVirtComputeResource,
+                entities.VMWareComputeResource, entities.ConfigGroup, entities.DockerHubContainer,
+                entities.DockerRegistryContainer, entities.Errata, entities.OperatingSystem
+            ]:
+                entity(sc).search()
+
+
+@run_in_one_thread
+class FreeIPAUserTestCase(APITestCase):
+    """Implements the LDAP auth User Tests with FreeIPA"""
+
+    @classmethod
+    @skip_if_not_set('ipa')
+    def setUpClass(cls):
+        """Fetch necessary properties from settings and Create ldap auth source"""
+        super(FreeIPAUserTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location(organization=[cls.org]).create()
+        cls.sat_url = 'https://{}'.format(settings.server.hostname)
+        cls.username = settings.ipa.user_ipa
+        cls.ldap_user_name = settings.ipa.username_ipa
+        cls.ldap_user_passwd = settings.ipa.password_ipa
+        cls.authsource = entities.AuthSourceLDAP(
+            onthefly_register=True,
+            account=cls.ldap_user_name,
+            account_password=cls.ldap_user_passwd,
+            base_dn=settings.ipa.basedn_ipa,
+            groups_base=settings.ipa.grpbasedn_ipa,
+            attr_firstname=LDAP_ATTR['firstname'],
+            attr_lastname=LDAP_ATTR['surname'],
+            attr_login=LDAP_ATTR['login'],
+            server_type=LDAP_SERVER_TYPE['API']['ipa'],
+            attr_mail=LDAP_ATTR['mail'],
+            name=gen_string('alpha'),
+            host=settings.ipa.hostname_ipa,
+            tls=False,
+            port='389',
+            location=[cls.loc],
+            organization=[cls.org],
+        ).create()
+
+    def tearDown(self):
+        for user in entities.User().search(query={'search': u'login={}'.format(self.username)}):
+            user.delete()
+        super(FreeIPAUserTestCase, self).tearDown()
+
+    @tier3
+    @skip_if_not_set('ipa')
+    def test_positive_ipa_basic_no_roles(self):
+        """Login with LDAP Auth- FreeIPA for user with no roles/rights
+
+        :id: 901a241d-aa76-4562-ab1a-a752e6fb7ed5
+
+        :setup: assure properly functioning FreeIPA server for authentication
+
+        :steps: Login to server with an FreeIPA user.
+
+        :expectedresults: Log in to foreman successfully but cannot access entities.
+
+        :CaseLevel: System
+        """
+        sc = ServerConfig(
+            auth=(self.username, self.ldap_user_passwd),
+            url=self.sat_url,
+            verify=False
+        )
+        with self.assertRaises(HTTPError):
+            entities.Architecture(sc).search()
+
+    @tier3
+    @upgrade
+    @skip_if_not_set('ipa')
+    def test_positive_access_entities_from_ipa_org_admin(self):
+        """LDAP FreeIPA User can access resources within its taxonomies if assigned
+        role has permission for same taxonomies
+
+        :id: acc48330-fc84-4970-b722-9b45a3116eed
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create FreeIPA user with same taxonomies as role above
+            3. Assign Org Admin role to user above
+            4. Login with FreeIPA user and attempt to access resources
+
+        :expectedresults: FreeIPA User should be able to access all the resources
+            and permissions in taxonomies selected in Org Admin role
+
+        :CaseLevel: System
+        """
+        role_name = gen_string('alpha')
+        default_org_admin = entities.Role().search(
+            query={'search': u'name="Organization admin"'})
+        org_admin = entities.Role(id=default_org_admin[0].id).clone(
+            data={
+                'role': {
+                    'name': role_name,
+                    'organization': self.org.name,
+                    'location': self.loc.name
+                }
+            }
+        )
+        sc = ServerConfig(
+            auth=(self.username, self.ldap_user_passwd),
+            url=self.sat_url,
+            verify=False
+        )
+        with self.assertRaises(HTTPError):
+            entities.Architecture(sc).search()
+        user = entities.User().search(query={'search': u'login={}'.format(self.username)})[0]
+        user.role = [entities.Role(id=org_admin['id']).read()]
+        user.update(['role'])
+        with self.assertNotRaises(HTTPError):
+            for entity in [
+                entities.Architecture, entities.Audit, entities.Bookmark,
+                entities.CommonParameter, entities.DockerComputeResource,
+                entities.LibvirtComputeResource, entities.OVirtComputeResource,
+                entities.VMWareComputeResource, entities.ConfigGroup, entities.DockerHubContainer,
+                entities.DockerRegistryContainer, entities.Errata, entities.OperatingSystem
+            ]:
+                entity(sc).search()

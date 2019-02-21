@@ -15,9 +15,13 @@
 :Upstream: No
 """
 from nailgun import entities
+from navmazing import NavigationTriesExceeded
+from pytest import raises
 
-
+from airgun.session import Session
+from robottelo.api.utils import create_role_permissions
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_NAME,
@@ -26,6 +30,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_3_CUSTOM_PACKAGE_NAME,
     REPO_TYPE,
 )
 from robottelo.datafactory import gen_string
@@ -41,6 +46,46 @@ from robottelo.decorators import (
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@upgrade
+@tier2
+def test_positive_end_to_end(session):
+    """Perform end to end testing for lifecycle environment component
+
+    :id: b2293de9-7a71-462e-b988-321b07c01642
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    lce_name = gen_string('alpha')
+    new_lce_name = gen_string('alpha')
+    label = gen_string('alpha')
+    description = gen_string('alpha')
+    with session:
+        # Create new lce
+        session.lifecycleenvironment.create({
+            'name': lce_name,
+            'label': label,
+            'description': description
+        })
+        lce_values = session.lifecycleenvironment.read(lce_name)
+        assert lce_values['details']['name'] == lce_name
+        assert lce_values['details']['label'] == label
+        assert lce_values['details']['description'] == description
+        assert lce_values['details']['unauthenticated_pull'] == 'No'
+        # Update lce with new name
+        session.lifecycleenvironment.update(lce_name, {'details.name': new_lce_name})
+        lce_values = session.lifecycleenvironment.read_all()
+        assert new_lce_name in lce_values['lce']
+        assert lce_name not in lce_values['lce']
+        # Delete lce
+        session.lifecycleenvironment.delete(new_lce_name)
+        lce_values = session.lifecycleenvironment.read_all()
+        assert new_lce_name not in lce_values['lce']
 
 
 @upgrade
@@ -209,3 +254,134 @@ def test_positive_search_lce_content_view_packages_by_name(
             assert len(result) == package['packages_count']
             for entry in result:
                 assert entry['Name'].startswith(package['name'])
+
+
+@tier3
+def test_positive_search_lce_content_view_module_streams_by_name(
+        session, module_org):
+    """Search Lifecycle Environment content view module streams by name
+
+    :id: e67893b2-a56e-4eac-87e6-63be897ba912
+
+    :customerscenario: true
+
+    :steps:
+        1. Create a product with a repository synchronized
+            - The repository must contain at least two module stream names P1 and
+              P2
+            - P1 has two module streams
+            - P2 has three module streams
+        2. Create a content view with the repository and publish it
+        3. Go to Lifecycle Environment > Library > ModuleStreams
+        4. Select the content view
+        5. Search by module stream names
+
+    :expectedresults: only the searched module streams where found
+
+    :CaseLevel: System
+    """
+    module_streams = [
+        {
+            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+            'streams_count': 2
+        },
+        {
+            'name': FAKE_3_CUSTOM_PACKAGE_NAME,
+            'streams_count': 3
+        },
+    ]
+    product = entities.Product(organization=module_org).create()
+    repository = entities.Repository(
+        product=product, url=CUSTOM_MODULE_STREAM_REPO_2).create()
+    repository.sync()
+    content_view = entities.ContentView(
+        organization=module_org, repository=[repository]).create()
+    content_view.publish()
+    with session:
+        for module in module_streams:
+            result = session.lifecycleenvironment.search_module_stream(
+                ENVIRONMENT, module['name'], cv_name=content_view.name)
+            assert len(result) == module['streams_count']
+            for entry in result:
+                assert entry['Name'].startswith(module['name'])
+
+
+@tier2
+@upgrade
+def test_positive_custom_user_view_lce(session, test_name):
+    """As a custom user attempt to view a lifecycle environment created
+    by admin user
+
+    :id: 768b647b-c530-4eca-9caa-38cf8622f36d
+
+    :BZ: 1420511
+
+    :Steps:
+
+        As an admin user:
+
+        1. Create an additional lifecycle environments other than Library
+        2. Create a user without administrator privileges
+        3. Create a role with the the following permissions:
+
+            * (Miscellaneous): access_dashboard
+            * Lifecycle Environment:
+
+            * edit_lifecycle_environments
+            * promote_or_remove_content_views_to_environment
+            * view_lifecycle_environments
+
+            * Location: view_locations
+            * Organization: view_organizations
+
+        4. Assign the created role to the custom user
+
+        As a custom user:
+
+        1. Log in
+        2. Navigate to Content -> Lifecycle Environments
+
+    :expectedresults: The additional lifecycle environment is viewable and
+        accessible by the custom user.
+
+    :CaseLevel: Integration
+    """
+    role_name = gen_string('alpha')
+    lce_name = gen_string('alpha')
+    user_login = gen_string('alpha')
+    user_password = gen_string('alpha')
+    org = entities.Organization().create()
+    role = entities.Role(name=role_name).create()
+    permissions_types_names = {
+        None: ['access_dashboard'],
+        'Organization': ['view_organizations'],
+        'Location': ['view_locations'],
+        'Katello::KTEnvironment': [
+            'view_lifecycle_environments',
+            'edit_lifecycle_environments',
+            'promote_or_remove_content_views_to_environments'
+        ]
+    }
+    create_role_permissions(role, permissions_types_names)
+    entities.User(
+        default_organization=org,
+        organization=[org],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    # create a life cycle environment as admin user and ensure it's visible
+    with session:
+        session.organization.select(org.name)
+        session.lifecycleenvironment.create(values={'name': lce_name})
+        lce_values = session.lifecycleenvironment.read_all()
+        assert lce_name in lce_values['lce']
+    # ensure the created user also can find the created lifecycle environment link
+    with Session(test_name, user_login, user_password) as non_admin_session:
+        # to ensure that the created user has only the assigned
+        # permissions, check that hosts menu tab does not exist
+        with raises(NavigationTriesExceeded):
+            assert not non_admin_session.host.read_all()
+        # assert that the user can view the lvce created by admin user
+        lce_values = non_admin_session.lifecycleenvironment.read_all()
+        assert lce_name in lce_values['lce']

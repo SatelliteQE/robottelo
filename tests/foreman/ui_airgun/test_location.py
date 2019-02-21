@@ -29,7 +29,44 @@ from robottelo.decorators import (
     skip_if_bug_open,
     skip_if_not_set,
     tier2,
+    upgrade,
 )
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session):
+    """Perform end to end testing for location component
+
+    :id: dba5d94d-0c18-4db0-a9e8-66599bffc5d9
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    loc_parent = entities.Location().create()
+    loc_child_name = gen_string('alpha')
+    description = gen_string('alpha')
+    updated_name = gen_string('alphanumeric')
+    with session:
+        session.location.create({
+            'name': loc_child_name,
+            'parent_location': loc_parent.name,
+            'description': description
+        })
+        location_name = "{}/{}".format(loc_parent.name, loc_child_name)
+        assert session.location.search(location_name)[0]['Name'] == location_name
+        loc_values = session.location.read(location_name)
+        assert loc_values['primary']['parent_location'] == loc_parent.name
+        assert loc_values['primary']['name'] == loc_child_name
+        assert loc_values['primary']['description'] == description
+        session.location.update(location_name, {'primary.name': updated_name})
+        location_name = "{}/{}".format(loc_parent.name, updated_name)
+        assert session.location.search(location_name)[0]['Name'] == location_name
+        session.location.delete(location_name)
+        assert not session.location.search(location_name)
 
 
 @tier2

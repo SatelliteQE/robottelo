@@ -47,6 +47,7 @@ from robottelo.datafactory import (
     valid_org_names_list,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -95,24 +96,24 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 7938bcc4-7107-40b0-bb88-6288ebec0dcd
 
+        :bz: 1078866, 1647323
+
         :expectedresults: no duplicated lines in usage message
 
         :CaseImportance: Critical
         """
         # org list --help:
-        result = Org.list({'help': True})
+        result = Org.list({'help': True}, output_format=None)
         # get list of lines and check they all are unique
-        lines = [line['message'] for line in result]
+        lines = [line for line in result if line != '']
         self.assertEqual(len(set(lines)), len(lines))
 
         # org info --help:info returns more lines (obviously), ignore exception
-        result = Org.info({'help': True})
+        result = Org.info({'help': True}, output_format=None)
 
         # get list of lines and check they all are unique
         lines = [line for line in result['options']]
         self.assertEqual(len(set(lines)), len(lines))
-
-    # CRUD
 
     @tier1
     def test_positive_create_with_name(self):
@@ -252,710 +253,304 @@ class OrganizationTestCase(CLITestCase):
             self.assertTrue(len(result_list), 1)
             self.assertEqual(result_list[0]['name'], org['name'])
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_subnet_by_name(self):
-        """Add a subnet to organization by its name
-
-        :id: 1f464eba-d024-4f37-87c2-5cfff1ac1e23
-
-        :expectedresults: Subnet is added to the org
-
-        :CaseLevel: Integration
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                org = make_org()
-                new_subnet = make_subnet({'name': name})
-                Org.add_subnet({
-                    'name': org['name'],
-                    'subnet': new_subnet['name'],
-                })
-                org = Org.info({'id': org['id']})
-                self.assertIn(name, org['subnets'][0])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_subnet_by_id(self):
-        """Add a subnet to organization by its ID
-
-        :id: f65e4264-4aad-42f8-b74f-933741d9f7ab
-
-        :expectedresults: Subnet is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        new_subnet = make_subnet()
-        Org.add_subnet({
-            'name': org['name'],
-            'subnet-id': new_subnet['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(new_subnet['name'], org['subnets'][0])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     @upgrade
-    def test_positive_remove_subnet_by_name(self):
-        """Remove a subnet from organization by its name
+    def test_positive_add_and_remove_subnets(self):
+        """add and remove a subnet from organization
 
         :id: adb5310b-76c5-4aca-8220-fdf0fe605cb0
 
-        :expectedresults: Subnet is removed from the org
+        :bz:
+            1. Add and remove subnet by name
+            2. Add and remove subnet by id
+
+        :expectedresults: Subnets are handled as expected
+
+        :bz: 1395229
 
         :CaseLevel: Integration
         """
         org = make_org()
-        subnet = make_subnet()
+        subnet_a = make_subnet()
+        subnet_b = make_subnet()
         Org.add_subnet({
             'name': org['name'],
-            'subnet': subnet['name'],
+            'subnet': subnet_a['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 1)
-        self.assertIn(subnet['name'], org['subnets'][0])
-        Org.remove_subnet({
-            'name': org['name'],
-            'subnet': subnet['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_subnet_by_id(self):
-        """Remove a subnet from organization by its ID
-
-        :id: 4868ef18-983a-48b4-940a-e1b55f01f0b6
-
-        :expectedresults: Subnet is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        subnet = make_subnet()
         Org.add_subnet({
             'name': org['name'],
-            'subnet': subnet['name'],
+            'subnet-id': subnet_b['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 1)
-        self.assertIn(subnet['name'], org['subnets'][0])
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['subnets']), 2,
+                         "Failed to add subnets")
         Org.remove_subnet({
             'name': org['name'],
-            'subnet-id': subnet['id'],
+            'subnet': subnet_a['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['subnets']), 0)
+        Org.remove_subnet({
+            'name': org['name'],
+            'subnet-id': subnet_b['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['subnets']), 0,
+                         "Failed to remove subnets")
 
     @tier2
-    def test_positive_add_user_by_name(self):
-        """Add an user to organization by its name
+    def test_positive_add_and_remove_users(self):
+        """Add and remove (admin) user to organization
 
         :id: c35b2e88-a65f-4eea-ba55-89cef59f30be
 
-        :expectedresults: User is added to the org
+        :expectedresults: Users are added and removed from the org
+
+        :steps:
+            1. create and delete user by name
+            2. create and delete user by id
+            3. create and delete admin user by name
+            4. create and delete admin user by id
+
+        :bz: 1395229
 
         :CaseLevel: Integration
         """
         org = make_org()
         user = make_user()
+        admin_user = make_user({'admin': '1'})
+        self.assertEqual(admin_user['admin'], 'yes')
+
+        # add and remove user and admin user by name
         Org.add_user({
             'name': org['name'],
             'user': user['login'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertIn(user['login'], org['users'])
+        Org.add_user({
+            'name': org['name'],
+            'user': admin_user['login'],
+        })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(user['login'], org_info['users'],
+                      "Failed to add user by name")
+        self.assertIn(admin_user['login'], org_info['users'],
+                      "Failed to add admin user by name")
+        if not bz_bug_is_open(1395229):
+            Org.remove_user({
+                'name': org['name'],
+                'user': user['login'],
+            })
+            Org.remove_user({
+                'name': org['name'],
+                'user': admin_user['login'],
+            })
+            org_info = Org.info({'name': org['name']})
+            self.assertNotIn(user['login'], org_info['users'],
+                             "Failed to remove user by name")
+            self.assertNotIn(admin_user['login'], org_info['users'],
+                             "Failed to remove admin user by name")
 
-    @tier2
-    def test_positive_add_user_by_id(self):
-        """Add an user to organization by its ID
-
-        :id: 1cd4e912-dd59-4cf7-b1a3-87b130972f8d
-
-        :expectedresults: User is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user()
+        # add and remove user and admin user by id
         Org.add_user({
             'id': org['id'],
             'user-id': user['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_user_by_id(self):
-        """Remove an user from organization by its ID
-
-        :id: 6e292d5f-3bce-48c5-88d7-2c94f7db51c1
-
-        :expectedresults: The user is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user()
         Org.add_user({
             'id': org['id'],
-            'user-id': user['id'],
+            'user-id': admin_user['id'],
         })
-        Org.remove_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_user_by_name(self):
-        """Remove an user from organization by its login and organization name
-
-        :id: 98cf1224-750a-449b-8807-638ef07a55e5
-
-        :expectedresults: The user is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user()
-        Org.add_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        Org.remove_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(user['login'], org['users'])
+        org_info = Org.info({'id': org['id']})
+        self.assertIn(user['login'], org_info['users'],
+                      "Failed to add user by id")
+        self.assertIn(admin_user['login'], org_info['users'],
+                      "Failed to add admin user by id")
+        if not bz_bug_is_open(1395229):
+            Org.remove_user({
+                'id': org['id'],
+                'user-id': user['id'],
+            })
+            Org.remove_user({
+                'id': org['id'],
+                'user-id': admin_user['id'],
+            })
+            org_info = Org.info({'id': org['id']})
+            self.assertNotIn(user['login'], org_info['users'],
+                             "Failed to remove user by id")
+            self.assertNotIn(admin_user['login'], org_info['users'],
+                             "Failed to remove admin user by id")
 
     @tier2
-    def test_positive_add_admin_user_by_id(self):
-        """Add an admin user to an organization by user ID and the organization
-        ID
-
-        :id: 176f1d07-c24c-481d-912e-045ec9cbfa67
-
-        :expectedresults: The user is added to the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
-        Org.add_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(user['login'], org['users'])
-
-    @tier2
-    def test_positive_add_admin_user_by_name(self):
-        """Add an admin user to an organization by user login and the
-        organization name
-
-        :id: 31e9ceeb-1ae2-4c95-8b60-c5774e570476
-
-        :expectedresults: The user is added to the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
-        Org.add_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_admin_user_by_id(self):
-        """Remove an admin user from organization by user ID and the
-        organization ID
-
-        :id: 7ecfb7d0-35af-48ba-a460-70da81ade4bd
-
-        :expectedresults: The admin user is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
-        Org.add_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        Org.remove_user({
-            'id': org['id'],
-            'user-id': user['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(user['login'], org['users'])
-
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_admin_user_by_name(self):
-        """Remove an admin user from organization by user login and the
-        organization name
-
-        :id: 41f0d3e6-3b4b-4a3e-b3d1-3126a10ed433
-
-        :expectedresults: The user is added then removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        user = make_user({'admin': '1'})
-        Org.add_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        Org.remove_user({
-            'name': org['name'],
-            'user': user['login'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(user['login'], org['users'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_hostgroup_by_id(self):
-        """Add a hostgroup to organization by its ID
-
-        :id: 4edbb371-fbb0-4918-b4ac-afa3ab30cee0
-
-        :expectedresults: Hostgroup is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup-id': hostgroup['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_hostgroup_by_name(self):
-        """Add a hostgroup to organization by its name
-
-        :id: 9cb2ef26-a98a-43a4-977c-d97c82509508
-
-        :expectedresults: Hostgroup is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup': hostgroup['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_hostgroup_by_name(self):
-        """Remove a hostgroup from an organization by its name
-
-        :id: 8b2804c9-cefe-4a8a-b3a4-12ea131cdef0
-
-        :expectedresults: Hostgroup is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup': hostgroup['name'],
-            'name': org['name'],
-        })
-        Org.remove_hostgroup({
-            'hostgroup': hostgroup['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_hostgroup_by_id(self):
-        """Remove a hostgroup from an organization by its ID
+    def test_positive_add_and_remove_hostgroups(self):
+        """add and remove a hostgroup from an organization
 
         :id: 34e2c7c8-dc20-4709-a5a9-83c0dee9d84d
 
-        :expectedresults: Hostgroup is removed from the org
+        :expectedresults: Hostgroups are handled as expected
+
+        :bz: 1395229
+
+        :steps:
+            1. add and remove hostgroup by name
+            2. add and remove hostgroup by id
 
         :CaseLevel: Integration
         """
         org = make_org()
-        hostgroup = make_hostgroup()
+        hostgroup_a = make_hostgroup()
+        hostgroup_b = make_hostgroup()
         Org.add_hostgroup({
-            'hostgroup-id': hostgroup['id'],
+            'hostgroup-id': hostgroup_a['id'],
+            'id': org['id'],
+        })
+        Org.add_hostgroup({
+            'hostgroup': hostgroup_b['name'],
+            'name': org['name'],
+        })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(hostgroup_a['name'], org_info['hostgroups'],
+                      "Failed to add hostgroup by id")
+        self.assertIn(hostgroup_b['name'], org_info['hostgroups'],
+                      "Failed to add hostgroup by name")
+        Org.remove_hostgroup({
+            'hostgroup-id': hostgroup_b['id'],
             'id': org['id'],
         })
         Org.remove_hostgroup({
-            'hostgroup-id': hostgroup['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(hostgroup['name'], org['hostgroups'])
-
-    @run_only_on('sat')
-    @skip_if_not_set('compute_resources')
-    @tier2
-    def test_positive_add_compresource_by_name(self):
-        """Add a compute resource to organization by its name
-
-        :id: 4bc1f281-ef8e-450b-8ef6-f8d11da5324f
-
-        :expectedresults: Compute Resource is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        compute_res = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            )
-        })
-        Org.add_compute_resource({
-            'compute-resource': compute_res['name'],
+            'hostgroup': hostgroup_a['name'],
             'name': org['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(org['compute-resources'][0], compute_res['name'])
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(hostgroup_a['name'], org_info['hostgroups'],
+                         "Failed to remove hostgroup by name")
+        self.assertNotIn(hostgroup_b['name'], org_info['hostgroups'],
+                         "Failed to remove hostgroup by id")
 
-    @tier2
-    def test_positive_add_compresource_by_id(self):
-        """Add a compute resource to organization by its ID
-
-        :id: 355e20c5-ec04-49f7-a0ae-0864a3fe0f3f
-
-        :expectedresults: Compute Resource is added to the org
-
-        :CaseLevel: Integration
-        """
-        compute_res = make_compute_resource()
-        org = make_org({'compute-resource-ids': compute_res['id']})
-        self.assertEqual(len(org['compute-resources']), 1)
-        self.assertEqual(org['compute-resources'][0], compute_res['name'])
-
-    @tier2
-    def test_positive_add_compresources_by_id(self):
-        """Add multiple compute resources to organization by their IDs
-
-        :id: 65846f05-583b-4914-ad0a-9251ca585af5
-
-        :expectedresults: All compute resources are added to the org
-
-        :CaseLevel: Integration
-        """
-        cr_amount = random.randint(3, 5)
-        resources = [make_compute_resource() for _ in range(cr_amount)]
-        org = make_org({
-            'compute-resource-ids':
-                [resource['id'] for resource in resources],
-        })
-        self.assertEqual(len(org['compute-resources']), cr_amount)
-        for resource in resources:
-            self.assertIn(resource['name'], org['compute-resources'])
-
-    @run_only_on('sat')
     @skip_if_not_set('compute_resources')
     @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     @upgrade
-    def test_positive_remove_compresource_by_id(self):
-        """Remove a compute resource from organization by its ID
+    def test_positive_add_and_remove_compresources(self):
+        """Add and remove a compute resource from organization
 
         :id: 415c14ab-f879-4ed8-9ba7-8af4ada2e277
 
-        :expectedresults: Compute resource is removed from the org
+        :expectedresults: Compute resource are handled as expected
+
+        :bz: 1395229
+
+        :steps:
+            1. Add and remove compute resource by id
+            2. Add and remove compute resource by name
 
         :CaseLevel: Integration
         """
         org = make_org()
-        compute_res = make_compute_resource({
+        compute_res_a = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': u'qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            )
+        })
+        compute_res_b = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': u'qemu+ssh://root@{0}/system'.format(
                 settings.compute_resources.libvirt_hostname
             )
         })
         Org.add_compute_resource({
-            'compute-resource-id': compute_res['id'],
+            'compute-resource-id': compute_res_a['id'],
             'id': org['id'],
-        })
-        Org.remove_compute_resource({
-            'compute-resource-id': compute_res['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(compute_res['name'], org['compute-resources'])
-
-    @run_only_on('sat')
-    @skip_if_not_set('compute_resources')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_compresource_by_name(self):
-        """Remove a compute resource from organization by its name
-
-        :id: 1b1313a8-8326-4b33-8113-17c5cf0d4ffb
-
-        :expectedresults: Compute resource is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        compute_res = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            )
         })
         Org.add_compute_resource({
-            'compute-resource': compute_res['name'],
+            'compute-resource': compute_res_b['name'],
             'name': org['name'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['compute-resources']), 2,
+                         "Failed to add compute resources")
+        Org.remove_compute_resource({
+            'compute-resource-id': compute_res_a['id'],
+            'id': org['id'],
         })
         Org.remove_compute_resource({
-            'compute-resource': compute_res['name'],
+            'compute-resource': compute_res_b['name'],
             'name': org['name'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(compute_res['name'], org['compute-resources'])
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(
+            compute_res_a['name'],
+            org_info['compute-resources'],
+            "Failed to remove cr by id"
+        )
+        self.assertNotIn(
+            compute_res_b['name'],
+            org_info['compute-resources'],
+            "Failed to remove cr by name"
+        )
 
     @run_only_on('sat')
     @tier2
-    def test_positive_add_medium_by_id(self):
-        """Add a medium to organization by its ID
+    def test_positive_add_and_remove_media(self):
+        """Add and remove medium to organization
 
         :id: c2943a81-c8f7-44c4-926b-388055d7c290
 
-        :expectedresults: Medium is added to the org
+        :expectedresults: Media are handled as expected
+
+        :bz: 1395229
+
+        :steps:
+            1. add and remove medium by id
+            2. add and remove medium by name
 
         :CaseLevel: Integration
         """
         org = make_org()
-        medium = make_medium()
+        medium_a = make_medium()
+        medium_b = make_medium()
         Org.add_medium({
             'id': org['id'],
-            'medium-id': medium['id'],
+            'medium-id': medium_a['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertIn(medium['name'], org['installation-media'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_medium_by_name(self):
-        """Add a medium to organization by its name
-
-        :id: dcbaf2bb-ebb9-4430-8584-08b4cad00ad5
-
-        :expectedresults: Medium is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        medium = make_medium()
         Org.add_medium({
             'name': org['name'],
-            'medium': medium['name'],
+            'medium': medium_b['name'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertIn(medium['name'], org['installation-media'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_medium_by_id(self):
-        """Remove a medium from organization by its ID
-
-        :id: 703103d8-f4d4-4070-bd6b-1fd239a92fa5
-
-        :expectedresults: Medium is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        medium = make_medium()
-        Org.add_medium({
-            'id': org['id'],
-            'medium-id': medium['id'],
+        org_info = Org.info({'id': org['id']})
+        self.assertIn(medium_a['name'], org_info['installation-media'],
+                      "Failed to add medium by id")
+        self.assertIn(medium_b['name'], org_info['installation-media'],
+                      "Failed to add medium by name")
+        Org.remove_medium({
+            'name': org['name'],
+            'medium': medium_a['name'],
         })
         Org.remove_medium({
             'id': org['id'],
-            'medium-id': medium['id'],
+            'medium-id': medium_b['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(medium['name'], org['installation-media'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_medium_by_name(self):
-        """Remove a medium from organization by its name
-
-        :id: feb6c092-3459-496d-a403-69b540ba469a
-
-        :expectedresults: Medium is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        medium = make_medium()
-        Org.add_medium({
-            'name': org['name'],
-            'medium': medium['name'],
-        })
-        Org.remove_medium({
-            'name': org['name'],
-            'medium': medium['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(medium['name'], org['installation-media'])
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(medium_a['name'], org_info['installation-media'],
+                         "Failed to remove medium by name")
+        self.assertNotIn(medium_b['name'], org_info['installation-media'],
+                         "Failed to remove medium by id")
 
     @run_only_on('sat')
     @tier2
-    def test_positive_add_template_by_name(self):
-        """Add a provisioning template to organization by its name
+    def test_positive_add_and_remove_templates(self):
+        """Add and remove provisioning templates to organization
 
         :id: bd46a192-488f-4da0-bf47-1f370ae5f55c
 
-        :expectedresults: Template is added to the org
+        :expectedresults: Templates are handled as expected
 
-        :CaseLevel: Integration
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                org = make_org()
-                template = make_template({
-                    'content': gen_string('alpha'),
-                    'name': name,
-                })
-                Org.add_config_template({
-                    'config-template': template['name'],
-                    'name': org['name'],
-                })
-                org = Org.info({'name': org['name']})
-                self.assertIn(
-                    u'{0} ({1})'. format(template['name'], template['type']),
-                    org['templates']
-                )
-
-    @tier2
-    def test_positive_add_template_by_id(self):
-        """Add a provisioning template to organization by its ID
-
-        :id: 4dd119bf-e9e1-4c9a-9b6b-b2c1cc7bc015
-
-        :expectedresults: Template is added to the org
-
-        :CaseLevel: Integration
-        """
-        conf_templ = make_template()
-        org = make_org()
-        Org.add_config_template({
-            'config-template-id': conf_templ['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertIn(
-            u'{0} ({1})'.format(conf_templ['name'], conf_templ['type']),
-            org['templates']
-        )
-
-    @tier2
-    def test_positive_add_templates_by_id(self):
-        """Add multiple provisioning templates to organization by their IDs
-
-        :id: 24cf7c8f-1e3b-4f37-b66d-24e6c125c752
-
-        :expectedresults: All provisioning templates are added to the org
-
-        :CaseLevel: Integration
-        """
-        templates_amount = random.randint(3, 5)
-        templates = [make_template() for _ in range(templates_amount)]
-        org = make_org({
-            'config-template-ids':
-                [template['id'] for template in templates],
-        })
-        self.assertGreaterEqual(len(org['templates']), templates_amount)
-        for template in templates:
-            self.assertIn(
-                u'{0} ({1})'.format(template['name'], template['type']),
-                org['templates']
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_remove_template_by_id(self):
-        """Remove a provisioning template from organization by its ID
-
-        :id: 8f3e05c2-6c0d-48a6-a311-41ad032b7977
-
-        :expectedresults: Template is removed from the org
+        :steps:
+            1. Add and remove template by id
+            2. Add and remove template by name
 
         :CaseLevel: Integration
         """
         org = make_org()
-        template = make_template({'content': gen_string('alpha')})
-        # Add config-template
-        Org.add_config_template({
-            'config-template-id': template['id'],
-            'id': org['id'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
-            result['templates'],
-        )
-        # Remove config-template
-        Org.remove_config_template({
-            'config-template-id': template['id'],
-            'id': org['id'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertNotIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
-            result['templates'],
-        )
 
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_remove_template_by_name(self):
-        """ARemove a provisioning template from organization by its name
-
-        :id: 6db69282-8a0a-40cb-b494-8f555772ca81
-
-        :expectedresults: Template is removed from the org
-
-        :CaseLevel: Integration
-        """
+        # create and remove templates by name
         for name in valid_data_list():
             with self.subTest(name):
                 org = make_org()
@@ -968,153 +563,105 @@ class OrganizationTestCase(CLITestCase):
                     'name': org['name'],
                     'config-template': template['name'],
                 })
-                result = Org.info({'name': org['name']})
+                org_info = Org.info({'name': org['name']})
                 self.assertIn(
                     u'{0} ({1})'. format(template['name'], template['type']),
-                    result['templates'],
+                    org_info['templates'],
+                    "Failed to add template by name"
                 )
                 # Remove config-template
                 Org.remove_config_template({
                     'config-template': template['name'],
                     'name': org['name'],
                 })
-                result = Org.info({'name': org['name']})
+                org_info = Org.info({'name': org['name']})
                 self.assertNotIn(
                     u'{0} ({1})'. format(template['name'], template['type']),
-                    result['templates'],
+                    org_info['templates'],
+                    "Failed to remove template by name"
                 )
 
-    @run_only_on('sat')
+        # create and remove templates by id
+        template = make_template({'content': gen_string('alpha')})
+        # Add config-template
+        Org.add_config_template({
+            'config-template-id': template['id'],
+            'id': org['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            org_info['templates'],
+            "Failed to add template by name"
+        )
+        # Remove config-template
+        Org.remove_config_template({
+            'config-template-id': template['id'],
+            'id': org['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            org_info['templates'],
+            "Failed to remove template by id"
+        )
+
     @tier2
-    def test_positive_add_domain_by_name(self):
-        """Add a domain to organization by its name
+    def test_positive_add_and_remove_domains(self):
+        """Add and remove domains to organization
 
         :id: 97359ffe-4ce6-4e44-9e3f-583d3fdebbc8
 
-        :expectedresults: Domain is added to organization
+        :expectedresults: Domains are handled correctly
+
+        :bz: 1395229
+
+        :steps:
+            1. Add and remove domain by name
+            2. Add and remove domain by id
 
         :CaseLevel: Integration
         """
         org = make_org()
-        domain = make_domain()
+        domain_a = make_domain()
+        domain_b = make_domain()
         Org.add_domain({
-            'domain': domain['name'],
+            'domain-id': domain_a['id'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_domain_by_id(self):
-        """Add a domain to organization by its ID
-
-        :id: 33df2dc5-33ea-416d-bf13-f90aaf327e18
-
-        :expectedresults: Domain is added to organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        domain = make_domain()
         Org.add_domain({
-            'domain-id': domain['id'],
+            'domain': domain_b['name'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    @upgrade
-    def test_positive_remove_domain_by_name(self):
-        """Remove a domain from organization by its name
-
-        :id: 59ab55ab-782b-4ee2-b347-f1a1e37c55aa
-
-        :expectedresults: Domain is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        domain = make_domain()
-        Org.add_domain({
-            'domain': domain['name'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['domains']), 2,
+                         "Failed to add domains")
+        self.assertIn(domain_a['name'], org_info['domains'])
+        self.assertIn(domain_b['name'], org_info['domains'])
         Org.remove_domain({
-            'domain': domain['name'],
+            'domain': domain_a['name'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_domain_by_id(self):
-        """Remove a domain from organization by its ID
-
-        :id: 01ef8a26-e944-4cda-b60a-2b9d86a8051f
-
-        :expectedresults: Domain is removed from the organization
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        domain = make_domain()
-        Org.add_domain({
-            'domain-id': domain['id'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 1)
-        self.assertIn(domain['name'], result['domains'])
         Org.remove_domain({
-            'domain-id': domain['id'],
+            'domain-id': domain_b['id'],
             'id': org['id'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['domains']), 0)
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['domains']), 0,
+                         "Failed to remove domains")
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_lce(self):
-        """Add a lifecycle environment to organization
-
-        :id: 3620eeac-bf4e-4055-a6b4-4da10efbbfa2
-
-        :expectedresults: Lifecycle environment is added to the org
-
-        :CaseLevel: Integration
-        """
-        # Create a lifecycle environment.
-        org_id = make_org()['id']
-        lc_env_name = make_lifecycle_environment(
-            {'organization-id': org_id})['name']
-        # Read back information about the lifecycle environment. Verify the
-        # sanity of that information.
-        response = LifecycleEnvironment.list({
-            'name': lc_env_name,
-            'organization-id': org_id,
-        })
-        self.assertEqual(response[0]['name'], lc_env_name)
-
-    @run_only_on('sat')
     @tier2
     @upgrade
-    def test_positive_remove_lce(self):
+    def test_positive_add_and_remove_lce(self):
         """Remove a lifecycle environment from organization
 
         :id: bfa9198e-6078-4f10-b79a-3d7f51b835fd
 
-        :expectedresults: Lifecycle environment is removed from the org
+        :expectedresults: Lifecycle environment is handled as expected
+
+        :steps:
+            1. create and add lce to org
+            2. remove lce from org
 
         :CaseLevel: Integration
         """
@@ -1136,211 +683,100 @@ class OrganizationTestCase(CLITestCase):
         response = LifecycleEnvironment.list(lc_env_attrs)
         self.assertEqual(len(response), 0)
 
-    @run_only_on('sat')
-    @run_in_one_thread
-    @tier2
-    def test_positive_add_capsule_by_name(self):
-        """Add a capsule to organization by its name
-
-        :id: dbf9dd74-3b9e-4124-9468-b0eb978897df
-
-        :expectedresults: Capsule is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        proxy = self._make_proxy()
-        self.addCleanup(org_cleanup, org['id'])
-
-        Org.add_smart_proxy({
-            'name': org['name'],
-            'smart-proxy': proxy['name'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(proxy['name'], org['smart-proxies'])
-
-    @run_only_on('sat')
-    @run_in_one_thread
-    @tier2
-    def test_positive_add_capsule_by_id(self):
-        """Add a capsule to organization by its ID
-
-        :id: 0a64ebbe-d357-4ca8-b19e-86ea0963dc71
-
-        :expectedresults: Capsule is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        proxy = self._make_proxy()
-        self.addCleanup(org_cleanup, org['id'])
-
-        Org.add_smart_proxy({
-            'name': org['name'],
-            'smart-proxy-id': proxy['id'],
-        })
-        org = Org.info({'name': org['name']})
-        self.assertIn(proxy['name'], org['smart-proxies'])
-
-    @run_only_on('sat')
     @run_in_one_thread
     @tier2
     @upgrade
-    def test_positive_remove_capsule_by_id(self):
-        """Remove a capsule from organization by its id
+    def test_positive_add_and_remove_capsules(self):
+        """Add and remove a capsule from organization
 
         :id: 71af64ec-5cbb-4dd8-ba90-652e302305ec
 
-        :expectedresults: Capsule is removed from the org
+        :expectedresults: Capsules are handled correctly
+
+        :steps:
+            1. add and remove capsule by ip
+            2. add and remove capsule by name
 
         :CaseLevel: Integration
         """
         org = make_org()
         proxy = self._make_proxy()
         self.addCleanup(org_cleanup, org['id'])
-
         Org.add_smart_proxy({
             'id': org['id'],
             'smart-proxy-id': proxy['id'],
         })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(proxy['name'], org_info['smart-proxies'],
+                      "Failed to add capsule by id")
         Org.remove_smart_proxy({
             'id': org['id'],
             'smart-proxy-id': proxy['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertNotIn(proxy['name'], org['smart-proxies'])
-
-    @run_only_on('sat')
-    @run_in_one_thread
-    @tier2
-    def test_positive_remove_capsule_by_name(self):
-        """Remove a capsule from organization by its name
-
-        :id: f56eaf46-fef5-4b52-819f-e30e61f0ec4a
-
-        :expectedresults: Capsule is removed from the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        proxy = self._make_proxy()
-        self.addCleanup(org_cleanup, org['id'])
-
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn(proxy['name'], org_info['smart-proxies'],
+                         "Failed to remove capsule by id")
         Org.add_smart_proxy({
             'name': org['name'],
             'smart-proxy': proxy['name'],
         })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(proxy['name'], org_info['smart-proxies'],
+                      "Failed to add capsule by name")
         Org.remove_smart_proxy({
             'name': org['name'],
             'smart-proxy': proxy['name'],
         })
-        org = Org.info({'name': org['name']})
-        self.assertNotIn(proxy['name'], org['smart-proxies'])
+        org_info = Org.info({'name': org['name']})
+        self.assertNotIn(proxy['name'], org_info['smart-proxies'],
+                         "Failed to add capsule by name")
 
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_location_by_id(self):
-        """Add a location to organization by its id
-
-        :id: 83848f18-2cca-457c-af57-e6249386c81c
-
-        :expectedresults: Location is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location-id': loc['id'],
-            'name': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_location_by_name(self):
-        """Add a location to organization by its name
-
-        :id: f39522e8-5280-429e-b954-79153c2c73c2
-
-        :expectedresults: Location is added to the org
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location': loc['name'],
-            'name': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
-
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
     @skip_if_bug_open('bugzilla', 1473387)
     @tier2
     @upgrade
-    def test_positive_remove_location_by_id(self):
-        """Remove a location from organization by its id
+    def test_positive_add_and_remove_locations(self):
+        """Add and remove a locations from organization
 
         :id: 37b63e5c-8fd5-439c-9540-972b597b590a
 
-        :expectedresults: Location is removed from the org
+        :expectedresults: Locations are handled
 
         :BZ: 1395229, 1473387
+
+        :steps:
+            1. add and remove locations by name
+            2. add and remove locations by id
 
         :CaseLevel: Integration
         """
         org = make_org()
-        loc = make_location()
+        loc_a = make_location()
+        loc_b = make_location()
         Org.add_location({
-            'location-id': loc['id'],
+            'location-id': loc_a['id'],
             'name': org['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
-        Org.remove_location({
-            'location-id': loc['id'],
-            'id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @skip_if_bug_open('bugzilla', 1473387)
-    @tier2
-    def test_positive_remove_location_by_name(self):
-        """Remove a location from organization by its name
-
-        :id: 35770afa-1623-448c-af4f-a702851063db
-
-        :expectedresults: Location is removed from the org
-
-        :BZ: 1395229, 1473387
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
         Org.add_location({
-            'location': loc['name'],
+            'location': loc_b['name'],
             'name': org['name'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 1)
-        self.assertIn(loc['name'], org['locations'])
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(len(org_info['locations']), 2,
+                         "Failed to add locations")
+        self.assertIn(loc_a['name'], org_info['locations'])
+        self.assertIn(loc_b['name'], org_info['locations'])
         Org.remove_location({
-            'location': loc['name'],
+            'location-id': loc_a['id'],
             'id': org['id'],
         })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['locations']), 0)
+        Org.remove_location({
+            'location': loc_b['name'],
+            'id': org['id'],
+        })
+        org_info = Org.info({'id': org['id']})
+        self.assertNotIn('locations', org_info,
+                         "Failed to remove locations")
 
     @run_only_on('sat')
     @tier1
@@ -1531,6 +967,7 @@ class OrganizationTestCase(CLITestCase):
     # Positive Delete
 
     @tier1
+    @run_in_one_thread
     @upgrade
     def test_positive_delete_by_id(self):
         """Delete an organization by ID

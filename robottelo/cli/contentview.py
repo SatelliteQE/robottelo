@@ -187,6 +187,26 @@ class ContentView(Base):
         )
 
     @classmethod
+    def version_export(cls, options, timeout=300):
+        """Exports content-view version in given directory"""
+        cls.command_sub = 'version export'
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+            timeout=timeout
+        )
+
+    @classmethod
+    def version_import(cls, options, timeout=300):
+        """Imports content-view version from a given directory"""
+        cls.command_sub = 'version import'
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+            timeout=timeout
+        )
+
+    @classmethod
     def version_delete(cls, options):
         """Removes content-view version."""
         cls.command_sub = 'version delete'

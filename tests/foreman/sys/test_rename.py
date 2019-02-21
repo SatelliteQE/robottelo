@@ -31,7 +31,7 @@ BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = "{0} is not a valid fully qualified domain name, please \
 use a valid FQDN and try again."
 NO_CREDS_MSG = "Username and/or Password options are missing!"
-BAD_CREDS_MSG = "Invalid username or password"
+BAD_CREDS_MSG = "Unable to authenticate user admin"
 
 
 @destructive
@@ -93,7 +93,7 @@ class RenameHostTestCase(TestCase):
         with get_connection() as connection:
             result = connection.run(
                 'satellite-change-hostname {0} -y -u {1} -p {2}'.format(
-                    new_hostname, self.username, self.password),
+                    new_hostname, self.username, self.password), timeout=1200,
             )
             self.assertEqual(result.return_code, 0, 'unsuccessful rename')
             self.assertIn(BCK_MSG, result.stdout)
@@ -232,11 +232,12 @@ class RenameHostTestCase(TestCase):
         :caseautomation: automated
         """
         with get_connection() as connection:
+            new_hostname = 'new-{0}'.format(self.hostname)
             password = gen_string('alpha')
             result = connection.run(
                 'satellite-change-hostname -y \
                         {0} -u {1} -p {2}'.format(
-                    self.hostname, self.username, password),
+                    new_hostname, self.username, password),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)

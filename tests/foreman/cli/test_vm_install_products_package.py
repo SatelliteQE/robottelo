@@ -38,7 +38,7 @@ def _distro_cdn_variants():
     distro_cdn = []
     for cdn in [False, True]:
         for distro in DISTROS_SUPPORTED:
-                distro_cdn.append((distro, cdn))
+            distro_cdn.append((distro, cdn))
 
     return distro_cdn
 

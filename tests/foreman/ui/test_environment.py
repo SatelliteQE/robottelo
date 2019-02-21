@@ -20,10 +20,10 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import invalid_values_list, valid_environments_list
-from robottelo.decorators import run_only_on, tier1, tier2, upgrade
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_env, set_context
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.factory import make_env
+from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
@@ -66,68 +66,6 @@ class EnvironmentTestCase(UITestCase):
         with Session(self) as session:
             make_env(session, name=env_name, organizations=[org.name])
             self.assertIsNotNone(self.environment.search(env_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_availability_for_host_in_multiple_orgs(self):
-        """New environment that present in different organizations should be
-        visible for any created host in these organizations
-
-        :id: badcfdd8-48a2-4abf-bef0-d4ff5c0f4c87
-
-        :customerscenario: true
-
-        :expectedresults: Environment can be used for any new host and any
-            organization where it is present in
-
-        :BZ: 543178
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        env_name = gen_string('alpha')
-        orgs_names = [entities.Organization().create().name for _ in range(2)]
-        with Session(self) as session:
-            make_env(session, name=env_name, organizations=orgs_names)
-            self.assertIsNotNone(self.environment.search(env_name))
-            self.hosts.navigate_to_entity()
-            self.hosts.click(locators['host.new'])
-            for org in orgs_names:
-                self.hosts.assign_value(locators['host.organization'], org)
-                self.hosts.assign_value(
-                    locators['host.puppet_environment'], env_name)
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_availability_for_hostgroup_in_multiple_orgs(self):
-        """New environment that present in different organizations should be
-        visible for any created hostgroup in these organizations
-
-        :id: 07ff316e-16c2-493e-a987-73d59f8e81c7
-
-        :customerscenario: true
-
-        :expectedresults: Environment can be used for any new hostgroup and any
-            organization where it is present in
-
-        :BZ: 543178
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        env_name = gen_string('alpha')
-        orgs_names = [entities.Organization().create().name for _ in range(2)]
-        with Session(self) as session:
-            make_env(session, name=env_name, organizations=orgs_names)
-            self.assertIsNotNone(self.environment.search(env_name))
-            for org in orgs_names:
-                set_context(session, org=org)
-                self.hostgroup.navigate_to_entity()
-                self.hostgroup.click(locators['hostgroups.new'])
-                self.hostgroup.assign_value(
-                    locators['hostgroups.puppet_environment'], env_name)
 
     @run_only_on('sat')
     @tier1

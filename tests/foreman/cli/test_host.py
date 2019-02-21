@@ -23,7 +23,7 @@ import yaml
 from robottelo import ssh
 from robottelo.cleanup import capsule_cleanup, vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.base import CLIBaseError, CLIReturnCodeError
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -461,7 +461,7 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.LIBRARY['id'],
             'organization': self.new_org['name'],
         })
-        with self.assertRaises(CLIBaseError):
+        with self.assertRaises(CLIReturnCodeError):
             Host.update({
                 'id': host['id'],
                 'content-source-id': gen_integer(10000, 99999),

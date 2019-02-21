@@ -15,25 +15,37 @@
 
 :Upstream: No
 """
+from random import shuffle, randint
+
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 
+from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
-from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
 from robottelo.constants import (
+    CHECKSUM_TYPE,
+    DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
+    DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     FAKE_8_PUPPET_REPO,
+    FEDORA26_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     INVALID_URL,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
+    VALID_GPG_KEY_FILE,
+    VALID_GPG_KEY_BETA_FILE,
 )
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture, run_in_one_thread, skip_if_bug_open, tier2, upgrade
+from robottelo.helpers import read_data_file
+from robottelo.products import SatelliteToolsRepository
 
 
 @fixture(scope='module')
@@ -69,7 +81,7 @@ def test_positive_create_in_different_orgs(session, module_org):
                 prod.name,
                 {
                     'name': repo_name,
-                    'label': org.name,
+                    'label': org.label,
                     'repo_type': REPO_TYPE['yum'],
                     'repo_content.upstream_url': FAKE_1_YUM_REPO,
                 }
@@ -78,7 +90,7 @@ def test_positive_create_in_different_orgs(session, module_org):
                 prod.name, repo_name)[0]['Name'] == repo_name
             values = session.repository.read(prod.name, repo_name)
             assert values['name'] == repo_name
-            assert values['label'] == org.name
+            assert values['label'] == org.label
 
 
 @tier2
@@ -120,7 +132,6 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
     product = entities.Product(organization=module_org).create()
     with Session(
             test_name, user=user_login, password=user_password) as session:
-        session.organization.select(org_name=module_org.name)
         # ensure that the created user is not a global admin user
         # check administer->organizations page
         with raises(NavigationTriesExceeded):
@@ -482,3 +493,300 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
         # Check puppet modules number
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert int(repo_values['content_counts']['Puppet Modules']) >= 1
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
+    """Perform end to end testing for custom yum repository
+
+    :id: 8baf11c9-019e-4625-a549-ec4cd9312f75
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    repo_name = gen_string('alpha')
+    checksum_type = CHECKSUM_TYPE['sha256']
+    new_repo_name = gen_string('alphanumeric')
+    new_checksum_type = CHECKSUM_TYPE['sha1']
+    gpg_key = entities.GPGKey(
+        content=read_data_file(VALID_GPG_KEY_FILE),
+        organization=module_org
+    ).create()
+    new_gpg_key = entities.GPGKey(
+        content=read_data_file(VALID_GPG_KEY_BETA_FILE),
+        organization=module_org,
+    ).create()
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.checksum_type': checksum_type,
+                'repo_content.gpg_key': gpg_key.name,
+                'repo_content.download_policy': DOWNLOAD_POLICIES['on_demand']
+            }
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_url'] == FAKE_1_YUM_REPO
+        assert repo_values['repo_content']['metadata_type'] == checksum_type
+        assert repo_values['repo_content']['gpg_key'] == gpg_key.name
+        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['on_demand']
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {
+                'name': new_repo_name,
+                'repo_content.upstream_url': FAKE_2_YUM_REPO,
+                'repo_content.metadata_type': new_checksum_type,
+                'repo_content.gpg_key': new_gpg_key.name,
+                'repo_content.download_policy': DOWNLOAD_POLICIES['immediate'],
+            }
+        )
+        assert not session.repository.search(module_prod.name, repo_name)
+        repo_values = session.repository.read(module_prod.name, new_repo_name)
+        assert repo_values['name'] == new_repo_name
+        assert repo_values['repo_content']['upstream_url'] == FAKE_2_YUM_REPO
+        assert repo_values['repo_content']['metadata_type'] == new_checksum_type
+        assert repo_values['repo_content']['gpg_key'] == new_gpg_key.name
+        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
+        session.repository.delete(module_prod.name, new_repo_name)
+        assert not session.repository.search(module_prod.name, new_repo_name)
+
+
+@tier2
+@upgrade
+def test_positive_upstream_with_credentials(session, module_prod):
+    """Create repository with upstream username and password update them and then clear them.
+
+    :id: 141a95f3-79c4-48f8-9c95-e4b128045cb3
+
+    :expectedresults:
+
+        1. The custom repository is created with upstream credentials.
+        2. The custom repository upstream credentials are updated.
+        3. The credentials are cleared.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+
+    :BZ: 1433481
+    """
+    repo_name = gen_string('alpha')
+    upstream_username = gen_string('alpha')
+    upstream_password = gen_string('alphanumeric')
+    new_upstream_username = gen_string('alpha')
+    new_upstream_password = gen_string('alphanumeric')
+    hidden_password = '*' * 8
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_username': upstream_username,
+                'repo_content.upstream_password': upstream_password,
+            }
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_authorization'] == '{0} / {1}'.format(
+            upstream_username, hidden_password)
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {
+                'repo_content.upstream_authorization': dict(
+                    username=new_upstream_username,
+                    password=new_upstream_password
+                ),
+            }
+        )
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_authorization'] == '{0} / {1}'.format(
+            new_upstream_username, hidden_password)
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {
+                'repo_content.upstream_authorization': {},
+            }
+        )
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert not repo_values['repo_content']['upstream_authorization']
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
+    """Perform end to end testing for custom ostree repository
+
+    :id: 603372aa-60de-44a8-b6c9-3f84c3bbdf05
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+
+    :BZ: 1467722
+    """
+    repo_name = gen_string('alpha')
+    new_repo_name = gen_string('alphanumeric')
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['ostree'],
+                'repo_content.upstream_url': FEDORA26_OSTREE_REPO,
+            }
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {
+                'name': new_repo_name,
+                'repo_content.upstream_url': FEDORA27_OSTREE_REPO,
+            }
+        )
+        assert not session.repository.search(module_prod.name, repo_name)
+        repo_values = session.repository.read(module_prod.name, new_repo_name)
+        assert repo_values['name'] == new_repo_name
+        assert repo_values['repo_content']['upstream_url'] == FEDORA27_OSTREE_REPO
+        session.repository.delete(module_prod.name, new_repo_name)
+        assert not session.repository.search(module_prod.name, new_repo_name)
+
+
+@tier2
+def test_positive_reposet_disable(session):
+    """Enable RH repo, sync it and then disable
+
+    :id: de596c56-1327-49e8-86d5-a1ab907f26aa
+
+    :expectedresults: RH repo was disabled
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    repository_name = sat_tools_repo.data['repository']
+    with session:
+        session.organization.select(org.name)
+        session.redhatrepository.enable(
+            sat_tools_repo.data['repository-set'],
+            sat_tools_repo.data['arch'],
+            version=sat_tools_repo.data['releasever']
+        )
+        results = session.redhatrepository.search(
+            'name = "{0}"'.format(repository_name), category='Enabled')
+        assert results[0]['name'] == repository_name
+        results = session.sync_status.synchronize([(
+            sat_tools_repo.data['product'],
+            sat_tools_repo.data['releasever'],
+            sat_tools_repo.data['arch'],
+            repository_name
+        )])
+        assert results and all([result == 'Syncing Complete.' for result in results])
+        session.redhatrepository.disable(repository_name)
+        assert not session.redhatrepository.search(
+            'name = "{0}"'.format(repository_name), category='Enabled')
+
+
+@skip_if_bug_open('bugzilla', 1670125)
+@run_in_one_thread
+@tier2
+def test_positive_reposet_disable_after_manifest_deleted(session):
+    """Enable RH repo and sync it. Remove manifest and then disable
+    repository
+
+    :id: f22baa8e-80a4-4487-b1bd-f7265555d9a3
+
+    :customerscenario: true
+
+    :expectedresults: RH repo was disabled
+
+    :BZ: 1344391
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    sub = entities.Subscription(organization=org)
+    sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
+    repository_name = sat_tools_repo.data['repository']
+    repository_name_orphaned = '{0} (Orphaned)'.format(repository_name)
+    with session:
+        session.organization.select(org.name)
+        # Enable RH repository
+        session.redhatrepository.enable(
+            sat_tools_repo.data['repository-set'],
+            sat_tools_repo.data['arch'],
+            version=sat_tools_repo.data['releasever']
+        )
+        results = session.redhatrepository.search(
+            'name = "{0}"'.format(repository_name), category='Enabled')
+        assert results[0]['name'] == repository_name
+        # Sync the repo and verify sync was successful
+        results = session.sync_status.synchronize([(
+            sat_tools_repo.data['product'],
+            sat_tools_repo.data['releasever'],
+            sat_tools_repo.data['arch'],
+            repository_name
+        )])
+        assert results and all([result == 'Syncing Complete.' for result in results])
+        # Delete manifest
+        sub.delete_manifest(data={'organization_id': org.id})
+        # Verify that the displayed repository name is correct
+        results = session.redhatrepository.search(
+            'name = "{0}"'.format(repository_name), category='Enabled')
+        assert results[0]['name'] == repository_name_orphaned
+        # Disable the orphaned repository
+        session.redhatrepository.disable(repository_name, orphaned=True)
+        assert not session.redhatrepository.search(
+            'name = "{0}"'.format(repository_name), category='Enabled')
+
+
+@tier2
+def test_positive_delete_random_docker_repo(session, module_org):
+    """Create Docker-type repositories on multiple products and
+    delete a random repository from a random product.
+
+    :id: a3dce435-c46e-41d7-a2f8-29421f7427f5
+
+    :expectedresults: Random repository can be deleted from random product
+        without altering the other products.
+
+    :CaseLevel: Integration
+    """
+    entities_list = []
+    products = [
+        entities.Product(organization=module_org).create()
+        for _
+        in range(randint(2, 5))
+    ]
+    for product in products:
+        repo = entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=product,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        entities_list.append((product.name, repo.name))
+    with session:
+        # Delete a random repository
+        shuffle(entities_list)
+        del_entity = entities_list.pop()
+        session.repository.delete(*del_entity)
+        # Check whether others repositories are not touched
+        for product_name, repo_name in entities_list:
+            assert session.repository.search(product_name, repo_name)[0]['Name'] == repo_name

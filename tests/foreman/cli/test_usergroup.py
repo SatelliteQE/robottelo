@@ -26,7 +26,9 @@ from robottelo.cli.factory import (
     make_usergroup,
     make_usergroup_external,
 )
-from robottelo.cli.usergroup import UserGroup
+from robottelo.cli.user import User
+from robottelo.cli.usergroup import UserGroup, UserGroupExternal
+from robottelo.cli.task import Task
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import (
@@ -36,6 +38,7 @@ from robottelo.datafactory import (
     valid_usernames_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
@@ -666,7 +669,26 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 0)
 
+    @skip_if_bug_open('bugzilla', 1667704)
+    @tier2
+    @upgrade
+    def test_positive_remove_user_assigned_to_usergroup(self):
+        """Create new user and assign it to user group. Then remove that user.
 
+        :id: 2a2623ce-4723-4402-aae7-8675473fd8bd
+
+        :expectedresults: User should delete successfully.
+
+        :CaseLevel: Integration
+        """
+        user = make_user()
+        user_group = make_usergroup()
+        UserGroup.add_user({'id': user_group['id'], 'user-id': user['id']})
+        with self.assertNotRaises(CLIReturnCodeError):
+            User.delete({'id': user['id']})
+
+
+@run_in_one_thread
 class ActiveDirectoryUserGroupTestCase(CLITestCase):
     """Implements Active Directory feature tests for user groups in CLI."""
 
@@ -696,6 +718,18 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             u'groups-base': cls.group_base_dn,
         })
 
+    def setUp(self):
+        """Create new usergroup per each test"""
+        super(ActiveDirectoryUserGroupTestCase, self).setUp()
+        self.user_group = make_usergroup()
+
+    def tearDown(self):
+        """Delete usergroup per each test"""
+        for dict in UserGroup.list():
+            if UserGroup.info({'id': dict['id']})['external-user-groups']:
+                UserGroup.delete({'id': dict['id']})
+        super(ActiveDirectoryUserGroupTestCase, self).tearDown()
+
     @tier2
     def test_positive_create(self):
         """Create external user group using LDAP
@@ -707,12 +741,273 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        user_group = make_usergroup()
         ext_user_group = make_usergroup_external({
             'auth-source-id': self.auth['server']['id'],
-            'user-group-id': user_group['id'],
+            'user-group-id': self.user_group['id'],
             'name': 'foobargroup'
         })
         self.assertEqual(
             ext_user_group['auth-source'], self.auth['server']['name']
+        )
+
+    @tier2
+    def test_positive_refresh_external_usergroup(self):
+        """Refresh external user group with AD LDAP
+
+        :id: 1a3eb8ae-addb-406b-ac84-d8cec77c60a9
+
+        :expectedresults: User group is refreshed successfully.
+
+        :CaseLevel: Integration
+        """
+
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['server']['id'],
+            'user-group-id': self.user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+
+    @tier2
+    @upgrade
+    def test_positive_local_user_with_external_usergroup(self):
+        """Verify Local user association from user-group with external group with AD LDAP
+
+        :id: 7431979c-aea8-4984-bb7d-185f5b7c3109
+
+        :expectedresults: Local user is associated from user-group with external group.
+
+        :CaseLevel: Integration
+
+        :BZ: 1412209
+        """
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['server']['id'],
+            'user-group-id': self.user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+        user = make_user()
+        UserGroup.add_user({
+            'user': user['login'],
+            'id': self.user_group['id']
+        })
+        print(User.info({'login': user['login']}))
+        self.assertEqual(
+            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
+            self.user_group['name']
+        )
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+        print(User.info({'login': user['login']}))
+        self.assertEqual(
+            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
+            self.user_group['name']
+        )
+
+    @skip_if_bug_open('bugzilla', 1667704)
+    @tier2
+    def test_positive_automate_bz1426957(self):
+        """Verify role is properly reflected on AD user.
+
+        :id: 1c1209a6-5bb8-489c-a151-bb2fce4dbbfc
+
+        :expectedresults: Roles from usergroup is applied on AD user successfully.
+
+        :CaseLevel: Integration
+
+        :BZ: 1426957
+        """
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['server']['id'],
+            'user-group-id': self.user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
+        role = make_role()
+        UserGroup.add_role({'id': self.user_group['id'], 'role-id': role['id']})
+        with self.assertNotRaises(CLIReturnCodeError):
+            Task.with_user(username=self.ldap_user_name, password=self.ldap_user_passwd).list()
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+        self.assertEqual(User.info({'login': self.ldap_user_name})['user-groups'][1],
+                         role['name'])
+        User.delete({'login': self.ldap_user_name})
+
+    @tier2
+    def test_negative_automate_bz1437578(self):
+        """Verify error message on usergroup create with 'Domain Users' on AD user.
+
+        :id: d4caf33e-b9eb-4281-9e04-fbe1d5b035dc
+
+        :expectedresults: Error message as Domain Users is a special group in AD.
+
+        :CaseLevel: Integration
+
+        :BZ: 1437578
+        """
+        with self.assertRaises(CLIReturnCodeError):
+            result = UserGroupExternal.create({
+                'auth-source-id': self.auth['server']['id'],
+                'user-group-id': self.user_group['id'],
+                'name': 'Domain Users'
+            })
+            self.assertEqual('Could not create external user group: '
+                             'Name is not found in the authentication source'
+                             'Name Domain Users is a special group in AD.'
+                             ' Unfortunately, we cannot obtain membership information'
+                             ' from a LDAP search and therefore sync it.', result)
+
+
+@run_in_one_thread
+class FreeIPAUserGroupTestCase(CLITestCase):
+    """Implements FreeIPA LDAP feature tests for user groups in CLI."""
+
+    @classmethod
+    @skip_if_not_set('ipa')
+    def setUpClass(cls):
+        """Read settings and create LDAP auth source that can be re-used in
+        tests."""
+        super(FreeIPAUserGroupTestCase, cls).setUpClass()
+        cls.ldap_user_name = settings.ipa.username_ipa
+        cls.ldap_user_passwd = settings.ipa.password_ipa
+        cls.base_dn = settings.ipa.basedn_ipa
+        cls.group_base_dn = settings.ipa.grpbasedn_ipa
+        cls.ldap_hostname = settings.ipa.hostname_ipa
+        cls.auth = make_ldap_auth_source({
+            u'name': gen_string('alpha'),
+            u'onthefly-register': 'true',
+            u'host': cls.ldap_hostname,
+            u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+            u'attr-login': LDAP_ATTR['login'],
+            u'attr-firstname': LDAP_ATTR['firstname'],
+            u'attr-lastname': LDAP_ATTR['surname'],
+            u'attr-mail': LDAP_ATTR['mail'],
+            u'account': cls.ldap_user_name,
+            u'account-password': cls.ldap_user_passwd,
+            u'base-dn': cls.base_dn,
+            u'groups-base': cls.group_base_dn,
+        })
+
+    def setUp(self):
+        """Create new usergroup per each test"""
+        super(FreeIPAUserGroupTestCase, self).setUp()
+        self.user_group = make_usergroup()
+
+    def tearDown(self):
+        """Delete usergroup per each test"""
+        for dict in UserGroup.list():
+            if UserGroup.info({'id': dict['id']})['external-user-groups']:
+                UserGroup.delete({'id': dict['id']})
+        super(FreeIPAUserGroupTestCase, self).tearDown()
+
+    @tier1
+    def test_positive_create(self):
+        """Create external user group using FreeIPA LDAP
+
+        :id: cc14b7a2-2fb5-4063-b76a-14d204e54d76
+
+        :expectedresults: User group is created successfully and assigned to
+            correct auth source
+
+        :CaseLevel: Integration
+        """
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['server']['id'],
+            'user-group-id': self.user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
+
+    @tier2
+    def test_positive_refresh_external_usergroup(self):
+        """Refresh external user group with FreeIPA LDAP
+
+        :id: c63e86ea-bbed-4fae-b4c7-8c1f47969240
+
+        :expectedresults: User group is refreshed successfully.
+
+        :CaseLevel: Integration
+        """
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['server']['id'],
+            'user-group-id': self.user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+
+    @tier2
+    @upgrade
+    def test_positive_local_user_with_external_usergroup(self):
+        """Verify Local user association from user-group with external group with FreeIPA LDAP
+
+        :id: bd6152e3-51ac-4e84-b084-8bab1c4eb583
+
+        :expectedresults: Local user is associated from user-group with external group.
+
+        :CaseLevel: Integration
+
+        :BZ: 1412209
+        """
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['server']['id'],
+            'user-group-id': self.user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+        user = make_user()
+        UserGroup.add_user({
+            'user': user['login'],
+            'id': self.user_group['id']
+        })
+        self.assertEqual(
+            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
+            self.user_group['name']
+        )
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh({
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup'
+            })
+        print(User.info({'login': user['login']}))
+        self.assertEqual(
+            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
+            self.user_group['name']
         )

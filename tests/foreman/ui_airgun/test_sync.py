@@ -14,16 +14,20 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import (
     DISTRO_RHEL6, DISTRO_RHEL7,
+    DOCKER_REGISTRY_HUB,
+    DOCKER_UPSTREAM_NAME,
     FAKE_1_YUM_REPO,
-    FEDORA23_OSTREE_REPO,
+    FEDORA27_OSTREE_REPO,
     REPOS,
     REPOSET,
+    REPO_TYPE,
     PRDS,
 )
 from robottelo.decorators import (
@@ -131,7 +135,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """
     repo = entities.Repository(
         content_type='ostree',
-        url=FEDORA23_OSTREE_REPO,
+        url=FEDORA27_OSTREE_REPO,
         product=module_custom_product,
         unprotected=False,
     ).create()
@@ -174,3 +178,30 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
             (PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
+
+
+@tier2
+@upgrade
+def test_positive_sync_docker_via_sync_status(session, module_org):
+    """Create custom docker repo and sync it via the sync status page.
+
+    :id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
+
+    :expectedresults: Sync procedure for specific docker repository is
+        successful
+
+    :CaseLevel: Integration
+    """
+    product = entities.Product(organization=module_org).create()
+    repo_name = gen_string('alphanumeric')
+    with session:
+        session.repository.create(
+            product.name,
+            {'name': repo_name,
+             'repo_type': REPO_TYPE['docker'],
+             'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
+             'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME}
+        )
+        assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
+        result = session.sync_status.synchronize([(product.name, repo_name)])
+        assert result[0] == 'Syncing Complete.'
