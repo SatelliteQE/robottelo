@@ -152,6 +152,8 @@ class Scenario_errata_count(APITestCase):
 
         """
         org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+
         environment = entities.LifecycleEnvironment(
             organization=org
         ).search(query={'search': 'name=Library'})[0]
@@ -187,6 +189,9 @@ class Scenario_errata_count(APITestCase):
             self._install_or_update_package(client_container_id, package)
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
+        host.location = loc
+        host = host.update(['location'])
+
         applicable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         self.assertGreater(applicable_errata_count, 1)
