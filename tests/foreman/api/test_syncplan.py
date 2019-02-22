@@ -381,7 +381,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
             valid_intervals = valid_sync_interval()
             valid_intervals.remove(interval)
-            new_interval = valid_intervals[0]
+            new_interval = gen_choice(valid_intervals)
             sync_plan.interval = new_interval
             if new_interval == SYNC_INTERVAL['custom']:
                 sync_plan.cron_expression = gen_choice(valid_cron_expressions())
