@@ -48,6 +48,7 @@ from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
+    skip_if_bug_open,
     stubbed,
     tier3,
     upgrade
@@ -469,6 +470,7 @@ class ErrataTestCase(APITestCase):
         self.assertEqual(issued, sorted(issued))
 
     @tier3
+    @skip_if_bug_open('bugzilla', 1682940)
     def test_positive_filter_by_envs(self):
         """Filter applicable errata for a content host by current and
         Library environments
