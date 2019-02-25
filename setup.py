@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from os import system, environ
 from setuptools import find_packages, setup
 
 with open('README.rst', 'r') as f:
     README = f.read()
+
+if system('curl --version | grep NSS 2>/dev/null') != 0:
+    environ['PYCURL_SSL_LIBRARY'] = 'openssl'
+    system('pip install --compile --install-option="--with-openssl" pycurl')
+else:
+    environ['PYCURL_SSL_LIBRARY'] = 'nss'
+    system('pip install --compile --install-option="--with-nss" pycurl')
 
 setup(
     name='robottelo',
