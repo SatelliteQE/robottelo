@@ -805,7 +805,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             with pytest.raises(NoSuchElementException) as context:
                 values = {host_field['name']: host_field['unexpected_value']}
                 values.update(host_field.get('other_fields_values', {}))
-                session.host.helper.form_create_fill_read(values)
+                session.host.helper.read_create_view(values)
             error_message = str(context.value)
             assert host_field['unexpected_value'] in error_message
             # After the NoSuchElementException from FilteredDropdown, airgun is not able to
@@ -814,7 +814,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             session.browser.refresh()
             values = {host_field['name']: host_field['expected_value']}
             values.update(host_field.get('other_fields_values', {}))
-            create_values = session.host.helper.form_create_fill_read(values)
+            create_values = session.host.helper.read_create_view(values, host_field['name'])
             tab_name, field_name = host_field['name'].split('.')
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
@@ -1124,10 +1124,10 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
             'host_group.puppet_environment': env_name
         })
         assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
-        values = session.host.helper.form_create_fill_read(
+        values = session.host.helper.read_create_view(
             {'host.hostgroup': hg_name}, ['host.puppet_environment'])
         assert values['host']['puppet_environment'] == env_name
-        values = session.host.helper.form_create_fill_read(
+        values = session.host.helper.read_create_view(
             {'host.inherit_puppet_environment': False},
             ['host.puppet_environment']
         )
@@ -1164,15 +1164,16 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
             )
             if content_view in env.name
         ][0]
-        values = session.host.helper.form_create_fill_read(
+        values = session.host.helper.read_create_view(
             {'host.lce': ENVIRONMENT, 'host.content_view': content_view},
             ['host.puppet_environment']
         )
         assert values['host']['puppet_environment'] == published_puppet_env
-        values = session.host.helper.form_create_fill_read({'host.puppet_environment': puppet_env})
+        values = session.host.helper.read_create_view(
+            {'host.puppet_environment': puppet_env}, ['host.puppet_environment'])
         assert values['host']['puppet_environment'] == puppet_env
         # reset_puppet_environment
-        values = session.host.helper.form_create_fill_read(
+        values = session.host.helper.read_create_view(
             {'host.reset_puppet_environment': True},
             ['host.puppet_environment']
         )
