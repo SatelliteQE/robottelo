@@ -520,8 +520,8 @@ class ErrataTestCase(APITestCase):
             name='Library',
             organization=org,
         ).search()[0]
-        errata_library = entities.Errata(environment=library_env).search()
-        errata_env = entities.Errata(environment=env).search()
+        errata_library = entities.Errata(environment=library_env).search(query={'per_page': 1000})
+        errata_env = entities.Errata(environment=env).search(query={'per_page': 1000})
         self.assertGreater(len(errata_library), len(errata_env))
 
     @tier3
