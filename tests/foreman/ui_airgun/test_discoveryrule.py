@@ -22,7 +22,7 @@ from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import fixture, run_in_one_thread, tier2
+from robottelo.decorators import fixture, run_in_one_thread, tier2, upgrade
 
 
 @fixture(scope='module')
@@ -295,3 +295,84 @@ def test_positive_list_host_based_on_rule_search_query(
         values = session.host.get_details(provisioned_host_name)
         assert (values['properties']['properties_table']['IP Address']
                 == ip_address)
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, module_org, module_loc):
+    """Perform end to end testing for discovery rule component.
+
+    :id: dd35e566-dc3a-43d3-939c-a33ae528740f
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    rule_name = gen_string('alpha')
+    search = 'cpu_count = {0}'.format(gen_integer(1, 5))
+    hg_name = gen_string('alpha')
+    hostname = gen_string('alpha')
+    hosts_limit = str(gen_integer(0, 100))
+    priority = str(gen_integer(1, 100))
+    new_rule_name = gen_string('alpha')
+    new_search = 'cpu_count = {0}'.format(gen_integer(6, 10))
+    new_hg_name = gen_string('alpha')
+    new_hostname = gen_string('alpha')
+    new_hosts_limit = str(gen_integer(101, 200))
+    new_priority = str(gen_integer(101, 200))
+    entities.HostGroup(name=hg_name, organization=[module_org], location=[module_loc]).create()
+    entities.HostGroup(name=new_hg_name, organization=[module_org], location=[module_loc]).create()
+    new_org = entities.Organization().create()
+    new_loc = entities.Location().create()
+    with session:
+        session.discoveryrule.create({
+            'primary.name': rule_name,
+            'primary.search': search,
+            'primary.host_group': hg_name,
+            'primary.hostname': hostname,
+            'primary.hosts_limit': hosts_limit,
+            'primary.priority': priority,
+            'primary.enabled': False,
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+        values = session.discoveryrule.read(rule_name)
+        assert values['primary']['name'] == rule_name
+        assert values['primary']['search'] == search
+        assert values['primary']['host_group'] == hg_name
+        assert values['primary']['hostname'] == hostname
+        assert values['primary']['hosts_limit'] == hosts_limit
+        assert values['primary']['priority'] == priority
+        assert values['primary']['enabled'] is False
+        assert values['organizations']['resources']['assigned'] == [module_org.name]
+        assert values['locations']['resources']['assigned'] == [module_loc.name]
+        session.discoveryrule.update(rule_name, {
+            'primary.name': new_rule_name,
+            'primary.search': new_search,
+            'primary.host_group': new_hg_name,
+            'primary.hostname': new_hostname,
+            'primary.hosts_limit': new_hosts_limit,
+            'primary.priority': new_priority,
+            'primary.enabled': True,
+            'organizations.resources.assigned': [new_org.name],
+            'locations.resources.assigned': [new_loc.name],
+        })
+        rules = session.discoveryrule.read_all()
+        assert rule_name not in [rule['Name'] for rule in rules]
+        values = session.discoveryrule.read(new_rule_name)
+        assert values['primary']['name'] == new_rule_name
+        assert values['primary']['search'] == new_search
+        assert values['primary']['host_group'] == new_hg_name
+        assert values['primary']['hostname'] == new_hostname
+        assert values['primary']['hosts_limit'] == new_hosts_limit
+        assert values['primary']['priority'] == new_priority
+        assert values['primary']['enabled'] is True
+        assert {new_org.name, module_org.name} == set(
+            values['organizations']['resources']['assigned'])
+        assert {new_loc.name, module_loc.name} == set(
+            values['locations']['resources']['assigned'])
+        session.discoveryrule.delete(new_rule_name)
+        rules = session.discoveryrule.read_all()
+        assert new_rule_name not in [rule['Name'] for rule in rules]
