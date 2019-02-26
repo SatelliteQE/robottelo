@@ -19,11 +19,12 @@ import csv
 import copy
 import os
 
+import pytest
+import yaml
+
 from airgun.session import Session
 from nailgun import entities
-import pytest
 from widgetastic.exceptions import NoSuchElementException
-import yaml
 
 from robottelo import ssh
 from robottelo.api.utils import create_role_permissions, promote
@@ -101,9 +102,9 @@ def scap_policy(scap_content):
     return scap_policy
 
 
-# @pytest.fixture(scope='module')
-# def module_org():
-#     return entities.Organization().create()
+@pytest.fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
 
 @pytest.fixture(scope='module')
@@ -126,6 +127,7 @@ def module_global_params():
 def module_host_template(module_org, module_loc):
     host_template = entities.Host(organization=module_org, location=module_loc)
     host_template.create_missing()
+    host_template.name = None
     return host_template
 
 
@@ -135,8 +137,9 @@ def create_fake_host(session, host, interface_id=gen_string('alpha'),
         extra_values = {}
     os_name = u'{0} {1}'.format(
         host.operatingsystem.name, host.operatingsystem.major)
+    name = host.name if host.name is not None else gen_string('alpha').lower()
     values = {
-        'host.name': host.name,
+        'host.name': name,
         'host.organization': host.organization.name,
         'host.location': host.location.name,
         'host.lce': ENVIRONMENT,
@@ -159,6 +162,7 @@ def create_fake_host(session, host, interface_id=gen_string('alpha'),
     }
     values.update(extra_values)
     session.host.create(values)
+    return '{0}.{1}'.format(name, host.domain.name)
 
 
 @tier3
@@ -171,15 +175,13 @@ def test_positive_create(session, module_host_template):
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
-    host_name = u'{0}.{1}'.format(name, module_host_template.domain.name)
     with session:
-        create_fake_host(session, module_host_template, extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template)
         assert session.host.search(host_name)[0]['Name'] == host_name
 
 
 @tier3
-def test_positive_read_from_details_page(session, module_org, module_loc, module_host_template):
+def test_positive_read_from_details_page(session, module_host_template):
     """Create new Host and read all its content through details page
 
     :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
@@ -188,14 +190,11 @@ def test_positive_read_from_details_page(session, module_org, module_loc, module
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
     os_name = u'{0} {1}'.format(
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
     interface_id = gen_string('alpha')
-    host_name = u'{0}.{1}'.format(name, module_host_template.domain.name)
     with session:
-        create_fake_host(
-            session, module_host_template, interface_id, extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template, interface_id)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table'][
@@ -213,15 +212,15 @@ def test_positive_read_from_details_page(session, module_org, module_loc, module
         assert values['properties']['properties_table'][
             'Operating System'] == os_name
         assert values['properties']['properties_table'][
-            'Location'] == module_loc.name
+            'Location'] == module_host_template.location.name
         assert values['properties']['properties_table'][
-            'Organization'] == module_org.name
+            'Organization'] == module_host_template.organization.name
         assert values['properties']['properties_table'][
             'Owner'] == values['current_user']
 
 
 @tier3
-def test_positive_read_from_edit_page(session, module_loc, module_host_template):
+def test_positive_read_from_edit_page(session, module_host_template):
     """Create new Host and read all its content through edit page
 
     :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
@@ -230,19 +229,16 @@ def test_positive_read_from_edit_page(session, module_loc, module_host_template)
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
     os_name = u'{0} {1}'.format(
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
     interface_id = gen_string('alpha')
-    host_name = u'{0}.{1}'.format(name, module_host_template.domain.name)
     with session:
-        create_fake_host(
-            session, module_host_template, interface_id, extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template, interface_id)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name)
-        assert values['host']['name'] == name
+        assert values['host']['name'] == host_name.partition('.')[0]
         assert values['host']['organization'] == module_host_template.organization.name
-        assert values['host']['location'] == module_loc.name
+        assert values['host']['location'] == module_host_template.location.name
         assert values['host']['lce'] == ENVIRONMENT
         assert values['host']['content_view'] == DEFAULT_CV
         assert values['host']['puppet_environment'] == module_host_template.environment.name
@@ -275,10 +271,8 @@ def test_positive_delete(session, module_host_template):
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
-    host_name = u'{0}.{1}'.format(name, module_host_template.domain.name)
     with session:
-        create_fake_host(session, module_host_template, extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template)
         assert session.host.search(host_name)[0]['Name'] == host_name
         session.host.delete(host_name)
         assert not session.host.search(host_name)
@@ -566,18 +560,17 @@ def test_negative_delete_primary_interface(session, module_host_template):
 
     :id: bc747e2c-38d9-4920-b4ae-6010851f704e
 
+    :customerscenario: true
+
     :BZ: 1417119
 
     :expectedresults: Interface was not deleted
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
-    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     interface_id = gen_string('alpha')
     with session:
-        create_fake_host(session, module_host_template, interface_id=interface_id,
-                         extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template, interface_id=interface_id)
         session.host.delete_interface(host_name, interface_id)
         values = session.host.read(host_name, 'interfaces')
         assert values['interfaces']['interfaces_list'][0]['Identifier'] == interface_id
@@ -684,8 +677,7 @@ def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_
         assert values['parameters']['host_params'][0] == parameter
         with pytest.raises(NoSuchElementException) as context:
             session.host.update(host.name, {'parameters.host_params': []})
-        error_message = str(context.value)
-        assert 'Remove Parameter' in error_message
+        assert 'Remove Parameter' in str(context.value)
 
 
 @tier3
@@ -819,7 +811,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
 
-@tier3
+@tier2
 def test_positive_update_name(session, module_host_template):
     """Create a new Host and update its name to valid one
 
@@ -829,19 +821,17 @@ def test_positive_update_name(session, module_host_template):
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
     new_name = gen_string('alpha').lower()
-    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
     with session:
-        create_fake_host(session, module_host_template, extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template)
         assert session.host.search(host_name)[0]['Name'] == host_name
         session.host.update(host_name, {'host.name': new_name})
         assert not session.host.search(host_name)
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
 
 
-@tier3
+@tier2
 def test_positive_update_name_with_prefix(session, module_host_template):
     """Create a new Host and update its name to valid one. Host should
     contain word 'new' in its name
@@ -854,12 +844,10 @@ def test_positive_update_name_with_prefix(session, module_host_template):
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
     new_name = 'new{0}'.format(gen_string("alpha").lower())
-    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
     with session:
-        create_fake_host(session, module_host_template, extra_values={'host.name': name})
+        host_name = create_fake_host(session, module_host_template)
         assert session.host.search(host_name)[0]['Name'] == host_name
         session.host.update(host_name, {'host.name': new_name})
         assert not session.host.search(host_name)
@@ -1050,7 +1038,7 @@ def test_positive_search_by_org(session, module_loc):
 
 
 @tier2
-def test_positive_validate_inherited_cv_lce(session, module_org, module_loc, module_host_template):
+def test_positive_validate_inherited_cv_lce(session, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI.
@@ -1066,19 +1054,19 @@ def test_positive_validate_inherited_cv_lce(session, module_org, module_loc, mod
     """
     name = gen_string('alpha').lower()
     host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
-    lce = make_lifecycle_environment({'organization-id': module_org.id})
-    content_view = make_content_view({'organization-id': module_org.id})
+    lce = make_lifecycle_environment({'organization-id': module_host_template.organization.id})
+    content_view = make_content_view({'organization-id': module_host_template.organization.id})
     ContentView.publish({'id': content_view['id']})
     version_id = ContentView.version_list({'content-view-id': content_view['id']})[0]['id']
     ContentView.version_promote({
         'id': version_id,
         'to-lifecycle-environment-id': lce['id'],
-        'organization-id': module_org.id,
+        'organization-id': module_host_template.organization.id,
     })
     hostgroup = make_hostgroup({
         'content-view-id': content_view['id'],
         'lifecycle-environment-id': lce['id'],
-        'organization-ids': module_org.id,
+        'organization-ids': module_host_template.organization.id,
     })
     puppet_proxy = Proxy.list({'search': 'name = {0}'.format(settings.server.hostname)})[0]
     make_host({
@@ -1086,11 +1074,11 @@ def test_positive_validate_inherited_cv_lce(session, module_org, module_loc, mod
         'domain-id': module_host_template.domain.id,
         'environment-id': module_host_template.environment.id,
         'hostgroup-id': hostgroup['id'],
-        'location-id': module_loc.id,
+        'location-id': module_host_template.location.id,
         'medium-id': module_host_template.medium.id,
         'name': name,
         'operatingsystem-id': module_host_template.operatingsystem.id,
-        'organization-id': module_org.id,
+        'organization-id': module_host_template.organization.id,
         'partition-table-id': module_host_template.ptable.id,
         'puppet-proxy-id': puppet_proxy['id'],
     })
@@ -1259,10 +1247,7 @@ def test_positive_bulk_delete_host(session, module_loc):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    host_template = entities.Host(
-            organization=org,
-            location=module_loc,
-    )
+    host_template = entities.Host(organization=org, location=module_loc)
     host_template.create_missing()
     hosts_names = [
         entities.Host(
