@@ -22,6 +22,7 @@ import os
 import pytest
 import yaml
 
+from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
 from nailgun import entities
 from widgetastic.exceptions import NoSuchElementException
@@ -571,11 +572,9 @@ def test_negative_delete_primary_interface(session, module_host_template):
     interface_id = gen_string('alpha')
     with session:
         host_name = create_fake_host(session, module_host_template, interface_id=interface_id)
-        session.host.delete_interface(host_name, interface_id)
-        values = session.host.read(host_name, 'interfaces')
-        assert values['interfaces']['interfaces_list'][0]['Identifier'] == interface_id
-        assert values[
-                   'interfaces']['interfaces_list'][0]['MAC Address'] == module_host_template.mac
+        with pytest.raises(DisabledWidgetError) as context:
+            session.host.delete_interface(host_name, interface_id)
+        assert 'Interface Delete button is disabled' in str(context.value)
 
 
 @tier3
@@ -1052,8 +1051,6 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
 
     :BZ: 1391656
     """
-    name = gen_string('alpha').lower()
-    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     lce = make_lifecycle_environment({'organization-id': module_host_template.organization.id})
     content_view = make_content_view({'organization-id': module_host_template.organization.id})
     ContentView.publish({'id': content_view['id']})
@@ -1069,21 +1066,20 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
         'organization-ids': module_host_template.organization.id,
     })
     puppet_proxy = Proxy.list({'search': 'name = {0}'.format(settings.server.hostname)})[0]
-    make_host({
+    host = make_host({
         'architecture-id': module_host_template.architecture.id,
         'domain-id': module_host_template.domain.id,
         'environment-id': module_host_template.environment.id,
         'hostgroup-id': hostgroup['id'],
         'location-id': module_host_template.location.id,
         'medium-id': module_host_template.medium.id,
-        'name': name,
         'operatingsystem-id': module_host_template.operatingsystem.id,
         'organization-id': module_host_template.organization.id,
         'partition-table-id': module_host_template.ptable.id,
         'puppet-proxy-id': puppet_proxy['id'],
     })
     with session:
-        values = session.host.read(host_name, ['host.lce', 'host.content_view'])
+        values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce['name']
         assert values['host']['content_view'] == content_view['name']
 
@@ -1113,13 +1109,21 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
         })
         assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
         values = session.host.helper.read_create_view(
-            {'host.hostgroup': hg_name}, ['host.puppet_environment'])
-        assert values['host']['puppet_environment'] == env_name
+            {}, ['host.puppet_environment', 'host.inherit_puppet_environment'])
+        assert not values['host']['puppet_environment']
+        assert values['host']['inherit_puppet_environment'] is False
         values = session.host.helper.read_create_view(
-            {'host.inherit_puppet_environment': False},
-            ['host.puppet_environment']
+            {'host.hostgroup': hg_name},
+            ['host.puppet_environment', 'host.inherit_puppet_environment']
         )
         assert values['host']['puppet_environment'] == env_name
+        assert values['host']['inherit_puppet_environment'] is True
+        values = session.host.helper.read_create_view(
+            {'host.inherit_puppet_environment': False},
+            ['host.puppet_environment', 'host.inherit_puppet_environment']
+        )
+        assert values['host']['puppet_environment'] == env_name
+        assert values['host']['inherit_puppet_environment'] is False
 
 
 @tier2
@@ -1169,8 +1173,7 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
 
 
 @tier3
-def test_positive_set_multi_line_and_with_spaces_parameter_value(
-        session, module_org, module_loc, module_host_template):
+def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module_host_template):
     """Check that host parameter value with multi-line and spaces is
     correctly represented in yaml format
 
@@ -1187,8 +1190,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
-    host_name = '{0}.{1}'.format(name, module_host_template.domain.name)
     param_name = gen_string('alpha').lower()
     # long string that should be escaped and affected by line break with
     # yaml dump by default
@@ -1197,13 +1198,12 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         'password-auth\r\n'
         'account     include                  password-auth'
     )
-    entities.Host(
-        name=name,
-        organization=module_org,
+    host = entities.Host(
+        organization=module_host_template.organization,
         architecture=module_host_template.architecture,
         domain=module_host_template.domain,
         environment=module_host_template.environment,
-        location=module_loc,
+        location=module_host_template.location,
         mac=module_host_template.mac,
         medium=module_host_template.medium,
         operatingsystem=module_host_template.operatingsystem,
@@ -1211,17 +1211,17 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         root_pass=module_host_template.root_pass,
         content_facet_attributes={
             'content_view_id': entities.ContentView(
-                organization=module_org, name=DEFAULT_CV).search()[0].id,
+                organization=module_host_template.organization, name=DEFAULT_CV).search()[0].id,
             'lifecycle_environment_id': entities.LifecycleEnvironment(
-                organization=module_org, name=ENVIRONMENT).search()[0].id
+                organization=module_host_template.organization, name=ENVIRONMENT).search()[0].id
         }
     ).create()
     with session:
         session.host.update(
-            host_name,
+            host.name,
             {'parameters.host_params': [dict(name=param_name, value=param_value)]}
         )
-        yaml_text = session.host.read_yaml_output(host_name)
+        yaml_text = session.host.read_yaml_output(host.name)
         # ensure parameter value is represented in yaml format without
         # line break (special chars should be escaped)
         assert param_value.encode('unicode_escape') in bytes(yaml_text, 'utf-8')
