@@ -14,11 +14,14 @@
 
 :Upstream: No
 """
+import random
+
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 
+from robottelo.constants import PERMISSIONS_UI, ROLES
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2, upgrade
 
@@ -31,6 +34,132 @@ def module_org():
 @fixture(scope='module')
 def module_loc():
     return entities.Location().create()
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, module_org, module_loc):
+    """Perform end to end testing for role component
+
+    :id: 3284016a-e2df-4a0e-aa24-c95ab132eec1
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :BZ: 1353788
+
+    :CaseImportance: High
+    """
+    role_name = gen_string('alpha')
+    role_description = gen_string('alpha')
+    resource_type = 'Architecture'
+    permissions = ['view_architectures', 'edit_architectures']
+    cloned_role_name = gen_string('alpha')
+    new_role_name = gen_string('alpha')
+    new_role_description = gen_string('alpha')
+    new_org = entities.Organization().create()
+    new_loc = entities.Location(organization=[new_org]).create()
+    with session:
+        session.role.create({
+            'name': role_name,
+            'description': role_description,
+            'organizations.assigned': [module_org.name],
+            'locations.assigned': [module_loc.name]
+        })
+        values = session.role.read(role_name)
+        assert values['name'] == role_name
+        assert values['description'] == role_description
+        assert values['organizations']['assigned'] == [module_org.name]
+        assert values['locations']['assigned'] == [module_loc.name]
+        session.filter.create(role_name, {
+            'resource_type': resource_type,
+            'permission.assigned': permissions
+        })
+        assigned_permissions = session.filter.read_permissions(role_name)
+        assert set(assigned_permissions[resource_type]) == set(permissions)
+        # clone the role
+        session.role.clone(role_name, {'name': cloned_role_name})
+        assert session.role.search(cloned_role_name)[0]['Name'] == cloned_role_name
+        assigned_permissions = session.filter.read_permissions(cloned_role_name)
+        assert list(assigned_permissions.keys()) == [resource_type]
+        assert set(assigned_permissions[resource_type]) == set(permissions)
+        # update the role
+        session.role.update(role_name, {
+            'name': new_role_name,
+            'description': new_role_description,
+            'organizations.assigned': [new_org.name],
+            'locations.assigned': [new_loc.name]
+        })
+        assert not session.role.search(role_name)
+        values = session.role.read(new_role_name)
+        assert values['name'] == new_role_name
+        assert values['description'] == new_role_description
+        assert set(values['organizations']['assigned']) == {module_org.name, new_org.name}
+        assert set(values['locations']['assigned']) == {module_loc.name, new_loc.name}
+        # delete the role
+        session.role.delete(new_role_name)
+        assert not session.role.search(new_role_name)
+        # delete the cloned role
+        session.role.delete(cloned_role_name)
+        assert not session.role.search(cloned_role_name)
+
+
+@tier2
+def test_positive_assign_cloned_role(session):
+    """Clone role and assign it to user
+
+    :id: cbb17f37-9039-4875-981b-1f427b095ed1
+
+    :customerscenario: true
+
+    :expectedresults: User is created successfully
+
+    :BZ: 1353788
+
+    :CaseImportance: Critical
+    """
+    role_name = random.choice(ROLES)
+    cloned_role_name = gen_string('alpha')
+    user_name = gen_string('alpha')
+    user_password = gen_string('alpha')
+    with session:
+        session.role.clone(role_name, {'name': cloned_role_name})
+        assert session.role.search(cloned_role_name)[0]['Name'] == cloned_role_name
+        session.user.create({
+            'user.login': user_name,
+            'user.auth': 'INTERNAL',
+            'user.password': user_password,
+            'user.confirm': user_password,
+            'roles.resources.assigned': [cloned_role_name],
+        })
+        assert session.user.search(user_name)[0]['Username'] == user_name
+        user = session.user.read(user_name)
+        assert user['roles']['resources']['assigned'] == [cloned_role_name]
+
+
+@tier2
+@upgrade
+def test_positive_delete_cloned_builtin(session):
+    """Delete cloned builtin role
+
+    :id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
+
+    :customerscenario: true
+
+    :expectedresults: Role is deleted
+
+    :BZ: 1353788, 1426672
+
+    :CaseImportance: Critical
+    """
+    role_name = random.choice(ROLES)
+    cloned_role_name = gen_string('alpha')
+    with session:
+        session.role.clone(role_name, {'name': cloned_role_name})
+        assert session.role.search(cloned_role_name)[0]['Name'] == cloned_role_name
+        session.role.delete(cloned_role_name)
+        assert not session.role.search(cloned_role_name)
 
 
 @tier2
@@ -285,3 +414,189 @@ def test_positive_create_overridable_filter(
         assert "You don't have permission create_subnets with attributes" \
                " that you have specified or you don't have access to" \
                " specified locations or organizations" in str(context.value)
+
+
+@tier2
+def test_positive_create_with_21_filters(session):
+    """Make sure it's possible to create more than 20 filters inside single role
+
+    :BZ: 1277444
+
+    :id: 6c36d382-9790-4d34-affa-e993764cef9a
+
+    :customerscenario: true
+
+    :expectedresults: more than 20 filters are displayed
+
+    :CaseImportance: Medium
+    """
+    filters_number = 21
+    role_name = gen_string('alphanumeric')
+    permissions = (
+        (resource, permission)
+        for resource, resource_permissions in PERMISSIONS_UI.items()
+        for permission in resource_permissions
+    )
+    with session:
+        session.role.create({'name': role_name})
+        assert session.role.search(role_name)[0]['Name'] == role_name
+        used_filters = set()
+        for _ in range(filters_number):
+            resource_type, permission = next(permissions)
+            used_filters.add((resource_type, permission))
+            session.filter.create(role_name, {
+                'resource_type': resource_type,
+                'permission.assigned': [permission]
+            })
+        assigned_permissions = session.filter.read_permissions(role_name)
+        assigned_filters = {
+            (resource_type, permission)
+            for resource_type, resource_permissions in assigned_permissions.items()
+            for permission in resource_permissions
+        }
+        assert len(assigned_filters) == filters_number
+        assert assigned_filters == used_filters
+
+
+@tier2
+def test_positive_create_with_sc_parameter_permission(session):
+    """Create role filter with few permissions for smart class parameters.
+
+    :id: c9e466e5-d6ce-4596-bd32-c2a7817da34a
+
+    :customerscenario: true
+
+    :expectedresults: Corresponding role filter has necessary permissions
+
+    :BZ: 1360191
+
+    :CaseImportance: High
+    """
+    role_name = gen_string('alpha')
+    resource_type = 'Smart class parameter'
+    permissions = ['view_external_parameters', 'edit_external_parameters']
+    with session:
+        session.role.create({'name': role_name})
+        assert session.role.search(role_name)[0]['Name'] == role_name
+        session.filter.create(role_name, {
+            'resource_type': resource_type,
+            'permission.assigned': permissions
+        })
+        values = session.filter.search(role_name, 'PuppetclassLookupKey')
+        assert values
+        assert values[0]['Resource'] == resource_type
+        assigned_permissions = values[0]['Permissions'].split(', ')
+        assert set(assigned_permissions) == set(permissions)
+
+
+@tier2
+def test_positive_create_with_smart_variable_permission(session):
+    """Create role filter with few permissions for smart variables.
+
+    :id: 9e5775f3-5f79-4212-bcb4-29d91032df4e
+
+    :customerscenario: true
+
+    :expectedresults: Corresponding role filter has necessary permissions
+
+    :BZ: 1360191
+
+    :CaseImportance: High
+    """
+    role_name = gen_string('alpha')
+    resource_type = 'Smart variable'
+    permissions = ['view_external_variables', 'edit_external_variables']
+    with session:
+        session.role.create({'name': role_name})
+        assert session.role.search(role_name)[0]['Name'] == role_name
+        session.filter.create(role_name, {
+            'resource_type': resource_type,
+            'permission.assigned': permissions
+        })
+        values = session.filter.search(role_name, 'VariableLookupKey')
+        assert values
+        assert values[0]['Resource'] == resource_type
+        assigned_permissions = values[0]['Permissions'].split(', ')
+        assert set(assigned_permissions) == set(permissions)
+
+
+@tier2
+def test_positive_create_filter_admin_user_with_locs(test_name):
+    """Attempt to create a role filter by admin user, who has 6+ locations assigned.
+
+    :id: 688ecb7d-1d49-494c-97cc-0d5e715f3bb1
+
+    :customerscenario: true
+
+    :expectedresults: filter was successfully created.
+
+    :BZ: 1315580
+
+    :CaseImportance: Critical
+    """
+    role_name = gen_string('alpha')
+    resource_type = 'Architecture'
+    permissions = ['view_architectures', 'edit_architectures']
+    org = entities.Organization().create()
+    locations = [
+        entities.Location(organization=[org]).create() for _ in range(6)]
+    password = gen_string('alphanumeric')
+    user = entities.User(
+        admin=True,
+        organization=[org],
+        location=locations,
+        default_organization=org,
+        default_location=locations[0],
+        password=password,
+    ).create()
+    with Session(test_name, user=user.login, password=password) as session:
+        session.role.create({'name': role_name})
+        assert session.role.search(role_name)[0]['Name'] == role_name
+        session.filter.create(role_name, {
+            'resource_type': resource_type,
+            'permission.assigned': permissions
+        })
+        assigned_permissions = session.filter.read_permissions(role_name)
+        assert set(assigned_permissions[resource_type]) == set(permissions)
+
+
+@tier2
+def test_positive_create_filter_admin_user_with_orgs(test_name):
+    """Attempt to create a role filter by admin user, who has 10 organizations assigned.
+
+    :id: 04208e17-34b5-46b1-84dd-b8a973521d30
+
+    :customerscenario: true
+
+    :expectedresults: filter was successfully created.
+
+    :BZ: 1389795
+
+    :CaseImportance: Critical
+    """
+    role_name = gen_string('alpha')
+    resource_type = 'Architecture'
+    permissions = ['view_architectures', 'edit_architectures']
+    password = gen_string('alphanumeric')
+    organizations = [
+        entities.Organization().create()
+        for _ in range(10)
+    ]
+    loc = entities.Location(organization=[organizations[0]]).create()
+    user = entities.User(
+        admin=True,
+        organization=organizations,
+        location=[loc],
+        default_organization=organizations[0],
+        default_location=loc,
+        password=password,
+    ).create()
+    with Session(test_name, user=user.login, password=password) as session:
+        session.role.create({'name': role_name})
+        assert session.role.search(role_name)[0]['Name'] == role_name
+        session.filter.create(role_name, {
+            'resource_type': resource_type,
+            'permission.assigned': permissions
+        })
+        assigned_permissions = session.filter.read_permissions(role_name)
+        assert set(assigned_permissions[resource_type]) == set(permissions)
