@@ -337,7 +337,7 @@ def test_positive_create_host_with_parameters(session, module_global_params):
 
     :expectedresults: Host is created and has expected parameters values
 
-    :CaseLevel: System
+    :CaseLevel: Integration
     """
     global_params = [
         global_param.to_json_dict(
@@ -819,7 +819,7 @@ def test_positive_update_name(session, module_host_template):
 
     :expectedresults: Host is updated successfully
 
-    :CaseLevel: System
+    :CaseLevel: Integration
     """
     new_name = gen_string('alpha').lower()
     new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
@@ -842,7 +842,7 @@ def test_positive_update_name_with_prefix(session, module_host_template):
 
     :BZ: 1419161
 
-    :CaseLevel: System
+    :CaseLevel: Integration
     """
     new_name = 'new{0}'.format(gen_string("alpha").lower())
     new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
