@@ -19,7 +19,6 @@ from random import randint
 from fauxfactory import gen_string, gen_url
 from nailgun import entities
 
-from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
@@ -35,17 +34,13 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
     tier2,
-    upgrade,
 )
-from robottelo.helpers import get_host_info
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
-    make_container,
     make_registry,
     make_repository,
     make_resource,
@@ -54,7 +49,6 @@ from robottelo.ui.factory import (
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.products import Products
 from robottelo.ui.session import Session
-from robottelo.vm import VirtualMachine
 
 
 def _create_repository(session, org, name, product, upstream_name=None):
@@ -567,229 +561,6 @@ class DockerComputeResourceTestCase(UITestCase):
                         self.compute_resource.search(comp_name))
                     self.compute_resource.delete(
                         comp_name, dropdown_present=True)
-
-
-class DockerContainerTestCase(UITestCase):
-    """Tests specific to using ``Containers`` in a Docker Compute Resource"""
-
-    @classmethod
-    @skip_if_not_set('docker')
-    @skip_if_bug_open('bugzilla', 1478966)
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerContainerTestCase, cls).setUpClass()
-        cls.organization = entities.Organization().create()
-
-        docker_image = settings.docker.docker_image
-        cls.docker_host = VirtualMachine(
-            source_image=docker_image,
-            tag=u'docker'
-        )
-        cls.docker_host.create()
-        cls.docker_host.install_katello_ca()
-        cls.cr_external = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.organization],
-            url='http://{0}:2375'.format(cls.docker_host.ip_addr),
-        ).create()
-
-        cls.lce = entities.LifecycleEnvironment(
-            organization=cls.organization).create()
-        cls.repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
-            product=entities.Product(organization=cls.organization).create(),
-            url=DOCKER_REGISTRY_HUB,
-        ).create()
-        cls.repo.sync()
-        content_view = entities.ContentView(
-            composite=False,
-            organization=cls.organization,
-        ).create()
-        content_view.repository = [cls.repo]
-        cls.content_view = content_view.update(['repository'])
-        cls.content_view.publish()
-        cls.cvv = content_view.read().version[0].read()
-        promote(cls.cvv, cls.lce.id)
-        cls.parameter_list = [
-            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
-             'name': 'Lifecycle Environment', 'value': cls.lce.name},
-            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
-             'name': 'Content View', 'value': cls.content_view.name},
-            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
-             'name': 'Repository', 'value': cls.repo.name},
-            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
-             'name': 'Tag', 'value': 'latest'},
-        ]
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.docker_host.destroy()
-        super(DockerContainerTestCase, cls).tearDownClass()
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1347658)
-    @tier2
-    @upgrade
-    def test_positive_create_with_compresource(self):
-        """Create containers for a compute resource
-
-        :id: 4916c72f-e921-450c-8023-2ee516deaf25
-
-        :expectedresults: The docker container is created for the compute
-            resource
-
-        :CaseLevel: Integration
-        """
-        with Session(self) as session:
-            make_container(
-                session,
-                org=self.organization.name,
-                resource_name=self.cr_external.name + ' (Docker)',
-                name=gen_string('alphanumeric'),
-                parameter_list=self.parameter_list,
-            )
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1347658)
-    @tier2
-    def test_positive_power_on_off(self):
-        """Create containers for a compute resource,
-        then power them on and finally power them off
-
-        :id: cc27bb6f-7fa4-4c87-bf7e-339f2f888717
-
-        :expectedresults: The docker container is created and the power status
-            is showing properly
-
-        :CaseLevel: Integration
-        """
-        with Session(self) as session:
-            name = gen_string('alphanumeric')
-            make_container(
-                session,
-                org=self.organization.name,
-                resource_name=self.cr_external.name + ' (Docker)',
-                name=name,
-                parameter_list=self.parameter_list,
-            )
-            self.assertEqual(self.container.set_power_status(
-                self.cr_external.name, name, True), u'On')
-            self.assertEqual(self.container.set_power_status(
-                self.cr_external.name, name, False), u'Off')
-
-    @run_only_on('sat')
-    @tier2
-    @upgrade
-    def test_positive_create_with_external_registry(self):
-        """Create a container pulling an image from a custom external
-        registry
-
-        :id: e609b411-7533-4f65-917a-bed3672ae03c
-
-        :expectedresults: The docker container is created and the image is
-            pulled from the external registry
-
-        :CaseLevel: Integration
-        """
-        repo_name = 'rhel'
-        container_name = gen_string('alphanumeric').lower()
-        registry = entities.Registry(
-            organization=[self.organization],
-            url=settings.docker.external_registry_1
-        ).create()
-        try:
-            with Session(self) as session:
-                session.nav.go_to_select_org(self.organization.name)
-                make_container(
-                    session,
-                    org=self.organization.name,
-                    resource_name=self.cr_external.name + ' (Docker)',
-                    name=container_name,
-                    parameter_list=[
-                        {'main_tab_name': 'Image',
-                         'sub_tab_name': 'External registry',
-                         'name': 'Registry', 'value': registry.name},
-                        {'main_tab_name': 'Image',
-                         'sub_tab_name': 'External registry',
-                         'name': 'Search', 'value': repo_name},
-                        {'main_tab_name': 'Image',
-                         'sub_tab_name': 'External registry',
-                         'name': 'Tag', 'value': 'latest'},
-                    ],
-                )
-                self.assertIsNotNone(
-                    self.container.search(
-                        self.cr_external.name, container_name)
-                )
-        finally:
-            registry.delete()
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1347658)
-    @tier2
-    def test_positive_delete(self):
-        """Delete containers in an external compute resource
-
-        :id: e69808e7-6a0c-4310-b57a-2271ac61d11a
-
-        :expectedresults: The docker containers are deleted
-
-        :CaseLevel: Integration
-        """
-        with Session(self) as session:
-            name = gen_string('alphanumeric')
-            make_container(
-                session,
-                org=self.organization.name,
-                resource_name=self.cr_external.name + ' (Docker)',
-                name=name,
-                parameter_list=self.parameter_list,
-            )
-            self.container.delete(self.cr_external.name, name)
-            self.assertIsNone(
-                self.container.search(self.cr_external.name, name))
-
-
-@skip_if_bug_open('bugzilla', 1414821)
-class DockerUnixSocketContainerTestCase(UITestCase):
-    """Tests specific to using ``Containers`` in local Docker Compute Resource
-      accessed via unix socket
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
-        cls.host_info = get_host_info()
-        cls.organization = entities.Organization().create()
-        cls.cr_internal = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.organization],
-            url=settings.docker.get_unix_socket_url(),
-        ).create()
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_create_with_compresource(self):
-        """Create containers for a docker unix-socket compute resource
-
-        :id: 756a76c2-e406-4172-b72a-ca40cf3645f6
-
-        :expectedresults: The docker container is created for the compute
-            resource
-
-        :CaseLevel: Integration
-        """
-        with Session(self) as session:
-            make_container(
-                session,
-                org=self.organization.name,
-                resource_name=self.cr_internal.name + ' (Docker)',
-                name=gen_string('alphanumeric'),
-                parameter_list=self.parameter_list,
-            )
 
 
 @run_in_one_thread
