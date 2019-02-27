@@ -29,6 +29,8 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
+    CUSTOM_MODULE_STREAM_REPO_1,
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_7_PUPPET_REPO,
@@ -1206,6 +1208,35 @@ class RepositoryTestCase(APITestCase):
             repo_data_file_url, cert=cert_file_path, verify=False)
         self.assertEqual(response.status_code, 200)
 
+    @tier2
+    @upgrade
+    def test_module_stream_repository_crud_operations(self):
+        """Verify that module stream api calls works with product having other type
+        repositories.
+
+        :id: 61a5d24e-d4da-487d-b6ea-9673c05ceb60
+
+        :expectedresults: module stream repo create, update, delete api calls should work with
+        count of module streams
+
+        :CaseImportance: Critical
+        """
+        repository = entities.Repository(
+            url=CUSTOM_MODULE_STREAM_REPO_1,
+            content_type=REPO_TYPE['yum'],
+            product=self.product,
+            unprotected=False,
+        ).create()
+        repository.sync()
+        self.assertGreaterEqual(repository.read().content_counts['module_stream'], 10)
+        repository.url = CUSTOM_MODULE_STREAM_REPO_2
+        repository = repository.update(['name'])
+        repository.sync()
+        self.assertGreaterEqual(repository.read().content_counts['module_stream'], 5)
+        repository.delete()
+        with self.assertRaises(HTTPError):
+            repository.read()
+
 
 @run_in_one_thread
 class RepositorySyncTestCase(APITestCase):
@@ -1235,6 +1266,21 @@ class RepositorySyncTestCase(APITestCase):
             releasever=None,
         )
         entities.Repository(id=repo_id).sync()
+
+    @stubbed
+    @tier2
+    @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
+    def test_positive_sync_rh_app_stream(self):
+        """Sync RedHat Appstream Repository.
+
+        :id: 44810877-15cd-48c4-aa85-5881b5c4410e
+
+        :expectedresults: Synced repo should fetch the data successfully. It should contain
+        the module streams
+
+        :CaseLevel: Integration
+        """
 
 
 class DockerRepositoryTestCase(APITestCase):

@@ -23,6 +23,7 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
 from robottelo import manifests
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
     FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO,
@@ -184,6 +185,31 @@ class ContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_add_custom_module_streams(self):
+        """Associate custom content (module streams) in a view
+
+        :id: 9e4821cb-293a-4d84-bd1f-bb9fff36b143
+
+        :expectedresults: Custom content (module streams) assigned and
+        present in content view
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        yum_repo = entities.Repository(product=product,
+                                       url=CUSTOM_MODULE_STREAM_REPO_2).create()
+        yum_repo.sync()
+        content_view = entities.ContentView(organization=org).create()
+        self.assertEqual(len(content_view.repository), 0)
+        content_view.repository = [yum_repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 1)
+        self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
+        self.assertGreater(content_view.repository[0].read().content_counts['module_stream'], 5)
 
     @tier2
     @run_only_on('sat')
