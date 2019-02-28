@@ -29,8 +29,8 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2,
     CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_7_PUPPET_REPO,
@@ -1222,17 +1222,17 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repository = entities.Repository(
-            url=CUSTOM_MODULE_STREAM_REPO_1,
+            url=CUSTOM_MODULE_STREAM_REPO_2,
             content_type=REPO_TYPE['yum'],
             product=self.product,
             unprotected=False,
         ).create()
         repository.sync()
-        self.assertGreaterEqual(repository.read().content_counts['module_stream'], 10)
-        repository.url = CUSTOM_MODULE_STREAM_REPO_2
-        repository = repository.update(['name'])
+        self.assertGreater(repository.read().content_counts['module_stream'], 5)
+        repository.url = CUSTOM_MODULE_STREAM_REPO_1
+        repository = repository.update(['url'])
         repository.sync()
-        self.assertGreaterEqual(repository.read().content_counts['module_stream'], 5)
+        self.assertGreater(repository.read().content_counts['module_stream'], 10)
         repository.delete()
         with self.assertRaises(HTTPError):
             repository.read()
