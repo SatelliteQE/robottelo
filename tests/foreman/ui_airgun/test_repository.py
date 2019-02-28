@@ -25,6 +25,8 @@ from pytest import raises
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     CHECKSUM_TYPE,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
@@ -558,6 +560,49 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
         session.repository.delete(module_prod.name, new_repo_name)
         assert not session.repository.search(module_prod.name, new_repo_name)
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end_custom_module_streams_crud(session, module_org, module_prod):
+    """Perform end to end testing for custom module streams yum repository
+
+    :id: ea0a58ae-b280-4bca-8f22-cbed73453604
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    repo_name = gen_string('alpha')
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_2,
+            }
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_2
+        result = session.repository.synchronize(module_prod.name, repo_name)
+        assert result['result'] == 'success'
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert int(repo_values['content_counts']['Module Streams']) >= 5
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {
+                'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_1,
+            }
+        )
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_1
+        session.repository.delete(module_prod.name, repo_name)
+        assert not session.repository.search(module_prod.name, repo_name)
 
 
 @tier2
