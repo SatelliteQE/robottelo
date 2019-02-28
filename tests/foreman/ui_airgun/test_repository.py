@@ -667,6 +667,7 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
+@skip_if_bug_open('bugzilla', 1670125)
 @tier2
 def test_positive_reposet_disable(session):
     """Enable RH repo, sync it and then disable
