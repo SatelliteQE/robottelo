@@ -25,9 +25,9 @@ from pytest import raises
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.constants import (
+    CHECKSUM_TYPE,
     CUSTOM_MODULE_STREAM_REPO_1,
     CUSTOM_MODULE_STREAM_REPO_2,
-    CHECKSUM_TYPE,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
     DOWNLOAD_POLICIES,
@@ -45,7 +45,14 @@ from robottelo.constants import (
     VALID_GPG_KEY_BETA_FILE,
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, run_in_one_thread, skip_if_bug_open, tier2, upgrade
+from robottelo.decorators import (
+    fixture,
+    run_in_one_thread,
+    skip_if_bug_open,
+    stubbed,
+    tier2,
+    upgrade
+)
 from robottelo.helpers import read_data_file
 from robottelo.products import SatelliteToolsRepository
 
@@ -320,6 +327,23 @@ def test_positive_discover_repo_via_new_product(session, module_org):
             product_name)[0]['Name'] == product_name
         assert repo_name in session.repository.search(
             product_name, repo_name)[0]['Name']
+
+
+@skip_if_bug_open('bugzilla', 1676642)
+@stubbed
+@tier2
+@upgrade
+def test_positive_discover_module_stream_repo_via_existing_product(session, module_org):
+    """Create repository with having module streams via repo-discovery under existing product
+
+    :id: e7b9e2c4-7ecd-4cde-8f74-961fbac8919c
+
+    :expectedresults: Repository is discovered and created
+
+    :CaseLevel: Integration
+
+    :BZ: 1676642
+    """
 
 
 @tier2
