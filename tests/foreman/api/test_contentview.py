@@ -193,8 +193,7 @@ class ContentViewTestCase(APITestCase):
 
         :id: 9e4821cb-293a-4d84-bd1f-bb9fff36b143
 
-        :expectedresults: Custom content (module streams) assigned and
-        present in content view
+        :expectedresults: Custom content (module streams) assigned and present in content view
 
         :CaseLevel: Integration
         """
