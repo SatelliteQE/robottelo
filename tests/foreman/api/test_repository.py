@@ -1228,11 +1228,11 @@ class RepositoryTestCase(APITestCase):
             unprotected=False,
         ).create()
         repository.sync()
-        self.assertGreater(repository.read().content_counts['module_stream'], 5)
+        self.assertEquals(repository.read().content_counts['module_stream'], 7)
         repository.url = CUSTOM_MODULE_STREAM_REPO_1
         repository = repository.update(['url'])
         repository.sync()
-        self.assertGreater(repository.read().content_counts['module_stream'], 10)
+        self.assertEquals(repository.read().content_counts['module_stream'], 53)
         repository.delete()
         with self.assertRaises(HTTPError):
             repository.read()
