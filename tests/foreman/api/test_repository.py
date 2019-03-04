@@ -1217,7 +1217,7 @@ class RepositoryTestCase(APITestCase):
         :id: 61a5d24e-d4da-487d-b6ea-9673c05ceb60
 
         :expectedresults: module stream repo create, update, delete api calls should work with
-        count of module streams
+         count of module streams
 
         :CaseImportance: Critical
         """
@@ -1276,8 +1276,8 @@ class RepositorySyncTestCase(APITestCase):
 
         :id: 44810877-15cd-48c4-aa85-5881b5c4410e
 
-        :expectedresults: Synced repo should fetch the data successfully. It should contain
-        the module streams
+        :expectedresults: Synced repo should fetch the data successfully and
+         it should contain the module streams.
 
         :CaseLevel: Integration
         """
