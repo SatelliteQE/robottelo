@@ -931,6 +931,11 @@ class VlanNetworkSettings(FeatureSettings):
         self.netmask = None
         self.gateway = None
         self.bridge = None
+        self.network = None
+        self.dhcp_ipam = None
+        self.dhcp_from = None
+        self.dhcp_to = None
+        self.dns_primary = None
 
     def read(self, reader):
         """Read Vlan Network settings."""
@@ -938,13 +943,30 @@ class VlanNetworkSettings(FeatureSettings):
         self.netmask = reader.get('vlan_networking', 'netmask')
         self.gateway = reader.get('vlan_networking', 'gateway')
         self.bridge = reader.get('vlan_networking', 'bridge')
+        self.network = reader.get('vlan_networking', 'network')
+        self.dhcp_ipam = reader.get('vlan_networking', 'dhcp_ipam')
+        self.dhcp_from = reader.get('vlan_networking', 'dhcp_from')
+        self.dhcp_to = reader.get('vlan_networking', 'dhcp_to')
+        self.dns_primary = reader.get('vlan_networking', 'dns_primary')
 
     def validate(self):
         """Validate Vlan Network settings."""
         validation_errors = []
-        if not all(vars(self).values()):
+        if bool(self.bridge) == bool(self.network):
             validation_errors.append(
-                'All [vlan_networking] subnet, netmask, gateway, bridge '
+                'exactly one of the "bridge" or "network" parameters '
+                'must be specified')
+        if bool(self.dhcp_from) != bool(self.dhcp_to):
+            validation_errors.append(
+                'both or none of "dhcp_from", "dhcp_to" parameters '
+                'must be specified')
+        if self.dhcp_ipam and self.dhcp_ipam not in ['Internal DB', 'DHCP']:
+            validation_errors.append(
+                '[vlan_networking] "dhcp_ipam" must be one of "Internal DB" or "DHCP"')
+        ignored = ['bridge', 'network', 'dhcp_ipam', 'dhcp_from', 'dhcp_to', 'dns_primary']
+        if not all(value for (key, value) in vars(self).items() if key not in ignored):
+            validation_errors.append(
+                'All [vlan_networking] subnet, netmask, gateway, bridge|network '
                 'options must be provided.')
         return validation_errors
 

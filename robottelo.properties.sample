@@ -232,6 +232,11 @@ ssh_key=
 # netmask=NETMASK_VALUE
 # bridge=BRIDGE_VALUE
 # gateway=GATEWAY_VALUE
+# dhcp_ipam=DHCP|INTERNAL DB
+# dhcp_from=IP_RANGE_FROM
+# dhcp_to=IP_RANGE_TO
+# dns_primary=IP_OF_DNS_SERVER
+# network=NETWORK_VALUE (mutually exclusive with bridge)
 
 # For discovery ISO
 # Discovery ISO name is required for PXE-less discovery tests. ISO's are

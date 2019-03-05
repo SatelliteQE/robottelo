@@ -59,7 +59,7 @@ class VirtualMachine(object):
     def __init__(
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
             image_dir=None, tag=None, hostname=None, domain=None,
-            source_image=None, target_image=None, bridge=None):
+            source_image=None, target_image=None, bridge=None, network=None):
         distro_docker = settings.docker.docker_image
         allowed_distros = list(settings.distro.__dict__.values()) + [distro_docker]
         distro_mapping = {
@@ -70,6 +70,7 @@ class VirtualMachine(object):
         }
         self.cpu = cpu
         self.ram = ram
+        self.nw_type = None
         if distro is None:
             # use the same distro as satellite host server os
             server_host_os_version = get_host_os_version()
@@ -116,6 +117,7 @@ class VirtualMachine(object):
         if tag:
             self._target_image = tag + self._target_image
         self.bridge = bridge
+        self.network = network
         if len(self.hostname) > 59:
             raise VirtualMachineError(
                 'Max virtual machine name is 59 chars (see BZ1289363). Name '
@@ -171,7 +173,7 @@ class VirtualMachine(object):
             '-t {target_image}',
             '-m {vm_ram}',
             '-c {vm_cpu}',
-            '-n bridge={bridge} -f',
+            '-n {nw_type}={nw_name} -f',
         ]
 
         if self.image_dir is not None:
@@ -183,8 +185,12 @@ class VirtualMachine(object):
         if self._domain is not None:
             command_args.append('-d {domain}')
 
-        if self.bridge is None:
+        if self.bridge is None and self.network is None:
             self.bridge = 'br0'
+        if self.bridge is not None:
+            self.nw_type = 'bridge'
+        if self.network is not None:
+            self.nw_type = 'network'
 
         command = u' '.join(command_args).format(
             source_image=self._source_image,
@@ -194,7 +200,9 @@ class VirtualMachine(object):
             image_dir=self.image_dir,
             hostname=self.hostname,
             domain=self.domain,
-            bridge=self.bridge
+            nw_name=self.bridge or self.network,
+            nw_type=self.nw_type
+
         )
 
         result = ssh.command(
