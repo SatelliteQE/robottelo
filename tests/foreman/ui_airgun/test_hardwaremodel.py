@@ -19,7 +19,7 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.decorators import tier2, upgrade
-from tests.foreman.ui_airgun.test_host import create_fake_host
+from robottelo.ui.utils import create_fake_host
 
 
 @tier2
@@ -62,11 +62,13 @@ def test_positive_end_to_end(session, module_org, module_loc):
             host_template,
             extra_values={'additional_information.hardware_model': name}
         )
-        host_values = session.host.read(host_name)
+        host_values = session.host.read(host_name, 'additional_information')
         assert host_values['additional_information']['hardware_model'] == name
         # Update hardware model with new name
         session.hardwaremodel.update(name, {'name': new_name})
         assert session.hardwaremodel.search(new_name)[0]['Name'] == new_name
+        host_values = session.host.read(host_name, 'additional_information')
+        assert host_values['additional_information']['hardware_model'] == new_name
         # Make an attempt to delete hardware model that associated with host
         with raises(AssertionError) as context:
             session.hardwaremodel.delete(new_name)
