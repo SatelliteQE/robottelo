@@ -223,6 +223,18 @@ ssh_key=
 # insights_client_el6repo=https://www.example.com/insights-client/repo/insights-client-6.repo
 # insights_client_el7repo=https://www.example.com/insights-client/repo/insights-client-7.repo
 
+# For true host provisioning
+# [provision_networking]
+# the below parameters should correspond to the settings
+# specified in foreman-installer
+# dhcp_from=IP_FROM
+# dhcp_to=IP_TO
+# dhcp_ipam=Internal DB|External DB|DHCP|Manual
+# dns_primary=PRIMARY_DNS_IP
+# gateway=GATEWAY_IP
+# netmask=NETMASK
+# network=SUBNET_IP
+
 # VLAN Networking details
 # These settings are required for compute resources testing, for example
 # host provisioning on CR's, discovery e.t.c.

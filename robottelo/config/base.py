@@ -875,6 +875,38 @@ class PerformanceSettings(FeatureSettings):
         return validation_errors
 
 
+class ProvisionNetworkSettings(FeatureSettings):
+    """Provisioning Network settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(ProvisionNetworkSettings, self).__init__(*args, **kwargs)
+        self.dhcp_from = None
+        self.dhcp_to = None
+        self.dhcp_ipam = None
+        self.dns_primary = None
+        self.gateway = None
+        self.netmask = None
+        self.network = None
+
+    def read(self, reader):
+        """Read Provisioning Network settings."""
+        self.dhcp_from = reader.get('provision_networking', 'dhcp_from')
+        self.dhcp_to = reader.get('provision_networking', 'dhcp_to')
+        self.dhcp_ipam = reader.get('provision_networking', 'dhcp_ipam')
+        self.dns_primary = reader.get('provision_networking', 'dns_primary')
+        self.gateway = reader.get('provision_networking', 'gateway')
+        self.netmask = reader.get('provision_networking', 'netmask')
+        self.network = reader.get('provision_networking', 'network')
+
+    def validate(self):
+        """Validate Provisioning Network settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [provision_networking] dhcp_from, dhcp_to, dhcp_ipam, dns_primary, gateway, '
+                'netmask, network options must be provided.')
+        return validation_errors
+
+
 class RHAISettings(FeatureSettings):
     """RHAI settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -1083,6 +1115,7 @@ class Settings(object):
         self.ostree = OstreeSettings()
         self.osp = OSPSettings()
         self.performance = PerformanceSettings()
+        self.provision_networking = ProvisionNetworkSettings()
         self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
         self.ssh_client = SSHClientSettings()
