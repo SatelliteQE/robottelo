@@ -25,8 +25,6 @@ from robottelo.decorators import (
     fixture
 )
 
-from robottelo.helpers import read_data_file
-
 
 @fixture(scope='module')
 def module_loc():
@@ -187,7 +185,6 @@ def test_positive_clone(session):
         )
         assert session.reporttemplate.search(
             clone_name)[0]['Name'] == clone_name
-        template = session.reporttemplate.read(clone_name)
 
 
 @tier2
