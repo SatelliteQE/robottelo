@@ -472,7 +472,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
-            assert (repo_values['content_counts'][repo_type]) > 0
+            assert int(repo_values['content_counts'][repo_type]) > 0
 
 
 @tier3

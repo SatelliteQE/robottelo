@@ -18,10 +18,6 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.api.utils import promote
-from robottelo.cli.factory import (
-    make_fake_host,
-)
 from robottelo.datafactory import (
     invalid_names_list,
     invalid_values_list,
@@ -32,11 +28,9 @@ from robottelo.decorators import (
     skip_if_bug_open,
     stubbed,
     tier1,
-    tier3,
     upgrade
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_host_collection
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -351,49 +345,6 @@ class HostCollectionTestCase(UITestCase):
                         self.hostcollection.wait_until_element(
                             common_locators['alert.error_sub_form'])
                     )
-
-    @tier3
-    def test_negative_hosts_limit(self):
-        """Check that Host limit actually limits usage
-
-        :id: 57b70977-2110-47d9-be3b-461ad15c70c7
-
-        :Steps:
-            1. Create Host Collection entity that can contain only one Host
-                (using Host Limit field)
-            2. Create Host and add it to Host Collection. Check that it was
-                added successfully
-            3. Create one more Host and try to add it to Host Collection
-            4. Check that expected error is shown
-
-        :expectedresults: Second host is not added to Host Collection and
-            appropriate error is shown
-
-        :CaseLevel: System
-        """
-        name = gen_string('alpha')
-        org = entities.Organization().create()
-        cv = entities.ContentView(organization=org).create()
-        lce = entities.LifecycleEnvironment(organization=org).create()
-        cv.publish()
-        promote(cv.read().version[0], lce.id)
-        new_systems = [
-            make_fake_host({
-                u'content-view-id': cv.id,
-                u'lifecycle-environment-id': lce.id,
-                u'name': gen_string('alpha'),
-                u'organization-id': org.id,
-            })['name']
-            for _ in range(2)
-        ]
-        with Session(self) as session:
-            make_host_collection(
-                session, org=org.name, name=name, limit='1')
-            self.hostcollection.add_host(name, new_systems[0])
-            with self.assertRaises(UIError):
-                self.hostcollection.add_host(name, new_systems[1])
-            self.assertIsNotNone(self.hostcollection.wait_until_element(
-                common_locators['alert.error_sub_form']))
 
 
 @run_in_one_thread

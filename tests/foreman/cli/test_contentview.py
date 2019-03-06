@@ -3267,10 +3267,10 @@ class ContentViewTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             Role.with_user(user_name, user_password).info(
                 {'id': role['id']})
-        self.assertIn(
-            '403 Forbidden',
-            context.exception.stderr
-        )
+            self.assertIn(
+                '403 Forbidden',
+                context.exception.stderr
+            )
         # Create a lifecycle environment
         env = make_lifecycle_environment({'organization-id': org['id']})
         # Create a product

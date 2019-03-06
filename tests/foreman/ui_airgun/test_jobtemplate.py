@@ -45,7 +45,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     job_category = gen_string('alpha')
     description_format = gen_string('alpha')
     template_user_input_name = gen_string('alpha')
-    template_editor_value = f'<%= input("{template_user_input_name}") %>'
+    template_editor_value = '<%= input("{0}") %>'.format(template_user_input_name)
     template_inputs = [
         {
             'name': gen_string('alpha'),
@@ -163,7 +163,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
             widget_names='template.template_editor.editor'
         )
         assert (template_values['template']['template_editor']['editor']
-                == f'$USER_INPUT[{template_user_input_name}]')
+                == '$USER_INPUT[{0}]'.format(template_user_input_name))
         session.jobtemplate.update(
             template_name,
             {

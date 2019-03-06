@@ -26,6 +26,8 @@ from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.constants import (
     CHECKSUM_TYPE,
+    CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
     DOWNLOAD_POLICIES,
@@ -43,7 +45,14 @@ from robottelo.constants import (
     VALID_GPG_KEY_BETA_FILE,
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, run_in_one_thread, tier2, upgrade
+from robottelo.decorators import (
+    fixture,
+    run_in_one_thread,
+    skip_if_bug_open,
+    stubbed,
+    tier2,
+    upgrade
+)
 from robottelo.helpers import read_data_file
 from robottelo.products import SatelliteToolsRepository
 
@@ -320,6 +329,23 @@ def test_positive_discover_repo_via_new_product(session, module_org):
             product_name, repo_name)[0]['Name']
 
 
+@skip_if_bug_open('bugzilla', 1676642)
+@stubbed
+@tier2
+@upgrade
+def test_positive_discover_module_stream_repo_via_existing_product(session, module_org):
+    """Create repository with having module streams via repo-discovery under existing product
+
+    :id: e7b9e2c4-7ecd-4cde-8f74-961fbac8919c
+
+    :expectedresults: Repository is discovered and created
+
+    :CaseLevel: Integration
+
+    :BZ: 1676642
+    """
+
+
 @tier2
 @upgrade
 def test_positive_sync_custom_repo_yum(session, module_org):
@@ -562,6 +588,49 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
 
 @tier2
 @upgrade
+def test_positive_end_to_end_custom_module_streams_crud(session, module_org, module_prod):
+    """Perform end to end testing for custom module streams yum repository
+
+    :id: ea0a58ae-b280-4bca-8f22-cbed73453604
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    repo_name = gen_string('alpha')
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_2,
+            }
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_2
+        result = session.repository.synchronize(module_prod.name, repo_name)
+        assert result['result'] == 'success'
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert int(repo_values['content_counts']['Module Streams']) >= 5
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {
+                'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_1,
+            }
+        )
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_1
+        session.repository.delete(module_prod.name, repo_name)
+        assert not session.repository.search(module_prod.name, repo_name)
+
+
+@tier2
+@upgrade
 def test_positive_upstream_with_credentials(session, module_prod):
     """Create repository with upstream username and password update them and then clear them.
 
@@ -667,6 +736,7 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
+@skip_if_bug_open('bugzilla', 1670125)
 @tier2
 def test_positive_reposet_disable(session):
     """Enable RH repo, sync it and then disable
@@ -703,6 +773,7 @@ def test_positive_reposet_disable(session):
             'name = "{0}"'.format(repository_name), category='Enabled')
 
 
+@skip_if_bug_open('bugzilla', 1670125)
 @run_in_one_thread
 @tier2
 def test_positive_reposet_disable_after_manifest_deleted(session):
