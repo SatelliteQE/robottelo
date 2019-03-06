@@ -398,10 +398,12 @@ class PuppetRepository(BaseRepository):
         return self._puppet_modules
 
     def add_to_content_view(self, organization_id, content_view_id):
+        # type: (int, int) -> None
+        """Associate repository content to content-view"""
         options = {
             'content-view-id': content_view_id,
             'organization-id': organization_id,
-        }   # type: Dict[str, Any]
+        }
         for puppet_module in self.puppet_modules:
             module_options = options.copy()
             module_options.update(puppet_module)
@@ -575,20 +577,20 @@ class GenericRHRepository(BaseRepository):
         # type: (int, Optional[int], Optional[str], Optional[bool]) -> Dict
         """Create an RH repository"""
         if not self.cdn and not self.url:
-            raise ValueError(u'Can not handle Custom repository with url not supplied')
+            raise ValueError('Can not handle Custom repository with url not supplied')
         if self.cdn:
             data = self.data
             RepositorySet.enable({
                 'organization-id': organization_id,
                 'product': data['product'],
-                u'name': data['repository-set'],
-                u'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
-                u'releasever': data.get('releasever'),
+                'name': data['repository-set'],
+                'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
+                'releasever': data.get('releasever'),
             })
             repo_info = Repository.info({
-                u'organization-id': organization_id,
-                u'name': data['repository'],
-                u'product': data['product'],
+                'organization-id': organization_id,
+                'name': data['repository'],
+                'product': data['product'],
             })
             if download_policy:
                 # Set download policy
@@ -782,15 +784,12 @@ class RepositoryCollection(object):
         custom_product = None
         repos_info = []
         if any(not repo.cdn for repo in self):
-            custom_product = make_product_wait({
-                'organization-id': org_id,
-            })
+            custom_product = make_product_wait({'organization-id': org_id})
         custom_product_id = custom_product['id'] if custom_product else None
         for repo in self:
             repo_info = repo.create(org_id, custom_product_id,
                                     download_policy=download_policy, synchronize=synchronize)
             repos_info.append(repo_info)
-
         self._custom_product_info = custom_product
         self._repos_info = repos_info
         return custom_product, repos_info
@@ -809,11 +808,11 @@ class RepositoryCollection(object):
         for repo in self:
             repo.add_to_content_view(org_id, content_view['id'])
         # Publish the content view
-        ContentView.publish({u'id': content_view['id']})
+        ContentView.publish({'id': content_view['id']})
         if lce['name'] != ENVIRONMENT:
             # Get the latest content view version id
             content_view_version = ContentView.info({
-                u'id': content_view['id']
+                'id': content_view['id']
             })['versions'][-1]
             # Promote content view version to lifecycle environment
             ContentView.version_promote({
@@ -821,13 +820,13 @@ class RepositoryCollection(object):
                 'organization-id': org_id,
                 'to-lifecycle-environment-id': lce_id,
             })
-        content_view = ContentView.info({u'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
         return content_view, lce
 
     @staticmethod
     def setup_activation_key(org_id, content_view_id, lce_id, subscription_names=None):
         # type: (int, int, int, Optional[List[str]], Optional[str]) -> Dict
-        """"""
+        """Create activation and associate content-view, lifecycle environment and subscriptions"""
         if subscription_names is None:
             subscription_names = []
         activation_key = make_activation_key({
@@ -837,10 +836,7 @@ class RepositoryCollection(object):
         })
         # Add subscriptions to activation-key
         # Get organization subscriptions
-        subscriptions = Subscription.list({
-            u'organization-id': org_id},
-            per_page=False
-        )
+        subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
         added_subscription_names = []
         for subscription in subscriptions:
             if (subscription['name'] in subscription_names
@@ -851,8 +847,7 @@ class RepositoryCollection(object):
                     'quantity': 1,
                 })
                 added_subscription_names.append(subscription['name'])
-                if (len(added_subscription_names)
-                        == len(subscription_names)):
+                if len(added_subscription_names) == len(subscription_names):
                     break
         missing_subscription_names = set(subscription_names).difference(
             set(added_subscription_names))
@@ -865,10 +860,7 @@ class RepositoryCollection(object):
         """Check if an organization has a manifest, an organization has manifest if one of it's
         subscriptions have the account defined.
         """
-        subscriptions = Subscription.list({
-            u'organization-id': organization_id},
-            per_page=False
-        )
+        subscriptions = Subscription.list({'organization-id': organization_id}, per_page=False)
         return any(bool(sub['account']) for sub in subscriptions)
 
     def setup_content(
@@ -933,7 +925,7 @@ class RepositoryCollection(object):
         :param install_katello_agent: whether to install katello-agent
         :param enable_rh_repos: whether to enable RH repositories
         :param enable_custom_repos: whether to enable custom repositories
-        :param configure_rhel_repo: Whether to configures the distro Red Hat repository, this is
+        :param configure_rhel_repo: Whether to configure the distro Red Hat repository, this is
             needed to configure manually RHEL custom repo url as sync time is very big
             (more than 2 hours for RHEL 7Server) and not critical for some contexts.
         """
