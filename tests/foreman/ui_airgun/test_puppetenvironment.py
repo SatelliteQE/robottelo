@@ -3,7 +3,7 @@
 
 :Requirement: Environment
 
-:CaseAutomation: notautomated
+:CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 

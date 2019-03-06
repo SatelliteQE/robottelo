@@ -2,7 +2,7 @@
 
 :Requirement: Computeprofile
 
-:CaseAutomation: notautomated
+:CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
