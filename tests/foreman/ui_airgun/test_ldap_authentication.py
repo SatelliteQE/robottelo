@@ -15,7 +15,7 @@
 :Upstream: No
 """
 from navmazing import NavigationTriesExceeded
-from pytest import raises
+from pytest import raises, skip
 from widgetastic.exceptions import NoSuchElementException
 
 from airgun.session import Session
@@ -33,6 +33,7 @@ from robottelo.decorators import (
     bz_bug_is_open,
     fixture,
     run_in_one_thread,
+    setting_is_set,
     skip_if_not_set,
     tier2,
     upgrade,
@@ -43,6 +44,9 @@ pytestmark = [run_in_one_thread]
 
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
+
+if not setting_is_set('ldap'):
+    skip('skipping tests due to missing ldap settings', allow_module_level=True)
 
 
 @fixture(scope='module')
@@ -121,7 +125,6 @@ def ldap_usergroup_name():
         user_groups[0].delete()
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_create_with_ad(session, ldap_data):
     """Create LDAP authentication with AD
@@ -155,7 +158,6 @@ def test_positive_create_with_ad(session, ldap_data):
         assert session.ldapauthentication.read_table_row(name)['Name'] == name
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_delete_with_ad(session, ldap_data):
     """Delete LDAP authentication with AD
@@ -191,7 +193,6 @@ def test_positive_delete_with_ad(session, ldap_data):
         assert not session.ldapauthentication.read_table_row(name)
 
 
-@skip_if_not_set('ldap')
 @tier2
 @upgrade
 def test_positive_create_with_ad_org_and_loc(session, ldap_data):
@@ -315,7 +316,6 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_katello_role(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
@@ -368,7 +368,6 @@ def test_positive_add_katello_role(
         assert current_user == ldap_data['ldap_user_name']
 
 
-@skip_if_not_set('ldap')
 @upgrade
 @tier2
 def test_positive_update_external_roles(
@@ -441,7 +440,6 @@ def test_positive_update_external_roles(
         assert current_user == ldap_data['ldap_user_name']
 
 
-@skip_if_not_set('ldap')
 @tier2
 @upgrade
 def test_positive_delete_external_roles(
@@ -502,7 +500,6 @@ def test_positive_delete_external_roles(
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_update_external_user_roles(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
@@ -577,7 +574,6 @@ def test_positive_update_external_user_roles(
         assert current_user == ldap_data['ldap_user_name']
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_admin_role_with_org_loc(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
@@ -635,7 +631,6 @@ def test_positive_add_admin_role_with_org_loc(
         assert ak['details']['name'] == ak_name
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_foreman_role_with_org_loc(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
@@ -699,7 +694,6 @@ def test_positive_add_foreman_role_with_org_loc(
         assert module_loc.name in hostgroup['locations']['resources']['assigned']
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_katello_role_with_org(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
@@ -772,7 +766,6 @@ def test_positive_add_katello_role_with_org(
     assert ak.organization.id == module_org.id
 
 
-@skip_if_not_set('ldap')
 @tier2
 @upgrade
 def test_positive_create_user_in_ldap_mode(session, auth_source):
@@ -796,7 +789,6 @@ def test_positive_create_user_in_ldap_mode(session, auth_source):
         assert user_values['user']['auth'] == auth_source_name
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, auth_source):
     """Login with LDAP Auth- AD for user with no roles/rights
@@ -819,9 +811,9 @@ def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, a
     ) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.user.search('')
+        assert ldapsession.task.read_all()['current_user'] == ldap_data['ldap_user_name']
 
 
-@skip_if_not_set('ldap')
 @tier2
 @upgrade
 def test_positive_login_ad_user_basic_roles(
