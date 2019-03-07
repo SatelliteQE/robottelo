@@ -125,7 +125,7 @@ class DockerManifestTestCase(CLITestCase):
         # Some manifests do not have tags associated with it, ignore those
         # because we want to check the tag information
         manifests = [
-            m_iter for m_iter in manifests_list if not m_iter['tag-name'] == ''
+            m_iter for m_iter in manifests_list if not m_iter['tags'] == ''
         ]
         self.assertTrue(manifests)
         tags_list = Docker.tag.list({
@@ -136,7 +136,8 @@ class DockerManifestTestCase(CLITestCase):
         for manifest in manifests:
             manifest_info = Docker.manifest.info({'id': manifest['id']})
             # Check that manifest's tag is listed in tags for the repository
-            self.assertIn(manifest_info['tag-name'], repo_tag_names)
+            for t_iter in manifest_info['tags']:
+                self.assertIn(t_iter['name'], repo_tag_names)
 
 
 class DockerRepositoryTestCase(CLITestCase):
