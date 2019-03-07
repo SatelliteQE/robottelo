@@ -26,6 +26,8 @@ BZ_CLOSED_STATUSES = [
 
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
+DISTRO_SLES11 = "sles11"
+DISTRO_SLES12 = "sles12"
 
 RHEL_6_MAJOR_VERSION = 6
 RHEL_7_MAJOR_VERSION = 7
@@ -285,7 +287,7 @@ REPOS = {
         'major_version': RHEL_7_MAJOR_VERSION,
         'distro_repository': True,
         'key': 'rhel',
-        'version': '7.5',
+        'version': '7.6',
     },
     'rhel6': {
         'id': 'rhel-6-server-rpms',
@@ -600,6 +602,7 @@ FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
 FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
+FAKE_3_CUSTOM_PACKAGE_NAME = 'duck'
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 REAL_RHEL7_0_0_PACKAGE = 'liblouis-python-2.5.2-10.el7.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'liblouis-python'
@@ -695,6 +698,7 @@ PERMISSIONS = {
         'destroy_registries',
         'download_bootdisk',
         'edit_recurring_logics',
+        'escalate_roles',
         'logs',
         'my_organizations',
         'rh_telemetry_api',
@@ -977,11 +981,23 @@ PERMISSIONS = {
         'destroy_reports',
         'upload_reports',
     ],
+    'ReportTemplate': [
+        'edit_report_templates',
+        'destroy_report_templates',
+        'generate_report_templates',
+        'create_report_templates',
+        'view_report_templates',
+        'lock_report_templates',
+    ],
     'Role': [
         'view_roles',
         'create_roles',
         'edit_roles',
         'destroy_roles',
+    ],
+    'Setting': [
+        'view_settings',
+        'edit_settings',
     ],
     'SmartProxy': [
         'view_smart_proxies',
@@ -1138,6 +1154,7 @@ PERMISSIONS_UI = {
         'attachments',
         'configuration',
         'download_bootdisk',
+        'escalate_roles',
         'logs',
         'my_organizations',
         'rh_telemetry_api',
@@ -1648,6 +1665,7 @@ ROLES = [
     'Virt-who Viewer',
     'Manager',
     'Viewer',
+    'System Admin',
 ]
 
 ROLES_UNLOCKED = [
@@ -2368,8 +2386,7 @@ VMWARE_CONSTANTS = {
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
-    'datastore': 'Local-Ironforge (free: 1.84 TB, prov: 1.14 TB, '
-                 'total: 2.72 TB)',
+    'datastore': 'Local-Ironforge',
     'network_interfaces': 'qe_%s'
 }
 

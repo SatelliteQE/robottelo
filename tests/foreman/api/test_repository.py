@@ -20,7 +20,8 @@ from six.moves.urllib.parse import urljoin
 from fauxfactory import gen_string
 from nailgun import client, entities
 from nailgun.entity_mixins import TaskFailedError
-from requests.exceptions import HTTPError, SSLError
+from OpenSSL import SSL
+from requests.exceptions import HTTPError
 from robottelo import manifests, ssh
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -28,6 +29,8 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_1,
+    CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_7_PUPPET_REPO,
@@ -600,6 +603,7 @@ class RepositoryTestCase(APITestCase):
             repo.update(['download_policy'])
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1654944)
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with
         download policy
@@ -733,7 +737,7 @@ class RepositoryTestCase(APITestCase):
             organization=self.org,
         ).create()
         repo.gpg_key = gpg_key_2
-        repo = repo.update()
+        repo = repo.update(['gpg_key'])
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
     @run_only_on('sat')
@@ -861,7 +865,7 @@ class RepositoryTestCase(APITestCase):
             with self.subTest(url):
                 new_repo.url = url
                 with self.assertRaises(HTTPError):
-                    new_repo = new_repo.update()
+                    new_repo.update(['url'])
 
     @run_only_on('sat')
     @tier1
@@ -886,7 +890,7 @@ class RepositoryTestCase(APITestCase):
             with self.subTest(url):
                 new_repo.url = url
                 with self.assertRaises(HTTPError):
-                    new_repo = new_repo.update()
+                    new_repo.update(['url'])
 
     @tier2
     def test_positive_synchronize(self):
@@ -1190,7 +1194,7 @@ class RepositoryTestCase(APITestCase):
         self.assertTrue(repo_data_file_url.startswith(
             'https://{0}'.format(settings.server.hostname)))
         # try to access repository data without organization debug certificate
-        with self.assertRaises(SSLError):
+        with self.assertRaises(SSL.Error):
             client.get(repo_data_file_url, verify=False)
         # get the organization debug certificate
         cert_content = self.org.download_debug_certificate()
@@ -1203,6 +1207,35 @@ class RepositoryTestCase(APITestCase):
         response = client.get(
             repo_data_file_url, cert=cert_file_path, verify=False)
         self.assertEqual(response.status_code, 200)
+
+    @tier2
+    @upgrade
+    def test_module_stream_repository_crud_operations(self):
+        """Verify that module stream api calls works with product having other type
+        repositories.
+
+        :id: 61a5d24e-d4da-487d-b6ea-9673c05ceb60
+
+        :expectedresults: module stream repo create, update, delete api calls should work with
+         count of module streams
+
+        :CaseImportance: Critical
+        """
+        repository = entities.Repository(
+            url=CUSTOM_MODULE_STREAM_REPO_2,
+            content_type=REPO_TYPE['yum'],
+            product=self.product,
+            unprotected=False,
+        ).create()
+        repository.sync()
+        self.assertEquals(repository.read().content_counts['module_stream'], 7)
+        repository.url = CUSTOM_MODULE_STREAM_REPO_1
+        repository = repository.update(['url'])
+        repository.sync()
+        self.assertEquals(repository.read().content_counts['module_stream'], 53)
+        repository.delete()
+        with self.assertRaises(HTTPError):
+            repository.read()
 
 
 @run_in_one_thread
@@ -1233,6 +1266,21 @@ class RepositorySyncTestCase(APITestCase):
             releasever=None,
         )
         entities.Repository(id=repo_id).sync()
+
+    @stubbed
+    @tier2
+    @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
+    def test_positive_sync_rh_app_stream(self):
+        """Sync RedHat Appstream Repository.
+
+        :id: 44810877-15cd-48c4-aa85-5881b5c4410e
+
+        :expectedresults: Synced repo should fetch the data successfully and
+         it should contain the module streams.
+
+        :CaseLevel: Integration
+        """
 
 
 class DockerRepositoryTestCase(APITestCase):
@@ -1452,6 +1500,113 @@ class DockerRepositoryTestCase(APITestCase):
             ).create()
         self.assertIn("422", str(excinfo.exception))
         self.assertIn("Unprocessable Entity", str(excinfo.exception))
+
+    @run_only_on('sat')
+    @tier2
+    @upgrade
+    def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
+        """Check if only whitelisted tags are synchronized
+
+        :id: abd584ef-f616-49d8-ab30-ae32e4e8a685
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = ['latest']
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_tags_whitelist=tags,
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertEqual(repo.content_counts['docker_tag'], 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_synchronize_docker_repo_set_tags_later(self):
+        """Verify that adding tags whitelist and re-syncing after
+        synchronizing full repository doesn't remove content that was
+        already pulled in
+
+        :id: 6838e152-5fd9-4f25-ae04-67760571f6ba
+
+        :expectedresults: Non-whitelisted tags are not removed
+        """
+        tags = ['latest']
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertIsNone(repo.docker_tags_whitelist)
+        self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
+
+        repo.docker_tags_whitelist = tags
+        repo.update(['docker_tags_whitelist'])
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
+        """Set tags whitelist to contain both valid and invalid (non-existing)
+        tags. Check if only whitelisted tags are synchronized
+
+        :id: 7b66171f-5bf1-443b-9ca3-9614d66a0c6b
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        tags = ['latest', gen_string('alpha')]
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_tags_whitelist=tags,
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertEqual(repo.content_counts['docker_tag'], 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_docker_repo_with_invalid_tags(self):
+        """Set tags whitelist to contain only invalid (non-existing)
+        tags. Check that no data is synchronized.
+
+        :id: c419da6a-1530-4f66-8f8e-d4ec69633356
+
+        :expectedresults: Tags are not synchronized
+        """
+        tags = [gen_string('alpha') for _ in range(3)]
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+                content_type='docker',
+                docker_tags_whitelist=tags,
+                docker_upstream_name='alpine',
+                name=gen_string('alphanumeric', 10),
+                product=product,
+                url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
+        self.assertEqual(repo.content_counts['docker_tag'], 0)
 
 
 class OstreeRepositoryTestCase(APITestCase):

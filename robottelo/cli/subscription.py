@@ -32,10 +32,11 @@ class Subscription(Base):
     command_base = 'subscription'
 
     @classmethod
-    def upload(cls, options=None):
+    def upload(cls, options=None, timeout=None):
         """Upload a subscription manifest."""
         cls.command_sub = 'upload'
-        timeout = 1500 if bz_bug_is_open(1339696) else 300
+        if bz_bug_is_open(1669186) and (timeout is None or timeout < 1500):
+            timeout = 1500
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,
@@ -43,10 +44,11 @@ class Subscription(Base):
         )
 
     @classmethod
-    def delete_manifest(cls, options=None):
+    def delete_manifest(cls, options=None, timeout=None):
         """Deletes a subscription manifest."""
         cls.command_sub = 'delete-manifest'
-        timeout = 1500 if bz_bug_is_open(1339696) else 300
+        if bz_bug_is_open(1669186) and (timeout is None or timeout < 1500):
+            timeout = 1500
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,
@@ -54,10 +56,11 @@ class Subscription(Base):
         )
 
     @classmethod
-    def refresh_manifest(cls, options=None):
+    def refresh_manifest(cls, options=None, timeout=None):
         """Refreshes a subscription manifest."""
         cls.command_sub = 'refresh-manifest'
-        timeout = 1500 if bz_bug_is_open(1339696) else 300
+        if bz_bug_is_open(1669186) and (timeout is None or timeout < 1500):
+            timeout = 1500
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,

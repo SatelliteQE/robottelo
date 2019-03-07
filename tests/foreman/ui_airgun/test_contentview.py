@@ -18,8 +18,12 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 :Upstream: No
 """
 import datetime
-from pytest import raises
+from random import randint
 
+from pytest import raises
+from selenium.common.exceptions import InvalidElementStateException
+
+from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 from nailgun import entities
 from widgetastic.exceptions import NoSuchElementException
@@ -27,6 +31,7 @@ from widgetastic.exceptions import NoSuchElementException
 from robottelo import manifests
 from robottelo.api.utils import (
     call_entity_method_with_timeout,
+    create_role_permissions,
     create_sync_custom_repo,
     enable_sync_redhat_repo,
     promote,
@@ -35,10 +40,13 @@ from robottelo.api.utils import (
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     DEFAULT_ARCHITECTURE,
+    DEFAULT_CV,
     DEFAULT_PTABLE,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
+    DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
     FAKE_0_INC_UPD_URL,
     FAKE_0_INC_UPD_NEW_PACKAGE,
@@ -57,6 +65,7 @@ from robottelo.constants import (
     FILTER_CONTENT_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_TYPE,
+    PERMISSIONS,
     PRDS,
     PUPPET_MODULE_CUSTOM_FILE_NAME,
     PUPPET_MODULE_CUSTOM_NAME,
@@ -68,6 +77,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
+    bz_bug_is_open,
     fixture,
     skip_if_not_set,
     run_in_one_thread,
@@ -87,7 +97,7 @@ from robottelo.products import (
     VirtualizationAgentsRepository,
     YumRepository,
 )
-from robottelo.vm import VirtualMachine
+from robottelo.vm import VirtualMachine, VirtualMachineError
 
 
 VERSION = 'Version 1.0'
@@ -96,6 +106,11 @@ VERSION = 'Version 1.0'
 @fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_prod(module_org):
+    return entities.Product(organization=module_org).create()
 
 
 @tier2
@@ -163,6 +178,57 @@ def test_positive_end_to_end(session, module_org):
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, env_name)
         assert 'Promoted to {}'.format(env_name) in result['Status']
+
+
+@tier2
+def test_positive_publish_version_changes_in_source_env(session, module_org):
+    """When publishing new version to environment, version gets updated
+
+    :id: 576ac8b4-7efe-4267-a672-868a5f3eb28a
+
+    :steps:
+        1. publish a view  and then promote it to a new environment
+        2. republish a new version of a CV and then promote it once more
+
+    :expectedresults: Content view version is updated in source
+        environment.
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    cv = entities.ContentView(organization=module_org).create()
+    with session:
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == 'Version 1.0'
+        result = session.contentview.promote(cv.name, 'Version 1.0', lce.name)
+        # Check that content view version 1.0 promoted to both environments
+        assert ENVIRONMENT in result['Environments']
+        assert lce.name in result['Environments']
+        # Re-publish content view
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == 'Version 2.0'
+        # Check that content view version 1.0 is still promoted to last environment,
+        # but new published version is promoted to default one
+        assert result['Environments'] == ENVIRONMENT
+        cv_values = session.contentview.read(cv.name, widget_names='versions')
+        env = [
+            version['Environments']
+            for version in cv_values['versions']['table']
+            if version['Version'] == 'Version 1.0'
+        ][0]
+        assert env == lce.name
+        # Promote new version to last environment
+        result = session.contentview.promote(cv.name, 'Version 2.0', lce.name)
+        # Check that new content view version promoted to both environments and
+        # content view version 1.0 has not promoted to any version at all
+        assert ENVIRONMENT in result['Environments']
+        assert lce.name in result['Environments']
+        cv_values = session.contentview.read(cv.name, widget_names='versions')
+        assert not [
+            version['Environments']
+            for version in cv_values['versions']['table']
+            if version['Version'] == 'Version 1.0'
+        ]
 
 
 @tier2
@@ -347,6 +413,433 @@ def test_positive_add_rh_content(session):
 
 
 @tier2
+def test_positive_add_docker_repo(session, module_org, module_prod):
+    """Add one Docker-type repository to a non-composite content view
+
+    :id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
+
+    :expectedresults: The repo is added to a non-composite content view
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
+        assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
+
+
+@tier2
+def test_positive_add_docker_repos(session, module_org, module_prod):
+    """Add multiple Docker-type repositories to a non-composite
+    content view.
+
+    :id: 60d0ea23-fe8c-49f3-bed9-cc062ab1118d
+
+    :expectedresults: The repos are added to a non-composite content
+        view.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repos = [
+        entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=module_prod,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        for _ in range(randint(2, 3))
+    ]
+    with session:
+        for repo in repos:
+            session.contentview.add_docker_repo(content_view.name, repo.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
+        assert (
+            {repo.name for repo in repos} ==
+            {repo['Name'] for repo in cv['docker_repositories']['resources']['assigned']}
+        )
+
+
+@tier2
+def test_positive_add_synced_docker_repo(session, module_org, module_prod):
+    """Create and sync a docker repository, then add it to content view
+
+    :id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
+
+    :expectedresults: Synchronized docker repository was successfully added
+        to content view.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        result = session.sync_status.synchronize([(module_prod.name, repo.name)])
+        assert result[0] == 'Syncing Complete.'
+        if bz_bug_is_open(1652938):
+            try:
+                session.contentview.search('')
+            except NoSuchElementException:
+                session.browser.refresh()
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        cv = session.contentview.read(content_view.name, 'docker_repositories')
+        assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
+        assert cv['docker_repositories']['resources']['assigned'][0]['Sync State'] == 'Success'
+
+
+@tier2
+def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
+    """Add one docker repository to a composite content view
+
+    :id: 76b68407-b429-4ad7-b8b5-bfde327a0404
+
+    :expectedresults: The repository is added to a content view which
+        is then added to a composite content view.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        result = session.contentview.publish(content_view.name)
+        assert result['Version'] == VERSION
+        session.contentview.add_cv(composite_cv.name, content_view.name)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
+        assert ccv['content_views']['resources']['assigned'][0]['Name'] == content_view.name
+        assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
+
+
+@tier2
+def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
+    """Add multiple docker repositories to a composite content view.
+
+    :id: 30187102-7106-45de-a68b-e32fbaecedb9
+
+    :expectedresults: The repository is added to a random number of content
+        views which are then added to a composite content view.
+
+    :CaseLevel: Integration
+    """
+    cvs = []
+    for _ in range(randint(2, 3)):
+        repo = entities.Repository(
+            url=DOCKER_REGISTRY_HUB,
+            product=module_prod,
+            content_type=REPO_TYPE['docker'],
+        ).create()
+        content_view = entities.ContentView(
+            composite=False,
+            organization=module_org,
+            repository=[repo]
+        ).create()
+        content_view.publish()
+        cvs.append(content_view.name)
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    with session:
+        for cv in cvs:
+            session.contentview.add_cv(composite_cv.name, cv)
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
+        assert set(cvs) == {cv['Name'] for cv in ccv['content_views']['resources']['assigned']}
+        assert all(
+            '1 Repositories' in cv['Content']
+            for cv in ccv['content_views']['resources']['assigned']
+        )
+
+
+@tier2
+def test_positive_publish_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it once.
+
+    :id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
+
+    :expectedresults: The repo is added to a content view which is then
+        successfully published.
+
+    :CaseLevel: Integration
+    """
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+    ).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    with session:
+        session.contentview.add_docker_repo(content_view.name, repo.name)
+        result = session.contentview.publish(content_view.name)
+        assert result['Version'] == VERSION
+        cv = session.contentview.read(content_view.name, 'versions')
+        assert cv['versions']['table'][0]['Version'] == VERSION
+
+
+@tier2
+def test_positive_publish_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it once.
+
+    :id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
+
+    :expectedresults: The docker repository is added to a content view
+        which is then published only once and then added to a composite
+        content view which is also published only once.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    with session:
+        session.contentview.add_cv(composite_cv.name, content_view.name)
+        result = session.contentview.publish(composite_cv.name)
+        assert result['Version'] == VERSION
+        ccv = session.contentview.read(composite_cv.name, 'content_views')
+        assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
+
+
+@tier2
+def test_positive_publish_multiple_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it multiple times.
+
+    :id: acc703b7-6e99-48d7-96ce-ea0985409ef9
+
+    :expectedresults: Content view with docker repo is successfully published
+        multiple times.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    with session:
+        for version in range(randint(2, 5)):
+            result = session.contentview.publish(content_view.name)
+            assert result['Version'] == 'Version {}.0'.format(version + 1)
+
+
+@tier2
+def test_positive_publish_multiple_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it multiple times.
+
+    :id: 07755bff-9071-45e5-b861-77a5c2fed3d9
+
+    :expectedresults: Composite content view with docker repo is successfully
+        published multiple times.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=module_org,
+    ).create()
+    with session:
+        session.contentview.add_cv(composite_cv.name, content_view.name)
+        for version in range(randint(2, 5)):
+            result = session.contentview.publish(composite_cv.name)
+            assert result['Version'] == 'Version {}.0'.format(version + 1)
+
+
+@tier2
+def test_positive_promote_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it.
+    Then promote it to the next available lifecycle environment.
+
+    :id: c7e8c4a2-9676-429b-a452-f50d7bdd78b3
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environment.
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    with session:
+        result = session.contentview.promote(content_view.name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert lce.name in result['Environments']
+
+
+@tier2
+def test_positive_promote_multiple_with_docker_repo(session, module_org, module_prod):
+    """Add docker repository to content view and publish it.
+    Then promote it to multiple available lifecycle-environments.
+
+    :id: c23d582e-502c-49ac-83f7-dcf0f192cbc6
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environments.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    with session:
+        for _ in range(randint(2, 3)):
+            lce = entities.LifecycleEnvironment(organization=module_org).create()
+            result = session.contentview.promote(content_view.name, VERSION, lce.name)
+            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert lce.name in result['Environments']
+
+
+@tier2
+def test_positive_promote_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it.
+    Then promote it to the next available lifecycle-environment.
+
+    :id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environment.
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    content_view = content_view.read()
+    composite_cv = entities.ContentView(
+        component=[content_view.version[-1]],
+        composite=True,
+        organization=module_org,
+    ).create()
+    composite_cv.publish()
+    with session:
+        result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert lce.name in result['Environments']
+
+
+@tier2
+@upgrade
+def test_positive_promote_multiple_with_docker_repo_composite(session, module_org, module_prod):
+    """Add docker repository to composite content view and publish it
+    Then promote it to the multiple available lifecycle environments.
+
+    :id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
+
+    :expectedresults: Docker repository is promoted to content view
+        found in the specific lifecycle-environments.
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        url=DOCKER_REGISTRY_HUB,
+        product=module_prod,
+        content_type=REPO_TYPE['docker'],
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    content_view = content_view.read()
+    composite_cv = entities.ContentView(
+        component=[content_view.version[-1]],
+        composite=True,
+        organization=module_org,
+    ).create()
+    composite_cv.publish()
+    with session:
+        for _ in range(randint(2, 3)):
+            lce = entities.LifecycleEnvironment(organization=module_org).create()
+            result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
+            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert lce.name in result['Environments']
+
+
+@tier2
 def test_negative_add_puppet_repo_to_composite(session):
     """Attempt to associate puppet repos within a composite content view
 
@@ -495,6 +988,47 @@ def test_positive_add_non_composite_cv_to_composite(session):
 
 
 @tier2
+def test_positive_check_composite_cv_addition_list_versions(session):
+    """Create new content view and publish two times. After that remove
+    first content view version from the list and try to add that view to
+    composite one. Check what content view version is going to be added
+
+    :id: ffd4ac4a-4152-433a-a411-567bab115b05
+
+    :expectedresults: second non-composite content view version should be
+        listed as default one to be added to composite view
+
+    :CaseLevel: Integration
+
+    :BZ: 1411074
+    """
+    non_composite_cv = gen_string('alpha')
+    composite_cv = gen_string('alpha')
+    with session:
+        # Create unpublished component CV
+        session.contentview.create({'name': non_composite_cv})
+        assert session.contentview.search(
+            non_composite_cv)[0]['Name'] == non_composite_cv
+        # Publish content view two times to have two versions
+        for _ in range(2):
+            session.contentview.publish(non_composite_cv)
+        # Delete first version for cv
+        session.contentview.remove_version(non_composite_cv, VERSION)
+        # Create composite CV
+        session.contentview.create({
+            'name': composite_cv,
+            'composite_view': True,
+        })
+        assert session.contentview.search(
+            composite_cv)[0]['Name'] == composite_cv
+        ccv_values = session.contentview.read(composite_cv, 'content_views')
+        cv_values = [cv for cv in ccv_values['content_views']['resources']['unassigned']
+                     if cv['Name'] == non_composite_cv]
+        assert len(cv_values) == 1
+        assert cv_values[0]['Version'] == 'Always Use Latest (Currently 2.0) 2.0'
+
+
+@tier2
 def test_negative_add_dupe_repos(session, module_org):
     """attempt to associate the same repo multiple times within a
     content view
@@ -514,7 +1048,9 @@ def test_negative_add_dupe_repos(session, module_org):
         session.contentview.add_yum_repo(cv_name, repo_name)
         with raises(NoSuchElementException) as context:
             session.contentview.add_yum_repo(cv_name, repo_name)
-        assert 'Could not find element' and repo_name in str(context.value)
+        error_message = str(context.value)
+        assert 'Could not find an element' in error_message
+        assert 'checkbox' in error_message
 
 
 @tier2
@@ -966,6 +1502,39 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session):
 
 
 @tier2
+def test_negative_add_same_package_filter_twice(session, module_org):
+    """Update version of package inside exclusive cv package filter
+
+    :id: 5a97de5a-679e-4150-adf7-b4a28290b834
+
+    :expectedresults: Same package filter can not be added again
+
+    :CaseLevel: Integration
+    """
+    cv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_name = 'walrus'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with session:
+        session.contentview.create({'name': cv_name})
+        for filter_type in FILTER_TYPE['exclude'], FILTER_TYPE['include']:
+            filter_name = gen_string('alpha')
+            session.contentviewfilter.create(cv_name, {
+                'name': filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package'],
+                'inclusion_type': filter_type,
+            })
+            assert session.contentviewfilter.search(
+                cv_name, filter_name)[0]['Name'] == filter_name
+            session.contentviewfilter.add_package_rule(
+                cv_name, filter_name, package_name, None, ('Equal To', '0.71-1'))
+            with raises(AssertionError) as context:
+                session.contentviewfilter.add_package_rule(
+                    cv_name, filter_name, package_name, None, ('Equal To', '0.71-1'))
+            assert 'This package filter rule already exists.' in str(context.value)
+
+
+@tier2
 def test_positive_remove_cv_version_from_default_env(session, module_org):
     """Remove content view version from Library environment
 
@@ -1003,6 +1572,121 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
 
 
 @tier2
+@upgrade
+def test_positive_delete_composite_version(session, module_org):
+    """Delete a composite content-view version associated to 'Library'
+
+    :id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
+
+    :expectedresults: Deletion was performed successfully
+
+    :CaseLevel: Integration
+
+    :BZ: 1276479
+    """
+    cv_name = gen_string('alpha')
+    ccv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with session:
+        # create a content view
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        session.contentview.create({
+            'name': ccv_name,
+            'composite_view': True,
+        })
+        session.contentview.add_cv(ccv_name, cv_name)
+        result = session.contentview.publish(ccv_name)
+        assert result['Version'] == VERSION
+        cvv = session.contentview.search_version(ccv_name, VERSION)[0]
+        assert ENVIRONMENT in cvv['Environments']
+        # remove composite content view version from Library
+        session.contentview.remove_version(
+            ccv_name, VERSION, False, [ENVIRONMENT])
+        cvv = session.contentview.search_version(ccv_name, VERSION)[0]
+        assert ENVIRONMENT not in cvv['Environments']
+
+
+@tier2
+def test_positive_delete_non_default_version(session):
+    """Delete a content-view version associated to non-default
+    environment
+
+    :id: 1c1beb36-e06b-419f-96db-43b4d85c5e25
+
+    :expectedresults: Deletion was performed successfully
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    org = entities.Organization().create()
+    create_sync_custom_repo(org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': org.id})[0]
+    cv = entities.ContentView(organization=org, repository=[repo]).create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    with session:
+        session.organization.select(org.name)
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv.name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        cvv = session.contentview.search_version(cv.name, VERSION)[0]
+        assert lce.name in cvv['Environments']
+        # remove the content view version from new custom lifecycle environment
+        session.contentview.remove_version(
+            cv.name, VERSION, False, [lce.name])
+        cvv = session.contentview.search_version(cv.name, VERSION)[0]
+        assert lce.name not in cvv['Environments']
+
+
+@upgrade
+@tier2
+def test_positive_delete_version_with_ak(session):
+    """Delete a content-view version that had associated activation key to it
+
+    :id: 0da50b26-f82b-4663-9372-4c39270d4323
+
+    :expectedresults: Delete operation was performed successfully
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    cv = entities.ContentView(organization=org).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    lc_env = entities.LifecycleEnvironment(organization=org).create()
+    cvv.promote(data={u'environment_id': lc_env.id})
+    ak = entities.ActivationKey(
+        name=gen_string('alphanumeric'),
+        environment=lc_env.id,
+        organization=org,
+        content_view=cv,
+    ).create()
+    with session:
+        session.organization.select(org.name)
+        assert session.contentview.search_version(cv.name, VERSION)
+        # It is impossible to remove content view version from content view that
+        # has activation key assigned
+        with raises(AssertionError) as context:
+            session.contentview.remove_version(cv.name, VERSION)
+        assert 'Activation Key is assigned to content view version' in str(context.value)
+        # Update activation key with new name
+        session.activationkey.update(
+            ak.name,
+            {'details.lce': {ENVIRONMENT: True}, 'details.content_view': DEFAULT_CV}
+        )
+        # remove the content view version
+        session.contentview.remove_version(cv.name, VERSION)
+        assert not session.contentview.search_version(cv.name, VERSION)
+
+
+@tier2
 def test_positive_clone_within_same_env(session, module_org):
     """attempt to create new content view based on existing
     view within environment
@@ -1032,6 +1716,51 @@ def test_positive_clone_within_same_env(session, module_org):
         copy_cv = session.contentview.read(copy_cv_name)
         assert copy_cv[
             'repositories']['resources']['assigned'][0]['Name'] == repo_name
+
+
+@tier2
+def test_positive_clone_within_diff_env(session, module_org):
+    """attempt to create new content view based on existing
+    view, inside a different environment
+
+    :id: 09b9307f-91de-4d3d-a6af-31c526ea816f
+
+    :expectedresults: Cloned content view can be published and promoted to different
+        environment than initial one
+
+    :BZ: 1461017
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    copy_cv_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    copy_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    with session:
+        # publish the content view
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        # promote the content view
+        result = session.contentview.promote(cv.name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # Copy the CV
+        session.contentview.copy(cv.name, copy_cv_name)
+        assert session.contentview.search(
+            copy_cv_name)[0]['Name'] == copy_cv_name
+        copy_cv = session.contentview.read(copy_cv_name)
+        assert copy_cv[
+            'repositories']['resources']['assigned'][0]['Name'] == repo_name
+        # publish new content view
+        result = session.contentview.publish(copy_cv_name)
+        assert result['Version'] == VERSION
+        # promote cloned content view to different environment
+        result = session.contentview.promote(copy_cv_name, VERSION, copy_lce.name)
+        assert 'Promoted to {}'.format(copy_lce.name) in result['Status']
+        assert lce.name not in result['Environments']
 
 
 @tier2
@@ -1065,7 +1794,7 @@ def test_positive_add_package_filter(session, module_org):
     :id: 1cc8d921-92e5-4b51-8050-a7e775095f97
 
     :expectedresults: content views filter created and selected packages can be
-        added for inclusion/exclusion
+        added for inclusion
 
     :CaseLevel: Integration
     """
@@ -1098,6 +1827,82 @@ def test_positive_add_package_filter(session, module_org):
         actual_packages = {
             row['RPM Name'] for row in cvf['content_tabs']['rpms']['table']}
         assert expected_packages == actual_packages
+
+
+@tier2
+def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
+    """Add package to inclusion content views filter, publish CV and verify
+    package was actually filtered
+
+    :id: 58c32cb5-1392-478e-807a-9c023d5ca0ea
+
+    :expectedresults: Package is included in content view version
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package1_name = 'cow'
+    package2_name = 'bear'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, package1_name, None, 'All Versions')
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION, 'name = "{}"'.format(package1_name))
+        assert len(packages) == 1
+        assert packages[0]['Name'] == package1_name
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION, 'name = "{}"'.format(package2_name))
+        assert not packages
+
+
+@tier2
+def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
+    """Add package to exclusion content views filter, publish CV and verify
+    package was actually filtered
+
+    :id: 304dfb76-a222-48ab-b6de-578a2c81210c
+
+    :expectedresults: Package is excluded from content view version
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package1_name = 'cow'
+    package2_name = 'bear'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, package1_name, None, 'All Versions')
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION, 'name = "{}"'.format(package2_name))
+        assert len(packages) == 1
+        assert packages[0]['Name'] == package2_name
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION, 'name = "{}"'.format(package1_name))
+        assert not packages
 
 
 @tier2
@@ -1167,6 +1972,73 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
         )
 
 
+@tier2
+def test_positive_update_exclusive_filter_package_version(session, module_org):
+    """Update version of package inside exclusive cv package filter
+
+    :id: a8aa8864-190a-46c3-aeed-4953c8f3f601
+
+    :expectedresults: Version was updated, next content view version
+        contains package with updated version
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_name = 'walrus'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo]
+    ).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, package_name, None, ('Equal To', '0.71-1'))
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'.format(package_name, '5.21')
+        )
+        assert len(packages) == 1
+        assert (
+            packages[0]['Name'] == package_name
+            and packages[0]['Version'] == '5.21'
+        )
+        packages = session.contentview.search_version_package(
+            cv.name, VERSION,
+            'name = "{}" and version = "{}"'.format(package_name, '0.71')
+        )
+        assert not packages
+        session.contentviewfilter.update_package_rule(
+            cv.name, filter_name, package_name,
+            {'Version': ('Equal To', '5.21-1')},
+            version='Version 0.71-1',
+        )
+        new_version = session.contentview.publish(cv.name)['Version']
+        packages = session.contentview.search_version_package(
+            cv.name, new_version,
+            'name = "{}" and version = "{}"'.format(package_name, '5.21')
+        )
+        assert not packages
+        packages = session.contentview.search_version_package(
+            cv.name, new_version,
+            'name = "{}" and version = "{}"'.format(package_name, '0.71')
+        )
+        assert len(packages) == 1
+        assert (
+            packages[0]['Name'] == package_name
+            and packages[0]['Version'] == '0.71'
+        )
+
+
 @run_in_one_thread
 @skip_if_not_set('fake_manifest')
 @tier3
@@ -1224,6 +2096,51 @@ def test_positive_edit_rh_custom_spin(session):
                    'end_date'] == end_date.strftime('%Y-%m-%d')
 
 
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@upgrade
+@tier2
+def test_positive_promote_with_rh_custom_spin(session):
+    """attempt to promote a content view containing a custom RH
+    spin - i.e., contains filters.
+
+    :id: 7d93c81f-2815-4b0e-b72c-23a902fe34b1
+
+    :expectedresults: Content view can be promoted
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[SatelliteToolsRepository()]
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    cv = entities.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']).read()
+    with session:
+        session.organization.select(org.name)
+        # add a package exclude filter
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        # assert the added filter visible
+        assert session.contentviewfilter.search(
+            cv.name, filter_name)[0]['Name'] == filter_name
+        # exclude some package in the created filter
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, 'gofer', None, 'All Versions')
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == 'Version 2.0'
+        result = session.contentview.promote(cv.name, 'Version 2.0', lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
 @tier2
 def test_positive_add_all_security_errata_by_id_filter(session, module_org):
     """Create erratum filter to include only security errata and publish new
@@ -1272,6 +2189,41 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
         assert all(
             errata['Type'] == FILTER_ERRATA_TYPE['security']
             for errata in cvv['errata']['table']
+        )
+
+
+@tier2
+def test_positive_add_errata_filter(session, module_org):
+    """add errata to content views filter
+
+    :id: bb9eef30-62c4-435c-9573-9f31210b8d7d
+
+    :expectedresults: content views filter created and selected errata-id
+        can be added for inclusion/exclusion
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['erratum by id'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        for errata in ['RHEA-2012:0001', 'RHEA-2012:0004']:
+            session.contentviewfilter.add_errata(
+                cv.name, filter_name, errata)
+        cv.publish()
+        cvv = session.contentview.read_version(cv.name, VERSION)
+        assert len(cvv['errata']['table']) == 2
+        assert (
+            {'RHEA-2012:0001', 'RHEA-2012:0004'}
+            == {value['Errata ID'] for value in cvv['errata']['table']}
         )
 
 
@@ -1430,6 +2382,11 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
         for add_puppet in [True, False]:
             for force_value in [True, False]:
                 cv_name = gen_string('alpha')
+                if bz_bug_is_open(1652938):
+                    try:
+                        session.contentview.search('')
+                    except (NavigationTriesExceeded, NoSuchElementException):
+                        session.browser.refresh()
                 session.contentview.create({'name': cv_name})
                 session.contentview.update(
                     cv_name, {'details.force_puppet': force_value})
@@ -1560,6 +2517,105 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, env.name)
         assert 'Promoted to {}'.format(env.name) in result['Status']
+
+
+@upgrade
+@tier2
+def test_positive_subscribe_system_with_custom_content(session):
+    """Attempt to subscribe a host to content view with custom repository
+
+    :id: 715db997-707b-4868-b7cc-b6977fd6ac04
+
+    :setup: content view with custom yum repo
+
+    :expectedresults: Systems can be subscribed to content view(s)
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            YumRepository(url=FAKE_0_YUM_REPO)
+        ]
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        repos_collection.setup_virtual_machine(vm)
+        assert vm.subscribed
+        with session:
+            session.organization.select(org.name)
+            # assert the vm exists in content hosts page
+            assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+
+
+@run_in_one_thread
+@upgrade
+@skip_if_not_set('fake_manifest')
+@tier3
+def test_positive_subscribe_system_with_rh_custom_spin(session):
+    """Attempt to subscribe a host to content view with rh repository
+     and custom filter that exclude katello agent package. Then remove filter
+     and make one more attempt
+
+    :id: 3ea6719b-df4d-4b0f-b4b4-69ce852f632e
+
+    :setup: content view with rh repo and custom spin
+
+    :expectedresults: System will be subscribed only after filter is removed
+
+    :CaseLevel: System
+    """
+    filter_name = gen_string('alpha')
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[SatelliteToolsRepository()]
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    cv = entities.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']).read()
+    with session:
+        session.organization.select(org.name)
+        # add a package exclude filter
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        # assert the added filter visible
+        assert session.contentviewfilter.search(
+            cv.name, filter_name)[0]['Name'] == filter_name
+        # exclude some package in the created filter
+        session.contentviewfilter.add_package_rule(
+            cv.name, filter_name, 'gofer', None, 'All Versions')
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == 'Version 2.0'
+        result = session.contentview.promote(cv.name, 'Version 2.0', lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # create a vm host client and ensure it cannot be subscribed since
+        # gofer package is excluded
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            with raises(VirtualMachineError) as context:
+                repos_collection.setup_virtual_machine(vm)
+            assert 'Failed to install katello-agent' in str(context.value)
+        # Remove content view filter
+        session.contentviewfilter.delete(cv.name, filter_name)
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == 'Version 3.0'
+        result = session.contentview.promote(cv.name, 'Version 3.0', lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # create a vm host client and ensure it can be subscribed
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            repos_collection.setup_virtual_machine(vm)
+            assert vm.subscribed
+            # assert the vm exists in content hosts page
+            assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
 
 
 @tier3
@@ -2058,3 +3114,343 @@ def test_positive_composite_child_inc_update(session):
             assert len(packages) > 1
             packages_data = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
             assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
+
+
+@tier3
+def test_positive_module_stream_end_to_end(session, module_org):
+    """Create content view with custom module_stream contents, publish and promote it
+    to Library +1 env. Then disassociate repository from that content view
+
+    :id: 66955a89-14ed-414e-a15a-6ed9ede520ea
+
+    :steps:
+        1. Create yum repo with module_stream content and sync it
+        2. Create content view and add created repo to it
+        3. Publish that content view
+        4. Promote it to next environment
+
+    :expectedresults: Content view works properly with module_streams and
+        count shown should be correct
+
+    :CaseLevel: System
+    """
+    repo_name = gen_string('alpha')
+    env_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    # Creates a CV along with product and sync'ed repository
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=CUSTOM_MODULE_STREAM_REPO_2
+    )
+    with session:
+        # Create Life-cycle environment
+        session.lifecycleenvironment.create({'name': env_name})
+        # Create content-view
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        # Add repository to selected CV
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_name, VERSION, env_name)
+        assert 'Promoted to {}'.format(env_name) in result['Status']
+        assert '7 Module Streams' in result['Content']
+        # remove the content view version
+        session.contentview.remove_version(cv_name, VERSION)
+        assert not session.contentview.search_version(cv_name, VERSION)
+        session.contentview.delete(cv_name)
+        assert not session.contentview.search(cv_name)
+
+
+@tier2
+def test_positive_search_module_streams_in_content_view(session, module_org):
+    """Search module streams in content view version
+
+    :id: 7f5273ff-e80f-459d-adf4-b517b6d60fdc
+
+    :expectedresults: Searching for module streams should work inside content
+        view version
+
+    :CaseLevel: Integration
+    """
+    repo_name = gen_string('alpha')
+    module_stream = 'walrus'
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=CUSTOM_MODULE_STREAM_REPO_2
+    )
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(
+        organization=module_org,
+        repository=[repo]
+    ).create()
+    with session:
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+        for module_version in ['0.71', '5.21']:
+            module_streams = session.contentview.search_version_module_stream(
+                cv.name,
+                VERSION,
+                'name = "{}" and stream = "{}"'.format(module_stream, module_version)
+            )
+            assert len(module_streams) == 1
+            assert (
+                    module_streams[0]['Name'] == module_stream
+                    and module_streams[0]['Stream'] == module_version
+            )
+
+
+@tier2
+def test_positive_non_admin_user_actions(session, module_org, test_name):
+    """Attempt to manage content views
+
+    :id: c4d270fc-a3e6-4ae2-a338-41d864a5622a
+
+    :steps: with global admin account:
+
+        1. create a user with all content views permissions
+        2. create lifecycle environment
+        3. create 2 content views (one to delete, the other to manage)
+
+    :setup: create a user with all content views permissions
+
+    :expectedresults: Custom user can Read, Modify, Delete, Publish, Promote
+        the content views
+
+    :BZ: 1461017
+
+    :CaseLevel: Integration
+    """
+    # note: the user to be created should not have permissions to access
+    # products repositories
+    repo_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    cv_new_name = gen_string('alpha')
+    cv_copy_name = gen_string('alpha')
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    # create a role with all content views permissions
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': PERMISSIONS['Katello::ContentView']}
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
+        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password,
+        mail='test@test.com',
+    ).create()
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    # create a content view with the main admin account
+    with session:
+        session.contentview.create({'name': cv_name})
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        # Copy the CV
+        session.contentview.copy(cv_name, cv_copy_name)
+        assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as session:
+        with raises(NavigationTriesExceeded):
+            session.organization.create({
+                'name': gen_string('alpha'),
+                'label': gen_string('alpha'),
+            })
+        # assert the user can view all the content views created
+        # by admin user
+        if bz_bug_is_open(1652938):
+            try:
+                session.contentview.search('')
+            except (NavigationTriesExceeded, NoSuchElementException):
+                session.browser.refresh()
+        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
+        assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
+        # assert that the user can delete a content view
+        session.contentview.delete(cv_copy_name)
+        assert not session.contentview.search(cv_copy_name)
+        # check that cv tabs are accessible
+        cv = session.contentview.read(cv_name)
+        for tab_name in [
+            'details',
+            'versions',
+            'repositories',
+            'filters',
+            'puppet_modules',
+            'docker_repositories',
+            'ostree_content'
+        ]:
+            assert cv.get(tab_name) is not None
+        session.contentview.update(cv_name, {'details.name': cv_new_name})
+        assert session.contentview.search(cv_new_name)[0]['Name'] == cv_new_name
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_new_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_new_name, VERSION, lce.name)
+        assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
+@tier2
+def test_negative_read_only_user_actions(session, module_org, test_name):
+    """Attempt to manage content views
+
+    :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
+
+    :setup:
+
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
+
+    :expectedresults: User with read only role for content view cannot
+        Modify, Delete, Publish, Promote the content views
+
+    :CaseLevel: Integration
+    """
+    # create a content view read only user with lifecycle environment
+    # permissions: view_lifecycle_environments and
+    # promote_or_remove_content_views_to_environments
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    # create a role with content views read only permissions
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': ['view_content_views']}
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
+        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    repo_id = create_sync_custom_repo(module_org.id)
+    yum_repo = entities.Repository(id=repo_id).read()
+    cv = entities.ContentView(
+        organization=module_org, repository=[yum_repo]).create()
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as custom_session:
+        with raises(NavigationTriesExceeded):
+            custom_session.location.create({
+                'name': gen_string('alpha'),
+                'label': gen_string('alpha'),
+            })
+        if bz_bug_is_open(1652938):
+            try:
+                custom_session.contentview.search('')
+            except (NavigationTriesExceeded, NoSuchElementException):
+                custom_session.browser.refresh()
+        assert custom_session.contentview.search(cv.name)[0]['Name'] == cv.name
+        with raises(InvalidElementStateException):
+            custom_session.contentview.update(cv.name, {'details.name': gen_string('alpha')})
+        with raises(NavigationTriesExceeded) as context:
+            custom_session.contentview.publish(cv.name)
+        assert 'failed to reach [Publish]' in str(context.value)
+    with session:
+        result = session.contentview.publish(cv.name)
+        assert result['Version'] == VERSION
+    with Session(test_name, user=user_login, password=user_password) as session:
+        if bz_bug_is_open(1652938):
+            try:
+                session.contentview.search('')
+            except (NavigationTriesExceeded, NoSuchElementException):
+                session.browser.refresh()
+        with raises(NavigationTriesExceeded) as context:
+            session.contentview.promote(cv.name, VERSION, lce.name)
+        assert 'failed to reach [Promote]' in str(context.value)
+
+
+@tier2
+def test_negative_non_readonly_user_actions(module_org, test_name):
+    """Attempt to view content views
+
+    :id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
+
+    :setup: create a user with the Content View without the content views
+        read role
+
+    :expectedresults: the user cannot access content views web resources
+
+    :CaseLevel: Integration
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with all content views permissions except
+    # view_content_views
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    cv = entities.ContentView(organization=module_org).create()
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {
+            'Katello::ContentView': [
+                'create_content_views',
+                'edit_content_views',
+                'destroy_content_views',
+                'publish_content_views',
+                'promote_or_remove_content_views',
+                'export_content_views',
+            ]
+        }
+    )
+    create_role_permissions(
+        role,
+        {
+            'Katello::KTEnvironment': [
+                'promote_or_remove_content_views_to_environments',
+                'view_lifecycle_environments'
+            ]
+        },
+        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name)
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as session:
+        with raises(NavigationTriesExceeded):
+            session.user.create({
+                'user.login': gen_string('alpha'),
+                'user.auth': 'INTERNAL',
+                'user.password': gen_string('alpha'),
+                'user.confirm': gen_string('alpha'),
+            })
+        with raises(NavigationTriesExceeded) as context:
+            session.contentview.search(cv.name)
+        assert 'Navigation failed to reach [All]' in str(context.value)

@@ -37,7 +37,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     setting_is_set,
     tier2,
@@ -91,12 +90,16 @@ def test_positive_end_to_end(session):
             file_handler.write(manifest.content.read())
     with session:
         session.organization.select(org.name)
-        session.subscription.add_manifest(temporary_local_manifest_path)
+        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
+        # the consumer uuid, that will be displayed in flash error messages
+        # Note: this happen only when using clone manifest.
+        session.subscription.add_manifest(temporary_local_manifest_path,
+                                          ignore_error_messages=['404 Not Found'])
         assert session.subscription.has_manifest
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
         assert session.subscription.has_manifest
-        session.subscription.delete_manifest()
+        session.subscription.delete_manifest(ignore_error_messages=['404 Not Found'])
         assert not session.subscription.has_manifest
 
 
@@ -134,7 +137,6 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
         assert not session.subscription.has_manifest
 
 
-@skip_if_bug_open('bugzilla', 1651981)
 @tier2
 @upgrade
 def test_positive_access_with_non_admin_user_with_manifest(test_name):

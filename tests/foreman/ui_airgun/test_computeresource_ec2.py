@@ -119,11 +119,12 @@ def test_positive_default_end_to_end_with_custom_profile(
             new_cr_name,
             COMPUTE_PROFILE_LARGE,
             {
-                'flavor': AWS_EC2_FLAVOR_T2_MICRO,
-                'availability_zone': module_ec2_settings['availability_zone'],
-                'subnet': module_ec2_settings['subnet'],
-                'security_groups.assigned': module_ec2_settings['security_groups'],
-                'managed_ip': module_ec2_settings['managed_ip'],
+                'provider_content.flavor': AWS_EC2_FLAVOR_T2_MICRO,
+                'provider_content.availability_zone': module_ec2_settings['availability_zone'],
+                'provider_content.subnet': module_ec2_settings['subnet'],
+                'provider_content.security_groups.assigned': module_ec2_settings[
+                    'security_groups'],
+                'provider_content.managed_ip': module_ec2_settings['managed_ip'],
             }
         )
         cr_profile_values = session.computeresource.read_computeprofile(
@@ -132,8 +133,9 @@ def test_positive_default_end_to_end_with_custom_profile(
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_LARGE
         assert cr_profile_values['compute_resource'] == '{0} ({1}-{2})'.format(
             new_cr_name, module_ec2_settings['region'], FOREMAN_PROVIDERS['ec2'])
-        assert cr_profile_values['managed_ip'] == module_ec2_settings['managed_ip']
-        assert cr_profile_values['flavor'] == AWS_EC2_FLAVOR_T2_MICRO
+        assert (cr_profile_values['provider_content']['managed_ip']
+                == module_ec2_settings['managed_ip'])
+        assert cr_profile_values['provider_content']['flavor'] == AWS_EC2_FLAVOR_T2_MICRO
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)
 

@@ -15,10 +15,11 @@
 :Upstream: No
 """
 import os
-
-from automation_tools.satellite6 import hammer
 from fabric.api import execute, run
+from nailgun import entities
 from robottelo.test import APITestCase, settings
+from robottelo.api.utils import promote
+from upgrade.helpers.tasks import wait_untill_capsule_sync
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -81,44 +82,26 @@ class Scenario_capsule_sync(APITestCase):
         :expectedresults: The repo/rpm should be synced to satellite
 
          """
-        _, env_name = hammer.hammer_determine_cv_and_env_from_ak(
-            self.activation_key, '1')
+        ak = entities.ActivationKey(organization=self.org_id).search(
+            query={'search': 'name={}'.format(self.activation_key)})[0]
+        ak_env = ak.environment.read()
+        product = entities.Product(
+            name=self.prod_name, organization=self.org_id).create()
         self.create_repo()
-        print(hammer.hammer_product_create(self.prod_name, self.org_id))
-        prod_list = hammer.hammer(
-            'product list --organization-id {}'.format(self.org_id))
-        self.assertEqual(
-            self.prod_name,
-            hammer.get_attribute_value(prod_list, self.prod_name, 'name')
-        )
-        print(hammer.hammer_repository_create(
-            self.repo_name, self.org_id, self.prod_name, self.repo_url))
-        repo_list = hammer.hammer(
-            'repository list --product {0} --organization-id {1}'.format(
-                self.prod_name, self.org_id))
-        self.assertEqual(
-            self.repo_name,
-            hammer.get_attribute_value(repo_list, self.repo_name, 'name')
-        )
-        print(hammer.hammer_repository_synchronize(
-            self.repo_name, self.org_id, self.prod_name))
-        print(hammer.hammer_content_view_create(self.cv_name, self.org_id))
-        print(hammer.hammer_content_view_add_repository(
-            self.cv_name, self.org_id, self.prod_name, self.repo_name))
-        print(hammer.hammer_content_view_publish(self.cv_name, self.org_id))
-        cv_ver = hammer.get_latest_cv_version(self.cv_name)
-        env_data = hammer.hammer(
-            'lifecycle-environment list --organization-id {0} '
-            '--name {1}'.format(self.org_id, env_name))
-        env_id = hammer.get_attribute_value(
-            env_data,
-            env_name,
-            'id'
-        )
-        print(hammer.hammer_content_view_promote_version(
-            self.cv_name, cv_ver, env_id, self.org_id))
+        repo = entities.Repository(
+            product=product.id, name=self.repo_name,
+            url=self.repo_url).create()
+        repo.sync()
+        content_view = entities.ContentView(
+            name=self.cv_name, organization=self.org_id).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        promote(content_view.read().version[0], ak_env.id)
+        self.assertEqual(content_view.read().environment[-1].id, ak_env.id)
+
         global_dict = {self.__class__.__name__: {
-            'env_name': env_name}}
+            'env_name': ak_env.name}}
         create_dict(global_dict)
 
     @post_upgrade
@@ -139,13 +122,11 @@ class Scenario_capsule_sync(APITestCase):
 
          """
         env_name = get_entity_data(self.__class__.__name__)['env_name']
-        cap_data = hammer.hammer('capsule list')
-        cap_id = hammer.get_attribute_value(cap_data, self.cap_host, 'id')
-        org_data = hammer.hammer('organization list')
-        org_name = hammer.get_attribute_value(
-            org_data, int(self.org_id), 'label')
-        print(hammer.hammer(
-            'capsule content synchronize --id {0}'.format(cap_id)))
+        org_name = entities.Organization().search(
+            query={'search': 'id={}'.format(self.org_id)})[0].label
+        capsule = entities.SmartProxy().search(
+            query={'search': 'name={}'.format(self.cap_host)})[0]
+        entities.Capsule(id=capsule.id).content_sync()
         result = execute(
             lambda: run(
                 '[ -f /var/lib/pulp/published/yum/http/repos/'
@@ -217,55 +198,32 @@ class Scenario_capsule_sync_2(APITestCase):
             3. The repo/rpm from satellite should be synced to capsule
 
         """
-        _, env_name = hammer.hammer_determine_cv_and_env_from_ak(
-            self.activation_key, '1')
+        ak = entities.ActivationKey(organization=self.org_id).search(
+            query={'search': 'name={}'.format(self.activation_key)})[0]
+        ak_env = ak.environment.read()
+        product = entities.Product(
+            name=self.prod_name, organization=self.org_id).create()
         self.create_repo()
-        print(hammer.hammer_product_create(self.prod_name, self.org_id))
-        prod_list = hammer.hammer(
-            'product list --organization-id {}'.format(self.org_id))
-        self.assertEqual(
-            self.prod_name,
-            hammer.get_attribute_value(prod_list, self.prod_name, 'name')
-        )
-        print(hammer.hammer_repository_create(
-            self.repo_name, self.org_id, self.prod_name, self.repo_url))
-        repo_list = hammer.hammer(
-            'repository list --product {0} --organization-id {1}'.format(
-                self.prod_name, self.org_id))
-        self.assertEqual(
-            self.repo_name,
-            hammer.get_attribute_value(repo_list, self.repo_name, 'name')
-        )
-        print(hammer.hammer_repository_synchronize(
-            self.repo_name, self.org_id, self.prod_name))
-        print(hammer.hammer_content_view_create(self.cv_name, self.org_id))
-        print(hammer.hammer_content_view_add_repository(
-            self.cv_name, self.org_id, self.prod_name, self.repo_name))
-        print(hammer.hammer_content_view_publish(self.cv_name, self.org_id))
-        cv_ver = hammer.get_latest_cv_version(self.cv_name)
-        env_data = hammer.hammer(
-            'lifecycle-environment list --organization-id {0} '
-            '--name {1}'.format(self.org_id, env_name))
-        env_id = hammer.get_attribute_value(
-            env_data,
-            env_name,
-            'id'
-        )
-        print(hammer.hammer_content_view_promote_version(
-            self.cv_name, cv_ver, env_id, self.org_id))
-        cap_data = hammer.hammer('capsule list')
-        cap_id = hammer.get_attribute_value(cap_data, self.cap_host, 'id')
-        org_data = hammer.hammer('organization list')
-        org_name = hammer.get_attribute_value(
-            org_data, int(self.org_id), 'label')
-        print(hammer.hammer(
-            'capsule content synchronize --id {0}'.format(cap_id)))
+        repo = entities.Repository(
+            product=product.id, name=self.repo_name,
+            url=self.repo_url).create()
+        repo.sync()
+        content_view = entities.ContentView(
+            name=self.cv_name, organization=self.org_id).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        promote(content_view.read().version[0], ak_env.id)
+        self.assertEqual(content_view.read().environment[-1].id, ak_env.id)
+        wait_untill_capsule_sync(self.cap_host)
+        org_name = entities.Organization().search(
+            query={'search': 'id={}'.format(self.org_id)})[0].label
         result = execute(
-            lambda: run('[ -f /var/lib/pulp/published/yum/http/repos/'
-                        '{0}/{1}/{2}/custom/{3}/{4}/Packages/c/{5} ]; '
-                        'echo $?'.format(
-                            org_name, env_name, self.cv_name,
-                            self.prod_name, self.repo_name, self.rpm_name)),
+            lambda: run(
+                '[ -f /var/lib/pulp/published/yum/http/repos/'
+                '{0}/{1}/{2}/custom/{3}/{4}/Packages/c/{5} ]; echo $?'.format(
+                    org_name, ak_env.name, self.cv_name,
+                    self.prod_name, self.repo_name, self.rpm_name)),
             host=self.cap_host
         )[self.cap_host]
         self.assertEqual('0', result)

@@ -16,9 +16,9 @@
 :Upstream: No
 """
 from random import choice, randint
-from time import sleep
 
 from fauxfactory import gen_alpha, gen_string, gen_url
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -37,6 +37,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
@@ -52,7 +53,6 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -96,6 +96,7 @@ class DockerManifestTestCase(CLITestCase):
     """Tests related to docker manifest command"""
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1658274)
     def test_positive_read_docker_tags(self):
         """docker manifest displays tags information for a docker manifest
 
@@ -126,6 +127,7 @@ class DockerManifestTestCase(CLITestCase):
         manifests = [
             m_iter for m_iter in manifests_list if not m_iter['tag-name'] == ''
         ]
+        self.assertTrue(manifests)
         tags_list = Docker.tag.list({
             u'repository-id': repository['id'],
         })
@@ -1004,6 +1006,333 @@ class DockerContentViewTestCase(CLITestCase):
             })
             self.assertEqual(len(cvv['lifecycle-environments']), i+1)
 
+    @tier2
+    @upgrade
+    @run_only_on('sat')
+    def test_positive_name_pattern_change(self):
+        """Promote content view with Docker repository to lifecycle environment.
+        Change registry name pattern for that environment. Verify that repository
+        name on product changed according to new pattern.
+
+        :id: 63c99ae7-238b-40ed-8cc1-d847eb4e6d65
+
+        :expectedresults: Container repository name is changed
+            according to new pattern.
+
+        :CaseLevel: Integration
+        """
+        pattern_prefix = gen_string('alpha', 5)
+        docker_upstream_name = 'hello-world'
+        new_pattern = ("{}-<%= content_view.label %>"
+                       + "/<%= repository.docker_upstream_name %>").format(
+                pattern_prefix)
+
+        repo = _make_docker_repo(
+                make_product_wait({'organization-id': self.org_id})['id'],
+                upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        LifecycleEnvironment.update({
+            'registry-name-pattern': new_pattern,
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        lce = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}-{}/{}".format(pattern_prefix,
+                                             content_view['label'],
+                                             docker_upstream_name).lower()
+        self.assertEqual(lce['registry-name-pattern'], new_pattern)
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_product_name_change_after_promotion(self):
+        """Promote content view with Docker repository to lifecycle environment.
+        Change product name. Verify that repository name on product changed
+        according to new pattern.
+
+        :id: 92279755-717c-415c-88b6-4cc1202072e2
+
+        :expectedresults: Container repository name is changed
+            according to new pattern.
+
+        :CaseLevel: Integration
+        """
+        old_prod_name = gen_string('alpha', 5)
+        new_prod_name = gen_string('alpha', 5)
+        docker_upstream_name = 'hello-world'
+        new_pattern = "<%= content_view.label %>/<%= product.name %>"
+
+        prod = make_product_wait({
+            'organization-id': self.org_id,
+            'name': old_prod_name
+        })
+        repo = _make_docker_repo(prod['id'],
+                                 upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        LifecycleEnvironment.update({
+            'registry-name-pattern': new_pattern,
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        lce = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        Product.update({
+            'name': new_prod_name,
+            'id': prod['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          old_prod_name).lower()
+        self.assertEqual(lce['registry-name-pattern'], new_pattern)
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][-1]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          new_prod_name).lower()
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_repo_name_change_after_promotion(self):
+        """Promote content view with Docker repository to lifecycle environment.
+        Change repository name. Verify that Docker repository name on product
+        changed according to new pattern.
+
+        :id: f094baab-e823-47e0-939d-bd0d88eb1538
+
+        :expectedresults: Container repository name is changed
+            according to new pattern.
+
+        :CaseLevel: Integration
+        """
+        old_repo_name = gen_string('alpha', 5)
+        new_repo_name = gen_string('alpha', 5)
+        docker_upstream_name = 'hello-world'
+        new_pattern = "<%= content_view.label %>/<%= repository.name %>"
+
+        prod = make_product_wait({'organization-id': self.org_id})
+        repo = _make_docker_repo(prod['id'],
+                                 name=old_repo_name,
+                                 upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        LifecycleEnvironment.update({
+            'registry-name-pattern': new_pattern,
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        lce = LifecycleEnvironment.info({
+            'id': lce['id'],
+            'organization-id': self.org_id,
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        Repository.update({
+            'name': new_repo_name,
+            'id': repo['id'],
+            'product-id': prod['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          old_repo_name).lower()
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        ContentView.version_promote({
+            'id': content_view['versions'][-1]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        repos = Repository.list({
+            'environment-id': lce['id'],
+            'organization-id': self.org_id,
+        })
+
+        expected_pattern = "{}/{}".format(content_view['label'],
+                                          new_repo_name).lower()
+        self.assertEqual(
+                Repository.info({'id': repos[0]['id']})['container-repository-name'],
+                expected_pattern)
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_set_non_unique_name_pattern_and_promote(self):
+        """Set registry name pattern to one that does not guarantee uniqueness.
+        Try to promote content view with multiple Docker repositories to
+        lifecycle environment. Verify that content has not been promoted.
+
+        :id: eaf5e7ac-93c9-46c6-b538-4d6bd73ab9fc
+
+        :expectedresults: Content view is not promoted
+
+        :CaseLevel: Integration
+        """
+        docker_upstream_names = ['hello-world', 'alpine']
+        new_pattern = "<%= organization.label %>"
+
+        lce = make_lifecycle_environment({
+            'organization-id': self.org_id,
+            'registry-name-pattern': new_pattern,
+        })
+
+        prod = make_product_wait({'organization-id': self.org_id})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        for docker_name in docker_upstream_names:
+            repo = _make_docker_repo(prod['id'],
+                                     upstream_name=docker_name)
+            Repository.synchronize({'id': repo['id']})
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': repo['id'],
+            })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.version_promote({
+                'id': content_view['versions'][0]['id'],
+                'to-lifecycle-environment-id': lce['id'],
+            })
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_promote_and_set_non_unique_name_pattern(self):
+        """Promote content view with multiple Docker repositories to
+        lifecycle environment. Set registry name pattern to one that
+        does not guarantee uniqueness. Verify that pattern has not been
+        changed.
+
+        :id: 9f952224-084f-48d1-b2ea-85f3621becea
+
+        :expectedresults: Registry name pattern is not changed
+
+        :CaseLevel: Integration
+        """
+        docker_upstream_names = ['hello-world', 'alpine']
+        new_pattern = "<%= organization.label %>"
+
+        prod = make_product_wait({'organization-id': self.org_id})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        for docker_name in docker_upstream_names:
+            repo = _make_docker_repo(prod['id'],
+                                     upstream_name=docker_name)
+            Repository.synchronize({'id': repo['id']})
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': repo['id'],
+            })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+
+        with self.assertRaises(CLIReturnCodeError):
+            LifecycleEnvironment.update({
+                'registry-name-pattern': new_pattern,
+                'id': lce['id'],
+                'organization-id': self.org_id,
+            })
+
 
 class DockerActivationKeyTestCase(CLITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
@@ -1303,15 +1632,16 @@ class DockerClientTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         try:
             # publishing takes few seconds sometimes
-            retries = 10 if bz_bug_is_open(1452149) else 1
-            for i in range(retries):
-                result = ssh.command(
-                    'docker pull {0}'.format(repo['published-at']),
-                    hostname=self.docker_host.ip_addr
-                )
-                if result.return_code == 0:
-                    break
-                sleep(2)
+            result, _ = wait_for(
+                    lambda: ssh.command(
+                            'docker pull {0}'.format(repo['published-at']),
+                            hostname=self.docker_host.ip_addr
+                    ),
+                    num_sec=60,
+                    delay=2,
+                    fail_condition=lambda out: out.return_code != 0,
+                    logger=self.logger
+            )
             self.assertEqual(result.return_code, 0)
             try:
                 result = ssh.command(
@@ -1340,6 +1670,282 @@ class DockerClientTestCase(CLITestCase):
                 'docker rmi {0}'.format(repo['published-at']),
                 hostname=self.docker_host.ip_addr
             )
+
+    @run_only_on('sat')
+    @skip_if_not_set('docker')
+    @tier3
+    def test_positive_container_admin_end_to_end_search(self):
+        """Verify that docker command line can be used against
+        Satellite server to search for container images stored
+        on Satellite instance.
+
+        :id: cefa74e1-e40d-4f47-853b-1268643cea2f
+
+        :steps:
+
+            1. Publish and promote content view with Docker content
+            2. Set "Unauthenticated Pull" option to false
+            3. Try to search for docker images on Satellite
+            4. Use Docker client to login to Satellite docker hub
+            5. Search for docker images
+            6. Use Docker client to log out of Satellite docker hub
+            7. Try to search for docker images (ensure last search result
+               is caused by change of Satellite option and not login/logout)
+            8. Set "Unauthenticated Pull" option to true
+            9. Search for docker images
+
+        :expectedresults: Client can search for docker images stored
+            on Satellite instance
+
+        :CaseLevel: System
+        """
+        pattern_prefix = gen_string('alpha', 5)
+        docker_upstream_name = 'alpine'
+        registry_name_pattern = (
+            "{}-<%= content_view.label %>/<%= repository.docker_upstream_name %>"
+        ).format(pattern_prefix)
+
+        # Satellite setup: create product and add Docker repository;
+        # create content view and add Docker repository;
+        # create lifecycle environment and promote content view to it
+        product = make_product_wait({'organization-id': self.org['id']})
+        repo = _make_docker_repo(
+                product['id'], upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org['id'],
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        LifecycleEnvironment.update({
+            'registry-name-pattern': registry_name_pattern,
+            'registry-unauthenticated-pull': 'false',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        docker_repo_uri = " {}/{}-{}/{} ".format(
+                settings.server.hostname,
+                pattern_prefix,
+                content_view['label'],
+                docker_upstream_name
+        ).lower()
+
+        # 3. Try to search for docker images on Satellite
+        remote_search_command = 'docker search {0}/{1}'.format(
+                settings.server.hostname,
+                docker_upstream_name
+        )
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertNotIn(
+                docker_repo_uri,
+                "\n".join(result.stdout)
+        )
+
+        # 4. Use Docker client to login to Satellite docker hub
+        result = ssh.command(
+                'docker login -u {} -p {} {}'.format(
+                        settings.server.admin_username,
+                        settings.server.admin_password,
+                        settings.server.hostname
+                ),
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 5. Search for docker images
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertIn(
+                docker_repo_uri,
+                "\n".join(result.stdout)
+        )
+
+        # 6. Use Docker client to log out of Satellite docker hub
+        result = ssh.command(
+                'docker logout {}'.format(settings.server.hostname),
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 7. Try to search for docker images
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertNotIn(
+                docker_repo_uri,
+                "\n".join(result.stdout)
+        )
+
+        # 8. Set "Unauthenticated Pull" option to true
+        LifecycleEnvironment.update({
+            'registry-unauthenticated-pull': 'true',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+
+        # 9. Search for docker images
+        result = ssh.command(
+                remote_search_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertIn(
+                docker_repo_uri,
+                "\n".join(result.stdout)
+        )
+
+    @run_only_on('sat')
+    @skip_if_not_set('docker')
+    @tier3
+    def test_positive_container_admin_end_to_end_pull(self):
+        """Verify that docker command line can be used against
+        Satellite server to pull in container images stored
+        on Satellite instance.
+
+        :id: 2a331f88-406b-4a5c-ae70-302a9994077f
+
+        :steps:
+
+            1. Publish and promote content view with Docker content
+            2. Set "Unauthenticated Pull" option to false
+            3. Try to pull in docker image from Satellite
+            4. Use Docker client to login to Satellite container registry
+            5. Pull in docker image
+            6. Use Docker client to log out of Satellite container registry
+            7. Try to pull in docker image (ensure next pull result
+               is caused by change of Satellite option and not login/logout)
+            8. Set "Unauthenticated Pull" option to true
+            9. Pull in docker image
+
+        :expectedresults: Client can pull in docker images stored
+            on Satellite instance
+
+        :CaseLevel: System
+        """
+        pattern_prefix = gen_string('alpha', 5)
+        docker_upstream_name = 'alpine'
+        registry_name_pattern = (
+            "{}-<%= content_view.label %>/<%= repository.docker_upstream_name %>"
+        ).format(pattern_prefix)
+
+        # Satellite setup: create product and add Docker repository;
+        # create content view and add Docker repository;
+        # create lifecycle environment and promote content view to it
+        product = make_product_wait({'organization-id': self.org['id']})
+        repo = _make_docker_repo(
+                product['id'], upstream_name=docker_upstream_name)
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org['id'],
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({
+            'id': content_view['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        ContentView.version_promote({
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        LifecycleEnvironment.update({
+            'registry-name-pattern': registry_name_pattern,
+            'registry-unauthenticated-pull': 'false',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+        docker_repo_uri = "{}/{}-{}/{}".format(
+                settings.server.hostname,
+                pattern_prefix,
+                content_view['label'],
+                docker_upstream_name
+        ).lower()
+
+        # 3. Try to pull in docker image from Satellite
+        docker_pull_command = 'docker pull {0}'.format(docker_repo_uri)
+        result = ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 1)
+
+        # 4. Use Docker client to login to Satellite docker hub
+        result = ssh.command(
+                'docker login -u {} -p {} {}'.format(
+                        settings.server.admin_username,
+                        settings.server.admin_password,
+                        settings.server.hostname
+                ),
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 5. Pull in docker image
+        # publishing takes few seconds sometimes
+        result, _ = wait_for(
+                lambda: ssh.command(
+                        docker_pull_command,
+                        hostname=self.docker_host.ip_addr
+                ),
+                num_sec=60,
+                delay=2,
+                fail_condition=lambda out: out.return_code != 0,
+                logger=self.logger
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 6. Use Docker client to log out of Satellite docker hub
+        result = ssh.command(
+                'docker logout {}'.format(settings.server.hostname),
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
+
+        # 7. Try to pull in docker image
+        result = ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 1)
+
+        # 8. Set "Unauthenticated Pull" option to true
+        LifecycleEnvironment.update({
+            'registry-unauthenticated-pull': 'true',
+            'id': lce['id'],
+            'organization-id': self.org['id'],
+        })
+
+        # 9. Pull in docker image
+        result = ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+        )
+        self.assertEqual(result.return_code, 0)
 
     @stubbed()
     @run_only_on('sat')

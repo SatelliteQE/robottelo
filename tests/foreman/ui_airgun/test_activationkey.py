@@ -39,11 +39,13 @@ from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
+    DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     PERMISSIONS,
     PRDS,
+    REPO_TYPE,
     REPOS,
     REPOSET,
 )
@@ -875,6 +877,93 @@ def test_positive_remove_user(session, module_org, test_name):
     user.delete()
     with session:
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
+
+
+@tier2
+def test_positive_add_docker_repo_cv(session, module_org):
+    """Add docker repository to a non-composite content view and
+    publish it. Then create an activation key and associate it with the
+    Docker content view.
+
+    :id: e4935729-c5bc-46be-a23a-93ebde6b3506
+
+    :expectedresults: Content view with docker repo can be added to
+        activation key
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = entities.Repository(
+        content_type=REPO_TYPE['docker'],
+        product=entities.Product(organization=module_org).create(),
+        url=DOCKER_REGISTRY_HUB,
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    cvv = content_view.read().version[0].read()
+    promote(cvv, lce.id)
+    ak_name = gen_string('alphanumeric')
+    with session:
+        session.activationkey.create({
+            'name': ak_name,
+            'lce': {lce.name: True},
+            'content_view': content_view.name,
+        })
+        ak = session.activationkey.read(ak_name, 'details')
+        assert ak['details']['content_view'] == content_view.name
+        assert ak['details']['lce'][lce.name][lce.name]
+
+
+@tier2
+def test_positive_add_docker_repo_ccv(session, module_org):
+    """Add docker repository to a non-composite content view and publish it.
+    Then add this content view to a composite content view and publish it.
+    Create an activation key and associate it with the composite Docker content
+    view.
+
+    :id: 0d412f54-6333-413e-8040-4e51ae5c069c
+
+    :expectedresults: Docker-based content view can be added to activation
+        key
+
+    :CaseLevel: Integration
+    """
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = entities.Repository(
+        content_type=REPO_TYPE['docker'],
+        product=entities.Product(organization=module_org).create(),
+        url=DOCKER_REGISTRY_HUB,
+    ).create()
+    content_view = entities.ContentView(
+        composite=False,
+        organization=module_org,
+        repository=[repo],
+    ).create()
+    content_view.publish()
+    cvv = content_view.read().version[0].read()
+    promote(cvv, lce.id)
+    composite_cv = entities.ContentView(
+        component=[cvv],
+        composite=True,
+        organization=module_org,
+    ).create()
+    composite_cv.publish()
+    ccvv = composite_cv.read().version[0].read()
+    promote(ccvv, lce.id)
+    ak_name = gen_string('alphanumeric')
+    with session:
+        session.activationkey.create({
+            'name': ak_name,
+            'lce': {lce.name: True},
+            'content_view': composite_cv.name,
+        })
+        ak = session.activationkey.read(ak_name, 'details')
+        assert ak['details']['content_view'] == composite_cv.name
+        assert ak['details']['lce'][lce.name][lce.name]
 
 
 @skip_if_not_set('clients')

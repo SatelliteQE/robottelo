@@ -14,10 +14,11 @@
 
 :Upstream: No
 """
+from datetime import timedelta
+from fauxfactory import gen_choice
 from nailgun import entities
-
-from robottelo.constants import FAKE_1_YUM_REPO, REPO_TYPE, VALID_GPG_KEY_FILE
-from robottelo.datafactory import gen_string, valid_data_list
+from robottelo.constants import FAKE_1_YUM_REPO, REPO_TYPE, VALID_GPG_KEY_FILE, SYNC_INTERVAL
+from robottelo.datafactory import gen_string, valid_data_list, valid_cron_expressions
 from robottelo.decorators import fixture, parametrize, tier2
 from robottelo.helpers import read_data_file
 
@@ -113,3 +114,50 @@ def test_positive_create_in_different_orgs(session, product_name):
                 product_name)[0]['Name'] == product_name
             product_values = session.product.read(product_name)
             assert product_values['details']['description'] == org.name
+
+
+@tier2
+def test_positive_product_create_with_create_sync_plan(session, module_org):
+    """Perform Sync Plan Create from Product Create Page
+
+    :id: 4a87b533-12b6-4d4e-8a99-4bb95efc4321
+
+    :expectedresults: Ensure sync get created and assigned to Product.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: medium
+    """
+    product_name = gen_string('alpha')
+    product_description = gen_string('alpha')
+    gpg_key = entities.GPGKey(
+        content=read_data_file(VALID_GPG_KEY_FILE),
+        organization=module_org
+    ).create()
+    plan_name = gen_string('alpha')
+    description = gen_string('alpha')
+    cron_expression = gen_choice(valid_cron_expressions())
+    with session:
+        startdate = (
+                session.browser.get_client_datetime() + timedelta(minutes=10))
+        sync_plan_values = {
+            'name': plan_name,
+            'interval': SYNC_INTERVAL['custom'],
+            'description': description,
+            'cron_expression': cron_expression,
+            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+            'date_time.hours': startdate.strftime('%H'),
+            'date_time.minutes': startdate.strftime('%M'),
+        }
+        session.product.create({
+            'name': product_name,
+            'gpg_key': gpg_key.name,
+            'description': product_description,
+        }, sync_plan_values=sync_plan_values)
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        product_values = session.product.read(product_name)
+        assert product_values['details']['name'] == product_name
+        assert product_values['details']['sync_plan'] == plan_name
+        # Delete product
+        session.product.delete(product_name)
+        assert not session.product.search(product_name)

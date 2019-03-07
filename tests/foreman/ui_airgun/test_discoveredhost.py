@@ -174,6 +174,7 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
+@skip_if_bug_open('bugzilla', 1665471)
 @tier2
 @upgrade
 def test_positive_provision_using_quick_host_button(
@@ -247,6 +248,7 @@ def test_positive_update_name(
             'name = {0}'.format(discovered_host_name))
 
 
+@skip_if_bug_open('bugzilla', 1665471)
 @tier2
 @upgrade
 def test_positive_auto_provision_host_with_rule(
@@ -312,7 +314,6 @@ def test_positive_delete(session, discovered_host):
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1634728)
 @tier2
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one

@@ -21,7 +21,6 @@ http://www.katello.org/docs/api/apidoc/sync_plans.html
 from datetime import datetime, timedelta
 from fauxfactory import gen_string, gen_choice
 from nailgun import client, entities
-from random import sample
 from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -71,7 +70,7 @@ def valid_sync_dates():
 @filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
-    return [u'hourly', u'daily', u'weekly']
+    return [u'hourly', u'daily', u'weekly', u'custom cron']
 
 
 class SyncPlanTestCase(APITestCase):
@@ -193,12 +192,15 @@ class SyncPlanCreateTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
-            with self.subTest(interval):
-                sync_plan = entities.SyncPlan(
-                    interval=interval,
-                    organization=self.org,
-                ).create()
-                self.assertEqual(sync_plan.interval, interval)
+            sync_plan = entities.SyncPlan(
+                description=gen_string('alpha'),
+                organization=self.org,
+                interval=interval
+            )
+            if interval == SYNC_INTERVAL['custom']:
+                sync_plan.cron_expression = gen_choice((valid_cron_expressions()))
+            sync_plan = sync_plan.create()
+            self.assertEqual(sync_plan.interval, interval)
 
     @run_only_on('sat')
     @tier1
@@ -368,19 +370,25 @@ class SyncPlanUpdateTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
-            with self.subTest(interval):
-                sync_plan = entities.SyncPlan(organization=self.org)
-                result = sync_plan.get_fields()['interval']
-                sync_plan.interval = sample(
-                    set(result.choices) - set([interval]),
-                    1
-                )[0]
-                sync_plan = sync_plan.create()
-                sync_plan.interval = interval
-                self.assertEqual(
-                    sync_plan.update(['interval']).interval,
-                    interval
-                )
+            sync_plan = entities.SyncPlan(
+                description=gen_string('alpha'),
+                organization=self.org,
+                interval=interval
+            )
+            if interval == SYNC_INTERVAL['custom']:
+                sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+            sync_plan = sync_plan.create()
+
+            valid_intervals = valid_sync_interval()
+            valid_intervals.remove(interval)
+            new_interval = gen_choice(valid_intervals)
+            sync_plan.interval = new_interval
+            if new_interval == SYNC_INTERVAL['custom']:
+                sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+                sync_plan = sync_plan.update(['interval', 'cron_expression'])
+            else:
+                sync_plan = sync_plan.update(['interval'])
+            self.assertEqual(sync_plan.interval, new_interval)
 
     @tier1
     @run_only_on('sat')
@@ -395,18 +403,19 @@ class SyncPlanUpdateTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
-            sync_plan = entities.SyncPlan(
-                description=gen_string('alpha'),
-                organization=self.org,
-                interval=interval
-            ).create()
+            if interval != SYNC_INTERVAL['custom']:
+                sync_plan = entities.SyncPlan(
+                    description=gen_string('alpha'),
+                    organization=self.org,
+                    interval=interval
+                ).create()
 
-            sync_plan.interval = SYNC_INTERVAL['custom']
-            sync_plan.cron_expression = gen_choice(valid_cron_expressions())
-            self.assertEqual(
-                sync_plan.update(['interval', 'cron_expression']).interval,
-                SYNC_INTERVAL['custom']
-            )
+                sync_plan.interval = SYNC_INTERVAL['custom']
+                sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+                self.assertEqual(
+                    sync_plan.update(['interval', 'cron_expression']).interval,
+                    SYNC_INTERVAL['custom']
+                )
 
     @run_only_on('sat')
     @tier1

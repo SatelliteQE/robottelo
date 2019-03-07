@@ -87,13 +87,13 @@ class NavigationTestCase(UITestCase):
         """
         with Session(self) as session:
             for page in self.page_objects().values():
-                    page.navigate_to_entity()
-                    self.assertIsNotNone(session.nav.wait_until_element(
-                        menu_locators['menu.current_text']))
-                    self.assertIsNone(session.nav.wait_until_element(
-                        common_locators['alert.error'], timeout=1))
-                    self.assertIsNone(session.nav.wait_until_element(
-                        common_locators['notif.error'], timeout=1))
+                page.navigate_to_entity()
+                self.assertIsNotNone(session.nav.wait_until_element(
+                    menu_locators['menu.current_text']))
+                self.assertIsNone(session.nav.wait_until_element(
+                    common_locators['alert.error'], timeout=1))
+                self.assertIsNone(session.nav.wait_until_element(
+                    common_locators['notif.error'], timeout=1))
 
     @tier1
     def test_positive_navigate_katello_foreman(self):

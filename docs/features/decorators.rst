@@ -30,6 +30,10 @@ manual (not automated) tests related to a feature. Example::
     def test_positive_create_matcher_attribute_priority(self):
         """Test will be implemented later"""
 
+Please note that ''stubbed'' is a decorator generator, and cannot be used as a
+"classic" Python decorator - it must be ''\@stubbed()'', not ''\@stubbed''
+(note the parenthesis).
+
 skip_if_bug_open
 ----------------
 

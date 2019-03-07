@@ -93,7 +93,7 @@ class RenameHostTestCase(TestCase):
         with get_connection() as connection:
             result = connection.run(
                 'satellite-change-hostname {0} -y -u {1} -p {2}'.format(
-                    new_hostname, self.username, self.password),
+                    new_hostname, self.username, self.password), timeout=1200,
             )
             self.assertEqual(result.return_code, 0, 'unsuccessful rename')
             self.assertIn(BCK_MSG, result.stdout)

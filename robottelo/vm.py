@@ -11,14 +11,21 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 """
 import logging
 import os
+import six
 
 from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
+from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_SLES11, DISTRO_SLES12, REPOS
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.host_info import get_host_os_version
+from six.moves.urllib.parse import urlunsplit
+# This conditional is here to centralize use of urljoin
+if six.PY3:  # pragma: no cover
+    from urllib.parse import urljoin  # noqa
+else:  # pragma: no cover
+    from urlparse import urljoin  # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -54,26 +61,27 @@ class VirtualMachine(object):
             image_dir=None, tag=None, hostname=None, domain=None,
             source_image=None, target_image=None, bridge=None):
         distro_docker = settings.docker.docker_image
-        distro_el6 = settings.distro.image_el6
-        distro_el7 = settings.distro.image_el7
-        allowed_distros = [distro_docker, distro_el6, distro_el7]
+        allowed_distros = list(settings.distro.__dict__.values()) + [distro_docker]
+        distro_mapping = {
+            DISTRO_RHEL6: settings.distro.image_el6,
+            DISTRO_RHEL7: settings.distro.image_el7,
+            DISTRO_SLES11: settings.distro.image_sles11,
+            DISTRO_SLES12: settings.distro.image_sles12,
+        }
         self.cpu = cpu
         self.ram = ram
-        if distro == DISTRO_RHEL6:
-            distro = distro_el6
-        if distro == DISTRO_RHEL7:
-            distro = distro_el7
         if distro is None:
             # use the same distro as satellite host server os
             server_host_os_version = get_host_os_version()
             if server_host_os_version.startswith('RHEL6'):
-                distro = distro_el6
+                distro = DISTRO_RHEL6
             elif server_host_os_version.startswith('RHEL7'):
-                distro = distro_el7
+                distro = DISTRO_RHEL7
             else:
                 raise VirtualMachineError(
-                    'cannot find a default compatible distro to create'
-                    ' the virtual machine')
+                    'Cannot find a default compatible distro to create the virtual machine')
+        if distro in distro_mapping.keys():
+            distro = distro_mapping[distro]
         self.distro = distro
         if self.distro not in (allowed_distros):
             raise VirtualMachineError(
@@ -379,6 +387,25 @@ gpgcheck=0'''.format(name, url)
             raise VirtualMachineError(
                 'Failed to download and install the katello-ca rpm')
 
+    def install_capsule_katello_ca(self, capsule=None):
+        """Downloads and installs katello-ca rpm on the virtual machine.
+
+        :param: str capsule: Capsule hostname
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
+        installed.
+        """
+        url = urlunsplit(('http', capsule, 'pub/', '', ''))
+        ca_url = urljoin(
+            url, 'katello-ca-consumer-latest.noarch.rpm')
+        ssh.command(
+            u'rpm -Uvh {0}'.format(ca_url),
+            self.ip_addr
+        )
+        result = ssh.command(
+            u'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
+        if result.return_code != 0:
+            raise VirtualMachineError('Failed to install the katello-ca rpm')
+
     def register_contenthost(self, org, activation_key=None, lce=None,
                              force=True, releasever=None, username=None,
                              password=None, auto_attach=False):
@@ -447,6 +474,34 @@ gpgcheck=0'''.format(name, url)
         except AssertionError:
             raise VirtualMachineError('Failed to remove the katello-ca rpm')
 
+    def remove_capsule_katello_ca(self, capsule=None):
+        """Removes katello-ca rpm and reset rhsm.conf from the virtual machine.
+
+        :param: str capsule: Capsule hostname
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't removed.
+        """
+        ssh.command(
+            'yum erase -y $(rpm -qa |grep katello-ca-consumer)',
+            self.ip_addr
+        )
+        result = ssh.command(
+            'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
+        if result.return_code == 0:
+            raise VirtualMachineError('Failed to remove the katello-ca rpm')
+        rhsm_updates = [
+            's/^hostname.*/hostname=subscription.rhn.redhat.com/',
+            's|^prefix.*|prefix=/subscription|',
+            's|^baseurl.*|baseurl=https://cdn.redhat.com|',
+            's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
+        ]
+        for command in rhsm_updates:
+            result = ssh.command(
+                'sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command),
+                self.ip_addr
+            )
+            if result.return_code != 0:
+                raise VirtualMachineError('Failed to reset the rhsm.conf')
+
     def unregister(self):
         """Run subscription-manager unregister.
 
@@ -507,14 +562,15 @@ gpgcheck=0'''.format(name, url)
             .format(rhel_repo)
         )
 
-    def configure_puppet(self, rhel_repo=None):
+    def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.
-
+        :param proxy_hostname: external capsule hostname
         :param rhel_repo: Red Hat repository link from properties file.
         :return: None.
-
         """
-        sat6_hostname = settings.server.hostname
+        if proxy_hostname is None:
+            proxy_hostname = settings.server.hostname
+
         self.configure_rhel_repo(rhel_repo)
         puppet_conf = (
             'pluginsync      = true\n'
@@ -523,24 +579,22 @@ gpgcheck=0'''.format(name, url)
             'daemon          = false\n'
             'ca_server       = {0}\n'
             'server          = {1}\n'
-            .format(sat6_hostname, sat6_hostname)
-        )
+            .format(proxy_hostname, proxy_hostname))
         result = self.run(u'yum install puppet -y')
         if result.return_code != 0:
             raise VirtualMachineError(
                 'Failed to install the puppet rpm')
         self.run(
             'echo "{0}" >> /etc/puppet/puppet.conf'
-            .format(puppet_conf)
-        )
-        # This particular puppet run on client would populate a cert on sat6
-        # under the capsule --> certifcates or via cli "puppet cert list", so
-        # that we sign it.
+            .format(puppet_conf))
+        # This particular puppet run on client would populate a cert on
+        # sat6 under the capsule --> certifcates or on capsule via cli "puppet
+        # cert list", so that we sign it.
         self.run(u'puppet agent -t')
-        ssh.command(u'puppet cert sign --all')
+        ssh.command(cmd=u'puppet cert sign --all', hostname=proxy_hostname)
         # This particular puppet run would create the host entity under
-        # 'All Hosts' and let's redirect stderr to /dev/null as errors at this
-        # stage can be ignored.
+        # 'All Hosts' and let's redirect stderr to /dev/null as errors at
+        #  this stage can be ignored.
         self.run(u'puppet agent -t 2> /dev/null')
 
     def execute_foreman_scap_client(self, policy_id=None):
