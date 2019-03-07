@@ -48,8 +48,6 @@ from robottelo.decorators import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
-    make_arch,
-    make_role,
     make_user,
     make_usergroup,
     set_context,
@@ -940,54 +938,6 @@ class UserTestCase(UITestCase):
             self.assertIsNotNone(self.user.search(user_name))
             self.user.delete(user_name, really=False)
 
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_end_to_end(self):
-        """Create User and perform different operations
-
-        :id: 57f7054e-2865-4ab8-bc2b-e300a8dacee5
-
-        :Steps:
-            1. Create User
-            2. Login with the new user
-            3. Upload Subscriptions
-            4. Provision Systems
-            5. Add/Remove Users
-            6. Add/Remove Orgs
-            7. Delete the User
-
-        :expectedresults: All actions passed
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    def test_positive_end_to_end_without_org(self):
-        """Create User with no Org assigned and attempt different
-        operations
-
-        :id: 36b6d667-59cc-4442-aa40-c029bdb2b534
-
-        :Steps:
-            1. Create User.  Do not assign any Org
-            2. Login with the new user
-            3. Attempt to Upload Subscriptions
-            4. Attempt to Provision Systems
-            5. Attempt to Add/Remove Users
-            6. Attempt to Add/Remove Orgs
-
-        :expectedresults: All actions failed since the User is not assigned to
-            any Org
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
     @tier1
     def test_positive_set_timezone(self):
         """Set a new timezone for the user
@@ -1192,100 +1142,6 @@ class ActiveDirectoryUserTestCase(UITestCase):
             if self.user.search(self.ldap_user_name):
                 self.user.delete(self.ldap_user_name)
         super(ActiveDirectoryUserTestCase, self).tearDown()
-
-    @tier2
-    @upgrade
-    def test_positive_create_in_ldap_mode(self):
-        """Create User in ldap mode
-
-        :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
-
-        :expectedresults: User is created without specifying the password
-
-        :CaseLevel: Integration
-        """
-        user_name = gen_string('alpha')
-        with Session(self) as session:
-            make_user(
-                session,
-                username=user_name,
-                authorized_by='LDAP-' + self.ldap_server_name,
-                password1='',
-                password2='',
-            )
-            self.assertIsNotNone(self.user.search(user_name))
-
-    @skip_if_not_set('ldap')
-    @tier3
-    def test_positive_ad_basic_no_roles(self):
-        """Login with LDAP Auth- AD for user with no roles/rights
-
-        :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
-
-        :setup: assure properly functioning AD server for authentication
-
-        :steps: Login to server with an AD user.
-
-        :expectedresults: Log in to foreman UI successfully but cannot access
-            functional areas of UI
-
-        :CaseLevel: System
-        """
-        self.check_external_user()
-        with Session(self, user=self.ldap_user_name,
-                     password=self.ldap_user_passwd):
-            self.assertIsNotNone(self.user.wait_until_element(
-                common_locators['permission_denied']))
-
-    @skip_if_not_set('ldap')
-    @tier3
-    @upgrade
-    def test_positive_ad_basic_roles(self):
-        """Login with LDAP - AD for user with roles/rights
-
-        :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
-
-        :setup: assure properly functioning AD server for authentication
-
-        :steps: Login to server with an AD user.
-
-        :expectedresults: Log in to foreman UI successfully and can access
-            appropriate functional areas in UI
-
-        :CaseLevel: System
-        """
-        arch_name = gen_string('alphanumeric')
-        permissions = ['view_architectures', 'create_architectures']
-        resource_type = 'Architecture'
-        role_name = gen_string('alphanumeric')
-        self.check_external_user()
-        with Session(self) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
-            make_role(session, name=role_name)
-            self.assertIsNotNone(self.role.search(role_name))
-            self.role.add_permission(
-                role_name,
-                resource_type=resource_type,
-                permission_list=permissions,
-            )
-            self.assertIsNotNone(
-                self.role.wait_until_element(
-                    common_locators['alert.success']))
-            assigned_permissions = self.role.filters_get_permissions(
-                role_name, [resource_type])
-            self.assertIsNotNone(assigned_permissions)
-            self.assertEqual(
-                set(permissions), set(assigned_permissions[resource_type]))
-            self.user.update(self.ldap_user_name, new_roles=[role_name])
-            self.user.click(self.user.search(self.ldap_user_name))
-            self.user.click(tab_locators['users.tab_roles'])
-            self.assertIsNotNone(
-                self.user.wait_until_element((
-                    common_locators['entity_deselect'] % role_name)))
-        with Session(self, user=self.ldap_user_name,
-                     password=self.ldap_user_passwd) as session:
-            make_arch(session, name=arch_name)
-            self.assertIsNotNone(self.architecture.search(arch_name))
 
 
 class SshKeyInUserTestCase(UITestCase):

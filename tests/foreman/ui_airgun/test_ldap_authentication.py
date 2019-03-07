@@ -315,6 +315,7 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
 
 
+@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_katello_role(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
@@ -367,6 +368,7 @@ def test_positive_add_katello_role(
         assert current_user == ldap_data['ldap_user_name']
 
 
+@skip_if_not_set('ldap')
 @upgrade
 @tier2
 def test_positive_update_external_roles(
@@ -439,6 +441,7 @@ def test_positive_update_external_roles(
         assert current_user == ldap_data['ldap_user_name']
 
 
+@skip_if_not_set('ldap')
 @tier2
 @upgrade
 def test_positive_delete_external_roles(
@@ -499,6 +502,7 @@ def test_positive_delete_external_roles(
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
+@skip_if_not_set('ldap')
 @tier2
 def test_positive_update_external_user_roles(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
@@ -573,6 +577,7 @@ def test_positive_update_external_user_roles(
         assert current_user == ldap_data['ldap_user_name']
 
 
+@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_admin_role_with_org_loc(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
@@ -630,6 +635,7 @@ def test_positive_add_admin_role_with_org_loc(
         assert ak['details']['name'] == ak_name
 
 
+@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_foreman_role_with_org_loc(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
@@ -693,6 +699,7 @@ def test_positive_add_foreman_role_with_org_loc(
         assert module_loc.name in hostgroup['locations']['resources']['assigned']
 
 
+@skip_if_not_set('ldap')
 @tier2
 def test_positive_add_katello_role_with_org(
         session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
@@ -763,3 +770,88 @@ def test_positive_add_katello_role_with_org(
     ak = entities.ActivationKey(organization=module_org).search(
         query={'search': 'name={}'.format(ak_name)})[0].read()
     assert ak.organization.id == module_org.id
+
+
+@skip_if_not_set('ldap')
+@tier2
+@upgrade
+def test_positive_create_user_in_ldap_mode(session, auth_source):
+    """Create User in ldap mode
+
+    :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
+
+    :expectedresults: User is created without specifying the password
+
+    :CaseLevel: Integration
+    """
+    auth_source_name = 'LDAP-' + auth_source.name
+    name = gen_string('alpha')
+    with session:
+        session.user.create({
+            'user.login': name,
+            'user.auth': auth_source_name,
+        })
+        assert session.user.search(name)[0]['Username'] == name
+        user_values = session.user.read(name)
+        assert user_values['user']['auth'] == auth_source_name
+
+
+@skip_if_not_set('ldap')
+@tier2
+def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, auth_source):
+    """Login with LDAP Auth- AD for user with no roles/rights
+
+    :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
+
+    :setup: assure properly functioning AD server for authentication
+
+    :steps: Login to server with an AD user.
+
+    :expectedresults: Log in to foreman UI successfully but cannot access
+        functional areas of UI
+
+    :CaseLevel: Integration
+    """
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.user.search('')
+
+
+@skip_if_not_set('ldap')
+@tier2
+@upgrade
+def test_positive_login_ad_user_basic_roles(
+        session, test_name, ldap_data, ldap_user_name, auth_source):
+    """Login with LDAP - AD for user with roles/rights
+
+    :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
+
+    :setup: assure properly functioning AD server for authentication
+
+    :steps: Login to server with an AD user.
+
+    :expectedresults: Log in to foreman UI successfully and can access
+        appropriate functional areas in UI
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    role = entities.Role().create()
+    permissions = {'Architecture': PERMISSIONS['Architecture']}
+    create_role_permissions(role, permissions)
+    with session:
+        session.user.update(
+            ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.usergroup.search('')
+        ldapsession.architecture.create({'name': name})
+        assert ldapsession.architecture.search(name)[0]['Name'] == name

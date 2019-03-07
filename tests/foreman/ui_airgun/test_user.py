@@ -15,11 +15,95 @@
 :Upstream: No
 """
 import random
+from fauxfactory import gen_string, gen_email
 from nailgun import entities
 
+from airgun.session import Session
 from robottelo.constants import DEFAULT_ORG, ROLES
-from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2
+from robottelo.decorators import fixture, tier2, upgrade
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, test_name, module_org, module_loc):
+    """Perform end to end testing for user component
+
+    :id: 2794fdd0-cfe3-4f1a-aa5f-25b2d211ae12
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    ak_name = gen_string('alpha')
+    firstname = gen_string('alpha')
+    lastname = gen_string('alpha')
+    password = gen_string('alpha')
+    email = gen_email()
+    description = gen_string('alphanumeric')
+    language = 'English (United States)'
+    timezone = '(GMT+00:00) UTC'
+    role = entities.Role().create().name
+    with session:
+        # Create new user and validate its values
+        session.user.create({
+            'user.login': name,
+            'user.firstname': firstname,
+            'user.lastname': lastname,
+            'user.mail': email,
+            'user.description': description,
+            'user.language': language,
+            'user.timezone': timezone,
+            'user.auth': 'INTERNAL',
+            'user.password': password,
+            'user.confirm': password,
+            'locations.resources.assigned': [module_loc.name],
+            'organizations.resources.assigned': [module_org.name],
+            'roles.admin': True,
+            'roles.resources.assigned': [role],
+        })
+        assert session.user.search(name)[0]['Username'] == name
+        user_values = session.user.read(name)
+        assert user_values['user']['login'] == name
+        assert user_values['user']['firstname'] == firstname
+        assert user_values['user']['lastname'] == lastname
+        assert user_values['user']['mail'] == email
+        assert user_values['user']['description'] == description
+        assert user_values['user']['language'] == language
+        assert user_values['user']['timezone'] == timezone
+        assert user_values['user']['auth'] == 'INTERNAL'
+        assert user_values['locations']['resources']['assigned'] == [module_loc.name]
+        assert user_values['organizations']['resources']['assigned'] == [module_org.name]
+        assert user_values['roles']['admin'] is True
+        assert user_values['roles']['resources']['assigned'] == [role]
+        # Update user with new name
+        session.user.update(name, {'user.login': new_name})
+        assert session.user.search(new_name)[0]['Username'] == new_name
+        assert not session.user.search(name)
+        # Login into application using new user
+        with Session(test_name, new_name, password) as newsession:
+            newsession.organization.select(module_org.name)
+            newsession.location.select(module_loc.name)
+            newsession.activationkey.create({'name': ak_name})
+            assert newsession.activationkey.search(ak_name)[0]['Name'] == ak_name
+            current_user = newsession.activationkey.read(ak_name, 'current_user')['current_user']
+            assert current_user == '{} {}'.format(firstname, lastname)
+        # Delete user
+        session.user.delete(new_name)
+        assert not session.user.search(new_name)
 
 
 @tier2
