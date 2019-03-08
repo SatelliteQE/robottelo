@@ -1548,7 +1548,7 @@ class DockerRepositoryTestCase(APITestCase):
         ).create()
         repo.sync()
         repo = repo.read()
-        self.assertIsNone(repo.docker_tags_whitelist)
+        self.assertEqual(len(repo.docker_tags_whitelist), 0)
         self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
 
         repo.docker_tags_whitelist = tags

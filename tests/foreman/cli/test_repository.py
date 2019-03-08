@@ -1049,9 +1049,7 @@ class RepositoryTestCase(CLITestCase):
         })
         Repository.synchronize({'id': repo['id']})
         repo = self._validated_image_tags_count(repo=repo)
-        # Field is displayed only if there is any content
-        with self.assertRaises(KeyError):
-            repo['container-image-tags-filter']
+        self.assertFalse(repo['container-image-tags-filter'])
         self.assertGreaterEqual(int(repo['content-counts']
                                     ['container-image-tags']), 2)
         Repository.update({
