@@ -1111,11 +1111,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        start_date = datetime.utcnow() - timedelta(weeks=1) \
-            + timedelta(seconds=delay)
-        sync_plan.sync_date = start_date
-        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
         self.validate_task_status(repo.id,
                                   repo_backend_id=repo.backend_identifier
