@@ -1043,7 +1043,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
-            interval=u'hourly',
+            interval=u'daily',
             sync_date=start_date,
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
