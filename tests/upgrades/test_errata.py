@@ -34,6 +34,7 @@ from upgrade_tests.helpers.scenarios import (
     dockerize,
     get_entity_data
 )
+from wait_for import wait_for
 
 
 class Scenario_errata_count(APITestCase):
@@ -66,14 +67,16 @@ class Scenario_errata_count(APITestCase):
         execute(
             docker_execute_command,
             client_container_id,
-            'goferd -f',
+            '/usr/bin/goferd -f',
             **kwargs
         )
+        status = execute(docker_execute_command, client_container_id, 'ps -aux',
+                         host=self.docker_vm)[self.docker_vm]
+        self.assertIn('goferd', status)
 
     def _check_package_installed(self, client_container_id, package):
         """Verify if packge is installed on docker content host."""
         kwargs = {'host': self.docker_vm}
-        docker_execute_command
         installed_package = execute(
             docker_execute_command,
             client_container_id,
@@ -97,6 +100,32 @@ class Scenario_errata_count(APITestCase):
         )[self.docker_vm]
         self._check_package_installed(client_container_id, package)
 
+    def _host_status(self, client_container_name=None):
+        """ fetch the content host details.
+         :param: str client_container_name: The content host hostname
+        :return: nailgun.entity.host: host
+        """
+        host = entities.Host().search(
+            query={'search': '{0}'.format(client_container_name)})
+        return host
+
+    def _host_location_update(self, client_container_name=None, loc=None):
+        """ Check the content host status (as package profile update task does take time to
+        upload) and update location.
+         :param: str client_container_name: The content host hostname
+        :param: str loc: Location
+        """
+        if len(self._host_status(client_container_name=client_container_name)) == 0:
+            wait_for(
+                lambda: len(self._host_status(client_container_name=client_container_name)) > 0,
+                timeout=100,
+                delay=2,
+                logger=self.logger
+            )
+        host_loc = self._host_status(client_container_name=client_container_name)[0]
+        host_loc.location = loc
+        host_loc.update(['location'])
+
     def _create_custom_rhel_tools_repos(self, product):
         """Install packge on docker content host."""
         rhel_repo_url = os.environ.get('{}_CUSTOM_REPO'.format(self.client_os.upper()))
@@ -115,6 +144,7 @@ class Scenario_errata_count(APITestCase):
                                         url=rhel_repo_url,
                                         ).create()
         call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
+        call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
         return tools_repo, rhel_repo
 
     def _publish_content_view(self, org, repolist):
@@ -163,9 +193,9 @@ class Scenario_errata_count(APITestCase):
                                               content_type='yum',
                                               url=FAKE_9_YUM_REPO
                                               ).create()
+        product.sync()
 
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
-        product.sync()
         repolist = [custom_yum_repo, tools_repo, rhel_repo]
         content_view = self._publish_content_view(org=org, repolist=repolist)
         ak = entities.ActivationKey(
@@ -182,6 +212,8 @@ class Scenario_errata_count(APITestCase):
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = list(rhel7_client.values())[0]
+        client_container_name = [key for key in rhel7_client.keys()][0]
+        self._host_location_update(client_container_name=client_container_name, loc=loc)
         self._install_or_update_package(client_container_id, 'katello-agent')
         self._run_goferd(client_container_id)
 
@@ -189,9 +221,6 @@ class Scenario_errata_count(APITestCase):
             self._install_or_update_package(client_container_id, package)
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
-        host.location = loc
-        host = host.update(['location'])
-
         applicable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         self.assertGreater(applicable_errata_count, 1)
