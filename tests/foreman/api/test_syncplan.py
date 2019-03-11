@@ -1088,7 +1088,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """
         delay = 4 * 60
         start_date = datetime.utcnow() - timedelta(weeks=1) \
-            + timedelta(seconds=delay)
+            + timedelta(seconds=3600)
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
         # Create and Associate sync plan with product
@@ -1107,7 +1107,10 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Wait the rest of expected time
+        # Update with the current UTC time plus a delay
+        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_plan.update(['sync_date'])
+        # Wait some of the delay time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
