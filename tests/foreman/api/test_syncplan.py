@@ -1105,7 +1105,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Update with the current UTC time plus a delay
-        start_date = datetime.utcnow() - timedelta(weeks=1) \
+        sync_plan.sync_date = datetime.utcnow() - timedelta(weeks=1) \
             + timedelta(seconds=delay)
         sync_plan.update(['sync_date'])
         # Verify product was synced successfully
