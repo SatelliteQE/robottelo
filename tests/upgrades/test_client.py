@@ -315,6 +315,10 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
             'goferd -f',
             **kwargs
         )
+        status = execute(docker_execute_command, client_container_id, 'ps -aux',
+                         host=self.docker_vm)[self.docker_vm]
+        self.assertIn('goferd', status)
+
         create_dict(
             {self.__class__.__name__: rhel7_client}
         )
@@ -436,6 +440,9 @@ class Scenario_upgrade_new_client_and_package_installation(APITestCase):
             'goferd -f',
             **kwargs
         )
+        status = execute(docker_execute_command, client_container_id, 'ps -aux',
+                         host=self.docker_vm)[self.docker_vm]
+        self.assertIn('goferd', status)
         # Holding on for 30 seconds wihle goferd starts
         time.sleep(30)
         client_id = entities.Host().search(
