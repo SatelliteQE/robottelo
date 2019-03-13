@@ -186,6 +186,7 @@ from typing import Any, Dict, List, Tuple, Optional, TYPE_CHECKING  # noqa
 
 from robottelo.cli.factory import (
     make_activation_key,
+    make_lifecycle_environment,
     make_content_view,
     make_product_wait,
     make_repository,
@@ -794,15 +795,18 @@ class RepositoryCollection(object):
         self._repos_info = repos_info
         return custom_product, repos_info
 
-    def _setup_content_view(self, org_id, lce_id):
+    def setup_content_view(self, org_id, lce_id=None):
         # type: (int, int) -> Tuple[Dict, Dict]
         """Setup organization content view by adding all the repositories, publishing and promoting
         to lce if needed.
         """
-        lce = LifecycleEnvironment.info({
-            'id': lce_id,
-            'organization-id': org_id,
-        })
+        if lce_id is None:
+            lce = make_lifecycle_environment({'organization-id': org_id})
+        else:
+            lce = LifecycleEnvironment.info({
+                'id': lce_id,
+                'organization-id': org_id,
+            })
         content_view = make_content_view({'organization-id': org_id})
         # Add repositories to content view
         for repo in self:
@@ -818,7 +822,7 @@ class RepositoryCollection(object):
             ContentView.version_promote({
                 'id': content_view_version['id'],
                 'organization-id': org_id,
-                'to-lifecycle-environment-id': lce_id,
+                'to-lifecycle-environment-id': lce['id'],
             })
         content_view = ContentView.info({'id': content_view['id']})
         return content_view, lce
@@ -892,7 +896,7 @@ class RepositoryCollection(object):
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [DEFAULT_SUBSCRIPTION_NAME]
         custom_product, repos_info = self.setup(org_id=org_id, download_policy=download_policy)
-        content_view, lce = self._setup_content_view(org_id, lce_id)
+        content_view, lce = self.setup_content_view(org_id, lce_id)
         custom_product_name = custom_product['name'] if custom_product else None
         subscription_names = list(rh_subscriptions)
         if custom_product_name:

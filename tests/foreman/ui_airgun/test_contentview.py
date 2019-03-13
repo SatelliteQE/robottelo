@@ -41,12 +41,14 @@ from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_2,
+    CUSTOM_PUPPET_REPO,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_PTABLE,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
+    DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
     FAKE_0_INC_UPD_URL,
     FAKE_0_INC_UPD_NEW_PACKAGE,
@@ -77,7 +79,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    bz_bug_is_open,
     fixture,
     skip_if_not_set,
     run_in_one_thread,
@@ -92,6 +93,8 @@ from robottelo.helpers import (
     repo_add_updateinfo,
 )
 from robottelo.products import (
+    DockerRepository,
+    PuppetRepository,
     RepositoryCollection,
     SatelliteToolsRepository,
     VirtualizationAgentsRepository,
@@ -494,11 +497,6 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
     with session:
         result = session.sync_status.synchronize([(module_prod.name, repo.name)])
         assert result[0] == 'Syncing Complete.'
-        if bz_bug_is_open(1652938):
-            try:
-                session.contentview.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         session.contentview.add_docker_repo(content_view.name, repo.name)
         cv = session.contentview.read(content_view.name, 'docker_repositories')
         assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
@@ -1572,6 +1570,210 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
 
 
 @tier2
+def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
+    """Remove promoted content view version from Library environment
+
+    :id: a8649444-b063-4fb4-b932-a3fae7d4021d
+
+    :Steps:
+
+        1. Create a content view
+        2. Add a puppet module(s) to the content view
+        3. Publish the content view
+        4. Promote the content view version from Library -> DEV
+        5. remove the content view version from Library environment
+
+    :expectedresults:
+
+        1. Content view version exist only in DEV and not in Library
+        2. The puppet module(s) exists in content view version
+
+    :CaseLevel: Integration
+    """
+    puppet_module_name = 'generic_1'
+    author = 'robottelo'
+    repo = RepositoryCollection(
+        repositories=[
+            PuppetRepository(
+                url=CUSTOM_PUPPET_REPO,
+                modules=[dict(name=puppet_module_name, author=author)]
+            )
+        ]
+    )
+    repo.setup(module_org.id)
+    cv, lce = repo.setup_content_view(module_org.id)
+    with session:
+        cv_values = session.contentview.read(cv['name'])
+        assert cv_values['puppet_modules']['table'][0]['Name'] == puppet_module_name
+        assert cv_values['puppet_modules']['table'][0]['Author'] == author
+        cvv = session.contentview.read_version(cv['name'], VERSION)
+        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
+        assert cvv['puppet_modules']['table'][0]['Author'] == author
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert ENVIRONMENT in cvv['Environments']
+        # remove the content view version from Library
+        session.contentview.remove_version(cv['name'], VERSION, False, [ENVIRONMENT])
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert ENVIRONMENT not in cvv['Environments']
+        # ensure that puppet module still in content view version
+        cvv = session.contentview.read_version(cv['name'], VERSION)
+        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
+        assert cvv['puppet_modules']['table'][0]['Author'] == author
+
+
+@tier2
+def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org):
+    """Remove QE promoted content view version from Library environment
+
+    :id: 71ad8b72-68c4-4c98-9387-077f54ef0184
+
+    :Steps:
+
+        1. Create a content view
+        2. Add docker repo(s) to it
+        3. Publish content view
+        4. Promote the content view version to multiple environments
+            Library -> DEV -> QE
+        5. remove the content view version from Library environment
+
+    :expectedresults: Content view version exist only in DEV, QE and not in
+        Library
+
+    :CaseLevel: Integration
+    """
+    dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
+    repo = RepositoryCollection(
+        repositories=[DockerRepository(
+            url=DOCKER_REGISTRY_HUB, upstream_name=DOCKER_UPSTREAM_NAME)
+        ]
+    )
+    repo.setup(module_org.id)
+    repo_name = repo.repos_info[0]['name']
+    cv, lce = repo.setup_content_view(module_org.id, dev_lce.id)
+    cvv = entities.ContentView(id=cv['id']).read().version[0]
+    promote(cvv, qe_lce.id)
+    with session:
+        cv_values = session.contentview.read(cv['name'])
+        assert cv_values['docker_repositories']['resources']['assigned'][0]['Name'] == repo_name
+        cvv_content = session.contentview.read_version(cv['name'], VERSION)
+        assert cvv_content['docker_repositories']['table'][0]['Name'] == repo_name
+        cvv_table = session.contentview.search_version(cv['name'], VERSION)
+        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv_table[0]['Environments']
+        # remove the content view version from Library
+        session.contentview.remove_version(cv['name'], VERSION, False, [ENVIRONMENT])
+        cvv_content = session.contentview.read_version(cv['name'], VERSION)
+        assert cvv_content['docker_repositories']['table'][0]['Name'] == repo_name
+        cvv_table = session.contentview.search_version(cv['name'], VERSION)
+        assert ' '.join((dev_lce.name, qe_lce.name)) == cvv_table[0]['Environments']
+
+
+@tier2
+def test_positive_remove_cv_version_from_env(session, module_org):
+    """Remove promoted content view version from environment
+
+    :id: d1da23ee-a5db-4990-9572-1a0919a9fe1c
+
+    :Steps:
+
+        1. Create a content view
+        2. Add a yum repo and a puppet module to the content view
+        3. Publish the content view
+        4. Promote the content view version to multiple environments
+            Library -> DEV -> QE
+        5. remove the content view version from QE environment
+        6. Assert: content view version exists only in Library, DEV and not in QE
+        7. Promote again from DEV -> QE
+
+    :expectedresults: Content view version exist in Library, DEV, QE
+
+    :CaseLevel: Integration
+    """
+    dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
+    puppet_module_name = 'generic_1'
+    author = 'robottelo'
+    repos = RepositoryCollection(
+        repositories=[
+            YumRepository(url=FAKE_0_YUM_REPO),
+            PuppetRepository(
+                url=CUSTOM_PUPPET_REPO,
+                modules=[dict(name=puppet_module_name, author=author)]
+            )
+        ]
+    )
+    repos.setup(module_org.id)
+    yum_repo_name = [
+        repo['name'] for repo in repos.repos_info if repo['content-type'] == 'yum'][0]
+    cv, lce = repos.setup_content_view(module_org.id, dev_lce.id)
+    cvv = entities.ContentView(id=cv['id']).read().version[0]
+    promote(cvv, qe_lce.id)
+    with session:
+        cvv = session.contentview.read_version(cv['name'], VERSION)
+        assert cvv['yum_repositories']['table'][0]['Name']
+        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
+        assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert qe_lce.name in cvv['Environments']
+        # remove the content view version from QE Environment
+        session.contentview.remove_version(cv['name'], VERSION, False, [qe_lce.name])
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert qe_lce.name not in cvv['Environments']
+        # promote again to QE
+        result = session.contentview.promote(cv['name'], VERSION, qe_lce.name)
+        assert 'Promoted to {}'.format(qe_lce.name) in result['Status']
+        cvv = session.contentview.read_version(cv['name'], VERSION)
+        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
+        assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert qe_lce.name in cvv['Environments']
+
+
+@upgrade
+@tier2
+def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
+    """Delete published content view with version promoted to multiple
+     environments
+
+    :id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
+
+    :Steps:
+
+        1. Create a content view
+        2. Add a yum repo and a puppet module to the content view
+        3. Publish the content view
+        4. Promote the content view to multiple environment Library -> DEV
+            -> QE -> STAGE -> PROD
+        5. Delete the content view, this should delete the content with all
+            it's published/promoted versions from all environments
+
+    :expectedresults: The content view doesn't exists
+
+    :CaseLevel: Integration
+    """
+    repo = RepositoryCollection(
+        repositories=[YumRepository(url=FAKE_0_YUM_REPO)])
+    repo.setup(module_org.id)
+    cv, lce = repo.setup_content_view(module_org.id)
+    repo_name = repo.repos_info[0]['name']
+    with session:
+        cvv = session.contentview.read_version(cv['name'], VERSION)
+        assert repo_name == cvv['yum_repositories']['table'][0]['Name']
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert lce['name'] in cvv['Environments']
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert len(lce_values['content_views']['resources']) == 1
+        assert lce_values['content_views']['resources'][0]['Name'] == cv['name']
+        session.contentview.remove_version(
+            cv['name'], VERSION, False, [ENVIRONMENT, lce['name']])
+        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
+        assert lce['name'] not in cvv['Environments']
+        session.contentview.delete(cv['name'])
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert len(lce_values['content_views']['resources']) == 0
+
+
+@tier2
 @upgrade
 def test_positive_delete_composite_version(session, module_org):
     """Delete a composite content-view version associated to 'Library'
@@ -1906,6 +2108,45 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
 
 
 @tier2
+def test_positive_remove_package_from_exclusion_filter(session, module_org):
+    """Remove package from content view exclusion filter
+
+    :id: 2f0adc16-2305-4adf-8582-82e6110fa385
+
+    :expectedresults: Package was successfully removed from content view
+        filter and is present in next published content view version
+
+    :CaseLevel: Integration
+    """
+    filter_name = gen_string('alpha')
+    package_name = 'cow'
+    repo = RepositoryCollection(
+        repositories=[YumRepository(url=FAKE_1_YUM_REPO)])
+    repo.setup(module_org.id)
+    cv, lce = repo.setup_content_view(module_org.id)
+    with session:
+        session.contentviewfilter.create(cv['name'], {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv['name'], filter_name, package_name, None, ('Equal To', '2.2-3'))
+        result = session.contentview.publish(cv['name'])
+        assert result['Version'] == 'Version 2.0'
+        packages = session.contentview.search_version_package(
+            cv['name'], 'Version 2.0', 'name = "{}"'.format(package_name))
+        assert not packages
+        session.contentviewfilter.remove_package_rule(cv['name'], filter_name, package_name)
+        result = session.contentview.publish(cv['name'])
+        assert result['Version'] == 'Version 3.0'
+        packages = session.contentview.search_version_package(
+            cv['name'], 'Version 3.0', 'name = "{}"'.format(package_name))
+        assert len(packages) == 1
+        assert packages[0]['Name'] == package_name
+
+
+@tier2
 def test_positive_update_inclusive_filter_package_version(session, module_org):
     """Update version of package inside inclusive cv package filter
 
@@ -2036,6 +2277,50 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
         assert (
             packages[0]['Name'] == package_name
             and packages[0]['Version'] == '0.71'
+        )
+
+
+@tier2
+def test_positive_add_all_security_errata_by_date_range_filter(session, module_org):
+    """Create erratum date range filter to include only security errata and
+    publish new content view version
+
+    :id: c8f4453b-e654-4e8d-9156-5443bfb92f23
+
+    :CaseImportance: High
+
+    :expectedresults: all security errata is present in content view
+        version
+    """
+    filter_name = gen_string('alphanumeric')
+    start_date = datetime.date(2010, 1, 1)
+    end_date = datetime.date.today()
+    repo = RepositoryCollection(
+        repositories=[YumRepository(url=FAKE_9_YUM_REPO)])
+    repo.setup(module_org.id)
+    cv, lce = repo.setup_content_view(module_org.id)
+    with session:
+        session.contentviewfilter.create(cv['name'], {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['erratum by date and type'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        session.contentviewfilter.update(cv['name'], filter_name, {
+            'content_tabs.erratum_date_range.security': True,
+            'content_tabs.erratum_date_range.enhancement': False,
+            'content_tabs.erratum_date_range.bugfix': False,
+            'content_tabs.erratum_date_range.date_type': 'Issued On',
+            'content_tabs.erratum_date_range.start_date': start_date.strftime(
+                '%m-%d-%Y'),
+            'content_tabs.erratum_date_range.end_date': end_date.strftime(
+                '%m-%d-%Y'),
+        })
+        session.contentview.publish(cv['name'])
+        cvv = session.contentview.read_version(cv['name'], 'Version 2.0')
+        assert len(cvv['errata']['table']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        assert all(
+            errata['Type'] == FILTER_ERRATA_TYPE['security']
+            for errata in cvv['errata']['table']
         )
 
 
@@ -2382,11 +2667,6 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
         for add_puppet in [True, False]:
             for force_value in [True, False]:
                 cv_name = gen_string('alpha')
-                if bz_bug_is_open(1652938):
-                    try:
-                        session.contentview.search('')
-                    except (NavigationTriesExceeded, NoSuchElementException):
-                        session.browser.refresh()
                 session.contentview.create({'name': cv_name})
                 session.contentview.update(
                     cv_name, {'details.force_puppet': force_value})
@@ -2539,6 +2819,43 @@ def test_positive_subscribe_system_with_custom_content(session):
         repositories=[
             SatelliteToolsRepository(),
             YumRepository(url=FAKE_0_YUM_REPO)
+        ]
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        repos_collection.setup_virtual_machine(vm)
+        assert vm.subscribed
+        with session:
+            session.organization.select(org.name)
+            # assert the vm exists in content hosts page
+            assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+
+
+@upgrade
+@tier2
+def test_positive_subscribe_system_with_puppet_modules(session):
+    """Attempt to subscribe a host to content view with puppet modules
+
+    :id: c57fbdca-31e8-43f1-844d-b82b13c0c4de
+
+    :setup: content view with puppet module
+
+    :expectedresults: Systems can be subscribed to content view(s)
+
+    :CaseLevel: Integration
+    """
+    puppet_module_name = 'stdlib'
+    author = 'puppetlabs'
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            PuppetRepository(
+                url=FAKE_1_PUPPET_REPO,
+                modules=[dict(name=puppet_module_name, author=author)]
+            )
         ]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
@@ -3277,11 +3594,6 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
             })
         # assert the user can view all the content views created
         # by admin user
-        if bz_bug_is_open(1652938):
-            try:
-                session.contentview.search('')
-            except (NavigationTriesExceeded, NoSuchElementException):
-                session.browser.refresh()
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
         # assert that the user can delete a content view
@@ -3306,6 +3618,62 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_new_name, VERSION, lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
+
+
+@tier2
+def test_positive_readonly_user_actions(module_org, test_name):
+    """Attempt to view content views
+
+    :id: ebdc37ed-7887-4f64-944c-f2f92c58a206
+
+    :setup:
+
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
+
+    :expectedresults: User with read-only role for content view can view
+        the repository in the content view
+
+    :CaseLevel: Integration
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with content views read only permissions
+    role = entities.Role().create()
+    create_role_permissions(
+        role,
+        {'Katello::ContentView': ['view_content_views']}
+    )
+    create_role_permissions(
+        role,
+        {'Katello::Product': ['view_products']}
+    )
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=module_org,
+        organization=[module_org],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    repo_id = create_sync_custom_repo(module_org.id)
+    yum_repo = entities.Repository(id=repo_id).read()
+    cv = entities.ContentView(
+        organization=module_org, repository=[yum_repo]).create()
+    cv.publish()
+    # login as the user created above
+    with Session(test_name, user=user_login, password=user_password) as session:
+        with raises(NavigationTriesExceeded):
+            session.location.create({
+                'name': gen_string('alpha'),
+                'label': gen_string('alpha'),
+            })
+        assert session.contentview.search(cv.name)[0]['Name'] == cv.name
+        cv_values = session.contentview.read(cv.name)
+        assert cv_values['details']['name'] == cv.name
+        assert cv_values['versions']['table'][0]['Version'] == VERSION
+        assert cv_values['repositories']['resources']['assigned'][0]['Name'] == yum_repo.name
 
 
 @tier2
@@ -3366,11 +3734,6 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
                 'name': gen_string('alpha'),
                 'label': gen_string('alpha'),
             })
-        if bz_bug_is_open(1652938):
-            try:
-                custom_session.contentview.search('')
-            except (NavigationTriesExceeded, NoSuchElementException):
-                custom_session.browser.refresh()
         assert custom_session.contentview.search(cv.name)[0]['Name'] == cv.name
         with raises(InvalidElementStateException):
             custom_session.contentview.update(cv.name, {'details.name': gen_string('alpha')})
@@ -3381,14 +3744,12 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
     with Session(test_name, user=user_login, password=user_password) as session:
-        if bz_bug_is_open(1652938):
-            try:
-                session.contentview.search('')
-            except (NavigationTriesExceeded, NoSuchElementException):
-                session.browser.refresh()
         with raises(NavigationTriesExceeded) as context:
             session.contentview.promote(cv.name, VERSION, lce.name)
         assert 'failed to reach [Promote]' in str(context.value)
+        with raises(NavigationTriesExceeded) as context:
+            session.contentview.delete(cv.name)
+        assert 'failed to reach [Delete]' in str(context.value)
 
 
 @tier2
