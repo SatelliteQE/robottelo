@@ -377,7 +377,7 @@ class DockerActivationKeyTestCase(UITestCase):
         :expectedresults: Docker-based content view can be added and then
             removed from the activation key.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -398,7 +398,7 @@ class DockerActivationKeyTestCase(UITestCase):
         :expectedresults: Docker-based composite content view can be added and
             then removed from the activation key.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

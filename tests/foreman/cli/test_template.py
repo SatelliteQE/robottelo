@@ -287,7 +287,7 @@ class TemplateTestCase(CLITestCase):
         :expectedresults:
             1. Assert template import task and status logged to production log
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: System
         """
@@ -305,7 +305,7 @@ class TemplateTestCase(CLITestCase):
         :expectedresults:
             1. Assert template export task and status logged to production log
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: System
         """

@@ -310,7 +310,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :expectedresults: New role is created with taxonomies
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -326,7 +326,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :expectedresults: New role is created without taxonomies
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -349,7 +349,7 @@ class CannedRoleTestCases(CLITestCase):
             2. The taxonomies of role are inherited to filter
             3. Override check is not marked by default in filters table
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -371,7 +371,7 @@ class CannedRoleTestCases(CLITestCase):
             1. Filter is created without taxonomies
             2. Filter doesnt inherit taxonomies from role
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -389,7 +389,7 @@ class CannedRoleTestCases(CLITestCase):
         :expectedresults: Filter is not overrided as taxonomies cannot be
             applied to that filter
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -414,7 +414,7 @@ class CannedRoleTestCases(CLITestCase):
             2. Override check is set to true
             3. Filter doesnt inherits taxonomies from role
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -436,7 +436,7 @@ class CannedRoleTestCases(CLITestCase):
         :expectedresults: The taxonomies of filter should be updated with
             role taxonomies
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -514,7 +514,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :expectedresults: Org Admin role should be created successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -534,7 +534,7 @@ class CannedRoleTestCases(CLITestCase):
             1. While cloning, role allows to set taxonomies
             2. New taxonomies should be applied to cloned role successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()

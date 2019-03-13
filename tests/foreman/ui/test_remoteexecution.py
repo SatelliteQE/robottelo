@@ -566,7 +566,7 @@ class RemoteExecutionTestCase(UITestCase):
         :expectedresults: Verify the job was successfully ran on the
             provisioned host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -592,7 +592,7 @@ class RemoteExecutionTestCase(UITestCase):
         :expectedresults: Verify the job was successfully ran on the
             provisioned host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -620,7 +620,7 @@ class RemoteExecutionTestCase(UITestCase):
         :expectedresults: Verify the job was successfully ran on the
             provisioned hosts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -654,7 +654,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -677,7 +677,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -700,7 +700,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -723,7 +723,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -746,7 +746,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -769,7 +769,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -794,7 +794,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -817,7 +817,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -840,7 +840,7 @@ class AnsibleREXTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -874,7 +874,7 @@ class AnsibleREXProvisionedTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -897,7 +897,7 @@ class AnsibleREXProvisionedTestCase(UITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

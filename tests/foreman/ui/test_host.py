@@ -456,9 +456,9 @@ class HostTestCase(UITestCase):
 
         :expectedresults: Host AR is created, TFTP files are deployed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -478,9 +478,9 @@ class HostTestCase(UITestCase):
 
         :expectedresults: Host AR is created, TFTP files are deployed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -508,7 +508,7 @@ class HostTestCase(UITestCase):
           2. Files not deployed on TFTP
           3. Host not created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -779,7 +779,7 @@ class HostTestCase(UITestCase):
 
         :expectedresults: Host is created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -793,7 +793,7 @@ class HostTestCase(UITestCase):
 
         :expectedresults: Host is updated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1125,7 +1125,7 @@ class AtomicHostTestCase(UITestCase):
         :expectedresults: Atomic host should be registered successfully and
             listed under content-hosts/Hosts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1141,7 +1141,7 @@ class AtomicHostTestCase(UITestCase):
         :expectedresults: Atomic host should be registered successfully and
             listed under content-hosts/Hosts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1197,7 +1197,7 @@ class AtomicHostTestCase(UITestCase):
 
         :expectedresults: Atomic host should be updated with new content-view
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1213,7 +1213,7 @@ class AtomicHostTestCase(UITestCase):
         :expectedresults: Ostree/atomic commands should be executed
             successfully via job templates
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1232,7 +1232,7 @@ class BulkHostTestCase(UITestCase):
         :expectedresults: All selected atomic hosts should be deleted
             successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

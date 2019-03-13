@@ -69,7 +69,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
         :expectedresults: An ec2 compute resource is created
             successfully.
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -106,7 +106,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: An ec2 compute resource is created successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -130,7 +130,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: An ec2 compute resource is not created
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -155,7 +155,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The ec2 compute resource is updated
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -182,7 +182,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :BZ: 1451626
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -225,7 +225,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
          """
 
     @run_only_on('sat')
@@ -250,7 +250,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -273,7 +273,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
         """
         parameter_list = [
             ['Access Key', self.aws_access_key, 'field'],
@@ -312,7 +312,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Virtual machines should be displayed
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -354,7 +354,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -383,7 +383,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -413,7 +413,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with custom settings
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -443,5 +443,5 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

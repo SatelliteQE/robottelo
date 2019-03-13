@@ -48,7 +48,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: Errata can be installed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -69,7 +69,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: Package is installed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -90,7 +90,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: module is installed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -114,7 +114,7 @@ class CapsuleTestCase(UITestCase):
             for using subscription-manager update accordingly when choosing
             said capsule(s).
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -133,7 +133,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: The version of the Capsules exists in the about page.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -152,7 +152,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: The status of the Capsules is up and running.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -172,7 +172,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The Capsules Organization and Location info is
             visible on the index page.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -192,7 +192,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The Capsules no longer have the 'Foreman URL' on the
             index page.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -213,7 +213,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The 'Pulp Storage' used and free info is visible for
             the default capsule in the Overview Tab.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -234,7 +234,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The 'Content Sync' button is visible and sync works
             for the isolated capsule.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -255,7 +255,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The 'Cancel Sync" button is visible and sync cancels
             for the isolated capsule.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -276,7 +276,7 @@ class CapsuleTestCase(UITestCase):
             'Verison', 'Uptime', 'Registration Date', 'Packages', 'Location',
             'Puppet', 'Storage' info is displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -300,7 +300,7 @@ class CapsuleTestCase(UITestCase):
             the puppet-module to CV, exists in the Environment column of the
             Puppet Tab.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -323,7 +323,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The puppet-classes count is visible in the 'Number of
             classes' column.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -346,7 +346,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The Puppet Hosts managed count is visible in the
             'Number of classes' column.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -369,7 +369,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: The Puppet 'Hosts managed' count properly is visible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -391,7 +391,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The Hosts certificate-name is visible in the Puppet-
             ca Tab.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -415,7 +415,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The puppet runs on hosts are possible after the certs
             are revoked for the host.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -441,7 +441,7 @@ class CapsuleTestCase(UITestCase):
         :expectedresults: The puppet run on host is possible without having to
             sign the certs manually for the host.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -458,7 +458,7 @@ class CapsuleTestCase(UITestCase):
 
         :expectedresults: DNS and DHCP must be included on capsule features
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

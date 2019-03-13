@@ -41,7 +41,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: system is registered, host is created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -62,7 +62,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: system is newly registered, host is created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -82,7 +82,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: system is migrated, ie. registered
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -101,7 +101,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: ends gracefully, reason displayed to user
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -121,7 +121,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: ends gracefully, reason displayed to user
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -141,7 +141,7 @@ class BootstrapScriptTestCase(CLITestCase):
         :expectedresults: system is registered, pre-created host profile is
             used
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -161,7 +161,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: ends gracefully, reason displayed to user
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

@@ -52,7 +52,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The AWS Govcloud ec2 compute resource is updated
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -77,7 +77,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
          """
 
     @run_only_on('sat')
@@ -102,7 +102,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -126,7 +126,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -150,7 +150,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -170,7 +170,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Virtual machines should be displayed
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -214,7 +214,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -244,7 +244,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -274,7 +274,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with custom settings
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -304,5 +304,5 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

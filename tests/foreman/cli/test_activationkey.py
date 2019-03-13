@@ -892,7 +892,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Deleting a manifest removes it from the Activation
             key
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_in_one_thread

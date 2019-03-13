@@ -44,7 +44,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         :expectedresults: Log in to hammer cli successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -58,7 +58,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         :expectedresults: Log in to hammer cli successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -72,5 +72,5 @@ class SingleSignOnTestCase(CLITestCase):
 
         :expectedresults: Log in to hammer cli successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

@@ -682,7 +682,7 @@ class CannedRoleTestCases(APITestCase):
                 None in cloned role
             2. Override flag is set to True in cloned role filter
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

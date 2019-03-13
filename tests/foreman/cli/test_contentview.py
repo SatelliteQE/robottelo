@@ -3458,7 +3458,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Promotion is restarted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -3476,7 +3476,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Publish is restarted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -4201,7 +4201,7 @@ class ContentViewTestCase(CLITestCase):
                content-host
             5. At content-host some package from cv1 is installable
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -4242,7 +4242,7 @@ class ContentViewTestCase(CLITestCase):
                content-host
             6. At content-host some package from cv2 is installable
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -4280,7 +4280,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: content view version in capsule is removed from
             Library and DEV and exists only in QE and PROD
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
         :CaseLevel: System
         """
@@ -5233,7 +5233,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: Check FR is added to CV
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -5270,7 +5270,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: Check FR is removed from CV
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -5297,7 +5297,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: Check CV with FR is synced over Capsule
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -5323,7 +5323,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :expectedresults: Check arbitrary files from FR is available on
             environment
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

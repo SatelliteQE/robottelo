@@ -153,7 +153,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be successfully discovered
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -173,7 +173,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be successfully discovered
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -189,7 +189,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -205,7 +205,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -221,7 +221,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -237,7 +237,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -253,7 +253,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -296,7 +296,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -312,7 +312,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -328,7 +328,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be discovered successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -588,7 +588,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -605,7 +605,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: All Hosts of same subnet should reboot and provision
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -624,7 +624,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host with lower count have higher priority and that
             rule should be executed first.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -713,7 +713,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Rule should only be applied to one discovered host
             and for other rule should already be skipped.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -731,7 +731,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: User should be able to update the rule and it should
             be executed on discovered host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -864,7 +864,7 @@ class DiscoveryTestCase(UITestCase):
             destroy one or more discovered host as well view, create_new, edit,
             execute and delete discovery rules.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -880,7 +880,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: User should be able to view existing discovered host
             and rule
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -896,7 +896,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: All buttons should work
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -912,7 +912,7 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: User should get an error message
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -930,7 +930,7 @@ class DiscoveryTestCase(UITestCase):
             network via DHCP" and click on 'OK' should open the ''Network
             configuration screen" to manually specify the IP/GW/DNS.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -947,7 +947,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Provisioned host is associated with selected org &
             location
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1001,7 +1001,7 @@ class DiscoveryTestCase(UITestCase):
             should be visible, including the one started with discovery
             keyword.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1022,7 +1022,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: After successful provisioning, all facts set by user
             should be deleted execpt the one started with discovery keyword.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1044,7 +1044,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should boot into discovery mode and should be
             discovered.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1066,7 +1066,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Parameters like PuppetCA/Puppetmaster should be
             populated on associating hostgroup to discovered host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1088,7 +1088,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Discovered host should automatically be placed in
             selected default org
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1110,7 +1110,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Discovered host should automatically be placed in
             selected default location
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1131,7 +1131,7 @@ class DiscoveryTestCase(UITestCase):
             2. auto_negotiation_XXX
             3. LLDAP facts like lldp_neighbor_portid_XXX
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1149,7 +1149,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: DNS record should be recreated on provisioning
             discovered host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1235,7 +1235,7 @@ class DiscoveryPrefixTestCase(UITestCase):
         :expectedresults: Host should be discovered with name as
             'Hostname_prefix + hostname_facts'.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1258,7 +1258,7 @@ class DiscoveryPrefixTestCase(UITestCase):
 
         :expectedresults: Host should be discovered with UUID in name
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1279,7 +1279,7 @@ class DiscoveryPrefixTestCase(UITestCase):
         :expectedresults: Host should be discovered with first available fact
             bios_vendor
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1301,7 +1301,7 @@ class DiscoveryPrefixTestCase(UITestCase):
         :expectedresults: Host should be discovered with second fact uuid as
             bios fact doesn't exist
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1325,7 +1325,7 @@ class DiscoveryPrefixTestCase(UITestCase):
         :expectedresults: Error should be raised on discovering second host
             like: Name has already been taken
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

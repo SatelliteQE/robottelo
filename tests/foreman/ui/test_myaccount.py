@@ -116,7 +116,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: Current User is updated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -196,7 +196,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: User is not updated. Appropriate error shown.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -212,7 +212,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: User is not updated. Appropriate error shown.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -228,7 +228,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: User is not updated. Appropriate error shown.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -245,7 +245,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: User is not updated. Appropriate error shown.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -263,7 +263,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: User is not updated. Appropriate error shown.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -283,7 +283,7 @@ class MyAccountTestCase(UITestCase):
 
         :expectedresults: User is not updated.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

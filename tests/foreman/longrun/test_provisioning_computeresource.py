@@ -140,7 +140,7 @@ class ComputeResourceHostTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         name = gen_string('alpha')
         rhv_cr = ComputeResource.create({
@@ -219,7 +219,7 @@ class ComputeResourceHostTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseLevel: System
         """

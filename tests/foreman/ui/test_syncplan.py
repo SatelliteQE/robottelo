@@ -309,7 +309,7 @@ class SyncPlanTestCase(UITestCase):
 
         :expectedresults: sync plan should be created successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

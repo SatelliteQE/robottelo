@@ -477,7 +477,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
         :CaseLevel: System
         """
@@ -550,7 +550,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
         :CaseLevel: System
         """
@@ -619,7 +619,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
         :CaseLevel: System
         """
@@ -721,7 +721,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -746,7 +746,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -769,7 +769,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -792,7 +792,7 @@ class TestAnsibleREX():
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -826,7 +826,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -849,7 +849,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

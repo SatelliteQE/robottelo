@@ -64,7 +64,7 @@ class EC2ComputeResourceTestCase(CLITestCase):
 
         :BZ: 1456942
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """

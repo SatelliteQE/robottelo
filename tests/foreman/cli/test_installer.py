@@ -41,7 +41,7 @@ class InstallerTestCase(CLITestCase):
             passenger-analytics, httpd, foreman_proxy, elasticsearch,
             postgresql, mongod} are started
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -57,7 +57,7 @@ class InstallerTestCase(CLITestCase):
             tomcat6, foreman, pulp, passenger-analytics,httpd, foreman_proxy,
             elasticsearch, postgresql, mongod} logfiles.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -70,7 +70,7 @@ class InstallerTestCase(CLITestCase):
         :expectedresults: Progress indicator increases appropriately as install
             commences, through to completion
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -82,7 +82,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install from ISO is sucessful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -94,7 +94,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install of main instance successful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -106,7 +106,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install of capsule successful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -119,7 +119,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install of disconnected utility successful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -133,7 +133,7 @@ class InstallerTestCase(CLITestCase):
         :expectedresults: capsule is communicating properly with parent,
             following install.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -147,5 +147,5 @@ class InstallerTestCase(CLITestCase):
 
         :bz: 1072780
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

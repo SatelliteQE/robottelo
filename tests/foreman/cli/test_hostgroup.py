@@ -1026,7 +1026,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Overridden sc-param from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
@@ -1055,7 +1055,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Overridden sc-param from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
@@ -1084,7 +1084,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Smart variable from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
@@ -1109,7 +1109,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Smart variable from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({

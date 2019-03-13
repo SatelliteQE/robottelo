@@ -239,7 +239,7 @@ class UserTestCase(CLITestCase):
 
         :expectedresults: User is created without specifying the password
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -652,7 +652,7 @@ class UserTestCase(CLITestCase):
 
         :expectedresults: All actions passed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -675,7 +675,7 @@ class UserTestCase(CLITestCase):
         :expectedresults: All actions failed since the User is not assigned to
             any Org
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1103,7 +1103,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :expectedresults: All default roles are added to user
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1116,7 +1116,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :expectedresults: User is updated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

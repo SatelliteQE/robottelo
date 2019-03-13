@@ -368,7 +368,7 @@ class CannedRoleTestCases(UITestCase):
 
         :expectedresults: Org Admin should be created successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -390,7 +390,7 @@ class CannedRoleTestCases(UITestCase):
             2. While cloning, role allows to set taxonomies
             3. New taxonomies should be applied to cloned role successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
