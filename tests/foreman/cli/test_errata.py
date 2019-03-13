@@ -1812,7 +1812,7 @@ class ErrataTestCase(CLITestCase):
         :expectedresults: List of affected content hosts for an erratum is
             displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -1839,7 +1839,7 @@ class ErrataTestCase(CLITestCase):
         :expectedresults: List of affected content hosts for an erratum is
             displayed filtered with corresponding restrict flags.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -1859,6 +1859,6 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: The available errata count is retrieved.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """

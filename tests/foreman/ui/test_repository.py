@@ -444,7 +444,7 @@ class RepositoryTestCase(UITestCase):
         :expectedresults: Proper error message saying that the puppet module
             version is not found
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

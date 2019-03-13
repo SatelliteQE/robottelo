@@ -122,7 +122,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Katello-certs should be updated.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @destructive
@@ -141,7 +141,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Katello-certs should be updated.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @destructive
@@ -161,7 +161,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Katello-certs should be updated.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -178,7 +178,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Checking expiration of certificate check should fail.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -195,7 +195,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Checking ca bundle against the cert file should fail.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -213,7 +213,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :expectedresults: Check for validating the certificate subject should
             fail.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -230,7 +230,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Private key match with the certificate should fail.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -247,7 +247,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :expectedresults: Checking expiration of CA bundle should fail.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -265,7 +265,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :expectedresults: Check for non ascii character should fail gracefully
                           e.g. no traces.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -287,5 +287,5 @@ class KatelloCertsCheckTestCase(TestCase):
         :expectedresults: Katello-certs-check should generate correct commands
             with options.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

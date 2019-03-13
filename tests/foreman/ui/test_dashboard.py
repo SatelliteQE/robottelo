@@ -200,7 +200,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: User is able to add widgets.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -277,7 +277,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: User is able to list the Bookmark
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -298,7 +298,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: It takes you to discovered hosts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -317,7 +317,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: The Widget is updated with all the latest events
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -460,7 +460,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: The widget shows appropriate data
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -480,7 +480,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: The widget is updated with all errata related details
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

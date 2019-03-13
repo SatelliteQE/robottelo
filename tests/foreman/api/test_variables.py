@@ -953,7 +953,7 @@ class SmartVariablesTestCase(APITestCase):
         :expectedresults: The ENC output shows variable value of fqdn matcher
             only
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -981,7 +981,7 @@ class SmartVariablesTestCase(APITestCase):
         :expectedresults: The ENC output shows variable value of step 4 matcher
             only
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1017,7 +1017,7 @@ class SmartVariablesTestCase(APITestCase):
             2. The variable doesn't show the default value of variable.
             3. Duplicate values in any are displayed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1053,7 +1053,7 @@ class SmartVariablesTestCase(APITestCase):
             3. The variable doesn't have the default value of variable
             4. Duplicate values if any are displayed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1090,7 +1090,7 @@ class SmartVariablesTestCase(APITestCase):
             2. The variable values has the default value of variable
             3. Duplicate values if any are displayed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1126,7 +1126,7 @@ class SmartVariablesTestCase(APITestCase):
             2. The variable doesn't have the empty default value of variable
             3. Duplicate values if any are displayed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1161,7 +1161,7 @@ class SmartVariablesTestCase(APITestCase):
             2. The variable shows the default value of variable
             3. Duplicate values are removed / not displayed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1197,7 +1197,7 @@ class SmartVariablesTestCase(APITestCase):
             2. The variable shows default value of variable
             3. No value removed as duplicate value
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

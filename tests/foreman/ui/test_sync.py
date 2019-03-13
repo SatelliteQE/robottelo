@@ -49,7 +49,7 @@ class SyncTestCase(UITestCase):
             the repos should not be seen in 'Others Tab' and should be seen
             only in 'RPM's Tab'.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

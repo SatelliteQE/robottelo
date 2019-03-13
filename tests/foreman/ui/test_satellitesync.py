@@ -43,7 +43,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         :expectedresults: Repo/Product history should reflect the export
             history with user and time.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -62,7 +62,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         :expectedresults: CV history should reflect the export history with
             user, version, action and time.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -88,7 +88,7 @@ class InterSatelliteSyncTestCase(UITestCase):
             1. The CDN URL is is updated successfully.
             2. The imported repo is enabled and sync.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -112,7 +112,7 @@ class InterSatelliteSyncTestCase(UITestCase):
             1. The CDN URL is not allowed to update any non existing url.
             2. None of the repo is allowed to enable and sync.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -136,7 +136,7 @@ class InterSatelliteSyncTestCase(UITestCase):
 
         :expectedresults: The import of non exported repos is restricted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

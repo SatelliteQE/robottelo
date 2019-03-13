@@ -1569,9 +1569,9 @@ class HostTestCase(APITestCase):
 
         :expectedresults: Host is created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1590,9 +1590,9 @@ class HostTestCase(APITestCase):
 
         :expectedresults: Host is created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1622,9 +1622,9 @@ class HostTestCase(APITestCase):
 
             And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1654,9 +1654,9 @@ class HostTestCase(APITestCase):
 
             And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1686,9 +1686,9 @@ class HostTestCase(APITestCase):
 
             And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1718,9 +1718,9 @@ class HostTestCase(APITestCase):
 
             And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @tier1

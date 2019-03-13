@@ -238,7 +238,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             and the user should not be able to perform the roles that were
             assigned to it at the UserGroup level.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -263,7 +263,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         :expectedresults: User can access feature areas as defined by roles in
             the UserGroup of which he is a part.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

@@ -979,7 +979,7 @@ class UserTestCase(UITestCase):
         :expectedresults: Dashboard UI displays new time based on the new
             timezone
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1001,7 +1001,7 @@ class UserTestCase(UITestCase):
 
         :expectedresults: Logfiles display time according to changed timezone
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1023,7 +1023,7 @@ class UserTestCase(UITestCase):
 
         :expectedresults: Emails are sent according to new timezone set
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1056,7 +1056,7 @@ class UserTestCase(UITestCase):
         :expectedresults: Parameters tab visible to users with edit_params
             permission
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1087,7 +1087,7 @@ class UserTestCase(UITestCase):
         :expectedresults: Parameters tab not visible to users with no
             edit_params permission
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

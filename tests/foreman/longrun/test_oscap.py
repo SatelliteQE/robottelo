@@ -537,7 +537,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Oscap ARF reports should have summary page.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -558,7 +558,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Should have 'view full report' button to view the
             actual HTML report.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -580,7 +580,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Should have 'Download xml in bzip' button to download
             the xml report.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -600,7 +600,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Should have an Oscap-Proxy select box while filling
             hosts and host-groups form.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -622,7 +622,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Multiple Oscap ARF reports can be deleted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -637,7 +637,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether email reporting of oscap reports is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

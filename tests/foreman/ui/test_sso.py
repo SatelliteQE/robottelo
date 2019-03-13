@@ -62,7 +62,7 @@ class SingleSignOnTestCase(UITestCase):
         :expectedresults: Log in to sat6 UI successfully but cannot access
             anything useful in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -86,7 +86,7 @@ class SingleSignOnTestCase(UITestCase):
         :expectedresults: Log in to sat6 UI successfully and can access
             functional areas in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -106,7 +106,7 @@ class SingleSignOnTestCase(UITestCase):
         :expectedresults: This is handled gracefully (user is logged out
             perhaps?) and no data corruption
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

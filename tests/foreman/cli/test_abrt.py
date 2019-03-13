@@ -36,7 +36,7 @@ class AbrtTestCase(CLITestCase):
         :expectedresults: A abrt report with ccpp.* extension  created under
             /var/tmp/abrt
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -55,7 +55,7 @@ class AbrtTestCase(CLITestCase):
 
         :expectedresults: Count is updated in proper manner
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -71,7 +71,7 @@ class AbrtTestCase(CLITestCase):
 
         :expectedresults: the timer file is edited
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -87,7 +87,7 @@ class AbrtTestCase(CLITestCase):
 
         :expectedresults: Assertion of hostnames is possible
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -103,6 +103,6 @@ class AbrtTestCase(CLITestCase):
 
         :expectedresults: Assertion of parameters
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """

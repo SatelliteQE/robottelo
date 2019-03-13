@@ -48,7 +48,7 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Error should be raised on setting empty value for
             hostname_facts setting
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier1
@@ -93,7 +93,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Default set fact should be updated with facts list.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -107,7 +107,7 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Validation error should be raised on updating
             hostname_prefix with invalid string, should start w/ letter
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier1
@@ -159,7 +159,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Parameter is updated
 
-        :caseimportance: low
+        :CaseImportance: Low
         """
         for login_text_value in generate_strings_list(1000):
             with self.subTest(login_text_value):
@@ -188,9 +188,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: SMTP properties are updated
 
-        :caseimportance: low
+        :CaseImportance: Low
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -208,9 +208,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Sendmail properties are updated
 
-        :caseimportance: low
+        :CaseImportance: Low
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier1
@@ -221,9 +221,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_reply_address is updated
 
-        :caseimportance: low
+        :CaseImportance: Low
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         for email in valid_emails_list():
             with self.subTest(email):
@@ -249,9 +249,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_reply_address is not updated
 
-        :caseimportance: low
+        :CaseImportance: Low
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -269,9 +269,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_subject_prefix is updated
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
-        :caseimportance: low
+        :CaseImportance: Low
         """
         email_subject_prefix_value = gen_string('alpha')
         Settings.set({
@@ -297,9 +297,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_subject_prefix is not updated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caseimportance: low
+        :CaseImportance: Low
         """
 
     @tier1
@@ -312,9 +312,9 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: send_welcome_email is updated
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
-        :caseimportance: low
+        :CaseImportance: Low
         """
         for value in ['true', 'false']:
             Settings.set({'name': 'send_welcome_email', 'value': value})
@@ -332,7 +332,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: rss_enable is updated
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         orig_value = Settings.list({'search': 'name=rss_enable'})[0]['value']
         for value in ['true', 'false']:
@@ -355,7 +355,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: RSS feed URL is updated
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         orig_url = Settings.list({'search': 'name=rss_url'})[0]['value']
         for test_url in valid_url_list():
@@ -376,9 +376,9 @@ def test_negative_update_send_welcome_email(value):
 
     :expectedresults: send_welcome_email is not updated
 
-    :caseautomation: automated
+    :CaseAutomation: automated
 
-    :caseimportance: low
+    :CaseImportance: Low
     """
     with pytest.raises(CLIReturnCodeError):
         Settings.set({'name': 'send_welcome_email', 'value': value})
@@ -419,7 +419,7 @@ class BruteForceLogin(CLITestCase):
 
          :expectedresults: failed_login_attempts_limit works as expected
 
-         :caseautomation: automated
+         :CaseAutomation: automated
          """
         result = ssh.command(
             'hammer -u {0} -p {1} user list'

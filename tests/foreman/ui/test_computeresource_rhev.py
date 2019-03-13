@@ -858,7 +858,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @upgrade

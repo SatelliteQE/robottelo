@@ -74,7 +74,7 @@ class ContentViewTestCase(APITestCase):
 
         :CaseLevel: System
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         # organization
         # ├── lifecycle environment
@@ -321,7 +321,7 @@ class ContentViewTestCase(APITestCase):
 
         :expectedresults: Promotion is restarted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -341,7 +341,7 @@ class ContentViewTestCase(APITestCase):
 
         :expectedresults: Publish is restarted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1874,7 +1874,7 @@ class ContentViewFileRepoTestCase(APITestCase):
 
         :expectedresults: Check FR is added to CV
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1898,7 +1898,7 @@ class ContentViewFileRepoTestCase(APITestCase):
 
         :expectedresults: Check FR is removed from CV
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1924,7 +1924,7 @@ class ContentViewFileRepoTestCase(APITestCase):
 
         :expectedresults: Check CV with FR is synced over Capsule
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1951,7 +1951,7 @@ class ContentViewFileRepoTestCase(APITestCase):
         :expectedresults: Check arbitrary files from FR is available on
             environment
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

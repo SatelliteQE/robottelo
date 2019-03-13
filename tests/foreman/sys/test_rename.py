@@ -77,7 +77,7 @@ class RenameHostTestCase(TestCase):
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         old_hostname = settings.server.hostname
         new_hostname = 'new-{0}'.format(old_hostname)
@@ -175,7 +175,7 @@ class RenameHostTestCase(TestCase):
         :expectedresults: script terminates with a message, hostname
             is not changed
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         with get_connection() as connection:
             hostname = gen_string('alpha')
@@ -203,7 +203,7 @@ class RenameHostTestCase(TestCase):
         :expectedresults: script terminates with a message, hostname
             is not changed
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         with get_connection() as connection:
             hostname = gen_string('alpha')
@@ -229,7 +229,7 @@ class RenameHostTestCase(TestCase):
         :expectedresults: script terminates with a message, hostname
             is not changed
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         with get_connection() as connection:
             new_hostname = 'new-{0}'.format(self.hostname)
@@ -268,7 +268,7 @@ class RenameHostTestCase(TestCase):
         :expectedresults: Capsule hostname is successfully updated
             and the capsule fuctions correctly
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         # Save original hostname, get credentials, eventually will
         # end up in setUpClass

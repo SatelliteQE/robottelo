@@ -123,7 +123,7 @@ class ErrataTestCase(UITestCase):
 
         :expectedresults: Errata is sorted by selected column.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -286,7 +286,7 @@ class ErrataTestCase(UITestCase):
         :expectedresults: Check if all the above mentioned scenarios redirect
             to the new errata page.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -313,7 +313,7 @@ class ErrataTestCase(UITestCase):
 
         :expectedresults: Composite content views updated with point releases.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

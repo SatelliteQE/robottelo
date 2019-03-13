@@ -886,7 +886,7 @@ class TemplateSyncTestCase(APITestCase):
                'name', 'imported', 'diff', 'additional_errors', 'exception',
                'validation_errors', 'file'
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -923,7 +923,7 @@ class TemplateSyncTestCase(APITestCase):
                'name', 'imported', 'changed', 'additional_errors', 'exception',
                'validation_errors', 'file'
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -962,7 +962,7 @@ class TemplateSyncTestCase(APITestCase):
             1. On reimport, Assert json output returns 'changed' as `true`
             2. Assert json output returns diff key with difference as value
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1009,7 +1009,7 @@ class TemplateSyncTestCase(APITestCase):
         :expectedresults:
             1. On reiport, Assert json output returns 'changed' as `false`
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1048,7 +1048,7 @@ class TemplateSyncTestCase(APITestCase):
             1. On Import, Assert json output returns 'name' key with correct
             name as per template metadata
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1084,7 +1084,7 @@ class TemplateSyncTestCase(APITestCase):
         :expectedresults:
             1. On Import, Assert json output returns 'imported' key as `True`
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1116,7 +1116,7 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert json output returns 'file' key with correct
             file name
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1150,7 +1150,7 @@ class TemplateSyncTestCase(APITestCase):
             'Failed to parse metadata' text
             2. Assert 'imported' key returns 'false' value
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1188,7 +1188,7 @@ class TemplateSyncTestCase(APITestCase):
             'Name is not matching filter condition, skipping' text
             2. Assert 'imported' key returns 'false' value
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1225,7 +1225,7 @@ class TemplateSyncTestCase(APITestCase):
             'No 'name' found in metadata' text
             2. Assert 'imported' key returns 'false' value
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1264,7 +1264,7 @@ class TemplateSyncTestCase(APITestCase):
             'No 'model' found in metadata' text
             2. Assert 'imported' key returns 'false' value
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1303,7 +1303,7 @@ class TemplateSyncTestCase(APITestCase):
                'Template type was not found, maybe you are missing a plugin?'
             2. Assert 'imported' key returns 'false' value
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1339,7 +1339,7 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert json output has all the exported template names
             and typewise
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: Integration
         """
@@ -1392,7 +1392,7 @@ class TemplateSyncTestCase(APITestCase):
         :expectedresults:
             1. Assert template import task and status logged to production log
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: System
         """
@@ -1423,7 +1423,7 @@ class TemplateSyncTestCase(APITestCase):
         :expectedresults:
             1. Assert template export task and status logged to production log
 
-        :requirement: Take Templates out of tech preview
+        :Requirement: Take Templates out of tech preview
 
         :CaseLevel: System
         """

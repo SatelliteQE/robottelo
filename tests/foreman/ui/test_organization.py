@@ -316,7 +316,7 @@ class OrganizationTestCase(UITestCase):
 
         :expectedresults: smartproxy is added
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -332,7 +332,7 @@ class OrganizationTestCase(UITestCase):
 
         :expectedresults: smartproxy is added then removed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

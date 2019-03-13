@@ -593,7 +593,7 @@ class GPGKey(UITestCase):
 
         :expectedresults: host can install package from custom repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -609,7 +609,7 @@ class GPGKey(UITestCase):
 
         :expectedresults: host can install package from custom repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -625,7 +625,7 @@ class GPGKey(UITestCase):
         :expectedresults: specific information for gpg key matches the creation
             values
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -697,7 +697,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         :expectedresults: gpg key is associated with product and all the
             repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

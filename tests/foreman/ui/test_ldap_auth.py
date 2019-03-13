@@ -55,7 +55,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Log in to foreman UI successfully but cannot access
             functional areas of UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -76,7 +76,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Log in to foreman UI successfully and can access
             appropriate functional areas in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -97,7 +97,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: This is handled gracefully (user is logged out
             perhaps?) and no data corruption
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -118,7 +118,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: This is handled gracefully (user is logged out
             perhaps?) and no data corruption
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -138,7 +138,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Log in to foreman UI successfully but has no access
             to functional areas of UI.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -160,7 +160,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Log in to foreman UI successfully and can access
             appropriate functional areas in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -181,7 +181,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: This is handled gracefully (user is logged out
             perhaps?) and no data corruption
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -204,7 +204,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Log in to foreman UI successfully for users on both
             LDAP servers.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -231,7 +231,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Foreman should have some method for
             distinguishing/specifying which server a user comes from.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -254,7 +254,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Login from local db user "admin" overrides any ldap
             user "admin"
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -273,7 +273,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: UI does handles situation gracefully, perhaps
             informing user that LDAP instance is not responding
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -295,7 +295,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: Situation is handled gracefully and without serious
             data loss on foreman server
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -316,7 +316,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: User has access to all functional areas that are
             assigned to aforementioned UserGroup.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -337,7 +337,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: User has access to all NEW functional areas that are
             assigned to aforementioned UserGroup.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -358,7 +358,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: User no longer has access to all deleted functional
             areas that were assigned to aforementioned UserGroup.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -383,7 +383,7 @@ class LDAPAuthTestCase(UITestCase):
             UserGroup but those additional feature areas / roles assigned
             specifically to user
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -406,7 +406,7 @@ class LDAPAuthTestCase(UITestCase):
         :expectedresults: User can access feature areas as defined by roles in
             the UserGroup of which he is a part.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -431,7 +431,7 @@ class LDAPAuthTestCase(UITestCase):
             appropriate functional areas in UI, with the org and loc context
             set.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -456,7 +456,7 @@ class LDAPAuthTestCase(UITestCase):
             appropriate functional areas in UI, with the org and loc context
             set.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -485,7 +485,7 @@ class LDAPAuthTestCase(UITestCase):
             appropriate functional areas in UI, with the ability to select
             org and loc context from the list.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -517,5 +517,5 @@ class LDAPAuthTestCase(UITestCase):
             appropriate functional areas in UI, with the org and
             loc context, which was overriden.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

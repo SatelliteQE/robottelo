@@ -221,7 +221,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: Instance can be provisioned, with content coming
             through proxy-enabled capsule.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -234,7 +234,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         :expectedresults: system is successfully registered
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -247,7 +247,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         :expectedresults: system is successfully unregistered
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -266,7 +266,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: system is successfully subscribed to each content
             type
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -288,7 +288,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         :expectedresults: system successfully consume content
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -311,7 +311,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: system is successfully unsubscribed from each content
             type
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -333,7 +333,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: Registration works , and certs RPM installed from
             capsule.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -351,7 +351,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: No failures executing said test scenarios against
             SSL, baseline functionality identical to non-SSL
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -378,5 +378,5 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: Katello installer should show the options to enable
             BMC
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

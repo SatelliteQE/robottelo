@@ -46,7 +46,7 @@ class BootdiskTestCase(UITestCase):
         :expectedresults: Host should successfully provisioned through
             Static IP full host bootdisk.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -76,7 +76,7 @@ class BootdiskTestCase(UITestCase):
         :expectedresults: Host should successfully provisioned through full
             host bootdisk.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

@@ -152,7 +152,7 @@ class MyAccountTestCase(CLITestCase):
 
         :expectedresults: Current User is updated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

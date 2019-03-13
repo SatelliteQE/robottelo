@@ -1207,7 +1207,7 @@ class SettingTestCase(UITestCase):
         :expectedresults: Error should be raised on setting empty value for
             hostname_facts setting
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1298,5 +1298,5 @@ class SettingTestCase(UITestCase):
         :expectedresults: Validation error should be raised on updating
             hostname_prefix with invalid string, should start w/ letter
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

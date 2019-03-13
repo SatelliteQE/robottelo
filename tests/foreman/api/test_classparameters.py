@@ -1107,7 +1107,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: The YAML output has the value only for fqdn matcher.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1137,7 +1137,7 @@ class SmartClassParametersTestCase(APITestCase):
             1. The YAML output has the value only for step 5 matcher.
             2. The YAML output doesn't have value for fqdn/host matcher.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1171,7 +1171,7 @@ class SmartClassParametersTestCase(APITestCase):
             2. The YAML output doesn't have the default value of parameter.
             3. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1205,7 +1205,7 @@ class SmartClassParametersTestCase(APITestCase):
             3. The YAML output doesn't have the default value of parameter.
             4. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1241,7 +1241,7 @@ class SmartClassParametersTestCase(APITestCase):
                matchers.
             3. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1276,7 +1276,7 @@ class SmartClassParametersTestCase(APITestCase):
             2. The YAML output has the default value of parameter.
             3. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1311,7 +1311,7 @@ class SmartClassParametersTestCase(APITestCase):
                parameter.
             3. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1345,7 +1345,7 @@ class SmartClassParametersTestCase(APITestCase):
             2. The YAML output doesn't have the puppet default value.
             3. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1380,7 +1380,7 @@ class SmartClassParametersTestCase(APITestCase):
             2. The YAML output has the default value of parameter.
             3. Duplicate values in YAML output are removed / not displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1413,7 +1413,7 @@ class SmartClassParametersTestCase(APITestCase):
             2. The YAML output has the default value of parameter.
             3. No value removed as duplicate value.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1620,7 +1620,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')
@@ -1763,7 +1763,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True

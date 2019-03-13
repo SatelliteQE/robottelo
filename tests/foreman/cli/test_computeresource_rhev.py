@@ -249,7 +249,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             2. Create a image for the compute resource with valid parameter,
                compute-resource image create
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :expectedresults: The image is added to the CR successfully
          """
@@ -271,7 +271,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             2. Create a image for the compute resource with invalid value for
                name parameter, compute-resource image create.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :expectedresults: The image should not be added to the CR
         """
@@ -285,7 +285,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :id: aa587312-6c37-40bb-99cb-5566139a690a
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :BZ: 1278917
 
@@ -313,7 +313,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :BZ: 1278917
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier2
@@ -337,7 +337,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :BZ: 1278917
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier2
@@ -354,7 +354,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             1. Select the created compute resource.
             2. List the available VM's on the RHEV compute resource
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :BZ: 1475443
 
@@ -377,7 +377,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             2. List the available VM's on the RHEV compute resource
             3. Try to turn on and off a VM from the list
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :BZ: 1475443
 
@@ -407,5 +407,5 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

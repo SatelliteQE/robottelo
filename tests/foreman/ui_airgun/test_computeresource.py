@@ -495,7 +495,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
 
     :BZ: 1286033
 
-    :Caseautomation: Automated
+    :CaseAutomation: Automated
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
@@ -586,7 +586,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
 
     :BZ: 1452534
 
-    :Caseautomation: Automated
+    :CaseAutomation: Automated
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(

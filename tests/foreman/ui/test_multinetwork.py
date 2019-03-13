@@ -40,7 +40,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -66,7 +66,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -92,7 +92,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -119,7 +119,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -145,7 +145,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -171,7 +171,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -197,7 +197,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -221,7 +221,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -245,7 +245,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Host should be provisioned with correct configuration
             under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -275,7 +275,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Validation error should be raised as mac address of
             alias interface should be same as of primary interface
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -302,7 +302,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Validation error should be raised as two nics can not
             have same mac
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -332,7 +332,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Validation error should be raised as attached_to is
             mandatory option to create alias interface
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -365,7 +365,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Validation error should be raised as you can't
             configure alias interface in 'DHCP' mode.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -400,7 +400,7 @@ class MultinetworkTestCase(UITestCase):
             correct configuration should displayed on proviisoned host under
             /etc/sysconfig/network-scripts/ifcfg-<interface_name>
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -431,7 +431,7 @@ class MultinetworkTestCase(UITestCase):
 
         :expectedresults: Validation error should be raised on UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -453,7 +453,7 @@ class MultinetworkTestCase(UITestCase):
 
         :expectedresults: Interface should be deleted successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -486,7 +486,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Interface should be configured successfully with name
             bond0
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -519,7 +519,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: UI should raise validation error as user shouldn't be
             allowed create bond interface without mac
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -551,7 +551,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Interface should be configured successfully without
             attaching any device to it.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -584,7 +584,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Interface should be configured successfully with name
             bond0 attached to eth0 eth0:0
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -615,7 +615,7 @@ class MultinetworkTestCase(UITestCase):
         :expectedresults: Interface should be configured successfully and user
             should get On/OFF button on host page
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -644,7 +644,7 @@ class MultinetworkTestCase(UITestCase):
 
         :expectedresults: UI should raise validation error
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

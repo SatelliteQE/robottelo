@@ -52,7 +52,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: An azure compute resource is created successfully.
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -82,7 +82,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: An azure compute resource is created successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -112,7 +112,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: An azure compute resource is not created
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -143,7 +143,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The azure compute resource is updated
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -175,7 +175,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The azure compute resource is updated
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -205,7 +205,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource is deleted
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -237,7 +237,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -267,7 +267,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -292,7 +292,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Virtual machines should be displayed
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -321,5 +321,5 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

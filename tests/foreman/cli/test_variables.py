@@ -319,7 +319,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: Critical
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -449,7 +449,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Variable is created with a new type successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -470,7 +470,7 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: Variable is not created with new type for invalid
             value.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1021,7 +1021,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: The YAML output has the value only for fqdn matcher.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1049,7 +1049,7 @@ class SmartVariablesTestCase(CLITestCase):
             1.  The YAML output has the value only for step 5 matcher.
             2.  The YAML output doesn't have value for fqdn/host matcher.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1080,7 +1080,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  The YAML output doesn't have the default value of variable.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1133,7 +1133,7 @@ class SmartVariablesTestCase(CLITestCase):
             3.  The YAML output doesn't have the default value of variable.
             4.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1165,7 +1165,7 @@ class SmartVariablesTestCase(CLITestCase):
             2. The YAML output has the default value of variable.
             3. Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1198,7 +1198,7 @@ class SmartVariablesTestCase(CLITestCase):
                 variable.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1230,7 +1230,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  The YAML output has the default value of variable.
             3.  Duplicate values in YAML output are removed / not displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1261,7 +1261,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  The YAML output has the default value of variable.
             3.  No value removed as duplicate value.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1578,7 +1578,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: Critical
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],

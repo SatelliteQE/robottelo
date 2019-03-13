@@ -401,7 +401,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Parameter is not updated with invalid value for
             specific type.
 
-        :caseimportance: critical
+        :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
         with Session(self):
@@ -438,7 +438,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: Validation shouldn't work with puppet default value.
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         sc_param = self.sc_params_list.pop()
         with Session(self):
@@ -480,7 +480,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error raised for blank default value by 'Required'
             checkbox.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -503,7 +503,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error raised for blank matcher value by 'Required'
             checkbox.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1083,7 +1083,7 @@ class SmartClassParametersTestCase(UITestCase):
                 matchers.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1118,7 +1118,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The YAML output doesn't have the puppet default value.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1219,7 +1219,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :CaseLevel: Integration
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         sc_param = self.sc_params_list.pop()
         hg_name = gen_string('alpha')
@@ -1290,7 +1290,7 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The host/hostgroup is saved with changes.
             2.  New matcher for fqdn/hostgroup created inside parameter.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1313,7 +1313,7 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Error thrown for invalid type value.
             2.  No matcher for fqdn/hostgroup is created inside parameter.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1341,7 +1341,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  New matcher for fqdn/hostgroup created inside parameter.
             3.  In matcher, 'Use Puppet Default' checkbox is checked.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1371,7 +1371,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The info icon changed to warning icon for that parameter.
             3.  No matcher for fqdn/hostgroup created inside parameter.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1399,7 +1399,7 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The host/hostgroup is saved with changes.
             2.  Matcher value in parameter is updated from fqdn/hostgroup.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1428,7 +1428,7 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Error thrown for invalid value.
             2.  Matcher value in parameter is not updated from fqdn/hostgroup.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1457,7 +1457,7 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The parameter value updated in nested hostgroup.
             2.  Changes submitted successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1578,7 +1578,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  The button for overriding the value is displayed and
                 accessible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1608,7 +1608,7 @@ class SmartClassParametersTestCase(UITestCase):
                 accessible.
             4.  In parameter, the default value is still hidden.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1681,7 +1681,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  In parameter, new matcher created for fqdn/hostgroup.
             4.  And the value shown hidden.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
 
@@ -1708,7 +1708,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The default value shows empty on hide.
             3.  Matcher Value shown as hidden.
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         sc_param = self.sc_params_list.pop()
         matcher_value = gen_string('alpha')

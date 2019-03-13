@@ -46,7 +46,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
         :expectedresults: An openstack compute resource is created
             successfully.
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -69,7 +69,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: An openstack compute resource is created successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -93,7 +93,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: An openstack compute resource is not created
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -118,7 +118,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The openstack compute resource is updated
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -144,7 +144,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The openstack compute resource is updated
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -167,7 +167,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource is deleted
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -192,7 +192,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
          """
 
     @run_only_on('sat')
@@ -215,7 +215,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -239,7 +239,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -262,7 +262,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -282,7 +282,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Virtual machines should be displayed
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -314,7 +314,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -337,7 +337,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -362,7 +362,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with custom settings
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -386,5 +386,5 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

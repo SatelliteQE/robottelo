@@ -33,7 +33,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :expectedresults: content is installed on client system
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -47,7 +47,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :expectedresults: newly registered system can be found in Systems UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -63,7 +63,7 @@ class SystemRegistrationTestCase(UITestCase):
         :expectedresults: after deleting, system no longer appears in system
             UI.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -77,7 +77,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :expectedresults: compliance status is green in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -91,7 +91,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :expectedresults: compliance status is red in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -106,7 +106,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :expectedresults: compliance status is yellow in UI
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

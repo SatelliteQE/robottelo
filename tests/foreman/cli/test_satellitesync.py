@@ -1210,7 +1210,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. The exported contents are not imported due to non availability.
             3. Error is thrown for non availability of CV contents to import.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1230,7 +1230,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export CV version contents has been aborted due
             to insufficient memory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1257,7 +1257,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                settings.
             2. The exported ISO has been imported in org/satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1284,7 +1284,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Error is thrown for non availability of CV version ISO to
                import.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1304,7 +1304,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export CV version to iso has been aborted due to
             insufficient memory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1324,7 +1324,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export CV version to iso has been aborted due to
             maximum size is not enough to contain the CV version contents.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1342,7 +1342,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :expectedresults: CV version has been exported to iso successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1373,7 +1373,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                created.
             3. On incremental import, only the new packages are imported.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1401,7 +1401,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             1. An Empty packages directory created on incremental export.
             2. On incremental import, no new packages are imported.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1423,7 +1423,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Exported CV in iso should follow the cdn directory
             structure.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1449,7 +1449,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             1. The repo has been exported to directory specified in settings.
             2. The exported repo has been imported in org/satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1475,7 +1475,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. The exported repo are not imported due to non availability.
             3. Error is thrown for non availability of repo contents to import.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1494,7 +1494,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export repo has been aborted due to insufficient
             memory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1512,7 +1512,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: An Error is raised for updating the repo download
             policy to 'immediate' to be exported.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1536,7 +1536,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Deleted packages from upstream are removed from
             downstream.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1562,7 +1562,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                settings.
             2. The exported ISO has been imported in org/satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1587,7 +1587,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             1. The exported iso is not imported due to non availability.
             2. Error is thrown for non availability of repo ISO to import.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1606,7 +1606,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export repo to iso has been aborted due to
             insufficient memory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1624,7 +1624,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export repo to iso has been aborted due to
             maximum size is not enough to contain the repo  contents.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1641,7 +1641,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :expectedresults: Repo has been exported to iso successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1659,7 +1659,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Error is raised for attempting to export from future
             datetime.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1688,7 +1688,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                created.
             3. On incremental import, only the new packages are imported.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1714,7 +1714,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             1. An Empty packages directory created on incremental export.
             2. On incremental import, no new packages are imported.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1736,7 +1736,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Exported repo in iso should follow the cdn directory
             structure.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1763,7 +1763,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                specified in settings.
             2. All The exported contents has been imported in org/satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1793,7 +1793,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Error is thrown for non availability of kickstart tree to
                import.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1813,7 +1813,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The export kickstart tree has been aborted due to
             insufficient memory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1833,7 +1833,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Whole YUM repo contents has been exported to
             directory specified in settings.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1857,7 +1857,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: All the exported YUM repo contents are imported
             successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1879,7 +1879,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Red Hat YUM repo contents have been exported
             incrementally in separate directory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1903,7 +1903,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :expectedresults: YUM repo contents have been imported incrementally.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1921,7 +1921,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Whole repo contents has been exported as ISO in
             separate directory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1945,7 +1945,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: All The exported repo contents in ISO has been
             imported successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1968,7 +1968,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Repo contents have been exported as ISO incrementally
             in separate directory.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1994,7 +1994,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Repo contents have been exported as ISO and imported
             incrementally.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2013,7 +2013,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Whole CV version contents has been exported to
             directory specified in settings.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2038,7 +2038,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The repo from an exported CV contents has been
             imported successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2065,7 +2065,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: Both custom and Red Hat repos are imported
             successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2083,7 +2083,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :expectedresults: Whole CV version contents has been exported as ISO.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2108,7 +2108,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The repo is imported successfully from exported CV
             ISO contents.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2135,7 +2135,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :expectedresults: The package is installed on client from imported repo
             of downstream satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

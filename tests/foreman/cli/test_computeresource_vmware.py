@@ -70,7 +70,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :BZ: 1387917
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -99,7 +99,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :BZ: 1387917
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -128,7 +128,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :BZ: 1387917
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -158,7 +158,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :BZ: 1387917
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """

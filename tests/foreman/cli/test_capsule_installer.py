@@ -53,7 +53,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :expectedresults: product is installed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -70,7 +70,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Capsule installs correctly and qpid functionality is
             enabled.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -87,7 +87,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Capsule installs correctly and functionality is
             enabled.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -103,7 +103,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: user is told that such parameters are invalid and
             install aborts.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -121,7 +121,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :expectedresults: user told parameters are invalid; install aborts.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -139,7 +139,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Install commences/completes with proxy installed
             correctly.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -158,7 +158,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Install commences and completes with proxy installed
             correctly.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
