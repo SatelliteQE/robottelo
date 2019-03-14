@@ -12,7 +12,6 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from pyVmomi import vim
 from wrapanapi import RHEVMSystem, VMWareSystem
 
 from robottelo.api.utils import configure_provisioning
@@ -27,7 +26,7 @@ from robottelo.constants import FOREMAN_PROVIDERS, VMWARE_CONSTANTS
 from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
-    skip_if_bug_open,
+    bz_bug_is_open,
     tier3,
 )
 from robottelo.helpers import ProvisioningCheckError, host_provisioning_check
@@ -67,6 +66,13 @@ class ComputeResourceHostTestCase(CLITestCase):
             cls.rhv_api.api.system_service().networks_service(
             ).list(search='name={0}'.format(bridge))[0].id
         )
+        if bz_bug_is_open(1685949):
+            dc = cls.rhv_api._data_centers_service.list(
+                search='name={0}'.format(cls.rhev_datacenter))[0]
+            dc = cls.rhv_api._data_centers_service.data_center_service(dc.id)
+            cls.quota = dc.quotas_service().list()[0].id
+        else:
+            cls.quota = 'Default'
 
         # Vmware Settings
         cls.vmware_server = settings.vmware.vcenter
@@ -86,9 +92,8 @@ class ComputeResourceHostTestCase(CLITestCase):
                                       username=cls.vmware_username,
                                       password=cls.vmware_password
                                       )
-        cls.vmware_net_id = cls.vmware_api.get_obj(
-            vimtype=vim.Network,
-            name=cls.current_interface)._moId
+        cls.vmware_net_id = cls.vmware_api.get_network(
+            cls.current_interface)._moId
 
         # Provisioning setup
         cls.org = entities.Organization(name=gen_string('alpha')).create()
@@ -115,7 +120,6 @@ class ComputeResourceHostTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1637883)
     def test_positive_provision_rhev_with_host_group(self):
         """Provision a host on RHEV compute resource with
         the help of hostgroup.
@@ -146,7 +150,7 @@ class ComputeResourceHostTestCase(CLITestCase):
             u'password': self.rhev_password,
             u'datacenter': self.rhev_datacenter,
             u'url': self.rhev_url,
-            u'ovirt-quota': 'Default',
+            u'ovirt-quota': self.quota,
             u'organizations': self.org_name,
             u'locations': self.loc_name
         })
@@ -184,7 +188,7 @@ class ComputeResourceHostTestCase(CLITestCase):
         rhv_vm = self.rhv_api.get_vm(hostname)
         # Assert of Satellite mac address for VM and Mac of VM created is same
         self.assertEqual(host_info.get('network').get('mac'),
-                         rhv_vm.get_nics()[0].mac
+                         rhv_vm.get_nics()[0].mac.address
                          )
         # Start to run a ping check if network was established on VM
         with self.assertNotRaises(ProvisioningCheckError):
