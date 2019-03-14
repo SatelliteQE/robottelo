@@ -581,11 +581,18 @@ gpgcheck=0'''.format(name, url)
 
         self.configure_rhel_repo(rhel_repo)
         puppet_conf = (
+            '[main]\n'
+            'vardir = /opt/puppetlabs/puppet/cache\n'
+            'logdir = /var/log/puppetlabs/puppet\n'
+            'rundir = /var/run/puppetlabs\n'
+            'ssldir = /etc/puppetlabs/puppet/ssl\n'
+
+            '[agent]\n'
             'pluginsync      = true\n'
             'report          = true\n'
             'ignoreschedules = true\n'
-            'daemon          = false\n'
             'ca_server       = {0}\n'
+            'environment     = production\n'
             'server          = {1}\n'
             .format(proxy_hostname, proxy_hostname))
         result = self.run(u'yum install puppet -y')
@@ -593,7 +600,7 @@ gpgcheck=0'''.format(name, url)
             raise VirtualMachineError(
                 'Failed to install the puppet rpm')
         self.run(
-            'echo "{0}" >> /etc/puppet/puppet.conf'
+            'echo "{0}" >> /etc/puppetlabs/puppet/puppet.conf'
             .format(puppet_conf))
         # This particular puppet run on client would populate a cert on
         # sat6 under the capsule --> certifcates or on capsule via cli "puppet

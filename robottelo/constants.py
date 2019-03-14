@@ -1634,7 +1634,9 @@ OSCAP_PROFILE = {
     'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
     'tailoring_rhel7': ('Common Profile for General-Purpose Systems '
-                        '[CUSTOMIZED1]')
+                        '[CUSTOMIZED1]'),
+    'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
+    'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7'
 }
 
 ROLES = [
