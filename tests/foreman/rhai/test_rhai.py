@@ -16,7 +16,7 @@
 """
 
 import pytest
-from airgun.exceptions import InsightsOrganizationPageError
+from airgun.entities.rhai.base import InsightsOrganizationPageError
 from fauxfactory import gen_string
 from nailgun import entities
 
