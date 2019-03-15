@@ -16,12 +16,13 @@
 """
 
 import pytest
+from airgun.exceptions import InsightsOrganizationPageError
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest as up_man
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL7
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL7, ANY_CONTEXT
 from robottelo.decorators import fixture, parametrize, stubbed
 from robottelo.vm import VirtualMachine
 
@@ -131,8 +132,7 @@ def test_rhai_navigation(autosession, nav_item):
     assert view.is_displayed
 
 
-@stubbed()
-def test_negative_org_not_selected():
+def test_negative_org_not_selected(autosession):
     """Verify that user attempting to access RHAI is directed to select an
     Organization if there is no organization selected
 
@@ -142,6 +142,10 @@ def test_negative_org_not_selected():
         displayed if the user tries to view Access Insights overview
         without selecting an org
     """
+    autosession.organization.select(org_name=ANY_CONTEXT['org'])
+    with pytest.raises(InsightsOrganizationPageError) as context:
+        autosession.insightsoverview.read()
+    assert "Organization Selection Required" in str(context.value)
 
 
 @stubbed()
@@ -450,3 +454,30 @@ def test_positive_inventory_group_systems():
 
     :CaseLevel: System
     """
+
+
+def test_numeric_group(vm, autosession):
+    """Check the rule appears when provoked and disappears on Satellite once applied.
+
+    :id: 4562e0f9-fff1-4cc7-b7e7-e4779662b3e1
+
+    :expectedresults: rule no more appears on Rules page on portal
+    """
+    rule_title = ('Unexpected behavior in command-line tools and 3rd party software when user or '
+                  'group names are numeric')
+    values = autosession.insightsinventory.read(vm.hostname, 'rules')
+    # assert that the user and group numeric rule is not present
+    assert not [rule for rule in values['rules'] if rule_title in rule['title']]
+    # as groupadd with numeric value should fail, add a valid group and replace it with a numeric
+    # one in the group file.
+    vm.run('groupadd test_group')
+    vm.run("sed -i 's/test_group/123456/' /etc/group")
+    vm.run('insights-client')
+    values = autosession.insightsinventory.read(vm.hostname, 'rules')
+    # assert that the user and group numeric rule is present
+    assert [rule for rule in values['rules'] if rule_title in rule['title']]
+    vm.run('groupdel 123456')
+    vm.run('insights-client')
+    values = autosession.insightsinventory.read(vm.hostname, 'rules')
+    # assert that the user and group numeric rule is not present again
+    assert not [rule for rule in values['rules'] if rule_title in rule['title']]
