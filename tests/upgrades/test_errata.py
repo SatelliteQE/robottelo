@@ -109,6 +109,17 @@ class Scenario_errata_count(APITestCase):
             query={'search': '{0}'.format(client_container_name)})
         return host
 
+    def _errata_count(self, ak):
+        """ fetch the content host details.
+         :param: str ak: The activation key
+        :return: int errata_count : errata count
+        """
+        host = entities.Host().search(query={
+            'search': 'activation_key={0}'.format(ak.name)})[0]
+        applicable_errata_count = host.content_facet_attributes[
+            'errata_counts']['total']
+        return applicable_errata_count
+
     def _host_location_update(self, client_container_name=None, loc=None):
         """ Check the content host status (as package profile update task does take time to
         upload) and update location.
@@ -280,7 +291,6 @@ class Scenario_errata_count(APITestCase):
             content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
         content_view.publish()
-        content_view = content_view.read()
 
         self._install_or_update_package(client_container_id,
                                         "katello-agent",
@@ -298,6 +308,12 @@ class Scenario_errata_count(APITestCase):
         for errata in FAKE_9_YUM_ERRATUM:
             host.errata_apply(data={'errata_ids': [errata]})
             applicable_errata_count -= 1
+        wait_for(
+            lambda: self._errata_count(ak=activation_key) == 0,
+            timeout=200,
+            delay=10,
+            logger=self.logger
+        )
         self.assertEqual(
             host.content_facet_attributes['errata_counts']['total'],
             0
