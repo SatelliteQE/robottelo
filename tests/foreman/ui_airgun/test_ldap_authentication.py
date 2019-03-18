@@ -15,7 +15,7 @@
 :Upstream: No
 """
 from navmazing import NavigationTriesExceeded
-from pytest import raises
+from pytest import raises, skip
 from widgetastic.exceptions import NoSuchElementException
 
 from airgun.session import Session
@@ -33,6 +33,7 @@ from robottelo.decorators import (
     bz_bug_is_open,
     fixture,
     run_in_one_thread,
+    setting_is_set,
     skip_if_not_set,
     tier2,
     upgrade,
@@ -43,6 +44,9 @@ pytestmark = [run_in_one_thread]
 
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
+
+if not setting_is_set('ldap'):
+    skip('skipping tests due to missing ldap settings', allow_module_level=True)
 
 
 @fixture(scope='module')
@@ -121,7 +125,6 @@ def ldap_usergroup_name():
         user_groups[0].delete()
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_create_with_ad(session, ldap_data):
     """Create LDAP authentication with AD
@@ -155,7 +158,6 @@ def test_positive_create_with_ad(session, ldap_data):
         assert session.ldapauthentication.read_table_row(name)['Name'] == name
 
 
-@skip_if_not_set('ldap')
 @tier2
 def test_positive_delete_with_ad(session, ldap_data):
     """Delete LDAP authentication with AD
@@ -191,7 +193,6 @@ def test_positive_delete_with_ad(session, ldap_data):
         assert not session.ldapauthentication.read_table_row(name)
 
 
-@skip_if_not_set('ldap')
 @tier2
 @upgrade
 def test_positive_create_with_ad_org_and_loc(session, ldap_data):
@@ -763,3 +764,86 @@ def test_positive_add_katello_role_with_org(
     ak = entities.ActivationKey(organization=module_org).search(
         query={'search': 'name={}'.format(ak_name)})[0].read()
     assert ak.organization.id == module_org.id
+
+
+@tier2
+@upgrade
+def test_positive_create_user_in_ldap_mode(session, auth_source):
+    """Create User in ldap mode
+
+    :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
+
+    :expectedresults: User is created without specifying the password
+
+    :CaseLevel: Integration
+    """
+    auth_source_name = 'LDAP-' + auth_source.name
+    name = gen_string('alpha')
+    with session:
+        session.user.create({
+            'user.login': name,
+            'user.auth': auth_source_name,
+        })
+        assert session.user.search(name)[0]['Username'] == name
+        user_values = session.user.read(name)
+        assert user_values['user']['auth'] == auth_source_name
+
+
+@tier2
+def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, auth_source):
+    """Login with LDAP Auth- AD for user with no roles/rights
+
+    :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
+
+    :setup: assure properly functioning AD server for authentication
+
+    :steps: Login to server with an AD user.
+
+    :expectedresults: Log in to foreman UI successfully but cannot access
+        functional areas of UI
+
+    :CaseLevel: Integration
+    """
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.user.search('')
+        assert ldapsession.task.read_all()['current_user'] == ldap_data['ldap_user_name']
+
+
+@tier2
+@upgrade
+def test_positive_login_ad_user_basic_roles(
+        session, test_name, ldap_data, ldap_user_name, auth_source):
+    """Login with LDAP - AD for user with roles/rights
+
+    :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
+
+    :setup: assure properly functioning AD server for authentication
+
+    :steps: Login to server with an AD user.
+
+    :expectedresults: Log in to foreman UI successfully and can access
+        appropriate functional areas in UI
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    role = entities.Role().create()
+    permissions = {'Architecture': PERMISSIONS['Architecture']}
+    create_role_permissions(role, permissions)
+    with session:
+        session.user.update(
+            ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
+    with Session(
+            test_name,
+            ldap_data['ldap_user_name'],
+            ldap_data['ldap_user_passwd'],
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.usergroup.search('')
+        ldapsession.architecture.create({'name': name})
+        assert ldapsession.architecture.search(name)[0]['Name'] == name
