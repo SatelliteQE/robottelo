@@ -1714,11 +1714,11 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert qe_lce.name in cvv['Environments']
+        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv[0]['Environments']
         # remove the content view version from QE Environment
         session.contentview.remove_version(cv['name'], VERSION, False, [qe_lce.name])
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert qe_lce.name not in cvv['Environments']
+        assert ' '.join((ENVIRONMENT, dev_lce.name)) == cvv[0]['Environments']
         # promote again to QE
         result = session.contentview.promote(cv['name'], VERSION, qe_lce.name)
         assert 'Promoted to {}'.format(qe_lce.name) in result['Status']
@@ -1726,7 +1726,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert qe_lce.name in cvv['Environments']
+        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv[0]['Environments']
 
 
 @upgrade
@@ -1743,11 +1743,10 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
         2. Add a yum repo and a puppet module to the content view
         3. Publish the content view
         4. Promote the content view to multiple environment Library -> DEV
-            -> QE -> STAGE -> PROD
-        5. Delete the content view, this should delete the content with all
-            it's published/promoted versions from all environments
+        5. Disassociate content view from promoted environment
+        6. Delete the content view.
 
-    :expectedresults: The content view doesn't exists
+    :expectedresults: The content view doesn't exists.
 
     :CaseLevel: Integration
     """
