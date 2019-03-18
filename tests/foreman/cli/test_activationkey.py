@@ -929,7 +929,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': new_ak['id'],
             u'subscription-id': subscription_result[-1]['id'],
         })
-        self.assertIn('Subscription removed from activation key', result)
+        self.assertIn('Subscription removed from activation key.', result)
         ak_subs_info = ActivationKey.subscriptions({
             u'id': new_ak['id'],
             u'organization-id': org['id'],
