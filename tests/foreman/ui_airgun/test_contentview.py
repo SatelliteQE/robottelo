@@ -1714,11 +1714,11 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv[0]['Environments']
+        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
         # remove the content view version from QE Environment
         session.contentview.remove_version(cv['name'], VERSION, False, [qe_lce.name])
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert ' '.join((ENVIRONMENT, dev_lce.name)) == cvv[0]['Environments']
+        assert ' '.join((ENVIRONMENT, dev_lce.name)) == cvv['Environments']
         # promote again to QE
         result = session.contentview.promote(cv['name'], VERSION, qe_lce.name)
         assert 'Promoted to {}'.format(qe_lce.name) in result['Status']
@@ -1726,7 +1726,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv[0]['Environments']
+        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
 
 
 @upgrade
