@@ -1088,7 +1088,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """
         delay = 4 * 60
         start_date = datetime.utcnow() - timedelta(weeks=1) \
-            + timedelta(seconds=delay * 60)
+            + timedelta(seconds=delay)
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
         # Create and Associate sync plan with product
@@ -1099,15 +1099,19 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             sync_date=start_date,
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
+        # Wait quarter of expected time
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/4, product.name))
+        sleep(delay/4)
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Update with the current UTC time plus a delay
-        sync_plan.sync_date = datetime.utcnow() - timedelta(weeks=1) \
-            + timedelta(seconds=delay)
-        sync_plan.update(['sync_date'])
+        # Wait the rest of expected time
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay, product.name))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
         self.validate_task_status(repo.id,
                                   repo_backend_id=repo.backend_identifier
