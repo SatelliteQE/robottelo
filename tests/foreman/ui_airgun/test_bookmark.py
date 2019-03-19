@@ -19,9 +19,12 @@ import random
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
+from pytest import raises
+from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.decorators import bz_bug_is_open, fixture, rm_bug_is_open, tier2
+from robottelo.decorators import bz_bug_is_open, fixture, rm_bug_is_open, tier2, upgrade
+from robottelo.helpers import get_nailgun_config
 
 
 @fixture(scope='module')
@@ -30,7 +33,12 @@ def module_org():
 
 
 @fixture(scope='module')
-def ui_entities(module_org):
+def module_loc():
+    return entities.Location().create()
+
+
+@fixture(scope='module')
+def ui_entities(module_org, module_loc):
     """Collects the list of all applicable UI entities for testing and does all
     required preconditions.
     """
@@ -51,10 +59,10 @@ def ui_entities(module_org):
         # appear. Creating 1 entity for such pages
         entity_name, entity_setup = entity['name'], entity.get('setup')
         if entity_setup:
-            # entities with 1 organization
+            # entities with 1 organization and location
             if entity_name in ('Host',):
-                entity_setup(organization=module_org).create()
-            # entities with no organizations
+                entity_setup(organization=module_org, location=module_loc).create()
+            # entities with no organizations and locations
             elif entity_name in (
                     'ComputeProfile',
                     'ConfigGroup',
@@ -63,9 +71,9 @@ def ui_entities(module_org):
                     'PuppetClass',
                     'UserGroup'):
                 entity_setup().create()
-            # entities with multiple organizations
+            # entities with multiple organizations and locations
             else:
-                entity_setup(organization=[module_org]).create()
+                entity_setup(organization=[module_org], location=[module_loc]).create()
     return ui_entities
 
 
@@ -73,6 +81,44 @@ def ui_entities(module_org):
 def random_entity(ui_entities):
     """Returns one random entity from list of available UI entities"""
     return ui_entities[random.randint(0, len(ui_entities) - 1)]
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, random_entity):
+    """Perform end to end testing for bookmark component
+
+    :id: 13e89c36-6332-451e-a4b5-2ab46346211f
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    query = gen_string('alphanumeric')
+    with session:
+        # Create new bookmark
+        ui_lib = getattr(session, random_entity['name'].lower())
+        ui_lib.create_bookmark({
+            'name': name,
+            'query': query,
+            'public': True,
+        })
+        assert session.bookmark.search(name)[0]['Name'] == name
+        bookmark_values = session.bookmark.read(name)
+        assert bookmark_values['name'] == name
+        assert bookmark_values['query'] == query
+        assert bookmark_values['public'] is True
+        # Update bookmark with new name
+        session.bookmark.update(name, {'name': new_name})
+        assert session.bookmark.search(new_name)[0]['Name'] == new_name
+        assert not session.bookmark.search(name)
+        # Delete bookmark
+        session.bookmark.delete(new_name)
+        assert not session.bookmark.search(new_name)
 
 
 @tier2
@@ -116,3 +162,105 @@ def test_positive_create_bookmark_public(
     with Session(test_name, module_viewer_user.login, module_viewer_user.password) as session:
         assert session.bookmark.search(public_name)[0]['Name'] == public_name
         assert not session.bookmark.search(nonpublic_name)
+
+
+@tier2
+def test_positive_update_bookmark_public(
+        session, random_entity, module_viewer_user, module_user, test_name):
+    """Update and save a bookmark public state
+
+    :id: 63646c41-5441-4547-a4d0-744286122405
+
+    :Setup:
+
+        1. Create 2 bookmarks of a random name with random query, one
+           public and one private
+        2. Create a non-admin user with 'viewer' role
+
+    :Steps:
+
+        1. Login to Satellite server (establish a UI session) as the
+           pre-created user
+        2. Navigate to the entity
+        3. List the bookmarks by clicking the drop down menu
+        4. Verify that only the public bookmark is listed
+        5. Log out
+        6. Login to Satellite server (establish a UI session) as the admin
+           user
+        7. List the bookmarks (Navigate to Administer -> Bookmarks)
+        8. Click the public pre-created bookmark
+        9. Uncheck 'public'
+        10. Submit
+        11. Click the private pre-created bookmark
+        12. Check 'public'
+        13. Submit
+        14. Logout
+        15. Login to Satellite server (establish a UI session) as the
+            pre-created user
+        16. Navigate to the entity
+        17. List the bookmarks by clicking the drop down menu
+
+    :expectedresults: New public bookmark is listed, and the private one is
+        hidden
+
+    :CaseLevel: Integration
+    """
+    public_name = gen_string('alphanumeric')
+    nonpublic_name = gen_string('alphanumeric')
+    cfg = get_nailgun_config()
+    cfg.auth = (module_user.login, module_user.password)
+    for name in (public_name, nonpublic_name):
+        entities.Bookmark(
+            cfg,
+            name=name,
+            controller=random_entity['controller'],
+            public=name == public_name,
+        ).create()
+    with Session(
+            test_name, module_viewer_user.login, module_viewer_user.password
+    ) as non_admin_session:
+        assert non_admin_session.bookmark.search(public_name)[0]['Name'] == public_name
+        assert not non_admin_session.bookmark.search(nonpublic_name)
+    with session:
+        session.bookmark.update(public_name, {'public': False})
+        session.bookmark.update(nonpublic_name, {'public': True})
+    with Session(
+            test_name, module_viewer_user.login, module_viewer_user.password
+    ) as non_admin_session:
+        assert non_admin_session.bookmark.search(nonpublic_name)[0]['Name'] == nonpublic_name
+        assert not non_admin_session.bookmark.search(public_name)
+
+
+@tier2
+def test_negative_delete_bookmark(random_entity, module_viewer_user, test_name):
+    """Simple removal of a bookmark query without permissions
+
+    :id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
+
+    :Setup:
+
+        1. Create a bookmark of a random name with random query
+        2. Create a non-admin user without destroy_bookmark role (e.g.
+           viewer)
+
+    :Steps:
+
+        1. Login to Satellite server (establish a UI session) as a
+           non-admin user
+        2. List the bookmarks (Navigate to Administer -> Bookmarks)
+
+    :expectedresults: The delete buttons are not displayed
+
+    :CaseLevel: Integration
+    """
+    bookmark = entities.Bookmark(
+        controller=random_entity['controller'],
+        public=True,
+    ).create()
+    with Session(
+            test_name, module_viewer_user.login, module_viewer_user.password
+    ) as non_admin_session:
+        assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
+        with raises(NoSuchElementException):
+            non_admin_session.bookmark.delete(bookmark.name)
+        assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
