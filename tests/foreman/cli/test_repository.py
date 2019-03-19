@@ -607,6 +607,7 @@ class RepositoryTestCase(CLITestCase):
                 repository = self._make_repository({
                     u'checksum-type': checksum_type,
                     u'content-type': content_type,
+                    u'download-policy': u'immediate',
                 })
                 self.assertEqual(repository['content-type'], content_type)
                 self.assertEqual(repository['checksum-type'], checksum_type)
@@ -1438,19 +1439,29 @@ class RepositoryTestCase(CLITestCase):
         """
         content_type = u'yum'
         repository = self._make_repository({
-            u'content-type': content_type
+            u'content-type': content_type, u'download-policy': u'immediate'
         })
         self.assertEqual(repository['content-type'], content_type)
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
-                # Update the checksum
-                Repository.update({
-                    u'checksum-type': checksum_type,
-                    u'id': repository['id'],
-                })
-                # Fetch it again
+                Repository.update({u'checksum-type': checksum_type, u'id': repository['id']})
                 result = Repository.info({'id': repository['id']})
                 self.assertEqual(result['checksum-type'], checksum_type)
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_create_checksum_with_on_demand_policy(self):
+        """Attempt to create repository with checksum and on_demand policy.
+
+        :id: 33d712e6-e91f-42bb-8c5d-35bdc427182c
+
+        :expectedresults: A repository is not created and error is raised.
+
+        :CaseImportance: Critical
+        """
+        for checksum_type in 'sha1', 'sha256':
+            with self.assertRaises(CLIFactoryError):
+                self._make_repository({u'content-type': u'yum', u'checksum-type': checksum_type})
 
     @run_only_on('sat')
     @tier1
