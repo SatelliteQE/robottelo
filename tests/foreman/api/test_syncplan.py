@@ -993,7 +993,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Wait half of expected time
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was not synced'.format(delay/4, product.name))
         sleep(delay/4)
@@ -1006,9 +1006,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
         sleep(delay * 3/4)
-        # Update with the current UTC time
-        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
-        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
         self.validate_task_status(repo.id,
                                   repo_backend_id=repo.backend_identifier
