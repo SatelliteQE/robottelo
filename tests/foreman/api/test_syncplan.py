@@ -837,7 +837,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        delay = 6 * 60  # delay for sync date in seconds
+        delay = 4 * 60  # delay for sync date in seconds
         products = [
             entities.Product(organization=self.org).create()
             for _ in range(3)
@@ -859,7 +859,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         ).create()
         sync_plan.add_products(data={
             'product_ids': [product.id for product in products]})
-        # Wait half of expected time
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check products'
                          ' were not synced'.format(delay/4))
         sleep(delay/4)
@@ -871,9 +871,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.logger.info('Waiting {0} seconds to check products'
                          ' were synced'.format(delay))
         sleep(delay * 3/4)
-        # Update with the current UTC time
-        sync_plan.sync_date = datetime.utcnow() + timedelta(seconds=delay)
-        sync_plan.update(['sync_date'])
         # Verify product was synced successfully
         for repo in repos:
             self.validate_task_status(repo.id,
