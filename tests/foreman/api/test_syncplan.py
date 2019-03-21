@@ -801,7 +801,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
-            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+            sync_date=datetime.utcnow().replace(second=0, microsecond=0)
+            + timedelta(seconds=delay),
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
@@ -855,7 +856,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
-            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+            sync_date=datetime.utcnow().replace(second=0, microsecond=0)
+            + timedelta(seconds=delay),
         ).create()
         sync_plan.add_products(data={
             'product_ids': [product.id for product in products]})
@@ -984,7 +986,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             organization=org,
             enabled=True,
             interval=u'hourly',
-            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+            sync_date=datetime.utcnow().replace(second=0, microsecond=0)
+            + timedelta(seconds=delay),
         ).create()
         # Create and Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -1026,7 +1029,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         delay = 4 * 60
-        start_date = datetime.utcnow() - timedelta(days=1)\
+        start_date = datetime.utcnow().replace(second=0, microsecond=0) - timedelta(days=1)\
             + timedelta(seconds=delay)
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
@@ -1074,7 +1077,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         delay = 4 * 60
-        start_date = datetime.utcnow() - timedelta(weeks=1) \
+        start_date = datetime.utcnow().replace(second=0, microsecond=0) - timedelta(weeks=1) \
             + timedelta(seconds=delay)
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
