@@ -24,10 +24,8 @@ from robottelo.decorators import (
     bz_bug_is_open,
     rm_bug_is_open,
     tier1,
-    tier2,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -66,7 +64,7 @@ class BookmarkTestCase(UITestCase):
             # appear. Creating 1 entity for such pages
             if entity.get('setup'):
                 # entities with 1 organization
-                if entity['name'] in ('Hosts',):
+                if entity['name'] in ('Host',):
                     entity['setup'](organization=cls.session_org).create()
                 # entities with no organizations
                 elif entity['name'] in (
@@ -464,75 +462,6 @@ class BookmarkTestCase(UITestCase):
                     self.assertTrue(
                         self.bookmark.validate_field(name, 'query', query))
 
-    @tier2
-    def test_positive_update_bookmark_public(self):
-        """Update and save a bookmark public state
-
-        :id: 63646c41-5441-4547-a4d0-744286122405
-
-        :Setup:
-
-            1. Create 2 bookmarks of a random name with random query, one
-               public and one private
-            2. Create a non-admin user with 'viewer' role
-
-        :Steps:
-
-            1. Login to Satellite server (establish a UI session) as the
-               pre-created user
-            2. Navigate to the entity
-            3. List the bookmarks by clicking the drop down menu
-            4. Verify that only the public bookmark is listed
-            5. Log out
-            6. Login to Satellite server (establish a UI session) as the admin
-               user
-            7. List the bookmarks (Navigate to Administer -> Bookmarks)
-            8. Click the public pre-created bookmark
-            9. Uncheck 'public'
-            10. Submit
-            11. Click the private pre-created bookmark
-            12. Check 'public'
-            13. Submit
-            14. Logout
-            15. Login to Satellite server (establish a UI session) as the
-                pre-created user
-            16. Navigate to the entity
-            17. List the bookmarks by clicking the drop down menu
-
-        :expectedresults: New public bookmark is listed, and the private one is
-            hidden
-
-        :CaseLevel: Integration
-        """
-        with Session(self):
-            bm1_name = gen_string(random.choice(STRING_TYPES))
-            bm1_entity = self.getOneEntity()[0]
-            bm2_name = gen_string(random.choice(STRING_TYPES))
-            bm2_entity = self.getOneEntity()[0]
-            bm1_page = getattr(self, bm1_entity['name'].lower())
-            bm1_page.create_a_bookmark(
-                name=bm1_name,
-                public=True,
-                query=gen_string('alphanumeric'),
-            )
-            bm2_page = getattr(self, bm2_entity['name'].lower())
-            bm2_page.create_a_bookmark(
-                name=bm2_name,
-                public=False,
-                query=gen_string('alphanumeric'),
-            )
-        with Session(self, user=self.custom_user.login,
-                     password=self.custom_password):
-            self.assertIsNotNone(self.bookmark.search(bm1_name))
-            self.assertIsNone(self.bookmark.search(bm2_name))
-        with Session(self):
-            self.bookmark.update(bm1_name, new_public=False)
-            self.bookmark.update(bm2_name, new_public=True)
-        with Session(self, user=self.custom_user.login,
-                     password=self.custom_password):
-            self.assertIsNone(self.bookmark.search(bm1_name))
-            self.assertIsNotNone(self.bookmark.search(bm2_name))
-
     # DELETE TESTS
     @tier1
     def test_positive_delete_bookmark(self):
@@ -564,34 +493,3 @@ class BookmarkTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.bookmark.search(name))
                     self.bookmark.delete(name)
-
-    @tier2
-    def test_negative_delete_bookmark(self):
-        """Simple removal of a bookmark query without permissions
-
-        :id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
-
-        :Setup:
-
-            1. Create a bookmark of a random name with random query
-            2. Create a non-admin user without destroy_bookmark role (e.g.
-               viewer)
-
-        :Steps:
-
-            1. Login to Satellite server (establish a UI session) as a
-               non-admin user
-            2. List the bookmarks (Navigate to Administer -> Bookmarks)
-
-        :expectedresults: The delete buttons are not displayed
-
-        :CaseLevel: Integration
-        """
-        bm = entities.Bookmark(
-            controller=self.getOneEntity()[0]['controller'],
-            public=True,
-        ).create()
-        with Session(self, user=self.custom_user.login,
-                     password=self.custom_password):
-            with self.assertRaises(UIError):
-                self.bookmark.delete(bm.name)
