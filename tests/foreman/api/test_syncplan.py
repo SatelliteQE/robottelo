@@ -1077,7 +1077,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         delay = 4 * 60
-        start_date = datetime.utcnow().replace(second=0, microsecond=0) - timedelta(weeks=1) \
+        start_date = datetime.utcnow().replace(second=0, microsecond=0) - timedelta(weeks=1)\
             + timedelta(seconds=delay)
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
