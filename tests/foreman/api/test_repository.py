@@ -1702,6 +1702,7 @@ class OstreeRepositoryTestCase(APITestCase):
             repo.read()
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1689504)
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @upgrade
