@@ -555,7 +555,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
                 'repo_content.upstream_url': FAKE_1_YUM_REPO,
                 'repo_content.checksum_type': checksum_type,
                 'repo_content.gpg_key': gpg_key.name,
-                'repo_content.download_policy': DOWNLOAD_POLICIES['on_demand']
+                'repo_content.download_policy': DOWNLOAD_POLICIES['immediate']
             }
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
@@ -563,7 +563,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         assert repo_values['repo_content']['upstream_url'] == FAKE_1_YUM_REPO
         assert repo_values['repo_content']['metadata_type'] == checksum_type
         assert repo_values['repo_content']['gpg_key'] == gpg_key.name
-        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['on_demand']
+        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
         session.repository.update(
             module_prod.name,
             repo_name,
