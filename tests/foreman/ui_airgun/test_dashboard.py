@@ -14,13 +14,21 @@
 
 :Upstream: No
 """
+from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import promote
-from robottelo.constants import DISTRO_RHEL7
+from robottelo import manifests
+from robottelo.api.utils import create_role_permissions, create_sync_custom_repo, promote
+from robottelo.constants import (
+    DISTRO_RHEL7,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_2_ERRATA_ID,
+    FAKE_6_YUM_REPO,
+)
+from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
@@ -32,6 +40,7 @@ from robottelo.decorators import (
 from robottelo.products import (
     RepositoryCollection,
     SatelliteToolsRepository,
+    YumRepository,
 )
 from robottelo.vm import VirtualMachine
 
@@ -136,6 +145,35 @@ def test_positive_host_configuration_chart(session):
         session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
         assert dashboard_values['chart']['No report'] == '100%'
+
+
+@tier2
+def test_positive_new_host(session):
+    """Check if the New Hosts widget is working in the Dashboard UI
+
+    :id: 123fadc6-e3e0-4a49-8bca-2bf672460359
+
+    :Steps:
+
+        1. Create new host in the application
+        2. Navigate to Monitor -> Dashboard
+        3. Review the New Hosts widget
+
+    :expectedresults: New Hosts widget contains information about just created host
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    loc = entities.Location().create()
+    host = entities.Host(organization=org, location=loc).create()
+    with session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
+        dashboard_values = session.dashboard.read('NewHosts')['hosts']
+        assert len(dashboard_values) == 1
+        assert dashboard_values[0]['Host'] == host.name
+        assert host.operatingsystem.read().name in dashboard_values[0]['Operating System']
+        assert dashboard_values[0]['Installed'] == '-'
 
 
 @run_in_one_thread
@@ -320,6 +358,40 @@ def test_positive_host_collections(session):
         assert values['collections'][0]['Content Hosts'] == '1'
 
 
+@tier2
+def test_positive_current_subscription_totals(session):
+    """Check if the Current Subscriptions Totals widget is working in the
+    Dashboard UI
+
+    :id: 6d0f56ff-7007-4cdb-96f3-d9e8b6cc1701
+
+    :Steps:
+
+        1. Make sure application has some active subscriptions
+        2. Navigate to Monitor -> Dashboard
+        3. Review the Subscription Status widget
+
+    :expectedresults: The widget displays all the active subscriptions and
+        expired subscriptions details
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    with session:
+        session.organization.select(org_name=org.name)
+        subscription_values = session.dashboard.read('SubscriptionStatus')['subscriptions']
+        assert subscription_values[0][
+            'Subscription Status'] == 'Active Subscriptions'
+        assert int(subscription_values[0]['Count']) >= 1
+        assert subscription_values[1][
+            'Subscription Status'] == 'Subscriptions Expiring in 120 Days'
+        assert int(subscription_values[1]['Count']) == 0
+        assert subscription_values[2][
+            'Subscription Status'] == 'Recently Expired Subscriptions'
+        assert int(subscription_values[2]['Count']) == 0
+
+
 @tier3
 @run_in_one_thread
 @skip_if_not_set('clients', 'fake_manifest')
@@ -372,3 +444,106 @@ def test_positive_content_host_subscription_status(session):
             cv_name = repos_collection._setup_content_data[
                 'content_view']['name']
             assert values['table'][0]['Content View'] == cv_name
+
+
+@upgrade
+@run_in_one_thread
+@skip_if_not_set('clients')
+@tier3
+def test_positive_user_access_with_host_filter(test_name, module_loc):
+    """Check if user with necessary host permissions can access dashboard
+    and required widgets are rendered with proper values
+
+    :id: 24b4b371-cba0-4bc8-bc6a-294c62e0586d
+
+    :Steps:
+
+        1. Specify proper filter with permission for your role
+        2. Create new user and assign role to it
+        3. Login into application using this new user
+        4. Check dashboard and widgets on it
+        5. Register new content host to populate some values into dashboard widgets
+
+    :expectedresults: Dashboard and Errata Widget rendered without errors and
+        contain proper values
+
+    :BZ: 1417114
+
+    :CaseLevel: System
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    # create a role with necessary permissions
+    role = entities.Role().create()
+    user_permissions = {
+        'Organization': ['view_organizations'],
+        'Location': ['view_locations'],
+        None: ['access_dashboard'],
+        'Host': ['view_hosts'],
+    }
+    create_role_permissions(role, user_permissions)
+    # create a user and assign the above created role
+    entities.User(
+        default_organization=org,
+        organization=[org],
+        default_location=module_loc,
+        location=[module_loc],
+        role=[role],
+        login=user_login,
+        password=user_password
+    ).create()
+    with Session(test_name, user=user_login, password=user_password) as session:
+        assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
+        assert len(session.dashboard.read('LatestErrata')) == 0
+        repos_collection = RepositoryCollection(
+            distro=DISTRO_RHEL7,
+            repositories=[
+                SatelliteToolsRepository(),
+                YumRepository(url=FAKE_6_YUM_REPO),
+            ]
+        )
+        repos_collection.setup_content(org.id, lce.id)
+        with VirtualMachine(distro=repos_collection.distro) as client:
+            repos_collection.setup_virtual_machine(client)
+            result = client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            assert result.return_code == 0
+            hostname = client.hostname
+            # Check UI for values
+            assert session.host.search(hostname)[0]['Name'] == hostname
+            hosts_values = session.dashboard.read('HostConfigurationStatus')
+            assert hosts_values['total_count'] == 1
+            errata_values = session.dashboard.read('LatestErrata')['erratas']
+            assert len(errata_values) == 1
+            assert errata_values[0]['Type'] == 'security'
+            assert FAKE_2_ERRATA_ID in errata_values[0]['Errata']
+
+
+@tier2
+def test_positive_sync_overview_widget(session):
+    """Check if the Sync Overview Widget is working in the Dashboard UI
+
+    :id: 515027f5-19e8-4f83-9042-1c347a63758f
+
+    :Steps:
+
+        1. Create a product
+        2. Add a repo and sync it
+        3. Navigate to Monitor -> Dashboard
+        4. Review the Sync Overview widget for the above sync details
+
+    :expectedresults: Sync Overview widget is updated with all sync processes
+
+    :CaseLevel: Integration
+    """
+    product_name = gen_string('alpha')
+    org = entities.Organization().create()
+    create_sync_custom_repo(org.id, product_name=product_name)
+    with session:
+        session.organization.select(org_name=org.name)
+        sync_values = session.dashboard.read('SyncOverview')['syncs']
+        assert len(sync_values) == 1
+        assert sync_values[0]['Product'] == product_name
+        assert sync_values[0]['Status'] == 'Syncing Complete.'
+        assert 'ago' in sync_values[0]['Finished']
