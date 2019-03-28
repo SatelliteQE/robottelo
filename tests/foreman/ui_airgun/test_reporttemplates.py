@@ -176,7 +176,6 @@ def test_positive_clone(session):
             'template.name': name,
             'template.template_editor.editor': content,
         })
-        assert session.reporttemplate.search(name)[0]['Name'] == name
         session.reporttemplate.clone(
             name,
             {
@@ -185,6 +184,8 @@ def test_positive_clone(session):
         )
         assert session.reporttemplate.search(
             clone_name)[0]['Name'] == clone_name
+        assert session.reporttemplate.read(
+               clone_name)['template']['template_editor']['editor'] == content
 
 
 @tier2
