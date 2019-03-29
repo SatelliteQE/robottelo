@@ -15,9 +15,11 @@
 
 :Upstream: No
 """
+import json
 
-from fauxfactory import gen_string
+from fauxfactory import gen_integer, gen_string
 from nailgun import entities
+from random import randint
 
 from robottelo import manifests, ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -30,11 +32,13 @@ from robottelo.cli.factory import (
     make_repository,
 )
 from robottelo.cli.package import Package
+from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import (
+    CUSTOM_PUPPET_REPO,
     ENVIRONMENT,
     PRDS,
     REPOS,
@@ -43,6 +47,7 @@ from robottelo.constants import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -248,7 +253,14 @@ class ContentViewSync(CLITestCase):
 
     @staticmethod
     def _create_cv(cv_name, repo, organization, publish=True):
-        """Creates CV in organization with given name and repository"""
+        """Creates CV and/or publishes in organization with given name and repository
+
+        :param cv_name: The name of CV to create
+        :param repo: The repository directory
+        :param organization: The organization directory
+        :param publish: Publishes the CV if True else doesnt
+        :return: The directory of CV and Content View ID
+        """
         content_view = make_content_view({
             'name': cv_name,
             'organization-id': organization['id']
@@ -271,7 +283,13 @@ class ContentViewSync(CLITestCase):
 
     @staticmethod
     def _enable_rhel_content(organization, sync=True):
-        """Enable/Synchronize rhel content"""
+        """Enable and/or Synchronize rhel content
+
+        :param organization: The organization directory into which the rhel
+            contents will be enabled
+        :param bool sync: Syncs contents to repository if true else doesnt
+        :return: Repository cli object
+        """
         manifests.upload_manifest_locked(
             organization['id'], interface=manifests.INTERFACE_CLI)
         RepositorySet.enable({
@@ -289,6 +307,7 @@ class ContentViewSync(CLITestCase):
         # Update the download policy to 'immediate'
         Repository.update({
             'download-policy': 'immediate',
+            'mirror-on-sync': 'no',
             'id': repo['id'],
         })
         if sync:
@@ -301,13 +320,34 @@ class ContentViewSync(CLITestCase):
         })
         return repo
 
-    def set_importing_org(self, product, repo, cv):
+    def _update_json(self, json_path):
+        """Updates the major and minor version in the exported json file
+
+        :param json_path: json file path on server
+        :return: Returns major and minor versions
+        """
+        new_major = gen_integer(2, 1000)
+        new_minor = gen_integer(2, 1000)
+        result = ssh.command('[ -f {} ]'.format(json_path))
+        if result.return_code == 0:
+            ssh.command(
+                'sed -i \'s/\"major\": [0-9]\\+/\"major\": {0}/\' {1}'.format(
+                    new_major, json_path))
+            ssh.command(
+                'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {0}/\' {1}'.format(
+                    new_minor, json_path))
+            return new_major, new_minor
+        raise IOError(
+            'Json File {} not found to alternate the major/minor versions'.format(json_path))
+
+    def set_importing_org(self, product, repo, cv, mos='no'):
         """Sets same CV, product and repository in importing organization as
         exporting organization
 
         :param str product: The product name same as exporting product
         :param str repo: The repo name same as exporting repo
         :param str cv: The cv name same as exporting cv
+        :param str mos: Mirror on Sync repo, by default 'no' can override to 'yes'
         """
         self.importing_org = make_org()
         self.importing_prod = make_product({
@@ -316,7 +356,7 @@ class ContentViewSync(CLITestCase):
         })
         self.importing_repo = make_repository({
             'name': repo,
-            'mirror-on-sync': 'no',
+            'mirror-on-sync': mos,
             'download-policy': 'immediate',
             'product-id': self.importing_prod['id']
         })
@@ -439,17 +479,19 @@ class ContentViewSync(CLITestCase):
             'id': exporting_cvv_id
         })
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, rhel_cv_name, exporting_cvv_id)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)
-        imp_rhel_repo = ContentViewSync._enable_rhel_content(self.importing_org, sync=False)
+        Subscription.delete_manifest({'organization-id': self.exporting_org['id']})
+        importing_org = make_org()
+        imp_rhel_repo = ContentViewSync._enable_rhel_content(importing_org, sync=False)
         importing_cv, _ = ContentViewSync._create_cv(
-            rhel_cv_name, imp_rhel_repo, self.importing_org, publish=False)
+            rhel_cv_name, imp_rhel_repo, importing_org, publish=False)
         ContentView.version_import({
             'export-tar': exported_tar,
-            'organization-id': self.importing_org['id']
+            'organization-id': importing_org['id']
         })
         importing_cvv_id = ContentView.info({
             u'id': importing_cv['id']
@@ -762,6 +804,383 @@ class ContentViewSync(CLITestCase):
             error,
             'All exported repositories must be set to an immediate download policy and re-synced'
         )
+
+    @tier1
+    def test_negative_export_cv_with_background_policy_repo(self):
+        """Exporting CV version having background policy repo throws error
+
+        :id: c0f5a903-e9a8-4ce6-9377-1df1e7ba62c5
+
+        :steps:
+
+            1. Create product and background policy repository with custom contents
+            2. Sync the repository
+            3. Create CV with above product and publish
+            4. Attempt to export CV version contents to a directory
+
+        :expectedresults:
+
+            1. Export fails with error 'All exported repositories must be set to an immediate
+                download policy and re-synced' should be displayed.
+
+        """
+        exporting_org = make_org()
+        exporting_prod = gen_string('alpha')
+        product = make_product({
+            'organization-id': exporting_org['id'],
+            'name': exporting_prod
+        })
+        repo = make_repository({
+            'name': gen_string('alpha'),
+            'download-policy': 'background',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': repo['id']})
+        _, exporting_cvv_id = ContentViewSync._create_cv(
+            gen_string('alpha'), repo, exporting_org)
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_export({
+                'export-dir': '{}'.format(self.export_base),
+                'id': exporting_cvv_id
+            })
+        self.assert_error_msg(
+            error,
+            'All exported repositories must be set to an immediate download policy and re-synced'
+        )
+
+    @tier1
+    def test_negative_import_cv_with_mirroronsync_repo(self):
+        """Importing CV version having mirror-on-sync repo throws error
+
+        :id: dfa0cd5f-1596-4097-b505-06bc14de51dd
+
+        :steps:
+
+            1. Create product and mirror-on-sync repository with custom contents
+            2. Sync the repository
+            3. Create CV with above product and publish
+            4. Attempt to export CV version contents to a directory
+
+        :expectedresults:
+
+            1. Export fails with error 'The Repository '<repo_name>' is set with Mirror-on-Sync '
+            'to YES. Please change Mirror-on-Sync to NO and try the import again' should be
+            displayed.
+
+        """
+        exporting_prod_name = gen_string('alpha')
+        product = make_product({
+            'organization-id': self.exporting_org['id'],
+            'name': exporting_prod_name
+        })
+        exporting_repo_name = gen_string('alpha')
+        repo = make_repository({
+            'name': exporting_repo_name,
+            'download-policy': 'immediate',
+            'mirror-on-sync': 'yes',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': repo['id']})
+        exporting_cv_name = gen_string('alpha')
+        _, exporting_cvv_id = ContentViewSync._create_cv(
+            exporting_cv_name, repo, self.exporting_org)
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, exporting_cv_name, exporting_cvv_id)
+        self.set_importing_org(
+            exporting_prod_name, exporting_repo_name, exporting_cv_name, mos='yes')
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_import({
+                'export-tar': exported_tar,
+                'organization-id': self.importing_org['id']
+            })
+        self.assert_error_msg(
+            error,
+            "The Repository '{}' is set with Mirror-on-Sync to YES. "
+            "Please change Mirror-on-Sync to NO and try the import again".format(
+                exporting_repo_name)
+        )
+
+    @tier1
+    def test_positive_create_custom_major_minor_cv_version(self):
+        """CV can published with custom major and minor versions
+
+        :id: 6697cd22-253a-4bdc-a108-7e0af22caaf4
+
+        :steps:
+
+            1. Create product and repository with custom contents
+            2. Sync the repository
+            3. Create CV with above repository
+            4. Publish the CV with custom major and minor versions
+
+        :expectedresults:
+
+            1. CV version with custom major and minor versions is created
+
+        :CaseLevel: System
+        """
+        org = make_org()
+        major = randint(1, 1000)
+        minor = randint(1, 1000)
+        content_view = make_content_view({
+            'name': gen_string('alpha'),
+            'organization-id': org['id']
+        })
+        ContentView.publish({u'id': content_view['id'], 'major': major, 'minor': minor})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]['version']
+        self.assertEqual(cvv.split('.')[0], str(major))
+        self.assertEqual(cvv.split('.')[1], str(minor))
+
+    @skip_if_bug_open('bugzilla', 1657711)
+    @tier1
+    def test_negative_export_cv_with_puppet_repo(self):
+        """Exporting CV version having non yum(puppet) repo throws error
+
+        :id: 5e27f994-34f2-4595-95a9-346c6b9415f6
+
+        :steps:
+
+            1. Create product and non yum(puppet) repository
+            2. Sync the repository
+            3. Create CV with above product and publish
+            4. Attempt to export CV version contents to a directory
+
+        :expectedresults:
+
+            1. Export fails with error 'The Repository '#name' is a non-yum repository.
+            Only Yum is supported at this time. Please remove the repository from the
+            Content View, republish and try the export again'.
+
+        """
+        module = {'name': 'versioned', 'version': '3.3.3'}
+        exporting_org = make_org()
+        product = make_product({
+            'organization-id': exporting_org['id'],
+            'name': gen_string('alpha')
+        })
+        repo = make_repository({
+            'url': CUSTOM_PUPPET_REPO,
+            'content-type': 'puppet',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': repo['id']})
+        puppet_module = PuppetModule.list({
+            'search': 'name={name} and version={version}'.format(**module)})[0]
+        content_view = make_content_view({u'organization-id': exporting_org['id']})
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'name': puppet_module['name'],
+            u'author': puppet_module['author'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_export({
+                'export-dir': '{}'.format(self.export_base),
+                'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id']
+            })
+        self.assert_error_msg(
+            error,
+            "The Repository '{}' is a non-yum repository. Only Yum is supported at this time. "
+            "Please remove the repository from the Content View, republish and try the export "
+            "again".format(repo['name'])
+        )
+
+    @skip_if_bug_open('bugzilla', 1657711)
+    @tier1
+    def test_negative_export_cv_with_mixed_content_repos(self):
+        """Exporting CV version having yum and non-yum(puppet) repos throws error
+
+        :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
+
+        :steps:
+
+            1. Create product with yum and non-yum(puppet) repos
+            2. Sync the repositories
+            3. Create CV with above product and publish
+            4. Attempt to export CV version contents to a directory
+
+        :expectedresults:
+
+            1. Export fails with error 'The Repository '#name' is a non-yum repository.
+            Only Yum is supported at this time. Please remove the repository from the
+            Content View, republish and try the export again'.
+
+        """
+        module = {'name': 'versioned', 'version': '3.3.3'}
+        product = make_product({
+            'organization-id': self.exporting_org['id'],
+            'name': gen_string('alpha')
+        })
+        nonyum_repo = make_repository({
+            'url': CUSTOM_PUPPET_REPO,
+            'content-type': 'puppet',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': nonyum_repo['id']})
+        yum_repo = make_repository({
+            'name': gen_string('alpha'),
+            'download-policy': 'immediate',
+            'mirror-on-sync': 'no',
+            'product-id': product['id']
+        })
+        Repository.synchronize({'id': yum_repo['id']})
+        puppet_module = PuppetModule.list({
+            'search': 'name={name} and version={version}'.format(**module)})[0]
+        content_view = make_content_view({u'organization-id': self.exporting_org['id']})
+        ContentView.puppet_module_add({
+            'content-view-id': content_view['id'],
+            'name': puppet_module['name'],
+            'author': puppet_module['author'],
+        })
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': self.exporting_org['id'],
+            'repository-id': yum_repo['id']
+        })
+        ContentView.publish({u'id': content_view['id']})
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_export({
+                'export-dir': '{}'.format(self.export_base),
+                'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id']
+            })
+        self.assert_error_msg(
+            error,
+            "The Repository '{}' is a non-yum repository. Only Yum is supported at this time. "
+            "Please remove the repository from the Content View, republish and try the export "
+            "again".format(nonyum_repo['name'])
+        )
+
+    @tier1
+    def test_positive_import_cv_with_customized_major_minor(self):
+        """Import the CV version with customized major and minor
+
+        :id: 38237795-0275-408c-8a0d-462120dafc59
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish
+            4. Export CV version contents to a directory
+            5. Untar the exported tar
+            6. Customize/Update the major and minor in metadata json
+            7. Retar with updated json and contents tar
+            8. Import the CV version from the updated json tar from some other org/satellite
+
+        :expectedresults:
+
+            1. The Cv version is imported with updated json
+            2. The Imported CV version has major and minor updated in exported tar json
+        """
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        self.set_importing_org(
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
+        # Updating the json in exported tar
+        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
+        extracted_directory_name = 'export-{0}-{1}'.format(
+            self.exporting_cv_name, self.exporting_cvv_id)
+        json_path = '{0}/{1}/{1}.json'.format(self.export_base, extracted_directory_name)
+        new_major, new_minor = self._update_json(json_path)
+        custom_cvv_tar = '{0}/{1}.tar'.format(self.export_base, extracted_directory_name)
+        ssh.command("tar -cvf {0} {1}/{2}".format(
+            custom_cvv_tar, self.export_base, extracted_directory_name))
+        # Importing the updated tar
+        ContentView.version_import({
+            'export-tar': custom_cvv_tar,
+            'organization-id': self.importing_org['id']
+        })
+        imported_cvv = ContentView.info({
+            u'id': self.importing_cv['id']
+        })['versions']
+        self.assertEqual(str(new_major), imported_cvv[0]['version'].split('.')[0])
+        self.assertEqual(str(new_minor), imported_cvv[0]['version'].split('.')[1])
+
+    @tier1
+    def test_positive_exported_cvv_json_contents(self):
+        """Export the CV version and verify export metadata json fields
+
+        :id: 44934116-b051-4bb3-814a-08a80303e4ee
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish
+            4. Export CV version contents to a directory
+            5. Untar the exported tar
+
+        :expectedresults:
+
+            The exported json has following fields and in sequence:
+             Name of CV
+             Major of CVv
+             Minor of CVv
+             Metadata of Repositories in CVv, each with the following info:
+             The repository ID
+             The repository label
+             The repository content Type
+             Backend Identifier
+             Relative Path to Packages in tar file
+             On disk path to Packages in /var/lib/pulp
+             rpm file names in CVV repo:
+             Rpm names
+             Errata IDs in CVV Repo:
+             Errata IDs
+
+        """
+        exporting_repo = Repository.info({
+            u'id': self.exporting_repo['id']
+        })
+        exporting_cv = ContentView.info({
+            u'id': self.exporting_cv['id']
+        })
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': self.exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        # Updating the json in exported tar
+        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
+        extracted_directory_name = 'export-{0}-{1}'.format(
+            self.exporting_cv_name, self.exporting_cvv_id)
+        json_path_server = '{0}/{1}/{1}.json'.format(self.export_base, extracted_directory_name)
+        json_path_local = '/tmp/{}.json'.format(extracted_directory_name)
+        ssh.download_file(json_path_server, json_path_local)
+        with open(json_path_local) as metafile:
+            metadata = json.load(metafile)
+        self.assertEqual(metadata.get('name'), self.exporting_cv_name)
+        self.assertEqual(
+            str(metadata.get('major')), exporting_cv['versions'][0]['version'].split('.')[0])
+        self.assertEqual(
+            str(metadata.get('minor')), exporting_cv['versions'][0]['version'].split('.')[1])
+        self.assertIsNotNone(metadata.get('repositories'))
+        cvv_repository = metadata['repositories'][0]
+        self.assertEqual(cvv_repository.get('content_type'), 'yum')
+        self.assertEqual(cvv_repository.get('label'), self.exporting_repo_name)
+        self.assertIsNotNone(cvv_repository.get('backend_identifier'))
+        self.assertIsNotNone(cvv_repository.get('on_disk_path'))
+        self.assertIsNotNone(cvv_repository.get('relative_path'))
+        self.assertEqual(
+            int(exporting_repo['content-counts']['packages']),
+            len(cvv_repository.get('rpm_filenames')))
+        self.assertEqual(
+            int(exporting_repo['content-counts']['errata']),
+            len(cvv_repository.get('errata_ids')))
 
 
 class InterSatelliteSyncTestCase(CLITestCase):
