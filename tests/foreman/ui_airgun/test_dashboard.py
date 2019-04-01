@@ -14,6 +14,12 @@
 
 :Upstream: No
 """
+from fauxfactory import (
+    gen_string,
+    gen_ipaddr,
+    gen_mac
+)
+
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
@@ -372,3 +378,55 @@ def test_positive_content_host_subscription_status(session):
             cv_name = repos_collection._setup_content_data[
                 'content_view']['name']
             assert values['table'][0]['Content View'] == cv_name
+
+
+@tier2
+def test_positive_discovered_host(session):
+    """Check if the Discovered Host widget is working in the Dashboard UI
+
+    :id: 74afef58-71f4-49e1-bbb6-6d4355d385f8
+
+    :Steps:
+
+        1. Create a Discovered Host.
+        2. Navigate Monitor -> Dashboard
+        3. Review the Discovered Host Status.
+
+    :expectedresults: The widget is updated with all details.
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    loc = entities.Location(organization=[org]).create()
+    name = gen_string('alpha')
+    ipaddress = gen_ipaddr()
+    macaddress = gen_mac(multicast=False)
+    model = gen_string('alpha', length=5)
+    host_name = 'mac{0}'.format(macaddress.replace(':', ''))
+    entities.DiscoveredHost().facts(json={
+        u'facts': {
+            u'name': name,
+            u'discovery_bootip': ipaddress,
+            u'discovery_bootif': macaddress,
+            u'interfaces': 'eth0',
+            u'ipaddress': ipaddress,
+            u'macaddress': macaddress,
+            u'macaddress_eth0': macaddress,
+            u'ipaddress_eth0': ipaddress,
+            u'foreman_organization': org.name,
+            u'foreman_location': loc.name,
+            u'model': model,
+            u'memorysize_mb': 1000,
+            u'physicalprocessorcount': 2,
+        }
+    })
+
+    with session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
+        values = session.dashboard.read('DiscoveredHosts')
+        assert len(values) == 1
+        assert values['hosts'][0]['Host'] == host_name
+        assert values['hosts'][0]['Model'] == model
+        assert values['hosts'][0]['CPUs'] == '2'
+        assert values['hosts'][0]['Memory'] == '1000 MB'
