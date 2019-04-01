@@ -15,9 +15,9 @@
 :Upstream: No
 """
 from fauxfactory import (
-    gen_string,
     gen_ipaddr,
-    gen_mac
+    gen_mac,
+    gen_string
 )
 
 from nailgun import entities
@@ -398,14 +398,13 @@ def test_positive_discovered_host(session):
     """
     org = entities.Organization().create()
     loc = entities.Location(organization=[org]).create()
-    name = gen_string('alpha')
     ipaddress = gen_ipaddr()
     macaddress = gen_mac(multicast=False)
     model = gen_string('alpha', length=5)
     host_name = 'mac{0}'.format(macaddress.replace(':', ''))
     entities.DiscoveredHost().facts(json={
         u'facts': {
-            u'name': name,
+            u'name': gen_string('alpha'),
             u'discovery_bootip': ipaddress,
             u'discovery_bootif': macaddress,
             u'interfaces': 'eth0',
