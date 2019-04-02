@@ -424,7 +424,8 @@ def test_positive_discovered_host(session):
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         values = session.dashboard.read('DiscoveredHosts')
-        assert len(values) == 1
+        assert len(values) == 2
+        assert values['hosts_count'] == '1 Discovered Host'
         assert values['hosts'][0]['Host'] == host_name
         assert values['hosts'][0]['Model'] == model
         assert values['hosts'][0]['CPUs'] == '2'
