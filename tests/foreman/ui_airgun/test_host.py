@@ -28,7 +28,7 @@ from nailgun import entities
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import ssh
-from robottelo.api.utils import create_role_permissions, promote
+from robottelo.api.utils import create_role_permissions, promote, publish_puppet_module
 from robottelo.cli.factory import (
     make_content_view,
     make_host,
@@ -45,6 +45,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_CV,
+    CUSTOM_PUPPET_REPO,
     ENVIRONMENT,
     OSCAP_PROFILE,
     OSCAP_PERIOD,
@@ -352,6 +353,65 @@ def test_positive_create_host_with_parameters(session, module_global_params):
         assert _get_set_from_list_of_dict(
             expected_global_parameters).issubset(
             _get_set_from_list_of_dict(values['parameters']['global_params']))
+
+
+@tier3
+def test_positive_create_with_config_group(session, module_host_template):
+    """Create new Host with config group assigned to it
+
+    :id: 8834011e-f920-43de-8f28-1f370b2b8d69
+
+    :expectedresults: Host is created and contains correct config group
+
+    :CaseLevel: System
+    """
+    config_group = entities.ConfigGroup().create()
+    with session:
+        host_name = create_fake_host(
+            session,
+            module_host_template,
+            extra_values={'puppet_classes.config_groups.assigned': [config_group.name]}
+        )
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.read(host_name, widget_names='puppet_classes')
+        assert len(values['puppet_classes']['config_groups']['assigned']) == 1
+        assert values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
+
+
+@tier3
+def test_positive_create_with_puppet_class(
+        session, module_host_template, module_org, module_loc):
+    """Create new Host with puppet class assigned to it
+
+    :id: d883f169-1105-435c-8422-a7160055734a
+
+    :expectedresults: Host is created and contains correct puppet class
+
+    :CaseLevel: System
+    """
+    pc_name = 'generic_1'
+    cv = publish_puppet_module(
+        [{'author': 'robottelo', 'name': pc_name}],
+        CUSTOM_PUPPET_REPO,
+        organization_id=module_org.id
+    )
+    env = entities.Environment().search(query={
+        'search': u'content_view="{0}" and organization_id={1}'.format(
+            cv.name, module_org.id)})[0].read()
+    env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
+    with session:
+        host_name = create_fake_host(
+            session,
+            module_host_template,
+            extra_values={
+                'host.puppet_environment': env.name,
+                'puppet_classes.classes.assigned': [pc_name]
+            }
+        )
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.read(host_name, widget_names='puppet_classes')
+        assert len(values['puppet_classes']['classes']['assigned']) == 1
+        assert values['puppet_classes']['classes']['assigned'][0] == pc_name
 
 
 @tier2
