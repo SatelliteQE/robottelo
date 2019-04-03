@@ -29,6 +29,7 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo.constants import (
+    CHECKSUM_TYPE,
     CUSTOM_MODULE_STREAM_REPO_1,
     CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
@@ -385,6 +386,26 @@ class RepositoryTestCase(APITestCase):
                     product=self.product,
                     checksum_type=checksum_type,
                     download_policy='immediate',
+                ).create()
+                self.assertEqual(checksum_type, repo.checksum_type)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_checksum_with_background_policy(self):
+        """Attempt to create repository with checksum and background policy.
+
+        :id: 4757ae21-f792-4886-a86a-799949ad82d0
+
+        :expectedresults: A repository is created and has expected checksum type.
+
+        :CaseImportance: Critical
+        """
+        for checksum_type in CHECKSUM_TYPE['sha1'], CHECKSUM_TYPE['sha256']:
+            with self.subTest(checksum_type):
+                repo = entities.Repository(
+                    product=self.product,
+                    checksum_type=checksum_type,
+                    download_policy='background',
                 ).create()
                 self.assertEqual(checksum_type, repo.checksum_type)
 
