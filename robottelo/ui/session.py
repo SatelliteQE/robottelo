@@ -14,7 +14,6 @@ from robottelo.ui.audit import Audit
 from robottelo.ui.bookmark import Bookmark
 from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
-from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
 from robottelo.ui.contenthost import ContentHost
 from robottelo.ui.contentviews import ContentViews
@@ -130,7 +129,6 @@ class Session(object):
         self.compute_profile = ComputeProfile(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.contenthost = ContentHost(self.browser)
-        self.configgroups = ConfigGroups(self.browser)
         self.content_views = ContentViews(self.browser)
         self.dashboard = Dashboard(self.browser)
         self.dockertag = DockerTag(self.browser)

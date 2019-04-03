@@ -6,7 +6,6 @@ from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
-from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.discoveryrules import DiscoveryRules
@@ -567,17 +566,6 @@ def make_puppetclasses(session, org=None, loc=None, force_context=True,
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     PuppetClasses(session.browser).create(**create_args)
-
-
-def make_config_groups(session, org=None, loc=None, force_context=True,
-                       **kwargs):
-    """Creates new Config Groups from webUI"""
-
-    create_args = {u'name': None}
-    page = session.nav.go_to_config_groups
-    core_factory(create_args, kwargs, session, page,
-                 org=org, loc=loc, force_context=force_context)
-    ConfigGroups(session.browser).create(**create_args)
 
 
 def edit_param(session, org=None, loc=None,  force_context=True, **kwargs):
