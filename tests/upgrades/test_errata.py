@@ -102,7 +102,7 @@ class Scenario_errata_count(APITestCase):
 
     def _host_status(self, client_container_name=None):
         """ fetch the content host details.
-         :param: str client_container_name: The content host hostname
+        :param: str client_container_name: The content host hostname
         :return: nailgun.entity.host: host
         """
         host = entities.Host().search(
@@ -111,19 +111,19 @@ class Scenario_errata_count(APITestCase):
 
     def _errata_count(self, ak):
         """ fetch the content host details.
-         :param: str ak: The activation key
-        :return: int errata_count : errata count
+        :param: str ak: The activation key
+        :return: int installable_errata_count : installable_errata count
         """
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
-        applicable_errata_count = host.content_facet_attributes[
+        installable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
-        return applicable_errata_count
+        return installable_errata_count
 
     def _host_location_update(self, client_container_name=None, loc=None):
         """ Check the content host status (as package profile update task does take time to
         upload) and update location.
-         :param: str client_container_name: The content host hostname
+        :param: str client_container_name: The content host hostname
         :param: str loc: Location
         """
         if len(self._host_status(client_container_name=client_container_name)) == 0:
@@ -232,9 +232,9 @@ class Scenario_errata_count(APITestCase):
             self._install_or_update_package(client_container_id, package)
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
-        applicable_errata_count = host.content_facet_attributes[
+        installable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
-        self.assertGreater(applicable_errata_count, 1)
+        self.assertGreater(installable_errata_count, 1)
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
             'order': 'updated ASC',
             'per_page': 1000,
@@ -283,7 +283,7 @@ class Scenario_errata_count(APITestCase):
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(activation_key)})[0]
 
-        applicable_errata_count = host.content_facet_attributes[
+        installable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
         product.sync()
@@ -296,7 +296,7 @@ class Scenario_errata_count(APITestCase):
                                         "katello-agent",
                                         update=True)
         self._run_goferd(client_container_id)
-        self.assertGreater(applicable_errata_count, 1)
+        self.assertGreater(installable_errata_count, 1)
 
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
             'order': 'updated ASC',
@@ -307,7 +307,9 @@ class Scenario_errata_count(APITestCase):
 
         for errata in FAKE_9_YUM_ERRATUM:
             host.errata_apply(data={'errata_ids': [errata]})
-            applicable_errata_count -= 1
+            installable_errata_count -= 1
+
+        # waiting for errata count to become 0, as profile uploading take some amount of time
         wait_for(
             lambda: self._errata_count(ak=activation_key) == 0,
             timeout=200,
