@@ -15,6 +15,7 @@
 :Upstream: No
 """
 from fauxfactory import (
+    gen_integer,
     gen_ipaddr,
     gen_mac,
 )
@@ -27,6 +28,7 @@ from requests.exceptions import HTTPError
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions, create_sync_custom_repo, promote
+from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
@@ -604,3 +606,44 @@ def test_positive_sync_overview_widget(session):
         assert sync_values[0]['Product'] == product_name
         assert sync_values[0]['Status'] == 'Syncing Complete.'
         assert 'ago' in sync_values[0]['Finished']
+
+
+@tier2
+def test_positive_virtwho_configs_widget(session):
+    """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
+
+    :id: 6bed6d55-2bd5-4438-9f72-d48e78566789
+
+    :Steps:
+
+        1. Create a Virt-who Configuration
+        2. Navigate Monitor -> Dashboard
+        3. Review the Virt-who Configurations Status widget
+
+    :expectedresults: The widget is updated with all details.
+
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    entities.VirtWhoConfig(
+        name="example_config{}".format(gen_integer()),
+        organization=org,
+        hypervisor_server=settings.clients.provisioning_server,
+        satellite_url=settings.server.hostname,
+        hypervisor_type='libvirt',
+        hypervisor_username='root',
+        hypervisor_id='hostname',
+        hypervisor_password='',
+    ).create()
+
+    with session:
+        session.organization.select(org_name=org.name)
+        expected_values = [
+            {'Configuration Status': 'No Reports', 'Count': '1'},
+            {'Configuration Status': 'No Change', 'Count': '0'},
+            {'Configuration Status': 'OK', 'Count': '0'},
+            {'Configuration Status': 'Total Configurations', 'Count': '1'}
+        ]
+        values = session.dashboard.read('VirtWhoConfigStatus')
+        assert values['config_status'] == expected_values
+        assert values['latest_config'] == 'No configuration found'
