@@ -486,10 +486,11 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Verify product has not been synced yet
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was not synced'.format(delay/4, product['name']))
         sleep(delay/4)
+        # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
@@ -498,13 +499,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': (
-              datetime.utcnow() - timedelta(seconds=interval - delay)
-            ).strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
@@ -527,7 +521,7 @@ class SyncPlanTestCase(CLITestCase):
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'organization-id': self.org['id'],
-            'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
+            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
                         .strftime("%Y-%m-%d %H:%M:%S"),
         })
         product = make_product({'organization-id': self.org['id']})
@@ -553,12 +547,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay/2, product['name']))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
-                .strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
@@ -581,7 +569,7 @@ class SyncPlanTestCase(CLITestCase):
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'organization-id': self.org['id'],
-            'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
+            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
                         .strftime("%Y-%m-%d %H:%M:%S"),
         })
         products = [
@@ -603,7 +591,7 @@ class SyncPlanTestCase(CLITestCase):
                 'id': product['id'],
                 'sync-plan-id': sync_plan['id'],
             })
-        # Wait half of expected time
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check products'
                          ' were not synced'.format(delay/2))
         sleep(delay/4)
@@ -615,12 +603,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check products'
                          ' were synced'.format(delay/2))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
-                .strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         for repo in repos:
             self.validate_task_status(repo['id'], repo_name=repo['name'])
@@ -681,10 +663,11 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Verify product has not been synced yet
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was not synced'.format(delay/4, product['name']))
         sleep(delay/4)
+        # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
@@ -693,13 +676,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': (
-              datetime.utcnow() - timedelta(seconds=interval - delay)
-            ).strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(repo, ['errata', 'packages'])
@@ -729,7 +705,7 @@ class SyncPlanTestCase(CLITestCase):
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'organization-id': org['id'],
-            'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
+            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
                         .strftime("%Y-%m-%d %H:%M:%S"),
         })
         RepositorySet.enable({
@@ -758,7 +734,7 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Wait half of expected time
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was not synced'.format(delay/2, product['name']))
         sleep(delay/4)
@@ -771,12 +747,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay/2, product['name']))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': (datetime.utcnow() + timedelta(seconds=delay))
-                .strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(repo, ['errata', 'packages'])
@@ -810,10 +780,11 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Verify product has not been synced yet
+        #Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was not synced'.format(delay/4, product['name']))
         sleep(delay/4)
+        # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
@@ -822,13 +793,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        start_date = datetime.utcnow() - timedelta(days=1)\
-            + timedelta(seconds=delay)
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
@@ -864,10 +828,11 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Verify product has not been synced yet
+        # Wait quarter of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was not synced'.format(delay/4, product['name']))
         sleep(delay/4)
+        # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
@@ -876,13 +841,6 @@ class SyncPlanTestCase(CLITestCase):
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product['name']))
         sleep(delay * 3/4)
-        # Re-calculate and Update with the current UTC time
-        start_date = datetime.utcnow() - timedelta(weeks=1)\
-            + timedelta(seconds=delay)
-        SyncPlan.update({
-            u'id': sync_plan['id'],
-            u'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
-        })
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(
