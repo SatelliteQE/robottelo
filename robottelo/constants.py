@@ -1822,7 +1822,6 @@ UI_CRUD = [
     'bookmark.Bookmark',
     'computeprofile.ComputeProfile',
     'computeresource.ComputeResource',
-    'configgroups.ConfigGroups',
     'container.Container',
     'contenthost.ContentHost',
     'contentviews.ContentViews',

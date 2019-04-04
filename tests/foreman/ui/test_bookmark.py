@@ -69,7 +69,6 @@ class BookmarkTestCase(UITestCase):
                 # entities with no organizations
                 elif entity['name'] in (
                         'Compute_Profile',
-                        'ConfigGroups',
                         'GlobalParameters',
                         'HardwareModel',
                         'PuppetClasses',

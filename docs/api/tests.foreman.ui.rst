@@ -83,11 +83,6 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource_vmware
 
-:mod:`tests.foreman.ui.test_config_group`
------------------------------------------
-
-.. automodule:: tests.foreman.ui.test_config_group
-
 :mod:`tests.foreman.ui.test_contentaccess`
 ------------------------------------------
 

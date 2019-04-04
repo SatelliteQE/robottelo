@@ -18,7 +18,8 @@
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.constants import (DEFAULT_CV, ENVIRONMENT)
+from robottelo.api.utils import publish_puppet_module
+from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_CV, ENVIRONMENT
 from robottelo.decorators import fixture, tier2
 
 
@@ -76,3 +77,68 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # Delete host group
         session.hostgroup.delete(new_name)
         assert not session.hostgroup.search(new_name)
+
+
+@tier2
+def test_create_with_config_group(session, module_org, module_loc):
+    """Create new host group with assigned config group to it
+
+    :id: 05a64d6b-113b-4652-86bf-19bc65b70131
+
+    :expectedresults: Host group created and contains proper config group
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    environment = entities.Environment(
+        organization=[module_org], location=[module_loc]).create()
+    config_group = entities.ConfigGroup().create()
+    with session:
+        # Create host group with config group
+        session.hostgroup.create({
+            'host_group.name': name,
+            'host_group.puppet_environment': environment.name,
+            'puppet_classes.config_groups.assigned': [config_group.name],
+        })
+        hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
+        assert len(hostgroup_values['puppet_classes']['config_groups']['assigned']) == 1
+        assert hostgroup_values[
+            'puppet_classes']['config_groups']['assigned'][0] == config_group.name
+
+
+@tier2
+def test_create_with_puppet_class(session, module_org, module_loc):
+    """Create new host group with assigned puppet class to it
+
+    :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
+
+    :expectedresults: Host group created and contains proper puppet class
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    pc_name = 'generic_1'
+    cv = publish_puppet_module(
+        [{'author': 'robottelo', 'name': pc_name}],
+        CUSTOM_PUPPET_REPO,
+        organization_id=module_org.id
+    )
+    env = entities.Environment().search(query={
+        'search': u'content_view="{0}" and organization_id={1}'.format(
+            cv.name, module_org.id)})[0].read()
+    env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
+    with session:
+        # Create host group with puppet class
+        session.hostgroup.create({
+            'host_group.name': name,
+            'host_group.puppet_environment': env.name,
+            'puppet_classes.classes.assigned': [pc_name],
+        })
+        hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
+        assert len(hostgroup_values['puppet_classes']['classes']['assigned']) == 1
+        assert hostgroup_values[
+            'puppet_classes']['classes']['assigned'][0] == pc_name
