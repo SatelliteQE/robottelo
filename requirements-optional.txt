@@ -20,6 +20,3 @@ docker-py
 
 # For 'manage' interactive shell
 manage>=0.1.13
-
-# For nailgun signals
-blinker==1.4

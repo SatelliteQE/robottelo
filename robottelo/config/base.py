@@ -1222,7 +1222,6 @@ class Settings(object):
         self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
         self.run_one_datapoint = self.reader.get(
             'robottelo', 'run_one_datapoint', False, bool)
-        self.cleanup = self.reader.get('robottelo', 'cleanup', False, bool)
         self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
         self.verbosity = self.reader.get(
             'robottelo',

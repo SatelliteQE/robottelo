@@ -98,9 +98,6 @@ ssh_key=
 # Run one datapoint or multiple datapoints for tests
 # run_one_datapoint=false
 
-# Enable cleanup of Organizations and Hosts at the test Teardown
-# cleanup=true
-
 # Provide link to rhel6/7 repo here, as puppet rpm would require packages from
 # RHEL 6/7 repo and syncing the entire repo on the fly would take longer for
 # tests to run Specify the *.repo link to an internal repo for tests to execute

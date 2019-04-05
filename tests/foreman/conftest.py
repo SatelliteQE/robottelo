@@ -9,8 +9,6 @@ try:
 except ImportError:
     pass
 from time import time
-from nailgun import entities
-from robottelo.cleanup import EntitiesCleaner
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
 from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
@@ -108,23 +106,6 @@ def robottelo_logger(request, worker_id):
                 logger.addHandler(rp_handler)
                 logging.getLogger('nailgun').addHandler(rp_handler)
     return logger
-
-
-@pytest.fixture(scope="module", autouse=True)
-def entities_cleaner(robottelo_logger, configured_settings):
-    if configured_settings.cleanup:
-        robottelo_logger.info('Entities cleaner enabled')
-        cleaner = EntitiesCleaner(
-            entities.Organization,
-            entities.Host,
-            entities.HostGroup
-        )
-        yield cleaner
-        robottelo_logger.info('Cleaning entities')
-        cleaner.clean()
-    else:
-        robottelo_logger.info('Entities cleaner disabled')
-        yield None
 
 
 @pytest.fixture(autouse=True)
