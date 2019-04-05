@@ -96,6 +96,7 @@ def test_positive_check_dashboard(session, module_host_group, module_loc,
     ).create()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
         session.oscapcontent.create({
             'file_upload.title': oscap_content_title,
             'file_upload.scap_file': oscap_content_path,
