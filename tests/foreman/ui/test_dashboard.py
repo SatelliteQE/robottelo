@@ -15,20 +15,13 @@
 :Upstream: No
 """
 from nailgun import entities
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
-from robottelo.constants import (
-    ANY_CONTEXT,
-    FAKE_0_YUM_REPO,
-)
+from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
-    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
@@ -200,7 +193,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: User is able to add widgets.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -277,7 +270,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: User is able to list the Bookmark
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -298,7 +291,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: It takes you to discovered hosts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -317,134 +310,10 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: The Widget is updated with all the latest events
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
-
-    @tier1
-    def test_positive_sync_overview_widget(self):
-        """Check if the Sync Overview Widget is working in the Dashboard UI
-
-        :id: 515027f5-19e8-4f83-9042-1c347a63758f
-
-        :Steps:
-
-            1. Create a product
-            2. Add a repo and sync it
-            3. Navigate to Monitor -> Dashboard
-            4. Review the Sync Overview widget for the above sync details
-
-        :expectedresults: Sync Overview widget is updated with all sync
-            processes
-
-        :CaseImportance: Critical
-        """
-        org = entities.Organization().create()
-        product = entities.Product(organization=org).create()
-        repo = entities.Repository(
-            url=FAKE_0_YUM_REPO,
-            content_type='yum',
-            product=product,
-        ).create()
-        repo.sync()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertEqual(
-                self.dashboard.get_so_product_status(product.name),
-                'Syncing Complete.'
-            )
-
-    @tier1
-    def test_positive_current_subscription_totals(self):
-        """Check if the Current Subscriptions Totals widget is working in the
-        Dashboard UI
-
-        :id: 6d0f56ff-7007-4cdb-96f3-d9e8b6cc1701
-
-        :Steps:
-
-            1. Make sure sat6 has some active subscriptions
-            2. Navigate to Monitor -> Dashboard
-            3. Review the Current Subscription Total widget
-
-        :expectedresults: The widget displays all the active subscriptions and
-            expired subscriptions details
-
-        :CaseImportance: Critical
-        """
-        org = entities.Organization().create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertGreaterEqual(self.dashboard.get_cst_subs_count(
-                'Active Subscriptions'), 1)
-            self.assertEqual(self.dashboard.get_cst_subs_count(
-                'Subscriptions Expiring in 120 Days'), 0)
-            self.assertEqual(self.dashboard.get_cst_subs_count(
-                'Recently Expired Subscriptions'), 0)
-
-    @skip_if_bug_open('bugzilla', 1417114)
-    @upgrade
-    @tier2
-    def test_positive_user_access_with_host_filter(self):
-        """Check if user with necessary host permissions can access dashboard
-        and required widgets are rendered
-
-        :id: 24b4b371-cba0-4bc8-bc6a-294c62e0586d
-
-        :Steps:
-
-            1. Specify proper filter with permission for your role
-            2. Create new user and assign role to it
-            3. Login into application using this new user
-            4. Check dashboard and widgets on it
-
-        :expectedresults: Dashboard and Errata Widget rendered without errors
-
-        :BZ: 1417114
-
-        :CaseLevel: Integration
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        org = entities.Organization().create()
-        # create a role with necessary permissions
-        role = entities.Role().create()
-        entities.Filter(
-            permission=entities.Permission(
-                resource_type='Organization',
-                name='view_organizations').search(),
-            role=role,
-            search=None
-        ).create()
-        entities.Filter(
-            organization=[org],
-            permission=entities.Permission(name='view_hosts').search(),
-            role=role,
-            search='compute_resource = RHEV'
-        ).create()
-        entities.Filter(
-            permission=entities.Permission(
-                resource_type=None, name='access_dashboard').search(),
-            role=role,
-            search=None
-        ).create()
-        # create a user and assign the above created role
-        entities.User(
-            default_organization=org,
-            organization=[org],
-            role=[role],
-            login=user_login,
-            password=user_password
-        ).create()
-        with Session(self, user_login, user_password):
-            self.assertEqual(
-                self.dashboard.get_total_hosts_count(), 0)
-            self.assertIsNotNone(self.dashboard.get_widget('Latest Errata'))
-            self.assertIsNotNone(self.dashboard.wait_until_element(
-                locators['dashboard.latest_errata.empty']))
 
     @stubbed()
     @tier2
@@ -460,27 +329,7 @@ class DashboardTestCase(UITestCase):
 
         :expectedresults: The widget shows appropriate data
 
-        :caseautomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_latest_errata_widget(self):
-        """Check if the Latest Errata widget is working in Dashboard the UI
-
-        :id: 9012744f-9717-4d6e-a05c-bc7b4b1c1657
-
-        :Steps:
-
-            1. Make sure you have applied some errata to content host
-            2. Navigate Monitor -> Dashboard
-            3. Review the Latest Errata widget
-
-        :expectedresults: The widget is updated with all errata related details
-
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

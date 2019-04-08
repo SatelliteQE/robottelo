@@ -16,6 +16,7 @@
 """
 import pytest
 import requests
+from wait_for import wait_for
 from nailgun import entities
 
 from robottelo.api.utils import check_create_os_with_title
@@ -299,6 +300,13 @@ def test_positive_resource_vm_power_management(
             session.computeresource.vm_poweroff(name, rhev_data['vm_name'])
         else:
             session.computeresource.vm_poweron(name, rhev_data['vm_name'])
+
+        wait_for(
+            lambda: (session.browser.refresh(), session.computeresource.vm_status(
+                    name, rhev_data['vm_name']))[1]is not status,
+            timeout=180,
+            delay=1,
+        )
         assert session.computeresource.vm_status(
             name, rhev_data['vm_name']) is not status
 
@@ -495,7 +503,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
 
     :BZ: 1286033
 
-    :Caseautomation: Automated
+    :CaseAutomation: Automated
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
@@ -586,7 +594,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
 
     :BZ: 1452534
 
-    :Caseautomation: Automated
+    :CaseAutomation: Automated
     """
     cr_name = gen_string('alpha')
     cr_profile_data = dict(

@@ -1534,6 +1534,7 @@ def make_host(options=None):
         u'name': gen_string('alpha', 10),
         u'operatingsystem': None,
         u'operatingsystem-id': None,
+        u'openscap-proxy-id': None,
         u'organization': None,
         u'organization-id': None,
         u'overwrite': None,

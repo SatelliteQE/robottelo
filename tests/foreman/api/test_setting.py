@@ -95,7 +95,7 @@ class SettingTestCase(APITestCase):
         :expectedresults: Error should be raised on setting empty value for
             hostname_facts setting
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier1
@@ -148,7 +148,7 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Default set fact should be updated with facts list.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -162,5 +162,5 @@ class SettingTestCase(APITestCase):
         :expectedresults: Validation error should be raised on updating
             hostname_prefix with invalid string, should start w/ letter
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

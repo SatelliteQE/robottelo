@@ -75,7 +75,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: A vmware compute resource is created successfully.
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -113,7 +113,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: A vmware compute resource is created successfully
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -152,7 +152,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: A vmware compute resource is not created
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -195,7 +195,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The vmware compute resource is updated
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -237,7 +237,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource is deleted
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -281,7 +281,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :CaseLevel: Integration
         """
@@ -344,7 +344,7 @@ class VmwareComputeResourceTestCase(UITestCase):
         :expectedresults: All fields values for Virtual Machine tab are
             inherited from custom profile and have non default values
 
-        :Caseautomation: Automated
+        :CaseAutomation: Automated
 
         :BZ: 1249744
 
@@ -448,7 +448,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -477,7 +477,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -509,7 +509,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with custom settings
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -538,7 +538,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :Caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

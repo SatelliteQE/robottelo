@@ -34,7 +34,6 @@ class NavigationTestCase(UITestCase):
             'Compute Profile': self.compute_profile,
             'Compute Resource': self.compute_resource,
             'Content Hosts': self.contenthost,
-            'Config Groups': self.configgroups,
             'Content Views': self.content_views,
             'Docker Tag': self.dockertag,
             'Domain': self.domain,

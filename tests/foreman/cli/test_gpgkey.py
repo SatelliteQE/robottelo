@@ -476,7 +476,7 @@ class TestGPGKey(CLITestCase):
         :expectedresults: gpg key is associated with product but not the
             repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -563,7 +563,7 @@ class TestGPGKey(CLITestCase):
         :expectedresults: gpg key is associated with product and all the
             repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -747,7 +747,7 @@ class TestGPGKey(CLITestCase):
         :expectedresults: gpg key is associated with product before/after
             update but not the repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -871,7 +871,7 @@ class TestGPGKey(CLITestCase):
         :expectedresults: gpg key is associated with product and all
             repositories before/after update
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1043,7 +1043,7 @@ class TestGPGKey(CLITestCase):
             repositories during creation but removed from product after
             deletion
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1163,7 +1163,7 @@ class TestGPGKey(CLITestCase):
             repositories during creation but removed from product and all
             repositories after deletion
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -1181,7 +1181,7 @@ class TestGPGKey(CLITestCase):
 
         :expectedresults: host can install package from custom repository
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1198,7 +1198,7 @@ class TestGPGKey(CLITestCase):
 
         :expectedresults: host can install package from custom repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -1214,7 +1214,7 @@ class TestGPGKey(CLITestCase):
 
         :expectedresults: host can install package from custom repositories
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

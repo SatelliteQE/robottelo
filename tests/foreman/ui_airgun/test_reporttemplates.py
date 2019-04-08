@@ -15,12 +15,20 @@
 :Upstream: No
 """
 
+from nailgun import entities
 
+from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     tier2,
     tier3,
     stubbed,
+    fixture
 )
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
 
 
 @tier2
@@ -144,6 +152,40 @@ def test_positive_unlock_report(session):
 
     :CaseImportance: Medium
     """
+
+
+@tier2
+def test_positive_clone(session):
+    """Assure ability to clone a report template
+
+    :id: 912f1619-abb0-4e0f-88ce-88b5726fdbe0
+
+    :Steps:
+        1.  Go to Report template UI
+        2.  Choose a template and attempt to clone it
+
+    :expectedresults: The template is cloned
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    clone_name = gen_string('alpha')
+    content = gen_string('alpha')
+    with session:
+        session.reporttemplate.create({
+            'template.name': name,
+            'template.template_editor.editor': content,
+        })
+        session.reporttemplate.clone(
+            name,
+            {
+                'template.name': clone_name,
+            }
+        )
+        assert session.reporttemplate.search(
+            clone_name)[0]['Name'] == clone_name
+        assert session.reporttemplate.read(
+               clone_name)['template']['template_editor']['editor'] == content
 
 
 @tier2
@@ -319,3 +361,58 @@ def test_positive_report_e2e(session):
 
     :CaseImportance: Medium
     """
+
+
+@tier2
+def test_positive_e2e_crud(session, module_org, module_loc):
+    """Perform end to end testing for report template component's CRUD operations
+
+    :id: b44d4cc8-a78e-47cf-9993-0bb871ac2c96
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    content = gen_string('alpha')
+    new_name = gen_string('alpha')
+    input_name = gen_string('alpha')
+    template_input = [{
+        'name': input_name,
+        'required': True,
+        'input_type': 'User input',
+        'input_content.description': gen_string('alpha')
+    }]
+    with session:
+        session.reporttemplate.create({
+            'template.name': name,
+            'template.default': True,
+            'template.template_editor.editor': content,
+            'template.audit_comment': gen_string('alpha'),
+            'inputs': template_input,
+            'type.snippet': False,
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+        assert session.reporttemplate.search(name)[0]['Name'] == name
+        pt = session.reporttemplate.read(name)
+        assert pt['template']['name'] == name
+        assert pt['template']['default'] is True
+        assert pt['template']['template_editor']['editor'] == content
+        assert pt['inputs'][0]['name'] == input_name
+        assert pt['inputs'][0]['required'] is True
+        assert pt['inputs'][0]['input_type'] == 'User input'
+        assert pt['type']['snippet'] is False
+        assert pt['locations']['resources']['assigned'][0] == module_loc.name
+        assert pt['organizations']['resources']['assigned'][0] == module_org.name
+        session.reporttemplate.update(
+            name,
+            {'template.name': new_name, 'type.snippet': True}
+        )
+        assert session.reporttemplate.search(new_name)[0]['Name'] == new_name
+        updated_pt = session.reporttemplate.read(new_name)
+        assert updated_pt['type']['snippet'] is True
+        session.reporttemplate.delete(new_name)
+        assert not session.reporttemplate.search(new_name)

@@ -44,7 +44,7 @@ class AnsibleTestCase(UITestCase):
             verified by editing any host and checking the presence of `Ansible
             Roles` tab.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -64,7 +64,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Ansible callback is setup successfully. This can be
             verified by running Ansible setup module in any of the hosts.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -84,7 +84,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Ansible callback is setup successfully. This can be
             verified by running Ansible setup module in any of the hosts.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -106,7 +106,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Ansible Tower is integrated with Satellite and the
             Ansible run reports are shown in Satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         """
 
@@ -127,7 +127,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Ansible Tower is integrated with Satellite and the
             Ansible run reports are shown in Satellite.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -146,7 +146,7 @@ class AnsibleTestCase(UITestCase):
 
         :expectedresults: Ansible report is created for the host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -163,7 +163,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: The host is created in Satellite and the Ansible
             report is created for the host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -185,7 +185,7 @@ class AnsibleTestCase(UITestCase):
             1. The Ansible roles are associated to the appropriate hosts
             2. The Ansible run reports generated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -215,7 +215,7 @@ class AnsibleTestCase(UITestCase):
             4. The role task has been performed successfully in the client host
                (ssh in to the client host and check that /tmp/file.test exists)
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -238,7 +238,7 @@ class AnsibleTestCase(UITestCase):
             1. The Ansible role is associated to the appropriate Host group
             2. The Ansible run reports generated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -252,7 +252,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Ansibles roles ran successfully on the host and the
             reports generated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -269,7 +269,7 @@ class AnsibleTestCase(UITestCase):
 
         :expectedresults: Ansibles roles ran successfully on multiple hosts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -284,9 +284,9 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: An user with view_ansible_roles permission is able to
             view the Ansible roles.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: Acceptance
+        :CaseLevel: Acceptance
 
         :CaseImportance: Critical
         """
@@ -303,9 +303,9 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: An user with import_ansible_roles permission is able
             to import Ansible roles.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: Acceptance
+        :CaseLevel: Acceptance
 
 
         :CaseImportance: Critical
@@ -323,9 +323,9 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: An user with destroy_ansible_roles permission is able
             to delete Ansible roles
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: Acceptance
+        :CaseLevel: Acceptance
 
 
         :CaseImportance: Critical
@@ -343,7 +343,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: The user with play_roles permission is able to run
             the Ansible roles
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -358,7 +358,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: The user with play_multiple_roles permission is able
             to run multiple Ansible roles
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -387,7 +387,7 @@ class AnsibleTestCase(UITestCase):
             * Run roles
             * Run multiple roles
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -400,9 +400,9 @@ class AnsibleTestCase(UITestCase):
 
         :expectedresults: Ansible parameter added to the host successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: Acceptance
+        :CaseLevel: Acceptance
 
 
         :CaseImportance: Critical
@@ -418,9 +418,9 @@ class AnsibleTestCase(UITestCase):
 
         :expectedresults: Ansible parameter added to the hostgroup successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
-        :caselevel: Acceptance
+        :CaseLevel: Acceptance
 
 
         :CaseImportance: Critical
@@ -452,7 +452,7 @@ class AnsibleTestCase(UITestCase):
 
         :expectedresults: Tower inventory should show sat groups
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -485,7 +485,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Tower inventory should show sat groups accessible to
             non-admin sat user
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -511,7 +511,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Playbook associated to Job template should run on all
             associated sat hosts in selected inventory
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -536,7 +536,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Playbook associated to Job template should run on the
             host during post install phase.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -561,7 +561,7 @@ class AnsibleTestCase(UITestCase):
         :expectedresults: Playbook associated to Job template should run on the
             host during post install phase.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

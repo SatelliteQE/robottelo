@@ -58,7 +58,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         :expectedresults: multiple asserts along the code that motd module was
             applied
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -85,7 +85,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         :expectedresults: multiple asserts along the code that motd module was
             applied
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -113,7 +113,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         :expectedresults: multiple asserts along the code that motd module was
             applied
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

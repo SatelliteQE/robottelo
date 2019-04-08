@@ -35,7 +35,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether creating policies for OpenScap is successful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -49,7 +49,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Creating policies for OpenScap is unsuccessful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -69,7 +69,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether deleting policies for OpenScap is successful.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -88,7 +88,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether creating  content for OpenScap is successful
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -102,7 +102,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Creating content for OpenScap is unsuccessful
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -122,7 +122,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Deleting content for OpenScap is successful
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -136,7 +136,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether separate Compliance Reporting page exists.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -164,7 +164,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether OpenScap Audit scans can be periodically set
             as per intervals.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -191,7 +191,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether OpenScap Audit scans can be periodically set
             as per custom intervals.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -216,7 +216,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether searching audit results is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -242,7 +242,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether audit reports of Foreman managed
             Infrastructure (Hosts from default Capsule) are generated.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -268,7 +268,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether audit of Foreman managed Infrastructure
             (Hosts from Non-Default Capsule) is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -288,7 +288,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether searching OpenScap content is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -307,7 +307,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether searching OpenScap policies is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -333,7 +333,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether searching Non-Audited Hosts/Systems is
             possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -358,7 +358,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Whether searching Non-Compliant systems is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -385,7 +385,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether Comparing multiple audit results of
             Hosts/Systems is possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -408,7 +408,7 @@ class OpenScapTestCase(UITestCase):
         :expectedresults: Whether assigning policies to multiple hosts is
             possible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -423,7 +423,7 @@ class OpenScapTestCase(UITestCase):
 
         :expectedresults: Expected Dashboard views are visible.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

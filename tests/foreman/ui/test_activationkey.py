@@ -436,7 +436,7 @@ class ActivationKeyTestCase(UITestCase):
         :expectedresults: Content-host should be successfully provisioned and
             registered with Activation key
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

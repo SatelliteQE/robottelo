@@ -322,7 +322,7 @@ class OpenScapTestCase(CLITestCase):
 
         :BZ: 1474172
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
         :CaseImportance: Critical
         """
@@ -540,7 +540,7 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is deleted successfully.
 
-        :caseautomation: automated
+        :CaseAutomation: automated
 
         :CaseImportance: Critical
         """
@@ -1193,7 +1193,7 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The arf-reports are listed successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @upgrade
@@ -1221,7 +1221,7 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The information of arf-report is listed successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1248,5 +1248,5 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: Arf-report is deleted successfully.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

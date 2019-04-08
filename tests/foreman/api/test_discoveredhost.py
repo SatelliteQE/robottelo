@@ -75,7 +75,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: List of all discovered hosts are retrieved
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -94,7 +94,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected host is retrieved
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -113,7 +113,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should be created successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -159,7 +159,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should be provisioned successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -178,7 +178,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should be provisioned successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -197,7 +197,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Discovered Host should be deleted successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -216,7 +216,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Discovered Host should be deleted successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -235,7 +235,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -254,7 +254,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -274,7 +274,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: All discovered hosts should be auto-provisioned
             successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -297,7 +297,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -319,7 +319,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -338,7 +338,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected host should be rebooted successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -357,7 +357,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected host should be rebooted successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -375,7 +375,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should reboot and provision
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -393,7 +393,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: All Hosts of same subnet should reboot and provision
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -411,7 +411,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Host with lower count have higher priority and that
             rule should be executed first
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -429,7 +429,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Rule should only be applied to one discovered host
             and for other rule should already be skipped.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -446,7 +446,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: User should be able to update the rule and it should
             be applied on discovered host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -464,7 +464,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: The host name should be updated and host should be
             provisioned
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -480,7 +480,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: facts of selected discovered host should be listed
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

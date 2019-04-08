@@ -608,6 +608,26 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @tier1
+    def test_positive_create_with_openscap_proxy_id(self):
+        """Check if host can be created with OpenSCAP Proxy id
+
+        :id: 3774ba08-3b18-4e64-b07f-53f6aa0504f3
+
+        :expectedresults: Host is created and has OpenSCAP Proxy assigned
+
+        :CaseImportance: Medium
+        """
+        openscap_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+
+        host = make_fake_host({
+            'organization-id': self.new_org['id'],
+            'openscap-proxy-id': openscap_proxy['id']
+        })
+        assert host['openscap-proxy'] == openscap_proxy['id']
+
+    @tier1
     def test_negative_create_with_name(self):
         """Check if host can be created with random long names
 
@@ -646,6 +666,30 @@ class HostCreateTestCase(CLITestCase):
                 'lifecycle-environment-id': env,
                 'organization-id': self.new_org['id'],
             })
+
+    @run_only_on('sat')
+    @tier3
+    @upgrade
+    def test_positive_katello_and_openscap_loaded(self):
+        """Verify that command line arguments from both Katello
+        and foreman_openscap plugins are loaded and available
+        at the same time
+
+        :id: 5b5db1d4-50f9-45a0-bb92-4571fc8d729b
+
+        :expectedresults: Command line arguments from both Katello
+            and foreman_openscap are available in help message
+            (note: help is generated dynamically based on apipie cache)
+
+        :CaseImportance: Medium
+
+        :BZ: 1671148
+        """
+        help_output = Host.execute('host update --help')
+        for arg in ['lifecycle-environment-id', 'openscap-proxy-id']:
+            assert any(('--{}'.format(arg) in line for line in help_output)), (
+                "--{} not supported by update subcommand".format(arg)
+            )
 
     @tier3
     @upgrade
@@ -1175,7 +1219,7 @@ class HostCreateTestCase(CLITestCase):
           2. Files not deployed on TFTP
           3. Host not created
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2235,7 +2279,7 @@ class HostProvisionTestCase(CLITestCase):
           6. GRUB config changes the boot order (boot local first)
           7. Hosts boots straight to RHEL after reboot (step #4)
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2273,7 +2317,7 @@ class HostProvisionTestCase(CLITestCase):
           6. GRUB config changes the boot order (boot local first)
           7. Hosts boots straight to RHEL after reboot (step #4)
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2314,7 +2358,7 @@ class HostProvisionTestCase(CLITestCase):
           7. Hosts boots straight to RHEL after reboot (step #4)
 
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2357,7 +2401,7 @@ class HostProvisionTestCase(CLITestCase):
           7. Hosts boots straight to RHEL after reboot (step #4)
 
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -2392,7 +2436,7 @@ class HostProvisionTestCase(CLITestCase):
 
         :expectedresults: Host is provisioned
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

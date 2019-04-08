@@ -194,7 +194,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: All defined custom facts should be displayed
             correctly
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -218,7 +218,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: All defined custom facts should be displayed
             correctly
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -695,7 +695,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Facts should be refreshed successfully with a new NIC
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -712,7 +712,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Facts should be refreshed successfully with a new NIC
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -729,7 +729,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host is rebooted
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -746,7 +746,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host is rebooted
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -762,7 +762,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be successfully rebooted and provisioned
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -778,7 +778,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be successfully rebooted and provisioned
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -793,7 +793,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be discovered and listed with names.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -810,7 +810,7 @@ class DiscoveredTestCase(CLITestCase):
             destroy one or more discovered host as well view, create_new, edit,
             execute and delete discovery rules.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -826,7 +826,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: User should be able to list, provision, and destroy
             one or more discovered host
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -843,7 +843,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: Host should be discovered with name as
             'Hostname_prefix + hostname_facts'.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """

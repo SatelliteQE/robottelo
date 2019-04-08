@@ -789,7 +789,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :expectedresults: The ordering of rules should be based on priority as
             well as create time.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseImportance: Critical
         """

@@ -262,7 +262,7 @@ class OSPComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -286,5 +286,5 @@ class OSPComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

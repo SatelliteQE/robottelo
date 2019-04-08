@@ -37,7 +37,7 @@ class ISODownloadTestCase(UITestCase):
             :expectedresults: iso file is properly downloaded on your satellite
                 6 system
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -58,7 +58,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: uploading iso to satellite6 is successful
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -80,7 +80,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: iso is mounted to sat6 local directory
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -102,7 +102,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: cdn url path is validated
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -124,7 +124,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: Asserting the message after successful upload
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -147,7 +147,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: Redhat repositories are enabled
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -171,7 +171,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: Checkbox functionality works
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -195,7 +195,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: Repos are synced after upload
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -220,7 +220,7 @@ class ISODownloadTestCase(UITestCase):
 
         :expectedresults: Assert disabling the repo
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical

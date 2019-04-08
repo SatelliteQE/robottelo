@@ -135,7 +135,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :CaseLevel: Integration
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @tier1

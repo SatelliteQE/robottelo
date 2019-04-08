@@ -1936,7 +1936,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
 
-        :caseautomation: automated
+        :CaseAutomation: automated
         """
         name = gen_string('alpha')
         override_value = gen_string('alpha')

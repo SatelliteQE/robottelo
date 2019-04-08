@@ -237,5 +237,5 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :CaseLevel: Integration
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
         """

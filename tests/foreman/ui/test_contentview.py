@@ -327,7 +327,7 @@ class ContentViewTestCase(UITestCase):
 
         :expectedresults: Promotion is restarted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseLevel: Integration
@@ -348,7 +348,7 @@ class ContentViewTestCase(UITestCase):
 
         :expectedresults: Publish is restarted.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseLevel: Integration
@@ -389,7 +389,7 @@ class ContentViewTestCase(UITestCase):
                 content-host
             5. At content-host some package from cv1 is installable
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -431,7 +431,7 @@ class ContentViewTestCase(UITestCase):
                 content-host
             6. At content-host some package from cv2 is installable
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -468,7 +468,7 @@ class ContentViewTestCase(UITestCase):
         :expectedresults: content view version in capsule is removed from
             Library and DEV and exists only in QE and PROD
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -493,7 +493,7 @@ class ContentViewTestCase(UITestCase):
 
         :expectedresults: Check FR is added to CV
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -517,7 +517,7 @@ class ContentViewTestCase(UITestCase):
 
         :expectedresults: Check FR is removed from CV
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """
@@ -543,7 +543,7 @@ class ContentViewTestCase(UITestCase):
 
         :expectedresults: Check CV with FR is synced over Capsule
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -569,7 +569,7 @@ class ContentViewTestCase(UITestCase):
         :expectedresults: Check arbitrary files from FR is available on
             environment
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: Integration
         """

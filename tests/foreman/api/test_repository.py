@@ -29,6 +29,7 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo.constants import (
+    CHECKSUM_TYPE,
     CUSTOM_MODULE_STREAM_REPO_1,
     CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
@@ -382,7 +383,30 @@ class RepositoryTestCase(APITestCase):
         for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
                 repo = entities.Repository(
-                    product=self.product, checksum_type=checksum_type).create()
+                    product=self.product,
+                    checksum_type=checksum_type,
+                    download_policy='immediate',
+                ).create()
+                self.assertEqual(checksum_type, repo.checksum_type)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_checksum_with_background_policy(self):
+        """Attempt to create repository with checksum and background policy.
+
+        :id: 4757ae21-f792-4886-a86a-799949ad82d0
+
+        :expectedresults: A repository is created and has expected checksum type.
+
+        :CaseImportance: Critical
+        """
+        for checksum_type in CHECKSUM_TYPE['sha1'], CHECKSUM_TYPE['sha256']:
+            with self.subTest(checksum_type):
+                repo = entities.Repository(
+                    product=self.product,
+                    checksum_type=checksum_type,
+                    download_policy='background',
+                ).create()
                 self.assertEqual(checksum_type, repo.checksum_type)
 
     @tier1
@@ -640,7 +664,45 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
-            entities.Repository(checksum_type=gen_string('alpha')).create()
+            entities.Repository(
+                checksum_type=gen_string('alpha'),
+                download_policy='immediate'
+            ).create()
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_create_checksum_with_on_demand_policy(self):
+        """Attempt to create repository with checksum and on_demand policy.
+
+        :id: de8b157c-ed62-454b-94eb-22659ce1158e
+
+        :expectedresults: A repository is not created and error is raised.
+
+        :CaseImportance: Critical
+        """
+        for checksum_type in 'sha1', 'sha256':
+            with self.assertRaises(HTTPError):
+                entities.Repository(
+                    checksum_type=checksum_type, download_policy='on_demand').create()
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_update_checksum_with_on_demand_policy(self):
+        """Attempt to update the on_demand downloadpolicy on a already created repository with
+        checksum.
+
+        :id: 5bfaef4f-de66-42a0-8419-b86d00ffde6f
+
+        :expectedresults: A repository is not updated and error is raised.
+
+        :CaseImportance: Critical
+        """
+        for checksum_type in 'sha1', 'sha256':
+            repo = entities.Repository(
+                checksum_type=checksum_type, download_policy='immediate').create()
+            with self.assertRaises(HTTPError):
+                repo.download_policy = 'on_demand'
+                repo.update(['download_policy'])
 
     @tier1
     @run_only_on('sat')
@@ -671,11 +733,16 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        repo = entities.Repository(
-            product=self.product, checksum_type='sha1').create()
-        repo.checksum_type = 'sha256'
-        repo = repo.update(['checksum_type'])
-        self.assertEqual(repo.checksum_type, 'sha256')
+        for checksum_type in 'sha1', 'sha256':
+            repo = entities.Repository(
+                product=self.product,
+                checksum_type=checksum_type,
+                download_policy='immediate'
+            ).create()
+            updated_checksum = 'sha256' if checksum_type == 'sha1' else 'sha1'
+            repo.checksum_type = updated_checksum
+            repo = repo.update(['checksum_type'])
+            self.assertEqual(repo.checksum_type, updated_checksum)
 
     @tier1
     @run_only_on('sat')
@@ -1702,6 +1769,7 @@ class OstreeRepositoryTestCase(APITestCase):
             repo.read()
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1689504)
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @upgrade

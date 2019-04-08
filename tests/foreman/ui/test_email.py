@@ -41,7 +41,7 @@ class EmailTestCase(UITestCase):
         :expectedresults: Enabling and disabling email notification preferences
             saved accordingly.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseImportance: Critical
@@ -63,7 +63,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: Email notification received after sync operation.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
 
         :CaseLevel: System
@@ -84,7 +84,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: No email notification received after sync operation.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -104,7 +104,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: Email notification received after Promote operation.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -125,7 +125,7 @@ class EmailTestCase(UITestCase):
         :expectedresults: No email notification received after Promote
             operation.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -146,7 +146,7 @@ class EmailTestCase(UITestCase):
         :expectedresults: Email notification received daily with Katello Host
             Advisory information.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -166,7 +166,7 @@ class EmailTestCase(UITestCase):
         :expectedresults: Email notification received Weekly with Katello Host
             Advisory information.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -186,7 +186,7 @@ class EmailTestCase(UITestCase):
         :expectedresults: Email notification received monthly with Katello Host
             Advisory information.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -206,7 +206,7 @@ class EmailTestCase(UITestCase):
         :expectedresults: No email notification received with Katello Host
             Advisory information.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -226,7 +226,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: Email notification received with Puppet error.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -246,7 +246,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: No email notification received after Puppet error.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -275,7 +275,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: Test user does not receive email notification.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -304,7 +304,7 @@ class EmailTestCase(UITestCase):
 
         :expectedresults: Test user does not receive email notification.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -333,7 +333,7 @@ class EmailTestCase(UITestCase):
             info for the repositories and content views that the user has
             access to.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
@@ -361,7 +361,7 @@ class EmailTestCase(UITestCase):
             list the content hosts for which the user does not have view
             access.
 
-        :caseautomation: notautomated
+        :CaseAutomation: notautomated
 
         :CaseLevel: System
         """
