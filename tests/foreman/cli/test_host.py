@@ -39,6 +39,7 @@ from robottelo.cli.factory import (
     make_host_collection,
     make_hostgroup,
     make_lifecycle_environment,
+    make_location,
     make_medium,
     make_org,
     make_os,
@@ -1014,12 +1015,20 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
+        new_loc = make_location()
         compute_resource = entities.LibvirtComputeResource(
             url='qemu+ssh://root@{0}/system'.format(
                 settings.compute_resources.libvirt_hostname
-            )
+            ),
+            organization=[self.new_org['id']],
+            location=[new_loc['id']]
         ).create()
-        host = entities.Host()
+        entities.Organization(id=self.new_org['id']).read()
+        entities.Location(id=new_loc['id']).read()
+        host = entities.Host(
+            organization=self.new_org['id'],
+            location=new_loc['id'],
+        )
         host.create_missing()
         result = make_host({
             u'architecture-id': host.architecture.id,
