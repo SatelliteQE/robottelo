@@ -60,7 +60,7 @@ class ComputeResourceHostTestCase(CLITestCase):
                                   verify=False
                                   )
         cls.cluster_id = cls.rhv_api.get_cluster(cls.rhev_datacenter).id
-        cls.storage_id = cls.rhv_api._get_storage_domain(
+        cls.storage_id = cls.rhv_api.get_storage_domain(
             cls.rhev_storage_domain).id
         cls.network_id = (
             cls.rhv_api.api.system_service().networks_service(
