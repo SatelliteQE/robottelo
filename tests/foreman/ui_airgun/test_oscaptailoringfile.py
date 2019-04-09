@@ -29,69 +29,46 @@ from robottelo.decorators import (
 
 
 @fixture(scope='module')
-def oscap_content_path():
-    return settings.oscap.content_path
-
-
-@fixture(scope='module')
 def oscap_tailoring_path():
     return settings.oscap.tailoring_path
 
 
 @tier2
 @upgrade
-def test_positive_associate_tailoring_file_with_scap(
-        session, oscap_content_path, oscap_tailoring_path):
-    """ Associate a Tailoring file with it’s scap content
+def test_positive_end_to_end(session, oscap_tailoring_path):
+    """Perform end to end testing for tailoring file component
 
-    :id: 33e7b8ca-2e5f-4886-91b7-1a8763059d14
+    :id: 9aebccb8-6837-4583-8a8a-8883480ab688
 
-    :setup: scap content and tailoring file
+    :expectedresults: All expected CRUD actions finished successfully
 
-    :steps:
+    :CaseLevel: Integration
 
-        1. Create a valid scap content
-        2. Upload a vaild tailoring file
-        3. Associate scap content with it’s tailoring file
-
-    :expectedresults: Association should be successful
-
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
-    content_name = gen_string('alpha')
-    tailoring_name = gen_string('alpha')
-    policy_name = gen_string('alpha')
-    loc = entities.Location().create()
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
     org = entities.Organization().create()
+    loc = entities.Location().create()
     with session:
-        session.oscapcontent.create({
-            'file_upload.title': content_name,
-            'file_upload.scap_file': oscap_content_path,
-            'organizations.resources.assigned': [org.name]
-        })
-        session.organization.select(org_name=org.name)
         session.oscaptailoringfile.create({
-            'file_upload.name': tailoring_name,
+            'file_upload.name': name,
             'file_upload.scap_file': oscap_tailoring_path,
-            'locations.resources.assigned': [loc.name]
+            'organizations.resources.assigned': [org.name],
+            'locations.resources.assigned': [loc.name],
         })
-        assert session.oscaptailoringfile.search(
-            tailoring_name)[0]['Name'] == tailoring_name
-        assert session.oscapcontent.search(
-            content_name)[0]['Title'] == content_name
-        session.oscappolicy.create({
-            'create_policy.name': policy_name,
-            'scap_content.scap_content_resource': content_name,
-            'scap_content.xccdf_profile':
-                'Common Profile for General-Purpose Systems',
-            'scap_content.tailoring_file': tailoring_name,
-            'scap_content.xccdf_profile_tailoring_file':
-                'Common Profile for General-Purpose Systems [CUSTOMIZED1]',
-            'schedule.period': 'Weekly',
-            'schedule.period_selection.weekday': 'Friday',
-        })
-        assert session.oscappolicy.search(
-            policy_name)[0]['Name'] == policy_name
+        assert session.oscaptailoringfile.search(name)[0]['Name'] == name
+        tailroingfile_values = session.oscaptailoringfile.read(name)
+        assert tailroingfile_values['file_upload']['name'] == name
+        assert tailroingfile_values['file_upload'][
+            'uploaded_scap_file'] == oscap_tailoring_path.rsplit('/', 1)[-1]
+        assert org.name in tailroingfile_values['organizations']['resources']['assigned']
+        assert loc.name in tailroingfile_values['locations']['resources']['assigned']
+        session.oscaptailoringfile.update(name, {'file_upload.name': new_name})
+        assert session.oscaptailoringfile.search(new_name)[0]['Name'] == new_name
+        assert not session.oscaptailoringfile.search(name)
+        session.oscaptailoringfile.delete(new_name)
+        assert not session.oscaptailoringfile.search(new_name)
 
 
 @tier2
@@ -112,34 +89,6 @@ def test_positive_download_tailoring_file():
 
     :CaseImportance: Critical
     """
-
-
-@tier2
-@upgrade
-def test_positive_delete_tailoring_file(session, oscap_tailoring_path):
-    """ Delete tailoring file
-
-    :id: 359bade3-fff1-4aac-b4de-491190407507
-
-    :setup: tailoring file
-
-    :steps:
-
-        1. Upload a tailoring file
-        2. Delete the created tailoring file
-
-    :expectedresults: Tailoring file should be deleted
-
-    :CaseImportance: Critical
-    """
-    name = gen_string('alpha')
-    with session:
-        session.oscaptailoringfile.create({
-            'file_upload.name': name,
-            'file_upload.scap_file': oscap_tailoring_path
-        })
-        session.oscaptailoringfile.delete(name)
-        assert not session.oscaptailoringfile.search(name)
 
 
 @stubbed()

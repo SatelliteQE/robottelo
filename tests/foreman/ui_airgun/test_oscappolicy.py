@@ -20,7 +20,7 @@ from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import fixture, tier2, upgrade
 
 
 @fixture(scope='module')
@@ -52,8 +52,9 @@ def oscap_tailoring_path():
 
 
 @tier2
-def test_positive_check_dashboard(session, module_host_group, module_loc,
-                                  module_org, oscap_content_path):
+def test_positive_check_dashboard(
+        session, module_host_group, module_loc,
+        module_org, oscap_content_path):
     """Create OpenScap Policy which is connected to the host. That policy
     dashboard should be rendered and correctly display information about
     the host
@@ -117,3 +118,77 @@ def test_positive_check_dashboard(session, module_host_group, module_loc,
             'HostBreakdownChart']['hosts_breakdown'].split(" ", 1)
         assert host_breakdown_chart[0] == '100%'
         assert host_breakdown_chart[1] == 'Not audited'
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(
+        session, module_host_group, module_loc, module_org,
+        oscap_content_path, oscap_tailoring_path):
+    """Perform end to end testing for oscap policy component
+
+    :id: 39c26f89-3147-4f27-bf5e-810f0ba721d8
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = '{} {}'.format(gen_string('alpha'), gen_string('alpha'))
+    new_name = gen_string('alpha')
+    description = gen_string('alpha')
+    oscap_content_title = gen_string('alpha')
+    tailoring_name = gen_string('alpha')
+    profile_type = 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)'
+    tailoring_type = 'Common Profile for General-Purpose Systems [CUSTOMIZED1]'
+    with session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+        # Upload oscap content to the application
+        session.oscapcontent.create({
+            'file_upload.title': oscap_content_title,
+            'file_upload.scap_file': oscap_content_path,
+        })
+        # Upload tailoring file to the application
+        session.oscaptailoringfile.create({
+            'file_upload.name': tailoring_name,
+            'file_upload.scap_file': oscap_tailoring_path,
+        })
+        # Create new oscap policy with assigned content and tailoring file
+        session.oscappolicy.create({
+            'create_policy.name': name,
+            'create_policy.description': description,
+            'scap_content.scap_content_resource': oscap_content_title,
+            'scap_content.xccdf_profile': profile_type,
+            'scap_content.tailoring_file': tailoring_name,
+            'scap_content.xccdf_profile_tailoring_file': tailoring_type,
+            'schedule.period': 'Monthly',
+            'schedule.period_selection.day_of_month': '5',
+            'locations.resources.assigned': [module_loc.name],
+            'organizations.resources.assigned': [module_org.name],
+            'host_group.resources.assigned': [module_host_group.name]
+        })
+        assert session.oscappolicy.search(name)[0]['Name'] == name
+        # Check that created entity has expected values
+        oscappolicy_values = session.oscappolicy.read(name)
+        assert oscappolicy_values['general']['name'] == name
+        assert oscappolicy_values['general']['description'] == description
+        assert oscappolicy_values['scap_content']['scap_content'] == oscap_content_title
+        assert oscappolicy_values['scap_content']['xccdf_profile'] == profile_type
+        assert oscappolicy_values['scap_content']['tailoring_file'] == tailoring_name
+        assert oscappolicy_values[
+            'scap_content']['xccdf_profile_tailoring_file'] == tailoring_type
+        assert oscappolicy_values['schedule']['period'] == 'Monthly'
+        assert oscappolicy_values['schedule']['period_selection']['day_of_month'] == '5'
+        assert module_loc.name in oscappolicy_values['locations']['resources']['assigned']
+        assert module_org.name in oscappolicy_values['organizations']['resources']['assigned']
+        assert oscappolicy_values[
+            'host_group']['resources']['assigned'] == [module_host_group.name]
+        # Update oscap policy with new name
+        session.oscappolicy.update(name, {'general.name': new_name})
+        assert session.oscappolicy.search(new_name)[0]['Name'] == new_name
+        assert not session.oscappolicy.search(name)
+        # Delete oscap policy entity
+        session.oscappolicy.delete(new_name)
+        assert not session.oscappolicy.search(new_name)
