@@ -116,6 +116,7 @@ class HostCreateTestCase(CLITestCase):
         """
         super(HostCreateTestCase, cls).setUpClass()
         cls.new_org = make_org()
+        cls.new_loc = make_location()
         cls.new_lce = make_lifecycle_environment({
             'organization-id': cls.new_org['id']})
         cls.LIBRARY = LifecycleEnvironment.info({
@@ -1015,19 +1016,16 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_loc = make_location()
         compute_resource = entities.LibvirtComputeResource(
             url='qemu+ssh://root@{0}/system'.format(
                 settings.compute_resources.libvirt_hostname
             ),
             organization=[self.new_org['id']],
-            location=[new_loc['id']]
+            location=[self.new_loc['id']]
         ).create()
-        entities.Organization(id=self.new_org['id']).read()
-        entities.Location(id=new_loc['id']).read()
         host = entities.Host(
             organization=self.new_org['id'],
-            location=new_loc['id'],
+            location=self.new_loc['id'],
         )
         host.create_missing()
         result = make_host({
