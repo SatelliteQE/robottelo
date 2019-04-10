@@ -231,7 +231,7 @@ def test_positive_synchronize_custom_product_past_sync_date(
     :CaseLevel: System
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
-    delay = 5 * 60
+    delay = 10 * 60
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
@@ -279,7 +279,7 @@ def test_positive_synchronize_custom_product_future_sync_date(
 
     :CaseLevel: System
     """
-    delay = 5 * 60  # delay for sync date in seconds
+    delay = 10 * 60  # delay for sync date in seconds
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
@@ -328,7 +328,7 @@ def test_positive_synchronize_custom_products_future_sync_date(
 
     :CaseLevel: System
     """
-    delay = 5 * 60  # delay for sync date in seconds
+    delay = 10 * 60  # delay for sync date in seconds
     plan_name = gen_string('alpha')
     products = [
         entities.Product(organization=module_org).create()
@@ -385,7 +385,7 @@ def test_positive_synchronize_rh_product_future_sync_date(session):
 
     :CaseLevel: System
     """
-    delay = 5 * 60  # delay for sync date in seconds
+    delay = 10 * 60  # delay for sync date in seconds
     plan_name = gen_string('alpha')
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
@@ -440,7 +440,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(
 
     :CaseLevel: System
     """
-    delay = 5 * 60
+    delay = 10 * 60
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
@@ -490,7 +490,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(
 
     :CaseLevel: System
     """
-    delay = 5 * 60
+    delay = 10 * 60
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
@@ -589,7 +589,7 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
     :CaseLevel: System
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
-    delay = 5 * 60
+    delay = 10 * 60
     plan_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
