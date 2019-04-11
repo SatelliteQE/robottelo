@@ -954,7 +954,7 @@ def test_positive_update_matcher_from_attribute(session, module_host, puppet_cla
         property_matcher = values['variable']['matchers']['table'][0]
         assert property_matcher['Attribute type']['matcher_attribute_type'] == 'fqdn'
         assert property_matcher['Attribute type']['matcher_attribute_value'] == module_host.name
-        assert property_matcher['Value'] == variable_new_value
+        assert property_matcher['Value']['value'] == variable_new_value
 
 
 @tier2
@@ -1020,8 +1020,8 @@ def test_negative_update_matcher_from_attribute(session, module_host, puppet_cla
         property_matcher = values['variable']['matchers']['table'][0]
         assert property_matcher['Attribute type']['matcher_attribute_type'] == 'fqdn'
         assert property_matcher['Attribute type']['matcher_attribute_value'] == module_host.name
-        assert property_matcher['Value'] == variable_matcher_value
-        assert property_matcher['Value'] != variable_new_value
+        assert property_matcher['Value']['value'] == variable_matcher_value
+        assert property_matcher['Value']['value'] != variable_new_value
 
 
 @tier2
@@ -1037,6 +1037,7 @@ def test_positive_hide_default_value_in_attribute(session, module_host, puppet_c
         3.  Hide the default Value.
         4.  Submit the changes.
         5.  Associate variable on host/hostgroup.
+        6.  Submit the changes.
 
     :expectedresults:
 
@@ -1049,6 +1050,7 @@ def test_positive_hide_default_value_in_attribute(session, module_host, puppet_c
     """
     variable_name = gen_string('alpha')
     variable_default_value = gen_string('alpha')
+    variable_new_value = gen_string('alpha')
     with session:
         session.smartvariable.create({
             'variable.key': variable_name,
@@ -1064,20 +1066,19 @@ def test_positive_hide_default_value_in_attribute(session, module_host, puppet_c
         assert host_smart_variable_value['overridden'] is False
         assert host_smart_variable_value['value'] == variable_default_value
         assert '***' in host_smart_variable_value['hidden_value']
-        host_values = session.host.helper.read_set_puppet_class_parameter_value(
+        session.host.set_puppet_class_parameter_value(
             module_host.name,
             variable_name,
-            dict(overridden=True, hidden=False),
-            'parameters.puppet_class_parameters'
+            dict(value=variable_new_value, overridden=True, hidden=False)
         )
-        host_smart_variable_value = [
-            item
-            for item in host_values['parameters']['puppet_class_parameters']
-            if item['Name'] == variable_name
-        ][0]['Value']
-        assert host_smart_variable_value['hidden'] is False
+        host_smart_variable_value = session.host.get_puppet_class_parameter_value(
+            module_host.name, variable_name)
+        # the variable is defined as hidden and should be always hidden, even if we push un-hide
+        # button in host, the unhide button in host is only to show the value, but should not
+        # enforce the unhide rule.
+        assert host_smart_variable_value['hidden'] is True
         assert host_smart_variable_value['overridden'] is True
-        assert host_smart_variable_value['value'] == variable_default_value
+        assert host_smart_variable_value['value'] == variable_new_value
 
 
 @tier2
@@ -1127,7 +1128,7 @@ def test_positive_unhide_default_value_in_attribute(session, module_host, puppet
         )
         values = session.smartvariable.read(variable_name)
         assert values['variable']['key'] == variable_name
-        assert values['variable']['default_value_hidden'] is True
+        assert values['variable']['default_value']['hidden'] is True
 
 
 @tier2
@@ -1182,13 +1183,13 @@ def test_positive_update_hidden_value_in_attribute(session, module_host, puppet_
         assert host_smart_variable_value['value'] == host_override_value
         values = session.smartvariable.read(variable_name)
         assert values['variable']['key'] == variable_name
-        assert values['variable']['default_value'] == variable_default_value
-        assert values['variable']['default_value_hidden'] is True
+        assert values['variable']['default_value']['value'] == variable_default_value
+        assert values['variable']['default_value']['hidden'] is True
         host_matcher = [
             matcher
             for matcher in values['variable']['matchers']['table']
             if (matcher['Attribute type']['matcher_attribute_type'] == 'fqdn'
                 and matcher['Attribute type']['matcher_attribute_value'] == module_host.name)
         ][0]
-        assert host_matcher['Value'] == host_override_value
-        assert host_matcher['value_hidden'] is True
+        assert host_matcher['Value']['value'] == host_override_value
+        assert host_matcher['Value']['hidden'] is True
