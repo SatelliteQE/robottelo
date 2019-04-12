@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 import yaml
 from nailgun import entities
 
@@ -296,11 +297,9 @@ def test_positive_create_matcher_merge_override(session, puppet_class, module_ho
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
             Note - The fqdn/host should have this attribute.
-        4.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        5.  Select 'Merge overrides' checkbox.
-        6.  Submit the change.
-        7.  Go to YAML output of associated host.
+        4.  Select 'Merge overrides' checkbox.
+        5.  Submit the change.
+        6.  Go to YAML output of associated host.
 
     :expectedresults:
 
@@ -356,11 +355,9 @@ def test_negative_create_matcher_merge_override(session, puppet_class, module_ho
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
             Note - The fqdn/host should not have this attribute.
-        4.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should not have this attributes.
-        5.  Select 'Merge overrides' checkbox.
-        6.  Submit the change.
-        7.  Go to YAML output of associated host.
+        4.  Select 'Merge overrides' checkbox.
+        5.  Submit the change.
+        6.  Go to YAML output of associated host.
 
     :expectedresults:
 
@@ -417,12 +414,10 @@ def test_positive_create_matcher_merge_default(session, puppet_class, module_hos
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
             Note - The fqdn/host should have this attribute.
-        4.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        5.  Select 'Merge overrides' checkbox.
-        6.  Select 'Merge default' checkbox.
-        7.  Submit the change.
-        8.  Go to YAML output of associated host.
+        4.  Select 'Merge overrides' checkbox.
+        5.  Select 'Merge default' checkbox.
+        6.  Submit the change.
+        7.  Go to YAML output of associated host.
 
     :expectedresults:
 
@@ -478,12 +473,10 @@ def test_negative_create_matcher_merge_default(session, puppet_class, module_hos
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
             Note - The fqdn/host should have this attribute.
-        4.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        5.  Select 'Merge overrides' checkbox.
-        6.  Select 'Merge default' checkbox.
-        7.  Submit the change.
-        8.  Go to YAML output of associated host.
+        4.  Select 'Merge overrides' checkbox.
+        5.  Select 'Merge default' checkbox.
+        6.  Submit the change.
+        7.  Go to YAML output of associated host.
 
     :expectedresults:
 
@@ -567,6 +560,7 @@ def test_positive_create_matcher_avoid_duplicate(session, puppet_class, module_h
             'variable.default_value': '[20]',
             'variable.key_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
+            'variable.prioritize_attribute_order.merge_default': True,
             'variable.prioritize_attribute_order.avoid_duplicates': True,
             'variable.matchers': [
                 {
@@ -587,7 +581,7 @@ def test_positive_create_matcher_avoid_duplicate(session, puppet_class, module_h
         })
         assert session.smartvariable.search(name)[0]['Variable'] == name
         output = yaml.load(session.host.read_yaml_output(module_host.name))
-        assert output['parameters'][name] == [80, 90, 100]
+        assert output['parameters'][name] == [20, 80, 90, 100]
 
 
 @tier2
@@ -627,6 +621,7 @@ def test_negative_create_matcher_avoid_duplicate(session, puppet_class, module_h
             'variable.default_value': '[20]',
             'variable.key_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
+            'variable.prioritize_attribute_order.merge_default': True,
             'variable.prioritize_attribute_order.avoid_duplicates': True,
             'variable.matchers': [
                 {
@@ -647,7 +642,7 @@ def test_negative_create_matcher_avoid_duplicate(session, puppet_class, module_h
         })
         assert session.smartvariable.search(name)[0]['Variable'] == name
         output = yaml.load(session.host.read_yaml_output(module_host.name))
-        assert output['parameters'][name] == [70, 80, 90, 100]
+        assert output['parameters'][name] == [20, 70, 80, 90, 100]
 
 
 @tier2
@@ -881,11 +876,13 @@ def test_negative_create_override_from_attribute(session, module_host, puppet_cl
         values = session.smartvariable.search(variable_name)
         assert values[0]['Variable'] == variable_name
         assert values[0]['Number of Overrides'] == '0'
-        session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            variable_name,
-            dict(value=variable_new_value, overridden=True)
-        )
+        with pytest.raises(AssertionError) as context:
+            session.host.set_puppet_class_parameter_value(
+                module_host.name,
+                variable_name,
+                dict(value=variable_new_value, overridden=True)
+            )
+        assert 'Validation errors present on page' in str(context.value)
         session.host.search(module_host.name)
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
             module_host.name, variable_name)
@@ -1001,13 +998,15 @@ def test_negative_update_matcher_from_attribute(session, module_host, puppet_cla
         })
         values = session.smartvariable.search(variable_name)
         assert values[0]['Variable'] == variable_name
-        # note that we should not enforce override, the variable should already be displayed as
-        # overridden
-        session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            variable_name,
-            dict(value=variable_new_value)
-        )
+        with pytest.raises(AssertionError) as context:
+            # note that we should not enforce override, the variable should already be displayed as
+            # overridden
+            session.host.set_puppet_class_parameter_value(
+                module_host.name,
+                variable_name,
+                dict(value=variable_new_value)
+            )
+        assert 'Validation errors present on page' in str(context.value)
         # assert that the host smart variable new value has not been assigned
         session.host.search(module_host.name)
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
@@ -1057,7 +1056,6 @@ def test_positive_hide_default_value_in_attribute(session, module_host, puppet_c
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': variable_default_value,
             'variable.hidden': True,
-
         })
         assert session.smartvariable.search(variable_name)[0]['Variable'] == variable_name
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
