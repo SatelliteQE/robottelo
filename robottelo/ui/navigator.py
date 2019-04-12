@@ -387,32 +387,11 @@ class Navigator(Base):
             menu_locators['insights.manage'],
         )
 
-    def go_to_oscap_policy(self):
-        """ Navigates to Oscap Policy"""
-        self.menu_click(
-            menu_locators['menu.hosts'],
-            menu_locators['menu.oscap_policy'],
-        )
-
-    def go_to_oscap_content(self):
-        """Navigates to Oscap Content"""
-        self.menu_click(
-            menu_locators['menu.hosts'],
-            menu_locators['menu.oscap_content'],
-        )
-
     def go_to_oscap_reports(self):
         """Navigates to Oscap Reports"""
         self.menu_click(
             menu_locators['menu.hosts'],
             menu_locators['menu.oscap_reports'],
-        )
-
-    def go_to_oscap_tailoringfile(self):
-        """Navigates to Oscap Tailoring File"""
-        self.menu_click(
-            menu_locators['menu.hosts'],
-            menu_locators['menu.oscap_tailoringfile'],
         )
 
     def go_to_select_org(self, org, force=True):

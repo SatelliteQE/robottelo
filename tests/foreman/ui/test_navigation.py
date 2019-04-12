@@ -53,8 +53,6 @@ class NavigationTestCase(UITestCase):
             'Medium': self.medium,
             'Operating Systems': self.operatingsys,
             'Organization': self.org,
-            'SCAP Contents': self.oscapcontent,
-            'Policies': self.oscappolicy,
             'Reports': self.oscapreports,
             'Packages': self.package,
             'Partition Table': self.partitiontable,

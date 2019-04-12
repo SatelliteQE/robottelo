@@ -25,9 +25,6 @@ from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
-from robottelo.ui.oscapcontent import OpenScapContent
-from robottelo.ui.oscappolicy import OpenScapPolicy
-from robottelo.ui.oscap_tailoringfile import OpenScapTailoringfile
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
@@ -666,52 +663,6 @@ def make_ldapauth(session, **kwargs):
     page = session.nav.go_to_ldap_auth
     core_factory(create_args, kwargs, session, page)
     LdapAuthSource(session.browser).create(**create_args)
-
-
-def make_oscapcontent(session, org=None, loc=None, **kwargs):
-    """Creates an OSCAP Content"""
-    create_args = {
-        u'name': None,
-        u'content_path': None,
-        u'content_org': None,
-        u'content_loc': None,
-    }
-    page = session.nav.go_to_oscap_content
-    core_factory(create_args, kwargs, session, page, org=org, loc=loc)
-    OpenScapContent(session.browser).create(**create_args)
-
-
-def make_oscappolicy(session, **kwargs):
-    """Creates a OSCAP Policy"""
-    create_args = {
-        u'name': None,
-        u'desc': None,
-        u'content': None,
-        u'profile': None,
-        u'tailoring': None,
-        u'tailoring_profile': None,
-        u'period': None,
-        u'period_value': None,
-        u'org': None,
-        u'loc': None,
-        u'host_group': None,
-    }
-    page = session.nav.go_to_oscap_policy
-    core_factory(create_args, kwargs, session, page)
-    OpenScapPolicy(session.browser).create(**create_args)
-
-
-def make_oscap_tailoringfile(session, org=None, loc=None, **kwargs):
-    """Creates an oscap tailoring file """
-    create_args = {
-        u'name': None,
-        u'tailoring_path': None,
-        u'tailoring_org': None,
-        u'tailoring_loc': None,
-    }
-    page = session.nav.go_to_oscap_tailoringfile
-    core_factory(create_args, kwargs, session, page, org=org, loc=loc)
-    OpenScapTailoringfile(session.browser).create(**create_args)
 
 
 def make_registry(session, org=None, loc=None, force_context=True, **kwargs):

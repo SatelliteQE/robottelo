@@ -183,16 +183,6 @@
 
 .. automodule:: robottelo.ui.org
 
-:mod:`robottelo.ui.oscapcontent`
---------------------------------
-
-.. automodule:: robottelo.ui.oscapcontent
-
-:mod:`robottelo.ui.oscappolicy`
--------------------------------
-
-.. automodule:: robottelo.ui.oscappolicy
-
 :mod:`robottelo.ui.oscapreports`
 --------------------------------
 
