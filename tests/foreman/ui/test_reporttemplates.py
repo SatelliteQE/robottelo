@@ -44,7 +44,7 @@ def module_loc():
 @tier3
 @stubbed()
 def test_negative_create_report_without_name(session):
-    """ Edit a report template
+    """ A report template with empty name can't be created
 
     :id: 916ec1f8-c42c-4297-9c98-01e8b9f2f075
 
@@ -64,7 +64,7 @@ def test_negative_create_report_without_name(session):
 
 @tier3
 @stubbed()
-def test_negative_cannont_delete_locked_report(session):
+def test_negative_cannot_delete_locked_report(session):
     """ Edit a report template
 
     :id: cd19b90d-830f-4efd-8cbc-d5e09a909a67
@@ -231,3 +231,117 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
             assert res['Name'] == host_name
             # also tests comma in field contents
             assert res['Operating System'] == '{0} {1}'.format(os_name, os.major)
+
+
+@tier3
+@stubbed()
+def test_positive_applied_errata(session):
+    """ Generate an Applied Errata report
+
+    :id: cd19b90d-836f-4efd-ccbc-d5e09a909a67
+    :setup: User with reporting access rights, some host with applied errata
+    :steps:
+        1. Monitor -> Report Templates
+        2. Applied Errata -> Generate
+        3. Submit
+    :expectedresults: A report is generated with all applied errata listed
+    :CaseImportance: Medium
+    """
+
+
+@tier2
+@stubbed()
+def test_datetime_picker(session):
+    """ Generate an Applied Errata report with date filled
+
+    :id: cd19b90d-836f-4efd-c1bc-d5e09a909a67
+    :setup: User with reporting access rights, some host with applied errata at
+            time A, some host (can be the same host) with applied
+            errata at time B>A and no errata applied at other time
+    :steps:
+        1. Monitor -> Report Templates
+        2. Applied Errata -> Generate
+        3. Fill in timeFrom>A
+        4. Fill in B>timeTo
+        5. Generate
+    :expectedresults: A report is generated with all applied errata listed
+                      that were generated before timeFrom and timeTo
+    :CaseImportance: High
+    """
+
+
+@tier3
+@stubbed()
+def test_positive_autocomplete(session):
+    """ Check if host field suggests matching hosts on typing
+
+    :id: cd19b90d-836f-4efd-c2bc-d5e09a909a67
+    :setup: User with reporting access rights, some Host, some report with host input
+    :steps:
+        1. Monitor -> Report Templates
+        2. Registered Hosts -> Generate
+        3. Fill in part of the Host name
+        4. Check if the Host is within suggestions
+        5. Select the Host
+        6. Submit
+    :expectedresults: The same report is generated as if the host has been entered manually
+    :CaseImportance: Medium
+    """
+
+
+@tier2
+@stubbed()
+def test_positive_schedule_generation_and_get_mail(session):
+    """ Schedule generating a report. Request the result be sent via e-mail.
+
+    :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67
+    :setup: User with reporting access rights, some Host
+    :steps:
+        1. Monitor -> Report Templates
+        2. Registered Hosts -> Generate
+        3. Set schedule to current time + 1 minute
+        4. Check that the result should be sent via e-mail
+        5. Submit
+        6. Receive the e-mail
+    :expectedresults: After ~1 minute, the same report is generated as if
+                      the results were downloaded from WebUI.
+                      The result is compressed.
+    :CaseImportance: High
+    """
+
+
+@tier3
+@stubbed()
+def test_negative_bad_email(session):
+    """ Generate a report and request the result be sent to
+        a wrong formatted e-mail address
+
+    :id: cd19b90d-836f-4efd-c4bc-d5e09a909a67
+    :setup: User with reporting access rights, some Host, some report with host input
+    :steps:
+        1. Monitor -> Report Templates
+        2. Registered Hosts -> Generate
+        3. Check that the result should be sent via e-mail
+        4. Submit
+    :expectedresults: Error message about wrong e-mail address, no task is triggered
+    :CaseImportance: Medium
+    """
+
+
+@tier2
+@stubbed()
+def test_negative_nonauthor_of_report_cant_download_it(session):
+    """ The resulting report should only be downloadable by
+        the user that generated it. Check.
+
+    :id: cd19b90d-836f-4efd-c6bc-d5e09a909a67
+    :setup: Installed Satellite, user that can list running tasks
+    :steps:
+        1. Monitor -> Report Templates
+        2. In the reports row, in Actions column, click Generate
+        3. Submit
+        4. Wait for dynflow
+        5. As a different user, try to download the generated report
+    :expectedresults: Report can't be downloaded. Error.
+    :CaseImportance: High
+    """
