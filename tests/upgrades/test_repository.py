@@ -116,7 +116,7 @@ class Scenario_custom_repo_check(APITestCase):
             5. Create a content host, register and install package on it.
             6. Upgrade Satellite.
             7. Remove Old package and add new package into custom repo.
-            8. Sync repo , publish new version of cv.
+            8. Sync repo, publish new version of cv.
             9  Try to install new package on client.
 
     BZ: 1429201,1698549
