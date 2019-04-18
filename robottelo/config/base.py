@@ -358,6 +358,7 @@ class DistroSettings(FeatureSettings):
         super(DistroSettings, self).__init__(*args, **kwargs)
         self.image_el6 = None
         self.image_el7 = None
+        self.image_el8 = None
         self.image_sles11 = None
         self.image_sles12 = None
 
@@ -365,6 +366,7 @@ class DistroSettings(FeatureSettings):
         """Read distro settings."""
         self.image_el6 = reader.get('distro', 'image_el6')
         self.image_el7 = reader.get('distro', 'image_el7')
+        self.image_el8 = reader.get('distro', 'image_el8')
         self.image_sles11 = reader.get('distro', 'image_sles11')
         self.image_sles12 = reader.get('distro', 'image_sles12')
 

@@ -24,11 +24,14 @@ from widgetastic.exceptions import NoSuchElementException
 from robottelo.cli.factory import make_virt_who_config, virt_who_hypervisor_config
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     DISTRO_RHEL7,
+    DISTRO_RHEL8,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_0_MODULAR_ERRATA_ID,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_YUM_REPO,
@@ -64,7 +67,14 @@ if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
 
 @fixture(scope='module')
 def module_org():
-    return entities.Organization().create()
+    org = entities.Organization().create()
+    # adding remote_execution_connect_by_ip=Yes at org level
+    entities.Parameter(
+        name='remote_execution_connect_by_ip',
+        value='Yes',
+        organization=org.id
+    ).create()
+    return org
 
 
 @fixture(scope='module', autouse=True)
@@ -84,12 +94,36 @@ def repos_collection(module_org):
     return repos_collection
 
 
+@fixture(scope='module', autouse=True)
+def repos_collection_for_module_streams(module_org):
+    """Adds required repositories, AK, LCE and CV for content host testing for
+    module streams"""
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL8,
+        repositories=[
+            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)
+        ]
+    )
+    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
+    return repos_collection
+
+
 @fixture
 def vm(repos_collection):
     """Virtual machine registered in satellite with katello-agent installed"""
     with VirtualMachine(distro=repos_collection.distro) as vm:
         repos_collection.setup_virtual_machine(vm)
         yield vm
+
+
+@fixture
+def vm_module_streams(repos_collection_for_module_streams):
+    """Virtual machine registered in satellite with katello-agent installed"""
+    with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
+        repos_collection_for_module_streams.setup_virtual_machine(vm_module_streams,
+                                                                  install_katello_agent=False)
+        yield vm_module_streams
 
 
 def set_ignore_facts_for_os(value=False):
@@ -100,8 +134,13 @@ def set_ignore_facts_for_os(value=False):
     ignore_setting.update({'value'})
 
 
+def run_remote_command_on_content_host(command, vm_module_streams):
+    result = vm_module_streams.run(command)
+    assert result.return_code == 0
+
+
 @tier3
-def test_positive_end_to_end(session, repos_collection, vm):
+def test_positive_end_to_end(session, repos_collection_for_module_streams, vm_module_streams):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
@@ -515,3 +554,250 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
                 virt_who_hypervisor_host['name'])[0]['Subscription Status'] == 'green'
             chost = session.contenthost.read(virt_who_hypervisor_host['name'])
             assert chost['details']['subscription_status'] == 'Fully entitled'
+
+
+@tier3
+def test_module_stream_actions_on_content_host(session, vm_module_streams):
+    """Check remote execution for module streams actions e.g. install, remove, disable
+    works on content host. Verify that correct stream module stream
+    get installed/removed.
+
+    :id: 684e467e-b41c-4b95-8450-001abe85abe0
+
+    :expectedresults: Remote execution for module actions should succeed.
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    stream_version = "5.21"
+    run_remote_command_on_content_host(
+        'dnf -y upload-profile',
+        vm_module_streams
+    )
+    with session:
+        entities.Parameter(
+            name='remote_execution_connect_by_ip',
+            value='Yes',
+            host=vm_module_streams.hostname
+        )
+        # Install Module Stream
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type="Install",
+            module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
+            stream_version=stream_version
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed'
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == stream_version
+        assert 'Enabled' and 'Installed' in module_stream[0]['Status']
+
+        # Remove Module Stream
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type="Remove",
+            module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
+            stream_version=stream_version
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert not session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed'
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Enabled'
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == stream_version
+        assert module_stream[0]['Status'] == "Enabled"
+
+        # Disable Module Stream
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type='Disable',
+            module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
+            stream_version=stream_version
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Disabled'
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == stream_version
+        assert module_stream[0]['Status'] == "Disabled"
+
+        # Reset Module Stream
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type='Reset',
+            module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
+            stream_version=stream_version
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert not session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Disabled'
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Unknown'
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == stream_version
+        assert module_stream[0]['Status'] == ""
+
+
+@tier3
+def test_module_streams_customize_action(session, vm_module_streams):
+    """Check remote execution for customized module action is working on content host.
+
+    :id: b139ea1f-380b-40a5-bb57-7530a52de18c
+
+    :expectedresults: Remote execution for module actions should be succeed.
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    with session:
+        stream_version = "5.21"
+        run_remote_command_on_content_host(
+            'dnf -y upload-profile',
+            vm_module_streams
+        )
+        customize_values = {
+                'template_content.action': 'info',
+        }
+        # Run customize action on module streams
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type='Install',
+            module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
+            stream_version=stream_version,
+            customize=True,
+            customize_values=customize_values
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+
+
+def test_install_modular_errata(session, vm_module_streams):
+    """Populate, Search and Install Modular Errata generated from module streams.
+
+    :id: 3b745562-7f97-4b58-98ec-844685f5c754
+
+    :expectedresults: Modular Errata should get installed on content host.
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    with session:
+        stream_version = "0"
+        run_remote_command_on_content_host(
+            'dnf -y upload-profile',
+            vm_module_streams
+        )
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type='Install',
+            module_name="kangaroo",
+            stream_version=stream_version,
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+
+        # Downgrade rpm package to generate errata.
+        run_remote_command_on_content_host(
+            'dnf downgrade kangaroo -y',
+            vm_module_streams
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            "kangaroo",
+            status='Upgrade Available'
+        )
+        assert module_stream[0]['Name'] == "kangaroo"
+
+        # Verify the errata
+        chost = session.contenthost.read(vm_module_streams.hostname, 'errata')
+        assert FAKE_0_MODULAR_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
+
+        # Install errata
+        result = session.contenthost.install_errata(
+            vm_module_streams.hostname,
+            FAKE_0_MODULAR_ERRATA_ID,
+            install_via='via remote execution'
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+
+        # Ensure errata installed
+        assert not session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            "kangaroo",
+            status='Upgrade Available'
+        )
+
+
+@tier3
+def test_module_status_update_from_content_host_to_satellite(session, vm_module_streams):
+    """ Verify dnf upload-profile updates the module stream status to Satellite.
+
+    :id: d05042e3-1996-4293-bb01-a2a0cc5b3b91
+
+    :expectedresults: module stream status should get updated in Satellite
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    with session:
+        stream_version = "0.71"
+        profile = "flipper"
+        run_remote_command_on_content_host(
+            'dnf -y upload-profile',
+            vm_module_streams
+        )
+
+        # reset walrus module streams
+        run_remote_command_on_content_host(
+            'dnf module reset walrus -y',
+            vm_module_streams
+        )
+
+        # install walrus module stream with flipper profile
+        run_remote_command_on_content_host(
+            'dnf module install walrus:0.71/flipper -y',
+            vm_module_streams
+        )
+
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed'
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == stream_version
+        assert module_stream[0]['Installed Profile'] == profile
+
+        # remove walrus module stream with flipper profile
+        run_remote_command_on_content_host(
+            'dnf module remove walrus:0.71/flipper -y',
+            vm_module_streams
+        )
+        assert not session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed'
+        )
