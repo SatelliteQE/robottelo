@@ -14,8 +14,8 @@
 
 :Upstream: No
 """
-from fabric.api import execute, run
 import os
+from fabric.api import execute, run
 from wait_for import wait_for
 
 from nailgun import entities
