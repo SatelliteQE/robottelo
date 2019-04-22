@@ -581,7 +581,7 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
             value='Yes',
             host=vm_module_streams.hostname
         )
-        # Install Module Stream
+        # install Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type="Install",
@@ -592,13 +592,14 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Installed'
+            status='Installed',
+            stream_version=stream_version
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
         assert 'Enabled' and 'Installed' in module_stream[0]['Status']
 
-        # Remove Module Stream
+        # remove Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type="Remove",
@@ -609,18 +610,20 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Installed'
+            status='Installed',
+            stream_version=stream_version
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Enabled'
+            status='Enabled',
+            stream_version=stream_version
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
         assert module_stream[0]['Status'] == "Enabled"
 
-        # Disable Module Stream
+        # disable Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Disable',
@@ -631,13 +634,14 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Disabled'
+            status='Disabled',
+            stream_version=stream_version
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
         assert module_stream[0]['Status'] == "Disabled"
 
-        # Reset Module Stream
+        # reset Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Reset',
@@ -648,12 +652,14 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Disabled'
+            status='Disabled',
+            stream_version=stream_version
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Unknown'
+            status='Unknown',
+            stream_version=stream_version
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -673,26 +679,49 @@ def test_module_streams_customize_action(session, vm_module_streams):
     :CaseImportance: Medium
     """
     with session:
-        stream_version = "5.21"
+        search_stream_version = "5.21"
+        install_stream_version = "0.71"
         run_remote_command_on_content_host(
             'dnf -y upload-profile',
             vm_module_streams
         )
+        run_remote_command_on_content_host(
+            'dnf module reset {} -y'.format(FAKE_2_CUSTOM_PACKAGE_NAME),
+            vm_module_streams
+        )
+        run_remote_command_on_content_host(
+            'dnf module reset {}'.format(FAKE_2_CUSTOM_PACKAGE_NAME),
+            vm_module_streams
+        )
+
+        # installing walrus:0.71 version
         customize_values = {
-                'template_content.action': 'info',
+                'template_content.module_spec': '{}:{}'.format(
+                    FAKE_2_CUSTOM_PACKAGE_NAME,
+                    install_stream_version
+                ),
         }
-        # Run customize action on module streams
+        # run customize action on module streams
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Install',
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
-            stream_version=stream_version,
+            stream_version=search_stream_version,
             customize=True,
             customize_values=customize_values
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed',
+            stream_version=install_stream_version
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == install_stream_version
 
 
+@tier3
 def test_install_modular_errata(session, vm_module_streams):
     """Populate, Search and Install Modular Errata generated from module streams.
 
@@ -706,6 +735,7 @@ def test_install_modular_errata(session, vm_module_streams):
     """
     with session:
         stream_version = "0"
+        module_name = "kangaroo"
         run_remote_command_on_content_host(
             'dnf -y upload-profile',
             vm_module_streams
@@ -713,24 +743,25 @@ def test_install_modular_errata(session, vm_module_streams):
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Install',
-            module_name="kangaroo",
+            module_name=module_name,
             stream_version=stream_version,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
 
-        # Downgrade rpm package to generate errata.
+        # downgrade rpm package to generate errata.
         run_remote_command_on_content_host(
-            'dnf downgrade kangaroo -y',
+            'dnf downgrade {} -y'.format(module_name),
             vm_module_streams
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
-            "kangaroo",
-            status='Upgrade Available'
+            module_name,
+            status='Upgrade Available',
+            stream_version=stream_version
         )
-        assert module_stream[0]['Name'] == "kangaroo"
+        assert module_stream[0]['Name'] == module_name
 
-        # Verify the errata
+        # verify the errata
         chost = session.contenthost.read(vm_module_streams.hostname, 'errata')
         assert FAKE_0_MODULAR_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
@@ -738,15 +769,16 @@ def test_install_modular_errata(session, vm_module_streams):
         result = session.contenthost.install_errata(
             vm_module_streams.hostname,
             FAKE_0_MODULAR_ERRATA_ID,
-            install_via='via remote execution'
+            install_via='rex'
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
 
-        # Ensure errata installed
+        # ensure errata installed
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
-            "kangaroo",
-            status='Upgrade Available'
+            module_name,
+            status='Upgrade Available',
+            stream_version=stream_version
         )
 
 
@@ -763,6 +795,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
     :CaseImportance: High
     """
     with session:
+        module_name = "walrus"
         stream_version = "0.71"
         profile = "flipper"
         run_remote_command_on_content_host(
@@ -772,20 +805,25 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
         # reset walrus module streams
         run_remote_command_on_content_host(
-            'dnf module reset walrus -y',
+            'dnf module reset {} -y'.format(module_name),
             vm_module_streams
         )
 
         # install walrus module stream with flipper profile
         run_remote_command_on_content_host(
-            'dnf module install walrus:0.71/flipper -y',
+            'dnf module install {}:{}/{} -y'.format(
+                module_name,
+                stream_version,
+                profile
+            ),
             vm_module_streams
         )
 
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Installed'
+            status='Installed',
+            stream_version=stream_version
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -793,11 +831,87 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
         # remove walrus module stream with flipper profile
         run_remote_command_on_content_host(
-            'dnf module remove walrus:0.71/flipper -y',
+            'dnf module remove {}:{}/{} -y'.format(
+                module_name,
+                stream_version,
+                profile
+            ),
             vm_module_streams
         )
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
-            status='Installed'
+            status='Installed',
+            stream_version=stream_version
+        )
+
+
+@tier3
+def test_module_steam_update_from_satellite(session, vm_module_streams):
+    """ Verify module stream enable, update actions works and update the module stream
+
+    :id: 8c077d7f-744b-4655-9fa2-e64ce1566d9b
+
+    :expectedresults: module stream should get updated.
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    with session:
+        module_name = "duck"
+        stream_version = "0"
+        run_remote_command_on_content_host(
+            'dnf -y upload-profile',
+            vm_module_streams
+        )
+        # reset duck module
+        run_remote_command_on_content_host(
+            'dnf module reset {} -y'.format(module_name),
+            vm_module_streams
+        )
+
+        # enable duck module stream
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type='Enable',
+            module_name=module_name,
+            stream_version=stream_version,
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            module_name,
+            status='Enabled',
+            stream_version=stream_version
+        )
+        assert module_stream[0]['Name'] == module_name
+        assert module_stream[0]['Stream'] == stream_version
+        assert module_stream[0]['Status'] == "Enabled"
+
+        # install module stream and downgrade it to generate the errata
+        run_remote_command_on_content_host(
+            'dnf module install {} -y'.format(module_name),
+            vm_module_streams
+        )
+        run_remote_command_on_content_host(
+            'dnf downgrade {} -y'.format(module_name),
+            vm_module_streams
+        )
+
+        # update duck module stream
+        result = session.contenthost.execute_module_stream_action(
+            vm_module_streams.hostname,
+            action_type='Update',
+            module_name=module_name,
+            stream_version=stream_version,
+        )
+        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+
+        # ensure module stream get updated
+        assert not session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            module_name,
+            status='Upgrade Available',
+            stream_version=stream_version
         )
