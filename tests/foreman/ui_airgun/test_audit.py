@@ -19,7 +19,13 @@ from nailgun import entities
 
 from robottelo.api.utils import create_role_permissions
 from robottelo.constants import ANY_CONTEXT, ENVIRONMENT
-from robottelo.decorators import fixture, skip_if_bug_open, tier2, upgrade
+from robottelo.decorators import (
+    fixture,
+    run_in_one_thread,
+    skip_if_bug_open,
+    tier2,
+    upgrade,
+)
 
 
 @fixture(scope='module')
@@ -27,9 +33,17 @@ def module_org():
     return entities.Organization().create()
 
 
+@fixture(scope='module')
+def module_loc(module_org):
+    return entities.Location(organization=[module_org]).create()
+
+
+pytestmark = [run_in_one_thread]
+
+
 @tier2
 @upgrade
-def test_positive_create_event(session):
+def test_positive_create_event(session, module_org, module_loc):
     """When new host is created, corresponding audit entry appear in the application
 
     :id: d0595705-f4b2-4f06-888b-ee93edd4acf8
@@ -40,19 +54,17 @@ def test_positive_create_event(session):
 
     :CaseImportance: High
     """
-    org = entities.Organization().create()
-    loc = entities.Location().create()
-    host = entities.Host(organization=org, location=loc).create()
+    host = entities.Host(organization=module_org, location=module_loc).create()
     with session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc.name)
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
         values = session.audit.search('type=host')
         assert values['action_type'] == 'created'
         assert values['resource_type'] == 'HOST'
         assert values['resource_name'] == host.name
         assert values['created_at']
-        assert values['affected_organization'] == org.name
-        assert values['affected_location'] == loc.name
+        assert values['affected_organization'] == module_org.name
+        assert values['affected_location'] == module_loc.name
         summary = {
             prop['column0']: prop['column1']
             for prop in values['action_summary'] if prop['column1']
@@ -68,8 +80,8 @@ def test_positive_create_event(session):
         assert summary['Owner type'] == 'User'
         assert summary['Managed'] == 'true'
         assert summary['Enabled'] == 'true'
-        assert summary['Organization'] == org.name
-        assert summary['Location'] == loc.name
+        assert summary['Organization'] == module_org.name
+        assert summary['Location'] == module_loc.name
 
 
 @tier2
@@ -118,7 +130,7 @@ def test_positive_update_event(session, module_org):
     cv.name = new_name
     cv.update(['name'])
     with session:
-        values = session.audit.search('type=katello/content_view')
+        values = session.audit.search('type=katello/content_view and action=update')
         assert values['action_type'] == 'updated'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW'
         assert values['resource_name'] == name
