@@ -111,11 +111,11 @@ class Scenario_errata_count(APITestCase):
 
     def _errata_count(self, ak):
         """ fetch the content host details.
-        :param: str ak: The activation key
+        :param: str ak: The activation key name
         :return: int installable_errata_count : installable_errata count
         """
         host = entities.Host().search(query={
-            'search': 'activation_key={0}'.format(ak.name)})[0]
+            'search': 'activation_key={0}'.format(ak)})[0]
         installable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         return installable_errata_count
