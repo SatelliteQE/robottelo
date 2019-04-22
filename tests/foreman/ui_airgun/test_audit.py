@@ -64,7 +64,9 @@ def test_positive_create_event(session):
         assert summary['Environment'] == host.environment.read().name
         assert summary['Ptable'] == host.ptable.read().name
         assert summary['Medium'] == host.medium.read().name
+        assert summary['Build'] == 'false'
         assert summary['Owner type'] == 'User'
+        assert summary['Managed'] == 'true'
         assert summary['Enabled'] == 'true'
         assert summary['Organization'] == org.name
         assert summary['Location'] == loc.name
