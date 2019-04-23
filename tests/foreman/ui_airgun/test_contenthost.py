@@ -140,7 +140,7 @@ def run_remote_command_on_content_host(command, vm_module_streams):
 
 
 @tier3
-def test_positive_end_to_end(session, repos_collection_for_module_streams, vm_module_streams):
+def test_positive_end_to_end(session, repos_collection, vm):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
