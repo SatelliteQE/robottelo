@@ -19,7 +19,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.decorators import run_in_one_thread, run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_role
 from robottelo.ui.session import Session
 
 
@@ -219,43 +218,3 @@ class AuditTestCase(UITestCase):
                 result = self.audit.get_last_entry()
                 self.assertIn('destroyed', result['full_statement'])
                 self.assertEqual(result['entity_name'], entity.name)
-
-    @tier1
-    def test_positive_create_role_filter(self):
-        """Update a role with new filter and check that corresponding event
-        appeared in the audit log
-
-        :id: 74679c0d-7ef1-4ab1-8282-9377c6cabb9f
-
-        :customerscenario: true
-
-        :expectedresults: audit log has an entry for a new filter that was
-            added to the role
-
-        :BZ: 1425977
-
-        :CaseImportance: Critical
-        """
-        resource_type = 'Architecture'
-        permissions = ['view_architectures', 'edit_architectures']
-        role_name = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_role(session, name=role_name)
-            self.assertIsNotNone(self.role.search(role_name))
-            self.audit.filter('type=role and action=create')
-            result = self.audit.get_last_entry()
-            self.assertEqual(role_name, result['entity_name'])
-            self.role.add_permission(
-                role_name,
-                resource_type=resource_type,
-                permission_list=permissions,
-            )
-            self.audit.navigate_to_entity()
-            result = self.audit.get_last_entry()
-            self.assertEqual('Filter', result['type'])
-            self.assertIn(
-                'added Filter: view_architectures and edit_architectures / '
-                '{}'.format(role_name),
-                result['full_statement']
-            )
-            self.assertIn(role_name, result['update_list'][0])
