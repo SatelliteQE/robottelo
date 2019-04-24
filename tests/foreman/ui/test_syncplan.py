@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: SyncPlans
 
 :TestType: Functional
 
@@ -36,6 +36,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier2,
     tier3,
+    tier4,
     upgrade,
 )
 
@@ -213,7 +214,7 @@ def test_positive_search_scoped(session):
         assert not session.syncplan.search('enabled = false')
 
 
-@tier3
+@tier4
 def test_negative_synchronize_custom_product_past_sync_date(
         session, module_org):
     """Verify product won't get synced immediately after adding association
@@ -251,7 +252,7 @@ def test_negative_synchronize_custom_product_past_sync_date(
             assert repo_values['content_counts'][repo_type] == '0'
 
 
-@tier3
+@tier4
 def test_positive_synchronize_custom_product_past_sync_date(
         session, module_org):
     """Create a sync plan with past datetime as a sync date, add a
@@ -302,7 +303,7 @@ def test_positive_synchronize_custom_product_past_sync_date(
             assert int(repo_values['content_counts'][repo_type]) > 0
 
 
-@tier3
+@tier4
 @skip_if_bug_open('bugzilla', 1655595)
 def test_positive_synchronize_custom_product_future_sync_date(
         session, module_org):
@@ -351,7 +352,7 @@ def test_positive_synchronize_custom_product_future_sync_date(
             assert int(repo_values['content_counts'][repo_type]) > 0
 
 
-@tier3
+@tier4
 @skip_if_bug_open('bugzilla', 1655595)
 def test_positive_synchronize_custom_products_future_sync_date(
         session, module_org):
