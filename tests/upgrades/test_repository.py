@@ -79,7 +79,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         }
         create_dict(global_dict)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
     def test_post_repository_scenario_upstream_authorization(self):
         """ Verify upstream username for pre-upgrade created repository.
 
@@ -288,7 +288,7 @@ class Scenario_custom_repo_check(APITestCase):
         }}
         create_dict(scenario_dict)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
     def test_post_scenario_custom_repo_check(self):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
