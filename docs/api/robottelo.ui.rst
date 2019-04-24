@@ -288,11 +288,6 @@
 
 .. automodule:: robottelo.ui.template
 
-:mod:`robottelo.ui.trend`
--------------------------
-
-.. automodule:: robottelo.ui.trend
-
 :mod:`robottelo.ui.user`
 ------------------------
 

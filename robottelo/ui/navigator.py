@@ -46,11 +46,6 @@ class Navigator(Base):
             menu_locators['menu.monitor'], menu_locators['menu.statistics'],
         )
 
-    def go_to_trends(self):
-        self.menu_click(
-            menu_locators['menu.monitor'], menu_locators['menu.trends'],
-        )
-
     def go_to_audits(self):
         self.menu_click(
             menu_locators['menu.monitor'], menu_locators['menu.audits'],

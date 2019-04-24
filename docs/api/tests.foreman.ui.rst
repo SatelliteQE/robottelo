@@ -333,11 +333,6 @@
 
 .. automodule:: tests.foreman.ui.test_template
 
-:mod:`tests.foreman.ui.test_trend`
-----------------------------------
-
-.. automodule:: tests.foreman.ui.test_trend
-
 :mod:`tests.foreman.ui.test_usergroup`
 --------------------------------------
 
