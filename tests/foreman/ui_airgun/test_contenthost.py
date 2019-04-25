@@ -847,7 +847,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
 
 @tier3
-def test_module_steam_update_from_satellite(session, vm_module_streams):
+def test_module_stream_update_from_satellite(session, vm_module_streams):
     """ Verify module stream enable, update actions works and update the module stream
 
     :id: 8c077d7f-744b-4655-9fa2-e64ce1566d9b
