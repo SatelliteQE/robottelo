@@ -61,7 +61,6 @@ from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.task import Task
 from robottelo.ui.template import Template
-from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
 
@@ -174,7 +173,6 @@ class Session(object):
         self.syncplan = Syncplan(self.browser)
         self.task = Task(self.browser)
         self.template = Template(self.browser)
-        self.trend = Trend(self.browser)
         self.usergroup = UserGroup(self.browser)
 
         # for compatibility purposes
@@ -194,7 +192,7 @@ class Session(object):
                 'rhai_overview', 'role',
                 'settings', 'sc_parameters', 'smart_variable', 'statistic',
                 'subnet', 'subscriptions', 'sync', 'syncplan', 'task',
-                'template', 'trend', 'usergroup', 'globalparameters'):
+                'template', 'usergroup', 'globalparameters'):
             setattr(self.test, attr, getattr(self, attr))
 
         self.login.login(self._user, self._password)

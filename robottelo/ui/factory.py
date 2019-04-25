@@ -36,7 +36,6 @@ from robottelo.ui.smart_variable import SmartVariable
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.template import Template
-from robottelo.ui.trend import Trend
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
 from selenium.webdriver.common.action_chains import ActionChains
@@ -622,18 +621,6 @@ def make_syncplan(session, org=None, loc=None,  force_context=True, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Syncplan(session.browser).create(**create_args)
-
-
-def make_trend(session, **kwargs):
-    """Creates a Trend"""
-    create_args = {
-        u'trend_type': None,
-        u'trendable': None,
-        u'name': None,
-    }
-    page = session.nav.go_to_trends
-    core_factory(create_args, kwargs, session, page)
-    Trend(session.browser).create(**create_args)
 
 
 def make_ldapauth(session, **kwargs):

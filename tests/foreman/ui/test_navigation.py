@@ -65,7 +65,6 @@ class NavigationTestCase(UITestCase):
             'Subscriptions': self.subscriptions,
             'Sync Plan': self.syncplan,
             'Template': self.template,
-            'Trend': self.trend,
             'User': self.user,
             'User Group': self.usergroup,
         }
