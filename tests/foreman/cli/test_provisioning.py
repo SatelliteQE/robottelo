@@ -137,6 +137,22 @@ def lce(user_credentials, org):
 
 
 @pytest.fixture(scope='session')
+def rhel7(user_credentials, org):
+    repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhel7']['name'],
+        reposet=REPOSET['rhel7'],
+        releasever=REPOS['rhel7']['releasever'],
+    )
+    repo = entities.Repository(user_credentials, id=repo_id)
+    response = repo.sync(synchronous=False)
+    entities.ForemanTask(id=response['id']).poll(timeout=1800)
+    return repo.read()
+
+
+@pytest.fixture(scope='session')
 def rhel7ks(user_credentials, org):
     repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
@@ -183,14 +199,14 @@ def rhel8ks(user_credentials, org):
 
 
 @pytest.fixture(scope='session')
-def cv(user_credentials, org, rhel7ks):
+def cv(user_credentials, org, rhel7, rhel7ks):
     # TODO: Some puppet modules in here would be nice
     content_view = entities.ContentView(
         user_credentials,
         organization=org
     ).create()
 
-    content_view.repository = [rhel7ks]
+    content_view.repository = [rhel7, rhel7ks]
     content_view = content_view.update(['repository'])
     return content_view
 
@@ -335,8 +351,9 @@ def _execute_ssh_command(connection, command):
     stdin, stdout, stderr = connection.exec_command(command, timeout=60)
     stdout_read = stdout.read()
     stderr_read = stderr.read()
+    exit_code = stdout.channel.recv_exit_status()
     LOGGER.debug("Command returned stdout '{0}' and stderr '{1}'".format(stdout_read, stderr_read))
-    return stdout_read, stderr_read
+    return exit_code, stdout_read, stderr_read
 
 
 def _wait_for_ssh_ready(host, root_pass):
@@ -378,7 +395,8 @@ def _run_rex_job(host, job_category, root_pass):
         'Incorrect success count for {0} rex on {1}'.format(job_category, host)
 
     connection = _get_ssh_connection(host.ip, 'root', root_pass)
-    stdout, stderr = _execute_ssh_command(connection, 'cat {0}'.format(file_name))
+    rc, stdout, stderr = _execute_ssh_command(connection, 'cat {0}'.format(file_name))
+    assert rc == 0
     assert file_content in str(stdout)
     assert len(stderr) == 0
     connection.close()
@@ -387,15 +405,36 @@ def _run_rex_job(host, job_category, root_pass):
 def _run_sub_man_status(host, root_pass):
     """Run `subscription-manager status` on a host and ensure output is sane"""
     connection = _get_ssh_connection(host.ip, 'root', root_pass)
-    stdout, stderr = _execute_ssh_command(connection, 'subscription-manager status')
+    rc, stdout, stderr = _execute_ssh_command(connection, 'subscription-manager status')
+    assert rc == 0
     assert 'Overall Status: Current' in str(stdout)
+    assert len(stderr) == 0
+    connection.close()
+
+
+def _check_package_install(host, root_pass):
+    """Make sure we are able to install package from Satellite"""
+    connection = _get_ssh_connection(host.ip, 'root', root_pass)
+    # Make sure package is not installed
+    rc, stdout, stderr = _execute_ssh_command(connection, 'rpm -q zsh')
+    assert rc == 1
+    # Install package
+    rc, stdout, stderr = _execute_ssh_command(connection, 'yum -y install zsh')
+    assert rc == 0
+    assert 'Installed:' in str(stdout)
+    assert 'zsh' in str(stdout)
+    assert 'Complete!' in str(stdout)
+    # Make sure package is installed
+    rc, stdout, stderr = _execute_ssh_command(connection, 'rpm -q zsh')
+    assert rc == 0
+    assert 'zsh' in str(stdout)
     assert len(stderr) == 0
     connection.close()
 
 
 @tier3
 def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, subnet, lce,
-                                          rhel7ks, cv, cvv, ak, cr, arch, os, env, hg):
+                                          rhel7, rhel7ks, cv, cvv, ak, cr, arch, os, env, hg):
     """Provision RHEL system via PXE on libvirt and make sure it behaves
 
     :id: a272a594-f758-40ef-95ec-813245e44b63
@@ -416,6 +455,7 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
     LOGGER.info(">>> Domain: [%s] %s" % (domain.id, domain.name))
     LOGGER.info(">>> Subnet: [%s] %s" % (subnet.id, subnet.name))
     LOGGER.info(">>> Lifecycle environment: [%s] %s" % (lce.id, lce.name))
+    LOGGER.info(">>> Base repo: [%s] %s" % (rhel7.id, rhel7.name))
     LOGGER.info(">>> KS repo: [%s] %s" % (rhel7ks.id, rhel7ks.name))
     LOGGER.info(">>> Content view: [%s] %s" % (cv.id, cv.name))
     LOGGER.info(">>> Content view version: [%s]" % (cvv.id))
@@ -455,4 +495,5 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
     _run_rex_job(host, 'Commands', host_pass)
     _run_rex_job(host, 'Ansible Commands', host_pass)
     _run_sub_man_status(host, host_pass)
+    _check_package_install(host, host_pass)
     host.delete()
