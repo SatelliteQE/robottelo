@@ -47,9 +47,6 @@ from robottelo.helpers import (
 )
 from robottelo import manifests
 
-# DELME
-DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
-
 LOGGER = logging.getLogger('robottelo')
 
 
@@ -472,7 +469,7 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
     LOGGER.info(">>> Host name: %s" % host_name)
     LOGGER.info(">>> Host root password: %s" % host_pass)
     host_parameters = [{'name': 'remote_execution_connect_by_ip', 'value': True}]
-    host_parameters_str = ','.join(["%s=%s" % (i['name'],i['value']) for i in host_parameters])
+    host_parameters_str = ','.join(["%s=%s" % (i['name'], i['value']) for i in host_parameters])
     LOGGER.info(">>> Host parameters: %s" % host_parameters_str)
     parameters = {
         'build': 'yes',
