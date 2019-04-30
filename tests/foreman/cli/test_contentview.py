@@ -5302,7 +5302,6 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_promotion(self):
         """Check arbitrary files availability on Environment after Content
@@ -5323,7 +5322,56 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :expectedresults: Check arbitrary files from FR is available on
             environment
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :CaseLevel: Integration
         """
+        org = make_org({u'name': gen_alphanumeric()})
+        cv = make_content_view({u'organization-id': org['id']})
+        product_info = make_product({u'organization-id': org['id']})
+        repos = [self._make_file_repository_upload_contents(
+            {
+                u'content-type': 'file',
+                u'organization-id': org['id'],
+                u'product-id': product_info['id']
+            }
+        ) for _ in range(2)
+        ]
+
+        [ContentView.add_repository(
+            {
+                u'id': cv['id'],
+                u'repository-id': repo['id'],
+                u'organization-id': org["name"]
+            }
+        ) for repo in repos
+        ]
+        env = [make_lifecycle_environment(
+                {
+                    u'organization-id': org['id']
+                 })for _ in range(1)]
+        ContentView.publish(
+            {
+                u'id': cv['id']
+            }
+        )
+        content_view_info = ContentView.version_info(
+            {
+                u'content-view-id': cv['id'],
+                u'content-view': cv['name'],
+                u'version': 1
+            }
+        )
+        ContentView.version_promote(
+            {
+                u'id': content_view_info['id'],
+                u'to-lifecycle-environment-id': env[0]['id'],
+            }
+        )
+        self.assertIn(repos[0][u'name'],
+                      [rep['name'] for rep in ContentView.version_info(
+                                {
+                                 u'content-view-id': cv['id'],
+                                 u'version': 1
+                                })['repositories']]
+                      )
