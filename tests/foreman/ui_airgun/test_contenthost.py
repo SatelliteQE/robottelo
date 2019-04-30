@@ -119,7 +119,7 @@ def vm(repos_collection):
 
 @fixture
 def vm_module_streams(repos_collection_for_module_streams):
-    """Virtual machine registered in satellite with katello-agent installed"""
+    """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
         repos_collection_for_module_streams.setup_virtual_machine(vm_module_streams,
                                                                   install_katello_agent=False)
@@ -555,7 +555,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
             chost = session.contenthost.read(virt_who_hypervisor_host['name'])
             assert chost['details']['subscription_status'] == 'Fully entitled'
 
-
+@upgrade
 @tier3
 def test_module_stream_actions_on_content_host(session, vm_module_streams):
     """Check remote execution for module streams actions e.g. install, remove, disable
@@ -721,6 +721,7 @@ def test_module_streams_customize_action(session, vm_module_streams):
         assert module_stream[0]['Stream'] == install_stream_version
 
 
+@upgrade
 @tier3
 def test_install_modular_errata(session, vm_module_streams):
     """Populate, Search and Install Modular Errata generated from module streams.
@@ -846,6 +847,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
         )
 
 
+@upgrade
 @tier3
 def test_module_stream_update_from_satellite(session, vm_module_streams):
     """ Verify module stream enable, update actions works and update the module stream
