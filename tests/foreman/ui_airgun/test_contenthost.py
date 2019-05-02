@@ -52,6 +52,7 @@ from robottelo.decorators import (
     tier3,
     upgrade,
 )
+from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import (
     YumRepository,
     RepositoryCollection,
@@ -123,6 +124,7 @@ def vm_module_streams(repos_collection_for_module_streams):
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
         repos_collection_for_module_streams.setup_virtual_machine(vm_module_streams,
                                                                   install_katello_agent=False)
+        add_remote_execution_ssh_key(vm_module_streams.ip_addr)
         yield vm_module_streams
 
 
@@ -554,6 +556,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
                 virt_who_hypervisor_host['name'])[0]['Subscription Status'] == 'green'
             chost = session.contenthost.read(virt_who_hypervisor_host['name'])
             assert chost['details']['subscription_status'] == 'Fully entitled'
+
 
 @upgrade
 @tier3
