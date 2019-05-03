@@ -272,7 +272,6 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
-    @skip_if_bug_open('bugzilla', 1664288)
     @tier4
     def test_positive_checksum_sync(self):
         """Synchronize repository to capsule, update repository's checksum
@@ -283,7 +282,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :customerscenario: true
 
-        :BZ: 1288656
+        :BZ: 1288656, 1664288
 
         :expectedresults: checksum type is updated in repodata of corresponding
             repository on  capsule
@@ -296,8 +295,9 @@ class CapsuleContentManagementTestCase(APITestCase):
         org = entities.Organization(smart_proxy=[self.capsule_id]).create()
         product = entities.Product(organization=org).create()
         repo = entities.Repository(
-            checksum_type='sha256',
             product=product,
+            checksum_type='sha256',
+            download_policy='immediate'
         ).create()
         lce = entities.LifecycleEnvironment(organization=org).create()
         # Associate the lifecycle environment with the capsule
