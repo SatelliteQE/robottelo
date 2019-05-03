@@ -76,7 +76,7 @@ class scenario_positive_activation_key(APITestCase):
         ak.update(['host_collection'])
         self.assertEqual(len(ak.host_collection), 1)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_create_activation_key)
     def test_post_crud_activation_key(self):
         """Activation key is intact post upgrade and update/delete activation key works
 

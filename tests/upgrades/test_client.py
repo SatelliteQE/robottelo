@@ -323,7 +323,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
             {self.__class__.__name__: rhel7_client}
         )
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
     def test_post_scenario_preclient_package_installation(self):
         """Post-upgrade scenario that installs the package on pre-upgrade
         client remotely and then verifies if the package installed

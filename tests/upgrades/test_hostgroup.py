@@ -105,7 +105,7 @@ class scenario_positive_hostgroup(APITestCase):
         ).create()
         self.assertEqual(self.hostgroup_name, host_group.name)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_create_hostgroup)
     def test_post_crud_hostgroup(self):
         """Hostgroup is intact post upgrade and update/delete/clone hostgroup
 
