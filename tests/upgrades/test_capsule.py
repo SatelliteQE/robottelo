@@ -104,7 +104,7 @@ class Scenario_capsule_sync(APITestCase):
             'env_name': ak_env.name}}
         create_dict(global_dict)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
     def test_post_user_scenario_capsule_sync(self):
         """Post-upgrade scenario that sync capsule from satellite and then
         verifies if the repo/rpm of pre-upgrade scenario is synced to capsule

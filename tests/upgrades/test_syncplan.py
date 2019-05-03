@@ -77,7 +77,7 @@ class ScenarioSyncPlan(APITestCase):
         create_dict(scenario_dict)
 
     @skip_if_bug_open('bugzilla', 1646988)
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_sync_plan_migration)
     def test_post_sync_plan_migration(self):
         """Post-upgrade scenario that tests existing sync plans are working as
         expected after satellite upgrade with migrating from pulp to katello

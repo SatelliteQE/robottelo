@@ -250,7 +250,7 @@ class Scenario_errata_count(APITestCase):
         }}
         create_dict(scenario_dict)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
     def test_post_scenario_errata_count_installtion(self):
         """Post-upgrade scenario that installs the package on pre-upgrade
         client remotely and then verifies if the package installed.
