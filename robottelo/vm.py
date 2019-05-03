@@ -17,7 +17,14 @@ from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_SLES11, DISTRO_SLES12, REPOS
+from robottelo.constants import (
+    DISTRO_RHEL6,
+    DISTRO_RHEL7,
+    DISTRO_RHEL8,
+    DISTRO_SLES11,
+    DISTRO_SLES12,
+    REPOS
+)
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.host_info import get_host_os_version
 from six.moves.urllib.parse import urlunsplit
@@ -65,6 +72,7 @@ class VirtualMachine(object):
         distro_mapping = {
             DISTRO_RHEL6: settings.distro.image_el6,
             DISTRO_RHEL7: settings.distro.image_el7,
+            DISTRO_RHEL8: settings.distro.image_el8,
             DISTRO_SLES11: settings.distro.image_sles11,
             DISTRO_SLES12: settings.distro.image_sles12,
         }
