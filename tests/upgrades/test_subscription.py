@@ -74,7 +74,7 @@ class Scenario_manifest_refresh(APITestCase):
         sub.refresh_manifest(data={'organization_id': org.id})
         self.assertGreater(len(sub.search()), 0)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
     def test_post_manifest_scenario_refresh(self):
         """Post-upgrade scenario that verifies manifest refreshed successfully
         and deleted successfully.
@@ -187,7 +187,7 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
         }
         create_dict(global_dict)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
     def test_post_subscription_scenario_autoattach(self):
         """Run subscription auto-attach on pre-upgrade content host registered
         with Satellite.

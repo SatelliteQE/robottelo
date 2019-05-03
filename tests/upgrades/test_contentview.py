@@ -174,7 +174,7 @@ class Scenario_contentview_upgrade(CLITestCase):
         cv = ContentView.info({'id': content_view['id']})
         self.assertEqual(len(cv['versions']), 1)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_cv_preupgrade_scenario)
     def test_cv_postupgrade_scenario(self):
         """This is post-upgrade scenario test to verify if we can update
          content-view created in pre-upgrade scenario with various repositories.

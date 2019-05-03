@@ -177,7 +177,7 @@ class scenario_positive_default_role_added_permission(APITestCase):
         self.assertIn(
             subnetfilter.id, [filt.id for filt in defaultrole.read().filters])
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_default_role_added_permission)
     def test_post_default_role_added_permission(self):
         """The new permission in 'Default role' is intact post upgrade
 
@@ -235,7 +235,7 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
         self.assertIn(
             domainfilter.id, [filt.id for filt in defaultrole.read().filters])
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_default_role_added_permission_with_filter)
     def test_post_default_role_added_permission_with_filter(self):
         """The new permission with filter in 'Default role' is intact post
             upgrade

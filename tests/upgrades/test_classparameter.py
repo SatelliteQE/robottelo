@@ -164,7 +164,7 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
                 self.assertEqual(sc_param.parameter_type, data['sc_type'])
                 self._validate_value(data, sc_param)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_puppet_class_parameter_data_and_type)
     def test_post_puppet_class_parameter_data_and_type(self):
         """Puppet Class Parameters value and type is intact post upgrade
 
