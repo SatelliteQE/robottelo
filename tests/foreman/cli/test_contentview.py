@@ -5342,4 +5342,5 @@ class ContentViewFileRepoTestCase(CLITestCase):
                 u'id': content_view_info['id'],
                 u'to-lifecycle-environment-id': env['id']})
         self.assertIn(repo['name'], ContentView.version_info({
-                                 u'content-view-id': cv['id'], u'version': 1})['repositories'][0]['name'])
+                                 u'content-view-id': cv['id'],
+                                 u'version': 1})['repositories'][0]['name'])
