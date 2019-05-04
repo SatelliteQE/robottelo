@@ -5333,11 +5333,11 @@ class ContentViewFileRepoTestCase(CLITestCase):
             {u'content-type': 'file', u'organization-id': org['id'], u'product-id':
                 product_info['id']})
         ContentView.add_repository({u'id': cv['id'], u'repository-id': repo['id'],
-                                    u'organization-id': org["name"]})
+                                    u'organization-id': org["id"]})
         env = make_lifecycle_environment({u'organization-id': org['id']})
         ContentView.publish({u'id': cv['id']})
-        content_view_info = ContentView.version_info({ u'content-view-id': cv['id'],
-                                                       u'content-view': cv['name'], u'version': 1})
+        content_view_info = ContentView.version_info({u'content-view-id': cv['id'],
+                                                      u'version': 1})
         ContentView.version_promote({
                 u'id': content_view_info['id'],
                 u'to-lifecycle-environment-id': env['id']})
