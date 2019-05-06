@@ -5320,7 +5320,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
             1. Promote the CV to the Environment
 
         :expectedresults: Check arbitrary files from FR is available on
-            environment
+            content view version environment
 
         :CaseAutomation: automated
 
@@ -5338,13 +5338,12 @@ class ContentViewFileRepoTestCase(CLITestCase):
         ContentView.add_repository({
             u'id': cv['id'],
             u'repository-id': repo['id'],
-            u'organization-id': self.org["id"]})
+            u'organization-id': self.org["id"]
+        })
         env = make_lifecycle_environment({
             u'organization-id': self.org['id']
         })
-        ContentView.publish({
-            u'id': cv['id']
-        })
+        ContentView.publish({u'id': cv['id']})
         content_view_info = ContentView.version_info({
             u'content-view-id': cv['id'],
             u'version': 1
@@ -5355,6 +5354,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         })
         expected_repo = ContentView.version_info({
             u'content-view-id': cv['id'],
+            u'environment': env['name'],
             u'version': 1
         })['repositories'][0]['name']
 
