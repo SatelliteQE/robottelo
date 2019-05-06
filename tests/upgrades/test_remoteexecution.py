@@ -126,7 +126,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
                 self._vm_cleanup(hostname=client.hostname)
             raise Exception(exp)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
     def test_post_scenario_remoteexecution_external_capsule(self):
         """Run a REX job on pre-upgrade created client registered
         with external capsule.
@@ -247,7 +247,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
                 self._vm_cleanup(hostname=client.hostname)
             raise Exception(exp)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
     def test_post_scenario_remoteexecution_satellite(self):
         """Run a REX job on pre-upgrade created client registered
         with Satellite.

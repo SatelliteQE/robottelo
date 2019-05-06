@@ -222,7 +222,7 @@ class Scenario_yum_plugins_count(APITestCase):
         }}
         create_dict(scenario_dict)
 
-    @post_upgrade
+    @post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
     def test_post_scenario_yum_plugins_count(self):
         """Upgrade katello agent on pre-upgrade content host registered
         with Satellite.
