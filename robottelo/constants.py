@@ -589,8 +589,12 @@ FAKE_5_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet05'
 FAKE_6_PUPPET_REPO = u'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
 FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
 FAKE_8_PUPPET_REPO = u'https://omaciel.fedorapeople.org/f4cb00ed/'
-FEDORA26_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/26/'
-FEDORA27_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/27/'
+# Fedora's OSTree repo changed to a single repo at
+#   https://kojipkgs.fedoraproject.org/compose/ostree/repo/
+# With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
+# We will use the archived versions for now, but probably need to revisit this.
+FEDORA26_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
+FEDORA27_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
 FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'

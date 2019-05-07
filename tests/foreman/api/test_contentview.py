@@ -1612,7 +1612,7 @@ class OstreeContentViewTestCase(APITestCase):
             url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
-        cls.ostree_repo.sync
+        cls.ostree_repo.sync()
         # Create new yum repository
         cls.yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
