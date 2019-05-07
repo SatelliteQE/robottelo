@@ -5338,7 +5338,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         ContentView.add_repository({
             u'id': cv['id'],
             u'repository-id': repo['id'],
-            u'organization-id': self.org["id"]
+            u'organization-id': self.org['id']
         })
         env = make_lifecycle_environment({
             u'organization-id': self.org['id']
