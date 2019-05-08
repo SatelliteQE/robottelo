@@ -2673,7 +2673,6 @@ class FileRepositoryTestCase(CLITestCase):
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
-    @stubbed()
     @tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
@@ -2686,8 +2685,34 @@ class FileRepositoryTestCase(CLITestCase):
 
         :expectedresults: uploaded file is available under File Repository
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
         """
+        new_repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': CUSTOM_FILE_REPO,
+        })
+
+        ssh.upload_file(
+            local_file=get_data_file(RPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+        )
+
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+        })
+
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
+            result[0]['message'],
+        )
+
+        repo = Repository.info({'id': new_repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['files'], '1')
 
     @stubbed()
     @tier1
