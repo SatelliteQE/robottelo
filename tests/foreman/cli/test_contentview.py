@@ -5304,8 +5304,8 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
     @tier2
     def test_positive_arbitrary_file_repo_promotion(self):
-        """Check arbitrary files availability on Environment after Content
-        View promotion
+        """Check arbitrary files availability for Content view version after
+        content-view promotion.
 
         :id: 3c728b9e-27e4-4afc-90b0-8c728e634d6f
 
