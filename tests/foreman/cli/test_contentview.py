@@ -5302,11 +5302,10 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_promotion(self):
-        """Check arbitrary files availability on Environment after Content
-        View promotion
+        """Check arbitrary files availability for Content view version after
+        content-view promotion.
 
         :id: 3c728b9e-27e4-4afc-90b0-8c728e634d6f
 
@@ -5321,9 +5320,42 @@ class ContentViewFileRepoTestCase(CLITestCase):
             1. Promote the CV to the Environment
 
         :expectedresults: Check arbitrary files from FR is available on
-            environment
+            content view version environment
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :CaseLevel: Integration
         """
+
+        cv = make_content_view({
+            u'organization-id': self.org['id']
+        })
+        repo = self._make_file_repository_upload_contents({
+            u'content-type': 'file',
+            u'organization-id': self.org['id'],
+            u'product-id': self.product['id']
+        })
+        ContentView.add_repository({
+            u'id': cv['id'],
+            u'repository-id': repo['id'],
+            u'organization-id': self.org['id']
+        })
+        env = make_lifecycle_environment({
+            u'organization-id': self.org['id']
+        })
+        ContentView.publish({u'id': cv['id']})
+        content_view_info = ContentView.version_info({
+            u'content-view-id': cv['id'],
+            u'version': 1
+        })
+        ContentView.version_promote({
+                u'id': content_view_info['id'],
+                u'to-lifecycle-environment-id': env['id']
+        })
+        expected_repo = ContentView.version_info({
+            u'content-view-id': cv['id'],
+            u'environment': env['name'],
+            u'version': 1
+        })['repositories'][0]['name']
+
+        self.assertIn(repo['name'], expected_repo)
