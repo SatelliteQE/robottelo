@@ -1595,6 +1595,7 @@ class ContentViewRolesTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ContentView(id=content_view.id).read()
 
+
 @skip_if_bug_open('bugzilla', 1625783)
 class OstreeContentViewTestCase(APITestCase):
     """Tests for ostree contents in content views."""
