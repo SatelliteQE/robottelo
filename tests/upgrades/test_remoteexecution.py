@@ -14,13 +14,11 @@
 
 :Upstream: No
 """
-import os
-
 from nailgun import entities
 from robottelo.constants import DEFAULT_LOC_ID, DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
-from robottelo.test import APITestCase
+from robottelo.test import APITestCase, settings
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
@@ -45,16 +43,16 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
+        cls.libvirt_vm = settings.compute_resources.libvirt_hostname
         cls.org = entities.Organization(id=1).read()
-        cls.bridge = os.environ.get('BRIDGE')
-        cls.subnet = os.environ.get('SUBNET')
-        cls.gateway = os.environ.get('GATEWAY')
-        cls.netmask = os.environ.get('NETMASK')
-        cls.vm_domain_name = os.environ.get('VM_DOMAIN')
+        cls.bridge = settings.upgrade.bridge
+        cls.subnet = settings.upgrade.subnet
+        cls.gateway = settings.upgrade.gateway
+        cls.netmask = settings.upgrade.netmask
+        cls.vm_domain_name = settings.upgrade.vm_domain
         cls.vm_domain = entities.Domain().search(query={'search': 'name="{}"'
                                                  .format(cls.vm_domain_name)})
-        cls.proxy_name = os.environ.get('RHEV_CAP_HOST')
+        cls.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
 
     def _vm_cleanup(self, hostname=None):
         """ Cleanup the VM from provisioning server
@@ -167,16 +165,16 @@ class Scenario_remoteexecution_satellite(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
+        cls.libvirt_vm = settings.compute_resources.libvirt_hostname
         cls.org = entities.Organization(id=1).read()
-        cls.bridge = os.environ.get('BRIDGE')
-        cls.subnet = os.environ.get('SUBNET')
-        cls.gateway = os.environ.get('GATEWAY')
-        cls.netmask = os.environ.get('NETMASK')
-        cls.vm_domain_name = os.environ.get('VM_DOMAIN')
+        cls.bridge = settings.upgrade.bridge
+        cls.subnet = settings.upgrade.subnet
+        cls.gateway = settings.upgrade.gateway
+        cls.netmask = settings.upgrade.netmask
+        cls.vm_domain_name = settings.upgrade.docker_vm
         cls.vm_domain = entities.Domain().search(query={'search': 'name="{}"'
                                                  .format(cls.vm_domain_name)})
-        cls.proxy_name = os.environ.get('RHEV_SAT_HOST')
+        cls.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
 
     def _vm_cleanup(self, hostname=None):
         """ Cleanup the VM from provisioning server
