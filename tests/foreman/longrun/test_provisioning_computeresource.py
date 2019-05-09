@@ -250,7 +250,7 @@ class ComputeResourceHostTestCase(CLITestCase):
                                   "cluster={0},"
                                   "path=/Datacenters/{1}/vm/QE,"
                                   "guest_id=rhel7_64Guest,"
-                                  "scsi_controller_type=VirtualLsiLogic,"
+                                  "scsi_controller_type=VirtualLsiLogicController,"
                                   "hardware_version=Default,"
                                   "start=1".format(VMWARE_CONSTANTS['cluster'],
                                                    self.vmware_datacenter
