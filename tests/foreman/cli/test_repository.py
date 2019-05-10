@@ -2711,7 +2711,6 @@ class FileRepositoryTestCase(CLITestCase):
         )
 
         repo = Repository.info({'id': new_repo['id']})
-        repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['files'], '1')
 
     @stubbed()
