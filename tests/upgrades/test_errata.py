@@ -14,17 +14,19 @@
 
 :Upstream: No
 """
+import os
+
 from fabric.api import execute
 from nailgun import entities
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.constants import (
-    DISTRO_RHEL7,
+    DISTRO_DEFAULT,
     FAKE_9_YUM_ERRATUM,
     FAKE_9_YUM_OUTDATED_PACKAGES,
     FAKE_9_YUM_REPO,
     FAKE_9_YUM_UPDATED_PACKAGES
 )
-from robottelo.test import APITestCase, settings
+from robottelo.test import APITestCase
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
@@ -50,8 +52,8 @@ class Scenario_errata_count(APITestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.docker_vm = settings.upgrade.docker_vm
-        cls.client_os = DISTRO_RHEL7
+        cls.docker_vm = os.environ.get('DOCKER_VM')
+        cls.client_os = DISTRO_DEFAULT
 
     def _run_goferd(self, client_container_id):
         """Start the goferd process."""
@@ -137,14 +139,21 @@ class Scenario_errata_count(APITestCase):
 
     def _create_custom_rhel_tools_repos(self, product):
         """Install packge on docker content host."""
-        rhel_repo_url = settings.rhel7_os
-        tools_repo_url = settings.sattools_repo[DISTRO_RHEL7]
+        rhel_repo_url = os.environ.get('{}_CUSTOM_REPO'.format(self.client_os.upper()))
+
+        tools_repo_url = os.environ.get(
+            'TOOLS_{}'.format(self.client_os.upper()))
         if None in [rhel_repo_url, tools_repo_url]:
-            raise ValueError('The rhel7_os or tools_rhel7 Repo url is not set in settings!')
-        tools_repo = entities.Repository(
-            product=product, content_type='yum', url=tools_repo_url).create()
-        rhel_repo = entities.Repository(
-            product=product, content_type='yum', url=rhel_repo_url).create()
+            raise ValueError('The Tools Repo URL/RHEL Repo url environment variable for '
+                             'OS {} is not provided!'.format(self.client_os))
+        tools_repo = entities.Repository(product=product,
+                                         content_type='yum',
+                                         url=tools_repo_url
+                                         ).create()
+        rhel_repo = entities.Repository(product=product,
+                                        content_type='yum',
+                                        url=rhel_repo_url,
+                                        ).create()
         call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
         call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
         return tools_repo, rhel_repo

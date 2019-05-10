@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import os
 from fabric.api import execute, run
 from nailgun import entities
 from robottelo.test import APITestCase, settings
@@ -44,12 +45,14 @@ class Scenario_capsule_sync(APITestCase):
     def setUpClass(cls):
         cls.sat_host = settings.server.hostname
         cls.cls_name = 'Scenario_capsule_sync'
-        cls.cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
+        cls.cap_host = os.environ.get(
+            'RHEV_CAP_HOST', os.environ.get('CAPSULE_HOSTNAME'))
         cls.repo_name = 'capsulesync_TestRepo_' + cls.cls_name
         cls.repo_path = '/var/www/html/pub/preupgradeCapSync_repo/'
         cls.rpm_name = rpm1.split('/')[-1]
         cls.prod_name = 'Scenario_preUpgradeCapSync_' + cls.cls_name
-        cls.activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
+        cls.activation_key = os.environ.get(
+            'CAPSULE_AK', os.environ.get('RHEV_CAPSULE_AK'))
         cls.cv_name = 'Scenario_precapSync_' + cls.cls_name
         cls.org_id = '1'
         cls.repo_url = 'http://{0}{1}'.format(
@@ -152,12 +155,14 @@ class Scenario_capsule_sync_2(APITestCase):
     def setUpClass(cls):
         cls.cls_name = 'Scenario_capsule_sync_2'
         cls.sat_host = settings.server.hostname
-        cls.cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
+        cls.cap_host = os.environ.get(
+            'RHEV_CAP_HOST', os.environ.get('CAPSULE_HOSTNAME'))
         cls.repo_name = 'capsulesync_TestRepo_' + cls.cls_name
         cls.repo_path = '/var/www/html/pub/postupgradeCapSync_repo/'
         cls.rpm_name = rpm2.split('/')[-1]
         cls.prod_name = 'Scenario_postUpgradeCapSync_' + cls.cls_name
-        cls.activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
+        cls.activation_key = os.environ.get(
+            'CAPSULE_AK', os.environ.get('RHEV_CAPSULE_AK'))
         cls.cv_name = 'Scenario_postcapSync_' + cls.cls_name
         cls.org_id = '1'
         cls.repo_url = 'http://{0}{1}'.format(

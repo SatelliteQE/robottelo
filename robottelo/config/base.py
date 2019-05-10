@@ -977,44 +977,16 @@ class UpgradeSettings(FeatureSettings):
     """Satellite upgrade settings definitions."""
     def __init__(self, *args, **kwargs):
         super(UpgradeSettings, self).__init__(*args, **kwargs)
-        self.rhev_cap_host = None
-        self.capsule_hostname = None
-        self.rhev_capsule_ak = None
-        self.capsule_ak = None
-        self.to_version = None
-        self.from_version = None
-        self.docker_vm = None
-        self.bridge = None
-        self.subnet = None
-        self.gateway = None
-        self.netmask = None
-        self.vm_domain = None
+        self.upgrade_data = None
 
     def read(self, reader):
         """Read and validate Satellite server settings."""
-        self.rhev_cap_host = reader.get('upgrade', 'rhev_cap_host')
-        self.capsule_hostname = reader.get('upgrade', 'capsule_hostname')
-        self.rhev_capsule_ak = reader.get('upgrade', 'rhev_capsule_ak')
-        self.capsule_ak = reader.get('upgrade', 'capsule_ak')
-        self.to_version = reader.get('upgrade', 'to_version')
-        self.from_version = reader.get('upgrade', 'from_version')
-        self.docker_vm = reader.get('upgrade', 'docker_vm')
-        self.bridge = reader.get('upgrade', 'bridge')
-        self.subnet = reader.get('upgrade', 'subnet')
-        self.gateway = reader.get('upgrade', 'gateway')
-        self.netmask = reader.get('upgrade', 'netmask')
-        self.vm_domain = reader.get('upgrade', 'vm_domain')
+        self.upgrade_data = reader.get('upgrade', 'upgrade_data')
 
     def validate(self):
         validation_errors = []
-        if self.rhev_cap_host and self.capsule_hostname:
-            validation_errors.append('Provide either rhev_cap_host or capsule_hostname, not both')
-        if self.rhev_capsule_ak and self.capsule_ak:
-            validation_errors.append('Provide either rhev_capsule_ak or capsule_ak, not both')
-        if not self.from_version:
-            validation_errors.append('The from_version is must, not provided')
-        if not self.to_version:
-            validation_errors.append('The to_version is must, not provided')
+        if self.upgrade_data is None:
+            validation_errors.append('[upgrade] data must be provided.')
         return validation_errors
 
 
