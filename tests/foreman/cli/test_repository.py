@@ -16,7 +16,7 @@
 :Upstream: No
 """
 from wait_for import wait_for
-
+from nailgun import entities
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -2673,7 +2673,6 @@ class FileRepositoryTestCase(CLITestCase):
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
-    @stubbed()
     @tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
@@ -2684,10 +2683,35 @@ class FileRepositoryTestCase(CLITestCase):
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
-        :expectedresults: uploaded file is available under File Repository
+        :Expectedresults: uploaded file is available under File Repository
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: Automated
         """
+        new_repo = make_repository({
+            'content-type': 'file',
+            'product-id': self.product['id'],
+            'url': CUSTOM_FILE_REPO,
+        })
+        ssh.upload_file(
+            local_file=get_data_file(RPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+        )
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+        })
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
+            result[0]['message'],
+        )
+        repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(repo['content-counts']['files'], '1')
+        filesearch = entities.File().search(
+            query={"search": "name={0} and repository={1}".format(
+                RPM_TO_UPLOAD, new_repo['name'])})
+        self.assertEqual(RPM_TO_UPLOAD, filesearch[0].name)
 
     @stubbed()
     @tier1
