@@ -313,10 +313,24 @@ ssh_key=
 # "/var/lib/libvirt/images/".
 # libvirt_image_dir=/var/lib/libvirt/images
 
-# Section for PostUpgrade Verification Tests
-# [upgrade]
-# Option for providing a preUpgrade yaml data file location on server
-# upgrade_data=
+# Section for Upgrade Scenarios Verification Tests
+[upgrade]
+# RHEVM capsule hostname
+# rhev_cap_host=
+# Custom capsule hostname
+# capsule_hostname=
+# RHEVM capsule activation key
+# rhev_capsule_ak=
+# Custom capsule activation key
+# capsule_ak=
+# The satellite end version
+# to_version=6.6
+# The satellite from version
+# from_version=
+# The docker host onto wich the chost containers will be spawned
+# docker_vm=
+# The upgrade VLAN vm_domain
+# vm_domain=
 
 # section for fake capsule setup.
 [fake_capsules]
