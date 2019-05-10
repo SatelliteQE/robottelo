@@ -567,46 +567,46 @@ class ErrataTestCase(UITestCase):
         :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
-                client.install_katello_ca()
-                client.register_contenthost(
-                    self.session_org.label,
-                    self.activation_key.name,
-                )
-                self.assertTrue(client.subscribed)
-                client.enable_repo(REPOS['rhst7']['id'])
-                client.install_katello_agent()
-                client.run(
-                    'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-                last_env_id = max(
-                    lce.id
-                    for lce
-                    in entities.LifecycleEnvironment(
-                        organization=self.session_org).search()
-                )
-                new_env = entities.LifecycleEnvironment(
-                    organization=self.session_org,
-                    prior=last_env_id,
-                ).create()
-                cvv = ContentView.info({
-                    'id': self.content_view.id})['versions'][-1]
-                ContentView.version_promote({
-                    'id': cvv['id'],
-                    'organization-id': self.session_org.id,
-                    'to-lifecycle-environment-id': new_env.id,
-                })
-                Host.update({
-                    'name': client.hostname,
-                    'lifecycle-environment-id': new_env.id,
-                    'organization-id': self.session_org.id,
-                })
-                with Session(self):
-                    self.assertIsNotNone(
-                        self.contenthost.errata_search(
-                            client.hostname,
-                            CUSTOM_REPO_ERRATA_ID,
-                            environment_name=self.env.name,
-                        )
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.session_org.label,
+                self.activation_key.name,
+            )
+            self.assertTrue(client.subscribed)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            client.run(
+                'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            last_env_id = max(
+                lce.id
+                for lce
+                in entities.LifecycleEnvironment(
+                    organization=self.session_org).search()
+            )
+            new_env = entities.LifecycleEnvironment(
+                organization=self.session_org,
+                prior=last_env_id,
+            ).create()
+            cvv = ContentView.info({
+                'id': self.content_view.id})['versions'][-1]
+            ContentView.version_promote({
+                'id': cvv['id'],
+                'organization-id': self.session_org.id,
+                'to-lifecycle-environment-id': new_env.id,
+            })
+            Host.update({
+                'name': client.hostname,
+                'lifecycle-environment-id': new_env.id,
+                'organization-id': self.session_org.id,
+            })
+            with Session(self):
+                self.assertIsNotNone(
+                    self.contenthost.errata_search(
+                        client.hostname,
+                        CUSTOM_REPO_ERRATA_ID,
+                        environment_name=self.env.name,
                     )
+                )
 
     @tier3
     def test_positive_chost_library(self):

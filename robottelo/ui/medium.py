@@ -35,6 +35,6 @@ class Medium(Base):
         self.search_and_click(old_name)
         self.assign_value(locators['medium.name'], new_name)
         if new_path:
-                self.assign_value(locators['medium.path'], new_path)
+            self.assign_value(locators['medium.path'], new_path)
         self._configure_medium(os_family)
         self.click(common_locators['submit'])

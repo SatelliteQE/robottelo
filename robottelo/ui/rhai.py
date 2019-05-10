@@ -111,8 +111,8 @@ class RHAIManage(RHAIBase):
     def _switch_service(self, enable):
         if (self.is_service_enabled and not enable or
                 not self.is_service_enabled and enable):
-                self.click(locators['insights.manage.service_status'])
-                self.click(locators['insights.manage.save_status'])
+            self.click(locators['insights.manage.service_status'])
+            self.click(locators['insights.manage.save_status'])
 
     def enable_service(self):
         self._switch_service(True)
