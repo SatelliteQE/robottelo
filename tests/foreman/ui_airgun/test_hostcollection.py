@@ -116,21 +116,19 @@ def vm_content_hosts(request, module_loc, module_repos_collection):
 
 
 @fixture
-def vm_content_hosts_module_stream(request, module_loc, module_repos_collection_module_stream):
-    clients = []
-    for _ in range(2):
-        client = VirtualMachine(distro=module_repos_collection_module_stream.distro)
-        clients.append(client)
-        request.addfinalizer(client.destroy)
-        client.create()
-        module_repos_collection_module_stream.setup_virtual_machine(
-            client,
-            install_katello_agent=False
-        )
-        add_remote_execution_ssh_key(client.ip_addr)
-        update_vm_host_location(client, module_loc.id)
-    update_smart_proxy_location(settings.server.hostname, module_loc.id)
-    return clients
+def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_stream):
+    distro = module_repos_collection_module_stream.distro
+    with VirtualMachine(distro=distro) as client1, VirtualMachine(distro=distro) as client2:
+        clients = [client1, client2]
+        for client in clients:
+            module_repos_collection_module_stream.setup_virtual_machine(
+                client,
+                install_katello_agent=False
+            )
+            add_remote_execution_ssh_key(client.ip_addr)
+            update_vm_host_location(client, module_loc.id)
+        update_smart_proxy_location(settings.server.hostname, module_loc.id)
+        yield clients
 
 
 @fixture
@@ -707,19 +705,19 @@ def test_negative_hosts_limit(session, module_org, module_loc):
 @tier3
 @upgrade
 def test_positive_install_module_stream(
-        session, module_org, vm_content_hosts_module_stream, vm_host_collection_module_stream):
+        session, vm_content_hosts_module_stream, vm_host_collection_module_stream):
     """Install a module-stream to hosts inside host collection remotely
 
     :id: e5d882e0-3520-4cb6-8629-ef4c18692868
 
     :Steps:
-        1. Running dnf upload profile to sync module streams from hosts to Satellite
-        2. Navigating to host_collection
-        3. Installing the module stream duck
-        4. Verifying that remote job get passed
-        5. Verifying that package get installed
+        1. Run dnf upload profile to sync module streams from hosts to Satellite
+        2. Navigate to host_collection
+        3. Install the module stream duck
+        4. Verify that remote job get passed
+        5. Verify that package get installed
 
-    :expectedresults: Module-Stream was successfully installed on all the hosts
+    :expectedresults: Module-Stream should get installed on all the hosts
         in host collection
 
     :CaseLevel: System
@@ -729,14 +727,12 @@ def test_positive_install_module_stream(
             'dnf -y upload-profile',
             vm_content_hosts_module_stream
         )
-        session.organization.select(org_name=module_org.name)
         result = session.hostcollection.manage_module_streams(
             vm_host_collection_module_stream.name,
             action_type="Install",
             module_name=FAKE_3_CUSTOM_PACKAGE_NAME,
             stream_version="0"
         )
-
         assert result['overview']['job_status'] == 'Success'
         assert result['overview']['job_status_progress'] == '100%'
         assert int(result['overview']['total_hosts']) == 2
@@ -746,16 +742,16 @@ def test_positive_install_module_stream(
 @tier3
 @upgrade
 def test_positive_install_modular_errata(
-        session, module_org, vm_content_hosts_module_stream, vm_host_collection_module_stream):
+        session, vm_content_hosts_module_stream, vm_host_collection_module_stream):
     """Install Modular Errata generated from module streams.
 
     :id: 8d6fb447-af86-4084-a147-7910f0cecdef
 
     :Steps:
-        1. Generated errata by installing and downgrading the Module Stream Kangaroo
-        2. Running dnf upload-profile
-        3. Installed the modular errata by 'remote execution'
-        4. Verifying that latest package get installed
+        1. Generate modular errata by installing older version of module stream
+        2. Run dnf upload-profile
+        3. Install the modular errata by 'remote execution'
+        4. Verify that latest package get installed
 
     :expectedresults: Modular Errata should get installed on all hosts in host
         collection.
@@ -778,7 +774,6 @@ def test_positive_install_modular_errata(
             'dnf -y upload-profile',
             vm_content_hosts_module_stream
         )
-        session.organization.select(org_name=module_org.name)
         result = session.hostcollection.install_errata(
             vm_host_collection_module_stream.name,
             FAKE_0_MODULAR_ERRATA_ID,
