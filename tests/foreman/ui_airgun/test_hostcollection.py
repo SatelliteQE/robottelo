@@ -763,12 +763,15 @@ def test_positive_install_modular_errata(
     :CaseLevel: System
     """
     with session:
-        _run_remote_command_on_content_hosts(
-            'dnf -y module install {}'.format(FAKE_4_CUSTOM_PACKAGE_NAME),
-            vm_content_hosts_module_stream
+        stream = "0"
+        version = "20180704111719"
+        _module_install_command = 'dnf -y module install {}:{}:{}'.format(
+            FAKE_4_CUSTOM_PACKAGE_NAME,
+            stream,
+            version
         )
         _run_remote_command_on_content_hosts(
-            'dnf -y downgrade {}'.format(FAKE_4_CUSTOM_PACKAGE_NAME),
+            _module_install_command,
             vm_content_hosts_module_stream
         )
         _run_remote_command_on_content_hosts(
