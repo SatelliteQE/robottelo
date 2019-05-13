@@ -715,7 +715,7 @@ def test_positive_install_module_stream(
     :Steps:
         1. Running dnf upload profile to sync module streams from hosts to Satellite
         2. Navigating to host_collection
-        3. Installing the module stream walrus
+        3. Installing the module stream duck
         4. Verifying that remote job get passed
         5. Verifying that package get installed
 
@@ -724,7 +724,6 @@ def test_positive_install_module_stream(
 
     :CaseLevel: System
     """
-    stream_version = "0"
     with session:
         _run_remote_command_on_content_hosts(
             'dnf -y upload-profile',
@@ -735,7 +734,7 @@ def test_positive_install_module_stream(
             vm_host_collection_module_stream.name,
             action_type="Install",
             module_name=FAKE_3_CUSTOM_PACKAGE_NAME,
-            stream_version=stream_version
+            stream_version="0"
         )
 
         assert result['overview']['job_status'] == 'Success'
@@ -784,4 +783,5 @@ def test_positive_install_modular_errata(
         )
         assert result['job_status'] == 'Success'
         assert result['job_status_progress'] == '100%'
+        assert int(result['overview']['total_hosts']) == 2
         assert _is_package_installed(vm_content_hosts_module_stream, FAKE_4_CUSTOM_PACKAGE)
