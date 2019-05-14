@@ -1736,10 +1736,6 @@ BOOKMARK_ENTITIES = [
         'name': 'ContainerImageTag', 'controller': 'katello_docker_tags',
         'skip_for_ui': True
     },
-    {
-        'name': 'Registry', 'controller': 'docker_registries',
-        'skip_for_ui': ('redmine', 13436)
-    },
     {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host},
     {
         'name': 'ContentHost', 'controller': 'hosts',
@@ -1788,6 +1784,13 @@ BOOKMARK_ENTITIES = [
     {
         'name': 'SmartVariable', 'controller': 'lookup_keys',
         'setup': entities.SmartVariable, 'skip_for_ui': True
+    },
+    {
+        'name': 'Roles', 'controller': 'ansible_roles',
+        'setup': entities.Role
+    },
+    {
+        'name': 'Variables', 'controller': 'ansible_variables',
     },
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
