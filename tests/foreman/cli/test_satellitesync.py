@@ -402,6 +402,82 @@ class ContentViewSync(CLITestCase):
 
     @run_only_on('sat')
     @tier3
+    def test_positive_export_import_filtered_cvv(self):
+        """CV Version with filtered contents only can be exported and imported.
+
+        :id: 2992e0ae-173d-4589-817d-1a11455dfc43
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product.
+            4. Create a filter and filter-rule.
+            5. Publish the above filtered content-view.
+            6. Export Filtered CV version contents to a directory
+            7. Import those contents from some other org/satellite.
+
+        :expectedresults:
+
+            1. Filtered CV version custom contents has been exported to directory
+            2. Filtered exported custom contents has been imported in org/satellite
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: ContentViews
+
+        :CaseImportance: High
+
+        :CaseLevel: System
+        """
+        exporting_cv_name = gen_string('alpha')
+        exporting_cv, exporting_cvv = ContentViewSync._create_cv(
+            exporting_cv_name, self.exporting_repo, self.exporting_org, False)
+        filter_name = gen_string('alphanumeric')
+        ContentView.filter.create({
+            'name': filter_name,
+            'content-view-id': exporting_cv['id'],
+            'inclusion': 'yes',
+            'type': 'rpm'
+        })
+        ContentView.filter.rule.create({
+            'name': 'cat',
+            'content-view-filter': filter_name,
+            'content-view-id': exporting_cv['id'],
+        })
+        ContentView.publish({
+            'id': exporting_cv['id'],
+            'organization-id': self.exporting_org['id'],
+
+        })
+        exporting_cv = ContentView.info({u'id': exporting_cv['id']})
+        exporting_cvv_id = exporting_cv['versions'][0]['id']
+        exporting_cvv_version = exporting_cv['versions'][0]['version']
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': exporting_cvv_id
+        })
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, exporting_cv_name, exporting_cvv_version)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
+        self.assertTrue(len(exported_packages) == 1)
+        self.set_importing_org(
+            self.exporting_prod_name, self.exporting_repo_name, exporting_cv_name)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': self.importing_org['id']
+        })
+        importing_cvv = ContentView.info({
+            u'id': self.importing_cv['id']
+        })['versions']
+        self.assertTrue(len(importing_cvv) >= 1)
+        imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
+        self.assertTrue(len(imported_packages) == 1)
+
+    @run_only_on('sat')
+    @tier3
     def test_positive_export_import_cv(self):
         """Export CV version contents in directory and Import them.
 
@@ -420,14 +496,21 @@ class ContentViewSync(CLITestCase):
             1. CV version custom contents has been exported to directory
             2. All The exported custom contents has been imported in org/satellite
 
+        :CaseAutomation: Automated
+
+        :CaseComponent: ContentViews
+
+        :CaseImportance: High
+
         :CaseLevel: System
         """
         ContentView.version_export({
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
@@ -468,18 +551,25 @@ class ContentViewSync(CLITestCase):
 
         :bz: 1655239
 
+        :CaseAutomation: Automated
+
+        :CaseComponent: ContentViews
+
+        :CaseImportance: High
+
         :CaseLevel: System
         """
         rhel_repo = ContentViewSync._enable_rhel_content(self.exporting_org)
         rhel_cv_name = gen_string('alpha')
-        _, exporting_cvv_id = ContentViewSync._create_cv(
+        rhel_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhel_cv_name, rhel_repo, self.exporting_org)
         ContentView.version_export({
             'export-dir': '{}'.format(self.export_base),
             'id': exporting_cvv_id
         })
+        exporting_cvv_version = rhel_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, rhel_cv_name, exporting_cvv_id)
+            self.export_base, rhel_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
