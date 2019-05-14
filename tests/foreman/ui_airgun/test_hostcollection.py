@@ -781,5 +781,5 @@ def test_positive_install_modular_errata(
         )
         assert result['job_status'] == 'Success'
         assert result['job_status_progress'] == '100%'
-        assert int(result['overview']['total_hosts']) == 2
+        assert int(result['total_hosts']) == 2
         assert _is_package_installed(vm_content_hosts_module_stream, FAKE_4_CUSTOM_PACKAGE)
