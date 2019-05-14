@@ -19,7 +19,7 @@ import time
 from nailgun import entities
 from pytest import raises
 
-from robottelo.api.utils import promote, update_vm_host_location, update_smart_proxy_location
+from robottelo.api.utils import promote, update_vm_host_location
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_2,
@@ -127,7 +127,10 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
             )
             add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)
-        update_smart_proxy_location(settings.server.hostname, module_loc.id)
+        smart_proxy = entities.SmartProxy().search(
+            query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        smart_proxy.location = [entities.Location(id=module_loc.id)]
+        smart_proxy.update(['location'])
         yield clients
 
 

@@ -814,17 +814,6 @@ def update_vm_host_location(vm_client, location_id):
     host.update(['location'])
 
 
-def update_smart_proxy_location(smart_proxy, location_id):
-    """Update smart proxy location.
-
-    :param smart_proxy: A smart proxy instance name.
-    :param location_id: The location id to update the vm_client host with.
-    """
-    smart_proxy = entities.SmartProxy().search(query={'search': 'name={0}'.format(smart_proxy)})[0]
-    smart_proxy.location = [entities.Location(id=location_id)]
-    smart_proxy.update(['location'])
-
-
 def check_create_os_with_title(os_title):
     """Check if the OS is present, if not create the required OS
 
