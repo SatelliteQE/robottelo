@@ -27,6 +27,7 @@ from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -111,10 +112,15 @@ class OperatingSystemTestCase(APITestCase):
         :expectedresults: Operating system entity is created and has proper OS
             family assigned
 
+        :CaseAutomation: Automated
+
         :CaseImportance: Critical
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
+                if bz_bug_is_open(1709683):
+                    if os_family == 'Debian':
+                        continue
                 os = entities.OperatingSystem(family=os_family).create()
                 self.assertEqual(os.family, os_family)
 
