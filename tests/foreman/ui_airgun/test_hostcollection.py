@@ -22,13 +22,20 @@ from pytest import raises
 from robottelo.api.utils import promote, update_vm_host_location
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_MODULE_STREAM_REPO_2,
     DISTRO_DEFAULT,
+    DISTRO_RHEL8,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_3_CUSTOM_PACKAGE,
+    FAKE_3_CUSTOM_PACKAGE_NAME,
+    FAKE_4_CUSTOM_PACKAGE,
+    FAKE_4_CUSTOM_PACKAGE_NAME,
+    FAKE_0_MODULAR_ERRATA_ID,
     FAKE_1_YUM_REPO,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
@@ -36,6 +43,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2, tier3, upgrade
+from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import (
     YumRepository,
     RepositoryCollection,
@@ -46,7 +54,14 @@ from robottelo.vm import VirtualMachine
 
 @fixture(scope='module')
 def module_org():
-    return entities.Organization().create()
+    org = entities.Organization().create()
+    # adding remote_execution_connect_by_ip=Yes at org level
+    entities.Parameter(
+            name='remote_execution_connect_by_ip',
+            value='Yes',
+            organization=org.id
+        ).create()
+    return org
 
 
 @fixture(scope='module')
@@ -74,6 +89,19 @@ def module_repos_collection(module_org, module_lce):
     return repos_collection
 
 
+@fixture(scope='module')
+def module_repos_collection_module_stream(module_org, module_lce):
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL8,
+        repositories=[
+            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)
+        ]
+    )
+    repos_collection.setup_content(
+        module_org.id, module_lce.id, upload_manifest=True)
+    return repos_collection
+
+
 @fixture
 def vm_content_hosts(request, module_loc, module_repos_collection):
     clients = []
@@ -88,6 +116,25 @@ def vm_content_hosts(request, module_loc, module_repos_collection):
 
 
 @fixture
+def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_stream):
+    distro = module_repos_collection_module_stream.distro
+    with VirtualMachine(distro=distro) as client1, VirtualMachine(distro=distro) as client2:
+        clients = [client1, client2]
+        for client in clients:
+            module_repos_collection_module_stream.setup_virtual_machine(
+                client,
+                install_katello_agent=False
+            )
+            add_remote_execution_ssh_key(client.ip_addr)
+            update_vm_host_location(client, module_loc.id)
+        smart_proxy = entities.SmartProxy().search(
+            query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        smart_proxy.location = [entities.Location(id=module_loc.id)]
+        smart_proxy.update(['location'])
+        yield clients
+
+
+@fixture
 def vm_host_collection(module_org, vm_content_hosts):
     host_ids = [
         entities.Host().search(query={
@@ -99,6 +146,27 @@ def vm_host_collection(module_org, vm_content_hosts):
         organization=module_org,
     ).create()
     return host_collection
+
+
+@fixture
+def vm_host_collection_module_stream(module_org, vm_content_hosts_module_stream):
+    host_ids = [
+        entities.Host().search(query={
+            'search': 'name={0}'.format(host.hostname)})[0].id
+        for host in vm_content_hosts_module_stream
+    ]
+    host_collection = entities.HostCollection(
+        host=host_ids,
+        organization=module_org,
+    ).create()
+    return host_collection
+
+
+def _run_remote_command_on_content_hosts(command, vm_clients):
+    """run remote command on content hosts"""
+    for vm_client in vm_clients:
+        result = vm_client.run(command)
+        assert result.return_code == 0
 
 
 def _is_package_installed(
@@ -635,3 +703,86 @@ def test_negative_hosts_limit(session, module_org, module_loc):
         assert "cannot have more than 1 host(s) associated with host collection '{}'".format(
             hc_name
         ) in str(context.value)
+
+
+@tier3
+@upgrade
+def test_positive_install_module_stream(
+        session, vm_content_hosts_module_stream, vm_host_collection_module_stream):
+    """Install a module-stream to hosts inside host collection remotely
+
+    :id: e5d882e0-3520-4cb6-8629-ef4c18692868
+
+    :Steps:
+        1. Run dnf upload profile to sync module streams from hosts to Satellite
+        2. Navigate to host_collection
+        3. Install the module stream duck
+        4. Verify that remote job get passed
+        5. Verify that package get installed
+
+    :expectedresults: Module-Stream should get installed on all the hosts
+        in host collection
+
+    :CaseLevel: System
+    """
+    with session:
+        _run_remote_command_on_content_hosts(
+            'dnf -y upload-profile',
+            vm_content_hosts_module_stream
+        )
+        result = session.hostcollection.manage_module_streams(
+            vm_host_collection_module_stream.name,
+            action_type="Install",
+            module_name=FAKE_3_CUSTOM_PACKAGE_NAME,
+            stream_version="0"
+        )
+        assert result['overview']['job_status'] == 'Success'
+        assert result['overview']['job_status_progress'] == '100%'
+        assert int(result['overview']['total_hosts']) == 2
+        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_3_CUSTOM_PACKAGE)
+
+
+@tier3
+@upgrade
+def test_positive_install_modular_errata(
+        session, vm_content_hosts_module_stream, vm_host_collection_module_stream):
+    """Install Modular Errata generated from module streams.
+
+    :id: 8d6fb447-af86-4084-a147-7910f0cecdef
+
+    :Steps:
+        1. Generate modular errata by installing older version of module stream
+        2. Run dnf upload-profile
+        3. Install the modular errata by 'remote execution'
+        4. Verify that latest package get installed
+
+    :expectedresults: Modular Errata should get installed on all hosts in host
+        collection.
+
+    :CaseLevel: System
+    """
+    with session:
+        stream = "0"
+        version = "20180704111719"
+        _module_install_command = 'dnf -y module install {}:{}:{}'.format(
+            FAKE_4_CUSTOM_PACKAGE_NAME,
+            stream,
+            version
+        )
+        _run_remote_command_on_content_hosts(
+            _module_install_command,
+            vm_content_hosts_module_stream
+        )
+        _run_remote_command_on_content_hosts(
+            'dnf -y upload-profile',
+            vm_content_hosts_module_stream
+        )
+        result = session.hostcollection.install_errata(
+            vm_host_collection_module_stream.name,
+            FAKE_0_MODULAR_ERRATA_ID,
+            install_via='via remote execution'
+        )
+        assert result['job_status'] == 'Success'
+        assert result['job_status_progress'] == '100%'
+        assert int(result['total_hosts']) == 2
+        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_4_CUSTOM_PACKAGE)
