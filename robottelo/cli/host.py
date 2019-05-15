@@ -11,29 +11,36 @@ Parameters::
 
 Subcommands::
 
-    create                        Create a host
-    delete                        Delete a host
-    delete-parameter              Delete parameter for a host.
-    enc-dump                      Dump host's ENC YAML.
-    errata                        Manage errata on your hosts
-    facts                         List all fact values
-    info                          Show a host
-    interface                     View and manage host's network interfaces
-    list                          List all hosts
-    package                       Manage packages on your hosts
-    package-group                 Manage package-groups on your hosts
-    puppet-classes                List all Puppet classes
-    puppetrun                     Force a Puppet agent run on the host
-    reboot                        Reboot a host
-    reports                       List all reports
-    sc-params                     List all smart class parameters
-    set-parameter                 Create or update parameter for a host.
-    smart-variables               List all smart variables
-    start                         Power a host on
-    status                        Get status of host
-    stop                          Power a host off
-    subscription                  Manage subscription information on your hosts
-    update                        Update a host
+     ansible-roles                 Manage Ansible roles on a host
+     boot                          Boot host from specified device
+     config-reports                List all reports
+     create                        Create a host
+     delete                        Delete a host
+     delete-parameter              Delete parameter for a host
+     disassociate                  Disassociate a host
+     enc-dump                      Dump host's ENC YAML
+     errata                        Manage errata on your hosts
+     facts                         List all fact values
+     info                          Show a host
+     interface                     View and manage host's network interfaces
+     list                          List all hosts
+     package                       Manage packages on your hosts
+     package-group                 Manage package-groups on your hosts
+     puppet-classes                List all Puppet classes
+     puppetrun                     Force a Puppet agent run on the host
+     reboot                        Reboot a host
+     rebuild-config                Rebuild orchestration related configurations for host
+     reports                       List all reports
+     reset                         Reset a host
+     sc-params                     List all smart class parameters
+     set-parameter                 Create or append a parameter for a host
+     smart-variables               List all smart variables
+     start                         Power a host on
+     status                        Get configuration status of host
+     stop                          Power a host off
+     subscription                  Manage subscription information on your hosts
+     update                        Update a host
+
 """
 
 from robottelo.cli.base import Base
@@ -43,6 +50,13 @@ class Host(Base):
     """Manipulates Foreman's hosts."""
 
     command_base = 'host'
+
+    @classmethod
+    def ansible_roles_play(cls, options):
+        """Plays the associated ansible-roles"""
+        cls.command_sub = 'ansible-roles play'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def enc_dump(cls, options):
