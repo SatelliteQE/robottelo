@@ -830,6 +830,8 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: Repository is created and synced
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         for url in FAKE_1_YUM_REPO, FAKE_3_YUM_REPO, FAKE_4_YUM_REPO:
             with self.subTest(url):
@@ -855,6 +857,8 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: Repository is created and synced
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'file',
@@ -1117,11 +1121,9 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Repository has updated non-zero packages count
 
-        :BZ: 1459845, 1459874
+        :BZ: 1459845, 1459874, 1318004
 
         :CaseLevel: Integration
-
-        :BZ: 1318004
         """
         # Create repository and synchronize it
         repo = self._make_repository({
@@ -1156,11 +1158,9 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Repository has updated non-zero puppet modules count
 
-        :BZ: 1459845
+        :BZ: 1459845, 1318004
 
         :CaseLevel: Integration
-
-        :BZ: 1318004
         """
         # Create repository and synchronize it
         repo = self._make_repository({
@@ -1942,6 +1942,8 @@ class RepositoryTestCase(CLITestCase):
          even duplicate repositories.
 
         :CaseAutomation: automated
+
+        :CaseImportance: Critical
         """
         org = make_org()
         # Create a product
@@ -2686,6 +2688,8 @@ class FileRepositoryTestCase(CLITestCase):
         :Expectedresults: uploaded file is available under File Repository
 
         :CaseAutomation: Automated
+
+        :CaseImportance: Critical
         """
         new_repo = make_repository({
             'content-type': 'file',
@@ -2826,6 +2830,7 @@ class FileRepositoryTestCase(CLITestCase):
 
         :expectedresults: entire directory is synced
 
+        :CaseImportance: Critical
         """
         # Making Setup For Creating Local Directory using Pulp Manifest
         ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
