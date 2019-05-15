@@ -85,6 +85,7 @@ from robottelo.decorators import (
     tier2,
     tier3,
     upgrade,
+    skip_if_bug_open,
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import (
@@ -3011,6 +3012,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
         assert not session.contentview.search(cv_name)
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_custom_ostree_end_to_end(session, module_org):
@@ -3061,6 +3063,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_rh_ostree_end_to_end(session):

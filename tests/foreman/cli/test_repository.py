@@ -2157,6 +2157,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
+    @skip_if_bug_open('bugzilla', 1625783)
     def test_positive_synchronize_ostree_repo(self):
         """Synchronize ostree repo
 
