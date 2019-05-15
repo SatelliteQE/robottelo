@@ -1194,9 +1194,10 @@ def make_scap_policy(options=None):
     # Assigning default values for attributes
     # SCAP ID and SCAP profile ID is a required field.
     if not options and not options.get('scap-content-id') and not options.get(
-            'scap-content-profile-id') and not options.get('period'):
+            'scap-content-profile-id') and not options.get('period') and not options.get(
+            'deploy-by'):
         raise CLIFactoryError('Please provide a valid SCAP ID or'
-                              ' SCAP Profile ID or Period')
+                              ' SCAP Profile ID or Period or Deploy by option')
     args = {
         u'description': None,
         u'scap-content-id': None,
@@ -1209,7 +1210,7 @@ def make_scap_policy(options=None):
         u'hostgroup-ids': None,
         u'hostgroups': None,
         u'locations': None,
-        u'organizations:': None,
+        u'organizations': None,
         u'tailoring-file': None,
         u'tailoring-file-id': None,
         u'tailoring-file-profile-id': None,
