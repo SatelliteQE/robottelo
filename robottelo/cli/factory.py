@@ -1117,6 +1117,9 @@ def make_scap_policy(options=None):
                                                                day of month
                                                                (only if period
                                                                == “monthly”)
+         --deploy-by DEPLOY_BY                                 How the policy should be deployed
+                                                               Possible value(s): 'puppet',
+                                                               'ansible', 'manual'
          --description DESCRIPTION                             Policy
                                                                description
          --hostgroup-ids HOSTGROUP_IDS                         Apply policy to
@@ -1198,6 +1201,7 @@ def make_scap_policy(options=None):
         u'description': None,
         u'scap-content-id': None,
         u'scap-content-profile-id': None,
+        u'deploy-by': None,
         u'period': None,
         u'weekday': None,
         u'day-of-month': None,
