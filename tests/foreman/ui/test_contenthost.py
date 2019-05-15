@@ -990,8 +990,7 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
 
     :id: d8ccf04f-a4eb-4c11-8376-f70857f4ef54
 
-    :expectedresults: Syspurpose attributes are empty,
-    and syspurpose status is set as 'Not specified'
+    :expectedresults: Syspurpose attrs are empty, and syspurpose status is set as 'Not specified'
 
     :CaseLevel: System
 
@@ -1011,8 +1010,8 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
 @tier3
 def test_set_syspurpose_attributes_cli(session, vm_module_streams):
     """
-    Test that UI shows syspurpose attributes set by the syspurpose
-    tool on a registered host.
+    Test that UI shows syspurpose attributes set by the syspurpose tool on a registered host.
+
     :id: d898a3b0-2941-4fed-a725-2b8e911bba77
 
     :expectedresults: Syspurpose attributes set for the content host
@@ -1038,7 +1037,7 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
 def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
     """
     Test that previously set syspurpose attributes are correctly set
-    as empty after using 'syspurpose unset-*' on the content host.
+    as empty after using 'syspurpose unset-...' on the content host.
 
     :id: f83ba174-20ab-4ef2-a9e2-d913d20a0b2d
 
@@ -1097,9 +1096,10 @@ def test_syspurpose_mismatched(session, vm_module_streams):
     Test that syspurpose status is 'Mismatched' if a syspurpose attribute
     is changed to a different value than the one contained in the currently
     attached subscription.
+
     :id: de71cfd7-eeb8-4a4c-b448-8c5aa5af7f06
 
-    :expectedresults:
+    :expectedresults: Syspurpose status is 'Mismatched'
 
     :CaseLevel: System
 
