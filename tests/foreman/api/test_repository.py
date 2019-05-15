@@ -1072,11 +1072,9 @@ class RepositoryTestCase(APITestCase):
 
         :expectedresults: Repository has updated non-zero packages count
 
-        :BZ: 1459845
+        :BZ: 1459845, 1318004
 
         :CaseLevel: Integration
-
-        :BZ: 1318004
         """
         # Create repository and synchronize it
         repo = entities.Repository(
