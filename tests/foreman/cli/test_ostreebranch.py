@@ -34,12 +34,12 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 
 
+@skip_if_bug_open('bugzilla', 1625783)
+@skip_if_os('RHEL6')
 class OstreeBranchTestCase(CLITestCase):
     """Test class for Ostree Branch CLI. """
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1439835)
-    @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization, product and ostree repo."""
         super(OstreeBranchTestCase, cls).setUpClass()

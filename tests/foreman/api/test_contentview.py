@@ -1733,6 +1733,7 @@ class OstreeContentViewTestCase(APITestCase):
             len(content_view.read().version[0].read().environment), 2)
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 class ContentViewRedHatOstreeContent(APITestCase):
     """Tests for publishing and promoting cv with RH ostree contents."""
 

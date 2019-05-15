@@ -36,6 +36,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier2,
     upgrade,
+    skip_if_bug_open,
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.products import (
@@ -121,6 +122,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
         assert all([result == 'Syncing Complete.' for result in results])
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 @skip_if_os('RHEL6')
 @tier2
 @upgrade
@@ -147,6 +149,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 
 
 @run_in_one_thread
+@skip_if_bug_open('bugzilla', 1625783)
 @skip_if_os('RHEL6')
 @skip_if_not_set('fake_manifest')
 @tier2

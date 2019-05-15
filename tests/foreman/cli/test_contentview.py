@@ -4796,11 +4796,11 @@ class ContentViewTestCase(CLITestCase):
         )
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 class OstreeContentViewTestCase(CLITestCase):
     """Tests for custom ostree contents in content views."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1439835)
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization, product, and repo with all content-types."""
@@ -4992,6 +4992,7 @@ class OstreeContentViewTestCase(CLITestCase):
         self.assertIn(environment, cv['lifecycle-environments'])
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 @run_in_one_thread
 class ContentViewRedHatOstreeContent(CLITestCase):
     """Tests for publishing and promoting cv with RH ostree contents."""
