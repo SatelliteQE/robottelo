@@ -1596,6 +1596,7 @@ class ContentViewRolesTestCase(APITestCase):
             entities.ContentView(id=content_view.id).read()
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 class OstreeContentViewTestCase(APITestCase):
     """Tests for ostree contents in content views."""
 
@@ -1612,7 +1613,7 @@ class OstreeContentViewTestCase(APITestCase):
             url=FEDORA27_OSTREE_REPO,
             unprotected=False
         ).create()
-        cls.ostree_repo.sync
+        cls.ostree_repo.sync()
         # Create new yum repository
         cls.yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
