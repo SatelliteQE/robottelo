@@ -1007,6 +1007,9 @@ class SmartClassParametersTestCase(APITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
+        print("#####")
+        print(sc_param)
+        print(self.sc_params_list)
         sc_param.override = True
         sc_param.override_value_order = 'is_virtual'
         sc_param.update(['override', 'override_value_order'])
