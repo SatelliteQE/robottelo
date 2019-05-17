@@ -1178,6 +1178,7 @@ class ContentViewTestCase(CLITestCase):
 
     # Content Views: Adding products/repos
 
+    @skip_if_not_set('fake_manifest')
     @run_in_one_thread
     @run_only_on('sat')
     @tier2
