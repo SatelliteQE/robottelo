@@ -183,6 +183,7 @@ class SmartClassParametersTestCase(CLITestCase):
         )
 
     @tier2
+    @upgrade
     def test_positive_list_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 

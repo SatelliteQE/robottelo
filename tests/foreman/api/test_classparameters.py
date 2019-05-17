@@ -34,7 +34,6 @@ from robottelo.decorators import (
     tier2,
     upgrade
 )
-from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 
@@ -159,111 +158,6 @@ class SmartClassParametersTestCase(APITestCase):
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
-
-    @tier2
-    @upgrade
-    def test_positive_list_parameters_by_host_id(self):
-        """List all the parameters included in specific Host by its id.
-
-        :id: a9e551f9-261b-40e6-b7f6-35621fc46285
-
-        :expectedresults: Parameters listed for specific Host.
-
-        :CaseLevel: Integration
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.update(['override'])
-        self.assertEqual(sc_param.read().override, True)
-        host = entities.Host(
-            organization=self.org,
-            environment=self.env
-        ).create()
-        host.add_puppetclass(
-            data={'puppetclass_id': self.puppet_class.id})
-        result = host.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
-
-    @tier2
-    def test_positive_list_parameters_by_hostgroup_id(self):
-        """List all the parameters included in specific HostGroup by id.
-
-        :id: 88ceea89-b8b5-4ca2-9d59-3b2614c7f9a7
-
-        :expectedresults: Parameters listed for specific HostGroup.
-
-        :CaseLevel: Integration
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.update(['override'])
-        hostgroup = entities.HostGroup(environment=self.env).create()
-        hostgroup.add_puppetclass(
-            data={'puppetclass_id': self.puppet_class.id})
-        result = hostgroup.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
-
-    @tier1
-    def test_positive_list_parameters_by_puppetclass_id(self):
-        """List all the parameters for specific puppet class by id.
-
-        :id: c0378f1e-c215-4f85-892c-d21a8b5a7060
-
-        :expectedresults: Parameters listed for specific Puppet class.
-
-        :CaseImportance: Critical
-        """
-        result = self.puppet_class.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
-
-    @tier1
-    def test_positive_list_with_non_admin_user(self):
-        """List all the parameters for specific puppet class by id.
-
-        :id: e8b140c0-5c6a-404f-870c-8ebb128830ef
-
-        :expectedresults: Parameters listed for specific Puppet class.
-
-        :BZ: 1391556
-
-        :CaseImportance: Critical
-        """
-        # Create a new user and give them minimal permissions.
-        login = gen_string('alpha')
-        password = gen_string('alpha')
-        user = entities.User(
-            login=login,
-            password=password,
-            admin=False,
-        ).create()
-        role = entities.Role().create()
-        for res_type in ['Puppetclass', 'PuppetclassLookupKey']:
-            permission = entities.Permission(resource_type=res_type).search()
-            entities.Filter(
-                permission=permission,
-                role=role
-            ).create()
-        user.role = [role]
-        user.update(['role'])
-        cfg = get_nailgun_config()
-        cfg.auth = (login, password)
-        # assert that the user is not an admin one and cannot read the current
-        # role
-        with self.assertRaises(HTTPError) as context:
-            entities.Role(cfg, id=role.id).read()
-        self.assertIn(
-            '403 Client Error: Forbidden', str(context.exception))
-        result = entities.PuppetClass(
-            cfg, id=self.puppet_class.id).list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
 
     @tier1
     def test_positive_import_twice_list_parameters_by_puppetclass_id(self):
@@ -1007,9 +901,6 @@ class SmartClassParametersTestCase(APITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
-        print("#####")
-        print(sc_param)
-        print(self.sc_params_list)
         sc_param.override = True
         sc_param.override_value_order = 'is_virtual'
         sc_param.update(['override', 'override_value_order'])
