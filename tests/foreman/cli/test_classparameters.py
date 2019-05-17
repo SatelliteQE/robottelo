@@ -16,9 +16,6 @@
 :Upstream: No
 """
 
-import json
-from random import choice
-
 from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class
@@ -38,7 +35,7 @@ from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import filtered_datapoint, gen_integer, gen_string
+from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
     stubbed,
@@ -47,80 +44,6 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import CLITestCase
-
-
-@filtered_datapoint
-def valid_sc_parameters_data():
-    """Returns a list of valid smart class parameter types and values"""
-    return [
-        {
-            u'sc_type': 'string',
-            u'value': gen_string('utf8'),
-        },
-        {
-            u'sc_type': 'boolean',
-            u'value': choice(['0', '1']),
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': str(gen_integer()),
-        },
-        {
-            u'sc_type': 'real',
-            u'value': -123.0,
-        },
-        {
-            u'sc_type': 'array',
-            u'value': "['ZvqqjmtkeW', 'SGnfs123yekPk']",
-        },
-        {
-            u'sc_type': 'hash',
-            u'value': {'a': str(gen_string('alpha'))},
-        },
-        {
-            u'sc_type': 'yaml',
-            u'value': 'name=>XYZ',
-        },
-        {
-            u'sc_type': 'json',
-            u'value': '{\\"name\\": \\"XYZ\\"}',
-        },
-    ]
-
-
-@filtered_datapoint
-def invalid_sc_parameters_data():
-    """Returns a list of invalid smart class parameter types and values"""
-    return [
-        {
-            u'sc_type': 'boolean',
-            u'value': gen_string('alphanumeric'),
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': gen_string('utf8'),
-        },
-        {
-            u'sc_type': 'real',
-            u'value': gen_string('alpha'),
-        },
-        {
-            u'sc_type': 'array',
-            u'value': '0',
-        },
-        {
-            u'sc_type': 'hash',
-            u'value': 'a:test',
-        },
-        {
-            u'sc_type': 'yaml',
-            u'value': '{a:test}',
-        },
-        {
-            u'sc_type': 'json',
-            u'value': gen_string('alpha'),
-        },
-    ]
 
 
 @run_in_one_thread
@@ -554,95 +477,6 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['use-puppet-default'], True)
-
-    @tier1
-    @upgrade
-    def test_positive_update_parameter_type(self):
-        """Positive Parameter Update for parameter types - Valid Value.
-
-        Types - string, boolean, integer, real, array, hash, yaml, json
-
-        :id: 19567098-2087-4633-bdb6-1450a233285c
-
-        :steps:
-
-            1.  Override the parameter.
-            2.  Update the Key Type.
-            3.  Provide a 'valid' default Value.
-            4.  Submit the changes.
-
-        :expectedresults: Parameter Updated with a new type successfully.
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        for data in valid_sc_parameters_data():
-            with self.subTest(data):
-                SmartClassParameter.update({
-                    'parameter-type': data['sc_type'],
-                    'default-value': data['value'],
-                    'id': sc_param_id,
-                    'override': 1,
-                })
-                sc_param = SmartClassParameter.info({
-                    'puppet-class': self.puppet_class['name'],
-                    'id': sc_param_id,
-                })
-                if data['sc_type'] == 'boolean':
-                    self.assertEqual(
-                        sc_param['default-value'],
-                        True if data['value'] == '1' else False
-                    )
-                elif data['sc_type'] == 'array':
-                    string_list = [
-                        str(element) for element in sc_param['default-value']]
-                    self.assertEqual(str(string_list), data['value'])
-                elif data['sc_type'] == 'json':
-                    self.assertEqual(
-                        sc_param['default-value'],
-                        json.loads(data['value'].replace("\\", ""))
-                    )
-                else:
-                    self.assertEqual(sc_param['default-value'], data['value'])
-
-    @tier1
-    def test_negative_update_parameter_type(self):
-        """Negative Parameter Update for parameter types - Invalid Value.
-
-        Types - string, boolean, integer, real, array, hash, yaml, json
-
-        :id: 5c2c859a-8164-4733-8b41-d37f333656c7
-
-        :steps:
-
-            1.  Override the parameter.
-            2.  Update the Key Type.
-            3.  Enter an 'Invalid' default Value.
-            4.  Submit the changes.
-
-        :expectedresults:
-
-            1.  Parameter not updated with string type for invalid value.
-            2.  Error raised for invalid default value.
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        for test_data in invalid_sc_parameters_data():
-            with self.subTest(test_data):
-                with self.assertRaises(CLIReturnCodeError):
-                    SmartClassParameter.update({
-                        'parameter-type': test_data['sc_type'],
-                        'default-value': test_data['value'],
-                        'id': sc_param_id,
-                        'override': 1,
-                    })
-                sc_param = SmartClassParameter.info({
-                    'puppet-class': self.puppet_class['name'],
-                    'id': sc_param_id,
-                })
-                self.assertNotEqual(
-                    sc_param['default-value'], test_data['value'])
 
     @tier1
     @upgrade
