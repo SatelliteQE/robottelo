@@ -20,6 +20,7 @@ from wait_for import wait_for
 from nailgun import entities
 
 from robottelo.api.utils import check_create_os_with_title
+from robottelo.constants import DEFAULT_LOC_ID
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
@@ -326,7 +327,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org,
     """
     # create entities for hostgroup
     location = entities.Location().create()
-    entities.SmartProxy(id=1, location=[2, location.id]).update()
+    entities.SmartProxy(id=1, location=[DEFAULT_LOC_ID, location.id]).update()
     domain = entities.Domain(organization=[module_org.id],
                              location=[location]).create()
     subnet = entities.Subnet(organization=[module_org.id],

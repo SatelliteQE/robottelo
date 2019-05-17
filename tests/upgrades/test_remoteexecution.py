@@ -17,7 +17,7 @@
 import os
 
 from nailgun import entities
-from robottelo.constants import DEFAULT_LOC_ID, DISTRO_RHEL7
+from robottelo.constants import DEFAULT_LOC_ID, DEFAULT_ORG_ID, DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 from robottelo.test import APITestCase
@@ -46,7 +46,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
-        cls.org = entities.Organization(id=1).read()
+        cls.org = entities.Organization(id=DEFAULT_ORG_ID).read()
         cls.bridge = os.environ.get('BRIDGE')
         cls.subnet = os.environ.get('SUBNET')
         cls.gateway = os.environ.get('GATEWAY')
@@ -168,7 +168,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
-        cls.org = entities.Organization(id=1).read()
+        cls.org = entities.Organization(id=DEFAULT_ORG_ID).read()
         cls.bridge = os.environ.get('BRIDGE')
         cls.subnet = os.environ.get('SUBNET')
         cls.gateway = os.environ.get('GATEWAY')
