@@ -24,7 +24,8 @@ import yaml
 
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
-from nailgun import entities
+from nailgun import entities, entity_mixins
+from time import sleep
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import ssh
@@ -44,13 +45,18 @@ from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
+    DEFAULT_PTABLE,
     CUSTOM_PUPPET_REPO,
     ENVIRONMENT,
+    FOREMAN_PROVIDERS,
     OSCAP_PROFILE,
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     PERMISSIONS,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import tier2, tier3, skip_if, skip_if_not_set, upgrade
@@ -111,6 +117,11 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
+def module_loc(module_org):
+    return entities.Location(organization=[module_org]).create()
+
+
+@pytest.fixture(scope='module')
 def module_global_params():
     """Create 3 global parameters and clean up at teardown"""
     global_parameters = []
@@ -132,6 +143,248 @@ def module_host_template(module_org, module_loc):
     host_template.create_missing()
     host_template.name = None
     return host_template
+
+
+@pytest.fixture(scope='module')
+def default_partition_table():
+    # Get the Partition table ID
+    return entities.PartitionTable().search(
+        query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+
+
+@pytest.fixture(scope='module')
+def default_architecture():
+    # Get the architecture ID
+    return entities.Architecture().search(
+        query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_environment(module_org, module_loc):
+    # Search for puppet environment and associate location
+    environment = entities.Environment(organization=[module_org]).search()[0]
+    environment.location = [module_loc]
+    environment = environment.update(['location'])
+    return environment
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_os(
+        default_architecture, default_partition_table, module_org, module_loc):
+    # Get the OS ID
+    os = entities.OperatingSystem().search(query={
+        u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+            RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)}
+    )[0].read()
+    # Get the templates and update with OS, Org, Location
+    templates = []
+    for template_name in [
+        'Kickstart default PXELinux',
+        'Discovery Red Hat kexec',
+        'Kickstart default iPXE',
+        'Kickstart default',
+        'Kickstart default finish',
+        'Kickstart default user data'
+    ]:
+        template = entities.ConfigTemplate().search(
+            query={
+                u'search': u'name="{}"'.format(template_name)
+            }
+        )[0].read()
+        template.operatingsystem.append(os)
+        template.organization.append(module_org)
+        template.location.append(module_loc)
+        template = template.update([
+            'location', 'operatingsystem', 'organization'])
+        templates.append(template)
+    # Update the OS to associate architecture, ptable, templates
+    os.architecture = [default_architecture]
+    os.ptable = [default_partition_table]
+    os.config_template = templates
+    os = os.update(['architecture', 'config_template', 'ptable'])
+    return os
+
+
+@pytest.fixture(scope='module')
+def os_path(module_libvirt_os):
+    # Check what OS was found to use correct media
+    if module_libvirt_os.major == str(RHEL_6_MAJOR_VERSION):
+        os_distr_url = settings.rhel6_os
+    elif module_libvirt_os.major == str(RHEL_7_MAJOR_VERSION):
+        os_distr_url = settings.rhel7_os
+    else:
+        raise ValueError('Proposed RHEL version is not supported')
+    return os_distr_url
+
+
+@pytest.fixture(scope='module')
+def module_proxy(module_org, module_loc):
+    # Search for SmartProxy, and associate organization/location
+    proxy = entities.SmartProxy().search(
+        query={u'search': u'name={0}'.format(settings.server.hostname)})[0].read()
+    proxy.location.append(module_loc)
+    proxy.organization.append(module_org)
+    proxy = proxy.update(['location', 'organization'])
+    return proxy
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_resource(module_org, module_loc):
+    # Search if Libvirt compute-resource already exists
+    # If so, just update its relevant fields otherwise,
+    # Create new compute-resource with 'libvirt' provider.
+    resource_url = u'qemu+ssh://root@{0}/system'.format(
+        settings.compute_resources.libvirt_hostname
+    )
+    comp_res = [
+        res for res in entities.LibvirtComputeResource().search()
+        if res.provider == FOREMAN_PROVIDERS['libvirt'] and res.url == resource_url
+    ]
+    if len(comp_res) > 0:
+        computeresource = entities.LibvirtComputeResource(id=comp_res[0].id).read()
+        computeresource.location.append(module_loc)
+        computeresource.organization.append(module_org)
+        computeresource = computeresource.update(['location', 'organization'])
+    else:
+        # Create Libvirt compute-resource
+        computeresource = entities.LibvirtComputeResource(
+            provider=FOREMAN_PROVIDERS['libvirt'],
+            url=resource_url,
+            set_console_password=False,
+            display_type=u'VNC',
+            location=[module_loc],
+            organization=[module_org],
+        ).create()
+    return u'{0} (Libvirt)'.format(computeresource.name)
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_domain(module_org, module_loc, module_proxy):
+    # Search for existing domain or create new otherwise. Associate org,
+    # location and dns to it
+    _, _, domain = settings.server.hostname.partition('.')
+    domain = entities.Domain().search(
+        query={u'search': u'name="{0}"'.format(domain)}
+    )
+    if len(domain) > 0:
+        domain = domain[0].read()
+        domain.location.append(module_loc)
+        domain.organization.append(module_org)
+        domain.dns = module_proxy
+        domain = domain.update(['dns', 'location', 'organization'])
+    else:
+        domain = entities.Domain(
+            dns=module_proxy,
+            location=[module_loc],
+            organization=[module_org],
+        ).create()
+    return domain
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_subnet(
+        module_org, module_loc, module_libvirt_domain, module_proxy):
+    # Search if subnet is defined with given network.
+    # If so, just update its relevant fields otherwise,
+    # Create new subnet
+    network = settings.vlan_networking.subnet
+    subnet = entities.Subnet().search(
+        query={u'search': u'network={0}'.format(network)}
+    )
+    if len(subnet) > 0:
+        subnet = subnet[0].read()
+        subnet.domain.append(module_libvirt_domain)
+        subnet.location.append(module_loc)
+        subnet.organization.append(module_org)
+        subnet.dns = module_proxy
+        subnet.dhcp = module_proxy
+        subnet.ipam = 'DHCP'
+        subnet.tftp = module_proxy
+        subnet.discovery = module_proxy
+        subnet = subnet.update([
+            'domain', 'discovery', 'dhcp', 'dns', 'ipam', 'location', 'organization', 'tftp'])
+    else:
+        # Create new subnet
+        subnet = entities.Subnet(
+            network=network,
+            mask=settings.vlan_networking.netmask,
+            location=[module_loc],
+            organization=[module_org],
+            domain=[module_libvirt_domain],
+            ipam='DHCP',
+            dns=module_proxy,
+            dhcp=module_proxy,
+            tftp=module_proxy,
+            discovery=module_proxy,
+        ).create()
+    return subnet
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_lce(module_org):
+    return entities.LifecycleEnvironment(organization=module_org).create()
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_product(module_org):
+    return entities.Product(organization=module_org).create()
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_repository(os_path, module_libvirt_product):
+    old_task_timeout = entity_mixins.TASK_TIMEOUT
+    repo = entities.Repository(
+        product=module_libvirt_product, url=os_path).create()
+    entity_mixins.TASK_TIMEOUT = 3600
+    repo.sync()
+    entity_mixins.TASK_TIMEOUT = old_task_timeout
+    return repo
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_content_view(module_org, module_libvirt_repository, module_libvirt_lce):
+    # Create, Publish and promote CV
+    old_task_timeout = entity_mixins.TASK_TIMEOUT
+    entity_mixins.TASK_TIMEOUT = 3600
+    content_view = entities.ContentView(organization=module_org).create()
+    content_view.repository = [module_libvirt_repository]
+    content_view = content_view.update(['repository'])
+    content_view.publish()
+    content_view = content_view.read()
+    promote(content_view.version[0], module_libvirt_lce.id)
+    entity_mixins.TASK_TIMEOUT = old_task_timeout
+    return content_view
+
+
+@pytest.fixture(scope='module')
+def module_libvirt_hostgroup(
+        module_org,
+        module_loc,
+        default_partition_table,
+        default_architecture,
+        module_libvirt_os,
+        module_libvirt_environment,
+        module_libvirt_subnet,
+        module_proxy,
+        module_libvirt_domain,
+        module_libvirt_lce,
+        module_libvirt_content_view,
+):
+    return entities.HostGroup(
+        architecture=default_architecture,
+        domain=module_libvirt_domain,
+        subnet=module_libvirt_subnet,
+        lifecycle_environment=module_libvirt_lce,
+        content_view=module_libvirt_content_view,
+        location=[module_loc],
+        environment=module_libvirt_environment,
+        puppet_proxy=module_proxy,
+        puppet_ca_proxy=module_proxy,
+        content_source=module_proxy,
+        operatingsystem=module_libvirt_os,
+        organization=[module_org],
+        ptable=default_partition_table,
+    ).create()
 
 
 @tier3
@@ -1297,3 +1550,111 @@ def test_positive_bulk_delete_host(session, module_loc):
         session.host.apply_action('Delete Hosts', list(hosts_names))
         values = session.host.read_all()
         assert not values['table']
+
+
+@tier3
+def test_positive_provision_end_to_end(
+        session,
+        module_org,
+        module_loc,
+        module_libvirt_domain,
+        module_libvirt_hostgroup,
+        module_libvirt_resource,
+
+):
+    """Provision Host on libvirt compute resource
+
+    :id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
+
+    :expectedresults: Host is provisioned successfully
+
+    :CaseLevel: System
+    """
+    hostname = gen_string('alpha').lower()
+    root_pwd = gen_string('alpha', 15)
+    puppet_env = entities.Environment(
+        location=[module_loc], organization=[module_org]).create()
+    with session:
+        session.host.create({
+            'host.name': hostname,
+            'host.organization': module_org.name,
+            'host.location': module_loc.name,
+            'host.hostgroup': module_libvirt_hostgroup.name,
+            'host.inherit_deploy_option': False,
+            'host.deploy': module_libvirt_resource,
+            'host.inherit_puppet_environment': False,
+            'host.puppet_environment': puppet_env.name,
+            'virtual_machine.memory': '1 GB',
+            'operating_system.root_password': root_pwd,
+            'interfaces.interface.network_type': 'Physical (Bridge)',
+            'interfaces.interface.network': settings.vlan_networking.bridge,
+        })
+        name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        assert session.host.search(name)[0]['Name'] == name
+        try:
+            for _ in range(25):
+                values = session.host.get_details(name)
+                if values['properties']['properties_table']['Build'] == 'Pending installation':
+                    sleep(30)
+                    session.browser.refresh()
+                else:
+                    break
+        finally:
+            entities.Host(
+                id=entities.Host().search(query={'search': 'name={}'.format(name)})[0].id
+            ).delete()
+        assert values['properties']['properties_table']['Build'] == 'Installed'
+
+
+@tier3
+def test_positive_delete_libvirt(
+        session,
+        module_org,
+        module_loc,
+        module_libvirt_domain,
+        module_libvirt_hostgroup,
+        module_libvirt_resource,
+
+):
+    """Create a new Host on libvirt compute resource and delete it
+    afterwards
+
+    :id: 6a9175e7-bb96-4de3-bc45-ba6c10dd14a4
+
+    :customerscenario: true
+
+    :expectedresults: Proper warning message is displayed on delete attempt
+        and host deleted successfully afterwards
+
+    :BZ: 1243223
+
+    :CaseLevel: System
+    """
+    hostname = gen_string('alpha').lower()
+    root_pwd = gen_string('alpha', 15)
+    puppet_env = entities.Environment(
+        location=[module_loc], organization=[module_org]).create()
+    with session:
+        session.host.create({
+            'host.name': hostname,
+            'host.organization': module_org.name,
+            'host.location': module_loc.name,
+            'host.hostgroup': module_libvirt_hostgroup.name,
+            'host.inherit_deploy_option': False,
+            'host.deploy': module_libvirt_resource,
+            'host.inherit_puppet_environment': False,
+            'host.puppet_environment': puppet_env.name,
+            'virtual_machine.memory': '1 GB',
+            'operating_system.root_password': root_pwd,
+            'interfaces.interface.network_type': 'Physical (Bridge)',
+            'interfaces.interface.network': settings.vlan_networking.bridge,
+        })
+        name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        assert session.host.search(name)[0]['Name'] == name
+        message = session.host.delete(name, get_alert_text=True)
+        assert (
+            'Are you sure you want to delete host {}? This will delete the VM and '
+            'its disks, and is irreversible. This behavior can be changed via global '
+            'setting "Destroy associated VM on host delete".'.format(name)
+        ) == message
+        assert not session.host.search(name)

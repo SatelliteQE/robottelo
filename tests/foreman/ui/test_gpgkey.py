@@ -240,36 +240,6 @@ class GPGKey(UITestCase):
                     )
                     self.assertIsNone(self.gpgkey.search(name))
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_search_scoped(self):
-        """Search for gpgkey by organization id parameter
-
-        :id: e1e04f68-5d4f-43f6-a9c1-b9f566fcbc92
-
-        :customerscenario: true
-
-        :expectedresults: correct gpg key is found
-
-        :BZ: 1259374
-
-        :CaseImportance: High
-        """
-        name = gen_string('alpha')
-        org = entities.Organization().create()
-        with Session(self) as session:
-            make_gpgkey(
-                session,
-                key_path=self.key_path,
-                name=name,
-                org=org.name,
-                upload_key=True,
-            )
-            self.assertIsNotNone(
-                self.gpgkey.search(
-                    name, _raw_query='organization_id = {}'.format(org.id))
-            )
-
     # Positive Delete
 
     @run_only_on('sat')

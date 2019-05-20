@@ -93,6 +93,33 @@ def test_positive_end_to_end(session, module_org, gpg_content):
 
 
 @tier2
+def test_positive_search_scoped(session, gpg_content):
+    """Search for gpgkey by organization id parameter
+
+    :id: e1e04f68-5d4f-43f6-a9c1-b9f566fcbc92
+
+    :customerscenario: true
+
+    :expectedresults: correct gpg key is found
+
+    :BZ: 1259374
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    org = entities.Organization().create()
+    with session:
+        session.organization.select(org.name)
+        session.contentcredential.create({
+            'name': name,
+            'content_type': 'GPG Key',
+            'content': gpg_content
+        })
+        assert session.contentcredential.search(
+            'organization_id = {}'.format(org.id))[0]['Name'] == name
+
+
+@tier2
 def test_positive_add_empty_product(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate
     it with empty (no repos) custom product
