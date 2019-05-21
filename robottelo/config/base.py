@@ -599,6 +599,23 @@ class LibvirtHostSettings(FeatureSettings):
         return validation_errors
 
 
+class KubeVirtSettings(FeatureSettings):
+    "KubeVirt host settings definations"
+    def __init__(self, *args, **kwargs):
+        super(KubeVirtSettings, self).__init__(*args, **kwargs)
+        self.kubevirt_hostname = None
+        self.kubevirt_port = None
+        self.kubevirt_namespace = None
+        self.kubevirt_token = None
+
+    def read(self, reader):
+        """Read kubevirt host settings."""
+        self.kubevirt_hostname = reader.get('kubevirt', 'hostname')
+        self.kubevirt_port = reader.get('kubevirt', 'port')
+        self.kubevirt_namespace = reader.get('kubevirt', 'namespace')
+        self.kubevirt_token = reader.get('kubevirt', 'token')
+
+
 class FakeCapsuleSettings(FeatureSettings):
     """Fake Capsule settings definitions."""
     def __init__(self, *args, **kwargs):
