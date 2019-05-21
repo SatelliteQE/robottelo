@@ -69,6 +69,7 @@ API_PATHS = {
         u'/ansible/api/ansible_roles/:id',
         u'/ansible/api/ansible_roles/import',
         u'/ansible/api/ansible_roles/obsolete',
+        u'/ansible/api/ansible_roles/fetch',
     ),
     u'api': (),
     u'architectures': (
@@ -126,6 +127,9 @@ API_PATHS = {
     u'candlepin_proxies': (
         u'/katello/api/consumers/:id/tracer',
         u'/katello/api/systems/:id/enabled_repos',
+    ),
+    u'candlepin_dynflow_proxy': (
+        u'/katello/api/consumers/:id/profiles',
     ),
     u'capsule_content': (
         u'/katello/api/capsules/:id/content/available_lifecycle_environments',
@@ -277,6 +281,7 @@ API_PATHS = {
     ),
     u'content_view_versions': (
         u'/katello/api/content_view_versions',
+        u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id/export',
@@ -435,14 +440,15 @@ API_PATHS = {
     ),
     u'hostgroups': (
         u'/api/hostgroups',
+        u'/api/hostgroups/:id',
         u'/api/hostgroups',
         u'/api/hostgroups/:id',
         u'/api/hostgroups/:id',
-        u'/api/hostgroups/:id',
         u'/api/hostgroups/:id/clone',
-        u'/api/hostgroups/play_roles',
         u'/api/hostgroups/:id/play_roles',
+        u'/api/hostgroups/multiple_play_roles',
         u'/api/hostgroups/:id/rebuild_config',
+        u'/api/hostgroups/:id/ansible_roles',
     ),
     u'hosts': (
         u'/api/hosts',
@@ -462,7 +468,8 @@ API_PATHS = {
         u'/api/hosts/:id/template/:kind',
         u'/api/hosts/:id/vm_compute_attributes',
         u'/api/hosts/facts',
-        u'/api/hosts/play_roles',
+        u'/api/hosts/:id/ansible_roles',
+        u'/api/hosts/multiple_play_roles',
     ),
     u'hosts_bulk_actions': (
         u'/api/hosts/bulk/add_host_collections',
@@ -480,6 +487,7 @@ API_PATHS = {
         u'/api/hosts/bulk/remove_host_collections',
         u'/api/hosts/bulk/remove_subscriptions',
         u'/api/hosts/bulk/update_content',
+        u'/api/hosts/bulk/module_streams',
     ),
     u'host_errata': (
         u'/api/hosts/:host_id/errata',
@@ -499,6 +507,9 @@ API_PATHS = {
         u'/api/http_proxies/:id',
         u'/api/http_proxies/:id',
         u'/api/http_proxies/:id',
+    ),
+    u'host_module_streams': (
+        u'/api/hosts/:host_id/module_streams',
     ),
     u'images': (
         u'/api/compute_resources/:compute_resource_id/images',
@@ -521,6 +532,7 @@ API_PATHS = {
         u'/api/job_invocations/:id/cancel',
         u'/api/job_invocations/:id/hosts/:host_id',
         u'/api/job_invocations/:id/rerun',
+        u'/api/job_invocations/:id/hosts/:host_id/raw',
     ),
     u'job_templates': (
         u'/api/job_templates',
@@ -564,6 +576,10 @@ API_PATHS = {
         u'/api/models/:id',
         u'/api/models/:id',
         u'/api/models/:id',
+    ),
+    u'module_streams': (
+        u'/katello/api/module_streams/:id',
+        u'/katello/api/module_streams/compare',
     ),
     u'operatingsystems': (
         u'/api/operatingsystems',
@@ -707,6 +723,7 @@ API_PATHS = {
         u'/foreman_tasks/api/recurring_logics',
         u'/foreman_tasks/api/recurring_logics/:id',
         u'/foreman_tasks/api/recurring_logics/:id/cancel',
+        u'/foreman_tasks/api/recurring_logics/:id',
     ),
     u'registries': (
         u'/docker/api/v2/registries',
@@ -727,6 +744,17 @@ API_PATHS = {
         u'/api/reports/:id',
         u'/api/reports/:id',
     ),
+    u'report_templates': (
+        u'/api/report_templates',
+        u'/api/report_templates/:id',
+        u'/api/report_templates',
+        u'/api/report_templates/import',
+        u'/api/report_templates/:id',
+        u'/api/report_templates/:id',
+        u'/api/report_templates/:id/clone',
+        u'/api/report_templates/:id/export',
+        u'/api/report_templates/:id/generate',
+    ),
     u'repositories_bulk_actions': (
         u'/katello/api/repositories/bulk/destroy',
         u'/katello/api/repositories/bulk/sync',
@@ -746,11 +774,11 @@ API_PATHS = {
         u'/katello/api/repositories/repository_types',
     ),
     u'repository_sets': (
-        u'/katello/api/products/:product_id/repository_sets',
-        u'/katello/api/products/:product_id/repository_sets/:id',
-        u'/katello/api/products/:product_id/repository_sets/:id/available_repositories',
-        u'/katello/api/products/:product_id/repository_sets/:id/disable',
-        u'/katello/api/products/:product_id/repository_sets/:id/enable',
+        u'/katello/api/repository_sets',
+        u'/katello/api/repository_sets/:id',
+        u'/katello/api/repository_sets/:id/available_repositories',
+        u'/katello/api/repository_sets/:id/enable',
+        u'/katello/api/repository_sets/:id/disable',
     ),
     u'roles': (
         u'/api/roles',
@@ -879,6 +907,12 @@ API_PATHS = {
     ),
     u'template_kinds': (
         u'/api/template_kinds',
+    ),
+    u'trends': (
+        u'/api/trends',
+        u'/api/trends/:id',
+        u'/api/trends',
+        u'/api/trends/:id',
     ),
     u'upstream_subscriptions': (
         u'/katello/api/organizations/:organization_id/upstream_subscriptions',
