@@ -836,6 +836,7 @@ class ErrataTestCase(APITestCase):
         """
 
 
+@run_in_one_thread
 class ErrataSwidTagsTestCase(APITestCase):
     """API Tests for the errata management feature with swid tags"""
 
@@ -885,29 +886,29 @@ class ErrataSwidTagsTestCase(APITestCase):
         """Verify errata installation with swid_tags and swid tags get updated after
         module stream update.
 
-           :id: 43a59b9a-eb9b-4174-8b8e-73d923b1e51e
+        :id: 43a59b9a-eb9b-4174-8b8e-73d923b1e51e
 
-           :steps:
+        :steps:
 
-               1. create product and repository having swid tags
-               2. create content view and published it with repository
-               3. create activation key and register content host
-               4. create rhel8, swid repos on content host
-               5. install swid-tools, dnf-plugin-swidtags packages on content host
-               6. install older module stream and generate errata, swid tag
-               7. assert errata count, swid tags are generated
-               8. install errata vis updating module stream
-               9. assert errata count and swid tag after module update
+            1. create product and repository having swid tags
+            2. create content view and published it with repository
+            3. create activation key and register content host
+            4. create rhel8, swid repos on content host
+            5. install swid-tools, dnf-plugin-swidtags packages on content host
+            6. install older module stream and generate errata, swid tag
+            7. assert errata count, swid tags are generated
+            8. install errata vis updating module stream
+            9. assert errata count and swid tag after module update
 
-           :expectedresults: swid tags should get updated after errata installation via
+        :expectedresults: swid tags should get updated after errata installation via
             module stream update
 
-           :CaseAutomation: Automated
+        :CaseAutomation: Automated
 
-           :CaseImportance: Critical
+        :CaseImportance: Critical
 
-           :CaseLevel: System
-           """
+        :CaseLevel: System
+        """
         with VirtualMachine(distro=self.repos_collection.distro) as vm:
             module_name = 'kangaroo'
             version = '20180704111719'
