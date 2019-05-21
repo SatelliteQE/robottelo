@@ -553,6 +553,14 @@ CUSTOM_MODULE_STREAM_REPO_1 = (
 CUSTOM_MODULE_STREAM_REPO_2 = (
     u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
 )
+CUSTOM_SWID_TAG_REPO = (
+    u'https://partha.fedorapeople.org/test-repos/swid-zoo/'
+)
+SWID_TOOLS_REPO = (
+    u'https://copr.devel.redhat.com/coprs/jpazdzio/swid/repo/rhel-8.dev/'
+    u'jpazdzio-swid-rhel-8.dev.repo'
+)
+CUSTOM_REPODATA_PATH = u'/var/lib/pulp/published/yum/https/repos'
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
 FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
 FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
