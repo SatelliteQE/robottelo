@@ -197,7 +197,8 @@ class RemoteDBTestCase(TestCase):
 
         :id: d07235c8-4584-469a-a87d-ace4dadb0a1f
 
-        :Steps: Run satellite-installer with foreman, candlepin and pulp settings pointing to external host
+        :Steps: Run satellite-installer with foreman, candlepin and pulp settings
+            pointing to external host
 
         :expectedresults: Installed successful, all services running
 
@@ -208,7 +209,7 @@ class RemoteDBTestCase(TestCase):
 
     @stubbed()
     @tier1
-    def test_offload_internal_db_to_external_db_host(self):
+    def test_upgrade_satellite_eith_all_external_db_SSL(self):
         """Upgrade Satellite with all external databases with SSL
 
         :id: 5730a492-6ce4-11e9-a923-1681be663d3e
