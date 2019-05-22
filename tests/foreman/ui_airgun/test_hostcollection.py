@@ -135,40 +135,40 @@ def _install_package_with_assertion(vm_clients, package_name):
 
 
 def _get_content_repository_urls(repos_collection, lce, content_view):
-        """Returns a list of the content repository urls"""
-        custom_url_template = (
-            'https://{hostname}/pulp/repos/{org_label}/{lce.name}'
-            '/{content_view.name}/custom/{product_label}/{repository_name}'
+    """Returns a list of the content repository urls"""
+    custom_url_template = (
+        'https://{hostname}/pulp/repos/{org_label}/{lce.name}'
+        '/{content_view.name}/custom/{product_label}/{repository_name}'
+    )
+    rh_sat_tools_url_template = (
+        'https://{hostname}/pulp/repos/{org_label}/{lce.name}'
+        '/{content_view.name}/content/dist/rhel/server/{major_version}'
+        '/{major_version}Server/$basearch/sat-tools/{product_version}/os'
+    )
+    repos_urls = [
+        custom_url_template.format(
+            hostname=settings.server.hostname,
+            org_label=repos_collection.organization['label'],
+            lce=lce,
+            content_view=content_view,
+            product_label=repos_collection.custom_product['label'],
+            repository_name=repository['name'],
         )
-        rh_sat_tools_url_template = (
-            'https://{hostname}/pulp/repos/{org_label}/{lce.name}'
-            '/{content_view.name}/content/dist/rhel/server/{major_version}'
-            '/{major_version}Server/$basearch/sat-tools/{product_version}/os'
-        )
-        repos_urls = [
-            custom_url_template.format(
+        for repository in repos_collection.custom_repos_info
+    ]
+    # add sat-tool rh repo
+    # Note: if sat-tools is not cdn it must be already in repos_urls
+    for repo in repos_collection:
+        if isinstance(repo, SatelliteToolsRepository) and repo.cdn:
+            repos_urls.append(rh_sat_tools_url_template.format(
                 hostname=settings.server.hostname,
                 org_label=repos_collection.organization['label'],
                 lce=lce,
                 content_view=content_view,
-                product_label=repos_collection.custom_product['label'],
-                repository_name=repository['name'],
-            )
-            for repository in repos_collection.custom_repos_info
-        ]
-        # add sat-tool rh repo
-        # Note: if sat-tools is not cdn it must be already in repos_urls
-        for repo in repos_collection:
-            if isinstance(repo, SatelliteToolsRepository) and repo.cdn:
-                repos_urls.append(rh_sat_tools_url_template.format(
-                    hostname=settings.server.hostname,
-                    org_label=repos_collection.organization['label'],
-                    lce=lce,
-                    content_view=content_view,
-                    major_version=repo.distro_major_version,
-                    product_version=repo.repo_data['version'],
-                ))
-        return repos_urls
+                major_version=repo.distro_major_version,
+                product_version=repo.repo_data['version'],
+            ))
+    return repos_urls
 
 
 @tier2

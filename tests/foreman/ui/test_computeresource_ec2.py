@@ -82,13 +82,13 @@ class Ec2ComputeResourceTestCase(UITestCase):
         ]
         name = gen_string('alpha')
         with Session(self) as session:
-                make_resource(
-                    session,
-                    name=name,
-                    provider_type=FOREMAN_PROVIDERS['ec2'],
-                    parameter_list=parameter_list
-                )
-                self.assertIsNotNone(self.compute_resource.search(name))
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['ec2'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @stubbed()
