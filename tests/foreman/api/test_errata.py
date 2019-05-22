@@ -46,7 +46,6 @@ from robottelo.constants import (
     REAL_2_ERRATA_ID,
     REPOS,
     REPOSET,
-    SWID_TOOLS_REPO
 )
 
 from robottelo.decorators import (
@@ -867,7 +866,7 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     def _set_prerequisites_for_swid_repos(self, vm):
         self._run_remote_command_on_content_host(
-            "wget --no-check-certificate {}".format(SWID_TOOLS_REPO),
+            "wget --no-check-certificate {}".format(settings.swid_tools_repo),
             vm)
         self._run_remote_command_on_content_host("mv *swid*.repo /etc/yum.repos.d", vm)
         self._run_remote_command_on_content_host("yum install -y swid-tools", vm)
