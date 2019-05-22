@@ -715,7 +715,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             5. ssh into Satellite
             6. verify SWID tags content file exist in publish content view version location
 
-        :expectedresults: SWID tags content vile should exist in publish content view
+        :expectedresults: SWID tags content file should exist in publish content view
             version location
 
         :CaseAutomation: Automated

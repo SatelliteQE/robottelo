@@ -47,7 +47,6 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
