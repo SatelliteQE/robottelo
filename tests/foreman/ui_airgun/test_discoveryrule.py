@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: System
 
-:CaseComponent: UI
+:CaseComponent: DiscoveryPlugin
 
 :TestType: Functional
 
@@ -22,7 +22,7 @@ from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import fixture, run_in_one_thread, tier2, upgrade
+from robottelo.decorators import fixture, run_in_one_thread, tier2, tier3, upgrade
 
 
 @fixture(scope='module')
@@ -217,7 +217,7 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
 
 
 @run_in_one_thread
-@tier2
+@tier3
 def test_positive_list_host_based_on_rule_search_query(
         session, module_org, module_loc, module_discovery_env):
     """List all the discovered hosts resolved by given rule's search query
@@ -238,8 +238,6 @@ def test_positive_list_host_based_on_rule_search_query(
 
         1. After step 3, the rule's Discovered host should be listed.
         2. The rule's Associated Host should be listed.
-
-    :CaseLevel: Integration
     """
     ip_address = gen_ipaddr()
     cpu_count = gen_integer(2, 10)
@@ -297,7 +295,7 @@ def test_positive_list_host_based_on_rule_search_query(
                 == ip_address)
 
 
-@tier2
+@tier3
 @upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for discovery rule component.
@@ -306,9 +304,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :CaseLevel: Integration
-
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     rule_name = gen_string('alpha')
     search = 'cpu_count = {0}'.format(gen_integer(1, 5))

@@ -5,13 +5,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
-:CaseComponent: UI
+:CaseComponent: DiscoveryPlugin
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseLevel: System
 
 :Upstream: No
 """
@@ -25,7 +23,6 @@ from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
-    tier2,
     tier3,
     upgrade,
 )
@@ -139,7 +136,7 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
 
     :expectedresults: Host should be successfully discovered
 
-    :CaseLevel: System
+    :CaseImportance: Critical
     """
     with LibvirtGuest() as pxe_host:
         host_name = pxe_host.guest_name
@@ -164,7 +161,7 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
 
     :expectedresults: Host should be successfully discovered
 
-    :CaseLevel: System
+    :CaseImportance: Critical
     """
     with LibvirtGuest(boot_iso=True) as pxe_less_host:
         host_name = pxe_less_host.guest_name
@@ -175,7 +172,7 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
 
 
 @skip_if_bug_open('bugzilla', 1665471)
-@tier2
+@tier3
 @upgrade
 def test_positive_provision_using_quick_host_button(
         session, module_org, module_loc, discovered_host, module_host_group):
@@ -192,7 +189,7 @@ def test_positive_provision_using_quick_host_button(
     :expectedresults: Host should be quickly provisioned and entry from
         discovered host should be auto removed.
 
-    :CaseLevel: System
+    :CaseImportance: High
     """
     discovered_host_name = discovered_host['name']
     domain_name = module_host_group.domain.read().name
@@ -210,7 +207,7 @@ def test_positive_provision_using_quick_host_button(
             'name = {0}'.format(discovered_host_name))
 
 
-@tier2
+@tier3
 def test_positive_update_name(
         session, module_org, module_loc, module_host_group, discovered_host):
     """Update the discovered host name and provision it
@@ -222,7 +219,7 @@ def test_positive_update_name(
     :expectedresults: The hostname should be updated and host should be
         provisioned
 
-    :CaseLevel: System
+    :CaseImportance: High
     """
     discovered_host_name = discovered_host['name']
     domain_name = module_host_group.domain.read().name
@@ -249,7 +246,7 @@ def test_positive_update_name(
 
 
 @skip_if_bug_open('bugzilla', 1665471)
-@tier2
+@tier3
 @upgrade
 def test_positive_auto_provision_host_with_rule(
         session, module_org, module_loc, module_host_group):
@@ -263,8 +260,6 @@ def test_positive_auto_provision_host_with_rule(
     :Setup: Host should already be discovered
 
     :expectedresults: Host should reboot and provision
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -293,7 +288,7 @@ def test_positive_auto_provision_host_with_rule(
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@tier2
+@tier3
 def test_positive_delete(session, discovered_host):
     """Delete the selected discovered host
 
@@ -303,18 +298,15 @@ def test_positive_delete(session, discovered_host):
 
     :expectedresults: Selected host should be removed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-
     discovered_host_name = discovered_host['name']
     with session:
         session.discoveredhosts.delete(discovered_host_name)
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@tier2
+@tier3
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one
     discovered hosts from 'Select Action' drop down
@@ -327,8 +319,6 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
         changed for multiple hosts
 
     :BZ: 1634728
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -382,7 +372,7 @@ def test_positive_reboot(session, provisioning_env):
     :expectedresults: Discovered host without provision is going to shutdown after reboot command
         is passed.
 
-    :CaseLevel: System
+    :CaseImportance: Medium
     """
     with LibvirtGuest() as pxe_host:
         host_name = pxe_host.guest_name

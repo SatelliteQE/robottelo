@@ -5,13 +5,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
-:CaseComponent: CLI
+:CaseComponent: DiscoveryPlugin
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseLevel: System
 
 :Upstream: No
 """
@@ -147,7 +145,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be successfully discovered
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
@@ -168,7 +166,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be successfully discovered
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
         with LibvirtGuest(boot_iso=True) as pxe_less_host:
             hostname = pxe_less_host.guest_name
@@ -196,7 +194,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -220,7 +218,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -256,7 +254,7 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
         if not self.configured_env:
             self.__class__.configured_env = configure_env_for_provision(
@@ -330,7 +328,9 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseAutomation: notautomated
+
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -367,7 +367,9 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseAutomation: notautomated
+
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -404,7 +406,9 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseAutomation: notautomated
+
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -453,7 +457,7 @@ class DiscoveredTestCase(CLITestCase):
             8. [TBD] Ensure the host is provisioned with correct attributes
             9. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
         # fixme: assertion #1
         if not self.configured_env:
@@ -540,7 +544,9 @@ class DiscoveredTestCase(CLITestCase):
             8. Ensure the host is provisioned with correct attributes
             9. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseImportance: High
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -589,7 +595,9 @@ class DiscoveredTestCase(CLITestCase):
             8. Ensure the host is provisioned with correct attributes
             9. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseAutomation: notautomated
+
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -638,7 +646,9 @@ class DiscoveredTestCase(CLITestCase):
             8. Ensure the host is provisioned with correct attributes
             9. Ensure the entry from discovered host list disappeared
 
-        :CaseLevel: System
+        :CaseAutomation: notautomated
+
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -652,7 +662,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Selected host should be removed successfully
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
         with LibvirtGuest(boot_iso=True) as pxe_less_host:
             hostname = pxe_less_host.guest_name
@@ -673,7 +683,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Selected host should be removed successfully
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
@@ -697,7 +707,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -714,7 +724,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -731,7 +741,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Medium
         """
 
     @run_only_on('sat')
@@ -748,7 +758,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -764,7 +774,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -780,7 +790,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -795,7 +805,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -812,7 +822,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -828,7 +838,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @run_only_on('sat')
@@ -845,5 +855,5 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """

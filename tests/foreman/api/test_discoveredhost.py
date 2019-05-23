@@ -3,15 +3,13 @@
 
 :Requirement: Discoveredhost
 
+:CaseComponent: DiscoveryPlugin
+
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
-:CaseComponent: API
+:CaseLevel: System
 
 :TestType: Functional
-
-:CaseImportance: High
 
 :Upstream: No
 """
@@ -63,25 +61,6 @@ class DiscoveryTestCase(APITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_list_all(self):
-        """List all discovered hosts
-
-        :id: ac3b49d6-87a2-4d36-8085-72113b14ffb5
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: GET /api/v2/discovered_hosts
-
-        :expectedresults: List of all discovered hosts are retrieved
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
     def test_positive_show(self):
         """Show a specific discovered hosts
 
@@ -94,9 +73,9 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected host is retrieved
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -113,9 +92,9 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should be created successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -133,6 +112,8 @@ class DiscoveryTestCase(APITestCase):
             2. Read the created discovered host
 
         :expectedresults: Host should be created successfully
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -161,7 +142,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -180,7 +161,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -199,7 +180,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -218,7 +199,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -237,7 +218,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -256,7 +237,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -276,7 +257,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -299,7 +280,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -321,7 +302,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -340,7 +321,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: Medium
         """
 
     @stubbed()
@@ -359,13 +340,13 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
     @tier3
     def test_positive_provision_host_with_rule(self):
-        """Create a new discovery rule and applies on host to provision
+        """Create a new discovery rule that applies on host to provision
 
         Set query as (e.g IP=IP_of_discovered_host)
 
@@ -377,7 +358,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -395,7 +376,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -413,7 +394,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -431,7 +412,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -448,7 +429,7 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseImportance: High
         """
 
     @stubbed()
@@ -466,21 +447,5 @@ class DiscoveryTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    def test_positive_list_facts(self):
-        """List facts of a discovered host
-
-        :id: 7c40da85-f06a-4e86-80a8-d18d1b2abd32
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: facts of selected discovered host should be listed
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
+        :CaseImportance: High
         """

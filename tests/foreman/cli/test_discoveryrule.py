@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: DiscoveryPlugin
 
 :TestType: Functional
 
@@ -40,6 +40,7 @@ from robottelo.decorators import (
     run_only_on,
     tier1,
     tier2,
+    tier3
 )
 from robottelo.test import CLITestCase
 
@@ -141,7 +142,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['search'], search_query)
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_hostname(self):
         """Create Discovery Rule using valid hostname
 
@@ -150,7 +151,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :expectedresults: Rule should be successfully created and has expected
             hostname value
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         host_name = 'myhost'
         rule = self._make_discoveryrule({u'hostname': host_name})
@@ -179,7 +180,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(self.loc['name'], rule['locations'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_org_loc_name(self):
         """Create discovery rule by associating org and location names
 
@@ -188,8 +189,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         :expectedresults: Rule was created and with given org & location names.
 
         :BZ: 1377990
-
-        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({
             u'hostgroup-id': self.hostgroup['id'],
@@ -200,7 +199,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(self.loc['name'], rule['locations'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_hosts_limit(self):
         """Create Discovery Rule providing any number from range 1..100 for
         hosts limit option
@@ -210,7 +209,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :expectedresults: Rule should be successfully created and has expected
             hosts limit value
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         hosts_limit = '5'
         rule = self._make_discoveryrule({u'hosts-limit': hosts_limit})
@@ -227,7 +226,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :expectedresults: Rule should be successfully created and has max_count
             set as per given value
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         max_count = '10'
         rule = self._make_discoveryrule({u'max-count': max_count})
@@ -253,7 +252,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['priority'], str(rule_priority[0]))
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_disabled_rule(self):
         """Create Discovery Rule in disabled state
 
@@ -261,13 +260,13 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Disabled rule should be successfully created
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         rule = self._make_discoveryrule({u'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_create_with_invalid_name(self):
         """Create Discovery Rule with invalid names
 
@@ -275,7 +274,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Error should be raised and rule should not be created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
+
+        :CaseLevel: Component
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -283,7 +284,7 @@ class DiscoveryRuleTestCase(CLITestCase):
                     self._make_discoveryrule({'name': name})
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_create_with_invalid_hostname(self):
         """Create Discovery Rule with invalid hostname
 
@@ -291,7 +292,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Error should be raised and rule should not be created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
+
+        :CaseLevel: Component
         """
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
@@ -302,7 +305,7 @@ class DiscoveryRuleTestCase(CLITestCase):
                     self._make_discoveryrule({u'hostname': name})
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_create_with_too_long_limit(self):
         """Create Discovery Rule with too long host limit value
 
@@ -311,7 +314,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :expectedresults: Validation error should be raised and rule should not
             be created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         with self.assertRaises(CLIFactoryError):
             self._make_discoveryrule({u'hosts-limit': '9999999999'})
@@ -325,7 +328,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Error should be raised and rule should not be created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         name = gen_string('alpha')
         self._make_discoveryrule({u'name': name})
@@ -349,7 +352,7 @@ class DiscoveryRuleTestCase(CLITestCase):
             DiscoveryRule.info({u'id': rule['id']})
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_positive_update_name(self):
         """Update discovery rule name
 
@@ -357,7 +360,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule name is updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         rule = self._make_discoveryrule()
         new_name = gen_string('numeric')
@@ -376,7 +381,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :BZ: 1377990
 
-        :CaseLevel: Integration
+        :CaseLevel: Component
         """
         new_org = make_org()
         new_loc = make_location()
@@ -396,7 +401,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(new_loc['name'], rule['locations'])
 
     @run_only_on('sat')
-    @tier2
+    @tier3
     def test_positive_update_org_loc_by_name(self):
         """Update org and location of selected discovery rule using org/loc
         names
@@ -407,7 +412,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :BZ: 1377990
 
-        :CaseLevel: Integration
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         new_org = make_org()
         new_loc = make_location()
@@ -427,7 +434,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(new_loc['name'], rule['locations'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_update_query(self):
         """Update discovery rule search query
 
@@ -435,7 +442,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule search field is updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         rule = self._make_discoveryrule()
         new_query = 'model = KVM'
@@ -444,7 +451,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['search'], new_query)
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_update_hostgroup(self):
         """Update discovery rule host group
 
@@ -452,7 +459,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule host group is updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         new_hostgroup = make_hostgroup({u'organization-ids': self.org['id']})
         rule = self._make_discoveryrule()
@@ -464,7 +471,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['host-group'], new_hostgroup['name'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_update_hostname(self):
         """Update discovery rule hostname value
 
@@ -472,7 +479,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule host name is updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         new_hostname = gen_string('alpha')
         rule = self._make_discoveryrule()
@@ -481,7 +488,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['hostname-template'], new_hostname)
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_update_limit(self):
         """Update discovery rule limit value
 
@@ -489,7 +496,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule host limit field is updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         rule = self._make_discoveryrule({u'hosts-limit': '5'})
         new_limit = '10'
@@ -538,7 +545,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['enabled'], 'true')
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_update_name(self):
         """Update discovery rule name using invalid names only
 
@@ -546,7 +553,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule name is not updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         rule = self._make_discoveryrule()
         for name in invalid_values_list():
@@ -555,7 +564,7 @@ class DiscoveryRuleTestCase(CLITestCase):
                     DiscoveryRule.update({'id': rule['id'], 'name': name})
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_update_hostname(self):
         """Update discovery rule host name using number as a value
 
@@ -563,14 +572,16 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule host name is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
+
+        :CaseLevel: Component
         """
         rule = self._make_discoveryrule()
         with self.assertRaises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule['id'], 'hostname': '$#@!*'})
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_update_limit(self):
         """Update discovery rule host limit using invalid values
 
@@ -578,7 +589,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule host limit is not updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         rule = self._make_discoveryrule()
         host_limit = gen_string('alpha')
@@ -586,7 +599,7 @@ class DiscoveryRuleTestCase(CLITestCase):
             DiscoveryRule.update({'id': rule['id'], 'hosts-limit': host_limit})
 
     @run_only_on('sat')
-    @tier1
+    @tier3
     def test_negative_update_priority(self):
         """Update discovery rule priority using invalid values
 
@@ -594,7 +607,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule priority is not updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         rule = self._make_discoveryrule()
         priority = gen_string('alpha')

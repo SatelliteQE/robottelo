@@ -3,14 +3,9 @@
 A full API reference is available here:
 http://theforeman.org/api/apidoc/v2/config_templates.html
 
-
 :Requirement: Template
 
 :CaseAutomation: Automated
-
-:CaseLevel: Acceptance
-
-:CaseComponent: API
 
 :TestType: Functional
 
@@ -47,7 +42,12 @@ from robottelo.test import APITestCase
 
 
 class ConfigTemplateTestCase(APITestCase):
-    """Tests for config templates."""
+    """Tests for config templates
+
+    :CaseComponent: ProvisioningTemplates
+
+    :CaseLevel: Acceptance
+    """
 
     @tier2
     @skip_if_bug_open('bugzilla', 1202564)
@@ -59,6 +59,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: The response is a JSON payload.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         response = client.get(
             entities.ConfigTemplate().path('build_pxe_default'),
@@ -128,8 +130,6 @@ class ConfigTemplateTestCase(APITestCase):
         :id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
         :expectedresults: Configuration Template is not created
-
-        :CaseImportance: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -266,8 +266,6 @@ class ConfigTemplateTestCase(APITestCase):
 
         :expectedresults: Configuration Template is created, and its name is
             not updated.
-
-        :CaseImportance: Critical
         """
         c_temp = entities.ConfigTemplate().create()
         for new_name in invalid_names_list():
@@ -304,7 +302,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :expectedresults: The template is cloned successfully with all values
 
-        :CaseLevel: Integration
+        :CaseLevel: Component
         """
         template = entities.ConfigTemplate().create()
         template_origin = template.read_json()
@@ -324,7 +322,12 @@ class ConfigTemplateTestCase(APITestCase):
 
 
 class TemplateSyncTestCase(APITestCase):
-    """Implements TemplateSync tests from API"""
+    """Implements TemplateSync tests from API
+
+    :CaseComponent: TemplatesPlugin
+
+    :CaseLevel: Acceptance
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -483,9 +486,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :expectedresults:
             1. Assert result is {'message': 'success'}
-            2. Assert templates mathing the regex were not pulled.
-
-        :CaseImportance: Critical
+            2. Assert templates mathing the regex were not pulled
         """
         org = entities.Organization().create()
         filtered_imported_templates = entities.Template().imports(
@@ -537,6 +538,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert only templates from that branch were imported
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -556,6 +559,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert only templates from that subdirectory were imported
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -572,6 +577,8 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert locked template is not updated
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -592,6 +599,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert locked template is forced to update
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -614,6 +623,8 @@ class TemplateSyncTestCase(APITestCase):
                template metadata.
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -632,6 +643,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert all existing templates are imported.
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @tier1
@@ -737,6 +750,7 @@ class TemplateSyncTestCase(APITestCase):
             3. After step 6, assert template was imported again and the new
                content is updated (use nailgun as in step 3)
 
+        :CaseAutomation: NotAutomated
 
         The complete test script is available in
         http://pastebin.test.redhat.com/516304
@@ -763,6 +777,8 @@ class TemplateSyncTestCase(APITestCase):
                matching specified regex.
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -784,7 +800,7 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'}
             2. Assert templates mathing the regex are not pushed
 
-        :CaseImportance: Critical
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -804,6 +820,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert templates were exported to specified branch on repo
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -823,6 +841,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert templates are exported to the given subdirectory on repo
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -849,6 +869,8 @@ class TemplateSyncTestCase(APITestCase):
                as specified in metadata
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -867,6 +889,8 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert all existing templates were exported to repository
 
         :CaseImportance: Critical
+
+        :CaseAutomation: NotAutomated
         """
 
     # Take Templates out of Tech Preview Feature Tests
