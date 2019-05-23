@@ -131,7 +131,6 @@ class TemplateTestCase(CLITestCase):
 
         :expectedresults: The locked template is created successfully
 
-
         :CaseImportance: Critical
         """
         new_template = make_template({
@@ -289,6 +288,8 @@ class TemplateTestCase(CLITestCase):
 
         :Requirement: Take Templates out of tech preview
 
+        :CaseAutomation: NotAutomated
+
         :CaseLevel: System
         """
 
@@ -306,6 +307,8 @@ class TemplateTestCase(CLITestCase):
             1. Assert template export task and status logged to production log
 
         :Requirement: Take Templates out of tech preview
+
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -325,6 +328,10 @@ class TemplateTestCase(CLITestCase):
         :expectedresults:
             1. Assert task shows depreciation message of rake import is
             depreciated
+
+        :CaseAutomation: NotAutomated
+
+        :CaseLevel: System
         """
 
     @stubbed
@@ -342,6 +349,10 @@ class TemplateTestCase(CLITestCase):
         :expectedresults:
             1. Assert task shows depreciation message of rake export is
             depreciated
+
+        :CaseAutomation: NotAutomated
+
+        :CaseLevel: System
         """
 
     @stubbed
@@ -359,4 +370,8 @@ class TemplateTestCase(CLITestCase):
         :expectedresults:
             1. Assert task shows depreciation message of rake purge is
             depreciated
+
+        :CaseAutomation: NotAutomated
+
+        :CaseLevel: System
         """

@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: System
 
-:CaseComponent: UI
+:CaseComponent: Discovery Plugin
 
 :TestType: Functional
 
@@ -97,7 +97,6 @@ class DiscoveryTestCase(UITestCase):
            discovered hosts.
         4. Enable auto_provision flag to perform discovery via discovery
            rules.
-
         """
         super(DiscoveryTestCase, cls).setUpClass()
 
@@ -154,8 +153,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be successfully discovered
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -174,8 +171,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be successfully discovered
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -190,8 +185,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -206,8 +199,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -222,8 +213,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -238,8 +227,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -254,8 +241,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -267,8 +252,6 @@ class DiscoveryTestCase(UITestCase):
         :id: cdfebc3d-d8c1-4f82-a384-cc5cd9926c65
 
         :expectedresults: Host should be discovered successfully
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -297,8 +280,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -313,8 +294,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -329,8 +308,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Host should be discovered successfully
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -342,8 +319,6 @@ class DiscoveryTestCase(UITestCase):
         :id: 0d004ed0-594f-492f-8756-33349094aa8e
 
         :expectedresults: Host should be discovered successfully
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -373,8 +348,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: All defined custom facts should be displayed
             correctly
-
-        :CaseLevel: System
         """
         param_value = 'myfact'
         with Session(self) as session:
@@ -403,8 +376,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should be provisioned successfully and entry
             from discovered host should be auto removed
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -449,8 +420,6 @@ class DiscoveryTestCase(UITestCase):
         :Setup: Host should already be discovered
 
         :expectedresults: Selected host should be removed successfully
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -473,8 +442,6 @@ class DiscoveryTestCase(UITestCase):
         :Setup: Host should already be discovered
 
         :expectedresults: Selected host should be removed successfully
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -514,8 +481,6 @@ class DiscoveryTestCase(UITestCase):
         :Setup: Host should already be discovered
 
         :expectedresults: Facts should be refreshed successfully with new NIC
-
-        :CaseLevel: System
         """
         param_value = 'interfaces'
         with Session(self) as session:
@@ -548,8 +513,6 @@ class DiscoveryTestCase(UITestCase):
         :Setup: Host should already be discovered
 
         :expectedresults: Facts should be refreshed successfully with new NIC
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -586,8 +549,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Host should reboot and provision
 
-        :CaseLevel: System
-
         :CaseAutomation: notautomated
         """
 
@@ -606,8 +567,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: All Hosts of same subnet should reboot and provision
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -625,8 +584,6 @@ class DiscoveryTestCase(UITestCase):
             rule should be executed first.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -640,8 +597,6 @@ class DiscoveryTestCase(UITestCase):
         :Setup: Host should already be discovered
 
         :expectedresults: Host should not be rebooted automatically
-
-        :CaseLevel: System
         """
         try:
             # Disable flag to auto provision
@@ -696,7 +651,7 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: Rule should automatically be skipped on clicking
             'Auto provision'. UI Should raise 'No matching rule found'
 
-        :CaseLevel: System
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -714,8 +669,6 @@ class DiscoveryTestCase(UITestCase):
             and for other rule should already be skipped.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -732,8 +685,6 @@ class DiscoveryTestCase(UITestCase):
             be executed on discovered host
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -745,8 +696,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: All host should be successfully rebooted and
             provisioned
-
-        :CaseLevel: System
         """
         rule_name = gen_string('alpha')
         with Session(self) as session:
@@ -796,9 +745,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: The added fact should be displayed on
             'discovered_host' page after successful discovery
-
-
-        :CaseLevel: System
         """
         param_value = 'bios_vendor'
         with Session(self) as session:
@@ -831,8 +777,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: The added fact should be displayed on
             'discovered_host' page after successful discovery and shows 'N/A'
-
-        :CaseLevel: System
         """
         param_value = 'test'
         expected_value = u'N/A'
@@ -865,8 +809,6 @@ class DiscoveryTestCase(UITestCase):
             execute and delete discovery rules.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -881,8 +823,6 @@ class DiscoveryTestCase(UITestCase):
             and rule
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -897,8 +837,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: All buttons should work
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -913,8 +851,6 @@ class DiscoveryTestCase(UITestCase):
         :expectedresults: User should get an error message
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -931,8 +867,6 @@ class DiscoveryTestCase(UITestCase):
             configuration screen" to manually specify the IP/GW/DNS.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -948,8 +882,6 @@ class DiscoveryTestCase(UITestCase):
             location
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -962,8 +894,6 @@ class DiscoveryTestCase(UITestCase):
 
         :expectedresults: Provisioned host is created with selected host-group
             and entry from discovered host should be auto removed.
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -1002,8 +932,6 @@ class DiscoveryTestCase(UITestCase):
             keyword.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1023,8 +951,6 @@ class DiscoveryTestCase(UITestCase):
             should be deleted execpt the one started with discovery keyword.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1045,8 +971,6 @@ class DiscoveryTestCase(UITestCase):
             discovered.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1067,8 +991,6 @@ class DiscoveryTestCase(UITestCase):
             populated on associating hostgroup to discovered host
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1089,8 +1011,6 @@ class DiscoveryTestCase(UITestCase):
             selected default org
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1111,8 +1031,6 @@ class DiscoveryTestCase(UITestCase):
             selected default location
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1132,8 +1050,6 @@ class DiscoveryTestCase(UITestCase):
             3. LLDAP facts like lldp_neighbor_portid_XXX
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1150,8 +1066,6 @@ class DiscoveryTestCase(UITestCase):
             discovered host
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
 
@@ -1200,8 +1114,6 @@ class DiscoveryPrefixTestCase(UITestCase):
         :Setup: Host should already be discovered
 
         :expectedresults: Host should be discovered with updated prefix.
-
-        :CaseLevel: System
         """
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -1236,8 +1148,6 @@ class DiscoveryPrefixTestCase(UITestCase):
             'Hostname_prefix + hostname_facts'.
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1259,8 +1169,6 @@ class DiscoveryPrefixTestCase(UITestCase):
         :expectedresults: Host should be discovered with UUID in name
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1280,8 +1188,6 @@ class DiscoveryPrefixTestCase(UITestCase):
             bios_vendor
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1302,8 +1208,6 @@ class DiscoveryPrefixTestCase(UITestCase):
             bios fact doesn't exist
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1326,6 +1230,4 @@ class DiscoveryPrefixTestCase(UITestCase):
             like: Name has already been taken
 
         :CaseAutomation: notautomated
-
-        :CaseLevel: System
         """
