@@ -911,10 +911,9 @@ class ErrataSwidTagsTestCase(APITestCase):
             module_name = 'kangaroo'
             version = '20180704111719'
             # setup rhel8 and sat_tools_repos
-            for repo_name in ('baseos', 'appstream'):
-                vm.create_custom_repos(**{
-                    repo_name: settings.rhel8_os[repo_name]
-                })
+            vm.create_custom_repos(**{
+                repo_name: settings.rhel8_os[repo_name] for repo_name in ('baseos', 'appstream')
+            })
             self.repos_collection.setup_virtual_machine(
                 vm,
                 install_katello_agent=False)

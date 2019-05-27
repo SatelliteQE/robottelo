@@ -1081,6 +1081,7 @@ class Settings(object):
         self.ansible_repo = None
         self.sattools_repo = None
         self.satmaintenance_repo = None
+        self.swid_tools_repo = None
         self.screenshots_path = None
         self.tmp_dir = None
         self.saucelabs_key = None
@@ -1198,6 +1199,8 @@ class Settings(object):
             'robottelo', 'sattools_repo', None, dict)
         self.satmaintenance_repo = self.reader.get(
             'robottelo', 'satmaintenance_repo', None)
+        self.swid_tools_repo = self.reader.get(
+            'robottelo', 'swid_tools_repo', None)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
