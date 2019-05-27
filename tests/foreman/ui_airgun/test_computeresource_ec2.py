@@ -22,7 +22,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     AWS_EC2_FLAVOR_T2_MICRO,
     COMPUTE_PROFILE_LARGE,
-    DEFAULT_LOC_ID,
+    DEFAULT_LOC,
     EC2_REGION_CA_CENTRAL_1,
     FOREMAN_PROVIDERS
 )
@@ -40,7 +40,9 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    return entities.Location(id=DEFAULT_LOC_ID).read()
+    default_loc_id = entities.Location().search(
+        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    return entities.Location(id=default_loc_id).read()
 
 
 @fixture(scope='module')

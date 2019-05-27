@@ -24,7 +24,7 @@ from robottelo.api.utils import (
     attach_custom_product_subscription,
     call_entity_method_with_timeout
 )
-from robottelo.constants import DEFAULT_ORG_ID
+from robottelo.constants import DEFAULT_ORG
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.constants import FAKE_REPO_ZOO3
@@ -249,7 +249,9 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.docker_vm = os.environ.get('DOCKER_VM')
-        cls.org = entities.Organization(id=DEFAULT_ORG_ID).read()
+        cls.default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.ak_name = 'scenario_old_client_package_install'
         cls.package_name = 'shark'
         cls.prod_name = 'preclient_scenario_product'

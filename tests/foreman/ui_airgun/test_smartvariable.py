@@ -20,7 +20,7 @@ import yaml
 from nailgun import entities
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import DEFAULT_LOC_ID, CUSTOM_PUPPET_REPO, ENVIRONMENT
+from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
 from robottelo.datafactory import gen_string
 from robottelo.decorators import tier2, upgrade, fixture
 
@@ -35,7 +35,9 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    return entities.Location(id=DEFAULT_LOC_ID).read()
+    default_loc_id = entities.Location().search(
+        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    return entities.Location(id=default_loc_id).read()
 
 
 @fixture(scope='module')

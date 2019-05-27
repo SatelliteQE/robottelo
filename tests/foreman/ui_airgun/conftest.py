@@ -3,8 +3,8 @@ import logging
 import nailgun.entities
 from airgun.session import Session
 from fauxfactory import gen_string
+from robottelo.constants import DEFAULT_ORG, DEFAULT_LOC
 from requests.exceptions import HTTPError
-from robottelo.constants import DEFAULT_LOC_ID, DEFAULT_ORG_ID
 from robottelo.decorators import fixture
 
 
@@ -18,7 +18,9 @@ def module_org():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    return nailgun.entities.Organization(id=DEFAULT_ORG_ID).read()
+    default_org_id = nailgun.entities.Organization().search(
+        query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+    return nailgun.entities.Organization(id=default_org_id).read()
 
 
 @fixture(scope='module')
@@ -28,7 +30,9 @@ def module_loc():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    return nailgun.entities.Location(id=DEFAULT_LOC_ID).read()
+    default_loc_id = nailgun.entities.Location().search(
+        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    return nailgun.entities.Location(id=default_loc_id).read()
 
 
 @fixture(scope='module')
@@ -68,11 +72,13 @@ def module_viewer_user(module_org):
     by some other user. Created only when accessed, unlike `module_user`.
     """
     viewer_role = nailgun.entities.Role().search(query={'search': 'name="Viewer"'})[0]
+    default_loc_id = nailgun.entities.Location().search(
+        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
     custom_password = gen_string('alphanumeric')
     custom_user = nailgun.entities.User(
         admin=False,
         default_organization=module_org,
-        location=[DEFAULT_LOC_ID],
+        location=[default_loc_id],
         organization=[module_org],
         role=[viewer_role],
         password=custom_password,

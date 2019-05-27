@@ -5,7 +5,7 @@ from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 from robottelo.decorators import fixture
-from robottelo.constants import DEFAULT_ORG_ID
+from robottelo.constants import DEFAULT_ORG
 
 
 LOGGER = logging.getLogger('robottelo')
@@ -18,7 +18,9 @@ def module_org():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    return nailgun.entities.Organization(id=DEFAULT_ORG_ID).read()
+    default_org_id = nailgun.entities.Organization().search(
+        query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].i
+    return nailgun.entities.Organization(id=default_org_id).read()
 
 
 @fixture(scope='module')

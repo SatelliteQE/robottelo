@@ -17,7 +17,7 @@
 from datetime import datetime
 from nailgun import entities
 from robottelo.constants import (
-    DEFAULT_LOC_ID,
+    DEFAULT_LOC,
     DISTRO_RHEL7,
     OS_TEMPLATE_DATA_FILE,
 )
@@ -456,11 +456,13 @@ class RemoteExecutionTestCase(UITestCase):
         """Create an organization which can be re-used in tests."""
         super(RemoteExecutionTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
+        cls.default_loc_id = entities.Location().search(
+            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
         cls.new_sub = entities.Subnet(
             domain=[entities.Domain(id=1)],
             gateway=settings.vlan_networking.gateway,
             ipam='DHCP',
-            location=[entities.Location(id=DEFAULT_LOC_ID)],
+            location=[entities.Location(id=cls.default_loc_id)],
             mask=settings.vlan_networking.netmask,
             network=settings.vlan_networking.subnet,
             network_type='IPv4',

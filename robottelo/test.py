@@ -24,7 +24,6 @@ from robottelo.constants import (
     INTERFACE_API,
     INTERFACE_CLI,
     DEFAULT_ORG,
-    DEFAULT_ORG_ID,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -350,8 +349,10 @@ class UITestCase(TestCase):
         """TestCases can overwrite this method to create a different
         organization object for the session.
         """
+        cls.default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
         cls.session_org = entities.Organization(
-            id=DEFAULT_ORG_ID, name=DEFAULT_ORG
+            id=cls.default_org_id, name=DEFAULT_ORG
         )
 
     @classmethod
