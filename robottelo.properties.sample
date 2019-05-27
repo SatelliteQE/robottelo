@@ -124,6 +124,9 @@ ssh_key=
 # sattools_repo=
 #   rhel6=http://sattools/repo/el6,
 #   rhel7=http://sattools/repo/el7,
+
+# Added swid_tools_repo for installing swid-tools and dnf-plugin-swidtags packages
+# which are essentially required for generating swid tags in RHEL8 content host.
 # swid_tools_repo=https://example.com/swid-rhel-8.repo
 
 # Bugzilla data to authenticate API calls

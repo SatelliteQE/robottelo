@@ -718,8 +718,6 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :expectedresults: SWID tags content file should exist in publish content view
             version location
 
-        :CaseAutomation: Automated
-
         :CaseImportance: High
 
         :CaseLevel: Integration
@@ -759,8 +757,6 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             7. verify SWID tags content file exist in promoted environment location
 
         :expectedresults: SWID tags content file should exist in promoted environment location
-
-        :CaseAutomation: Automated
 
         :CaseImportance: High
 
