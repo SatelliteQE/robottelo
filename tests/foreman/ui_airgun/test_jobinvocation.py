@@ -20,7 +20,7 @@ from nailgun import entities
 
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC_ID, DISTRO_RHEL6
+from robottelo.constants import DEFAULT_LOC, DISTRO_RHEL6
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier3
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -35,11 +35,13 @@ def module_org():
 @fixture(scope='module')
 def module_subnet(module_org):
     domain = entities.Domain(organization=[module_org]).create()
+    default_loc_id = entities.Location().search(
+        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
     return entities.Subnet(
         domain=[domain],
         gateway=settings.vlan_networking.gateway,
         ipam='DHCP',
-        location=[entities.Location(id=DEFAULT_LOC_ID)],
+        location=[entities.Location(id=default_loc_id)],
         mask=settings.vlan_networking.netmask,
         network=settings.vlan_networking.subnet,
         network_type='IPv4',

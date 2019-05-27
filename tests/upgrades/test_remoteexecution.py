@@ -17,7 +17,7 @@
 import os
 
 from nailgun import entities
-from robottelo.constants import DEFAULT_LOC_ID, DEFAULT_ORG_ID, DISTRO_RHEL7
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 from robottelo.test import APITestCase
@@ -46,7 +46,9 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
-        cls.org = entities.Organization(id=DEFAULT_ORG_ID).read()
+        cls.default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.bridge = os.environ.get('BRIDGE')
         cls.subnet = os.environ.get('SUBNET')
         cls.gateway = os.environ.get('GATEWAY')
@@ -89,11 +91,13 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
             2. REX job should run on it.
         """
         try:
+            default_loc_id = entities.Location().search(
+                query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
             sn = entities.Subnet(
                 domain=self.vm_domain,
                 gateway=self.gateway,
                 ipam='DHCP',
-                location=[DEFAULT_LOC_ID],
+                location=[default_loc_id],
                 mask=self.netmask,
                 network=self.subnet,
                 organization=[self.org.id],
@@ -168,7 +172,9 @@ class Scenario_remoteexecution_satellite(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
-        cls.org = entities.Organization(id=DEFAULT_ORG_ID).read()
+        cls.default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.bridge = os.environ.get('BRIDGE')
         cls.subnet = os.environ.get('SUBNET')
         cls.gateway = os.environ.get('GATEWAY')
@@ -211,11 +217,13 @@ class Scenario_remoteexecution_satellite(APITestCase):
             2. REX job should run on it.
         """
         try:
+            default_loc_id = entities.Location().search(
+                query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
             sn = entities.Subnet(
                 domain=self.vm_domain,
                 gateway=self.gateway,
                 ipam='DHCP',
-                location=[DEFAULT_LOC_ID],
+                location=[default_loc_id],
                 mask=self.netmask,
                 network=self.subnet,
                 organization=[self.org.id],

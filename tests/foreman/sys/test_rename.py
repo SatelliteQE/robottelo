@@ -19,7 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG_ID
+from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import (
         destructive,
         run_in_one_thread,
@@ -46,8 +46,9 @@ class RenameHostTestCase(TestCase):
         cls.hostname = settings.server.hostname
         cls.username = settings.server.admin_username
         cls.password = settings.server.admin_password
-
-        cls.org = entities.Organization(id=DEFAULT_ORG_ID)
+        cls.default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.org = entities.Organization(id=cls.default_org_id)
         cls.product = entities.Product(organization=cls.org).create()
 
     @run_in_one_thread

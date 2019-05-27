@@ -5,7 +5,7 @@ from collections import deque, defaultdict
 from nailgun import entities, signals
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import Proxy
-from robottelo.constants import DEFAULT_ORG_ID
+from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import bz_bug_is_open
 
 
@@ -85,7 +85,9 @@ class EntitiesCleaner(object):
 
     def clean(self):
         """This method is called in TearDownClass only when cleanup=true"""
-        default_org = entities.Organization(id=DEFAULT_ORG_ID)
+        default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        default_org = entities.Organization(id=default_org_id)
         # reassign created hosts to default org
         self.update_entities(
             self.cleanup_queue.get(entities.Host.__name__, []),
