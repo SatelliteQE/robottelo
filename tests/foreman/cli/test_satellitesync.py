@@ -53,6 +53,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    tier4,
     upgrade
 )
 from robottelo.test import CLITestCase
@@ -282,7 +283,7 @@ class ContentViewSync(CLITestCase):
         return content_view, cvv_id
 
     @staticmethod
-    def _enable_rhel_content(organization, sync=True):
+    def _enable_rhel_content(organization, repo_name, releasever, sync=True):
         """Enable and/or Synchronize rhel content
 
         :param organization: The organization directory into which the rhel
@@ -294,13 +295,13 @@ class ContentViewSync(CLITestCase):
             organization['id'], interface=manifests.INTERFACE_CLI)
         RepositorySet.enable({
             'basearch': 'x86_64',
-            'name': REPOSET['rhva6'],
+            'name': REPOSET[repo_name],
             'organization-id': organization['id'],
             'product': PRDS['rhel'],
-            'releasever': '6Server',
+            'releasever': releasever,
         })
         repo = Repository.info({
-            'name': REPOS['rhva6']['name'],
+            'name': REPOS[repo_name]['name'],
             'organization-id': organization['id'],
             'product': PRDS['rhel'],
         })
@@ -314,7 +315,7 @@ class ContentViewSync(CLITestCase):
             # Synchronize the repository
             Repository.synchronize({'id': repo['id']})
         repo = Repository.info({
-            'name': REPOS['rhva6']['name'],
+            'name': REPOS[repo_name]['name'],
             'organization-id': organization['id'],
             'product': PRDS['rhel'],
         })
@@ -559,7 +560,74 @@ class ContentViewSync(CLITestCase):
 
         :CaseLevel: System
         """
-        rhel_repo = ContentViewSync._enable_rhel_content(self.exporting_org)
+        rhva_repo_name = 'rhva6'
+        releasever = '6Server'
+        rhva_repo = ContentViewSync._enable_rhel_content(
+            self.exporting_org, rhva_repo_name, releasever)
+        rhva_cv_name = gen_string('alpha')
+        rhva_cv, exporting_cvv_id = ContentViewSync._create_cv(
+            rhva_cv_name, rhva_repo, self.exporting_org)
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_base),
+            'id': exporting_cvv_id
+        })
+        exporting_cvv_version = rhva_cv['versions'][0]['version']
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_base, rhva_cv_name, exporting_cvv_version)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
+        self.assertTrue(len(exported_packages) > 0)
+        Subscription.delete_manifest({'organization-id': self.exporting_org['id']})
+        importing_org = make_org()
+        imp_rhva_repo = ContentViewSync._enable_rhel_content(importing_org, sync=False)
+        importing_cv, _ = ContentViewSync._create_cv(
+            rhva_cv_name, imp_rhva_repo, importing_org, publish=False)
+        ContentView.version_import({
+            'export-tar': exported_tar,
+            'organization-id': importing_org['id']
+        })
+        importing_cvv_id = ContentView.info({
+            u'id': importing_cv['id']
+        })['versions'][0]['id']
+        imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
+        self.assertTrue(len(imported_packages) > 0)
+        self.assertEqual(len(exported_packages), len(imported_packages))
+
+    @tier4
+    @upgrade
+    def test_positive_export_import_redhat_cv_with_huge_contents(self):
+        """Export CV version redhat contents in directory and Import them
+
+        :id: 05eb185f-e526-466c-9c14-702dde1d49de
+
+        :steps:
+
+            1. Enable product and repository with redhat repository having huge contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export CV version contents to a directory
+            5. Import those contents from some other org/satellite.
+
+        :expectedresults:
+
+            1. CV version redhat contents has been exported to directory
+            2. All The exported redhat contents has been imported in org/satellite
+
+        :bz: 1655239
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: ContentViews
+
+        :CaseImportance: Critical
+
+        :CaseLevel: Acceptance
+        """
+        rhel_repo_name = 'rhel7'
+        releasever = '7Server'
+        rhel_repo = ContentViewSync._enable_rhel_content(
+            self.exporting_org, rhel_repo_name, releasever)
         rhel_cv_name = gen_string('alpha')
         rhel_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhel_cv_name, rhel_repo, self.exporting_org)
