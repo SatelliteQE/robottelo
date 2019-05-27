@@ -145,8 +145,8 @@ class Scenario_errata_count(APITestCase):
             product=product, content_type='yum', url=tools_repo_url).create()
         rhel_repo = entities.Repository(
             product=product, content_type='yum', url=rhel_repo_url).create()
-        call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
-        call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
+        call_entity_method_with_timeout(rhel_repo.sync, timeout=3000)
+        call_entity_method_with_timeout(tools_repo.sync, timeout=3000)
         return tools_repo, rhel_repo
 
     def _publish_content_view(self, org, repolist):
