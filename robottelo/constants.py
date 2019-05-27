@@ -461,8 +461,6 @@ ATOMIC_HOST_TREE = [
     ('rhah', 'rhaht', 'rhaht', 'repo_ver', None),
 ]
 
-DEFAULT_LOC_ID = 2
-DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
@@ -477,7 +475,10 @@ DEFAULT_SUBSCRIPTION_NAME = (
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
-
+DEFAULT_LOC_ID = entities.Location().search(
+    query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+DEFAULT_ORG_ID = entities.Organization().search(
+    query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
 LANGUAGES = {
     u'Català': u'ca',
     u'Deutsch': u'de',
