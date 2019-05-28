@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for Setting Parameter values
 
-:Requirement: Test Cases for component Settings
+:Requirement: Settings
 
 :CaseAutomation: Automated
 
