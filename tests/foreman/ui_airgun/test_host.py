@@ -166,11 +166,9 @@ def default_architecture():
 
 @pytest.fixture(scope='module')
 def module_libvirt_environment(module_org, module_loc):
-    # Search for puppet environment and associate location
-    environment = entities.Environment(organization=[module_org]).search()[0]
-    environment.location = [module_loc]
-    environment = environment.update(['location'])
-    return environment
+    # Create new puppet environment
+    return entities.Environment(
+        organization=[module_org], location=[module_loc]).create()
 
 
 @pytest.fixture(scope='module')
