@@ -132,7 +132,14 @@ CaseImportance:
     required: true
     type: choice
 CaseLevel:
+    casesensitive: false
+    choices:
+    - Component
+    - Integration
+    - System
+    - Acceptance
     required: true
+    type: choice
 CasePosNeg: {}
 CustomerScenario: {}
 ExpectedResults: {}
@@ -145,6 +152,16 @@ Steps: {}
 Subtype1: {}
 Teardown: {}
 TestType:
+    casesensitive: false
+    choices:
+    - Functional
+    - Structural
     required: true
+    type: choice
 Upstream:
+    casesensitive: false
+    choices:
+    - 'Yes'
+    - 'No'
     required: true
+    type: choice
