@@ -30,7 +30,6 @@ from robottelo.cli.factory import (
     make_user,
     publish_puppet_module,
 )
-from robottelo.cli.host import Host
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
@@ -83,6 +82,15 @@ class SmartClassParametersTestCase(CLITestCase):
         })
         cls.sc_params_ids_list = [
             sc_param['id'] for sc_param in cls.sc_params_list]
+        cls.host = entities.Host(organization=cls.org['id'],
+                                 location=cls.loc['id'],
+                                 environment=cls.env['name'],).create()
+        cls.host.add_puppetclass(
+            data={'puppetclass_id': cls.puppet_class['id']})
+        cls.hostgroup = make_hostgroup({
+            'environment-id': cls.env['id'],
+            'puppet-class-ids': cls.puppet_class['id']
+        })
 
     @classmethod
     def tearDownClass(cls):
@@ -100,62 +108,29 @@ class SmartClassParametersTestCase(CLITestCase):
                             "update puppet module.")
 
     @tier2
-    def test_positive_list_by_env_name(self):
-        """List all the parameters included in specific Env by its name.
+    def test_positive_list(self):
+        """List all the parameters included in specific elements.
 
         :id: 9fcfbe32-d388-435d-a629-6969a50a4243
 
-        :expectedresults: Parameters listed for specific Environment.
+        :expectedresults: Parameters listed for specific Environment
+            (by name and id), Host (name, id), Hostgroup (name, id),
+            and puppetclass (name)
 
         :CaseLevel: Integration
         """
-        env_sc_params = SmartClassParameter.list(
-            {'environment': self.env['name']})
-        self.assertGreater(len(env_sc_params), 0)
-        self.assertTrue(
-            {scp['id'] for scp in self.sc_params_list}.issubset(
-                {scp['id'] for scp in env_sc_params})
-        )
-        # Check that only unique results are returned
-        self.assertEqual(
-            len(env_sc_params),
-            len({scp['id'] for scp in env_sc_params})
-        )
 
-    @tier2
-    def test_positive_list_by_env_id(self):
-        """List all the parameters included in specific Env by its id.
+        list_queries = [
+            {'environment': self.env['name']},
+            {'environment-id': self.env['id']},
+            {'host': self.host.name},
+            {'host-id': self.host.id},
+            {'hostgroup': self.hostgroup["name"]},
+            {'hostgroup-id': self.hostgroup["id"]},
+            {'puppet-class': self.puppet_class['name']},
+        ]
 
-        :id: b3202175-c040-41dc-a66c-c07573534dec
-
-        :expectedresults: Parameters listed for specific Environment.
-
-        :CaseLevel: Integration
-        """
-        env_sc_params = SmartClassParameter.list(
-            {'environment-id': self.env['id']})
-        self.assertGreater(len(env_sc_params), 0)
-        self.assertTrue(
-            {scp['id'] for scp in self.sc_params_list}.issubset(
-                {scp['id'] for scp in env_sc_params})
-        )
-        # Check that only unique results are returned
-        self.assertEqual(
-            len(env_sc_params),
-            len({scp['id'] for scp in env_sc_params})
-        )
-
-    @tier2
-    @upgrade
-    def test_positive_list_by_host_name(self):
-        """List all the parameters included in specific Host by its name.
-
-        :id: a8165746-3480-4875-8931-b20ebec241dc
-
-        :expectedresults: Parameters listed for specific Host.
-
-        :CaseLevel: Integration
-        """
+        # override an example parameter
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
             'id': sc_param_id,
@@ -166,167 +141,22 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
-        host = entities.Host(organization=self.org['id'],
-                             location=self.loc['id']).create()
-        Host.update({
-            u'name': host.name,
-            u'environment': self.env['name'],
-            u'puppet-classes': self.puppet_class['name'],
-        })
-        host_sc_params = SmartClassParameter.list({'host': host.name})
-        self.assertGreater(len(host_sc_params), 0)
-        self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
-        # Check that only unique results are returned
-        self.assertEqual(
-            len(host_sc_params),
-            len({scp['id'] for scp in host_sc_params})
-        )
 
-    @tier2
-    @upgrade
-    def test_positive_list_by_host_id(self):
-        """List all the parameters included in specific Host by its id.
+        # check listing parameters for selected queries
+        for query in list_queries:
+            sc_params = SmartClassParameter.list(query)
+            self.assertGreater(
+                    len(sc_params), 0,
+                    "Failed to list parameters for query: {}".format(query))
 
-        :id: 79050de6-b894-4a88-b155-32bf488b692c
+            self.assertIn(sc_param_id, [scp['id'] for scp in sc_params])
 
-        :expectedresults: Parameters listed for specific Host.
-
-        :CaseLevel: Integration
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(sc_param['override'], True)
-        host = entities.Host(organization=self.org['id'],
-                             location=self.loc['id']).create()
-        Host.update({
-            u'name': host.name,
-            u'environment': self.env['name'],
-            u'puppet-classes': self.puppet_class['name'],
-        })
-        host_sc_params = SmartClassParameter.list({'host-id': host.id})
-        self.assertGreater(len(host_sc_params), 0)
-        self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
-        # Check that only unique results are returned
-        self.assertEqual(
-            len(host_sc_params),
-            len({scp['id'] for scp in host_sc_params})
-        )
-
-    @tier2
-    def test_positive_list_by_hostgroup_name(self):
-        """List all the parameters included in specific HostGroup by its name.
-
-        :id: a2a01ca7-4dd2-4db6-a654-a632864998d9
-
-        :expectedresults: Parameters listed for specific HostGroup.
-
-        :CaseLevel: Integration
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(sc_param['override'], True)
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet_class['id']
-        })
-        hostgroup_sc_params = SmartClassParameter.list(
-            {'hostgroup': hostgroup['name']})
-        self.assertGreater(len(hostgroup_sc_params), 0)
-        self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
-        # Check that only unique results are returned
-        self.assertEqual(
-            len(hostgroup_sc_params),
-            len({scp['id'] for scp in hostgroup_sc_params})
-        )
-
-    @tier2
-    def test_positive_list_by_hostgroup_id(self):
-        """List all the parameters included in specific HostGroup by id.
-
-        :id: 80c1058d-b87d-4c09-957f-7d3daacdedf4
-
-        :expectedresults: Parameters listed for specific HostGroup.
-
-        :CaseLevel: Integration
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(sc_param['override'], True)
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet_class['id']
-        })
-        hostgroup_sc_params = SmartClassParameter.list(
-            {'hostgroup-id': hostgroup['id']})
-        self.assertGreater(len(hostgroup_sc_params), 0)
-        self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
-        # Check that only unique results are returned
-        self.assertEqual(
-            len(hostgroup_sc_params),
-            len({scp['id'] for scp in hostgroup_sc_params})
-        )
-
-    @tier1
-    @upgrade
-    def test_positive_list_by_puppetclass_name(self):
-        """List all the parameters for specific puppet class by name.
-
-        :id: 6d62968f-dc5b-4d7f-ac21-c1335a827960
-
-        :expectedresults: Parameters listed for specific Puppet class.
-
-        :CaseImportance: Critical
-        """
-        sc_params = SmartClassParameter.list(
-            {'puppet-class': self.puppet_class['name']})
-        self.assertGreater(len(sc_params), 0)
-        self.assertTrue(
-            {scp['id'] for scp in self.sc_params_list}.issubset(
-                {scp['id'] for scp in sc_params})
-        )
-        # Check that only unique results are returned
-        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
-
-    @tier1
-    def test_positive_list_by_puppetclass_id(self):
-        """List all the parameters for specific puppet class by id.
-
-        :id: a7a8af1a-514b-4910-9e19-75306f634041
-
-        :expectedresults: Parameters listed for specific Puppet class.
-
-        :CaseImportance: Critical
-        """
-        sc_params = SmartClassParameter.list(
-            {'puppet-class-id': self.puppet_class['id']})
-        self.assertGreater(len(sc_params), 0)
-        self.assertTrue(
-            {scp['id'] for scp in self.sc_params_list}.issubset(
-                {scp['id'] for scp in sc_params})
-        )
-        # Check that only unique results are returned
-        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(sc_params),
+                len({scp['id'] for scp in sc_params}),
+                "Not only unique resutls returned for query: {}".format(query)
+            )
 
     @tier1
     def test_positive_list_with_non_admin_user(self):
