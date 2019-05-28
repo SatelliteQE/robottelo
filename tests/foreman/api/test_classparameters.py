@@ -31,7 +31,6 @@ from robottelo.decorators import (
     skip_if_bug_open,
     stubbed,
     tier1,
-    tier2,
     upgrade
 )
 from robottelo.test import APITestCase
@@ -158,53 +157,6 @@ class SmartClassParametersTestCase(APITestCase):
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
-
-    @tier1
-    def test_positive_import_twice_list_parameters_by_puppetclass_id(self):
-        """Import same puppet class twice (e.g. into different Content Views)
-        but list class parameters only for specific puppet class.
-
-        :id: c20a56fd-a328-44ce-81ce-52e315c95a81
-
-        :expectedresults: Parameters listed for specific Puppet class.
-
-        BZ: 1385351
-
-        :CaseImportance: Critical
-        """
-        cv = publish_puppet_module(
-            self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
-        env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cv.name)}
-        )[0].read()
-        puppet_class = entities.PuppetClass().search(query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
-                self.puppet_modules[0]['name'], env.name)
-        })[0]
-        result = puppet_class.list_scparams(
-            data={'per_page': 1000})['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
-
-    @tier2
-    def test_positive_list_parameters_by_environment_id(self):
-        """List all the parameters for specific environment by id.
-
-        :id: d4a06038-7405-4d75-b8ac-c43f48a3bc59
-
-        :expectedresults: Parameters listed for specific environment.
-
-        :CaseLevel: Integration
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.update(['override'])
-        self.assertEqual(sc_param.read().override, True)
-        result = self.env.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
 
     @tier1
     def test_positive_override(self):
