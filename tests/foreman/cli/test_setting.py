@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for Setting Parameter values
 
-:Requirement: Setting
+:Requirement: Test Cases for component Settings
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Settings
 
 :TestType: Functional
 
@@ -30,7 +30,12 @@ from robottelo.datafactory import (
     valid_url_list,
     xdist_adapter
 )
-from robottelo.decorators import stubbed, run_in_one_thread, tier1
+from robottelo.decorators import (
+    stubbed,
+    run_in_one_thread,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 from time import sleep
 
@@ -39,7 +44,7 @@ class SettingTestCase(CLITestCase):
     """Implements tests for Settings for CLI"""
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_update_hostname_with_empty_fact(self):
         """Update the Hostname_facts settings without any string(empty values)
 
@@ -51,7 +56,7 @@ class SettingTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @tier1
+    @tier2
     def test_positive_update_hostname_prefix_without_value(self):
         """Update the Hostname_prefix settings without any string(empty values)
 
@@ -129,7 +134,7 @@ class SettingTestCase(CLITestCase):
                 login_text = Settings.list({'search': 'name=login_text'})[0]
                 self.assertEqual(login_text_value, login_text['value'])
 
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text_without_value(self):
         """Updates parameter "login_text" without any string (empty value)
 
@@ -146,7 +151,7 @@ class SettingTestCase(CLITestCase):
         login_text = Settings.list({'search': 'name=login_text'})[0]
         self.assertEqual('', login_text['value'])
 
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text_with_long_string(self):
         """Attempt to update parameter "Login_page_footer_text"
             with long length string under General tab
@@ -416,6 +421,8 @@ class BruteForceLogin(CLITestCase):
             5. Wait timeout - 5 minutes + 1 second
             6. Verify you can now login fine
             7. Return the setting to previous value
+
+         :CaseImportance: Critical
 
          :expectedresults: failed_login_attempts_limit works as expected
 
