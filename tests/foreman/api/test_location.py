@@ -23,6 +23,7 @@ from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.cleanup import capsule_cleanup, location_cleanup
+from robottelo.constants import DEFAULT_LOC
 from robottelo.cli.factory import make_proxy
 from robottelo.decorators import (
     run_in_one_thread,
@@ -692,3 +693,19 @@ class LocationTestCase(APITestCase):
         location.smart_proxy = []
         location = location.update(['smart_proxy'])
         self.assertEqual(len(location.smart_proxy), 0)
+
+    @tier1
+    def test_default_loc_id_check(self):
+        """test to check the default_location id
+
+        :id: 3c89d63b-d5fb-4f05-9efb-f560f0194c85
+
+        :BZ: 1713269
+
+        :expectedresults: The default_location ID remain 2.
+
+        :CaseImportance: Critical
+        """
+        default_loc_id = entities.Location().search(
+            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+        self.assertEqual(default_loc_id, 2)

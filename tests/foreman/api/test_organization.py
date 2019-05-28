@@ -24,6 +24,7 @@ from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint, invalid_values_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2, upgrade
 from robottelo.helpers import get_nailgun_config
@@ -239,6 +240,22 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(err.exception.response.status_code, 404)
         self.assertIn(
             'Route overriden by Katello', err.exception.response.text)
+
+    @tier1
+    def test_default_org_id_check(self):
+        """test to check the default_organization id
+
+        :id: df066396-a069-4e9e-b3c1-c6d34a755ec0
+
+        :BZ: 1713269
+
+        :expectedresults: The default_organization ID remain 1.
+
+        :CaseImportance: Critical
+        """
+        default_org_id = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        self.assertEqual(default_org_id, 1)
 
 
 class OrganizationUpdateTestCase(APITestCase):
