@@ -94,5 +94,20 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_SMALL)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
         assert '{0} ({1})'.format(new_cr_name, FOREMAN_PROVIDERS['libvirt']) in profile_cr_names
+        session.computeresource.update_computeprofile(
+            new_cr_name,
+            COMPUTE_PROFILE_SMALL,
+            {
+                'provider_content.cpus': '16',
+                'provider_content.memory': '8 GB',
+            }
+        )
+        cr_profile_values = session.computeresource.read_computeprofile(
+            new_cr_name, COMPUTE_PROFILE_SMALL)
+        assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_SMALL
+        assert cr_profile_values['compute_resource'] == '{0} ({1})'.format(
+            new_cr_name, FOREMAN_PROVIDERS['libvirt'])
+        assert cr_profile_values['provider_content']['cpus'] == '16'
+        assert cr_profile_values['provider_content']['memory'] == '8 GB'
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)

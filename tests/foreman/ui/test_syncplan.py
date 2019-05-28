@@ -170,43 +170,6 @@ class SyncPlanTestCase(UITestCase):
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
 
-    @tier1
-    @upgrade
-    def test_positive_search_scoped(self):
-        """Test scoped search for different sync plan parameters
-
-        :id: 3a48513e-205d-47a3-978e-79b764cc74d9
-
-        :customerscenario: true
-
-        :expectedresults: Proper Sync Plan is found
-
-        :BZ: 1259374
-
-        :CaseImportance: High
-        """
-        name = gen_string('alpha')
-        start_date = datetime.utcnow() + timedelta(days=10)
-        entities.SyncPlan(
-            name=name,
-            interval=SYNC_INTERVAL['day'],
-            organization=self.organization,
-            enabled=True,
-            sync_date=start_date,
-        ).create()
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            for query_type, query_value in [
-                ('interval', SYNC_INTERVAL['day']),
-                ('enabled', 'true'),
-            ]:
-                self.assertIsNotNone(
-                    self.syncplan.search(
-                        name,
-                        _raw_query='{} = {}'.format(query_type, query_value)
-                    )
-                )
-
     @skip_if_bug_open('bugzilla', 1460146)
     @tier1
     def test_positive_update_name(self):

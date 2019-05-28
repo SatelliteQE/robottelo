@@ -16,7 +16,7 @@
 """
 import time
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from fauxfactory import gen_choice
 from nailgun import entities
 from pytest import raises
@@ -175,6 +175,42 @@ def test_positive_end_to_end_custom_cron(session):
         # Delete sync plan
         session.syncplan.delete(plan_name)
         assert not session.syncplan.search(plan_name)
+
+
+@tier2
+@upgrade
+def test_positive_search_scoped(session):
+    """Test scoped search for different sync plan parameters
+
+    :id: 3a48513e-205d-47a3-978e-79b764cc74d9
+
+    :customerscenario: true
+
+    :expectedresults: Search functionality provide proper results
+
+    :BZ: 1259374
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    start_date = datetime.utcnow() + timedelta(days=10)
+    org = entities.Organization().create()
+    entities.SyncPlan(
+        name=name,
+        interval=SYNC_INTERVAL['day'],
+        organization=org,
+        enabled=True,
+        sync_date=start_date,
+    ).create()
+    with session:
+        session.organization.select(org.name)
+        for query_type, query_value in [
+            ('interval', SYNC_INTERVAL['day']),
+            ('enabled', 'true'),
+        ]:
+            assert session.syncplan.search(
+                '{} = {}'.format(query_type, query_value))[0]['Name'] == name
+        assert not session.syncplan.search('enabled = false')
 
 
 @tier3
