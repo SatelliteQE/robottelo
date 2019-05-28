@@ -5,7 +5,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: Settings
 
@@ -38,6 +38,8 @@ class SettingTestCase(APITestCase):
         """Updates parameter "login_text" in settings
 
         :id: 91c5373d-b928-419d-8509-761adf5b94b0
+
+        :CaseImportance: Critical
 
         :expectedresults: Parameter is updated successfully
         """
@@ -129,6 +131,8 @@ class SettingTestCase(APITestCase):
 
         :id: 4969994d-f934-4f0e-9a98-476b87eb0527
 
+        :CaseImportance: Critical
+
         :expectedresults: Default set prefix should be updated with new value
         """
         hostname_prefix_id = [ele.id for ele in entities.Setting().search(
@@ -145,7 +149,7 @@ class SettingTestCase(APITestCase):
             setting_cleanup("discovery_prefix", original_value)
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_hostname_default_facts(self):
         """Update the default set fact of hostname_facts setting with list of
         facts like: bios_vendor,uuid
