@@ -24,12 +24,17 @@ import yaml
 
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
-from nailgun import entities, entity_mixins
-from time import sleep
+from nailgun import entities
+from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import ssh
-from robottelo.api.utils import create_role_permissions, promote, publish_puppet_module
+from robottelo.api.utils import (
+    call_entity_method_with_timeout,
+    create_role_permissions,
+    promote,
+    publish_puppet_module,
+)
 from robottelo.cli.factory import (
     make_content_view,
     make_host,
@@ -332,27 +337,21 @@ def module_libvirt_product(module_org):
 
 @pytest.fixture(scope='module')
 def module_libvirt_repository(os_path, module_libvirt_product):
-    old_task_timeout = entity_mixins.TASK_TIMEOUT
     repo = entities.Repository(
         product=module_libvirt_product, url=os_path).create()
-    entity_mixins.TASK_TIMEOUT = 3600
-    repo.sync()
-    entity_mixins.TASK_TIMEOUT = old_task_timeout
+    call_entity_method_with_timeout(entities.Repository(id=repo.id).sync, timeout=3600)
     return repo
 
 
 @pytest.fixture(scope='module')
 def module_libvirt_content_view(module_org, module_libvirt_repository, module_libvirt_lce):
     # Create, Publish and promote CV
-    old_task_timeout = entity_mixins.TASK_TIMEOUT
-    entity_mixins.TASK_TIMEOUT = 3600
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [module_libvirt_repository]
     content_view = content_view.update(['repository'])
-    content_view.publish()
+    call_entity_method_with_timeout(content_view.publish, timeout=3600)
     content_view = content_view.read()
     promote(content_view.version[0], module_libvirt_lce.id)
-    entity_mixins.TASK_TIMEOUT = old_task_timeout
     return content_view
 
 
@@ -1584,26 +1583,28 @@ def test_positive_provision_end_to_end(
             'host.deploy': module_libvirt_resource,
             'host.inherit_puppet_environment': False,
             'host.puppet_environment': puppet_env.name,
-            'virtual_machine.memory': '1 GB',
+            'provider_content.virtual_machine.memory': '1 GB',
             'operating_system.root_password': root_pwd,
             'interfaces.interface.network_type': 'Physical (Bridge)',
             'interfaces.interface.network': settings.vlan_networking.bridge,
+            'additional_information.comment': 'Libvirt provision using valid data'
         })
         name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
         assert session.host.search(name)[0]['Name'] == name
-        try:
-            for _ in range(25):
-                values = session.host.get_details(name)
-                if values['properties']['properties_table']['Build'] == 'Pending installation':
-                    sleep(30)
-                    session.browser.refresh()
-                else:
-                    break
-        finally:
-            entities.Host(
-                id=entities.Host().search(query={'search': 'name={}'.format(name)})[0].id
-            ).delete()
-        assert values['properties']['properties_table']['Build'] == 'Installed'
+        wait_for(
+            lambda: session.host.get_details(name)[
+                'properties']['properties_table']['Build'] != 'Pending installation',
+            timeout=900,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        entities.Host(
+            id=entities.Host().search(query={'search': 'name={}'.format(name)})[0].id
+        ).delete()
+        assert session.host.get_details(
+            name)['properties']['properties_table']['Build'] == 'Installed'
 
 
 @tier3
@@ -1644,14 +1645,15 @@ def test_positive_delete_libvirt(
             'host.deploy': module_libvirt_resource,
             'host.inherit_puppet_environment': False,
             'host.puppet_environment': puppet_env.name,
-            'virtual_machine.memory': '1 GB',
+            'provider_content.virtual_machine.memory': '1 GB',
             'operating_system.root_password': root_pwd,
             'interfaces.interface.network_type': 'Physical (Bridge)',
             'interfaces.interface.network': settings.vlan_networking.bridge,
+            'additional_information.comment': 'Delete host that provisioned on Libvirt'
         })
         name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
         assert session.host.search(name)[0]['Name'] == name
-        message = session.host.delete(name, get_alert_text=True)
+        message = session.host.delete(name)
         assert (
             'Are you sure you want to delete host {}? This will delete the VM and '
             'its disks, and is irreversible. This behavior can be changed via global '

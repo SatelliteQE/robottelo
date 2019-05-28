@@ -18,6 +18,7 @@
 from nailgun import entities
 
 from robottelo.constants import (
+    CONTENT_CREDENTIALS_TYPES,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
@@ -62,7 +63,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         # Create new gpg key with valid content
         session.contentcredential.create({
             'name': name,
-            'content_type': 'GPG Key',
+            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
             'content': gpg_content
         })
         assert session.contentcredential.search(name)[0]['Name'] == name
@@ -72,7 +73,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         repo = entities.Repository(product=product).create()
         values = session.contentcredential.read(name)
         assert values['details']['name'] == name
-        assert values['details']['content_type'] == 'GPG Key'
+        assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['gpg']
         # transform string for comparison
         transformed_string = gpg_content.replace('\n', ' ')
         transformed_string = transformed_string.replace('  ', ' ')
@@ -112,7 +113,7 @@ def test_positive_search_scoped(session, gpg_content):
         session.organization.select(org.name)
         session.contentcredential.create({
             'name': name,
-            'content_type': 'GPG Key',
+            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
             'content': gpg_content
         })
         assert session.contentcredential.search(
@@ -141,7 +142,7 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
         values = session.contentcredential.read(gpg_key.name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == prod_name
-        assert values['products']['table'][0]['Used as'] == 'GPG Key'
+        assert values['products']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
 
 
 @tier2
@@ -189,7 +190,7 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
         assert values['repositories']['table'][0]['Type'] == 'yum'
         assert (
             values['repositories']['table'][0]['Used as'] ==
-            'GPG Key'
+            CONTENT_CREDENTIALS_TYPES['gpg']
         )
 
 
@@ -340,7 +341,7 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
     with session:
         session.contentcredential.create({
             'name': name,
-            'content_type': 'GPG Key',
+            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
             'upload_file': gpg_path
         })
         assert session.contentcredential.search(name)[0]['Name'] == name
@@ -382,7 +383,7 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
     with session:
         session.contentcredential.create({
             'name': name,
-            'content_type': 'GPG Key',
+            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
             'upload_file': gpg_path
         })
         assert session.contentcredential.search(name)[0]['Name'] == name
@@ -438,7 +439,7 @@ def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path)
     with session:
         session.contentcredential.create({
             'name': name,
-            'content_type': 'GPG Key',
+            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
             'upload_file': gpg_path
         })
         assert session.contentcredential.search(name)[0]['Name'] == name
