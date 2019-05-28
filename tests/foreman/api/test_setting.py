@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for Setting Parameter values
 
-:Requirement: Setting
+:Requirement: Settings
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Settings
 
 :TestType: Functional
 
@@ -18,7 +18,13 @@
 from nailgun import entities
 from robottelo.cleanup import setting_cleanup
 from robottelo.datafactory import generate_strings_list, valid_data_list
-from robottelo.decorators import run_in_one_thread, stubbed, tier1, upgrade
+from robottelo.decorators import (
+    stubbed,
+    run_in_one_thread,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import APITestCase
 
 
@@ -32,6 +38,8 @@ class SettingTestCase(APITestCase):
         """Updates parameter "login_text" in settings
 
         :id: 91c5373d-b928-419d-8509-761adf5b94b0
+
+        :CaseImportance: Critical
 
         :expectedresults: Parameter is updated successfully
         """
@@ -47,7 +55,7 @@ class SettingTestCase(APITestCase):
                 self.assertEqual(login.value, login_text)
 
     @run_in_one_thread
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text_without_value(self):
         """Updates parameter "login_text" without any string (empty value)
 
@@ -65,7 +73,7 @@ class SettingTestCase(APITestCase):
         self.assertEqual(login.value, "")
 
     @run_in_one_thread
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text_with_long_string(self):
         """Attempt to update parameter "Login_page_footer_text"
             with long length string
@@ -86,7 +94,7 @@ class SettingTestCase(APITestCase):
                 self.assertEqual(login.value, login_text)
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_update_hostname_with_empty_fact(self):
         """Update the Hostname_facts settings without any string(empty values)
 
@@ -98,7 +106,7 @@ class SettingTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @tier1
+    @tier2
     def test_positive_update_hostname_prefix_without_value(self):
         """Update the Hostname_prefix settings without any string(empty values)
 
@@ -123,6 +131,8 @@ class SettingTestCase(APITestCase):
 
         :id: 4969994d-f934-4f0e-9a98-476b87eb0527
 
+        :CaseImportance: Critical
+
         :expectedresults: Default set prefix should be updated with new value
         """
         hostname_prefix_id = [ele.id for ele in entities.Setting().search(
@@ -139,7 +149,7 @@ class SettingTestCase(APITestCase):
             setting_cleanup("discovery_prefix", original_value)
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_hostname_default_facts(self):
         """Update the default set fact of hostname_facts setting with list of
         facts like: bios_vendor,uuid
@@ -152,7 +162,7 @@ class SettingTestCase(APITestCase):
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_discover_host_with_invalid_prefix(self):
         """Update the hostname_prefix with invalid string like
         -mac, 1mac or ^%$

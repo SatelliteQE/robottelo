@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for Setting Parameter values
 
-:Requirement: Setting
+:Requirement: Settings
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: Settings
 
 :TestType: Functional
 
@@ -30,7 +30,12 @@ from robottelo.datafactory import (
     valid_url_list,
     xdist_adapter
 )
-from robottelo.decorators import stubbed, run_in_one_thread, tier1
+from robottelo.decorators import (
+    stubbed,
+    run_in_one_thread,
+    tier2,
+    tier3,
+)
 from robottelo.test import CLITestCase
 from time import sleep
 
@@ -39,7 +44,7 @@ class SettingTestCase(CLITestCase):
     """Implements tests for Settings for CLI"""
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_update_hostname_with_empty_fact(self):
         """Update the Hostname_facts settings without any string(empty values)
 
@@ -51,7 +56,7 @@ class SettingTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @tier1
+    @tier2
     def test_positive_update_hostname_prefix_without_value(self):
         """Update the Hostname_prefix settings without any string(empty values)
 
@@ -65,7 +70,7 @@ class SettingTestCase(CLITestCase):
         })[0]
         self.assertEqual('', discovery_prefix['value'])
 
-    @tier1
+    @tier2
     def test_positive_update_hostname_default_prefix(self):
         """Update the default set prefix of hostname_prefix setting
 
@@ -84,7 +89,7 @@ class SettingTestCase(CLITestCase):
         self.assertEqual(hostname_prefix_value, discovery_prefix['value'])
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_hostname_default_facts(self):
         """Update the default set fact of hostname_facts setting with list of
         facts like: bios_vendor,uuid
@@ -97,7 +102,7 @@ class SettingTestCase(CLITestCase):
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_discover_host_with_invalid_prefix(self):
         """Update the hostname_prefix with invalid string like
         -mac, 1mac or ^%$
@@ -110,7 +115,7 @@ class SettingTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text(self):
         """Updates parameter "login_text" in settings
 
@@ -129,7 +134,7 @@ class SettingTestCase(CLITestCase):
                 login_text = Settings.list({'search': 'name=login_text'})[0]
                 self.assertEqual(login_text_value, login_text['value'])
 
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text_without_value(self):
         """Updates parameter "login_text" without any string (empty value)
 
@@ -146,7 +151,7 @@ class SettingTestCase(CLITestCase):
         login_text = Settings.list({'search': 'name=login_text'})[0]
         self.assertEqual('', login_text['value'])
 
-    @tier1
+    @tier2
     def test_positive_update_login_page_footer_text_with_long_string(self):
         """Attempt to update parameter "Login_page_footer_text"
             with long length string under General tab
@@ -168,7 +173,7 @@ class SettingTestCase(CLITestCase):
                 self.assertEqual(login_text_value, login_text['value'])
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_email_delivery_method_smtp(self):
         """Check Updating SMTP params through settings subcommand
 
@@ -194,7 +199,7 @@ class SettingTestCase(CLITestCase):
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_email_delivery_method_sendmail(self):
         """Check Updating Sendmail params through settings subcommand
 
@@ -213,7 +218,7 @@ class SettingTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @tier1
+    @tier2
     def test_positive_update_email_reply_address(self):
         """Check email reply address is updated
 
@@ -239,7 +244,7 @@ class SettingTestCase(CLITestCase):
                 }, output_format='json')[0]
                 self.assertEqual(email_reply_address['value'], email)
 
-    @tier1
+    @tier2
     def test_negative_update_email_reply_address(self):
         """Check email reply address is not updated
 
@@ -261,7 +266,7 @@ class SettingTestCase(CLITestCase):
                         'value': email
                     })
 
-    @tier1
+    @tier2
     def test_positive_update_email_subject_prefix(self):
         """Check email subject prefix is updated
 
@@ -287,7 +292,7 @@ class SettingTestCase(CLITestCase):
         )
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_update_email_subject_prefix(self):
         """Check email subject prefix not
 
@@ -302,7 +307,7 @@ class SettingTestCase(CLITestCase):
         :CaseImportance: Low
         """
 
-    @tier1
+    @tier2
     def test_positive_update_send_welcome_email(self):
         """Check email send welcome email is updated
 
@@ -322,7 +327,7 @@ class SettingTestCase(CLITestCase):
               {'search': 'name=send_welcome_email'})[0]['value']
             assert value == host_value
 
-    @tier1
+    @tier2
     def test_positive_enable_disable_rssfeed(self):
         """Check if the RSS feed can be enabled or disabled
 
@@ -341,7 +346,7 @@ class SettingTestCase(CLITestCase):
             self.assertEqual(value, rss_setting['value'])
         Settings.set({'name': 'rss_enable', 'value': orig_value})
 
-    @tier1
+    @tier2
     def test_positive_update_rssfeed_url(self):
         """Check if the RSS feed URL is updated
 
@@ -366,7 +371,7 @@ class SettingTestCase(CLITestCase):
 
 
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
-@tier1
+@tier2
 def test_negative_update_send_welcome_email(value):
     """Check email send welcome email is updated
 
@@ -402,7 +407,7 @@ class BruteForceLogin(CLITestCase):
             u'name': u'failed_login_attempts_limit',
             u'value': cls.host_value})
 
-    @tier1
+    @tier3
     def test_positive_failed_login_attempts_limit(self):
         """automate brute force protection limit configurable function
 
@@ -416,6 +421,10 @@ class BruteForceLogin(CLITestCase):
             5. Wait timeout - 5 minutes + 1 second
             6. Verify you can now login fine
             7. Return the setting to previous value
+
+         :CaseImportance: Critical
+
+         :CaseLevel: System
 
          :expectedresults: failed_login_attempts_limit works as expected
 
