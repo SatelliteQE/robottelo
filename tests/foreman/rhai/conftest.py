@@ -19,7 +19,7 @@ def module_org():
     :rtype: :class:`nailgun.entities.Organization`
     """
     default_org_id = nailgun.entities.Organization().search(
-        query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].i
+        query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
     return nailgun.entities.Organization(id=default_org_id).read()
 
 
