@@ -9,9 +9,9 @@ http://www.katello.org/docs/api/apidoc/repository_sets.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Repositories
 
 :TestType: Functional
 

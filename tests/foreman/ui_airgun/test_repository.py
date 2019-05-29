@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: UI
+:CaseComponent: Repositories
 
 :TestType: Functional
 
@@ -736,7 +736,6 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
-@skip_if_bug_open('bugzilla', 1670125)
 @tier2
 def test_positive_reposet_disable(session):
     """Enable RH repo, sync it and then disable
@@ -773,7 +772,6 @@ def test_positive_reposet_disable(session):
             'name = "{0}"'.format(repository_name), category='Enabled')
 
 
-@skip_if_bug_open('bugzilla', 1670125)
 @run_in_one_thread
 @tier2
 def test_positive_reposet_disable_after_manifest_deleted(session):

@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Repositories
 
 :TestType: Functional
 
@@ -68,7 +68,6 @@ from robottelo.decorators import (
     tier1,
     tier2,
     stubbed,
-    tier4,
     upgrade
 )
 from robottelo.decorators.host import skip_if_os
@@ -627,7 +626,6 @@ class RepositoryTestCase(APITestCase):
             repo.update(['download_policy'])
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1654944)
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with
         download policy
@@ -974,7 +972,6 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328092)
     @tier2
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
@@ -1003,7 +1000,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328092)
     @tier2
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
@@ -1031,7 +1027,6 @@ class RepositoryTestCase(APITestCase):
                     repo.sync()
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328092)
     @tier2
     @upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
@@ -1062,7 +1057,6 @@ class RepositoryTestCase(APITestCase):
                     repo.read().content_counts['puppet_module'], 1)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1459845)
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
@@ -1273,7 +1267,7 @@ class RepositoryTestCase(APITestCase):
             repo_data_file_url, cert=cert_file_path, verify=False)
         self.assertEqual(response.status_code, 200)
 
-    @tier2
+    @tier1
     @upgrade
     def test_module_stream_repository_crud_operations(self):
         """Verify that module stream api calls works with product having other type
@@ -1383,7 +1377,7 @@ class DockerRepositoryTestCase(APITestCase):
                     repo.docker_upstream_name, u'busybox')
                 self.assertEqual(repo.content_type, u'docker')
 
-    @tier2
+    @tier1
     @run_only_on('sat')
     def test_positive_synchronize(self):
         """Create and sync a Docker-type repository
@@ -1393,7 +1387,7 @@ class DockerRepositoryTestCase(APITestCase):
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
 
-        :CaseLevel: Integration
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
@@ -2020,6 +2014,8 @@ class FileRepositoryTestCase(APITestCase):
 
         :expectedresults: uploaded file is available under File Repository
 
+        :CaseImportance: Critical
+
         :CaseAutomation: notautomated
         """
 
@@ -2037,6 +2033,8 @@ class FileRepositoryTestCase(APITestCase):
         :Steps: Retrieve file permissions from File Repository
 
         :expectedresults: uploaded file permissions are kept after upload
+
+        :CaseImportance: Critical
 
         :CaseAutomation: notautomated
         """
@@ -2058,11 +2056,13 @@ class FileRepositoryTestCase(APITestCase):
         :expectedresults: file is not listed under File Repository after
             removal
 
+        :CaseImportance: Critical
+
         :CaseAutomation: notautomated
         """
 
     @stubbed()
-    @tier4
+    @tier2
     @upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
@@ -2104,6 +2104,8 @@ class FileRepositoryTestCase(APITestCase):
 
         :expectedresults: entire directory is synced
 
+        :CaseImportance: Critical
+
         :CaseAutomation: notautomated
         """
 
@@ -2126,6 +2128,8 @@ class FileRepositoryTestCase(APITestCase):
 
         :expectedresults: entire directory is synced, including files
             referred by symlinks
+
+        :CaseImportance: Critical
 
         :CaseAutomation: notautomated
         """

@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: GPGKeys
 
 :TestType: Functional
 
@@ -42,7 +42,6 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    tier3,
     upgrade,
 )
 from robottelo.helpers import get_data_file
@@ -1172,7 +1171,7 @@ class TestGPGKey(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @tier3
+    @tier2
     def test_positive_consume_content_using_repo(self):
         """Hosts can install packages using gpg key associated with
         single custom repository
@@ -1183,12 +1182,12 @@ class TestGPGKey(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @stubbed()
     @run_only_on('sat')
-    @tier3
+    @tier2
     @upgrade
     def test_positive_consume_content_using_repos(self):
         """Hosts can install packages using gpg key associated with
@@ -1200,12 +1199,12 @@ class TestGPGKey(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @stubbed()
     @run_only_on('sat')
-    @tier3
+    @tier2
     def test_positive_consume_content_using_repos_and_different_keys(self):
         """Hosts can install packages using different gpg keys
         associated with multiple custom repositories
@@ -1216,7 +1215,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     # Miscelaneous
