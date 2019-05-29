@@ -113,6 +113,10 @@ ssh_key=
 # rhel6_os=http://example.com/yum/rhel6-os/
 # rhel7_os=http://example.com/yum/rhel7-os/
 
+# RHEL 8 repos
+# rhel8_os=baseos=http://example.com/rhel-8/BaseOS/x86_64/os/,appstream=http://example.com/rhel-8/AppStream/x86_64/os/
+
+
 # If capsule and satellite tools repositories available related packages will
 # be pulled from there instead of using the CDN channel. These information is
 # more suited to be used for downstream, downstream-iso and zstream builds.
@@ -120,6 +124,10 @@ ssh_key=
 # sattools_repo=
 #   rhel6=http://sattools/repo/el6,
 #   rhel7=http://sattools/repo/el7,
+
+# Added swid_tools_repo for installing swid-tools and dnf-plugin-swidtags packages
+# which are essentially required for generating swid tags in RHEL8 content host.
+# swid_tools_repo=https://example.com/swid-rhel-8.repo
 
 # Bugzilla data to authenticate API calls
 # [bugzilla]

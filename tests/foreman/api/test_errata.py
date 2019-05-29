@@ -22,11 +22,14 @@ from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
+from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_SWID_TAG_REPO,
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
+    DISTRO_RHEL8,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -53,6 +56,12 @@ from robottelo.decorators import (
     tier3,
     upgrade
 )
+from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.products import (
+    YumRepository,
+    RepositoryCollection,
+)
+
 from robottelo.test import APITestCase
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
 from robottelo.vm import VirtualMachine
@@ -823,3 +832,129 @@ class ErrataTestCase(APITestCase):
 
         :CaseLevel: System
         """
+
+
+@run_in_one_thread
+class ErrataSwidTagsTestCase(APITestCase):
+    """API Tests for the errata management feature with swid tags"""
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        super(ErrataSwidTagsTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
+        cls.repos_collection = RepositoryCollection(
+            distro=DISTRO_RHEL8,
+            repositories=[
+                YumRepository(url=CUSTOM_SWID_TAG_REPO),
+            ]
+        )
+        cls.repos_collection.setup_content(
+            cls.org.id,
+            cls.lce.id,
+            upload_manifest=True
+        )
+
+    def _run_remote_command_on_content_host(self, command, vm, return_result=False):
+        result = vm.run(command)
+        self.assertEquals(result.return_code, 0)
+        if return_result:
+            return result.stdout
+
+    def _set_prerequisites_for_swid_repos(self, vm):
+        self._run_remote_command_on_content_host(
+            "wget --no-check-certificate {}".format(settings.swid_tools_repo),
+            vm)
+        self._run_remote_command_on_content_host("mv *swid*.repo /etc/yum.repos.d", vm)
+        self._run_remote_command_on_content_host("yum install -y swid-tools", vm)
+        self._run_remote_command_on_content_host("dnf install -y dnf-plugin-swidtags", vm)
+
+    def _validate_swid_tags_installed(self, vm, module_name):
+        result = self._run_remote_command_on_content_host(
+            "swidq -i -n {} | grep 'Name'".format(module_name),
+            vm,
+            return_result=True)
+        self.assertIn(module_name, result)
+
+    @tier3
+    @upgrade
+    def test_errata_installation_with_swidtags(self):
+        """Verify errata installation with swid_tags and swid tags get updated after
+        module stream update.
+
+        :id: 43a59b9a-eb9b-4174-8b8e-73d923b1e51e
+
+        :steps:
+
+            1. create product and repository having swid tags
+            2. create content view and published it with repository
+            3. create activation key and register content host
+            4. create rhel8, swid repos on content host
+            5. install swid-tools, dnf-plugin-swidtags packages on content host
+            6. install older module stream and generate errata, swid tag
+            7. assert errata count, swid tags are generated
+            8. install errata vis updating module stream
+            9. assert errata count and swid tag after module update
+
+        :expectedresults: swid tags should get updated after errata installation via
+            module stream update
+
+        :CaseAutomation: Automated
+
+        :CaseImportance: Critical
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=self.repos_collection.distro) as vm:
+            module_name = 'kangaroo'
+            version = '20180704111719'
+            # setup rhel8 and sat_tools_repos
+            vm.create_custom_repos(**{
+                repo_name: settings.rhel8_os[repo_name] for repo_name in ('baseos', 'appstream')
+            })
+            self.repos_collection.setup_virtual_machine(
+                vm,
+                install_katello_agent=False)
+
+            # install older module stream
+            add_remote_execution_ssh_key(vm.ip_addr)
+            self._set_prerequisites_for_swid_repos(vm=vm)
+            self._run_remote_command_on_content_host(
+                'dnf -y module install {}:0:{}'.format(module_name, version),
+                vm)
+
+            # validate swid tags Installed
+            before_errata_apply_result = self._run_remote_command_on_content_host(
+                "swidq -i -n {} | grep 'File' | grep -o 'rpm-.*.swidtag'".format(module_name),
+                vm,
+                return_result=True)
+            self.assertNotEqual(before_errata_apply_result, '')
+            host = entities.Host().search(query={
+                'search': 'name={0}'.format(vm.hostname)})[0]
+            host = host.read()
+            applicable_errata_count = host.content_facet_attributes[
+                'errata_counts']['total']
+            self.assertEquals(applicable_errata_count, 1)
+
+            # apply modular errata
+            self._run_remote_command_on_content_host(
+                'dnf -y module update {}'.format(module_name),
+                vm)
+            self._run_remote_command_on_content_host(
+                'dnf -y upload-profile',
+                vm)
+            host = host.read()
+            applicable_errata_count -= 1
+            self.assertEqual(
+                host.content_facet_attributes['errata_counts']['total'],
+                applicable_errata_count
+            )
+            after_errata_apply_result = self._run_remote_command_on_content_host(
+                "swidq -i -n {} | grep 'File'| grep -o 'rpm-.*.swidtag'".format(module_name),
+                vm,
+                return_result=True)
+
+            # swidtags get updated based on package version
+            self.assertNotEqual(before_errata_apply_result, after_errata_apply_result)

@@ -22,8 +22,13 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import (
+    CUSTOM_REPODATA_PATH,
+    CUSTOM_SWID_TAG_REPO,
+    DOCKER_REGISTRY_HUB
+)
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
@@ -265,6 +270,69 @@ class ContentViewFilterTestCase(APITestCase):
         self.assertEqual(len(cvf.repository), 2)
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
+
+    @tier2
+    def test_positive_publish_with_content_view_filter_and_swid_tags(self):
+        """Verify SWID tags content file should exist in publish content view
+        version location even after applying content view filters.
+
+        :id: 00ac640f-1dfc-4083-8405-5164650d71b5
+
+        :steps:
+            1. create product and repository with custom contents having swid tags
+            2. sync the repository
+            3. create the content view
+            4. create content view filter
+            5. apply content view filter to repository
+            6. publish the content-view
+            7. ssh into Satellite
+            8. verify SWID tags content file exist in publish content view version location
+
+        :expectedresults: SWID tags content file should exist in publish content view
+            version location
+
+        :CaseAutomation: Automated
+
+        :CaseImportance: High
+
+        :CaseLevel: Integration
+        """
+        swid_tag_repository = entities.Repository(
+            product=self.product,
+            url=CUSTOM_SWID_TAG_REPO
+        ).create()
+        swid_tag_repository.sync()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [swid_tag_repository]
+        content_view.update(['repository'])
+
+        cv_filter = entities.RPMContentViewFilter(
+            content_view=content_view,
+            inclusion=True,
+            repository=[swid_tag_repository],
+        ).create()
+        self.assertEqual(len(cv_filter.repository), 1)
+        cv_filter_rule = entities.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            name='walrus',
+            version='1.0',
+        ).create()
+        self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
+        content_view.publish()
+        content_view = content_view.read()
+        content_view_version_info = content_view.version[0].read()
+        self.assertEqual(len(content_view.repository), 1)
+        self.assertEqual(len(content_view.version), 1)
+        swid_repo_path = "{}/{}/content_views/{}/{}/custom/{}/{}/repodata".format(
+            CUSTOM_REPODATA_PATH,
+            self.org.name,
+            content_view.name,
+            content_view_version_info.version,
+            self.product.name,
+            swid_tag_repository.name
+        )
+        result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
+        assert result.return_code == 0
 
     @tier2
     @run_only_on('sat')
