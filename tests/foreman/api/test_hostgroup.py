@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: HostGroup
 
 :TestType: Functional
 
@@ -15,16 +15,17 @@
 
 :Upstream: No
 """
+from random import randint
+
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
-from random import randint
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import promote, one_to_one_names
 from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list, valid_hostgroups_list
 from robottelo.decorators import (
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -45,7 +46,6 @@ class HostGroupTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
 
-    @skip_if_bug_open('bugzilla', 1487586)
     @upgrade
     @tier3
     def test_verify_bugzilla_1107708(self):
@@ -58,7 +58,7 @@ class HostGroupTestCase(APITestCase):
         :expectedresults: Host inherited 'all_puppetclasses' details from
             HostGroup that was used for such Host create procedure
 
-        :BZ: 1222118, 1487586
+        :BZ: 1107708, 1222118, 1487586
 
         :CaseLevel: System
         """
@@ -251,8 +251,6 @@ class HostGroupTestCase(APITestCase):
 
         :expectedresults: A hostgroup is created with expected parent hostgroup
             assigned
-
-        :CaseLevel: Integration
         """
         parent_hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -389,7 +387,7 @@ class HostGroupTestCase(APITestCase):
         ).create()
         self.assertEqual(hostgroup.ptable.read().name, ptable.name)
 
-    @tier1
+    @tier2
     def test_positive_create_with_puppet_ca_proxy(self):
         """Create a hostgroup with puppet CA proxy specified
 
@@ -398,7 +396,7 @@ class HostGroupTestCase(APITestCase):
         :expectedresults: A hostgroup is created with expected puppet CA proxy
             assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -478,7 +476,7 @@ class HostGroupTestCase(APITestCase):
         ).create()
         self.assertEqual(hostgroup.realm.read().name, realm.name)
 
-    @tier1
+    @tier2
     def test_positive_create_with_puppet_proxy(self):
         """Create a hostgroup with puppet proxy specified
 
@@ -487,7 +485,7 @@ class HostGroupTestCase(APITestCase):
         :expectedresults: A hostgroup is created with expected puppet proxy
             assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -499,7 +497,7 @@ class HostGroupTestCase(APITestCase):
         ).create()
         self.assertEqual(hostgroup.puppet_proxy.read().name, proxy.name)
 
-    @tier1
+    @tier2
     def test_positive_create_with_content_source(self):
         """Create a hostgroup with content source specified
 
@@ -508,7 +506,7 @@ class HostGroupTestCase(APITestCase):
         :expectedresults: A hostgroup is created with expected content source
             assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         content_source = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -610,7 +608,6 @@ class HostGroupTestCase(APITestCase):
         )
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_name(self):
         """Update a hostgroup with a new name
 
@@ -632,15 +629,12 @@ class HostGroupTestCase(APITestCase):
 
     @tier2
     @upgrade
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_parent(self):
         """Update a hostgroup with a new parent hostgroup
 
         :id: 6766d2e6-2305-49db-8db5-8417cf00b0a8
 
         :expectedresults: A hostgroup is updated with expected parent hostgroup
-
-        :CaseLevel: Integration
         """
         parent = entities.HostGroup(
             location=[self.loc],
@@ -660,7 +654,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.parent.read().name, new_parent.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_env(self):
         """Update a hostgroup with a new environment
 
@@ -688,7 +681,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.environment.read().name, new_env.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_os(self):
         """Update a hostgroup with a new operating system
 
@@ -720,7 +712,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.operatingsystem.read().name, new_os.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_arch(self):
         """Update a hostgroup with a new architecture
 
@@ -741,7 +732,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.architecture.read().name, new_arch.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_media(self):
         """Update a hostgroup with a new media
 
@@ -780,7 +770,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.medium.read().name, new_media.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_ptable(self):
         """Update a hostgroup with a new partition table
 
@@ -810,8 +799,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['ptable'])
         self.assertEqual(hostgroup.ptable.read().name, new_ptable.name)
 
-    @tier1
-    @skip_if_bug_open('bugzilla', 1378009)
+    @tier2
     def test_positive_update_puppet_ca_proxy(self):
         """Update a hostgroup with a new puppet CA proxy
 
@@ -819,7 +807,7 @@ class HostGroupTestCase(APITestCase):
 
         :expectedresults: A hostgroup is updated with expected puppet CA proxy
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -833,7 +821,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_subnet(self):
         """Update a hostgroup with a new subnet
 
@@ -861,7 +848,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.subnet.read().name, new_subnet.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_domain(self):
         """Update a hostgroup with a new domain
 
@@ -924,8 +910,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['realm'])
         self.assertEqual(hostgroup.realm.read().name, new_realm.name)
 
-    @tier1
-    @skip_if_bug_open('bugzilla', 1378009)
+    @tier2
     def test_positive_update_puppet_proxy(self):
         """Update a hostgroup with a new puppet proxy
 
@@ -933,7 +918,7 @@ class HostGroupTestCase(APITestCase):
 
         :expectedresults: A hostgroup is updated with expected puppet proxy
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -946,8 +931,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['puppet_proxy'])
         self.assertEqual(hostgroup.puppet_proxy.read().name, new_proxy.name)
 
-    @tier1
-    @skip_if_bug_open('bugzilla', 1378009)
+    @tier2
     def test_positive_update_content_source(self):
         """Update a hostgroup with a new puppet proxy
 
@@ -955,7 +939,7 @@ class HostGroupTestCase(APITestCase):
 
         :expectedresults: A hostgroup is updated with expected puppet proxy
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -970,7 +954,6 @@ class HostGroupTestCase(APITestCase):
             hostgroup.content_source.read().name, new_content_source.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_cv(self):
         """Update a hostgroup with a new content view
 
@@ -1000,7 +983,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.content_view.read().name, new_cv.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_lce(self):
         """Update a hostgroup with a new lifecycle environment
 
@@ -1024,7 +1006,6 @@ class HostGroupTestCase(APITestCase):
             hostgroup.lifecycle_environment.read().name, new_lce.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_loc(self):
         """Update a hostgroup with a new location
 
@@ -1044,7 +1025,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.location[0].read().name, new_loc.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_org(self):
         """Update a hostgroup with a new organization
 
@@ -1064,7 +1044,6 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.organization[0].read().name, new_org.name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_locs(self):
         """Update a hostgroup with new multiple locations
 
@@ -1090,7 +1069,6 @@ class HostGroupTestCase(APITestCase):
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_orgs(self):
         """Update a hostgroup with new multiple organizations
 
@@ -1191,7 +1169,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         host_group = entities.HostGroup().create()
         cls.host_group_attrs = set(host_group.read_json().keys())
 
-    @tier1
+    @tier2
     def test_positive_get_content_source(self):
         """Read a host group. Inspect the server's response.
 
@@ -1200,7 +1178,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :expectedresults: The response contains both values for the
             ``content_source`` field.
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         names = one_to_one_names('content_source')
         self.assertTrue(
@@ -1211,7 +1189,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
             )
         )
 
-    @tier1
+    @tier2
     def test_positive_get_cv(self):
         """Read a host group. Inspect the server's response.
 
@@ -1220,7 +1198,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :expectedresults: The response contains both values for the
             ``content_view`` field.
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         names = one_to_one_names('content_view')
         self.assertTrue(
@@ -1231,7 +1209,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
             )
         )
 
-    @tier1
+    @tier2
     def test_positive_get_lce(self):
         """Read a host group. Inspect the server's response.
 
@@ -1240,7 +1218,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :expectedresults: The response contains both values for the
             ``lifecycle_environment`` field.
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         names = one_to_one_names('lifecycle_environment')
         self.assertTrue(
@@ -1251,7 +1229,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
             )
         )
 
-    @tier1
+    @tier2
     def test_positive_read_puppet_proxy_name(self):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
@@ -1262,7 +1240,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :BZ: 1371900
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1271,7 +1249,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         self.assertIn('puppet_proxy_name', hg)
         self.assertEqual(proxy.name, hg['puppet_proxy_name'])
 
-    @tier1
+    @tier2
     def test_positive_read_puppet_ca_proxy_name(self):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response
@@ -1282,7 +1260,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :BZ: 1371900
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
