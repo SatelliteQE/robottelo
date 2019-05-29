@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: GPGKeys
 
 :TestType: Functional
 
@@ -1183,7 +1183,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -1200,7 +1200,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -1216,7 +1216,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     # Miscelaneous

@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: Repositories
 
 :TestType: Functional
 
@@ -783,7 +783,6 @@ class RepositoryTestCase(CLITestCase):
             })
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1654944)
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with download
         policy
@@ -2108,7 +2107,6 @@ class OstreeRepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['content-type'], u'ostree')
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1370108)
     def test_negative_create_ostree_repo_with_checksum(self):
         """Create a ostree repository with checksum type
 
@@ -2734,6 +2732,8 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: uploaded file permissions are kept after upload
 
         :CaseAutomation: notautomated
+
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -2752,6 +2752,7 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: file is not listed under File Repository after
             removal
 
+        :CaseImportance: Critical
         """
         new_repo = make_repository({
             'content-type': 'file',
