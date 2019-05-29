@@ -614,13 +614,14 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         result = ssh.command("tar -t -f {}".format(exported_tar))
-        contents_tar = 'export-{cv_name}-{cvv_id}/export-{cv_name}-{cvv_id}-repos.tar'.format(
-            cv_name=self.exporting_cv_name, cvv_id=self.exporting_cvv_id)
+        contents_tar = 'export-{0}-{1}/export-{0}-{1}-repos.tar'.format(
+            self.exporting_cv_name, exporting_cvv_version)
         self.assertIn(contents_tar, result.stdout)
         cvv_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(cvv_packages) > 0)
@@ -665,8 +666,9 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': promoted_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
@@ -707,8 +709,9 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         self.set_importing_org(
             self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
         ContentView.version_import({
@@ -749,8 +752,9 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
@@ -794,8 +798,9 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         importing_org = make_org()
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_import({
@@ -833,8 +838,9 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         importing_org = make_org()
         make_content_view({
             'name': self.exporting_cv_name,
@@ -972,14 +978,15 @@ class ContentViewSync(CLITestCase):
         })
         Repository.synchronize({'id': repo['id']})
         exporting_cv_name = gen_string('alpha')
-        _, exporting_cvv_id = ContentViewSync._create_cv(
+        exporting_cv, exporting_cvv_id = ContentViewSync._create_cv(
             exporting_cv_name, repo, self.exporting_org)
         ContentView.version_export({
             'export-dir': '{}'.format(self.export_base),
             'id': exporting_cvv_id
         })
+        exporting_cvv_version = exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, exporting_cv_name, exporting_cvv_id)
+            self.export_base, exporting_cv_name, exporting_cvv_version)
         self.set_importing_org(
             exporting_prod_name, exporting_repo_name, exporting_cv_name, mos='yes')
         with self.assertRaises(CLIReturnCodeError) as error:
@@ -1075,9 +1082,10 @@ class ContentViewSync(CLITestCase):
             })
         self.assert_error_msg(
             error,
-            "The Repository '{}' is a non-yum repository. Only Yum is supported at this time. "
-            "Please remove the repository from the Content View, republish and try the export "
-            "again".format(repo['name'])
+            "Could not export the content view:\n  "
+            "Error: The Content View '{}' contains Puppet modules, "
+            "this is not supported at this time. Please remove the modules, "
+            "publish a new version and try the export again.\n".format(content_view['name'])
         )
 
     @skip_if_bug_open('bugzilla', 1657711)
@@ -1140,9 +1148,10 @@ class ContentViewSync(CLITestCase):
             })
         self.assert_error_msg(
             error,
-            "The Repository '{}' is a non-yum repository. Only Yum is supported at this time. "
-            "Please remove the repository from the Content View, republish and try the export "
-            "again".format(nonyum_repo['name'])
+            "Could not export the content view:\n  "
+            "Error: The Content View '{}' contains Puppet modules, "
+            "this is not supported at this time. Please remove the modules, "
+            "publish a new version and try the export again.\n".format(content_view['name'])
         )
 
     @tier1
@@ -1171,8 +1180,9 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
@@ -1180,7 +1190,7 @@ class ContentViewSync(CLITestCase):
         # Updating the json in exported tar
         ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
         extracted_directory_name = 'export-{0}-{1}'.format(
-            self.exporting_cv_name, self.exporting_cvv_id)
+            self.exporting_cv_name, exporting_cvv_version)
         json_path = '{0}/{1}/{1}.json'.format(self.export_base, extracted_directory_name)
         new_major, new_minor = self._update_json(json_path)
         custom_cvv_tar = '{0}/{1}.tar'.format(self.export_base, extracted_directory_name)
@@ -1240,14 +1250,15 @@ class ContentViewSync(CLITestCase):
             'export-dir': '{}'.format(self.export_base),
             'id': self.exporting_cvv_id
         })
+        exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, self.exporting_cvv_id)
+            self.export_base, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         # Updating the json in exported tar
         ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
         extracted_directory_name = 'export-{0}-{1}'.format(
-            self.exporting_cv_name, self.exporting_cvv_id)
+            self.exporting_cv_name, exporting_cvv_version)
         json_path_server = '{0}/{1}/{1}.json'.format(self.export_base, extracted_directory_name)
         json_path_local = '/tmp/{}.json'.format(extracted_directory_name)
         ssh.download_file(json_path_server, json_path_local)
