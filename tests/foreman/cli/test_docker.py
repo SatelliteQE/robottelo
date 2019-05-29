@@ -5,9 +5,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
-:CaseComponent: CLI
+:CaseLevel: Component
 
 :TestType: Functional
 
@@ -93,7 +91,10 @@ def _make_docker_repo(product_id, name=None, upstream_name=None, url=None):
 
 
 class DockerManifestTestCase(CLITestCase):
-    """Tests related to docker manifest command"""
+    """Tests related to docker manifest command
+
+    :CaseComponent: Hammer-Content
+    """
 
     @tier2
     @skip_if_bug_open('bugzilla', 1658274)
@@ -105,7 +106,7 @@ class DockerManifestTestCase(CLITestCase):
         :expectedresults: docker manifest displays tags info for a docker
             manifest
 
-        :CaseLevel: Integration
+        :CaseImportance: Medium
         """
         organization = make_org()
         product = make_product_wait({
@@ -143,6 +144,8 @@ class DockerManifestTestCase(CLITestCase):
 class DockerRepositoryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
+
+    :CaseComponent: Repositories
     """
 
     @classmethod
@@ -174,7 +177,7 @@ class DockerRepositoryTestCase(CLITestCase):
                     repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
                 self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
@@ -184,7 +187,7 @@ class DockerRepositoryTestCase(CLITestCase):
         :expectedresults: Multiple docker repositories are created with a
             Docker upstream repository and they all belong to the same product.
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         product = make_product_wait({'organization-id': self.org_id})
         repo_names = set()
@@ -200,7 +203,7 @@ class DockerRepositoryTestCase(CLITestCase):
             set([repo_['repo-name'] for repo_ in product['content']]),
         )
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple
@@ -212,7 +215,7 @@ class DockerRepositoryTestCase(CLITestCase):
             Docker upstream repository and they all belong to their respective
             products.
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         for _ in range(randint(2, 5)):
             product = make_product_wait({'organization-id': self.org_id})
@@ -379,7 +382,7 @@ class DockerRepositoryTestCase(CLITestCase):
         self.assertEqual(
             repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
@@ -388,8 +391,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :expectedresults: A repository is created with a Docker upstream
             repository and that its URL can be updated.
-
-        :CaseImportance: Critical
         """
         new_url = gen_url()
         repo = _make_docker_repo(
@@ -419,7 +420,7 @@ class DockerRepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'id': repo['id']})
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_delete_random_repo_by_id(self):
         """Create Docker-type repositories on multiple products and
@@ -429,8 +430,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :expectedresults: Random repository can be deleted from random product
             without altering the other products.
-
-        :CaseImportance: Critical
         """
         products = [
             make_product_wait({'organization-id': self.org_id})
@@ -457,7 +456,12 @@ class DockerRepositoryTestCase(CLITestCase):
 
 
 class DockerContentViewTestCase(CLITestCase):
-    """Tests specific to using ``Docker`` repositories with Content Views."""
+    """Tests specific to using ``Docker`` repositories with Content Views.
+
+    :CaseComponent: ContentViews
+
+    :CaseLevel: Integration
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -491,7 +495,7 @@ class DockerContentViewTestCase(CLITestCase):
             ],
         )
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_add_docker_repo_by_id(self):
         """Add one Docker-type repository to a non-composite content view
@@ -500,8 +504,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: A repository is created with a Docker repository and
             the product is added to a non-composite content view
-
-        :CaseImportance: Critical
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -520,7 +522,7 @@ class DockerContentViewTestCase(CLITestCase):
                 content_view['container-image-repositories']],
         )
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_add_docker_repos_by_id(self):
         """Add multiple Docker-type repositories to a non-composite CV.
@@ -530,8 +532,6 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: Repositories are created with Docker upstream
             repositories and the product is added to a non-composite content
             view.
-
-        :CaseImportance: Critical
         """
         product = make_product_wait({'organization-id': self.org_id})
         repos = [
@@ -564,8 +564,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
-
-        :CaseLevel: Integration
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -588,9 +586,8 @@ class DockerContentViewTestCase(CLITestCase):
                 content_view['container-image-repositories']],
         )
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -601,8 +598,6 @@ class DockerContentViewTestCase(CLITestCase):
             composite content view.
 
         :BZ: 1359665
-
-        :CaseImportance: Critical
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -625,9 +620,8 @@ class DockerContentViewTestCase(CLITestCase):
             [component['id'] for component in comp_content_view['components']],
         )
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
@@ -638,8 +632,6 @@ class DockerContentViewTestCase(CLITestCase):
             views which are then added to a composite content view.
 
         :BZ: 1359665
-
-        :CaseImportance: Critical
         """
         cv_versions = []
         product = make_product_wait({'organization-id': self.org_id})
@@ -688,8 +680,6 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: One repository is created with a Docker upstream
             repository and the product is added to a content view which is then
             published only once.
-
-        :CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -701,7 +691,6 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite CV and publish it once.
 
@@ -711,8 +700,6 @@ class DockerContentViewTestCase(CLITestCase):
             repository and the product is added to a content view which is then
             published once and added to a composite content view which is also
             published once.
-
-        :CaseLevel: Integration
 
         :BZ: 1359665
         """
@@ -759,8 +746,6 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: One repository is created with a Docker upstream
             repository and the product is added to a content view which is then
             published multiple times.
-
-        :CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -774,7 +759,6 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_publish_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to content view and publish it multiple
         times.
@@ -785,8 +769,6 @@ class DockerContentViewTestCase(CLITestCase):
             repository and the product is added to a content view which is then
             added to a composite content view which is then published multiple
             times.
-
-        :CaseLevel: Integration
 
         :BZ: 1359665
         """
@@ -833,8 +815,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
-
-        :CaseLevel: Integration
         """
         lce = make_lifecycle_environment({'organization-id': self.org_id})
         self._create_and_associate_repo_with_cv()
@@ -866,8 +846,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environments.
-
-        :CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -891,7 +869,6 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_promote_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -900,8 +877,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
-
-        :CaseLevel: Integration
 
         :BZ: 1359665
         """
@@ -949,7 +924,6 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     @upgrade
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
@@ -959,8 +933,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environments.
-
-        :CaseLevel: Integration
 
         :BZ: 1359665
         """
@@ -1019,8 +991,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Container repository name is changed
             according to new pattern.
-
-        :CaseLevel: Integration
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'hello-world'
@@ -1082,8 +1052,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Container repository name is changed
             according to new pattern.
-
-        :CaseLevel: Integration
         """
         old_prod_name = gen_string('alpha', 5)
         new_prod_name = gen_string('alpha', 5)
@@ -1169,8 +1137,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: Container repository name is changed
             according to new pattern.
-
-        :CaseLevel: Integration
         """
         old_repo_name = gen_string('alpha', 5)
         new_repo_name = gen_string('alpha', 5)
@@ -1253,8 +1219,6 @@ class DockerContentViewTestCase(CLITestCase):
         :id: eaf5e7ac-93c9-46c6-b538-4d6bd73ab9fc
 
         :expectedresults: Content view is not promoted
-
-        :CaseLevel: Integration
         """
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
@@ -1298,8 +1262,6 @@ class DockerContentViewTestCase(CLITestCase):
         :id: 9f952224-084f-48d1-b2ea-85f3621becea
 
         :expectedresults: Registry name pattern is not changed
-
-        :CaseLevel: Integration
         """
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
@@ -1336,7 +1298,12 @@ class DockerContentViewTestCase(CLITestCase):
 
 
 class DockerActivationKeyTestCase(CLITestCase):
-    """Tests specific to adding ``Docker`` repositories to Activation Keys."""
+    """Tests specific to adding ``Docker`` repositories to Activation Keys.
+
+    :CaseComponent: ActivationKeys
+
+    :CaseLevel: Integration
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -1386,8 +1353,6 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Docker-based content view can be added to activation
             key
-
-        :CaseLevel: Integration
         """
         activation_key = make_activation_key({
             'content-view-id': self.content_view['id'],
@@ -1409,8 +1374,6 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Docker-based content view can be added and then
             removed from the activation key.
-
-        :CaseLevel: Integration
         """
         activation_key = make_activation_key({
             'content-view-id': self.content_view['id'],
@@ -1447,7 +1410,6 @@ class DockerActivationKeyTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
@@ -1458,8 +1420,6 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Docker-based content view can be added to activation
             key
-
-        :CaseLevel: Integration
 
         :BZ: 1359665
         """
@@ -1501,9 +1461,8 @@ class DockerActivationKeyTestCase(CLITestCase):
         self.assertEqual(
             activation_key['content-view'], comp_content_view['name'])
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_remove_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
@@ -1517,8 +1476,6 @@ class DockerActivationKeyTestCase(CLITestCase):
             then removed from the activation key.
 
         :BZ: 1359665
-
-        :CaseImportance: Critical
         """
         comp_content_view = make_content_view({
             'composite': True,
@@ -1586,7 +1543,14 @@ class DockerActivationKeyTestCase(CLITestCase):
 
 class DockerClientTestCase(CLITestCase):
     """Tests specific to using ``Docker`` as a client to pull Docker images
-    from a Satellite 6 instance."""
+    from a Satellite 6 instance.
+
+    :CaseComponent: ContentManagement
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -1623,8 +1587,6 @@ class DockerClientTestCase(CLITestCase):
             2. Register Docker-enabled client against Satellite 6.
 
         :expectedresults: Client can pull Docker images from server and run it.
-
-        :CaseLevel: System
         """
 
         product = make_product_wait({'organization-id': self.org['id']})
@@ -1697,8 +1659,6 @@ class DockerClientTestCase(CLITestCase):
 
         :expectedresults: Client can search for docker images stored
             on Satellite instance
-
-        :CaseLevel: System
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'alpine'
@@ -1841,8 +1801,6 @@ class DockerClientTestCase(CLITestCase):
 
         :expectedresults: Client can pull in docker images stored
             on Satellite instance
-
-        :CaseLevel: System
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'alpine'
@@ -1974,8 +1932,6 @@ class DockerClientTestCase(CLITestCase):
         :expectedresults: Client can create a new image based off an existing
             Docker image from a Satellite 6 instance, add a new package and
             upload the modified image (plus layer) back to the Satellite 6.
-
-        :CaseLevel: System
         """
         compute_resource = make_compute_resource({
             'organization-ids': [self.org['id']],
@@ -2044,7 +2000,12 @@ class DockerClientTestCase(CLITestCase):
 
 
 class DockerComputeResourceTestCase(CLITestCase):
-    """Tests specific to managing Docker-based Compute Resources."""
+    """Tests specific to managing Docker-based Compute Resources.
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+    """
 
     @classmethod
     @skip_if_not_set('docker')
@@ -2215,6 +2176,12 @@ class DockerComputeResourceTestCase(CLITestCase):
 class DockerContainersTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with external Docker Compute
     Resource
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
     """
 
     @classmethod
@@ -2437,6 +2404,12 @@ class DockerContainersTestCase(CLITestCase):
 class DockerUnixSocketContainerTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with internal unix-socket
       Docker Compute Resource
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
     """
 
     @classmethod
@@ -2475,6 +2448,12 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
 class DockerRegistryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
     """
 
     @classmethod

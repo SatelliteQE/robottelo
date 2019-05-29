@@ -4,13 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
-:CaseComponent: UI
+:CaseComponent: ContainerManagement-Content
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Low
 
 :Upstream: No
 """
@@ -24,7 +22,7 @@ from robottelo.constants import DOCKER_REGISTRY_HUB, DOCKER_UPSTREAM_NAME
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
-    tier2,
+    tier3,
     upgrade,
 )
 from robottelo.vm import VirtualMachine
@@ -83,7 +81,7 @@ def module_container_host(module_org, module_loc):
             container.delete()
 
 
-@tier2
+@tier3
 @upgrade
 def test_positive_create_with_compresource(session, module_container_host):
     """Create containers for a compute resource
@@ -115,7 +113,7 @@ def test_positive_create_with_compresource(session, module_container_host):
         assert container['properties']['Running on'] == module_container_host.compute_resource_name
 
 
-@tier2
+@tier3
 def test_positive_power_on_off(session, module_container_host):
     """Create containers for a compute resource,
     then power them on and finally power them off
@@ -126,6 +124,8 @@ def test_positive_power_on_off(session, module_container_host):
         is showing properly
 
     :BZ: 1683348
+
+    :CaseComponent: ContainerManagement-Runtime
 
     :CaseLevel: Integration
     """
@@ -141,7 +141,7 @@ def test_positive_power_on_off(session, module_container_host):
             assert session.container.search(container.name)[0]['Status'] == status
 
 
-@tier2
+@tier3
 def test_positive_delete(session, module_container_host):
     """Delete containers in an external compute resource
 

@@ -5,9 +5,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
-:CaseComponent: API
+:CaseLevel: Component
 
 :TestType: Functional
 
@@ -19,8 +17,8 @@ from random import choice, randint, shuffle
 from time import sleep
 
 from fauxfactory import gen_string, gen_url
-from nailgun import entities
 from requests.exceptions import HTTPError
+from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.cleanup import vm_cleanup
@@ -76,6 +74,8 @@ def _create_repository(product, name=None, upstream_name=None):
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
+
+    :CaseComponent: Repositories
     """
 
     @classmethod
@@ -188,7 +188,7 @@ class DockerRepositoryTestCase(APITestCase):
                     [repo_.id for repo_ in product.repository],
                 )
 
-    @tier2
+    @tier1
     @run_only_on('sat')
     def test_positive_sync(self):
         """Create and sync a Docker-type repository
@@ -198,7 +198,7 @@ class DockerRepositoryTestCase(APITestCase):
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
 
-        :CaseLevel: Integration
+        :CaseImportance: Critical
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create()
@@ -263,8 +263,6 @@ class DockerRepositoryTestCase(APITestCase):
             repository and that its URL can be updated.
 
         :BZ: 1489322
-
-        :CaseLevel: Integration
         """
         new_url = gen_url()
         repo = _create_repository(
@@ -306,8 +304,6 @@ class DockerRepositoryTestCase(APITestCase):
 
         :expectedresults: Random repository can be deleted from random product
             without altering the other products.
-
-        :CaseLevel: Integration
         """
         repos = []
         products = [
@@ -334,7 +330,12 @@ class DockerRepositoryTestCase(APITestCase):
 
 
 class DockerContentViewTestCase(APITestCase):
-    """Tests specific to using ``Docker`` repositories with Content Views."""
+    """Tests specific to using ``Docker`` repositories with Content Views.
+
+    :CaseComponent: ContentViews
+
+    :CaseLevel: Integration
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -351,8 +352,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: A repository is created with a Docker repository and
             the product is added to a non-composite content view
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -375,8 +374,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Repositories are created with Docker upstream repos
             and the product is added to a non-composite content view.
-
-        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.org).create()
         repos = [
@@ -417,8 +414,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -445,8 +440,6 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: A repository is created with a Docker repository and
             the product is added to a content view which is then added to a
             composite content view.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -488,8 +481,6 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: One repository is created with a Docker upstream
             repository and the product is added to a random number of content
             views which are then added to a composite content view.
-
-        :CaseLevel: Integration
         """
         cv_versions = []
         product = entities.Product(organization=self.org).create()
@@ -535,8 +526,6 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: One repository is created with a Docker upstream
             repository and the product is added to a content view which is then
             published only once.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -573,8 +562,6 @@ class DockerContentViewTestCase(APITestCase):
             and the product is added to a content view which is then published
             only once and then added to a composite content view which is also
             published only once.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -626,8 +613,6 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: One repository is created with a Docker upstream
             repository and the product is added to a content view which is then
             published multiple times.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -660,8 +645,6 @@ class DockerContentViewTestCase(APITestCase):
             repository and the product is added to a content view which is then
             added to a composite content view which is then published multiple
             times.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -708,8 +691,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
-
-        :CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         repo = _create_repository(
@@ -742,8 +723,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environments.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -777,8 +756,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
-
-        :CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         repo = _create_repository(
@@ -822,8 +799,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environments.
-
-        :CaseLevel: Integration
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -868,8 +843,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Container repository name is changed
             according to new pattern.
-
-        :CaseLevel: Integration
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'hello-world'
@@ -912,8 +885,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Container repository name is changed
             according to new pattern.
-
-        :CaseLevel: Integration
         """
         old_prod_name = gen_string('alpha', 5)
         new_prod_name = gen_string('alpha', 5)
@@ -963,8 +934,6 @@ class DockerContentViewTestCase(APITestCase):
 
         :expectedresults: Container repository name is changed
             according to new pattern.
-
-        :CaseLevel: Integration
         """
         old_repo_name = gen_string('alpha', 5)
         new_repo_name = gen_string('alpha', 5)
@@ -1014,8 +983,6 @@ class DockerContentViewTestCase(APITestCase):
         :id: baae1ec2-35e8-4122-8fac-135c987139d3
 
         :expectedresults: Content view is not promoted
-
-        :CaseLevel: Integration
         """
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
@@ -1052,8 +1019,6 @@ class DockerContentViewTestCase(APITestCase):
         :id: 945b3301-c523-4026-9753-df3577888319
 
         :expectedresults: Registry name pattern is not changed
-
-        :CaseLevel: Integration
         """
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
@@ -1081,7 +1046,12 @@ class DockerContentViewTestCase(APITestCase):
 
 
 class DockerActivationKeyTestCase(APITestCase):
-    """Tests specific to adding ``Docker`` repositories to Activation Keys."""
+    """Tests specific to adding ``Docker`` repositories to Activation Keys.
+
+    :CaseComponent: ActivationKeys
+
+    :CaseLevel: Integration
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -1112,8 +1082,6 @@ class DockerActivationKeyTestCase(APITestCase):
 
         :expectedresults: Docker-based content view can be added to activation
             key
-
-        :CaseLevel: Integration
         """
         ak = entities.ActivationKey(
             content_view=self.content_view,
@@ -1159,8 +1127,6 @@ class DockerActivationKeyTestCase(APITestCase):
 
         :expectedresults: Docker-based content view can be added to activation
             key
-
-        :CaseLevel: Integration
         """
         comp_content_view = entities.ContentView(
             composite=True,
@@ -1194,8 +1160,6 @@ class DockerActivationKeyTestCase(APITestCase):
 
         :expectedresults: Docker-based composite content view can be added and
             then removed from the activation key.
-
-        :CaseLevel: Integration
         """
         comp_content_view = entities.ContentView(
             composite=True,
@@ -1220,7 +1184,12 @@ class DockerActivationKeyTestCase(APITestCase):
 
 
 class DockerComputeResourceTestCase(APITestCase):
-    """Tests specific to managing Docker-based Compute Resources."""
+    """Tests specific to managing Docker-based Compute Resources.
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+    """
 
     @classmethod
     @skip_if_not_set('docker')
@@ -1238,8 +1207,6 @@ class DockerComputeResourceTestCase(APITestCase):
         :id: 146dd836-83c7-4f9c-937e-791162ea106e
 
         :expectedresults: Compute Resource can be created and listed.
-
-        :CaseLevel: Integration
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1264,8 +1231,6 @@ class DockerComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute Resource can be created, listed and its
             attributes can be updated.
-
-        :CaseLevel: Integration
         """
         for url in (settings.docker.external_url,
                     settings.docker.get_unix_socket_url()):
@@ -1293,8 +1258,6 @@ class DockerComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute Resource can be created and existing
             instances can be listed.
-
-        :CaseLevel: Integration
         """
         # Instantiate and setup a docker host VM + compute resource
         docker_image = settings.docker.docker_image
@@ -1331,8 +1294,6 @@ class DockerComputeResourceTestCase(APITestCase):
         :id: 91ae6374-82de-424e-aa4c-e19209acd5b5
 
         :expectedresults: Compute Resource can be created and listed.
-
-        :CaseLevel: Integration
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1370,6 +1331,12 @@ class DockerComputeResourceTestCase(APITestCase):
 class DockerContainerTestCase(APITestCase):
     """Tests specific to using ``Containers`` in an external Docker
     Compute Resource
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
     """
 
     @classmethod
@@ -1404,8 +1371,6 @@ class DockerContainerTestCase(APITestCase):
         :id: c57c261c-39cf-4a71-93a4-e01e3ec368a7
 
         :expectedresults: The docker container is created
-
-        :CaseLevel: Integration
         """
         container = entities.DockerHubContainer(
             command='top',
@@ -1429,8 +1394,6 @@ class DockerContainerTestCase(APITestCase):
         :id: 69f29cc8-45e0-4b3a-b001-2842c45617e0
 
         :expectedresults: The docker container is created
-
-        :CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         repo = _create_repository(
@@ -1485,8 +1448,6 @@ class DockerContainerTestCase(APITestCase):
 
         :expectedresults: The docker container is created and the power status
             is showing properly
-
-        :CaseLevel: Integration
         """
         container = entities.DockerHubContainer(
             command='top',
@@ -1513,8 +1474,6 @@ class DockerContainerTestCase(APITestCase):
 
         :expectedresults: The docker container is created and its log can be
             read
-
-        :CaseLevel: Integration
         """
         container = entities.DockerHubContainer(
             command='date',
@@ -1535,8 +1494,6 @@ class DockerContainerTestCase(APITestCase):
 
         :expectedresults: The docker container is created and the image is
             pulled from the external registry
-
-        :CaseLevel: Integration
         """
         repo_name = 'rhel'
         registry = entities.Registry(
@@ -1578,6 +1535,12 @@ class DockerContainerTestCase(APITestCase):
 class DockerUnixSocketContainerTestCase(APITestCase):
     """Tests specific to using ``Containers`` in local unix-socket
     Docker Compute Resource
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
     """
 
     @classmethod
@@ -1600,8 +1563,6 @@ class DockerUnixSocketContainerTestCase(APITestCase):
         :id: 91a8a159-0f00-44b6-8ab7-dc8b1a5f1f37
 
         :expectedresults: The docker container is created
-
-        :CaseLevel: Integration
         """
         container = entities.DockerHubContainer(
             command='top',
@@ -1618,6 +1579,12 @@ class DockerUnixSocketContainerTestCase(APITestCase):
 class DockerRegistryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
     """
 
     @classmethod
@@ -1685,8 +1652,6 @@ class DockerRegistryTestCase(APITestCase):
         :id: a3701f92-0846-4d1b-b691-48cdc85c1341
 
         :expectedresults: the external registry is updated with the new URL
-
-        :CaseLevel: Integration
         """
         new_url = settings.docker.external_registry_2
         registry = entities.Registry(url=self.url).create()
@@ -1707,8 +1672,6 @@ class DockerRegistryTestCase(APITestCase):
 
         :expectedresults: the external registry is updated with the new
             description
-
-        :CaseLevel: Integration
         """
         registry = entities.Registry(url=self.url).create()
         try:
@@ -1729,8 +1692,6 @@ class DockerRegistryTestCase(APITestCase):
 
         :expectedresults: the external registry is updated with the new
             username
-
-        :CaseLevel: Integration
         """
         username = gen_string('alpha')
         new_username = gen_string('alpha')
