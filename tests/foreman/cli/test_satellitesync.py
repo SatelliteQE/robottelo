@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: InterSatelliteSync
 
 :TestType: Functional
 
@@ -247,7 +247,10 @@ class RepositoryExportTestCase(CLITestCase):
 
 
 class ContentViewSync(CLITestCase):
-    """Implements Content View Export Import tests in CLI"""
+    """Implements Content View Export Import tests in CLI
+
+    :CaseComponent: ContentViews
+    """
 
     export_base = '/var/lib/pulp/katello-export'
 
@@ -423,8 +426,6 @@ class ContentViewSync(CLITestCase):
             2. Filtered exported custom contents has been imported in org/satellite
 
         :CaseAutomation: Automated
-
-        :CaseComponent: ContentViews
 
         :CaseImportance: High
 

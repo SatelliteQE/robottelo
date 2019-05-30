@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: LifecycleEnvironments
 
 :TestType: Functional
 

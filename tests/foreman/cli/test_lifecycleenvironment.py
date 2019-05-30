@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: LifecycleEnvironments
 
 :TestType: Functional
 
@@ -48,8 +48,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :expectedresults: There should not be an error returned
 
-
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
 
         # List available lifecycle environments using default Table
@@ -74,7 +73,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :expectedresults: Can get info for lifecycle by its name
 
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         test_data = {
             'name': gen_string('utf8', 15),
@@ -99,8 +98,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :expectedresults: Lifecycle environment is created with Library as
             prior
 
-
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -122,8 +120,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :expectedresults: Lifecycle environment is created with Library as
             prior
 
-
-        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             name = gen_alphanumeric()
@@ -147,8 +143,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :expectedresults: Lifecycle environment with label is created
 
-
-        :CaseImportance: Critical
         """
         for label in (gen_string("alpha", 15), gen_string("alphanumeric", 15),
                       gen_string("numeric", 15)):
@@ -170,8 +164,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :expectedresults: Lifecycle environment is created for correct
             organization
 
-
-        :CaseImportance: Critical
         """
         new_lce = make_lifecycle_environment({
             'name': gen_string('alpha'),
@@ -408,7 +400,6 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
 
         :expectedresults: all the Lifecycle environments are listed
 
-        :CaseImportance: Critical
         """
         per_page_count = self.lces_count + 5
 
@@ -435,7 +426,6 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
             per page, different `per-page` values divide a list into correct
             number of pages
 
-        :CaseImportance: Critical
         """
         # Test different `per-page` values
         for per_page in (1, 5, 20):

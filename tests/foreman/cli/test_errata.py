@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ErrataManagement
 
 :TestType: Functional
 
@@ -355,6 +355,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :expectedresults: Error message thrown.
 
+        :CaseImportance: Low
+
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError) as context:
@@ -381,6 +383,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             <orgid>
 
         :expectedresults: Error message thrown.
+
+        :CaseImportance: Low
 
         :CaseLevel: System
         """
@@ -409,6 +413,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :expectedresults: Error message thrown.
 
+        :CaseImportance: Low
+
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError):
@@ -430,6 +436,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :Steps: host-collection erratum install --errata <errata> --id <id>
 
         :expectedresults: Error message thrown.
+
+        :CaseImportance: Low
 
         :CaseLevel: System
         """
@@ -456,6 +464,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :Steps: host-collection erratum install --errata <errata> --name <name>
 
         :expectedresults: Error message thrown.
+
+        :CaseImportance: Low
 
         :CaseLevel: System
         """
@@ -1318,6 +1328,8 @@ class ErrataTestCase(CLITestCase):
         :Steps: erratum list --product=<product_name>
 
         :expectedresults: Error must be returned.
+
+        :CaseImportance: Low
 
         :CaseLevel: System
         """

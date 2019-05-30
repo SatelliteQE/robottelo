@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: ErrataManagement
 
 :TestType: Functional
 

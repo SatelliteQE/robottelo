@@ -8,7 +8,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ActivationKeys
 
 :TestType: Functional
 
@@ -282,7 +282,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Activation key is not created. Appropriate error
             shown.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for name in invalid_values_list():
             with self.subTest(name), self.assertRaises(
@@ -306,7 +306,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Activation key is not created. Appropriate error
             shown.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         # exclude numeric values from invalid values list
         invalid_values = [
@@ -338,7 +338,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Activation key is not created. Appropriate error
             shown.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         self.assert_negative_create_with_usage_limit(
             ('-1', '-500', 0),
@@ -354,7 +354,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -379,7 +379,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         new_ak = self._make_activation_key()
         ActivationKey.delete({
@@ -399,7 +399,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         new_ak = self._make_activation_key()
         ActivationKey.delete({
@@ -500,7 +500,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is updated
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         activation_key = self._make_activation_key()
         for description in valid_data_list():
@@ -617,7 +617,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Activation key is not updated. Appropriate error
             shown.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         new_ak = self._make_activation_key()
         for name in invalid_values_list():
@@ -643,7 +643,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Activation key is not updated. Appropriate error
             shown.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as raise_ctx:
@@ -675,6 +675,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Content host Registration fails. Appropriate error
             shown
+
+        :CaseImportance: Critical
 
         :CaseLevel: System
         """
@@ -1028,7 +1030,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is listed
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         self._make_activation_key({u'content-view-id': cv['id']})
@@ -1048,7 +1050,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         name = gen_string('utf8')
         activation_key = self._make_activation_key({'name': name})
@@ -1084,6 +1086,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Host collection successfully removed from activation
             key
+
+        :CaseImportance: Medium
 
         :CaseLevel: Integration
         """
@@ -1246,7 +1250,6 @@ class ActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Activation key is not successfully copied
 
-        :CaseImportance: Critical
         """
         parent_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as raise_ctx:
@@ -1371,7 +1374,7 @@ class ActivationKeyTestCase(CLITestCase):
         :expectedresults: Activation key is not updated. Appropriate error
             shown.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as exe:

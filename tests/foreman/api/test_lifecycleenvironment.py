@@ -10,7 +10,7 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: ErrataManagement
 
 :TestType: Functional
 
@@ -23,7 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, upgrade
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3, upgrade
 from robottelo.test import APITestCase
 
 
@@ -92,7 +92,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         ).create()
         self.assertEqual(lc_env.prior.read().name, ENVIRONMENT)
 
-    @tier1
+    @tier3
     @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
         """Create lifecycle environment providing an invalid name
@@ -101,7 +101,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :expectedresults: Lifecycle environment is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -118,7 +118,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :expectedresults: Lifecycle environment is created and updated properly
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         for new_name in valid_data_list():
@@ -138,6 +138,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :expectedresults: Lifecycle environment is created and updated properly
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         lc_env = entities.LifecycleEnvironment(
             organization=self.org,
@@ -158,7 +160,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :expectedresults: Lifecycle environment is not updated and
             corresponding error is raised
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         name = gen_string('alpha')
         lc_env = entities.LifecycleEnvironment(
