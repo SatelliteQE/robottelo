@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: HostGroup
 
 :TestType: Functional
 
@@ -66,7 +66,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     tier1,
     tier2,
     upgrade,
@@ -126,7 +125,7 @@ class HostGroupTestCase(CLITestCase):
                     HostGroup.create({'name': name})
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_env(self):
         """Check if hostgroup with environment can be created
 
@@ -134,15 +133,14 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Hostgroup is created and has new environment assigned
 
-
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         environment = make_environment()
         hostgroup = make_hostgroup({'environment-id': environment['id']})
         self.assertEqual(environment['name'], hostgroup['puppet-environment'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_loc(self):
         """Check if hostgroup with location can be created
 
@@ -150,15 +148,14 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Hostgroup is created and has new location assigned
 
-
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         location = make_location()
         hostgroup = make_hostgroup({'location-ids': location['id']})
         self.assertIn(location['name'], hostgroup['locations'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_os(self):
         """Check if hostgroup with operating system can be created
 
@@ -167,8 +164,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup is created and has operating system
             assigned
 
-
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         os = make_os()
         hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
@@ -176,7 +172,7 @@ class HostGroupTestCase(CLITestCase):
                          os['title'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_org(self):
         """Check if hostgroup with organization can be created
 
@@ -185,14 +181,13 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup is created and has new organization
             assigned
 
-
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         org = make_org()
         hostgroup = make_hostgroup({'organization-ids': org['id']})
         self.assertIn(org['name'], hostgroup['organizations'])
 
-    @tier1
+    @tier2
     def test_positive_create_with_orgs(self):
         """Check if hostgroup with multiple organizations can be created
 
@@ -201,7 +196,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup is created and has both new organizations
             assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         orgs = [make_org() for _ in range(2)]
         hostgroup = make_hostgroup({
@@ -213,7 +208,7 @@ class HostGroupTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_puppet_ca_proxy(self):
         """Check if hostgroup with puppet CA proxy server can be created
 
@@ -222,8 +217,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup is created and has puppet CA proxy server
             assigned
 
-
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         puppet_proxy = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -232,7 +226,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_puppet_proxy(self):
         """Check if hostgroup with puppet proxy server can be created
 
@@ -241,7 +235,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup is created and has puppet proxy server
             assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         puppet_proxy = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -252,7 +246,7 @@ class HostGroupTestCase(CLITestCase):
             hostgroup['puppet-master-proxy'],
         )
 
-    @tier1
+    @tier2
     def test_positive_create_with_puppet_class_id(self):
         """Check if hostgroup with puppet class id can be created
 
@@ -260,7 +254,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Hostgroup is created and has puppet class assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = make_hostgroup({
             'puppet-class-ids': self.puppet_classes[0]['id'],
@@ -271,7 +265,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertIn(
             self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
 
-    @tier1
+    @tier2
     def test_positive_create_with_puppet_class_name(self):
         """Check if hostgroup with puppet class name can be created
 
@@ -279,7 +273,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Hostgroup is created and has puppet class assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
@@ -290,9 +284,8 @@ class HostGroupTestCase(CLITestCase):
         self.assertIn(
             self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
 
-    @skip_if_bug_open('bugzilla', 1354544)
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_architecture(self):
         """Check if hostgroup with architecture can be created
 
@@ -303,14 +296,14 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354544
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         arch = 'x86_64'
         hostgroup = make_hostgroup({'architecture': arch})
         self.assertEqual(arch, hostgroup['architecture'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_domain(self):
         """Check if hostgroup with domain can be created
 
@@ -318,14 +311,14 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Hostgroup should be created and has domain assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         domain = make_domain()
         hostgroup = make_hostgroup({'domain-id': domain['id']})
         self.assertEqual(domain['name'], hostgroup['network']['domain'])
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_lifecycle_environment(self):
         """Check if hostgroup with lifecyle environment can be created
 
@@ -336,7 +329,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1359694, 1313056
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         org = make_org()
         lc_env = make_lifecycle_environment({'organization-id': org['id']})
@@ -350,7 +343,7 @@ class HostGroupTestCase(CLITestCase):
             hostgroup['lifecycle-environment']['name'],
         )
 
-    @tier1
+    @tier2
     def test_positive_create_with_orgs_and_lce(self):
         """Check if hostgroup with multiple organizations can be created
         if one of them is associated with lifecycle environment
@@ -360,7 +353,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup is created, has both new organizations
             assigned and has lifecycle env assigned
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         orgs = [make_org() for _ in range(2)]
         lce = make_lifecycle_environment({'organization-id': orgs[0]['id']})
@@ -583,8 +576,8 @@ class HostGroupTestCase(CLITestCase):
             hostgroup['network']['domain']['id']
         )
         self.assertEqual(
-                subnet['id'],
-                hostgroup['network']['subnet-ipv4']['id'])
+            subnet['id'],
+            hostgroup['network']['subnet-ipv4']['id'])
         self.assertEqual(
             arch['id'], hostgroup['operating-system']['architecture']['id'])
         self.assertEqual(
@@ -596,9 +589,8 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(
             os['id'], hostgroup['operating-system']['operating-system']['id'])
 
-    @skip_if_bug_open('bugzilla', 1354568)
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_negative_create_with_subnet_id(self):
         """Check if hostgroup with invalid subnet id raises proper error
 
@@ -608,7 +600,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354568
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         subnet_id = gen_string('numeric', 4)
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -621,9 +613,8 @@ class HostGroupTestCase(CLITestCase):
             'Could not find subnet {0}'.format(subnet_id)
         )
 
-    @skip_if_bug_open('bugzilla', 1354568)
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_negative_create_with_domain_id(self):
         """Check if hostgroup with invalid domain id raises proper error
 
@@ -633,7 +624,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354568
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         domain_id = gen_string('numeric', 4)
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -646,9 +637,8 @@ class HostGroupTestCase(CLITestCase):
             'Could not find domain {0}'.format(domain_id)
         )
 
-    @skip_if_bug_open('bugzilla', 1354568)
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_negative_create_with_architecture_id(self):
         """Check if hostgroup with invalid architecture id raises proper error
 
@@ -658,7 +648,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354568
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         arch_id = gen_string('numeric', 4)
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -671,7 +661,7 @@ class HostGroupTestCase(CLITestCase):
             'Could not find architecture {0}'.format(arch_id)
         )
 
-    @tier1
+    @tier2
     def test_positive_create_with_content_source(self):
         """Create a hostgroup with content source specified
 
@@ -679,12 +669,12 @@ class HostGroupTestCase(CLITestCase):
 
         :customerscenario: true
 
+        :CaseLevel: Integration
+
         :BZ: 1260697, 1313056
 
         :expectedresults: A hostgroup is created with expected content source
             assigned
-
-        :CaseImportance: High
         """
         content_source = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -696,7 +686,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(
             hostgroup['content-source']['name'], content_source['name'])
 
-    @tier1
+    @tier2
     def test_negative_create_with_content_source(self):
         """Attempt to create a hostgroup with invalid content source specified
 
@@ -706,7 +696,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Hostgroup was not created
 
-        :CaseImportance: Medium
+        :CaseLevel: Integration
         """
         with self.assertRaises(CLIFactoryError):
             make_hostgroup({
@@ -806,7 +796,7 @@ class HostGroupTestCase(CLITestCase):
         )
 
     @run_in_one_thread
-    @tier1
+    @tier2
     def test_positive_update_content_source(self):
         """Update hostgroup's content source
 
@@ -819,7 +809,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Hostgroup was successfully updated with new content
             source
 
-        :CaseImportance: High
+        :CaseLevel: Integration
         """
         content_source = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -839,7 +829,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(
             hostgroup['content-source']['name'], new_content_source['name'])
 
-    @tier1
+    @tier2
     def test_negative_update_content_source(self):
         """Attempt to update hostgroup's content source with invalid value
 
@@ -850,7 +840,7 @@ class HostGroupTestCase(CLITestCase):
         :expectedresults: Host group was not updated. Content source remains
             the same as it was before update
 
-        :CaseImportance: Medium
+        :CaseLevel: Integration
         """
         content_source = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -910,7 +900,7 @@ class HostGroupTestCase(CLITestCase):
                 result = HostGroup.info({'id': hostgroup['id']})
                 self.assertEqual(hostgroup['name'], result['name'])
 
-    @tier1
+    @tier2
     def test_positive_update_puppet_class_by_id(self):
         """Update hostgroup with puppet class by name by id
 
@@ -918,7 +908,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Puppet class is associated with hostgroup
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
@@ -934,7 +924,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertIn(
             self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
 
-    @tier1
+    @tier2
     def test_positive_update_puppet_class_by_name(self):
         """Update hostgroup with puppet class by name
 
@@ -942,7 +932,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: Puppet class is associated with hostgroup
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
@@ -958,7 +948,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertIn(
             self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
 
-    @tier1
+    @tier2
     def test_positive_update_multiple_puppet_classes(self):
         """Update hostgroup with multiple puppet classes by name
 
@@ -968,7 +958,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1264163
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         puppet_classes = [puppet['name'] for puppet in self.puppet_classes]
         hostgroup = make_hostgroup({
@@ -983,7 +973,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(set(puppet_classes), set(hostgroup['puppetclasses']))
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     @upgrade
     def test_positive_delete_by_id(self):
         """Create HostGroup with valid values then delete it
@@ -993,7 +983,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: HostGroup is deleted
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         for name in valid_hostgroups_list():
             with self.subTest(name):
@@ -1003,7 +993,7 @@ class HostGroupTestCase(CLITestCase):
                     HostGroup.info({'id': hostgroup['id']})
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_negative_delete_by_id(self):
         """Create HostGroup then delete it by wrong ID
 
@@ -1011,7 +1001,7 @@ class HostGroupTestCase(CLITestCase):
 
         :expectedresults: HostGroup is not deleted
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

@@ -5,13 +5,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
-:CaseComponent: UI
+:CaseComponent: HostGroup
 
 :TestType: Functional
 
-:CaseImportance: Low
+:CaseImportance: High
 
 :Upstream: No
 """
@@ -43,7 +41,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -88,8 +86,6 @@ def test_create_with_config_group(session, module_org, module_loc):
     :expectedresults: Host group created and contains proper config group
 
     :CaseLevel: Integration
-
-    :CaseImportance: High
     """
     name = gen_string('alpha')
     environment = entities.Environment(
@@ -117,8 +113,6 @@ def test_create_with_puppet_class(session, module_org, module_loc):
     :expectedresults: Host group created and contains proper puppet class
 
     :CaseLevel: Integration
-
-    :CaseImportance: High
     """
     name = gen_string('alpha')
     pc_name = 'generic_1'

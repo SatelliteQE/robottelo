@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: ContainerManagement-Content
 
 :TestType: Functional
 

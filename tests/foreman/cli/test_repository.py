@@ -996,8 +996,6 @@ class RepositoryTestCase(CLITestCase):
         :id: cb9ae788-743c-4785-98b2-6ae0c161bc9a
 
         :expectedresults: Docker repository is created and synced
-
-        :CaseLevel: Integration
         """
         new_repo = self._make_repository({
             u'content-type': u'docker',
