@@ -238,7 +238,8 @@ class SmartClassParametersTestCase(CLITestCase):
 
             1.  Override the parameter.
             2.  Set the new valid Default Value.
-            3.  Submit the changes.
+            3.  Set puppet default value to 'Use Puppet Default'.
+            4.  Submit the changes.
 
         :expectedresults: Parameter Value overridden with new value.
 
@@ -248,6 +249,7 @@ class SmartClassParametersTestCase(CLITestCase):
         value = gen_string('alpha')
         SmartClassParameter.update({
             'default-value': value,
+            'use-puppet-default': 1,
             'id': sc_param_id,
             'override': 1,
         })
@@ -256,6 +258,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['default-value'], value)
+        self.assertEqual(sc_param['use-puppet-default'], True)
 
     @tier1
     def test_negative_override(self):
@@ -279,35 +282,6 @@ class SmartClassParametersTestCase(CLITestCase):
                 'default-value': gen_string('alpha'),
                 'id': sc_param_id,
             })
-
-    @tier1
-    @upgrade
-    def test_positive_puppet_default(self):
-        """On Override, Set Puppet Default Value.
-
-        :id: 360be750-ee96-414c-ac04-b2762f77503a
-
-        :steps:
-
-            1.  Override the parameter.
-            2.  Set puppet default value to 'Use Puppet Default'.
-            3.  Submit the changes.
-
-        :expectedresults: Puppet Default Value applied on parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-            'use-puppet-default': 1,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(sc_param['use-puppet-default'], True)
 
     @tier1
     @upgrade
