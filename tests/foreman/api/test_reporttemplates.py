@@ -16,102 +16,56 @@
 :Upstream: No
 """
 
+from robottelo.datafactory import gen_string
 from robottelo.decorators import tier1, tier2, stubbed
 from robottelo.test import APITestCase
+
+from nailgun import entities
 
 
 class ComputeResourceTestCase(APITestCase):
     """Tests for ``katello/api/v2/report_templates``."""
 
     @tier1
-    @stubbed()
-    def test_positive_create_report(self):
-        """Create report template
+    def test_positive_e2e_crud(self):
+        """Run CRUD tests
 
-        :id: a2a577db-144e-4761-a42e-e83887464986
+        :id: a4b577db-144e-6751-a42e-e83887464986
 
-        :setup: User with reporting access rights
+        :setup: User with rights to CRUD report templates
 
         :steps:
 
             1. POST /api/report_templates
-
-        :expectedresults: Report is created
-
-        :CaseImportance: High
-        """
-
-    @tier1
-    @stubbed()
-    def test_positive_list_reports(self):
-        """List report templates
-
-        :id: a2a577db-184e-4761-a42e-e83887464986
-
-        :setup: User with reporting access rights, at least two report templates
-
-        :steps:
-
-            1. GET /api/report_templates
-
-        :expectedresults: All report templates accessible by user are listed
-
-        :CaseImportance: High
-        """
-
-    @tier1
-    @stubbed()
-    def test_positive_read_report(self):
-        """Read report template
-
-        :id: a2a577db-144e-4765-a42e-e83887464986
-
-        :setup: User with reporting access rights, some report template
-
-        :steps:
-
-            1. GET /api/report_templates/:id
-
-        :expectedresults: Report template data is shown
-
-        :CaseImportance: High
-        """
-
-    @tier1
-    @stubbed()
-    def test_positive_update_report(self):
-        """Update report template
-
-        :id: a4a577db-144e-4761-a42e-e83887464986
-
-        :setup: User with reporting access rights, some report template that is not locked
-
-        :steps:
-
-            1. PUT /api/report_templates/:id
-
-        :expectedresults: Report is updated (value is changed)
-
-        :CaseImportance: High
-        """
-
-    @tier1
-    @stubbed()
-    def test_positive_delete_report(self):
-        """Delete report template
-
-        :id: a4b577db-144e-4761-a42e-e83887464986
-
-        :setup: User with reporting access rights, some report template that is not locked
-
-        :steps:
-
-            1. DELETE /api/report_templates/:id
+            2. GET /api/report_templates
+            3. GET /api/report_templates/:id
+            4. PUT /api/report_templates/:id
+            5. DELETE /api/report_templates/:id
 
         :expectedresults: Report is deleted
 
         :CaseImportance: High
         """
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
+        template = gen_string('alpha')
+        # create and read report template
+        entities.ReportTemplate(name=name, template=template).create()
+        rt = entities.ReportTemplate().search(query={'search': 'name={0}'.format(name)})[0].read()
+        self.assertEquals(name, rt.name)
+        self.assertEquals(template, rt.template)
+        # update report template
+        entities.ReportTemplate(id=rt.id, name=new_name).update({'name'})
+        rt = entities.ReportTemplate().\
+            search(query={'search': 'name={0}'.format(new_name)})[0].read()
+        self.assertEquals(new_name, rt.name)
+        self.assertEquals(template, rt.template)
+        rts = entities.ReportTemplate().search(query={'search': 'name={0}'.format(name)})
+        self.assertEqual(len(rts), 0)
+        # delete report template
+        entities.ReportTemplate(id=rt.id).delete()
+        rts = entities.ReportTemplate().search(query={'search': 'name={0}'.format(new_name)})
+        self.assertEqual(len(rts), 0)
 
     @tier1
     @stubbed()
