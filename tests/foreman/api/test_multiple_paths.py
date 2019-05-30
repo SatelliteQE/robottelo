@@ -24,6 +24,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     tier1,
+    tier3,
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
@@ -166,7 +167,7 @@ class EntityTestCase(APITestCase):
             test_entities = test_entities[:max_entities]
         return test_entities
 
-    @tier1
+    @tier3
     def test_positive_get_status_code(self):
         """GET an entity-dependent path.
 
@@ -229,7 +230,7 @@ class EntityTestCase(APITestCase):
                 self.assertEqual(
                     http_client.UNAUTHORIZED, response.status_code)
 
-    @tier1
+    @tier3
     def test_positive_post_status_code(self):
         """Issue a POST request and check the returned status code.
 
@@ -272,7 +273,6 @@ class EntityTestCase(APITestCase):
 
         :expectedresults: HTTP 401 is returned
 
-        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -423,7 +423,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :expectedresults: The entity is updated with the given attributes.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -466,7 +466,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :expectedresults: The entity is created with the given attributes.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition

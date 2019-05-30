@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: ActivationKeys
 
 :TestType: Functional
 
@@ -32,6 +32,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    tier3,
     upgrade
 )
 from robottelo import manifests
@@ -104,7 +105,7 @@ class ActivationKeyTestCase(APITestCase):
                 act_key = entities.ActivationKey(name=name).create()
                 self.assertEqual(name, act_key.name)
 
-    @tier1
+    @tier2
     def test_positive_create_with_description(self):
         """Create an activation key and provide a description.
 
@@ -112,14 +113,14 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: Created entity contains the provided description.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for desc in valid_data_list():
             with self.subTest(desc):
                 act_key = entities.ActivationKey(description=desc).create()
                 self.assertEqual(desc, act_key.description)
 
-    @tier1
+    @tier2
     def test_negative_create_with_no_host_limit(self):
         """Create activation key without providing limitation for hosts number
 
@@ -132,7 +133,7 @@ class ActivationKeyTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_hosts=False).create()
 
-    @tier1
+    @tier3
     def test_negative_create_with_invalid_host_limit(self):
         """Create activation key with invalid limit values for hosts number.
 
@@ -140,7 +141,7 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: Activation key is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
@@ -148,7 +149,7 @@ class ActivationKeyTestCase(APITestCase):
                     entities.ActivationKey(
                         max_hosts=max_host, unlimited_hosts=False).create()
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1156555)
     def test_negative_create_with_no_host_limit_set_max(self):
         """Create activation key with unlimited hosts and set max hosts of
@@ -158,7 +159,7 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: Activation key is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
@@ -166,7 +167,7 @@ class ActivationKeyTestCase(APITestCase):
                     entities.ActivationKey(
                         max_hosts=max_host, unlimited_hosts=True).create()
 
-    @tier1
+    @tier3
     def test_negative_create_with_invalid_name(self):
         """Create activation key providing an invalid name.
 
@@ -174,14 +175,14 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: Activation key is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for name in invalid_names_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(name=name).create()
 
-    @tier1
+    @tier2
     def test_positive_update_limited_host(self):
         """Create activation key then update it to limited hosts.
 
@@ -189,7 +190,7 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: Activation key is created, updated to limited host
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         # unlimited_hosts defaults to True.
         act_key = entities.ActivationKey().create()
@@ -202,7 +203,7 @@ class ActivationKeyTestCase(APITestCase):
                 actual = {attr: getattr(act_key, attr) for attr in want.keys()}
                 self.assertEqual(want, actual)
 
-    @tier1
+    @tier2
     def test_positive_update_name(self):
         """Create activation key providing the initial name, then update
         its name to another valid name.
@@ -212,7 +213,7 @@ class ActivationKeyTestCase(APITestCase):
         :expectedresults: Activation key is created, and its name can be
             updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         act_key = entities.ActivationKey().create()
         for new_name in valid_data_list():
@@ -221,7 +222,7 @@ class ActivationKeyTestCase(APITestCase):
                     id=act_key.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
-    @tier1
+    @tier3
     def test_negative_update_limit(self):
         """Create activation key then update its limit to invalid value.
 
@@ -233,7 +234,7 @@ class ActivationKeyTestCase(APITestCase):
             2. Update fails
             3. Record is not changed
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         act_key = entities.ActivationKey().create()
         want = {
@@ -250,7 +251,7 @@ class ActivationKeyTestCase(APITestCase):
                 actual = {attr: getattr(act_key, attr) for attr in want.keys()}
                 self.assertEqual(want, actual)
 
-    @tier1
+    @tier3
     def test_negative_update_name(self):
         """Create activation key then update its name to an invalid name.
 
@@ -259,7 +260,7 @@ class ActivationKeyTestCase(APITestCase):
         :expectedresults: Activation key is created, and its name is not
             updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         act_key = entities.ActivationKey().create()
         for new_name in invalid_names_list():
@@ -271,7 +272,7 @@ class ActivationKeyTestCase(APITestCase):
                 self.assertNotEqual(new_key.name, new_name)
                 self.assertEqual(new_key.name, act_key.name)
 
-    @tier1
+    @tier3
     def test_negative_update_max_hosts(self):
         """Create an activation key with ``max_hosts == 1``, then update that
         field with a string value.
@@ -280,7 +281,7 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: The update fails with an HTTP 422 return code.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         act_key = entities.ActivationKey(max_hosts=1).create()
         with self.assertRaises(HTTPError):
@@ -344,6 +345,8 @@ class ActivationKeyTestCase(APITestCase):
                collections are listed.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()  # re-use this to speed up test
 
@@ -382,6 +385,8 @@ class ActivationKeyTestCase(APITestCase):
                removes it from the list
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
 
@@ -480,6 +485,8 @@ class ActivationKeyTestCase(APITestCase):
         :BZ: 1426386
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -536,7 +543,11 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: The future-dated sub is successfully added to the key
 
+        :CaseAutomation: NotAutomated
+
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
 
 

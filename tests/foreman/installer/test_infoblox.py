@@ -2,11 +2,9 @@
 
 :Requirement: Infoblox
 
-:CaseAutomation: Automated
-
 :CaseLevel: System
 
-:CaseComponent: Installer
+:CaseComponent: Infobloxintegration
 
 :TestType: Functional
 
@@ -20,6 +18,7 @@ from robottelo.test import TestCase
 
 
 class InfobloxTestCase(TestCase):
+
     @stubbed()
     @tier3
     @upgrade

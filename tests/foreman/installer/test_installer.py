@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: INSTALLER
+:CaseComponent: Installer
 
 :TestType: Functional
 
@@ -20,7 +20,7 @@ from six.moves import zip
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1, tier3, upgrade
 from robottelo.helpers import get_host_info
 from robottelo.test import TestCase
 
@@ -1445,7 +1445,7 @@ def extract_params(lst):
 
 
 @upgrade
-@tier1
+@tier3
 def test_installer_options_and_flags():
     """Look for changes on installer options and flags
 
@@ -1459,6 +1459,8 @@ def test_installer_options_and_flags():
         Documentation must be updated accordingly when such changes occur.
         So when this test fail we QE can act on it, asking dev if
         changes occurs on zstream and checking docs are up to date.
+
+    :CaseImportance: Medium
     """
     stdout = ssh.command('satellite-installer --full-help').stdout
 
