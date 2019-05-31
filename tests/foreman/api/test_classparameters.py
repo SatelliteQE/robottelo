@@ -747,39 +747,7 @@ class SmartClassParametersTestCase(APITestCase):
         )
 
     @tier1
-    @upgrade
-    def test_positive_create_matcher(self):
-        """Create matcher for attribute in parameter.
-
-        :id: 19d319e6-9b12-485e-a680-c84d18742c40
-
-        :steps:
-
-            1. Set override to True.
-            2. Set some default Value.
-            3. Create a matcher with all valid values.
-
-        :expectedresults: The matcher has been created successfully.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.override_value_order = 'is_virtual'
-        sc_param.update(['override', 'override_value_order'])
-        value = gen_string('alpha')
-        entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='is_virtual=true',
-            value=value,
-        ).create()
-        sc_param = sc_param.read()
-        self.assertEqual(
-            sc_param.override_values[0]['match'], 'is_virtual=true')
-        self.assertEqual(sc_param.override_values[0]['value'], value)
-
-    @tier1
-    def test_positive_create_matcher_puppet_default_value(self):
+    def test_positive_create_and_remove_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter where
         value is puppet default value.
 
@@ -791,8 +759,9 @@ class SmartClassParametersTestCase(APITestCase):
             2. Set some default Value.
             3. Create matcher with valid attribute type, name and puppet
                default value.
+            4. Remove matcher afterwards
 
-        :expectedresults: The matcher has been created successfully.
+        :expectedresults: The matcher has been created and removed successfully.
 
         :CaseImportance: Critical
         """
@@ -800,7 +769,7 @@ class SmartClassParametersTestCase(APITestCase):
         value = gen_string('alpha')
         sc_param.override = True
         sc_param.default_value = gen_string('alpha')
-        entities.OverrideValue(
+        override = entities.OverrideValue(
             smart_class_parameter=sc_param,
             match='domain=example.com',
             value=value,
@@ -812,6 +781,8 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(
             sc_param.override_values[0]['match'], 'domain=example.com')
         self.assertEqual(sc_param.override_values[0]['value'], value)
+        override.delete()
+        self.assertEqual(len(sc_param.read().override_values), 0)
 
     @tier1
     def test_positive_enable_merge_overrides_default_checkboxes(self):
@@ -958,35 +929,6 @@ class SmartClassParametersTestCase(APITestCase):
         )
         self.assertEqual(sc_param.read().avoid_duplicates, False)
 
-    @tier1
-    def test_positive_remove_matcher(self):
-        """Removal of matcher from parameter.
-
-        :id: 9018d624-07f2-4fb2-b421-8888c7d324a7
-
-        :steps:
-
-            1. Override the parameter and create a matcher for some attribute.
-            2. Remove the matcher created in step 1.
-
-        :expectedresults: The matcher removed from parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.override_value_order = 'is_virtual'
-        sc_param.update(['override', 'override_value_order'])
-        value = gen_string('alpha')
-        override = entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='is_virtual=true',
-            value=value,
-        ).create()
-        self.assertEqual(len(sc_param.read().override_values), 1)
-        override.delete()
-        self.assertEqual(len(sc_param.read().override_values), 0)
-
     @skip_if_bug_open('bugzilla', 1374253)
     @tier1
     def test_positive_impact_parameter_delete_attribute(self):
@@ -1038,125 +980,3 @@ class SmartClassParametersTestCase(APITestCase):
         hostgroup.add_puppetclass(
             data={'puppetclass_id': self.puppet_class.id})
         self.assertEqual(len(sc_param.read().override_values), 0)
-
-    @tier1
-    def test_positive_hide_parameter_default_value(self):
-        """Hide the default value of parameter.
-
-        :id: 0cb8ab59-7910-4573-9dea-2e489d1578d4
-
-        :steps:
-
-            1. Set the override flag to True.
-            2. Set some valid default value.
-            3. Set 'Hidden Value' to true.
-
-        :expectedresults: The 'hidden value' set to True for that parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.default_value = gen_string('alpha')
-        sc_param.hidden_value = True
-        sc_param.update(['override', 'default_value', 'hidden_value'])
-        sc_param = sc_param.read()
-        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        self.assertEqual(sc_param.default_value, u'*****')
-
-    @tier1
-    def test_positive_unhide_parameter_default_value(self):
-        """Unhide the default value of parameter.
-
-        :id: 73151830-e902-4b9e-888e-149570869530
-
-        :steps:
-
-            1. Set the override flag to True.
-            2. Set some valid default value.
-            3. Set 'Hidden Value' to True and update parameter.
-            4. After hiding, set the 'Hidden Value' to False.
-
-        :expectedresults: The 'hidden value' set to false for that parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.default_value = gen_string('alpha')
-        sc_param.hidden_value = True
-        sc_param.update(['override', 'default_value', 'hidden_value'])
-        sc_param = sc_param.read()
-        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        sc_param.hidden_value = False
-        sc_param.update(['hidden_value'])
-        sc_param = sc_param.read()
-        self.assertEqual(getattr(sc_param, 'hidden_value?'), False)
-
-    @tier1
-    def test_positive_update_hidden_value_in_parameter(self):
-        """Update the hidden default value of parameter.
-
-        :id: 6f7ad3c4-7745-45bf-a9f9-697f049556da
-
-        :steps:
-
-            1. Set the override flag for the parameter.
-            2. Set some valid default value.
-            3. Set 'Hidden Value' to true and update the parameter.
-            4. Now in hidden state, update the default value.
-
-        :expectedresults:
-
-            1. The parameter default value is updated.
-            2. The 'hidden value' set/displayed as True for that parameter.
-
-        :CaseImportance: Critical
-        """
-        old_value = gen_string('alpha')
-        new_value = gen_string('alpha')
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.default_value = old_value
-        sc_param.hidden_value = True
-        sc_param.update(['override', 'default_value', 'hidden_value'])
-        sc_param = sc_param.read(params={'show_hidden': 'true'})
-        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        self.assertEqual(sc_param.default_value, old_value)
-        sc_param.default_value = new_value
-        sc_param.update(['default_value'])
-        sc_param = sc_param.read(params={'show_hidden': 'true'})
-        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        self.assertEqual(sc_param.default_value, new_value)
-
-    @tier1
-    def test_positive_hide_empty_default_value(self):
-        """Hiding the empty default value.
-
-        :id: b6882658-9201-4e87-978a-0195a99ec07d
-
-        :steps:
-
-            1. Set the override flag to True.
-            2. Don't set any default value/Set empty value.
-            3. Set 'Hidden Value' to true and update the parameter.
-
-        :expectedresults:
-
-            1. The 'hidden value' set to True for that parameter.
-            2. The default value is empty even after hide.
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: automated
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.default_value = ''
-        sc_param.hidden_value = True
-        sc_param.update(['override', 'default_value', 'hidden_value'])
-        sc_param = sc_param.read()
-        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        self.assertEqual(sc_param.default_value, u'*****')
-        sc_param = sc_param.read(params={'show_hidden': 'true'})
-        self.assertEqual(sc_param.default_value, u'')
