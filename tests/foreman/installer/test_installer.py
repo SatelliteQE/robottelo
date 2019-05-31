@@ -14,8 +14,6 @@
 
 :Upstream: No
 """
-from datetime import datetime
-
 import re
 from six.moves import zip
 
@@ -24,7 +22,6 @@ from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
 from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_host_info
-from robottelo.log import LogFile
 from robottelo.test import TestCase
 
 PREVIOUS_INSTALLER_OPTIONS = set([
@@ -1429,70 +1426,6 @@ class SELinuxTestCase(TestCase):
                 status, 'ok',
                 '{0} responded with {1}'.format(service, response)
             )
-
-    @tier1
-    def test_positive_check_installer_logfile(self):
-        """Look for ERROR or FATAL references in logfiles during installation
-        time
-
-        :id: 80537809-8be4-42db-9cc8-5155378ee4d4
-
-        :Steps: search all relevant logfiles for ERROR/FATAL with timestamp
-            before installation has finished
-
-        :expectedresults: No ERROR/FATAL notifcations occur in {katello-jobs,
-            tomcat6, foreman, pulp, passenger-analytics, httpd, foreman_proxy,
-            elasticsearch, postgresql, mongod} logfiles during installation
-            phase.
-        """
-        logfiles = (
-            {
-                'path': '/var/log/foreman-installer/satellite.log',
-                'pattern': r'\[\s*(ERROR|FATAL)'
-            },
-            {
-                'path': '/var/log/candlepin/error.log',
-                'pattern': r'ERROR'
-            },
-        )
-        datetime_pattern = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
-        datetime_format = '%Y-%m-%dT%H:%M:%S'
-
-        try:
-            logs = [
-                LogFile(logfile['path'], logfile['pattern'])
-                for logfile in logfiles
-            ]
-        except IOError as exception:
-            self.fail(
-                'Could not find log file on server\n{}'
-                .format(str(exception))
-            )
-        if len(logs[0].data) == 0:
-            self.skipTest(
-                'Installer log is empty, impossible to distinguish installer '
-                'errors from post-install errors'
-            )
-
-        install_time_line = logs[0].data[-1]
-        datetime_regex = re.compile(datetime_pattern)
-        install_time = datetime.strptime(
-            datetime_regex.search(install_time_line).group(0), datetime_format)
-
-        for log in logs:
-            with self.subTest(log.remote_path):
-                errors = log.filter()
-                installer_errors = []
-                for error in errors:
-                    error_time = datetime.strptime(
-                        datetime_regex.search(error).group(0), datetime_format)
-                    if error_time <= install_time:
-                        installer_errors.append(error)
-                self.assertEqual(
-                    len(installer_errors), 0,
-                    msg='Errors found in {}: {}'
-                        .format(log.remote_path, installer_errors)
-                )
 
 
 def extract_params(lst):
