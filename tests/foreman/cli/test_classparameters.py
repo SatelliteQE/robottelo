@@ -574,7 +574,6 @@ class SmartClassParametersTestCase(CLITestCase):
 
             1.  Override the parameter.
             2.  Create a matcher with value that doesn't match the list of step
-                3.
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
@@ -769,8 +768,9 @@ class SmartClassParametersTestCase(CLITestCase):
             })
 
     @tier1
-    def test_positive_create_matcher(self):
-        """Create matcher for attribute in parameter.
+    @upgrade
+    def test_positive_create_and_remove_matcher(self):
+        """Create and remove matcher for attribute in parameter.
 
         :id: 37fe299b-1e81-4faf-b1c3-2edfc3d53dc1
 
@@ -779,7 +779,10 @@ class SmartClassParametersTestCase(CLITestCase):
             1.  Override the parameter.
             2.  Set some default Value.
             3.  Create a matcher with all valid values.
+            3.  Create matcher with valid attribute type, name and puppet
+                default value.
             4.  Submit the change.
+            2.  Remove the matcher created in step 1
 
         :expectedresults: The matcher has been created successfully.
 
@@ -795,7 +798,7 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.add_override_value({
             'smart-class-parameter-id': sc_param_id,
             'match': 'is_virtual=true',
-            'value': value
+            'value': value,
         })
         sc_param = SmartClassParameter.info({
             'puppet-class': self.puppet_class['name'],
@@ -808,35 +811,15 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(
             sc_param['override-values']['values']['1']['value'], value)
 
-    @tier1
-    def test_negative_create_matcher(self):
-        """Error while creating matcher with empty value
-
-        :id: d4d9f730-152c-428d-b48c-294a23b183ea
-
-        :steps:
-
-            1.  Override the parameter.
-            2.  Create a matcher with empty value.
-            3.  Attempt to submit the change.
-
-        :expectedresults: Error is raised for attempt to add matcher with empty
-            value
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-            'override-value-order': 'is_virtual',
+        SmartClassParameter.remove_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'id': sc_param['override-values']['values']['1']['id'],
         })
-        with self.assertRaises(CLIReturnCodeError):
-            SmartClassParameter.add_override_value({
-                'smart-class-parameter-id': sc_param_id,
-                'match': 'is_virtual=true',
-                'value': '',
-            })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': self.puppet_class['name'],
+            'id': sc_param_id,
+        })
+        self.assertEqual(len(sc_param['override-values']['values']), 0)
 
     @tier1
     def test_positive_create_matcher_puppet_default_value(self):
@@ -879,79 +862,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @tier1
     @upgrade
-    def test_positive_remove_matcher(self):
-        """Removal of matcher from parameter.
-
-        :id: f51ea9ca-f57c-482e-841f-3ea5cc8f8958
-
-        :steps:
-
-            1. Override the parameter and create a matcher for some attribute.
-            2. Remove the matcher created in step 1.
-
-        :expectedresults: The matcher removed from parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        value = gen_string('alpha')
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-            'override-value-order': 'is_virtual',
-        })
-        SmartClassParameter.add_override_value({
-            'smart-class-parameter-id': sc_param_id,
-            'match': 'is_virtual=true',
-            'value': value
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(len(sc_param['override-values']['values']), 1)
-        SmartClassParameter.remove_override_value({
-            'smart-class-parameter-id': sc_param_id,
-            'id': sc_param['override-values']['values']['1']['id'],
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(len(sc_param['override-values']['values']), 0)
-
-    @tier1
-    def test_positive_hide_parameter_default_value(self):
-        """Hide the default value of parameter.
-
-        :id: a1e206ae-67dc-48f0-886e-d543c682af34
-
-        :steps:
-
-            1. Set the override flag for the parameter.
-            2. Set some valid default value.
-            3. Set 'Hidden Value' to true.
-
-        :expectedresults: The 'hidden value' set to true for that parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-            'default-value': gen_string('alpha'),
-            'hidden-value': 1,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(sc_param['hidden-value?'], True)
-        self.assertEqual(sc_param['default-value'], '*****')
-
-    @tier1
-    def test_positive_unhide_parameter_default_value(self):
+    def test_positive_test_hidden_parameter_value(self):
         """Unhide the default value of parameter.
 
         :id: 3daf662f-a0dd-469c-8088-262bfaa5246a
@@ -962,11 +873,18 @@ class SmartClassParametersTestCase(CLITestCase):
             2. Set some valid default value.
             3. Set 'Hidden Value' to true and submit.
             4. After hiding, set the 'Hidden Value' to false.
+            5. Update the hidden value to empty value
+            6. Unhide the variable
 
-        :expectedresults: The 'hidden value' set to false for that parameter.
+        :expectedresults:
+            1. The 'hidden value' is corrctly created
+            2. It is successfull updated
+            3. It remains hidden when empty
+            4. It is successfully unhidden
 
         :CaseImportance: Critical
         """
+        # Create with hidden value
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
             'id': sc_param_id,
@@ -979,87 +897,8 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'hidden-value': 0,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-        })
-        self.assertEqual(sc_param['hidden-value?'], False)
 
-    @tier1
-    @upgrade
-    def test_positive_update_hidden_value_in_parameter(self):
-        """Update the hidden default value of parameter.
-
-        :id: 8602abc9-80bd-412d-bf46-68a1c7f832e4
-
-        :steps:
-
-            1. Set the override flag for the parameter.
-            2. Set some valid default value.
-            3. Set 'Hidden Value' to true and submit.
-            4. Now in hidden state, update the default value.
-
-        :expectedresults:
-
-            1. The parameter default value is updated.
-            2. The 'hidden value' displayed as true for that parameter.
-
-        :CaseImportance: Critical
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
-        old_value = gen_string('alpha')
-        new_value = gen_string('alpha')
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'override': 1,
-            'default-value': old_value,
-            'hidden-value': 1,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-            'show-hidden': 1,
-        })
-        self.assertEqual(sc_param['hidden-value?'], True)
-        self.assertEqual(sc_param['default-value'], old_value)
-        SmartClassParameter.update({
-            'id': sc_param_id,
-            'default-value': new_value,
-        })
-        sc_param = SmartClassParameter.info({
-            'puppet-class': self.puppet_class['name'],
-            'id': sc_param_id,
-            'show-hidden': 1,
-        })
-        self.assertEqual(sc_param['hidden-value?'], True)
-        self.assertEqual(sc_param['default-value'], new_value)
-
-    @tier1
-    def test_positive_hide_empty_default_value(self):
-        """Hiding the empty default value.
-
-        :id: 31069fff-c6d5-42b6-94f2-9551057eb15b
-
-        :steps:
-
-            1. Set the override flag for the parameter.
-            2. Don't set any default value/Set empty value.
-            3. Set 'Hidden Value' to true and submit.
-
-        :expectedresults:
-
-            1. The 'hidden value' set to true for that parameter.
-            2. The default value is still empty on hide.
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: automated
-        """
-        sc_param_id = self.sc_params_ids_list.pop()
+        # Update to empty value
         SmartClassParameter.update({
             'id': sc_param_id,
             'override': 1,
@@ -1073,3 +912,15 @@ class SmartClassParametersTestCase(CLITestCase):
         })
         self.assertFalse(sc_param['default-value'])
         self.assertEqual(sc_param['hidden-value?'], True)
+
+        # Unhide
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'hidden-value': 0,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': self.puppet_class['name'],
+            'id': sc_param_id,
+        })
+        self.assertFalse(sc_param['default-value'])
+        self.assertEqual(sc_param['hidden-value?'], False)
