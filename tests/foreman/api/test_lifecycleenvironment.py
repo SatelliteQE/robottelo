@@ -8,9 +8,9 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: ErrataManagement
+:CaseComponent: LifecycleEnvironments
 
 :TestType: Functional
 
@@ -118,7 +118,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :expectedresults: Lifecycle environment is created and updated properly
 
-        :CaseImportance: High
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         for new_name in valid_data_list():

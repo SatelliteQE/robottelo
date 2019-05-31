@@ -5,7 +5,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: InterSatelliteSync
 
@@ -796,7 +796,7 @@ class ContentViewSync(CLITestCase):
             exported_repo['content-counts']['errata'],
             imported_repo['content-counts']['errata'])
 
-    @tier1
+    @tier2
     def test_negative_reimport_cv_with_same_major_minor(self):
         """Reimport CV version with same major and minor fails
 
@@ -843,7 +843,7 @@ class ContentViewSync(CLITestCase):
             "are trying to import".format(self.exporting_cv_name)
         )
 
-    @tier1
+    @tier2
     def test_negative_import_cv_without_replicating_import_part(self):
         """Import CV version without creating same CV and repo at importing side
 
@@ -925,7 +925,7 @@ class ContentViewSync(CLITestCase):
             'Unable to sync repositories, no library repository found'
         )
 
-    @tier1
+    @tier2
     def test_negative_export_cv_with_on_demand_repo(self):
         """Exporting CV version having on_demand repo throws error
 
@@ -970,7 +970,7 @@ class ContentViewSync(CLITestCase):
             'All exported repositories must be set to an immediate download policy and re-synced'
         )
 
-    @tier1
+    @tier2
     def test_negative_export_cv_with_background_policy_repo(self):
         """Exporting CV version having background policy repo throws error
 
@@ -1013,7 +1013,7 @@ class ContentViewSync(CLITestCase):
             'All exported repositories must be set to an immediate download policy and re-synced'
         )
 
-    @tier1
+    @tier2
     def test_negative_import_cv_with_mirroronsync_repo(self):
         """Importing CV version having mirror-on-sync repo throws error
 
@@ -1070,7 +1070,7 @@ class ContentViewSync(CLITestCase):
                 exporting_repo_name)
         )
 
-    @tier1
+    @tier2
     def test_positive_create_custom_major_minor_cv_version(self):
         """CV can published with custom major and minor versions
 
@@ -1103,7 +1103,7 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(cvv.split('.')[1], str(minor))
 
     @skip_if_bug_open('bugzilla', 1657711)
-    @tier1
+    @tier3
     def test_negative_export_cv_with_puppet_repo(self):
         """Exporting CV version having non yum(puppet) repo throws error
 
@@ -1158,7 +1158,7 @@ class ContentViewSync(CLITestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1657711)
-    @tier1
+    @tier3
     def test_negative_export_cv_with_mixed_content_repos(self):
         """Exporting CV version having yum and non-yum(puppet) repos throws error
 
@@ -1223,7 +1223,7 @@ class ContentViewSync(CLITestCase):
             "publish a new version and try the export again.\n".format(content_view['name'])
         )
 
-    @tier1
+    @tier2
     def test_positive_import_cv_with_customized_major_minor(self):
         """Import the CV version with customized major and minor
 

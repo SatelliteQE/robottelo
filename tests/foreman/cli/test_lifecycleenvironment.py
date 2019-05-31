@@ -5,7 +5,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: LifecycleEnvironments
 
@@ -23,7 +23,7 @@ from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import run_only_on, tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -40,7 +40,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
     # Issues validation
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_verify_bugzilla_1077386(self):
         """List subcommand returns standard output
 
@@ -63,7 +63,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         self.assertGreater(len(result), 0)
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_verify_bugzilla_1077333(self):
         """Search lifecycle environment via its name containing UTF-8
         chars
@@ -98,7 +98,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :expectedresults: Lifecycle environment is created with Library as
             prior
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -110,7 +110,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                     lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_description(self):
         """Create lifecycle environment with valid description prior to
         Library
@@ -135,7 +135,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                     lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_create_with_label(self):
         """Create lifecycle environment with valid name and label
 
@@ -163,6 +163,8 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :expectedresults: Lifecycle environment is created for correct
             organization
+
+        :CaseImportance: Critical
 
         """
         new_lce = make_lifecycle_environment({
@@ -389,7 +391,7 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         cls.lces_count += 1  # include default 'Library' lce
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_list_all_with_per_page(self):
         """Attempt to list more than 20 lifecycle environment with per-page
         option.
@@ -413,7 +415,7 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         self.assertEqual(env_name_set, set(self.env_names))
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_positive_list_with_pagination(self):
         """Make sure lces list can be displayed with different items per page
         value

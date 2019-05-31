@@ -6,7 +6,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: ActivationKeys
 
@@ -273,7 +273,7 @@ class ActivationKeyTestCase(CLITestCase):
             )
 
     @run_only_on('sat')
-    @tier1
+    @tier2
     def test_negative_create_with_invalid_name(self):
         """Create Activation key with invalid Name
 
@@ -297,7 +297,7 @@ class ActivationKeyTestCase(CLITestCase):
                     raise_ctx,
                     u'Name is too long (maximum is 255 characters)')
 
-    @tier1
+    @tier3
     def test_negative_create_with_usage_limit_with_not_integers(self):
         """Create Activation key with non integers Usage Limit
 
@@ -329,7 +329,7 @@ class ActivationKeyTestCase(CLITestCase):
                     raise_ctx,
                     u'Numeric value is required.')
 
-    @tier1
+    @tier3
     def test_negative_create_with_usage_limit_with_invalid_integers(self):
         """Create Activation key with invalid integers Usage Limit
 
@@ -608,7 +608,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': new_ak['id']})
         self.assertEqual(updated_ak['host-limit'], u'Unlimited')
 
-    @tier1
+    @tier2
     def test_negative_update_name(self):
         """Try to update Activation Key using invalid value for its name
 
@@ -633,7 +633,7 @@ class ActivationKeyTestCase(CLITestCase):
                 u'Could not update the activation key:'
             )
 
-    @tier1
+    @tier2
     def test_negative_update_usage_limit(self):
         """Try to update Activation Key using invalid value for its
         usage limit attribute
@@ -1360,7 +1360,7 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertEqual(
                     u'Activation key updated.', result[0]['message'])
 
-    @tier1
+    @tier2
     def test_negative_update_autoattach(self):
         """Attempt to update Activation key with bad auto-attach value
 
