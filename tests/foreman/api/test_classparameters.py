@@ -252,6 +252,8 @@ class SmartClassParametersTestCase(APITestCase):
             1. Set override to True.
             2. Set some default value, Not empty.
             3. Set 'required' to true.
+            4. Create a matcher for Parameter for some attribute.
+            5. Set some Value for matcher.
 
         :expectedresults: No error raised for non-empty default value
 
@@ -268,6 +270,16 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = sc_param.read()
         self.assertEqual(sc_param.required, True)
         self.assertEqual(sc_param.default_value, True)
+        value = gen_string('alpha')
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value=value,
+        ).create()
+        sc_param.update(['override', 'required'])
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.required, True)
+        self.assertEqual(sc_param.override_values[0]['value'], value)
 
     @tier1
     def test_negative_validate_matcher_value_required_check(self):
@@ -299,37 +311,6 @@ class SmartClassParametersTestCase(APITestCase):
             context.exception.response.text,
             "Validation failed: Value can't be blank"
         )
-
-    @tier1
-    def test_positive_validate_matcher_value_required_check(self):
-        """Error is not raised for matcher Value - Required checkbox.
-
-        :id: bf620cef-c7ab-4a32-9050-bd06040dc8d1
-
-        :steps:
-
-            1. Set override to True.
-            2. Create a matcher for Parameter for some attribute.
-            3. Set some Value for matcher.
-            4. Set 'required' to true.
-
-        :expectedresults: Error not raised for matcher value.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        value = gen_string('alpha')
-        entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=value,
-        ).create()
-        sc_param.override = True
-        sc_param.required = True
-        sc_param.update(['override', 'required'])
-        sc_param = sc_param.read()
-        self.assertEqual(sc_param.required, True)
-        self.assertEqual(sc_param.override_values[0]['value'], value)
 
     @tier1
     def test_negative_validate_default_value_with_regex(self):
@@ -376,12 +357,15 @@ class SmartClassParametersTestCase(APITestCase):
             1. Set override to True.
             2. Set default value that matches the regex of step 3.
             3. Validate this value with regex validator type and rule.
+            4. Create a matcher with value that matches the regex of step 3.
+            5. Validate this value with regex validator type and rule.
 
         :expectedresults: Error not raised for default value matching with
             regex.
 
         :CaseImportance: Critical
         """
+        # validate default value
         value = gen_string('numeric')
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -396,158 +380,16 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(sc_param.validator_type, 'regexp')
         self.assertEqual(sc_param.validator_rule, '[0-9]')
 
-    @tier1
-    def test_negative_validate_matcher_value_with_regex(self):
-        """Error is raised for matcher value not matching with regex.
-
-        :id: 08820c89-2b93-40f1-be17-0bd38c519e90
-
-        :steps:
-
-            1. Set override to True.
-            2. Create a matcher with value that doesn't match the regex of step
-               3.
-            3. Validate this value with regex validator type and rule.
-
-        :expectedresults: Error raised for matcher value not matching with
-            regex.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        value = gen_string('numeric')
-        entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=test.com',
-            value=gen_string('alpha'),
-        ).create()
-        sc_param.override = True
-        sc_param.default_value = value
-        sc_param.validator_type = 'regexp'
-        sc_param.validator_rule = '[0-9]'
-        with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override',
-                'default_value',
-                'validator_type',
-                'validator_rule'
-            ])
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Lookup values is invalid"
-        )
-        self.assertNotEqual(sc_param.read().default_value, value)
-
-    @tier1
-    def test_positive_validate_matcher_value_with_regex(self):
-        """Error is not raised for matcher value matching with regex.
-
-        :id: 74164406-885b-4f5b-8ea0-06738314310f
-
-        :steps:
-
-            1. Set override to True.
-            2. Create a matcher with value that matches the regex of step 3.
-            3. Validate this value with regex validator type and rule.
-
-        :expectedresults: Error not raised for matcher value matching with
-            regex.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        value = gen_string('numeric')
+        # validate matcher value
         entities.OverrideValue(
             smart_class_parameter=sc_param,
             match='domain=test.com',
             value=gen_string('numeric'),
         ).create()
-        sc_param.override = True
-        sc_param.default_value = value
-        sc_param.validator_type = 'regexp'
-        sc_param.validator_rule = '[0-9]'
         sc_param.update(
             ['override', 'default_value', 'validator_type', 'validator_rule']
         )
         self.assertEqual(sc_param.read().default_value, value)
-
-    @tier1
-    def test_negative_validate_default_value_with_list(self):
-        """Error is raised for default value not in list.
-
-        :id: 75b1dc0b-2287-4b99-b8dc-e50b83355819
-
-        :steps:
-
-            1. Set override to True.
-            2. Set default value that doesn't matches the list of step 3.
-            3. Validate this value with list validator type and rule.
-
-        :expectedresults: Error is raised for default value that is not in
-            list.
-
-        :CaseImportance: Critical
-        """
-        value = gen_string('alphanumeric')
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.default_value = value
-        sc_param.validator_type = 'list'
-        sc_param.validator_rule = '5, test'
-        with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override',
-                'default_value',
-                'validator_type',
-                'validator_rule',
-            ])
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Default value \\w+ is not one of"
-        )
-        self.assertNotEqual(sc_param.read().default_value, value)
-
-    @tier1
-    def test_positive_validate_default_value_with_list(self):
-        """Error is not raised for default value in list.
-
-        :id: d5d5f084-fa62-4ec3-90ea-9fcabd7bda4f
-
-        :steps:
-
-            1. Set override to True.
-            2. Set default value that matches the list of step 3.
-            3. Validate this value with list validator type and rule.
-
-        :expectedresults: Error not raised for default value in list.
-
-        :CaseImportance: Critical
-        """
-        # Generate list of values
-        values_list = [
-            gen_string('alpha'),
-            gen_string('alphanumeric'),
-            gen_integer(min_value=100),
-            choice(['true', 'false']),
-        ]
-        # Generate string from list for validator_rule
-        values_list_str = ", ".join(str(x) for x in values_list)
-        value = choice(values_list)
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.default_value = value
-        sc_param.validator_type = 'list'
-        sc_param.validator_rule = values_list_str
-        sc_param.update([
-            'override',
-            'default_value',
-            'validator_type',
-            'validator_rule',
-        ])
-        sc_param = sc_param.read()
-        self.assertEqual(sc_param.default_value, str(value))
-        self.assertEqual(sc_param.validator_type, 'list')
-        self.assertEqual(sc_param.validator_rule, values_list_str)
 
     @tier1
     def test_negative_validate_matcher_value_with_list(self):
@@ -559,7 +401,6 @@ class SmartClassParametersTestCase(APITestCase):
 
             1. Set override to True.
             2. Create a matcher with value that doesn't match the list of step
-               3.
             3. Validate this value with list validator type and rule.
 
         :expectedresults: Error raised for matcher value not in list.
@@ -619,39 +460,6 @@ class SmartClassParametersTestCase(APITestCase):
             ['override', 'default_value', 'validator_type', 'validator_rule']
         )
         self.assertEqual(sc_param.read().default_value, 'example')
-
-    @tier1
-    def test_negative_validate_matcher_value_with_default_type(self):
-        """Error is raised for matcher value not of default type.
-
-        :id: 21668ef4-1a7a-41cb-98e3-dc4c664db351
-
-        :steps:
-
-            1. Set override to True.
-            2. Update parameter default type with valid value.
-            3. Create a matcher with value that doesn't matches the default
-               type.
-
-        :expectedresults: Error raised for matcher value not of default type.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        sc_param.override = True
-        sc_param.parameter_type = 'boolean'
-        sc_param.default_value = True
-        sc_param.update(['override', 'parameter_type', 'default_value'])
-        with self.assertRaises(HTTPError) as context:
-            entities.OverrideValue(
-                smart_class_parameter=sc_param,
-                match='domain=example.com',
-                value=gen_string('alpha'),
-            ).create()
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Value is invalid"
-        )
 
     @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
@@ -716,34 +524,6 @@ class SmartClassParametersTestCase(APITestCase):
             context.exception.response.text,
             "Validation failed: Default value is invalid, "
             "Lookup values is invalid"
-        )
-
-    @tier1
-    def test_negative_validate_matcher_non_existing_attribute(self):
-        """Error while creating matcher for Non Existing Attribute.
-
-        :id: bef0e457-16be-4ca6-bc56-fa32dff55a01
-
-        :steps:
-
-            1. Set override to True.
-            2. Create a matcher with non existing attribute in org.
-
-        :expectedresults: Error raised for non existing attribute.
-
-        :CaseImportance: Critical
-        """
-        sc_param = self.sc_params_list.pop()
-        with self.assertRaises(HTTPError) as context:
-            entities.OverrideValue(
-                smart_class_parameter=sc_param,
-                match='hostgroup=nonexistingHG',
-                value=gen_string('alpha')
-            ).create()
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Match hostgroup=nonexistingHG does not match "
-            "an existing host group"
         )
 
     @tier1
