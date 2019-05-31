@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: System
 
 :CaseComponent: ErrataManagement
 
