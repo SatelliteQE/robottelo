@@ -24,7 +24,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_os, make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.decorators import (
-    run_only_on, skip_if_bug_open, tier1, tier2, upgrade)
+     skip_if_bug_open, tier1, tier2, upgrade)
 from robottelo.test import CLITestCase
 
 
@@ -49,7 +49,6 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
                 ptable = make_partition_table({'name': name})
                 self.assertEqual(ptable['name'], name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create Partition Tables with different names
@@ -96,7 +95,6 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         ptable_content = PartitionTable().dump({'id': ptable['id']})
         self.assertTrue(content in ptable_content[0])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Create a Partition Table and update its name

@@ -20,7 +20,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hw_model
 from robottelo.ui.locators import common_locators
@@ -30,7 +30,6 @@ from robottelo.ui.session import Session
 class HardwareModelTestCase(UITestCase):
     """Implements Hardware Model tests in UI."""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create new Hardware-Model
@@ -47,7 +46,6 @@ class HardwareModelTestCase(UITestCase):
                     make_hw_model(session, name=name)
                     self.assertIsNotNone(self.hardwaremodel.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create new Hardware-Model with invalid names
@@ -66,7 +64,6 @@ class HardwareModelTestCase(UITestCase):
                         common_locators['name_haserror'])
                     self.assertIsNotNone(error)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update(self):
         """Updates the Hardware-Model
@@ -87,7 +84,6 @@ class HardwareModelTestCase(UITestCase):
                     self.assertIsNotNone(self.hardwaremodel.search(new_name))
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):

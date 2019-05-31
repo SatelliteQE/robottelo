@@ -32,7 +32,6 @@ from robottelo.constants import (
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -63,7 +62,6 @@ class HostContentHostUnificationTestCase(UITestCase):
         super(HostContentHostUnificationTestCase, cls).setUpClass()
         cls.org_ = entities.Organization().create()
 
-    @run_only_on('sat')
     @tier3
     def test_positive_register_host_via_rhsm(self):
         """Register a pre-installed host via rhsm using credentials
@@ -90,7 +88,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_register_host_via_ak(self):
@@ -133,7 +130,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
 
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_provision_foreman_host(self):
@@ -188,7 +184,6 @@ class HostContentHostUnificationTestCase(UITestCase):
             self.assertIsNotNone(self.contenthost.search(hostname))
             self.assertIsNotNone(self.hosts.search(hostname))
 
-    @run_only_on('sat')
     @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_rename_foreman_host(self):
@@ -235,7 +230,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                     session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.contenthost.search(new_name))
 
-    @run_only_on('sat')
     @tier3
     def test_positive_rename_content_host(self):
         """Hosts renamed in katello via content-hosts appear in foreman
@@ -273,7 +267,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                     session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.hosts.search(new_name))
 
-    @run_only_on('sat')
     @tier3
     def test_positive_rename_content_host_cli(self):
         """Content Hosts renamed in UI affects entity in the application
@@ -309,7 +302,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.contenthost.search(new_name))
             self.assertEqual(Host.info({'id': host['id']})['name'], new_name)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_from_allhosts(self):
         """Delete a host from 'All hosts'
@@ -336,7 +328,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNone(self.contenthost.search(vm.hostname))
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_unregister_content_host(self):
@@ -383,7 +374,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_content_host(self):
         """Unregister and delete a host from content-hosts page
@@ -426,7 +416,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNone(self.hosts.search(vm.hostname))
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_re_register_host(self):
@@ -476,7 +465,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
 
-    @run_only_on('sat')
     @tier3
     def test_negative_add_subs_to_unregistered_host(self):
         """Perform a subscription action on a host which is not registered
@@ -531,7 +519,6 @@ class HostContentHostUnificationTestCase(UITestCase):
                     add_subscriptions=[DEFAULT_SUBSCRIPTION_NAME],
                 )
 
-    @run_only_on('sat')
     @tier3
     def test_negative_add_contents_to_unregistered_host(self):
         """Perform a content action like on a host which is not registered

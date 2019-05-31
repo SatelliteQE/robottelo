@@ -23,7 +23,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import run_in_one_thread, run_only_on, tier1, upgrade
+from robottelo.decorators import run_in_one_thread, tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -32,7 +32,6 @@ class RepositorySetTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
     @tier1
-    @run_only_on('sat')
     def test_positive_reposet_enable(self):
         """Enable repo from reposet
 
@@ -69,7 +68,6 @@ class RepositorySetTestCase(APITestCase):
         ][0])
 
     @tier1
-    @run_only_on('sat')
     @upgrade
     def test_positive_reposet_disable(self):
         """Disable repo from reposet

@@ -27,7 +27,6 @@ from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
@@ -130,7 +129,6 @@ class SmartClassParametersTestCase(UITestCase):
         super(SmartClassParametersTestCase, cls).tearDownClass()
         delete_puppet_class(cls.puppet_class.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_search(self):
         """Search for specific smart class parameter
@@ -145,7 +143,6 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertIsNotNone(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_override_checkbox(self):
         """Override the Default Parameter value.
@@ -172,7 +169,6 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter, self.puppet_class.name)
             self.assertEqual(default_value, new_value)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_edit_parameter_dialog(self):
         """Validation, merging and matcher sections are accessible for enabled
@@ -207,7 +203,6 @@ class SmartClassParametersTestCase(UITestCase):
                 self.assertTrue(
                     self.sc_parameters.is_element_enabled(locators[locator]))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_edit_parameter_dialog(self):
         """Validation, merging and matcher sections are not accessible for
@@ -243,7 +238,6 @@ class SmartClassParametersTestCase(UITestCase):
                 self.assertFalse(
                     self.sc_parameters.is_element_enabled(locators[locator]))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_parameter_type(self):
         """Negative Parameter Update for parameter types - Invalid Value.
@@ -284,7 +278,6 @@ class SmartClassParametersTestCase(UITestCase):
                         sc_param.parameter, self.puppet_class.name)
                     self.assertEqual(value, initial_value)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_puppet_default_value(self):
         """Validation doesn't works on puppet default value.
@@ -323,7 +316,6 @@ class SmartClassParametersTestCase(UITestCase):
             ).get_attribute('value')
             self.assertEqual(value, u'45, test, 75')
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_validate_default_value_required_checkbox(self):
@@ -345,7 +337,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseLevel: Integration
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_validate_matcher_value_required_checkbox(self):
@@ -368,7 +359,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseLevel: Integration
         """
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_default_value_with_regex(self):
         """Error raised for default value not matching with regex.
@@ -399,7 +389,6 @@ class SmartClassParametersTestCase(UITestCase):
                     common_locators['haserror'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_default_value_with_regex(self):
         """Error not raised for default value matching with regex.
@@ -434,7 +423,6 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter, self.puppet_class.name)
             self.assertEqual(value, initial_value)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_value_with_regex(self):
         """Error raised for matcher value not matching with regex.
@@ -470,7 +458,6 @@ class SmartClassParametersTestCase(UITestCase):
                     locators['sc_parameters.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_matcher_value_with_regex(self):
         """Error not raised for matcher value matching with regex.
@@ -508,7 +495,6 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter, self.puppet_class.name, 1)
             self.assertEqual(matchers_list[0], matcher_value)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_default_value_with_list(self):
         """Error raised for default value not in list.
@@ -538,7 +524,6 @@ class SmartClassParametersTestCase(UITestCase):
                     common_locators['haserror'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_default_value_with_list(self):
         """Error not raised for default value in list.
@@ -571,7 +556,6 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter, self.puppet_class.name)
             self.assertEqual(value, '475')
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Error raised for matcher value not in list.
@@ -610,7 +594,6 @@ class SmartClassParametersTestCase(UITestCase):
                     locators['sc_parameters.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_matcher_value_with_list(self):
         """Error not raised for matcher value in list.
@@ -646,7 +629,6 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter, self.puppet_class.name, 1)
             self.assertEqual(matchers_list[0], '30')
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error raised for matcher value not of default type.
@@ -680,7 +662,6 @@ class SmartClassParametersTestCase(UITestCase):
                     locators['sc_parameters.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
@@ -716,7 +697,6 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter, self.puppet_class.name, 1)
             self.assertEqual(int(matchers_list[0]), matcher_value)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value both at a time.
@@ -755,7 +735,6 @@ class SmartClassParametersTestCase(UITestCase):
                     locators['sc_parameters.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
@@ -787,7 +766,6 @@ class SmartClassParametersTestCase(UITestCase):
                     locators['sc_parameters.matcher_error'])
             )
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1402036)
     @tier1
     def test_positive_validate_matcher_with_comma(self):
@@ -831,7 +809,6 @@ class SmartClassParametersTestCase(UITestCase):
             ).get_attribute('value')
             self.assertEqual(attribute_value, loc_name)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_create_matcher_puppet_default_value(self):
@@ -873,7 +850,6 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertFalse(self.sc_parameters.is_element_enabled(
                 locators['sc_parameters.matcher_value'] % 1))
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_create_matcher_merge_override_puppet_value(self):
@@ -910,7 +886,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_create_matcher_merge_puppet_default(self):
@@ -945,7 +920,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @tier1
     def test_positive_enable_merge_overrides_default_checkboxes(self):
         """Enable Merge Overrides, Merge Default and Avoid Duplicates
@@ -986,7 +960,6 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertTrue(self.sc_parameters.is_element_enabled(
                 locators['sc_parameters.avoid_duplicates']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
@@ -1020,7 +993,6 @@ class SmartClassParametersTestCase(UITestCase):
                 self.assertFalse(
                     self.sc_parameters.is_element_enabled(locators[locator]))
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_create_override_from_attribute(self):
@@ -1043,7 +1015,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_create_override_from_attribute(self):
@@ -1066,7 +1037,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_create_override_from_attribute_puppet_default(self):
@@ -1096,7 +1066,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_negative_create_override_from_attribute_required_checked(self):
@@ -1126,7 +1095,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_negative_update_matcher_from_attribute(self):
@@ -1155,7 +1123,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1295179)
     @stubbed()
     @tier2
@@ -1184,7 +1151,6 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @tier1
     def test_positive_hide_parameter_default_value(self):
         """Hide the default value of parameter.
@@ -1227,7 +1193,6 @@ class SmartClassParametersTestCase(UITestCase):
                 locators['sc_parameters.matcher_value'] % 1)
             self.assertIn('masked-input', matcher_value.get_attribute('class'))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_unhide_parameter_default_value(self):
@@ -1275,7 +1240,6 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertNotIn(
                 'masked-input', matcher_value.get_attribute('class'))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
@@ -1319,7 +1283,6 @@ class SmartClassParametersTestCase(UITestCase):
                 locators['sc_parameters.default_value'])
             self.assertIn('masked-input', locator.get_attribute('class'))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.

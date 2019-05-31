@@ -39,7 +39,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -59,7 +58,6 @@ from robottelo.ui.session import Session
 class HostTestCase(UITestCase):
     """Implements Host tests in UI"""
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_create_baremetal_with_bios(self):
@@ -80,7 +78,6 @@ class HostTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     @upgrade
@@ -102,7 +99,6 @@ class HostTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_negative_create_with_incompatible_pxe_loader(self):
@@ -132,7 +128,6 @@ class HostTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @tier2
     def test_positive_sort_by_name(self):
         """Create some Host entities and sort them by name ascendingly and then
@@ -182,7 +177,6 @@ class HostTestCase(UITestCase):
                 sorted(name_list, reverse=True)
             )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_sort_by_os(self):
         """Create some Host entities and sort them by operation system
@@ -234,7 +228,6 @@ class HostTestCase(UITestCase):
                 sorted(name_list, key=six.text_type.lower, reverse=True)
             )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_sort_by_env(self):
         """Create some Host entities and sort them by environment
@@ -282,7 +275,6 @@ class HostTestCase(UITestCase):
                 sorted(name_list, key=six.text_type.lower, reverse=True)
             )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_sort_by_model(self):
         """Create some Host entities and sort them by hardware model
@@ -331,7 +323,6 @@ class HostTestCase(UITestCase):
                 sorted(name_list, key=six.text_type.lower, reverse=True)
             )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_sort_by_hostgroup(self):
         """Create some Host entities and sort them by host group ascendingly

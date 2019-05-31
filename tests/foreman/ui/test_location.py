@@ -24,7 +24,6 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import (
-    run_only_on,
     tier1,
     upgrade,
 )
@@ -80,7 +79,6 @@ class LocationTestCase(UITestCase):
 
     # Auto Search
 
-    @run_only_on('sat')
     @tier1
     def test_positive_auto_search(self):
         """Can auto-complete search for location by partial name
@@ -107,7 +105,6 @@ class LocationTestCase(UITestCase):
 
     # Positive Create
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create Location with valid name only
@@ -124,7 +121,6 @@ class LocationTestCase(UITestCase):
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_names(self):
         """Create location with invalid name
@@ -143,7 +139,6 @@ class LocationTestCase(UITestCase):
                         common_locators['name_haserror'])
                     self.assertIsNotNone(error)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create location with valid values, then create a new one with same
@@ -166,7 +161,6 @@ class LocationTestCase(UITestCase):
 
     # Positive Update
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Create Location with valid values then update its name
@@ -189,7 +183,6 @@ class LocationTestCase(UITestCase):
 
     # Negative Update
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_with_too_long_name(self):
         """Create Location with valid values then fail to update
@@ -211,7 +204,6 @@ class LocationTestCase(UITestCase):
                 common_locators['name_haserror'])
             self.assertIsNotNone(error)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -229,7 +221,6 @@ class LocationTestCase(UITestCase):
                     entities.Location(name=loc_name).create()
                     self.location.delete(loc_name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_check_all_values_hostgroup(self):
         """check whether host group has the 'All values' checked.
@@ -253,7 +244,6 @@ class LocationTestCase(UITestCase):
             )
             self.assertIsNotNone(selected)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_check_all_values_template(self):
         """check whether config template has the 'All values' checked.

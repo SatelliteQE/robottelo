@@ -37,8 +37,6 @@ ssh_key=
 # The directory where screenshots will be saved.
 # Note:- Content under /tmp may be deleted after a reboot.
 # screenshots_path=/tmp/robottelo/screenshots/
-# Enter only 'sat' for Satellite and 'sam' for SAM
-# project=sat
 # locale=en_US.UTF-8
 # Update upstream=false for downstream run
 # upstream=true

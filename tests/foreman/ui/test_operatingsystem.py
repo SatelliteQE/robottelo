@@ -25,7 +25,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -69,7 +69,6 @@ class OperatingSystemTestCase(UITestCase):
         super(OperatingSystemTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a new OS using different string types as a name
@@ -93,7 +92,6 @@ class OperatingSystemTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.operatingsys.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create(self):
         """Create a new OS with different data values
@@ -120,7 +118,6 @@ class OperatingSystemTestCase(UITestCase):
                     self.assertIsNotNone(self.operatingsys.search(
                         test_data['desc']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """OS - Create a new OS with invalid name
@@ -145,7 +142,6 @@ class OperatingSystemTestCase(UITestCase):
                     self.assertIsNotNone(self.operatingsys.wait_until_element(
                         common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_too_long_description(self):
         """OS - Create a new OS with description containing
@@ -172,7 +168,6 @@ class OperatingSystemTestCase(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.operatingsys.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_major_version(self):
         """OS - Create a new OS with incorrect major version value
@@ -200,7 +195,6 @@ class OperatingSystemTestCase(UITestCase):
                         common_locators['haserror']))
                     self.assertIsNone(self.operatingsys.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_minor_version(self):
         """OS - Create a new OS with incorrect minor version value
@@ -228,7 +222,6 @@ class OperatingSystemTestCase(UITestCase):
                         common_locators['haserror']))
                     self.assertIsNone(self.operatingsys.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name_and_version(self):
         """OS - Create a new OS with same name and version
@@ -261,7 +254,6 @@ class OperatingSystemTestCase(UITestCase):
             self.assertIsNotNone(self.operatingsys.wait_until_element(
                 common_locators['haserror']))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -277,7 +269,6 @@ class OperatingSystemTestCase(UITestCase):
         with Session(self):
             self.operatingsys.delete(os_name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update(self):
         """Update OS name, major_version, minor_version, os_family
@@ -305,7 +296,6 @@ class OperatingSystemTestCase(UITestCase):
                         test_data['name']))
                     os_name = test_data['name']
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_medium(self):
         """Update OS medium
@@ -329,7 +319,6 @@ class OperatingSystemTestCase(UITestCase):
             result_obj = self.operatingsys.get_os_entities(os_name, 'medium')
             self.assertEqual(medium_name, result_obj['medium'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_ptable(self):
         """Update OS partition table
@@ -356,7 +345,6 @@ class OperatingSystemTestCase(UITestCase):
             result_obj = self.operatingsys.get_os_entities(os_name, 'ptable')
             self.assertEqual(ptable, result_obj['ptable'])
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_update_template(self):
@@ -382,7 +370,6 @@ class OperatingSystemTestCase(UITestCase):
             result_obj = self.operatingsys.get_os_entities(os_name, 'template')
             self.assertEqual(template_name, result_obj['template'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_set_parameter_with_blank_value(self):
         """Set OS parameter with blank value
@@ -401,7 +388,6 @@ class OperatingSystemTestCase(UITestCase):
             except UIError as err:
                 self.fail(err)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_remove_parameter(self):
@@ -421,7 +407,6 @@ class OperatingSystemTestCase(UITestCase):
             except UIError as err:
                 self.fail(err)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_set_parameter_same_values(self):
         """Set same OS parameter again as it was set earlier
@@ -444,7 +429,6 @@ class OperatingSystemTestCase(UITestCase):
                 common_locators['table_haserror']
             ))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_set_parameter_with_blank_name_and_value(self):
         """Set OS parameter with blank name and value
@@ -464,7 +448,6 @@ class OperatingSystemTestCase(UITestCase):
                 common_locators['table_haserror']
             ))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_set_parameter_with_too_long_values(self):
         """Set OS parameter with name and value exceeding 255 characters

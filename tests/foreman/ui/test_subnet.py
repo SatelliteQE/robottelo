@@ -25,7 +25,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    run_only_on, skip_if_bug_open, stubbed, tier1, tier2, tier3, upgrade
+     skip_if_bug_open, stubbed, tier1, tier2, tier3, upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_subnet, set_context
@@ -41,7 +41,6 @@ class SubnetTestCase(UITestCase):
         super(SubnetTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create new subnet using different names
@@ -63,7 +62,6 @@ class SubnetTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.subnet.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_long_name(self):
         """Create new subnet with 255 characters in name
@@ -86,7 +84,6 @@ class SubnetTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.subnet.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create new subnet with invalid names
@@ -109,7 +106,6 @@ class SubnetTestCase(UITestCase):
                     self.assertIsNotNone(session.nav.wait_until_element(
                         common_locators['haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_params(self):
         """Create new subnet with negative values
@@ -141,7 +137,6 @@ class SubnetTestCase(UITestCase):
             self.assertIsNotNone(session.nav.wait_until_element(
                 locators['subnet.dnssecondary_haserror']))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -164,7 +159,6 @@ class SubnetTestCase(UITestCase):
                     )
                     self.subnet.delete(name)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_delete(self):
         """Delete subnet. Attempt to delete subnet, but cancel in the
@@ -186,7 +180,6 @@ class SubnetTestCase(UITestCase):
             )
             self.subnet.delete(name, really=False)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update Subnet name
@@ -212,7 +205,6 @@ class SubnetTestCase(UITestCase):
                     self.assertEqual(new_name, result_object['name'])
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_network(self):
         """Update Subnet network
@@ -236,7 +228,6 @@ class SubnetTestCase(UITestCase):
             result_object = self.subnet.search_and_validate(name)
             self.assertEqual(new_network, result_object['network'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_mask(self):
         """Update Subnet mask
@@ -260,7 +251,6 @@ class SubnetTestCase(UITestCase):
             result_object = self.subnet.search_and_validate(name)
             self.assertEqual(new_mask, result_object['mask'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_sort_by_name(self):
         """Create some Subnet entities and sort them by name
@@ -295,7 +285,6 @@ class SubnetTestCase(UITestCase):
                 sorted(name_list, key=six.text_type.lower, reverse=True)
             )
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1494180)
     @tier1
     def test_positive_sort_by_network(self):

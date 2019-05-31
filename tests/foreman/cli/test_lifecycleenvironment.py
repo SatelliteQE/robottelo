@@ -23,7 +23,7 @@ from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2, upgrade
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -39,7 +39,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         cls.org = make_org()
 
     # Issues validation
-    @run_only_on('sat')
     @tier2
     def test_verify_bugzilla_1077386(self):
         """List subcommand returns standard output
@@ -62,7 +61,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         )
         self.assertGreater(len(result), 0)
 
-    @run_only_on('sat')
     @tier2
     def test_verify_bugzilla_1077333(self):
         """Search lifecycle environment via its name containing UTF-8
@@ -87,7 +85,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         self.assertEqual(result['name'], test_data['name'])
 
     # CRUD
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create lifecycle environment with valid name, prior to
@@ -109,7 +106,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                 self.assertEqual(
                     lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_description(self):
         """Create lifecycle environment with valid description prior to
@@ -134,7 +130,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                 self.assertEqual(
                     lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_label(self):
         """Create lifecycle environment with valid name and label
@@ -154,7 +149,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                 })
                 self.assertEqual(new_lce['label'], label)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_organization_name(self):
         """Create lifecycle environment, specifying organization name
@@ -173,7 +167,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         })
         self.assertEqual(new_lce['organization'], self.org['name'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_organization_label(self):
         """Create lifecycle environment, specifying organization label
@@ -192,7 +185,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         })
         self.assertEqual(new_lce['organization'], self.org['name'])
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete_by_id(self):
@@ -219,7 +211,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                         'organization-id': self.org['id'],
                     })
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Create lifecycle environment then update its name
@@ -248,7 +239,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result['name'], new_name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
         """Create lifecycle environment then update its description
@@ -277,7 +267,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result['description'], new_desc)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_registry_name_pattern(self):
         """Create lifecycle environment and then update registry name pattern
@@ -308,7 +297,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         self.assertGreater(len(result), 0)
         self.assertEqual(result['registry-name-pattern'], registry_name_pattern)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_unauthenticated_pull(self):
         """Create lifecycle environment and then update registry's
@@ -338,7 +326,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         self.assertGreater(len(result), 0)
         self.assertEqual(result['unauthenticated-pull'], 'true')
 
-    @run_only_on('sat')
     @tier1
     def test_positve_list_paths(self):
         """List the environment paths under a given organization
@@ -390,7 +377,6 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
 
         cls.lces_count += 1  # include default 'Library' lce
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_all_with_per_page(self):
         """Attempt to list more than 20 lifecycle environment with per-page
@@ -414,7 +400,6 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         env_name_set = {env['name'] for env in lifecycle_environments}
         self.assertEqual(env_name_set, set(self.env_names))
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_with_pagination(self):
         """Make sure lces list can be displayed with different items per page

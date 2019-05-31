@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, stubbed, tier1, upgrade
+from robottelo.decorators import stubbed, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -47,7 +47,6 @@ class HostgroupTestCase(UITestCase):
             content_view=cls.cv,
         ).create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create new hostgroup
@@ -64,7 +63,6 @@ class HostgroupTestCase(UITestCase):
                     make_hostgroup(session, name=name)
                     self.assertIsNotNone(self.hostgroup.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create new hostgroup with invalid names
@@ -84,7 +82,6 @@ class HostgroupTestCase(UITestCase):
                             common_locators['name_haserror'])
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create new hostgroup with same name
@@ -105,7 +102,6 @@ class HostgroupTestCase(UITestCase):
                     common_locators['name_haserror'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_arch_and_os(self):
         """Create new hostgroup with architecture and operating system assigned
@@ -136,7 +132,6 @@ class HostgroupTestCase(UITestCase):
             )
             self.assertIsNotNone(self.hostgroup.search(name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_create_with_oscap_capsule(self):
@@ -162,7 +157,6 @@ class HostgroupTestCase(UITestCase):
             )
             self.assertIsNotNone(self.hostgroup.search(name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_create_with_activation_keys(self):
@@ -188,7 +182,6 @@ class HostgroupTestCase(UITestCase):
             )
             self.assertIsNotNone(self.hostgroup.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update(self):
         """Update hostgroup with a new name
@@ -209,7 +202,6 @@ class HostgroupTestCase(UITestCase):
                     self.assertIsNotNone(self.hostgroup.search(new_name))
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_with_removed_arch(self):
         """Create new hostgroup with content view, architecture and os
@@ -273,7 +265,6 @@ class HostgroupTestCase(UITestCase):
             self.assertIsNone(self.hostgroup.wait_until_element(
                 common_locators['haserror'], timeout=3))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Delete a hostgroup
@@ -290,7 +281,6 @@ class HostgroupTestCase(UITestCase):
                     make_hostgroup(session, name=name)
                     self.hostgroup.delete(name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_delete_with_discovery_rule(self):
         """Attempt to delete hostgroup which has dependent discovery rule
@@ -331,7 +321,6 @@ class HostgroupTestCase(UITestCase):
             )
             self.assertIsNotNone(self.hostgroup.search(hostgroup.name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_redirection_for_multiple_hosts(self):
         """Create new hostgroup with whitespaces in its name for specific
@@ -376,7 +365,6 @@ class HostgroupTestCase(UITestCase):
                 self.hosts.wait_until_element(
                     locators['host.select_name'] % host_name)
 
-    @run_only_on('sat')
     @stubbed('unstub once os/browser/env combination is changed')
     @tier1
     def test_positive_check_activation_keys_autocomplete(self):

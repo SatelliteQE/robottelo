@@ -35,7 +35,6 @@ from robottelo.datafactory import (
     valid_environments_list,
 )
 from robottelo.decorators import (
-    run_only_on,
     tier1,
     tier2,
     upgrade,
@@ -64,7 +63,6 @@ class EnvironmentTestCase(CLITestCase):
         })
 
     @tier2
-    @run_only_on('sat')
     def test_positive_list_with_name(self):
         """Test Environment List
 
@@ -84,7 +82,6 @@ class EnvironmentTestCase(CLITestCase):
                 self.assertEqual(result[0]['name'], name)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_list_with_org_and_loc_by_id(self):
         """Test Environment List filtering.
 
@@ -120,7 +117,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertEqual(results[0]['id'], envs[0]['id'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_list_with_org_and_loc_by_name(self):
         """Test Environment List filtering.
 
@@ -156,7 +152,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertEqual(results[0]['name'], envs[0]['name'])
 
     @tier2
-    @run_only_on('sat')
     def test_negative_list_with_org_and_loc_by_id(self):
         """Test Environment List filtering.
 
@@ -184,7 +179,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertEqual(len(results), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_list_with_org_and_loc_by_name(self):
         """Test Environment List filtering.
 
@@ -212,7 +206,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertEqual(len(results), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_list_with_non_existing_org_and_loc_by_id(self):
         """Test Environment List filtering parameters validation.
 
@@ -246,7 +239,6 @@ class EnvironmentTestCase(CLITestCase):
             })
 
     @tier2
-    @run_only_on('sat')
     def test_negative_list_with_non_existing_org_and_loc_by_name(self):
         """Test Environment List filtering parameters validation.
 
@@ -310,7 +302,6 @@ class EnvironmentTestCase(CLITestCase):
                     Environment.create({'name': name})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_loc(self):
         """Check if Environment with Location can be created
 
@@ -329,7 +320,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertIn(new_loc['name'], new_environment['locations'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_org(self):
         """Check if Environment with Organization can be created
 
@@ -349,7 +339,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertIn(new_org['name'], new_environment['organizations'])
 
     @tier1
-    @run_only_on('sat')
     @upgrade
     def test_positive_delete_by_id(self):
         """Create Environment with valid values then delete it
@@ -369,7 +358,6 @@ class EnvironmentTestCase(CLITestCase):
                     Environment.info({'id': environment['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_negative_delete_by_id(self):
         """Create Environment then delete it by wrong ID
 
@@ -385,7 +373,6 @@ class EnvironmentTestCase(CLITestCase):
                     Environment.delete({'id': entity_id})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete_by_name(self):
         """Delete the environment by its name.
 
@@ -401,7 +388,6 @@ class EnvironmentTestCase(CLITestCase):
             Environment.info({'name': environment['name']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name(self):
         """Update the environment
 
@@ -422,7 +408,6 @@ class EnvironmentTestCase(CLITestCase):
                 self.assertEqual(environment['name'], new_name)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_update_name(self):
         """Update the Environment with invalid values
 
@@ -444,7 +429,6 @@ class EnvironmentTestCase(CLITestCase):
                 self.assertEqual(environment['name'], result['name'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_loc(self):
         """Update environment location with new value
 
@@ -469,7 +453,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertNotIn(old_loc['name'], new_env['locations'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_org(self):
         """Update environment organization with new value
 
@@ -498,7 +481,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertNotIn(old_org['name'], env['organizations'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_sc_params_by_id(self):
         """Check if environment sc-param subcommand works passing
         an environment id
@@ -522,7 +504,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertIn(scp_id, [scp['id'] for scp in env_scparams])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_sc_params_by_name(self):
         """Check if environment sc-param subcommand works passing
         an environment name

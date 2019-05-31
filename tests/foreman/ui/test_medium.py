@@ -20,7 +20,7 @@ from nailgun import entities
 from fauxfactory import gen_string, gen_url
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_media, set_context
 from robottelo.ui.locators import common_locators
@@ -30,7 +30,6 @@ from robottelo.ui.session import Session
 class MediumTestCase(UITestCase):
     """Implements all Installation Media tests"""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create(self):
         """Create a new media
@@ -49,7 +48,6 @@ class MediumTestCase(UITestCase):
                         session, name=name, path=path, os_family='Red Hat')
                     self.assertIsNotNone(self.medium.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_too_long_name(self):
         """Create a new install media with 256 characters in name
@@ -68,7 +66,6 @@ class MediumTestCase(UITestCase):
                                  (common_locators['name_haserror']))
             self.assertIsNone(self.medium.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_blank_name(self):
         """Create a new install media with blank and whitespace in name
@@ -90,7 +87,6 @@ class MediumTestCase(UITestCase):
                             common_locators['name_haserror'])
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create a new install media with same name
@@ -111,7 +107,6 @@ class MediumTestCase(UITestCase):
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_without_path(self):
         """Create a new install media without media URL
@@ -129,7 +124,6 @@ class MediumTestCase(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.medium.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_medium_with_same_path(self):
         """Create an install media with an existing URL
@@ -152,7 +146,6 @@ class MediumTestCase(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.medium.search(new_name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -170,7 +163,6 @@ class MediumTestCase(UITestCase):
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.medium.delete(name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update(self):
         """Updates Install media with name, path, OS family
@@ -191,7 +183,6 @@ class MediumTestCase(UITestCase):
             self.medium.update(name, newname, newpath, 'Debian')
             self.assertTrue(self, self.medium.search(newname))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_sort_by_url(self):
         """Create some medium entities and sort them by url path

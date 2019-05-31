@@ -17,7 +17,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import run_in_one_thread, run_only_on, tier1, upgrade
+from robottelo.decorators import run_in_one_thread,  tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -26,7 +26,6 @@ from robottelo.ui.session import Session
 class AuditTestCase(UITestCase):
     """Implements Audit tests from UI"""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_by_type(self):
         """Create entities of different types and check audit logs for these
@@ -124,7 +123,6 @@ class AuditTestCase(UITestCase):
                 self.assertIn(operation_type, result['full_statement'])
                 self.assertEqual(entity_value, result['entity_name'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_by_type(self):
         """Update entities of different types and check audit logs for these

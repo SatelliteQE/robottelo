@@ -28,7 +28,6 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -65,7 +64,6 @@ class RhevComputeResourceTestCase(UITestCase):
         cls.rhev_storage_domain = settings.rhev.storage_domain
         cls.rhev_cacert = requests.get(settings.rhev.ca_cert).content.decode()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_rhev_with_name(self):
         """Create a new rhev Compute Resource using different value
@@ -108,7 +106,6 @@ class RhevComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1467664)
     @tier1
     def test_positive_create_rhev_with_same_name(self):
@@ -173,7 +170,6 @@ class RhevComputeResourceTestCase(UITestCase):
                 )
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_rhev_with_description(self):
         """Create rhev Compute Resource with description.
@@ -214,7 +210,6 @@ class RhevComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_rhev_with_invalid_name(self):
         """Create a new rhev Compute Resource with incorrect values
@@ -259,7 +254,6 @@ class RhevComputeResourceTestCase(UITestCase):
                         )
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_rhev_name(self):
         """Update a rhev Compute Resource name
@@ -303,7 +297,6 @@ class RhevComputeResourceTestCase(UITestCase):
                 self.compute_resource.update(name=name, newname=newname)
                 self.assertIsNotNone(self.compute_resource.search(newname))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_rhev(self):
         """Delete a rhev Compute Resource
@@ -345,7 +338,6 @@ class RhevComputeResourceTestCase(UITestCase):
                 self.assertIsNotNone(self.compute_resource.search(name))
                 self.compute_resource.delete(name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_add_image_rhev_with_invalid_name(self):
         """Add images to the rhev compute resource
@@ -410,7 +402,6 @@ class RhevComputeResourceTestCase(UITestCase):
                         self.compute_resource.list_images(cr_name)
                     )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_access_rhev_with_default_profile(self):
         """Associate default (3-Large) compute profile to rhev compute resource
@@ -500,7 +491,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
             host.delete()
 
     @upgrade
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_image(self):
         """ Provision a host on rhev compute resource with image based
@@ -622,7 +612,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
             with self.assertNotRaises(ProvisioningCheckError):
                 self.compute_resource.host_provisioning_check(host_ip)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_compute_profile(self):
         """ Provision a host on rhev compute resource with compute profile
@@ -724,7 +713,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 self.compute_resource.host_provisioning_check(host_ip)
 
     @upgrade
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_custom_compute_settings(self):
         """ Provision a host on rhev compute resource with
@@ -838,7 +826,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
             with self.assertNotRaises(ProvisioningCheckError):
                 self.compute_resource.host_provisioning_check(host_ip)
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_rhev_with_host_group(self):
@@ -862,7 +849,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
         """
 
     @upgrade
-    @run_only_on('sat')
     @tier3
     def test_positive_check_provisioned_rhev_os(self):
         """Provision a host on rhev compute resource and check the hypervisor
@@ -1040,7 +1026,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
             )
 
     @upgrade
-    @run_only_on('sat')
     @tier3
     def test_positive_check_provisioned_vm_name(self):
         """Provision a host on rhev compute resource and check that the

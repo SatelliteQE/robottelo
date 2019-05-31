@@ -24,7 +24,6 @@ from robottelo.cli.capsule import Capsule
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -163,7 +162,6 @@ class CapsuleInstallerTestCase(CLITestCase):
         """
 
     @run_in_one_thread
-    @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_reinstall_on_same_node_after_remove(self):

@@ -32,7 +32,6 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
@@ -174,7 +173,6 @@ class SmartVariablesTestCase(APITestCase):
     #     super(SmartVariablesTestCase, cls).tearDownClass()
     #     delete_puppet_class(cls.puppet_class.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create(self):
         """Create a Smart Variable with valid name
@@ -195,7 +193,6 @@ class SmartVariablesTestCase(APITestCase):
                 ).create()
                 self.assertEqual(smart_variable.variable, name)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create(self):
         """Create a Smart Variable with invalid name
@@ -216,7 +213,6 @@ class SmartVariablesTestCase(APITestCase):
                     variable=name,
                 ).create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_smart_variable_by_id(self):
         """Delete a Smart Variable by id
@@ -240,7 +236,6 @@ class SmartVariablesTestCase(APITestCase):
             "Smart variable not found by id"
         )
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1375857)
     @tier1
     def test_positive_update_variable_puppet_class(self):
@@ -268,7 +263,6 @@ class SmartVariablesTestCase(APITestCase):
         updated_sv = smart_variable.update(['puppetclass'])
         self.assertEqual(updated_sv.puppetclass.id, new_puppet.id)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update Smart Variable's name
@@ -292,7 +286,6 @@ class SmartVariablesTestCase(APITestCase):
                 smart_variable = smart_variable.update(['variable'])
                 self.assertEqual(smart_variable.variable, new_name)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_duplicate_name_variable(self):
         """Create Smart Variable with an existing name.
@@ -324,7 +317,6 @@ class SmartVariablesTestCase(APITestCase):
             "Key has already been taken"
         )
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_list_variables_by_host_id(self):
@@ -345,7 +337,6 @@ class SmartVariablesTestCase(APITestCase):
         host.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})
         self.assertGreater(len(host.list_smart_variables()['results']), 0)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_variables_by_hostgroup_id(self):
         """List all the variables associated to HostGroup by hostgroup id
@@ -362,7 +353,6 @@ class SmartVariablesTestCase(APITestCase):
             data={'puppetclass_id': self.puppet_class.id})
         self.assertGreater(len(hostgroup.list_smart_variables()['results']), 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_list_variables_by_puppetclass_id(self):
         """List all the variables associated to puppet class by puppet class id
@@ -375,7 +365,6 @@ class SmartVariablesTestCase(APITestCase):
         """
         self.assertGreater(len(self.puppet_class.list_smart_variables()), 0)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_create_variable_type(self):
@@ -410,7 +399,6 @@ class SmartVariablesTestCase(APITestCase):
                     self.assertEqual(
                         smart_variable.default_value, data['value'])
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_variable_type(self):
         """Negative variable Update for variable types - Invalid Value
@@ -439,7 +427,6 @@ class SmartVariablesTestCase(APITestCase):
                     "Default value is invalid"
                 )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher_empty_value(self):
         """Create matcher with empty value with string type
@@ -468,7 +455,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['value'], '')
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_matcher_empty_value(self):
         """Create matcher with empty value with type other than string
@@ -500,7 +486,6 @@ class SmartVariablesTestCase(APITestCase):
             "Validation failed: Value is invalid integer"
         )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_match_value(self):
         """Attempt to create matcher with invalid match value.
@@ -527,7 +512,6 @@ class SmartVariablesTestCase(APITestCase):
             "Validation failed: Match is invalid"
         )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_default_value_with_regex(self):
         """Create variable with non matching regex validator
@@ -562,7 +546,6 @@ class SmartVariablesTestCase(APITestCase):
         )
         self.assertEqual(smart_variable.read().default_value, value)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_default_value_with_regex(self):
         """Create variable with matching regex validator
@@ -594,7 +577,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.validator_type, 'regexp')
         self.assertEqual(smart_variable.validator_rule, '[0-9]')
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_matcher_value_with_regex(self):
         """Create matcher with non matching regexp validator
@@ -629,7 +611,6 @@ class SmartVariablesTestCase(APITestCase):
         )
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher_value_with_regex(self):
         """Create matcher with matching regex validator
@@ -664,7 +645,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['value'], value)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_default_value_with_list(self):
         """Create variable with non matching list validator
@@ -694,7 +674,6 @@ class SmartVariablesTestCase(APITestCase):
             r"Default value \w+ is not one of"
         )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_default_value_with_list(self):
         """Create variable with matching list validator
@@ -731,7 +710,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.validator_type, 'list')
         self.assertEqual(smart_variable.validator_rule, values_list_str)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_matcher_value_with_list(self):
         """Create matcher with non matching list validator
@@ -767,7 +745,6 @@ class SmartVariablesTestCase(APITestCase):
         )
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher_value_with_list(self):
         """Create matcher with matching list validator
@@ -804,7 +781,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['value'], '30')
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1375643)
     @tier1
     def test_negative_create_matcher_value_with_default_type(self):
@@ -840,7 +816,6 @@ class SmartVariablesTestCase(APITestCase):
         )
         self.assertEqual(smart_variable.read().default_value, True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher_value_with_default_type(self):
         """Create matcher with matching type of default value
@@ -874,7 +849,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['value'], False)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_matcher_non_existing_attribute(self):
         """Create matcher for non existing attribute
@@ -903,7 +877,6 @@ class SmartVariablesTestCase(APITestCase):
         )
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher(self):
         """Create matcher for attribute in variable
@@ -931,7 +904,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(
             smart_variable.override_values[0]['value'], value)
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_update_variable_attribute_priority(self):
@@ -958,7 +930,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_update_variable_attribute_priority(self):
@@ -986,7 +957,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     @upgrade
@@ -1022,7 +992,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_update_variable_merge_override(self):
@@ -1058,7 +1027,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     @upgrade
@@ -1095,7 +1063,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_update_variable_merge_default(self):
@@ -1131,7 +1098,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     @upgrade
@@ -1166,7 +1132,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_update_variable_avoid_duplicate(self):
@@ -1202,7 +1167,6 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @tier1
     def test_positive_enable_merge_overrides_and_default_flags(self):
         """Enable Merge Overrides, Merge Default flags for supported types
@@ -1228,7 +1192,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.merge_overrides, True)
         self.assertEqual(smart_variable.merge_default, True)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Disable Merge Overrides, Merge Default flags for non supported types
@@ -1267,7 +1230,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.merge_overrides, False)
         self.assertEqual(smart_variable.merge_default, False)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_enable_avoid_duplicates_flag(self):
         """Enable Avoid duplicates flag for supported type
@@ -1294,7 +1256,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.merge_overrides, True)
         self.assertEqual(smart_variable.avoid_duplicates, True)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Disable Avoid duplicates flag for non supported types
@@ -1337,7 +1298,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.merge_overrides, False)
         self.assertEqual(smart_variable.avoid_duplicates, False)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_remove_matcher(self):
@@ -1372,7 +1332,6 @@ class SmartVariablesTestCase(APITestCase):
         matcher.delete()
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_impact_variable_delete_attribute(self):
         """Impact on variable after deleting associated attribute
@@ -1431,7 +1390,6 @@ class SmartVariablesTestCase(APITestCase):
             data={'puppetclass_id': self.puppet_class.id})
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_hide_variable_default_value(self):
         """Hide the default value of variable
@@ -1453,7 +1411,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
         self.assertEqual(smart_variable.default_value, u'*****')
 
-    @run_only_on('sat')
     @tier1
     def test_positive_unhide_variable_default_value(self):
         """Unhide the default value of variable
@@ -1479,7 +1436,6 @@ class SmartVariablesTestCase(APITestCase):
         smart_variable = smart_variable.read()
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), False)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_hidden_value_in_variable(self):
         """Update the hidden default value of variable

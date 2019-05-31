@@ -31,7 +31,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread_if_bug_open,
-    run_only_on,
     tier1,
     upgrade
 )
@@ -219,7 +218,6 @@ class SmartVariablesTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.smart_variable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create(self):
         """Smart Variable is not created with invalid data.
@@ -251,7 +249,6 @@ class SmartVariablesTestCase(UITestCase):
                     )
                     self.assertIsNone(self.smart_variable.search(name))
 
-    @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_name(self):
@@ -282,7 +279,6 @@ class SmartVariablesTestCase(UITestCase):
                     self.assertIsNotNone(self.smart_variable.search(new_name))
                     old_name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_variable_puppet_class(self):
@@ -313,7 +309,6 @@ class SmartVariablesTestCase(UITestCase):
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'puppet_class', new_puppet_class))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Attempt to create Smart Variable with same name as already existent
@@ -350,7 +345,6 @@ class SmartVariablesTestCase(UITestCase):
                     common_locators['haserror'])
             )
 
-    @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     @upgrade
@@ -397,7 +391,6 @@ class SmartVariablesTestCase(UITestCase):
                         data['value'] += '\n...'
                     self.assertEqual(value, data['value'])
 
-    @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_negative_update_type(self):
@@ -444,7 +437,6 @@ class SmartVariablesTestCase(UITestCase):
                         locators['smart_variable.default_value']).text
                     self.assertEqual(value, initial_value)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_default_value_with_regex(self):
         """Attempt to create Smart Variable that has default value that doesn't
@@ -477,7 +469,6 @@ class SmartVariablesTestCase(UITestCase):
                     common_locators['haserror'])
             )
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_validate_default_value_with_regex(self):
@@ -509,7 +500,6 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.assertIsNotNone(self.smart_variable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_value_with_regex(self):
         """Attempt to create Smart Variable that has matcher value that doesn't
@@ -547,7 +537,6 @@ class SmartVariablesTestCase(UITestCase):
                     locators['smart_variable.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_matcher_value_with_regex(self):
         """Create Smart Variable that has matcher value that match regexp from
@@ -587,7 +576,6 @@ class SmartVariablesTestCase(UITestCase):
                     locators['smart_variable.matcher_error'], timeout=8)
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_default_value_with_list(self):
         """Attempt to create Smart Variable that has default value that is not
@@ -620,7 +608,6 @@ class SmartVariablesTestCase(UITestCase):
                     common_locators['haserror'])
             )
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_validate_default_value_with_list(self):
@@ -651,7 +638,6 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.assertIsNotNone(self.smart_variable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Attempt to create Smart Variable that has matcher value that is not
@@ -689,7 +675,6 @@ class SmartVariablesTestCase(UITestCase):
                     locators['smart_variable.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_validate_matcher_value_with_list(self):
@@ -725,7 +710,6 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.assertIsNotNone(self.smart_variable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
         """Attempt to create Smart Variable that has matcher value of another
@@ -762,7 +746,6 @@ class SmartVariablesTestCase(UITestCase):
                     locators['smart_variable.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """Create Smart Variable that has matcher value of the same type than
@@ -795,7 +778,6 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.assertIsNotNone(self.smart_variable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_and_default_value(self):
         """Attempt to create Smart Variable that has default value and matcher
@@ -837,7 +819,6 @@ class SmartVariablesTestCase(UITestCase):
                     common_locators['haserror'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Attempt to create Smart Variable with a matcher that has value for
@@ -871,7 +852,6 @@ class SmartVariablesTestCase(UITestCase):
                     locators['smart_variable.matcher_error'])
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Verify that Merge Overrides and Merge Default checkboxes are
@@ -900,7 +880,6 @@ class SmartVariablesTestCase(UITestCase):
             self.assertFalse(
                 self.smart_variable.validate_checkbox(name, 'Merge Default'))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_enable_avoid_duplicates_checkbox(self):
         """Verify that Merge Overrides and Avoid Duplicates checkboxes are
@@ -930,7 +909,6 @@ class SmartVariablesTestCase(UITestCase):
                 self.smart_variable.validate_checkbox(name, 'Avoid Duplicates')
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_hide_default_value(self):
         """Hide the default value of variable.
@@ -963,7 +941,6 @@ class SmartVariablesTestCase(UITestCase):
             self.assertEqual(default_value.get_attribute('value'), value)
             self.assertIn('masked-input', default_value.get_attribute('class'))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_unhide_default_value(self):
         """Unhide the default value of variable.
@@ -1003,7 +980,6 @@ class SmartVariablesTestCase(UITestCase):
                 'masked-input', default_value.get_attribute('class'))
             self.assertEqual(default_value.get_attribute('value'), value)
 
-    @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_hidden_value(self):
@@ -1051,7 +1027,6 @@ class SmartVariablesTestCase(UITestCase):
             self.assertIn('masked-input', default_value.get_attribute('class'))
             self.assertEqual(default_value.get_attribute('value'), new_value)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.

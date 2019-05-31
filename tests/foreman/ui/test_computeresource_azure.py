@@ -14,7 +14,6 @@
 """
 
 from robottelo.decorators import (
-    run_only_on,
     stubbed,
     tier1,
     tier2,
@@ -27,7 +26,6 @@ from robottelo.test import UITestCase
 class AzureComputeResourceTestCase(UITestCase):
     """Implements compute resource tests in UI"""
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_create_azure_with_name(self):
@@ -57,7 +55,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_create_azure_with_description(self):
@@ -87,7 +84,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_create_azure_with_invalid_name(self):
@@ -117,7 +113,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_update_azure_name(self):
@@ -148,7 +143,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_update_azure_organization(self):
@@ -178,7 +172,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     @upgrade
@@ -210,7 +203,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_add_image_azure_with_name(self):
@@ -240,7 +232,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_negative_add_image_azure_with_invalid_name(self):
@@ -270,7 +261,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_retrieve_azure_vm_list(self):
@@ -295,7 +285,6 @@ class AzureComputeResourceTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade

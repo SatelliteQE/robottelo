@@ -14,7 +14,7 @@
 
 :Upstream: No
 """
-from robottelo.decorators import run_only_on, stubbed, tier1, upgrade
+from robottelo.decorators import stubbed, tier1, upgrade
 from robottelo.test import UITestCase
 
 
@@ -22,7 +22,6 @@ class ISODownloadTestCase(UITestCase):
     """Test class for iso download feature"""
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_download(self):
         """Downloading ISO from export
@@ -44,7 +43,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_upload(self):
         """Uploadng the iso successfully to the sat6 system
@@ -65,7 +63,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_mount(self):
         """Mounting iso to directory accessible to satellite6 works
@@ -87,7 +84,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_validate_cdn_url(self):
@@ -109,7 +105,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_check_message(self):
         """Check if proper message is displayed after successful upload
@@ -131,7 +126,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_enable_repo(self):
         """Enable the repositories
@@ -154,7 +148,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_validate_checkboxes(self):
         """Check if enabling the checkbox works
@@ -178,7 +171,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_sync_repos(self):
         """Sync repos to local iso's
@@ -202,7 +194,6 @@ class ISODownloadTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier1
     def test_positive_disable_repo(self):
         """Disabling the repo works

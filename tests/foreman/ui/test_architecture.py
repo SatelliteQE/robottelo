@@ -22,7 +22,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_arch
 from robottelo.ui.locators import common_locators
@@ -44,7 +44,6 @@ def valid_arch_os_names():
 class ArchitectureTestCase(UITestCase):
     """Implements Architecture tests from UI"""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_os(self):
         """Create a new Architecture with OS
@@ -68,7 +67,6 @@ class ArchitectureTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.architecture.search(test_data['name']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a new Architecture with different data
@@ -85,7 +83,6 @@ class ArchitectureTestCase(UITestCase):
                     make_arch(session, name=name)
                     self.assertIsNotNone(self.architecture.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Try to create architecture and use whitespace, blank, tab
@@ -104,7 +101,6 @@ class ArchitectureTestCase(UITestCase):
                     self.assertIsNotNone(self.architecture.wait_until_element(
                         common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create a new Architecture with same name
@@ -124,7 +120,6 @@ class ArchitectureTestCase(UITestCase):
                     self.assertIsNotNone(self.architecture.wait_until_element(
                         common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Delete an existing Architecture
@@ -143,7 +138,6 @@ class ArchitectureTestCase(UITestCase):
                         name=name, operatingsystem=[os]).create()
                     self.architecture.delete(name)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_update_name_and_os(self):

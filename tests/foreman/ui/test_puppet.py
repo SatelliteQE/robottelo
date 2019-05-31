@@ -18,7 +18,6 @@
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -37,7 +36,6 @@ class PuppetTestCase(UITestCase):
         super(PuppetTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -85,7 +83,6 @@ class PuppetCapsuleTestCase(UITestCase):
         super(PuppetCapsuleTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade

@@ -15,13 +15,12 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier3
+from robottelo.decorators import stubbed, tier3
 from robottelo.test import TestCase
 
 
 class VirtWhoConfigLongRunTestCase(TestCase):
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_hypervisors(self):

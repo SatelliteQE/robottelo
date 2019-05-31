@@ -24,7 +24,6 @@ from robottelo.cli.factory import (
 from robottelo.cli.puppet import Puppet
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.decorators import (
-    run_only_on,
     tier2,
     upgrade
 )
@@ -53,7 +52,6 @@ class PuppetClassTestCase(CLITestCase):
             'environment': cls.env['name'],
         })
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_list_smart_class_parameters(self):
@@ -67,7 +65,6 @@ class PuppetClassTestCase(CLITestCase):
             u'puppet-class': self.puppet['name']})
         self.assertGreater(len(class_sc_parameters), 0)
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_list_smart_variables(self):

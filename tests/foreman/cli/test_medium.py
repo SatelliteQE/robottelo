@@ -21,7 +21,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2, upgrade
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -38,7 +38,6 @@ OSES = [
 
 class MediumTestCase(CLITestCase):
     """Test class for Medium CLI"""
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Check if Medium can be created
@@ -55,7 +54,6 @@ class MediumTestCase(CLITestCase):
                 medium = make_medium({'name': name})
                 self.assertEqual(medium['name'], name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_location(self):
         """Check if medium with location can be created
@@ -71,7 +69,6 @@ class MediumTestCase(CLITestCase):
         medium = make_medium({'location-ids': location['id']})
         self.assertIn(location['name'], medium['locations'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_organization_by_id(self):
         """Check if medium with organization can be created
@@ -87,7 +84,6 @@ class MediumTestCase(CLITestCase):
         medium = make_medium({'organization-ids': org['id']})
         self.assertIn(org['name'], medium['organizations'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
         """Check if Medium can be deleted
@@ -107,7 +103,6 @@ class MediumTestCase(CLITestCase):
                     Medium.info({'id': medium['id']})
 
     # pylint: disable=no-self-use
-    @run_only_on('sat')
     @tier2
     def test_positive_add_os(self):
         """Check if Medium can be associated with operating system
@@ -126,7 +121,6 @@ class MediumTestCase(CLITestCase):
             'operatingsystem-id': os['id'],
         })
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_remove_os(self):
@@ -154,7 +148,6 @@ class MediumTestCase(CLITestCase):
         medium = Medium.info({'id': medium['id']})
         self.assertNotIn(os['name'], medium['operating-systems'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Check if medium can be updated

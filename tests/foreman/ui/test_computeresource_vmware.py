@@ -22,7 +22,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -58,7 +57,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                 'network_interfaces') % settings.vlan_networking.bridge
         )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_vmware_with_name(self):
         """Create a new vmware compute resource using valid name.
@@ -96,7 +94,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_vmware_with_description(self):
         """Create vmware compute resource with valid description.
@@ -135,7 +132,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_vmware_with_invalid_name(self):
         """Create a new vmware compute resource with invalid names.
@@ -177,7 +173,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                         )
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_vmware_name(self):
         """Update a vmware compute resource name
@@ -219,7 +214,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                 self.compute_resource.update(name=name, newname=newname)
                 self.assertIsNotNone(self.compute_resource.search(newname))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_vmware(self):
         """Delete a vmware compute resource
@@ -259,7 +253,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                 self.assertIsNotNone(self.compute_resource.search(name))
                 self.compute_resource.delete(name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_add_image_vmware_with_invalid_name(self):
         """Add images to the vmware compute resource
@@ -316,7 +309,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                         common_locators["name_haserror"]
                     ))
 
-    @run_only_on('sat')
     @tier2
     def test_positive_apply_vmware_with_custom_profile_to_host(self):
         """Associate custom default (3-Large) compute profile with hostgroup
@@ -420,7 +412,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                 self.assertEqual(
                     self.hosts.get_element_value(locators[locator]), value)
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_vmware_with_image(self):
@@ -453,7 +444,6 @@ class VmwareComputeResourceTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_vmware_with_compute_profile(self):
@@ -483,7 +473,6 @@ class VmwareComputeResourceTestCase(UITestCase):
         """
 
     @upgrade
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_vmware_with_custom_compute_settings(self):
@@ -514,7 +503,6 @@ class VmwareComputeResourceTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_vmware_with_host_group(self):

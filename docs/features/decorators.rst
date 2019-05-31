@@ -151,19 +151,6 @@ cacheable
     def make_role(options=None):
         """create a role using ``hammer role create``"""
 
-run_only_on
------------
-
-``run_only_on`` skips test based on a server mode. It takes one parameter that is either 'sat' (to define Satellite specific tests) or 'sam' (to define tests specific to Subscription Asset Manager). For example::
-
-    from robottelo.decorators import run_only_on
-
-    @run_only_on('sat')
-    def test_negative_create_with_invalid_name(self):
-        """Create a new template with invalid names"""
-
-The server mode is determined from ``settings.project``. Skip this decorator if the test is applicable to both Satellite and SAM.
-
 run_in_one_thread
 -----------------
 

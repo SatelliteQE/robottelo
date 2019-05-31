@@ -29,7 +29,7 @@ from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
@@ -71,7 +71,6 @@ class PermissionTestCase(APITestCase):
         cls.permission_names = list(
             chain.from_iterable(cls.permissions.values()))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_search_by_name(self):
         """Search for a permission by name.
@@ -96,7 +95,6 @@ class PermissionTestCase(APITestCase):
         if failures:
             self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_search_by_resource_type(self):
         """Search for permissions by resource type.
@@ -129,7 +127,6 @@ class PermissionTestCase(APITestCase):
         if failures:
             self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_search(self):
         """search with no parameters return all permissions

@@ -36,7 +36,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_only_on,
     stubbed,
     tier1,
     tier2,
@@ -84,7 +83,6 @@ class HostTestCase(APITestCase):
         cls.image = entities.Image(
             compute_resource=cls.compresource_libvirt).create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_get_search(self):
         """GET ``api/v2/hosts`` and specify the ``search`` parameter.
@@ -105,7 +103,6 @@ class HostTestCase(APITestCase):
         self.assertEqual(response.status_code, http_client.OK)
         self.assertEqual(response.json()['search'], query)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_get_per_page(self):
         """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
@@ -127,7 +124,6 @@ class HostTestCase(APITestCase):
         self.assertEqual(response.status_code, http_client.OK)
         self.assertEqual(response.json()['per_page'], per_page)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_owner_type(self):
         """Create a host and specify only ``owner_type``.
@@ -148,7 +144,6 @@ class HostTestCase(APITestCase):
                 self.assertRegexpMatches(
                     context.exception.response.text, "owner must be specified")
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_owner_type(self):
         """Update a host's ``owner_type``.
@@ -177,7 +172,6 @@ class HostTestCase(APITestCase):
                 self.assertEqual(host.owner_type, owner_type)
                 self.assertEqual(host.owner.read(), owners[owner_type])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a host with different names and minimal input parameters
@@ -196,7 +190,6 @@ class HostTestCase(APITestCase):
                     '{0}.{1}'.format(name, host.domain.read().name)
                 )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_ip(self):
         """Create a host with IP address specified
@@ -211,7 +204,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(ip=ip_addr).create()
         self.assertEqual(host.ip, ip_addr)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_hostgroup(self):
         """Create a host with hostgroup specified
@@ -244,7 +236,6 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(host.hostgroup.read().name, hostgroup.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_inherit_lce_cv(self):
         """Create a host with hostgroup specified. Make sure host inherited
@@ -322,7 +313,6 @@ class HostTestCase(APITestCase):
             {(param['name'], param['value']) for param in host.all_parameters}
         )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_puppet_proxy(self):
         """Create a host with puppet proxy specified
@@ -339,7 +329,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(puppet_proxy=proxy).create()
         self.assertEqual(host.puppet_proxy.read().name, proxy.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_puppet_ca_proxy(self):
         """Create a host with puppet CA proxy specified
@@ -357,7 +346,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(puppet_ca_proxy=proxy).create()
         self.assertEqual(host.puppet_ca_proxy.read().name, proxy.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_puppet_class(self):
         """Create a host with associated puppet classes
@@ -377,7 +365,6 @@ class HostTestCase(APITestCase):
             {puppet_class.id for puppet_class in self.puppet_classes}
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_subnet(self):
         """Create a host with subnet specified
@@ -401,7 +388,6 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(host.subnet.read().name, subnet.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_compresource(self):
         """Create a host with compute resource specified
@@ -426,7 +412,6 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(host.compute_resource.read().name, compresource.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_model(self):
         """Create a host with model specified
@@ -441,7 +426,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(model=model).create()
         self.assertEqual(host.model.read().name, model.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_user(self):
         """Create a host with user specified
@@ -462,7 +446,6 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(host.owner.read(), user)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_usergroup(self):
         """Create a host with user group specified
@@ -493,7 +476,6 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(host.owner.read().name, usergroup.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_build_parameter(self):
         """Create a host with 'build' parameter specified.
@@ -509,7 +491,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(build=True).create()
         self.assertEqual(host.build, True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_enabled_parameter(self):
         """Create a host with 'enabled' parameter specified.
@@ -526,7 +507,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(enabled=False).create()
         self.assertEqual(host.enabled, False)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_managed_parameter(self):
         """Create a host with managed parameter specified.
@@ -543,7 +523,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(managed=True).create()
         self.assertEqual(host.managed, True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_comment(self):
         """Create a host with a comment
@@ -559,7 +538,6 @@ class HostTestCase(APITestCase):
                 host = entities.Host(comment=comment).create()
                 self.assertEqual(host.comment, comment)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_compute_profile(self):
         """Create a host with a compute profile specified
@@ -575,7 +553,6 @@ class HostTestCase(APITestCase):
         host = entities.Host(compute_profile=profile).create()
         self.assertEqual(host.compute_profile.read().name, profile.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_content_view(self):
         """Create a host with a content view specified
@@ -601,7 +578,6 @@ class HostTestCase(APITestCase):
             self.lce.id
         )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_host_parameters(self):
         """Create a host with a host parameters specified
@@ -628,7 +604,6 @@ class HostTestCase(APITestCase):
         )
         self.assertIn('id', host.host_parameters_attributes[0])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_image(self):
         """Create a host with an image specified
@@ -647,7 +622,6 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(host.image.id, self.image.id)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_provision_method(self):
         """Create a host with provision method specified
@@ -669,7 +643,6 @@ class HostTestCase(APITestCase):
                 ).create()
                 self.assertEqual(host.provision_method, method)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Delete a host
@@ -685,7 +658,6 @@ class HostTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             host.read()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update a host with a new name
@@ -706,7 +678,6 @@ class HostTestCase(APITestCase):
                     '{0}.{1}'.format(new_name, host.domain.read().name)
                 )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_mac(self):
         """Update a host with a new MAC address
@@ -723,7 +694,6 @@ class HostTestCase(APITestCase):
         host = host.update(['mac'])
         self.assertEqual(host.mac, new_mac)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_domain(self):
         """Update a host with a new domain
@@ -743,7 +713,6 @@ class HostTestCase(APITestCase):
         host = host.update(['domain'])
         self.assertEqual(host.domain.read().name, new_domain.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_env(self):
         """Update a host with a new environment
@@ -763,7 +732,6 @@ class HostTestCase(APITestCase):
         host = host.update(['environment'])
         self.assertEqual(host.environment.read().name, new_env.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_arch(self):
         """Update a host with a new architecture
@@ -782,7 +750,6 @@ class HostTestCase(APITestCase):
         host = host.update(['architecture'])
         self.assertEqual(host.architecture.read().name, new_arch.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_os(self):
         """Update a host with a new operating system
@@ -805,7 +772,6 @@ class HostTestCase(APITestCase):
         host = host.update(['operatingsystem'])
         self.assertEqual(host.operatingsystem.read().name, new_os.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_medium(self):
         """Update a host with a new medium
@@ -829,7 +795,6 @@ class HostTestCase(APITestCase):
         host = host.update(['medium'])
         self.assertEqual(host.medium.read().name, new_medium.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_ip(self):
         """Update a host with a new IP address
@@ -846,7 +811,6 @@ class HostTestCase(APITestCase):
         host = host.update(['ip'])
         self.assertEqual(host.ip, new_ip)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_hostgroup(self):
         """Update a host with a new hostgroup
@@ -889,7 +853,6 @@ class HostTestCase(APITestCase):
         host = host.update(['hostgroup', 'content_facet_attributes'])
         self.assertEqual(host.hostgroup.read().name, new_hostgroup.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_puppet_proxy(self):
         """Update a host with a new puppet proxy
@@ -908,7 +871,6 @@ class HostTestCase(APITestCase):
         host = host.update(['puppet_proxy'])
         self.assertEqual(host.puppet_proxy.read().name, new_proxy.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_puppet_ca_proxy(self):
         """Update a host with a new puppet CA proxy
@@ -927,7 +889,6 @@ class HostTestCase(APITestCase):
         host = host.update(['puppet_ca_proxy'])
         self.assertEqual(host.puppet_ca_proxy.read().name, new_proxy.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_puppet_class(self):
         """Update a host with a new puppet classes
@@ -948,7 +909,6 @@ class HostTestCase(APITestCase):
             {puppet_class.id for puppet_class in self.puppet_classes}
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_subnet(self):
         """Update a host with a new subnet
@@ -978,7 +938,6 @@ class HostTestCase(APITestCase):
         host = host.update(['subnet'])
         self.assertEqual(host.subnet.read().name, new_subnet.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_compresource(self):
         """Update a host with a new compute resource
@@ -1009,7 +968,6 @@ class HostTestCase(APITestCase):
         self.assertEqual(
             host.compute_resource.read().name, new_compresource.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_model(self):
         """Update a host with a new model
@@ -1026,7 +984,6 @@ class HostTestCase(APITestCase):
         host = host.update(['model'])
         self.assertEqual(host.model.read().name, new_model.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_user(self):
         """Update a host with a new user
@@ -1051,7 +1008,6 @@ class HostTestCase(APITestCase):
         host = host.update(['owner'])
         self.assertEqual(host.owner.read(), new_user)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_usergroup(self):
         """Update a host with a new user group
@@ -1088,7 +1044,6 @@ class HostTestCase(APITestCase):
         host = host.update(['owner'])
         self.assertEqual(host.owner.read().name, new_usergroup.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_build_parameter(self):
         """Update a host with a new 'build' parameter value.
@@ -1107,7 +1062,6 @@ class HostTestCase(APITestCase):
                 host = host.update(['build'])
                 self.assertEqual(host.build, not build)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_enabled_parameter(self):
         """Update a host with a new 'enabled' parameter value.
@@ -1128,7 +1082,6 @@ class HostTestCase(APITestCase):
                 host = host.update(['enabled'])
                 self.assertEqual(host.enabled, not enabled)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_managed_parameter(self):
         """Update a host with a new 'managed' parameter value
@@ -1149,7 +1102,6 @@ class HostTestCase(APITestCase):
                 host = host.update(['managed'])
                 self.assertEqual(host.managed, not managed)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_comment(self):
         """Update a host with a new comment
@@ -1167,7 +1119,6 @@ class HostTestCase(APITestCase):
                 host = host.update(['comment'])
                 self.assertEqual(host.comment, new_comment)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_compute_profile(self):
         """Update a host with a new compute profile
@@ -1186,7 +1137,6 @@ class HostTestCase(APITestCase):
         host = host.update(['compute_profile'])
         self.assertEqual(host.compute_profile.read().name, new_cprofile.name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_content_view(self):
         """Update a host with a new content view
@@ -1211,7 +1161,6 @@ class HostTestCase(APITestCase):
             self.lce.id
         )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_host_parameters(self):
         """Update a host with a new host parameters
@@ -1237,7 +1186,6 @@ class HostTestCase(APITestCase):
         )
         self.assertIn('id', host.host_parameters_attributes[0])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_image(self):
         """Update a host with a new image
@@ -1259,7 +1207,6 @@ class HostTestCase(APITestCase):
         host = host.update(['image'])
         self.assertEqual(host.image.id, self.image.id)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
         """Attempt to update a host with invalid or empty name
@@ -1282,7 +1229,6 @@ class HostTestCase(APITestCase):
                     .format(new_name, host.domain.read().name).lower()
                 )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_mac(self):
         """Attempt to update a host with invalid or empty MAC address
@@ -1301,7 +1247,6 @@ class HostTestCase(APITestCase):
                     host.update(['mac'])
                 self.assertNotEqual(host.read().mac, new_mac)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_update_arch(self):
         """Attempt to update a host with an architecture, which does not belong
@@ -1321,7 +1266,6 @@ class HostTestCase(APITestCase):
         self.assertNotEqual(
             host.read().architecture.read().name, new_arch.name)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_update_os(self):
         """Attempt to update a host with an operating system, which is not
@@ -1344,7 +1288,6 @@ class HostTestCase(APITestCase):
         self.assertNotEqual(
             host.read().operatingsystem.read().name, new_os.name)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_read_content_source_id(self):
         """Read the host content_source_id attribute from the read request
@@ -1384,7 +1327,6 @@ class HostTestCase(APITestCase):
         self.assertIsNotNone(content_source_id)
         self.assertEqual(content_source_id, proxy.id)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_update_content_source_id(self):
         """Read the host content_source_id attribute from the update request
@@ -1494,7 +1436,6 @@ class HostTestCase(APITestCase):
                 param['value']
             )
 
-    @run_only_on('sat')
     @tier2
     @stubbed()
     def test_positive_add_future_subscription(self):
@@ -1513,7 +1454,6 @@ class HostTestCase(APITestCase):
         """
 
     @upgrade
-    @run_only_on('sat')
     @tier2
     @stubbed()
     def test_positive_add_future_subscription_with_ak(self):
@@ -1533,7 +1473,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
-    @run_only_on('sat')
     @tier2
     @stubbed()
     def test_negative_auto_attach_future_subscription(self):
@@ -1553,7 +1492,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_create_baremetal_with_bios(self):
@@ -1574,7 +1512,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_create_baremetal_with_uefi(self):
@@ -1595,7 +1532,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub_uefi(self):
@@ -1627,7 +1563,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub_uefi_secureboot(self):
@@ -1659,7 +1594,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub2_uefi(self):
@@ -1691,7 +1625,6 @@ class HostTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub2_uefi_secureboot(self):

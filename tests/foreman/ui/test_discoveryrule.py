@@ -24,7 +24,6 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    run_only_on,
     skip_if_bug_open,
     tier1,
     stubbed,
@@ -82,7 +81,6 @@ class DiscoveryRuleTestCase(UITestCase):
 
         super(DiscoveryRuleTestCase, cls).tearDownClass()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create Discovery Rule using different names
@@ -104,7 +102,6 @@ class DiscoveryRuleTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.discoveryrules.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_search(self):
         """Create Discovery Rule using different search queries
@@ -134,7 +131,6 @@ class DiscoveryRuleTestCase(UITestCase):
                         query
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_hostname(self):
         """Create Discovery Rule using valid hostname value
@@ -162,7 +158,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostname
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_hosts_limit(self):
         """Create Discovery Rule providing any number from range 1..100 for
@@ -191,7 +186,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 limit
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_priority(self):
         """Create Discovery Rule providing any number from range 1..100 for
@@ -220,7 +214,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 priority
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_disabled(self):
         """Create Discovery Rule in disabled state
@@ -247,7 +240,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 False
             )
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1378486)
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -270,7 +262,6 @@ class DiscoveryRuleTestCase(UITestCase):
                     )
                     self.assertIsNone(self.discoveryrules.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_hostname(self):
         """Create Discovery Rule with invalid hostname
@@ -294,7 +285,6 @@ class DiscoveryRuleTestCase(UITestCase):
             ))
             self.assertIsNone(self.discoveryrules.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_limit(self):
         """Create Discovery Rule with invalid host limit
@@ -327,7 +317,6 @@ class DiscoveryRuleTestCase(UITestCase):
                         self.assertEqual(msg, u'Please enter a number.')
                     self.assertIsNone(self.discoveryrules.search(name))
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1308831)
     @tier1
     def test_negative_create_with_too_long_limit(self):
@@ -355,7 +344,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 msg, u'Please select a value that is no more than 2147483647.')
             self.assertIsNone(self.discoveryrules.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create Discovery Rule with name that already exists
@@ -385,7 +373,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 common_locators['name_haserror']
             ))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_priority(self):
         """Create Discovery Rule with invalid priority
@@ -410,7 +397,6 @@ class DiscoveryRuleTestCase(UITestCase):
             self.assertEqual(msg, u'Please enter a number.')
             self.assertIsNone(self.discoveryrules.search(name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -434,7 +420,6 @@ class DiscoveryRuleTestCase(UITestCase):
                     self.assertIsNotNone(self.discoveryrules.search(name))
                     self.discoveryrules.delete(name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update discovery rule name
@@ -460,7 +445,6 @@ class DiscoveryRuleTestCase(UITestCase):
                     self.assertIsNotNone(self.discoveryrules.search(new_name))
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_query(self):
         """Update discovery rule search query
@@ -490,7 +474,6 @@ class DiscoveryRuleTestCase(UITestCase):
                         new_query
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_hostgroup(self):
         """Update discovery rule host group
@@ -524,7 +507,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 new_hostgroup_name
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_hostname(self):
         """Update discovery rule hostname value
@@ -551,7 +533,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostname
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_limit(self):
         """Update discovery rule limit value
@@ -578,7 +559,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 limit
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_priority(self):
         """Update discovery rule priority value
@@ -605,7 +585,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 priority
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_disable_enable(self):
         """Update discovery rule enabled state. (Disabled->Enabled)
@@ -633,7 +612,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 True
             )
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1378486)
     @tier1
     def test_negative_update_name(self):
@@ -663,7 +641,6 @@ class DiscoveryRuleTestCase(UITestCase):
                     )
                     self.assertIsNone(self.discoveryrules.search(new_name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_hostname(self):
         """Update discovery rule host name using number as a value
@@ -695,7 +672,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostname
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_limit(self):
         """Update discovery rule host limit using invalid values
@@ -736,7 +712,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 limit
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_priority(self):
         """Update discovery rule priority using invalid values
@@ -777,7 +752,6 @@ class DiscoveryRuleTestCase(UITestCase):
                 priority
             )
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_order_rules_by_priority_and_create_time(self):

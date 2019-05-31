@@ -23,7 +23,6 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import (
-    run_only_on,
     tier1,
     upgrade
 )
@@ -39,7 +38,6 @@ PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 class PartitionTableTestCase(UITestCase):
     """Implements the partition table tests from UI"""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_one_character_name(self):
         """Create a Partition table with 1 character in name
@@ -63,7 +61,6 @@ class PartitionTableTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a new partition table
@@ -87,7 +84,6 @@ class PartitionTableTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_snippet(self):
         """Create a new partition table with enabled snippet option
@@ -108,7 +104,6 @@ class PartitionTableTestCase(UITestCase):
             )
             self.assertIsNotNone(self.partitiontable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_audit_comment(self):
         """Create a new partition table with some text inputted into audit
@@ -132,7 +127,6 @@ class PartitionTableTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create partition table with invalid names
@@ -157,7 +151,6 @@ class PartitionTableTestCase(UITestCase):
                             common_locators['name_haserror'])
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create a new partition table with same name
@@ -187,7 +180,6 @@ class PartitionTableTestCase(UITestCase):
             self.assertIsNotNone(self.partitiontable.wait_until_element(
                 common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_empty_layout(self):
         """Create a new partition table with empty layout
@@ -206,7 +198,6 @@ class PartitionTableTestCase(UITestCase):
                 common_locators['haserror']))
             self.assertIsNone(self.partitiontable.search(name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -231,7 +222,6 @@ class PartitionTableTestCase(UITestCase):
                     )
                     self.partitiontable.delete(name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update(self):
         """Update partition table with its name, layout and OS family
@@ -264,7 +254,6 @@ class PartitionTableTestCase(UITestCase):
                     self.assertIsNotNone(self.partitiontable.search(new_name))
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
         """Update invalid name in partition table

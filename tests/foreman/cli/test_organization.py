@@ -49,7 +49,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
@@ -486,7 +485,6 @@ class OrganizationTestCase(CLITestCase):
             "Failed to remove cr by name"
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_add_and_remove_media(self):
         """Add and remove medium to organization
@@ -533,7 +531,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(medium_b['name'], org_info['installation-media'],
                          "Failed to remove medium by id")
 
-    @run_only_on('sat')
     @tier2
     def test_positive_add_and_remove_templates(self):
         """Add and remove provisioning templates to organization
@@ -778,7 +775,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn('locations', org_info,
                          "Failed to remove locations")
 
-    @run_only_on('sat')
     @tier1
     def test_positive_add_parameter_by_org_name(self):
         """Add a parameter to organization
@@ -801,7 +797,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org['parameters']), 1)
         self.assertEqual(param_value, org['parameters'][param_name.lower()])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_add_parameter_by_org_id(self):
         """Add a parameter to organization
@@ -824,7 +819,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org['parameters']), 1)
         self.assertEqual(param_value, org['parameters'][param_name.lower()])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_parameter(self):
         """Update a parameter associated with organization
@@ -856,7 +850,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(
             param_new_value, org['parameters'][param_name.lower()])
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_remove_parameter_by_org_name(self):
@@ -885,7 +878,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org['parameters']), 0)
         self.assertNotIn(param_name.lower(), org['parameters'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_remove_parameter_by_org_id(self):
         """Remove a parameter from organization

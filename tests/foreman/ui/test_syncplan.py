@@ -23,10 +23,9 @@ from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
-    invalid_values_list,
+    invalid_values_list
 )
 from robottelo.decorators import (
-    run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
@@ -262,7 +261,6 @@ class SyncPlanTestCase(UITestCase):
                     session.nav.go_to_select_org(self.organization.name)
                     self.syncplan.delete(plan_name)
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_positive_create_ostree_sync_plan(self):
