@@ -157,6 +157,7 @@ class Scenario_yum_plugins_count(APITestCase):
         host_loc = self._host_status(client_container_name=client_container_name)[0]
         host_loc.location = loc
         host_loc.update(['location'])
+        self.assertEqual(loc.name, host_loc.location.name)
 
     def _publish_content_view(self, org, repolist):
         """publish content view and return content view"""
@@ -208,6 +209,14 @@ class Scenario_yum_plugins_count(APITestCase):
         client_container_name = [key for key in rhel7_client.keys()][0]
         self._host_location_update(client_container_name=client_container_name, loc=loc)
 
+        wait_for(
+            lambda: org.name in execute(docker_execute_command, client_container_id,
+                                        'subscription-manager identity',
+                                        host=self.docker_vm)[self.docker_vm],
+            timeout=100,
+            delay=2,
+            logger=self.logger
+        )
         status = execute(docker_execute_command, client_container_id,
                          'subscription-manager identity', host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
