@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: LDAP
 
 :TestType: Functional
 
@@ -19,7 +19,7 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_not_set, tier2, upgrade
+from robottelo.decorators import skip_if_not_set, tier3, upgrade
 from robottelo.test import APITestCase
 
 
@@ -41,7 +41,7 @@ class LDAPAuthSourceTestCase(APITestCase):
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
 
-    @tier2
+    @tier3
     @upgrade
     def test_positive_endtoend_withad(self):
         """Create/update/delete LDAP authentication with AD using names of different types
@@ -101,7 +101,7 @@ class IPAAuthSourceTestCase(APITestCase):
         cls.ipa_group_base_dn = settings.ipa.grpbasedn_ipa
         cls.ldap_ipa_hostname = settings.ipa.hostname_ipa
 
-    @tier2
+    @tier3
     @upgrade
     def test_positive_endtoend_withipa(self):
         """Create/update/delete LDAP authentication with FreeIPA using names of different types

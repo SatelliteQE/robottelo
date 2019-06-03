@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Integration
 
-:CaseComponent: UI
+:CaseComponent: LDAP
 
 :TestType: Functional
 
@@ -207,8 +207,6 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data):
 
     :expectedresults: Whether creating LDAP Auth with AD and associating org
         and loc is successful.
-
-    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     org = entities.Organization().create()
@@ -268,8 +266,6 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
 
     :expectedresults: Whether creating LDAP Auth source with IDM and
         associating org and loc is successful.
-
-    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     org = entities.Organization().create()
@@ -332,8 +328,6 @@ def test_positive_add_katello_role(
 
     :expectedresults: Whether a User belonging to User Group is able to
         access katello entities as per roles.
-
-    :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
     auth_source_name = 'LDAP-' + auth_source.name
@@ -389,8 +383,6 @@ def test_positive_update_external_roles(
 
     :expectedresults: User has access to all NEW functional areas that are
         assigned to aforementioned UserGroup.
-
-    :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
     auth_source_name = 'LDAP-' + auth_source.name
@@ -461,8 +453,6 @@ def test_positive_delete_external_roles(
 
     :expectedresults: User no longer has access to all deleted functional
         areas that were assigned to aforementioned UserGroup.
-
-    :CaseLevel: Integration
     """
     auth_source_name = 'LDAP-' + auth_source.name
     location_name = gen_string('alpha')
@@ -524,8 +514,6 @@ def test_positive_update_external_user_roles(
     :expectedresults: User can access not only those feature areas in his
         UserGroup but those additional feature areas / roles assigned
         specifically to user
-
-    :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
     auth_source_name = 'LDAP-' + auth_source.name
@@ -594,8 +582,6 @@ def test_positive_add_admin_role_with_org_loc(
     :expectedresults: Whether a User belonging to User Group is able to
         access some of the pages, with the associated org and loc
         in LDAP Auth source page as the context set.
-
-    :CaseImportance: Critical
     """
     ak_name = gen_string('alpha')
     auth_source_name = 'LDAP-' + auth_source.name
@@ -652,8 +638,6 @@ def test_positive_add_foreman_role_with_org_loc(
     :expectedresults: Whether a User belonging to User Group is able to
         access foreman entities as per roles, with the associated org and
         loc in LDAP Auth source page as the context set.
-
-    :CaseLevel: Integration
     """
     auth_source_name = 'LDAP-' + auth_source.name
     name = gen_string('alpha')
@@ -713,8 +697,6 @@ def test_positive_add_katello_role_with_org(
     :expectedresults: Whether a User belonging to User Group is able to
         access katello entities as per roles, with the associated org
         in LDAP Auth source page as the context set.
-
-    :CaseLevel: Integration
     """
     auth_source_name = 'LDAP-' + auth_source.name
     ak_name = gen_string('alpha')
@@ -774,8 +756,6 @@ def test_positive_create_user_in_ldap_mode(session, auth_source):
     :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
 
     :expectedresults: User is created without specifying the password
-
-    :CaseLevel: Integration
     """
     auth_source_name = 'LDAP-' + auth_source.name
     name = gen_string('alpha')
@@ -801,8 +781,6 @@ def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, a
 
     :expectedresults: Log in to foreman UI successfully but cannot access
         functional areas of UI
-
-    :CaseLevel: Integration
     """
     with Session(
             test_name,
@@ -828,8 +806,6 @@ def test_positive_login_ad_user_basic_roles(
 
     :expectedresults: Log in to foreman UI successfully and can access
         appropriate functional areas in UI
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     role = entities.Role().create()

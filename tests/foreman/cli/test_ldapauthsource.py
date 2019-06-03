@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: LDAP
 
 :TestType: Functional
 
@@ -114,7 +114,7 @@ class IPAAuthSourceTestCase(CLITestCase):
 
         :expectedresults: Whether creating/updating/deleting LDAP Auth with FreeIPA is successful.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for server_name in generate_strings_list():
             with self.subTest(server_name):
