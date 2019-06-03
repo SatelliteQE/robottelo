@@ -68,7 +68,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         org = entities.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = 'repo = Katello::Repository.find_by_id({0})'.format(custom_repo)
-        rake_username = '; repo.upstream_username = "{0}"'.format(self.upstream_username)
+        rake_username = '; repo.root.upstream_username = "{0}"'.format(self.upstream_username)
         rake_repo_save = '; repo.save!(validate: false)'
         result = run("echo '{0}{1}{2}'|foreman-rake console".format(rake_repo, rake_username,
                                                                     rake_repo_save))
@@ -97,7 +97,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
 
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']
         rake_repo = 'repo = Katello::RootRepository.find_by_id({0})'.format(repo_id)
-        rake_username = '; repo.upstream_username'
+        rake_username = '; repo.root.upstream_username'
         result = run("echo '{0}{1}'|foreman-rake console".format(rake_repo, rake_username))
         self.assertNotIn(self.upstream_username, result)
 
