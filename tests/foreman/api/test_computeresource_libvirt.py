@@ -120,13 +120,11 @@ class ComputeResourceTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity in (entities.DockerComputeResource(),
-                       entities.LibvirtComputeResource()):
-            with self.subTest(entity):
-                entity.location = [self.loc]
-                entity.organization = [self.org]
-                result = entity.create()
-                self.assertEqual(result.provider, entity.provider)
+        entity = entities.LibvirtComputeResource()
+        entity.location = [self.loc]
+        entity.organization = [self.org]
+        result = entity.create()
+        self.assertEqual(result.provider, entity.provider)
 
     @tier2
     def test_positive_create_with_locs(self):
