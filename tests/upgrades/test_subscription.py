@@ -148,6 +148,7 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
         host_loc = self._host_status(client_container_name=client_container_name)[0]
         host_loc.location = loc
         host_loc.update(['location'])
+        self.assertEqual(loc.name, host_loc.location.name)
 
     @pre_upgrade
     def test_pre_subscription_scenario_autoattach(self):
@@ -177,6 +178,15 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
         self._host_location_update(client_container_name=client_container_name, loc=loc)
+
+        wait_for(
+            lambda: org.name in execute(docker_execute_command, client_container_id,
+                                        'subscription-manager identity',
+                                        host=self.docker_vm)[self.docker_vm],
+            timeout=100,
+            delay=2,
+            logger=self.logger
+        )
         status = execute(docker_execute_command, client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
