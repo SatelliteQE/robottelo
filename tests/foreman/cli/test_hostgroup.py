@@ -300,7 +300,7 @@ class HostGroupTestCase(CLITestCase):
         """
         arch = 'x86_64'
         hostgroup = make_hostgroup({'architecture': arch})
-        self.assertEqual(arch, hostgroup['architecture'])
+        self.assertEqual(arch, hostgroup['operating-system']['architecture'])
 
     @run_only_on('sat')
     @tier2
