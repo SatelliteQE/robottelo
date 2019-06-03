@@ -17,7 +17,7 @@
 """
 from random import choice
 
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_integer
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -588,78 +588,6 @@ class HostGroupTestCase(CLITestCase):
         )
         self.assertEqual(
             os['id'], hostgroup['operating-system']['operating-system']['id'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_negative_create_with_subnet_id(self):
-        """Check if hostgroup with invalid subnet id raises proper error
-
-        :id: c352d7ea-4fc6-4b78-863d-d3ee4c0ad439
-
-        :expectedresults: Proper error should be raised
-
-        :BZ: 1354568
-
-        :CaseLevel: Integration
-        """
-        subnet_id = gen_string('numeric', 4)
-        with self.assertRaises(CLIReturnCodeError) as exception:
-            HostGroup.create({
-                'name': gen_string('alpha'),
-                'subnet-id': subnet_id
-            })
-        self.assertIs(
-            exception.exception.stderr,
-            'Could not find subnet {0}'.format(subnet_id)
-        )
-
-    @run_only_on('sat')
-    @tier2
-    def test_negative_create_with_domain_id(self):
-        """Check if hostgroup with invalid domain id raises proper error
-
-        :id: b36c83d6-b27c-4f1a-ac45-6c4999005bf7
-
-        :expectedresults: Proper error should be raised
-
-        :BZ: 1354568
-
-        :CaseLevel: Integration
-        """
-        domain_id = gen_string('numeric', 4)
-        with self.assertRaises(CLIReturnCodeError) as exception:
-            HostGroup.create({
-                'name': gen_string('alpha'),
-                'domain-id': domain_id
-            })
-        self.assertIs(
-            exception.exception.stderr,
-            'Could not find domain {0}'.format(domain_id)
-        )
-
-    @run_only_on('sat')
-    @tier2
-    def test_negative_create_with_architecture_id(self):
-        """Check if hostgroup with invalid architecture id raises proper error
-
-        :id: 7b7de0fa-aee9-4163-adc2-354c1e720d90
-
-        :expectedresults: Proper error should be raised
-
-        :BZ: 1354568
-
-        :CaseLevel: Integration
-        """
-        arch_id = gen_string('numeric', 4)
-        with self.assertRaises(CLIReturnCodeError) as exception:
-            HostGroup.create({
-                'name': gen_string('alpha'),
-                'architecture-id': arch_id
-            })
-        self.assertIs(
-            exception.exception.stderr,
-            'Could not find architecture {0}'.format(arch_id)
-        )
 
     @tier2
     def test_positive_create_with_content_source(self):
