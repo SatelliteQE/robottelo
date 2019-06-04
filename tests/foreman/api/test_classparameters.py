@@ -5,13 +5,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Puppet
 
 :TestType: Functional
-
-:CaseImportance: High
 
 :Upstream: No
 """
@@ -30,6 +28,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
     tier1,
+    tier2,
     upgrade
 )
 from robottelo.test import APITestCase
@@ -174,7 +173,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: Parameter Updated with a new type successfully.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         for data in valid_sc_parameters_data():
@@ -223,7 +222,7 @@ class SmartClassParametersTestCase(APITestCase):
             1. Parameter not updated with string type for invalid value.
             2. Error raised for invalid default value.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         for test_data in invalid_sc_parameters_data():
@@ -257,7 +256,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: No error raised for non-empty default value
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.parameter_type = 'boolean'
@@ -295,7 +294,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: Error raised for blank matcher value.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -327,7 +326,7 @@ class SmartClassParametersTestCase(APITestCase):
         :expectedresults: Error raised for default value not matching with
             regex.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         value = gen_string('alpha')
         sc_param = self.sc_params_list.pop()
@@ -363,7 +362,7 @@ class SmartClassParametersTestCase(APITestCase):
         :expectedresults: Error not raised for default value matching with
             regex.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         # validate default value
         value = gen_string('numeric')
@@ -405,7 +404,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: Error raised for matcher value not in list.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -444,7 +443,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: Error not raised for matcher value in list.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -475,7 +474,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: Error not raised for matcher value of default type.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -508,7 +507,7 @@ class SmartClassParametersTestCase(APITestCase):
         :expectedresults: Error raised for invalid default and matcher value
             both.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -543,7 +542,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: The matcher has been created and removed successfully.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -575,7 +574,7 @@ class SmartClassParametersTestCase(APITestCase):
         :expectedresults: The Merge Overrides, Merge Default checks are enabled
             to check.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -606,7 +605,7 @@ class SmartClassParametersTestCase(APITestCase):
         :expectedresults: The Merge Overrides, Merge Default checks are not
             enabled to check.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -655,7 +654,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         :expectedresults: The Avoid Duplicates is enabled to set to True.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -688,7 +687,7 @@ class SmartClassParametersTestCase(APITestCase):
             2. The Avoid duplicates checkbox not enabled to check for any type
                than array.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -710,7 +709,7 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(sc_param.read().avoid_duplicates, False)
 
     @skip_if_bug_open('bugzilla', 1374253)
-    @tier1
+    @tier2
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
 
@@ -729,9 +728,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. On recreating attribute, the matcher should not reappear in
                parameter.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
-        :CaseAutomation: automated
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')

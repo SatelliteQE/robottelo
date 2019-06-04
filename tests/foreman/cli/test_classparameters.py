@@ -5,13 +5,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: Puppet
 
 :TestType: Functional
-
-:CaseImportance: High
 
 :Upstream: No
 """
@@ -38,7 +36,6 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
     tier1,
-    tier2,
     upgrade
 )
 from robottelo.test import CLITestCase
@@ -106,7 +103,7 @@ class SmartClassParametersTestCase(CLITestCase):
             raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
 
-    @tier2
+    @tier1
     def test_positive_list(self):
         """List all the parameters included in specific elements.
 
@@ -116,7 +113,7 @@ class SmartClassParametersTestCase(CLITestCase):
             (by name and id), Host (name, id), Hostgroup (name, id),
             and puppetclass (name)
 
-        :CaseLevel: Integration
+        :CaseImportance: Medium
         """
 
         list_queries = [
@@ -167,7 +164,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :BZ: 1391556
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         password = gen_string('alpha')
         required_user_permissions = {
@@ -206,7 +203,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         BZ: 1385351
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         cv = publish_puppet_module(
             self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
@@ -242,7 +239,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Parameter Value overridden with new value.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
@@ -273,7 +270,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Not overridden parameter value cannot be updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
@@ -297,7 +294,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Error raised for default value not in list.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         value = gen_string('alphanumeric')
         sc_param_id = self.sc_params_ids_list.pop()
@@ -330,7 +327,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Error not raised for default value in list.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -363,7 +360,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Error raised for non existing attribute.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
@@ -392,7 +389,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: The matcher has been created successfully.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
@@ -444,7 +441,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: The matcher has been created successfully.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -488,7 +485,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3. It remains hidden when empty
             4. It is successfully unhidden
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         # Create with hidden value
         sc_param_id = self.sc_params_ids_list.pop()
