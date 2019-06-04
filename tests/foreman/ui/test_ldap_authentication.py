@@ -126,21 +126,19 @@ def ldap_usergroup_name():
 
 
 @tier2
-def test_positive_create_with_ad(session, ldap_data):
-    """Create LDAP authentication with AD
+def test_positive_end_to_end_ad(session, ldap_data):
+    """Perform end to end testing for LDAP authentication component with AD
 
-    :id: 02ca85b7-5029-4618-a835-63b002767cf7
+    :id: a6528239-e090-4379-a850-3900ee625b24
 
-    :steps:
+    :expectedresults: All expected CRUD actions finished successfully
 
-        1. Create a new LDAP Auth source with AD.
-        2. Fill in all the fields appropriately for AD.
+    :CaseLevel: Integration
 
-    :expectedresults: Whether creating LDAP Auth with AD is successful.
-
-    :CaseImportance: Critical
+    :CaseImportance: High
     """
     name = gen_string('alpha')
+    new_name = gen_string('alpha')
     with session:
         session.ldapauthentication.create({
             'ldap_server.name': name,
@@ -156,41 +154,11 @@ def test_positive_create_with_ad(session, ldap_data):
             'attribute_mappings.mail': LDAP_ATTR['mail'],
         })
         assert session.ldapauthentication.read_table_row(name)['Name'] == name
-
-
-@tier2
-def test_positive_delete_with_ad(session, ldap_data):
-    """Delete LDAP authentication with AD
-
-    :id: 3cf59a72-ca99-40b1-bbd3-c1c80a4ae741
-
-    :steps:
-
-        1. Create a new LDAP Auth source with AD.
-        2. Delete LDAP Auth source with AD.
-
-    :expectedresults: Whether deleting LDAP Auth with AD is successful.
-
-    :CaseImportance: Critical
-    """
-    name = gen_string('alpha')
-    with session:
-        session.ldapauthentication.create({
-            'ldap_server.name': name,
-            'ldap_server.host': ldap_data['ldap_hostname'],
-            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-            'account.account_name': ldap_data['ldap_user_name'],
-            'account.password': ldap_data['ldap_user_passwd'],
-            'account.base_dn': ldap_data['base_dn'],
-            'account.groups_base_dn': ldap_data['group_base_dn'],
-            'attribute_mappings.login': LDAP_ATTR['login_ad'],
-            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-            'attribute_mappings.last_name': LDAP_ATTR['surname'],
-            'attribute_mappings.mail': LDAP_ATTR['mail'],
-        })
-        assert session.ldapauthentication.read_table_row(name)
-        session.ldapauthentication.delete(name)
+        session.ldapauthentication.update(name, {'ldap_server.name': new_name})
+        assert session.ldapauthentication.read_table_row(new_name)['Name'] == new_name
         assert not session.ldapauthentication.read_table_row(name)
+        session.ldapauthentication.delete(new_name)
+        assert not session.ldapauthentication.read_table_row(new_name)
 
 
 @tier2

@@ -300,6 +300,8 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col):
 
     :Setup: Errata synced on satellite server.
 
+    :customerscenario: true
+
     :Steps:
 
         1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
