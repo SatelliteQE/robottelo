@@ -771,6 +771,36 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
         time.sleep(2)
 
 
+def wait_for_errata_applicability_task(host_id, search_rate=1, max_tries=10, poll_rate=None,
+                                       poll_timeout=15):
+    """Search the generate applicability task for given host and make sure it finishes
+
+    :param host_id: Content host ID of the host where we are regenerating applicability.
+    :param search_rate: Delay between searches.
+    :param max_tries: How many times search should be executed.
+    :param poll_rate: Delay between the end of one task check-up and
+            the start of the next check-up. Parameter for
+            ``nailgun.entities.ForemanTask.poll()`` method.
+    :param poll_timeout: Maximum number of seconds to wait until timing out.
+            Parameter for ``nailgun.entities.ForemanTask.poll()`` method.
+    :return: Relevant errata applicability task.
+    :raises: ``AssertionError``. If not tasks were found for given host until timeout.
+    """
+    assert isinstance(host_id, int), 'Param host_id have to be int'
+    search_query = "label = Actions::Katello::Host::GenerateApplicability"
+    for _ in range(max_tries):
+        tasks = entities.ForemanTask().search(query={'search': search_query})
+        for task in tasks:
+            if host_id in task.input['host_ids']:
+                task.poll(poll_rate=poll_rate, timeout=poll_timeout)
+                return task
+        import code; code.interact(local=locals())
+        time.sleep(search_rate)
+    else:
+        raise AssertionError(
+            "No task was found using query '{}' for host '{}'".format(search_query, host_id))
+
+
 def create_discovered_host(name=None, ip_address=None, mac_address=None,
                            options=None):
     """Creates a discovered host.
