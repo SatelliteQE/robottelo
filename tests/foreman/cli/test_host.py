@@ -22,6 +22,7 @@ import yaml
 
 from robottelo import ssh
 from robottelo.cleanup import capsule_cleanup, vm_cleanup
+from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -2562,6 +2563,7 @@ class KatelloAgentTestCase(CLITestCase):
         # Downgrade walrus package
         self.client.run('yum downgrade -y {0}'.format(
             FAKE_2_CUSTOM_PACKAGE_NAME))
+        wait_for_errata_applicability_task(int(self.host['id']))
         # Check that host has applicable errata
         host_errata = Host.errata_list({u'host-id': self.host['id']})
         self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
