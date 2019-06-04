@@ -108,6 +108,7 @@ def scap_policy(scap_content):
     scap_id, scap_profile_id = scap_content
     scap_policy = make_scap_policy({
         'name': gen_string('alpha'),
+        'deploy-by': 'puppet',
         'scap-content-id': scap_id,
         'scap-content-profile-id': scap_profile_id,
         'period': OSCAP_PERIOD['weekly'].lower(),
