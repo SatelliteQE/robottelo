@@ -18,7 +18,7 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -26,7 +26,6 @@ class GlobalParameterTestCase(CLITestCase):
     """GlobalParameter related CLI tests."""
 
     # pylint: disable=no-self-use
-    @run_only_on('sat')
     @tier1
     def test_positive_set(self):
         """Check if Global Param can be set
@@ -46,7 +45,6 @@ class GlobalParameterTestCase(CLITestCase):
             'value': value,
         })
 
-    @run_only_on('sat')
     @tier1
     def test_positive_list_by_name(self):
         """Test Global Param List
@@ -69,7 +67,6 @@ class GlobalParameterTestCase(CLITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['value'], value)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete_by_name(self):

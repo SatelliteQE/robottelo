@@ -23,7 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
 from robottelo.datafactory import filtered_datapoint, invalid_names_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -42,7 +42,6 @@ class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """Create an environment and provide a valid name.
 
@@ -59,7 +58,6 @@ class EnvironmentTestCase(APITestCase):
                 self.assertEqual(env.name, name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_org(self):
         """Create an environment and assign it to new organization.
 
@@ -79,7 +77,6 @@ class EnvironmentTestCase(APITestCase):
         self.assertEqual(env.organization[0].id, org.id)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_loc(self):
         """Create an environment and assign it to new location.
 
@@ -99,7 +96,6 @@ class EnvironmentTestCase(APITestCase):
         self.assertEqual(env.location[0].id, location.id)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_with_too_long_name(self):
         """Create an environment and provide an invalid name.
 
@@ -115,7 +111,6 @@ class EnvironmentTestCase(APITestCase):
                     entities.Environment(name=name).create()
 
     @tier2
-    @run_only_on('sat')
     def test_negative_create_with_invalid_characters(self):
         """Create an environment and provide an illegal name.
 
@@ -132,7 +127,6 @@ class EnvironmentTestCase(APITestCase):
                     entities.Environment(name=name).create()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name(self):
         """Create environment entity providing the initial name, then
         update its name to another valid name.
@@ -151,7 +145,6 @@ class EnvironmentTestCase(APITestCase):
                 self.assertEqual(env.name, new_name)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_org(self):
         """Update environment and assign it to a new organization
 
@@ -169,7 +162,6 @@ class EnvironmentTestCase(APITestCase):
         self.assertEqual(env.organization[0].id, org.id)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_loc(self):
         """Update environment and assign it to a new location
 
@@ -187,7 +179,6 @@ class EnvironmentTestCase(APITestCase):
         self.assertEqual(env.location[0].id, location.id)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_update_name(self):
         """Create environment entity providing the initial name, then
         try to update its name to invalid one.
@@ -206,7 +197,6 @@ class EnvironmentTestCase(APITestCase):
                         id=env.id, name=new_name).update(['name'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete(self):
         """Create new environment entity and then delete it.
 

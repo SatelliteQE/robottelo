@@ -23,7 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3, upgrade
+from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
 from robottelo.test import APITestCase
 
 
@@ -37,7 +37,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         cls.org = entities.Organization().create()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """Create lifecycle environment with valid name only
 
@@ -56,7 +55,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
                 self.assertEqual(lc_env.name, name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_description(self):
         """Create lifecycle environment with valid description
 
@@ -75,7 +73,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         self.assertEqual(lc_env.description, description)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_prior(self):
         """Create lifecycle environment with valid name, prior to
         Library
@@ -93,7 +90,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         self.assertEqual(lc_env.prior.read().name, ENVIRONMENT)
 
     @tier3
-    @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
         """Create lifecycle environment providing an invalid name
 
@@ -109,7 +105,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
                     entities.LifecycleEnvironment(name=name).create()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name(self):
         """Create lifecycle environment providing the initial name, then
         update its name to another valid name.
@@ -127,7 +122,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
                 self.assertEqual(lc_env.name, new_name)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_description(self):
         """Create lifecycle environment providing the initial
         description, then update its description to another one.
@@ -150,7 +144,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         self.assertEqual(lc_env.description, new_description)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_update_name(self):
         """Update lifecycle environment providing an invalid name
 
@@ -175,7 +168,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier1
     @upgrade
-    @run_only_on('sat')
     def test_positive_delete(self):
         """Create lifecycle environment and then delete it.
 
@@ -191,7 +183,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
             lc_env.read()
 
     @tier2
-    @run_only_on('sat')
     def test_positive_search_in_org(self):
         """Search for a lifecycle environment and specify an org ID.
 

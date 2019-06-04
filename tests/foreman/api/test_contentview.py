@@ -41,7 +41,6 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -66,7 +65,6 @@ class ContentViewTestCase(APITestCase):
 
     @upgrade
     @tier3
-    @run_only_on('sat')
     def test_positive_subscribe_host(self):
         """Subscribe a host to a content view
 
@@ -115,7 +113,6 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(content_view.read().content_host_count, 1)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_clone_within_same_env(self):
         """attempt to create, publish and promote new content view
         based on existing view within the same environment as the
@@ -142,7 +139,6 @@ class ContentViewTestCase(APITestCase):
 
     @upgrade
     @tier2
-    @run_only_on('sat')
     def test_positive_clone_with_diff_env(self):
         """attempt to create, publish and promote new content
         view based on existing view but promoted to a
@@ -168,7 +164,6 @@ class ContentViewTestCase(APITestCase):
         promote(cloned_cv.read().version[0], le_clone.id)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_custom_content(self):
         """Associate custom content in a view
 
@@ -190,7 +185,6 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_custom_module_streams(self):
         """Associate custom content (module streams) in a view
 
@@ -216,7 +210,6 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(repo.content_counts['module_stream'], 7)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_puppet_content(self):
         """Attempt to associate puppet repos within a custom content
         view directly
@@ -243,7 +236,6 @@ class ContentViewTestCase(APITestCase):
             ).create()
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_dupe_repos(self):
         """Attempt to associate the same repo multiple times within a
         content view
@@ -267,7 +259,6 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.read().repository), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_dupe_modules(self):
         """Attempt to associate duplicate puppet modules within a
         content view
@@ -1726,7 +1717,6 @@ class OstreeContentViewTestCase(APITestCase):
         cls.docker_repo.sync()
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_custom_ostree_content(self):
         """Associate custom ostree content in a view
 
@@ -1748,7 +1738,6 @@ class OstreeContentViewTestCase(APITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_custom_ostree(self):
         """Publish a content view with custom ostree contents
 

@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, stubbed, tier1, upgrade
+from robottelo.decorators import stubbed, tier1, upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -40,7 +40,6 @@ class TemplateTestCase(UITestCase):
         cls.organization = entities.Organization().create()
         cls.loc = entities.Location().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create new template using different valid names
@@ -64,7 +63,6 @@ class TemplateTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.template.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create a new template with invalid names
@@ -88,7 +86,6 @@ class TemplateTestCase(UITestCase):
                     self.assertIsNotNone(self.template.wait_until_element(
                         common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Template - Create a new template with same name
@@ -119,7 +116,6 @@ class TemplateTestCase(UITestCase):
             self.assertIsNotNone(self.template.wait_until_element(
                 common_locators['name_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_without_type(self):
         """Template - Create a new template without selecting its type
@@ -145,7 +141,6 @@ class TemplateTestCase(UITestCase):
                 'Could not create template "{0}" without type'.format(name)
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_without_upload(self):
         """Template - Create a new template without uploading a template
@@ -171,7 +166,6 @@ class TemplateTestCase(UITestCase):
                 'Could not create blank template "{0}"'.format(name)
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_too_long_audit(self):
         """Create a new template with 256 characters in audit comments
@@ -194,7 +188,6 @@ class TemplateTestCase(UITestCase):
             self.assertIsNotNone(self.template.wait_until_element(
                 common_locators['haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_snippet_type(self):
         """Create new template of type snippet
@@ -218,7 +211,6 @@ class TemplateTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.template.search(name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -240,7 +232,6 @@ class TemplateTestCase(UITestCase):
                     ).create()
                     self.template.delete(template_name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_update_name_and_type(self):
@@ -268,7 +259,6 @@ class TemplateTestCase(UITestCase):
                 name, False, new_name, None, 'PXELinux template')
             self.assertIsNotNone(self.template.search(new_name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_os(self):
         """Creates new template, along with two OS's and associate list
@@ -334,7 +324,6 @@ class TemplateTestCase(UITestCase):
             self.template.update(name=template.name, new_name=new_name)
             self.assertIsNotNone(self.template.search(new_name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_advanced_search(self):
         """Create new provisioning template and associate it with specific
@@ -373,7 +362,6 @@ class TemplateTestCase(UITestCase):
                 )
             )
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_export_unlocked(self):
@@ -390,7 +378,6 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_export_locked(self):
@@ -407,7 +394,6 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_display_help(self):
@@ -424,7 +410,6 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_display_cloned_help(self):
@@ -441,7 +426,6 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_export_cloned_and_edited(self):
@@ -459,7 +443,6 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_export_template_disable_safe_render(self):
@@ -498,7 +481,6 @@ class TemplateSyncTestCase(UITestCase):
                templates ownership.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_settings_is_enabled(self):
@@ -516,7 +498,6 @@ class TemplateSyncTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_git_settings(self):

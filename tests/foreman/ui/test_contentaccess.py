@@ -34,7 +34,6 @@ from robottelo.cli.factory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -170,7 +169,6 @@ class ContentAccessTestCase(UITestCase):
             install_katello_agent=True,
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_installable_updates(self):
         """Access content hosts and assert all updates are listed on
@@ -204,7 +202,6 @@ class ContentAccessTestCase(UITestCase):
                         vm.hostname, REAL_RHEL7_0_ERRATA_ID)
                 )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_available_packages(self):
         """Access content hosts and assert all packages are listed on
@@ -248,7 +245,6 @@ class ContentAccessTestCase(UITestCase):
                     )
                 )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_visual_indicator_on_hosts_subscription(self):
         """Access content hosts subscription tab and assert a visual indicator
@@ -293,7 +289,6 @@ class ContentAccessTestCase(UITestCase):
                     info_element.text
                 )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_visual_indicator_on_activation_key_details(self):
         """Access AK details subscription tab and assert a visual indicator
@@ -329,7 +324,6 @@ class ContentAccessTestCase(UITestCase):
                 info_element.text
             )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_visual_indicator_on_manifest(self):
         """Access org manifest page and assert a visual indicator
@@ -367,7 +361,6 @@ class ContentAccessTestCase(UITestCase):
                 info_element.text
             )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_visual_indicator_with_restricted_subscription(self):
         """Access AK details subscription tab and assert a visual indicator
@@ -399,7 +392,6 @@ class ContentAccessTestCase(UITestCase):
                     common_locators['org_environment_info'])
             )
 
-    @run_only_on('sat')
     @tier2
     @stubbed()
     def test_negative_list_available_packages(self):

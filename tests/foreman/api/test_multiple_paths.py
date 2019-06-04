@@ -21,7 +21,6 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_only_on,
     skip_if_bug_open,
     tier1,
     tier3,
@@ -116,40 +115,6 @@ def _get_readable_attributes(entity):
     return attributes
 
 
-def skip_if_sam(self, entity):
-    """Skip test if testing sam features and entity is unavailable in sam.
-
-    Usage::
-
-        def test_sample_test(self, entity):
-            skip_if_sam(self, entity)
-            # test code continues here
-
-    The above code snippet skips the test when:
-
-    * ``robottelo.properties`` is defined with ``[robottelo] project=sam``, and
-    * the corresponding entity's definition in module ``nailgun.entities`` does
-      not specify sam in server_modes. For example: ``server_modes = ('sat')``.
-
-    :param entity: One of the entities defined in module ``nailgun.entities``.
-    :returns: Either ``self.skipTest`` or ``None``.
-    """
-    robottelo_mode = settings.project
-    server_modes = [
-        server_mode.lower()
-        for server_mode
-        in entity()._meta['server_modes']  # pylint:disable=protected-access
-    ]
-
-    if robottelo_mode == 'sam' and 'sam' not in server_modes:
-        return self.skipTest(
-            'Server runs in "{0}" mode and this entity is associated only to '
-            '"{1}" mode(s).'.format(robottelo_mode, "".join(server_modes))
-        )
-
-    # else just return - do nothing!
-
-
 class EntityTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
 
@@ -190,7 +155,6 @@ class EntityTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_get_status_code arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
                 response = client.get(
                     entity_cls().path(),
                     auth=settings.server.get_credentials(),
@@ -221,7 +185,6 @@ class EntityTestCase(APITestCase):
         for entity_cls in test_entities:
             with self.subTest(entity_cls):
                 self.logger.info('test_get_unauthorized arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
                 response = client.get(
                     entity_cls().path(),
                     auth=(),
@@ -247,7 +210,6 @@ class EntityTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_post_status_code arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
 
                 # Libvirt compute resources suffer from BZ 1118015. However,
                 # partials cannot be compared for class identity and the class
@@ -282,7 +244,6 @@ class EntityTestCase(APITestCase):
         for entity_cls in test_entities:
             with self.subTest(entity_cls):
                 self.logger.info('test_post_unauthorized arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
                 server_cfg = get_nailgun_config()
                 server_cfg.auth = ()
                 return_code = entity_cls(server_cfg).create_raw(
@@ -311,7 +272,6 @@ class EntityIdTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_get_status_code arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
                 try:
                     entity = entity_cls(id=entity_cls().create_json()['id'])
                 except HTTPError as err:
@@ -342,7 +302,6 @@ class EntityIdTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_put_status_code arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
 
                 # Create an entity
                 entity_id = entity_cls().create_json()['id']
@@ -381,7 +340,6 @@ class EntityIdTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_delete_status_code arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
                 try:
                     entity = entity_cls(id=entity_cls().create_json()['id'])
                 except HTTPError as err:
@@ -433,7 +391,6 @@ class DoubleCheckTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_put_and_get arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
 
                 # Create an entity.
                 entity_id = entity_cls().create_json()['id']
@@ -474,7 +431,6 @@ class DoubleCheckTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_post_and_get arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
 
                 entity = entity_cls()
                 entity_id = entity.create_json()['id']
@@ -504,7 +460,6 @@ class DoubleCheckTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_delete_and_get arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
 
                 # Create an entity, delete it and get it.
                 try:
@@ -543,7 +498,6 @@ class EntityReadTestCase(APITestCase):
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_entity_read arg: %s', entity_cls)
-                skip_if_sam(self, entity_cls)
                 entity_id = entity_cls().create_json()['id']
                 self.assertIsInstance(
                     entity_cls(id=entity_id).read(),
@@ -591,7 +545,6 @@ class EntityReadTestCase(APITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_osparameter_read(self):
         """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -616,7 +569,6 @@ class EntityReadTestCase(APITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_permission_read(self):
         """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.

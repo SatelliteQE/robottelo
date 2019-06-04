@@ -18,7 +18,6 @@
 
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     stubbed,
     tier1,
     tier3,
@@ -119,7 +118,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_version(self):
@@ -138,7 +136,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_status(self):
@@ -157,7 +154,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_context(self):
@@ -177,7 +173,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_url(self):
@@ -197,7 +192,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_pulp_storage(self):
@@ -218,7 +212,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier4
     def test_positive_isolated_capsule_sync(self):
@@ -239,7 +232,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier4
     def test_positive_isolated_capsule_cancel_sync(self):
@@ -260,7 +252,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_details(self):
@@ -281,7 +272,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_environment(self):
@@ -305,7 +295,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_capsule_puppet_classes_count(self):
@@ -328,7 +317,6 @@ class CapsuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_capsule_puppet_hosts_managed_count(self):
@@ -351,7 +339,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_capsule_puppetca_hosts_managed_count(self):
@@ -374,7 +361,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_capsule_puppetca_certificate_name(self):
@@ -396,7 +382,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_capsule_puppetca_certificate_revoked(self):
@@ -420,7 +405,6 @@ class CapsuleTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_capsule_puppetca_autosign(self):

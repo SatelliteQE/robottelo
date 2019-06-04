@@ -41,7 +41,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     tier4,
     upgrade
@@ -230,7 +229,6 @@ class IncrementalUpdateTestCase(TestCase):
             query={'errata_restrict_applicable': True}
         )
 
-    @run_only_on('sat')
     @tier4
     @upgrade
     def test_positive_noapply_api(self):
@@ -280,7 +278,6 @@ class IncrementalUpdateTestCase(TestCase):
             len(cv_versions)
         )
 
-    @run_only_on('sat')
     @tier4
     @upgrade
     def test_positive_noapply_cli(self):

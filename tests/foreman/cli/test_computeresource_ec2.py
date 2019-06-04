@@ -23,7 +23,6 @@ from robottelo.cli.factory import (
 from robottelo.config import settings
 from robottelo.constants import EC2_REGION_CA_CENTRAL_1, FOREMAN_PROVIDERS
 from robottelo.decorators import (
-    run_only_on,
     skip_if_not_set,
     tier1,
     upgrade
@@ -51,7 +50,6 @@ class EC2ComputeResourceTestCase(CLITestCase):
         cls.aws_managed_ip = settings.ec2.managed_ip
 
     @tier1
-    @run_only_on('sat')
     @upgrade
     def test_positive_create_ec2_with_custom_region(self):
         """Create a new ec2 compute resource with custom region

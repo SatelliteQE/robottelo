@@ -24,7 +24,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_only_on,
     tier1,
     upgrade
 )
@@ -67,7 +66,6 @@ def valid_domain_update_data():
 class DomainTestCase(UITestCase):
     """Implements Domain tests in UI"""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a new domain with different names
@@ -86,7 +84,6 @@ class DomainTestCase(UITestCase):
                         session, name=domain_name, description=description)
                     self.assertIsNotNone(self.domain.search(description))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_long_name(self):
         """Create a new domain with long names
@@ -106,7 +103,6 @@ class DomainTestCase(UITestCase):
                     element = self.domain.search(description)
                     self.assertIsNotNone(element)
 
-    @run_only_on('sat')
     @upgrade
     @tier1
     def test_positive_delete(self):
@@ -123,7 +119,6 @@ class DomainTestCase(UITestCase):
             make_domain(session, name=domain_name, description=description)
             self.domain.delete(domain_name)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_update(self):
@@ -146,7 +141,6 @@ class DomainTestCase(UITestCase):
                     self.assertIsNotNone(self.domain.search(new_name))
                     domain_name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Try to create domain and use whitespace, blank, tab symbol or

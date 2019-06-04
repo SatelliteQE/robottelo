@@ -15,7 +15,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1
+from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
 
 
@@ -36,7 +36,6 @@ class VirtWhoConfigTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_create_cli_deploy_cli(self):
@@ -54,7 +53,6 @@ class VirtWhoConfigTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_virt_who_user_login(self):

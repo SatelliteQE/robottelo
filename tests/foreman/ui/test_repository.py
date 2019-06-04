@@ -44,7 +44,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
@@ -110,7 +109,6 @@ class RepositoryTestCase(UITestCase):
             locators['repo.result_event']).text
         return result == 'success'
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create repository with different names and minimal input
@@ -135,7 +133,6 @@ class RepositoryTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_create_repo_with_checksum(self):
@@ -165,7 +162,6 @@ class RepositoryTestCase(UITestCase):
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'checksum', checksum))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_repo_with_upstream_credentials(self):
         """Create repository with upstream username and password parameters
@@ -195,7 +191,6 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'upstream_password', '******'))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_clear_repo_upstream_credentials(self):
         """Create repository with upstream username and password parameters.
@@ -229,7 +224,6 @@ class RepositoryTestCase(UITestCase):
                 self.assertTrue(self.repository.validate_field(
                     repo_name, property_name, ''))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create repository with invalid names
@@ -256,7 +250,6 @@ class RepositoryTestCase(UITestCase):
                         common_locators['common_invalid'])
                     self.assertIsNotNone(invalid)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_names(self):
         """Try to create two repositories with same name
@@ -287,7 +280,6 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.products.wait_until_element(
                 common_locators['common_invalid']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
         """Update content repository with new URL
@@ -319,7 +311,6 @@ class RepositoryTestCase(UITestCase):
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_2_YUM_REPO))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_gpg(self):
         """Update content repository with new gpg-key
@@ -361,7 +352,6 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_2.name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_checksum_type(self):
         """Update content repository with new checksum type
@@ -394,7 +384,6 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_update))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Create content repository and then remove it
@@ -420,7 +409,6 @@ class RepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
                     self.repository.delete(repo_name)
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_negative_delete_puppet_repo_associated_with_cv(self):
@@ -449,7 +437,6 @@ class RepositoryTestCase(UITestCase):
         :CaseLevel: Integration
         """
 
-    @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
     def test_positive_create_custom_ostree_repo(self):
@@ -477,7 +464,6 @@ class RepositoryTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
 
-    @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
     @upgrade
@@ -506,7 +492,6 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.delete(repo_name)
 
-    @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
     def test_positive_update_custom_ostree_repo_name(self):
@@ -543,7 +528,6 @@ class RepositoryTestCase(UITestCase):
             self.products.search_and_click(prod.name)
             self.assertIsNotNone(self.repository.search(new_repo_name))
 
-    @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
     def test_positive_update_custom_ostree_repo_url(self):
@@ -1465,7 +1449,6 @@ class RepositoryTestCase(UITestCase):
             count = self.repository.fetch_content_count(repo_name, 'puppet')
             self.assertEqual(count, 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_remove_content_rpm(self):
         """Synchronize repository and remove content from it

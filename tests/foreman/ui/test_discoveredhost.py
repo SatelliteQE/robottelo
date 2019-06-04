@@ -22,7 +22,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -137,7 +136,6 @@ class DiscoveryTestCase(UITestCase):
 
         super(DiscoveryTestCase, cls).tearDownClass()
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_with_dhcp_semiauto(self):
@@ -155,7 +153,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_with_dhcp_interactively(self):
@@ -173,7 +170,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_without_dhcp_interactively(self):
@@ -187,7 +183,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_without_dhcp_semiauto(self):
@@ -201,7 +196,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_without_dhcp_unattended(self):
@@ -215,7 +209,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_discover_pxe_less_with_efi_host_interatively(self):
@@ -229,7 +222,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_discover_pxe_less_with_efi_host_unattended(self):
@@ -243,7 +235,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @tier3
     def test_positive_pxe_less_multi_nic_with_dhcp_unattended(self):
         """Discover a host with multiple NIC on a network with dhcp
@@ -268,7 +259,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_multi_nic_with_dhcp_interactively(self):
@@ -282,7 +272,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_multi_nic_without_dhcp_interactively(self):
@@ -296,7 +285,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_pxe_less_multi_nic_without_dhcp_unattended(self):
@@ -310,7 +298,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @tier3
     def test_positive_pxe_multi_nic_unattended(self):
         """Discover a host with multiple NIC on a network with dhcp
@@ -335,7 +322,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
-    @run_only_on('sat')
     @tier3
     def test_custom_facts_discovery(self):
         """Check if defined custom facts are displayed under host's facts
@@ -364,7 +350,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'somevalue', custom_fact)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_from_facts(self):
         """Provision the selected discovered host from facts page by
@@ -410,7 +395,6 @@ class DiscoveryTestCase(UITestCase):
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
 
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_from_facts(self):
         """Delete the selected discovered host from facts page
@@ -431,7 +415,6 @@ class DiscoveryTestCase(UITestCase):
                 self.discoveredhosts.delete_from_facts(hostname)
                 self.assertIsNone(self.discoveredhosts.search(hostname))
 
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_multiple(self):
         """Delete multiple discovered hosts from 'Select Action'
@@ -471,7 +454,6 @@ class DiscoveryTestCase(UITestCase):
                             self.discoveredhosts.search(hostname)
                         )
 
-    @run_only_on('sat')
     @tier3
     def test_positive_refresh_facts_pxe(self):
         """Refresh the facts of pxe-based discovered host by adding a new NIC.
@@ -503,7 +485,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_refresh_facts_pxe_less(self):
         """Refresh the facts of pxe-less discovered host by adding a new NIC.
@@ -534,7 +515,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_auto_provision_host_with_rule(self):
@@ -552,7 +532,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_multi_host_with_rule(self):
@@ -569,7 +548,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_with_rule_priority(self):
@@ -586,7 +564,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_without_auto_provision(self):
         """Create a discovery rule and execute it when
@@ -637,7 +614,6 @@ class DiscoveryTestCase(UITestCase):
             discovery_auto.value = default_discovery_auto
             discovery_auto.update(['value'])
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_create_discovery_rule(self):
@@ -654,7 +630,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_multi_provision_with_rule_limit(self):
@@ -671,7 +646,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_discovery_rule(self):
@@ -687,7 +661,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @tier3
     def test_positive_auto_provision_all(self):
         """Discover a bunch of hosts and auto-provision all
@@ -731,7 +704,6 @@ class DiscoveryTestCase(UITestCase):
                         self.discoveredhosts.search(
                             hostname, expecting_results=False))
 
-    @run_only_on('sat')
     @tier3
     def test_positive_add_fact_column(self):
         """Add a new fact column to display on discovered host page
@@ -761,7 +733,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'Seabios', host_bios)
 
-    @run_only_on('sat')
     @tier3
     def test_negative_add_fact(self):
         """Add a new fact column with invalid fact to display on
@@ -796,7 +767,6 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(expected_value, fact_value)
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_discovery_manager_role(self):
@@ -811,7 +781,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_discovery_reader_role(self):
@@ -825,7 +794,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_validate_pxe_less_discovery_status_screen(self):
@@ -839,7 +807,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_validate_network_config_screen(self):
@@ -853,7 +820,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_pxe_less_discovery_without_dhcp(self):
@@ -869,7 +835,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_with_org_loc_from_new_model_window(self):
@@ -884,7 +849,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_with_hostgroup_from_new_model_window(self):
         """Provision a discovered host manually by associating hostgroup from
@@ -913,7 +877,6 @@ class DiscoveryTestCase(UITestCase):
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_with_facts_set_by_user(self):
@@ -934,7 +897,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_with_clear_facts_set_by_user(self):
@@ -953,7 +915,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_lock_discovered_host_into_discovery(self):
@@ -973,7 +934,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_populate_puppet_params_using_hostgroup(self):
@@ -993,7 +953,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_default_org_from_settings(self):
@@ -1013,7 +972,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_default_location_from_settings(self):
@@ -1033,7 +991,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_check_network_facts(self):
@@ -1052,7 +1009,6 @@ class DiscoveryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_rebuild_dns_on_provisioning(self):
@@ -1098,7 +1054,6 @@ class DiscoveryPrefixTestCase(UITestCase):
 
         super(DiscoveryPrefixTestCase, cls).tearDownClass()
 
-    @run_only_on('sat')
     @tier3
     def test_positive_update_discovery_prefix(self):
         """Update the discovery_prefix parameter other than mac
@@ -1127,7 +1082,6 @@ class DiscoveryPrefixTestCase(UITestCase):
                 )
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_hostname_settings(self):
@@ -1150,7 +1104,6 @@ class DiscoveryPrefixTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_hostname_with_empty_prefix(self):
@@ -1171,7 +1124,6 @@ class DiscoveryPrefixTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_hostname_with_facts_list(self):
@@ -1190,7 +1142,6 @@ class DiscoveryPrefixTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_hostname_with_unknown_fact(self):
@@ -1210,7 +1161,6 @@ class DiscoveryPrefixTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_discover_host_with_existing_hostname(self):

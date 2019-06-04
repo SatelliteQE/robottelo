@@ -93,7 +93,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -472,7 +471,6 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(host['content-information']['content-source']['name'],
                          content_source['name'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_cv_default(self):
         """Check if host can be created with default content view ('Default
@@ -497,7 +495,6 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_lce_library(self):
         """Check if host can be created with default lifecycle environment
         ('Library')
@@ -522,7 +519,6 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_lce(self):
         """Check if host can be created with new lifecycle
 
@@ -545,7 +541,6 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_cv(self):
         """Check if host can be created with new content view
 
@@ -650,7 +645,6 @@ class HostCreateTestCase(CLITestCase):
                     })
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_with_unpublished_cv(self):
         """Check if host can be created using unpublished cv
 
@@ -669,7 +663,6 @@ class HostCreateTestCase(CLITestCase):
                 'organization-id': self.new_org['id'],
             })
 
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_katello_and_openscap_loaded(self):
@@ -802,7 +795,6 @@ class HostCreateTestCase(CLITestCase):
                 '\n'.join(result.stdout)
             )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_scparams_by_id(self):
         """List all smart class parameters using host id
@@ -830,7 +822,6 @@ class HostCreateTestCase(CLITestCase):
         host_scparams = Host.sc_params({'host': host['name']})
         self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_scparams_by_name(self):
         """List all smart class parameters using host name
@@ -858,7 +849,6 @@ class HostCreateTestCase(CLITestCase):
         host_scparams = Host.sc_params({'host': host['name']})
         self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_smartvariables_by_id(self):
         """List all smart variables using host id
@@ -883,7 +873,6 @@ class HostCreateTestCase(CLITestCase):
         self.assertIn(
             smart_variable['id'], [sv['id'] for sv in host_variables])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_list_smartvariables_by_name(self):
         """List all smart variables using host name
@@ -1200,7 +1189,6 @@ class HostCreateTestCase(CLITestCase):
             hosts[0]['host-group'],
         )
 
-    @run_only_on('sat')
     @stubbed()
     @tier2
     def test_negative_create_with_incompatible_pxe_loader(self):
@@ -2252,7 +2240,6 @@ class HostParameterTestCase(CLITestCase):
 class HostProvisionTestCase(CLITestCase):
     """Provisioning-related tests"""
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -2291,7 +2278,6 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_syslinux(self):
@@ -2329,7 +2315,6 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_grub(self):
@@ -2370,7 +2355,6 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -2413,7 +2397,6 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_secureboot(self):
@@ -2518,7 +2501,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.install_katello_agent()
 
     @tier3
-    @run_only_on('sat')
     def test_positive_get_errata_info(self):
         """Get errata info
 
@@ -2538,7 +2520,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertIn(FAKE_2_CUSTOM_PACKAGE, result[0]['packages'])
 
     @tier3
-    @run_only_on('sat')
     @upgrade
     def test_positive_apply_errata(self):
         """Apply errata to a host
@@ -2557,7 +2538,6 @@ class KatelloAgentTestCase(CLITestCase):
         })
 
     @tier3
-    @run_only_on('sat')
     def test_positive_apply_security_erratum(self):
         """Apply security erratum to a host
 
@@ -2594,7 +2574,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertEqual(result.return_code, 1)
 
     @tier3
-    @run_only_on('sat')
     @upgrade
     def test_positive_install_package(self):
         """Install a package to a host remotely
@@ -2616,7 +2595,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @tier3
-    @run_only_on('sat')
     def test_positive_remove_package(self):
         """Remove a package from a host remotely
 
@@ -2638,7 +2616,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
 
     @tier3
-    @run_only_on('sat')
     def test_positive_upgrade_package(self):
         """Upgrade a host package remotely
 
@@ -2658,7 +2635,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @tier3
-    @run_only_on('sat')
     def test_positive_upgrade_packages_all(self):
         """Upgrade all the host packages remotely
 
@@ -2675,7 +2651,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @tier3
-    @run_only_on('sat')
     @upgrade
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
@@ -2696,7 +2671,6 @@ class KatelloAgentTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
 
     @tier3
-    @run_only_on('sat')
     def test_positive_remove_package_group(self):
         """Remove a package group from a host remotely
 
@@ -2845,7 +2819,6 @@ class KatelloHostToolsTestCase(CLITestCase):
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_host_tools()
 
-    @run_only_on('sat')
     @tier3
     def test_positive_report_package_installed_removed(self):
         """Ensure installed/removed package is reported to satellite
@@ -2890,7 +2863,6 @@ class KatelloHostToolsTestCase(CLITestCase):
         })
         self.assertEqual(len(installed_packages), 0)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_package_applicability(self):
         """Ensure packages applicability is functioning properly
@@ -2942,7 +2914,6 @@ class KatelloHostToolsTestCase(CLITestCase):
         })
         self.assertEqual(len(applicable_packages), 0)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_erratum_applicability(self):
         """Ensure erratum applicability is functioning properly

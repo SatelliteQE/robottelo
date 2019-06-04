@@ -1085,7 +1085,6 @@ class Settings(object):
         self.browser = None
         self.cdn = None
         self.locale = None
-        self.project = None
         self.reader = None
         self.rhel6_repo = None
         self.rhel7_repo = None
@@ -1201,7 +1200,6 @@ class Settings(object):
             'robottelo', 'browser', 'selenium')
         self.cdn = self.reader.get('robottelo', 'cdn', True, bool)
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
-        self.project = self.reader.get('robottelo', 'project', 'sat')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)

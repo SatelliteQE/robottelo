@@ -37,7 +37,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     bz_bug_is_open,
     skip_if_bug_open,
-    run_only_on,
     tier1,
     tier2,
     tier3
@@ -109,7 +108,6 @@ class DiscoveryRuleTestCase(CLITestCase):
             {'name': '-1'},
         ]
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create Discovery Rule using different names
@@ -125,7 +123,6 @@ class DiscoveryRuleTestCase(CLITestCase):
                 rule = self._make_discoveryrule({u'name': name})
                 self.assertEqual(rule['name'], name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_search(self):
         """Create Discovery Rule using different search queries
@@ -141,7 +138,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'search': search_query})
         self.assertEqual(rule['search'], search_query)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_hostname(self):
         """Create Discovery Rule using valid hostname
@@ -157,7 +153,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'hostname': host_name})
         self.assertEqual(rule['hostname-template'], host_name)
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1523221)
     @tier1
     def test_positive_create_with_org_loc_id(self):
@@ -179,7 +174,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(self.org['name'], rule['organizations'])
         self.assertIn(self.loc['name'], rule['locations'])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_org_loc_name(self):
         """Create discovery rule by associating org and location names
@@ -198,7 +192,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(self.org['name'], rule['organizations'])
         self.assertIn(self.loc['name'], rule['locations'])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_hosts_limit(self):
         """Create Discovery Rule providing any number from range 1..100 for
@@ -215,7 +208,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'hosts-limit': hosts_limit})
         self.assertEqual(rule['hosts-limit'], hosts_limit)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_max_count(self):
         """Create Discovery Rule providing any number from range 1..100 for
@@ -232,7 +224,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'max-count': max_count})
         self.assertEqual(rule['hosts-limit'], max_count)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_priority(self):
         """Create Discovery Rule providing any number from range 1..100 for
@@ -251,7 +242,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'priority': rule_priority[0]})
         self.assertEqual(rule['priority'], str(rule_priority[0]))
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_disabled_rule(self):
         """Create Discovery Rule in disabled state
@@ -265,7 +255,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
 
-    @run_only_on('sat')
     @tier3
     def test_negative_create_with_invalid_name(self):
         """Create Discovery Rule with invalid names
@@ -283,7 +272,6 @@ class DiscoveryRuleTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_discoveryrule({'name': name})
 
-    @run_only_on('sat')
     @tier3
     def test_negative_create_with_invalid_hostname(self):
         """Create Discovery Rule with invalid hostname
@@ -304,7 +292,6 @@ class DiscoveryRuleTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_discoveryrule({u'hostname': name})
 
-    @run_only_on('sat')
     @tier3
     def test_negative_create_with_too_long_limit(self):
         """Create Discovery Rule with too long host limit value
@@ -319,7 +306,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             self._make_discoveryrule({u'hosts-limit': '9999999999'})
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create Discovery Rule with name that already exists
@@ -335,7 +321,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             self._make_discoveryrule({u'name': name})
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Delete existing Discovery Rule
@@ -351,7 +336,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveryRule.info({u'id': rule['id']})
 
-    @run_only_on('sat')
     @tier3
     def test_positive_update_name(self):
         """Update discovery rule name
@@ -370,7 +354,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['name'], new_name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_org_loc_by_id(self):
         """Update org and location of selected discovery rule using org/loc ids
@@ -400,7 +383,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(new_org['name'], rule['organizations'])
         self.assertIn(new_loc['name'], rule['locations'])
 
-    @run_only_on('sat')
     @tier3
     def test_positive_update_org_loc_by_name(self):
         """Update org and location of selected discovery rule using org/loc
@@ -433,7 +415,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertIn(new_org['name'], rule['organizations'])
         self.assertIn(new_loc['name'], rule['locations'])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_query(self):
         """Update discovery rule search query
@@ -450,7 +431,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['search'], new_query)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_hostgroup(self):
         """Update discovery rule host group
@@ -470,7 +450,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['host-group'], new_hostgroup['name'])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_hostname(self):
         """Update discovery rule hostname value
@@ -487,7 +466,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['hostname-template'], new_hostname)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_limit(self):
         """Update discovery rule limit value
@@ -504,7 +482,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['hosts-limit'], new_limit)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_priority(self):
         """Update discovery rule priority value
@@ -527,7 +504,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['priority'], str(rule_priority[0]))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_disable_enable(self):
         """Update discovery rule enabled state. (Disabled->Enabled)
@@ -544,7 +520,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['enabled'], 'true')
 
-    @run_only_on('sat')
     @tier3
     def test_negative_update_name(self):
         """Update discovery rule name using invalid names only
@@ -563,7 +538,6 @@ class DiscoveryRuleTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     DiscoveryRule.update({'id': rule['id'], 'name': name})
 
-    @run_only_on('sat')
     @tier3
     def test_negative_update_hostname(self):
         """Update discovery rule host name using number as a value
@@ -580,7 +554,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule['id'], 'hostname': '$#@!*'})
 
-    @run_only_on('sat')
     @tier3
     def test_negative_update_limit(self):
         """Update discovery rule host limit using invalid values
@@ -598,7 +571,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveryRule.update({'id': rule['id'], 'hosts-limit': host_limit})
 
-    @run_only_on('sat')
     @tier3
     def test_negative_update_priority(self):
         """Update discovery rule priority using invalid values
@@ -652,7 +624,6 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
             'role': 'Discovery Reader',
         })
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_rule_with_non_admin_user(self):
         """Create rule with non-admin user by associating discovery_manager role
@@ -680,7 +651,6 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         ).info({u'id': rule['id']})
         self.assertEqual(rule['name'], rule_name)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_delete_rule_with_non_admin_user(self):
         """Delete rule with non-admin user by associating discovery_manager role
@@ -713,7 +683,6 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveryRule.info({u'id': rule['id']})
 
-    @run_only_on('sat')
     @tier2
     def test_positive_view_existing_rule_with_non_admin_user(self):
         """Existing rule should be viewed to non-admin user by associating
@@ -746,7 +715,6 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         ).info({u'id': rule['id']})
         self.assertEqual(rule['name'], rule_name)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_delete_rule_with_non_admin_user(self):
         """Delete rule with non-admin user by associating discovery_reader role

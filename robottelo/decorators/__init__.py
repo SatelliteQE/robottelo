@@ -199,6 +199,9 @@ class ProjectModeError(Exception):
     """Indicates an error occurred while skipping based on Project Mode."""
 
 
+# This definition is not being used currently as there are no multiple projects to run the tests
+# Also, the dependent setting called 'project' has been removed from robottelo.properties
+# We can modify this definition as per use in future and hence just keeping a 'logic' alive
 def run_only_on(project):
     """Decorator to skip tests based on server mode.
 

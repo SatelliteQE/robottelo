@@ -17,7 +17,6 @@
 """
 
 from robottelo.decorators import (
-    run_only_on,
     stubbed,
     tier1,
     tier3,
@@ -29,7 +28,6 @@ from robottelo.test import UITestCase
 class InterSatelliteSyncTestCase(UITestCase):
     """Implements InterSatellite Sync tests in UI"""
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -48,7 +46,6 @@ class InterSatelliteSyncTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -67,7 +64,6 @@ class InterSatelliteSyncTestCase(UITestCase):
         :CaseLevel: System
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_update_cdn_url(self):
@@ -93,7 +89,6 @@ class InterSatelliteSyncTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_update_cdn_url(self):
@@ -117,7 +112,6 @@ class InterSatelliteSyncTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade

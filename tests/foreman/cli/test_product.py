@@ -39,7 +39,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_only_on,
     tier1,
     tier2,
     upgrade
@@ -61,7 +60,6 @@ class ProductTestCase(CLITestCase):
         if ProductTestCase.org is None:
             ProductTestCase.org = make_org(cached=True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Check if product can be created with random names
@@ -81,7 +79,6 @@ class ProductTestCase(CLITestCase):
                 self.assertEqual(product['name'], name)
                 self.assertGreater(len(product['label']), 0)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_label(self):
         """Check if product can be created with random labels
@@ -103,7 +100,6 @@ class ProductTestCase(CLITestCase):
                 self.assertEqual(product['name'], product_name)
                 self.assertEqual(product['label'], label)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_description(self):
         """Check if product can be created with random description
@@ -231,7 +227,6 @@ class ProductTestCase(CLITestCase):
                 })
                 self.assertEqual(result['description'], desc)
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_update_gpg_key(self):
@@ -262,7 +257,6 @@ class ProductTestCase(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key-id'], second_gpg_key['id'])
         self.assertNotEqual(product['gpg']['gpg-key-id'], first_gpg_key['id'])
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_update_sync_plan(self):
@@ -293,7 +287,6 @@ class ProductTestCase(CLITestCase):
         self.assertEqual(product['sync-plan-id'], second_sync_plan['id'])
         self.assertNotEqual(product['sync-plan-id'], first_sync_plan['id'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Rename Product back to original name
@@ -334,7 +327,6 @@ class ProductTestCase(CLITestCase):
                 # Verify renamed back to Original name.
                 self.assertEqual(prod['name'], prod_name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
         """Check if product can be deleted

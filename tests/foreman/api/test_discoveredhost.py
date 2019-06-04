@@ -17,7 +17,6 @@ from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
-    run_only_on,
     stubbed,
     tier2,
     tier3,
@@ -97,7 +96,6 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @tier2
     def test_positive_upload_facts(self):
         """Upload fake facts to create a discovered host

@@ -29,7 +29,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
-    run_only_on,
     skip_if_bug_open,
     tier1,
     tier2,
@@ -48,7 +47,6 @@ class ProductTestCase(APITestCase):
         super(ProductTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a product providing different valid names
@@ -65,7 +63,6 @@ class ProductTestCase(APITestCase):
                     name=name, organization=self.org).create()
                 self.assertEqual(name, product.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_label(self):
         """Create a product providing label which is different from its name
@@ -81,7 +78,6 @@ class ProductTestCase(APITestCase):
         self.assertEqual(label, product.label)
         self.assertNotEqual(label, product.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_description(self):
         """Create a product providing different descriptions
@@ -98,7 +94,6 @@ class ProductTestCase(APITestCase):
                     description=desc, organization=self.org).create()
                 self.assertEqual(desc, product.description)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_gpg(self):
         """Create a product and provide a GPG key.
@@ -121,7 +116,6 @@ class ProductTestCase(APITestCase):
             gpg_key=gpg_key, organization=self.org).create()
         self.assertEqual(product.gpg_key.id, gpg_key.id)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_name(self):
         """Create a product providing invalid names only
@@ -137,7 +131,6 @@ class ProductTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Product(name=name).create()
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create a product providing a name of already existent entity
@@ -153,7 +146,6 @@ class ProductTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Product(name=name, organization=self.org).create()
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_label(self):
         """Create a product providing invalid label
@@ -167,7 +159,6 @@ class ProductTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Product(label=gen_string('utf8')).create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update product name to another valid name.
@@ -185,7 +176,6 @@ class ProductTestCase(APITestCase):
                 product = product.update(['name'])
                 self.assertEqual(new_name, product.name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
         """Update product description to another valid one.
@@ -203,7 +193,6 @@ class ProductTestCase(APITestCase):
                 product = product.update(['description'])
                 self.assertEqual(new_desc, product.description)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name_to_original(self):
         """Rename Product back to original name
@@ -230,7 +219,6 @@ class ProductTestCase(APITestCase):
             product.update(['name']).name
         )
 
-    @run_only_on('sat')
     @upgrade
     @tier2
     def test_positive_update_gpg(self):
@@ -259,7 +247,6 @@ class ProductTestCase(APITestCase):
         product = product.update()
         self.assertEqual(product.gpg_key.id, gpg_key_2.id)
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1310422)
     @tier2
     def test_positive_update_organization(self):
@@ -278,7 +265,6 @@ class ProductTestCase(APITestCase):
         product = product.update()
         self.assertEqual(product.organization.id, new_org.id)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
         """Attempt to update product name to invalid one
@@ -298,7 +284,6 @@ class ProductTestCase(APITestCase):
                         name=new_name,
                     ).update(['name'])
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_label(self):
         """Attempt to update product label to another one.
@@ -314,7 +299,6 @@ class ProductTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             product.update(['label'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Create product and then delete it.

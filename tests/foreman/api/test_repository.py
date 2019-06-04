@@ -62,7 +62,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
@@ -88,7 +87,6 @@ class RepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """Create a repository with valid name.
 
@@ -105,7 +103,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(name, repo.name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_label(self):
         """Create a repository providing label which is different from its name
 
@@ -123,7 +120,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertNotEqual(repo.name, label)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_yum(self):
         """Create yum repository.
 
@@ -142,7 +138,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_puppet(self):
         """Create puppet repository.
 
@@ -160,7 +155,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.content_type, 'puppet')
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_auth_yum_repo(self):
         """Create yum repository with basic HTTP authentication
 
@@ -345,7 +339,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.download_policy, 'on_demand')
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
@@ -368,7 +361,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.url, url_encoded)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_checksum(self):
         """Create a repository with valid checksum type.
 
@@ -389,7 +381,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(checksum_type, repo.checksum_type)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_checksum_with_background_policy(self):
         """Attempt to create repository with checksum and background policy.
 
@@ -409,7 +400,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(checksum_type, repo.checksum_type)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_unprotected(self):
         """Create a repository with valid unprotected flag values.
 
@@ -426,7 +416,6 @@ class RepositoryTestCase(APITestCase):
             self.assertEqual(repo.unprotected, unprotected)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_with_gpg(self):
         """Create a repository and provide a GPG key ID.
 
@@ -448,7 +437,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(gpg_key.id, repo.gpg_key.id)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_same_name_different_orgs(self):
         """Create two repos with the same name in two different organizations.
 
@@ -488,7 +476,6 @@ class RepositoryTestCase(APITestCase):
                 repo.read().content_counts['puppet_module'], 1)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_name(self):
         """Attempt to create repository with invalid names only.
 
@@ -503,7 +490,6 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Repository(name=name).create()
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Attempt to create a repository providing a name of already existent
@@ -521,7 +507,6 @@ class RepositoryTestCase(APITestCase):
             entities.Repository(product=self.product, name=name).create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_label(self):
         """Attempt to create repository with invalid label.
 
@@ -535,7 +520,6 @@ class RepositoryTestCase(APITestCase):
             entities.Repository(label=gen_string('utf8')).create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_url(self):
         """Attempt to create repository with invalid url.
 
@@ -551,7 +535,6 @@ class RepositoryTestCase(APITestCase):
                     entities.Repository(url=url).create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
@@ -570,7 +553,6 @@ class RepositoryTestCase(APITestCase):
                     entities.Repository(url=url).create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
@@ -651,7 +633,6 @@ class RepositoryTestCase(APITestCase):
                     ).create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_checksum(self):
         """Attempt to create repository with invalid checksum type.
 
@@ -668,7 +649,6 @@ class RepositoryTestCase(APITestCase):
             ).create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_checksum_with_on_demand_policy(self):
         """Attempt to create repository with checksum and on_demand policy.
 
@@ -684,7 +664,6 @@ class RepositoryTestCase(APITestCase):
                     checksum_type=checksum_type, download_policy='on_demand').create()
 
     @tier1
-    @run_only_on('sat')
     def test_negative_update_checksum_with_on_demand_policy(self):
         """Attempt to update the on_demand downloadpolicy on a already created repository with
         checksum.
@@ -703,7 +682,6 @@ class RepositoryTestCase(APITestCase):
                 repo.update(['download_policy'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name(self):
         """Update repository name to another valid name.
 
@@ -721,7 +699,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(new_name, repo.name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_checksum(self):
         """Update repository checksum type to another valid one.
 
@@ -743,7 +720,6 @@ class RepositoryTestCase(APITestCase):
             self.assertEqual(repo.checksum_type, updated_checksum)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_url(self):
         """Update repository url to another valid one.
 
@@ -759,7 +735,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_unprotected(self):
         """Update repository unprotected flag to another valid one.
 
@@ -776,7 +751,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.unprotected, True)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_gpg(self):
         """Create a repository and update its GPGKey
 
@@ -805,7 +779,6 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['gpg_key'])
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_contents(self):
         """Create a repository and upload RPM contents.
@@ -824,7 +797,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
     @skip_if_bug_open('bugzilla', 1378442)
-    @run_only_on('sat')
     @tier1
     def test_positive_upload_contents_srpm(self):
         """Create a repository and upload SRPM contents.
@@ -842,7 +814,6 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1459845)
     @tier1
     def test_positive_remove_contents(self):
@@ -871,7 +842,6 @@ class RepositoryTestCase(APITestCase):
         repo.remove_content(data={'ids': [package.id for package in packages]})
         self.assertEqual(repo.read().content_counts['rpm'], 0)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
         """Attempt to update repository name to invalid one
@@ -889,7 +859,6 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     repo.update(['name'])
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1311113)
     @tier1
     def test_negative_update_label(self):
@@ -906,7 +875,6 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.update(['label'])
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_auth_url_with_special_characters(self):
         """Verify that repository URL credentials cannot be updated to contain
@@ -932,7 +900,6 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     new_repo.update(['url'])
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
@@ -971,7 +938,6 @@ class RepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
@@ -999,7 +965,6 @@ class RepositoryTestCase(APITestCase):
                 # Verify it has finished
                 self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
@@ -1026,7 +991,6 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(TaskFailedError):
                     repo.sync()
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
@@ -1056,7 +1020,6 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(
                     repo.read().content_counts['puppet_module'], 1)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
@@ -1087,7 +1050,6 @@ class RepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
@@ -1119,7 +1081,6 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete(self):
         """Create a repository with different names and then delete it.
 
@@ -1138,7 +1099,6 @@ class RepositoryTestCase(APITestCase):
                     repo.read()
 
     @tier2
-    @run_only_on('sat')
     @upgrade
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
@@ -1162,7 +1122,6 @@ class RepositoryTestCase(APITestCase):
             repo.read()
 
     @tier2
-    @run_only_on('sat')
     @upgrade
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
@@ -1188,7 +1147,6 @@ class RepositoryTestCase(APITestCase):
             repo.read()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_list_puppet_modules_with_multiple_repos(self):
         """Verify that puppet modules list for specific repo is correct
         and does not affected by other repositories.
@@ -1302,7 +1260,6 @@ class RepositorySyncTestCase(APITestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
     @tier2
-    @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh(self):
         """Sync RedHat Repository.
@@ -1328,7 +1285,6 @@ class RepositorySyncTestCase(APITestCase):
 
     @stubbed
     @tier2
-    @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh_app_stream(self):
         """Sync RedHat Appstream Repository.
@@ -1352,7 +1308,6 @@ class DockerRepositoryTestCase(APITestCase):
         cls.org = entities.Organization().create()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create(self):
         """Create a Docker-type repository
 
@@ -1378,7 +1333,6 @@ class DockerRepositoryTestCase(APITestCase):
                 self.assertEqual(repo.content_type, u'docker')
 
     @tier1
-    @run_only_on('sat')
     def test_positive_synchronize(self):
         """Create and sync a Docker-type repository
 
@@ -1423,7 +1377,6 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(new_name, repository.name)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_synchronize_private_registry(self):
         """Create and sync a Docker-type repository from a private registry
 
@@ -1453,7 +1406,6 @@ class DockerRepositoryTestCase(APITestCase):
             repo.read().content_counts['docker_manifest'], 1)
 
     @tier2
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1580510)
     def test_negative_synchronize_private_registry_wrong_password(self):
         """Create and try to sync a Docker-type repository from a private
@@ -1492,7 +1444,6 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("Unauthorized or Not Found", str(excinfo.exception))
 
     @tier2
-    @run_only_on('sat')
     def test_negative_synchronize_private_registry_wrong_repo(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing wrong repository the sync must fail with
@@ -1530,7 +1481,6 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("Could not find registry API", str(excinfo.exception))
 
     @tier2
-    @run_only_on('sat')
     def test_negative_synchronize_private_registry_no_passwd(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing empty password and the sync must fail with
@@ -1560,7 +1510,6 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("422", str(excinfo.exception))
         self.assertIn("Unprocessable Entity", str(excinfo.exception))
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
@@ -1585,7 +1534,6 @@ class DockerRepositoryTestCase(APITestCase):
         [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
         self.assertEqual(repo.content_counts['docker_tag'], 1)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_synchronize_docker_repo_set_tags_later(self):
         """Verify that adding tags whitelist and re-syncing after
@@ -1617,7 +1565,6 @@ class DockerRepositoryTestCase(APITestCase):
         [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
         self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
         """Set tags whitelist to contain both valid and invalid (non-existing)
@@ -1642,7 +1589,6 @@ class DockerRepositoryTestCase(APITestCase):
         [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
         self.assertEqual(repo.content_counts['docker_tag'], 1)
 
-    @run_only_on('sat')
     @tier2
     def test_negative_synchronize_docker_repo_with_invalid_tags(self):
         """Set tags whitelist to contain only invalid (non-existing)

@@ -31,7 +31,6 @@ from robottelo.cli.factory import (
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     tier2,
     upgrade
@@ -124,7 +123,6 @@ class ContentAccessTestCase(APITestCase):
         call_entity_method_with_timeout(content_view.publish, timeout=1500)
         cls.content_view = content_view.read()
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_list_hosts_applicable(self):

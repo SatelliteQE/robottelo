@@ -23,7 +23,6 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.org import Org
 from robottelo.decorators import (
-    run_only_on,
     skip_if_not_set,
     tier1,
     upgrade
@@ -57,7 +56,6 @@ class VMWareComputeResourceTestCase(CLITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_server(self):
         """Create VMware compute resource with server field
 
@@ -87,7 +85,6 @@ class VMWareComputeResourceTestCase(CLITestCase):
         self.assertEquals(vmware_cr['server'], self.vmware_server)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_org(self):
         """Create VMware Compute Resource with organizations
 
@@ -116,7 +113,6 @@ class VMWareComputeResourceTestCase(CLITestCase):
         self.assertEquals(vmware_cr['name'], cr_name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_loc(self):
         """Create VMware Compute Resource with locations
 
@@ -145,7 +141,6 @@ class VMWareComputeResourceTestCase(CLITestCase):
         self.assertEquals(vmware_cr['name'], cr_name)
 
     @tier1
-    @run_only_on('sat')
     @upgrade
     def test_positive_create_with_org_and_loc(self):
         """Create VMware Compute Resource with organizations and locations

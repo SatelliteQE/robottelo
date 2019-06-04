@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import invalid_values_list, valid_environments_list
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
 from robottelo.ui.locators import common_locators
@@ -33,7 +33,6 @@ class EnvironmentTestCase(UITestCase):
     Please note that, Environment will accept only alphanumeric chars as name.
     """
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create new environment
@@ -50,7 +49,6 @@ class EnvironmentTestCase(UITestCase):
                     make_env(session, name=name)
                     self.assertIsNotNone(self.environment.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_org(self):
         """Create new environment with organization
@@ -67,7 +65,6 @@ class EnvironmentTestCase(UITestCase):
             make_env(session, name=env_name, organizations=[org.name])
             self.assertIsNotNone(self.environment.search(env_name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_loc(self):
         """Create new environment with location
@@ -84,7 +81,6 @@ class EnvironmentTestCase(UITestCase):
             make_env(session, name=env_name, locations=[loc.name])
             self.assertIsNotNone(self.environment.search(env_name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create(self):
         """Try to create environment and use whitespace, blank, tab
@@ -105,7 +101,6 @@ class EnvironmentTestCase(UITestCase):
                             common_locators['name_haserror'])
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update(self):
         """Update environment with a new name
@@ -125,7 +120,6 @@ class EnvironmentTestCase(UITestCase):
                     self.assertIsNotNone(self.environment.search(new_name))
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):

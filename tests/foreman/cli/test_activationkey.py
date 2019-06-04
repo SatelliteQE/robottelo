@@ -47,7 +47,6 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -128,7 +127,6 @@ class ActivationKeyTestCase(CLITestCase):
                 })
                 self.assertEqual(new_ak['description'], desc)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_default_lce_by_id(self):
         """Create Activation key with associated default environment
@@ -145,7 +143,6 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_ak_env['lifecycle-environment'], lce['name'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_non_default_lce(self):
         """Create Activation key with associated custom environment
@@ -163,7 +160,6 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_ak_env['lifecycle-environment'], env['name'])
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_default_lce_by_name(self):
         """Create Activation key with associated environment by name
@@ -180,7 +176,6 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_ak_env['lifecycle-environment'], lce['name'])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_cv(self):
         """Create Activation key for all variations of Content Views
@@ -272,7 +267,6 @@ class ActivationKeyTestCase(CLITestCase):
                 *in_error_msg
             )
 
-    @run_only_on('sat')
     @tier2
     def test_negative_create_with_invalid_name(self):
         """Create Activation key with invalid Name
@@ -369,7 +363,6 @@ class ActivationKeyTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     ActivationKey.info({'id': new_ak['id']})
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_by_org_name(self):
         """Create Activation key and delete it using organization name
@@ -389,7 +382,6 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete_by_org_label(self):
         """Create Activation key and delete it using organization label
@@ -409,7 +401,6 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_delete_with_cv(self):
@@ -428,7 +419,6 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @run_only_on('sat')
     @tier2
     def test_positive_delete_with_lce(self):
         """Create activation key with lifecycle environment assigned to
@@ -447,7 +437,6 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name_by_id(self):
         """Update Activation Key Name in Activation key searching by ID
@@ -469,7 +458,6 @@ class ActivationKeyTestCase(CLITestCase):
                 updated_ak = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(updated_ak['name'], name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name_by_name(self):
         """Update Activation Key Name in an Activation key searching by
@@ -491,7 +479,6 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(updated_ak['name'], new_name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
         """Update Description in an Activation key
@@ -513,7 +500,6 @@ class ActivationKeyTestCase(CLITestCase):
                 updated_ak = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(updated_ak['description'], description)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_lce(self):
         """Update Environment in an Activation key
@@ -544,7 +530,6 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': ak_env['id']})
         self.assertEqual(updated_ak['lifecycle-environment'], env['name'])
 
-    @run_only_on('sat')
     @tier2
     def test_positive_update_cv(self):
         """Update Content View in an Activation key
@@ -777,7 +762,6 @@ class ActivationKeyTestCase(CLITestCase):
             Defaults.delete({u'param-name': 'organization_id'})
 
     @run_in_one_thread
-    @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_product(self):
@@ -805,7 +789,6 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
-    @run_only_on('sat')
     @tier3
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
@@ -831,7 +814,6 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(content[0]['name'], repo['name'])
 
     @run_in_one_thread
-    @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
     @upgrade

@@ -24,7 +24,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -50,7 +49,6 @@ class CapsuleTestCase(CLITestCase):
         return proxy
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
@@ -74,7 +72,6 @@ class CapsuleTestCase(CLITestCase):
 
     @skip_if_not_set('fake_capsules')
     @skip_if_bug_open('bugzilla', 1398695)
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Proxy creation with the home proxy
@@ -91,7 +88,6 @@ class CapsuleTestCase(CLITestCase):
                 self.assertEquals(proxy['name'], name)
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_delete_by_id(self):
@@ -111,7 +107,6 @@ class CapsuleTestCase(CLITestCase):
                     Proxy.info({u'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_update_name(self):
@@ -137,7 +132,6 @@ class CapsuleTestCase(CLITestCase):
                     self.assertEqual(proxy['name'], new_name)
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier2
     def test_positive_refresh_features_by_id(self):
         """Refresh smart proxy features, search for proxy by id
@@ -159,7 +153,6 @@ class CapsuleTestCase(CLITestCase):
             Proxy.refresh_features({u'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier2
     def test_positive_refresh_features_by_name(self):
         """Refresh smart proxy features, search for proxy by name
@@ -181,7 +174,6 @@ class CapsuleTestCase(CLITestCase):
             Proxy.refresh_features({u'id': proxy['name']})
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy

@@ -22,7 +22,6 @@ from nailgun import entities
 
 from robottelo.datafactory import filtered_datapoint, valid_data_list
 from robottelo.decorators import (
-    run_only_on,
     stubbed,
     tier1,
     tier2,
@@ -890,7 +889,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_manage_puppetca_param(self):
         """Updates parameter "manage_puppetca" under Provisioning tab
@@ -918,7 +916,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_query_local_nameservers_param(self):
         """Updates parameter "query_local_nameservers" under
@@ -947,7 +944,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_safemode_render_param(self):
         """Updates parameter "safemode_render" under Provisioning tab
@@ -975,7 +971,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_token_duration_param(self):
         """Updates parameter "token_duration" under Provisioning tab
@@ -1006,7 +1001,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_token_duration_param(self):
         """Updates param "token_duration" under Provisioning tab
@@ -1191,7 +1185,6 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_update_hostname_with_empty_fact(self):
@@ -1210,7 +1203,6 @@ class SettingTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @tier1
     def test_positive_remove_hostname_default_prefix(self):
         """Remove the set(default) prefix from hostname_prefix setting
@@ -1240,7 +1232,6 @@ class SettingTestCase(UITestCase):
                 self.tab_locator, self.param_name)
             self.assertEqual("Empty", self.saved_element)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_remove_hostname_default_facts(self):
         """Remove the set(default) fact from hostname_facts setting and
@@ -1281,7 +1272,6 @@ class SettingTestCase(UITestCase):
                 self.tab_locator, self.param_name)
             self.assertEqual("uuid", self.saved_element)
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_discover_host_with_invalid_prefix(self):

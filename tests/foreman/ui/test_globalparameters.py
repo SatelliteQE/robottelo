@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import valid_names_list
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.ui.factory import make_global_parameter
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
@@ -35,7 +35,6 @@ def global_parameters_valid_names_list():
 class GlobalParametersTestCase(UITestCase):
     """Implements Global Parameters tests in UI"""
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create a new Global Parameter with different names
@@ -52,7 +51,6 @@ class GlobalParametersTestCase(UITestCase):
                     make_global_parameter(session, name=name)
                     self.assertIsNotNone(self.globalparameters.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_value(self):
         """Create a new Global Parameter with value
@@ -69,7 +67,6 @@ class GlobalParametersTestCase(UITestCase):
             make_global_parameter(session, name=name, value=value)
             self.assertIsNotNone(self.globalparameters.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_hidden_value(self):
         """Create a new Global Parameter with hidden value
@@ -85,7 +82,6 @@ class GlobalParametersTestCase(UITestCase):
             make_global_parameter(session, name=name, hidden_value=True)
             self.assertIsNotNone(self.globalparameters.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Create a Global Parameter with valid values then update its name
@@ -107,7 +103,6 @@ class GlobalParametersTestCase(UITestCase):
                         self.globalparameters.search(new_name))
                 name = new_name
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):

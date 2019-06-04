@@ -26,7 +26,6 @@ from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -131,7 +130,6 @@ class DiscoveredTestCase(CLITestCase):
         })
         super(DiscoveredTestCase, cls).tearDownClass()
 
-    @run_only_on('sat')
     @tier3
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
@@ -152,7 +150,6 @@ class DiscoveredTestCase(CLITestCase):
             host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(host)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_pxe_less_with_dhcp_unattended(self):
         """Discover a host with dhcp via bootable discovery ISO by setting
@@ -173,7 +170,6 @@ class DiscoveredTestCase(CLITestCase):
             host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(host)
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_custom_facts_pxeless_discovery(self):
@@ -197,7 +193,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_custom_facts_pxe_discovery(self):
@@ -221,7 +216,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
@@ -295,7 +289,6 @@ class DiscoveredTestCase(CLITestCase):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_pxeless_uefi_grub(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB
@@ -334,7 +327,6 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_pxeless_uefi_grub2(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB2
@@ -373,7 +365,6 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_pxeless_uefi_grub2_secureboot(self):
         """Provision and discover the pxe-less UEFI SB host from cli using GRUB2
@@ -411,7 +402,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
@@ -500,7 +490,6 @@ class DiscoveredTestCase(CLITestCase):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB
@@ -550,7 +539,6 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB2
@@ -601,7 +589,6 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2_sb(self):
         """Provision the pxe-based UEFI Secureboot discovered host from cli
@@ -651,7 +638,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_pxeless_host(self):
         """Delete the selected pxe-less discovered host
@@ -672,7 +658,6 @@ class DiscoveredTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveredHost.info({'id': host['id']})
 
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_pxe_host(self):
         """Delete the selected pxe-based discovered host
@@ -693,7 +678,6 @@ class DiscoveredTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveredHost.info({'id': host['id']})
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_refresh_facts_pxe_host(self):
@@ -710,7 +694,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_refresh_facts_of_pxeless_host(self):
@@ -727,7 +710,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_reboot_pxe_host(self):
@@ -744,7 +726,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Medium
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_reboot_pxeless_host(self):
@@ -761,7 +742,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_auto_provision_pxe_host(self):
@@ -777,7 +757,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_auto_provision_pxeless_host(self):
@@ -793,7 +772,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_list_discovered_host(self):
@@ -808,7 +786,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_assign_discovery_manager_role(self):
@@ -825,7 +802,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_assign_discovery_role(self):
@@ -841,7 +817,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_discover_hostname_settings(self):

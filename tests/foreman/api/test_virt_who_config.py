@@ -16,7 +16,7 @@
 """
 from fauxfactory import gen_integer
 from nailgun import entities
-from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
+from robottelo.decorators import stubbed, tier1, tier3, tier4
 from robottelo.test import TestCase, APITestCase
 from robottelo.config import settings
 from robottelo.virt_who_configure import VirtWhoHypervisorConfig, deploy_virt_who_config, \
@@ -34,7 +34,6 @@ class VirtWhoConfigApiTestCase(APITestCase):
     def tearDown(self):
         cleanup_virt_who()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_config_create(self):
         """ Create a config, deploy it, verify the resulting config files
@@ -68,7 +67,6 @@ class VirtWhoConfigApiTestCase(APITestCase):
         # will sometimes fail. Need to look more into this.
         # wait_for_virtwho_report_task(vhc.id)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_config_delete(self):
         """ Create multiple configs, deploy them, then try to delete them
@@ -105,7 +103,6 @@ class VirtWhoConfigApiTestCase(APITestCase):
 
 class VirtWhoConfigTestCase(APITestCase):
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_vm_create(self):
@@ -125,7 +122,6 @@ class VirtWhoConfigTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_config_update(self):
@@ -146,7 +142,6 @@ class VirtWhoConfigTestCase(APITestCase):
             properly.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier4
     def test_postive_config_intervals(self):
@@ -167,7 +162,6 @@ class VirtWhoConfigTestCase(APITestCase):
 
 class VirtWhoConfigRoleTestCase(APITestCase):
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_role_manager(self):
@@ -187,7 +181,6 @@ class VirtWhoConfigRoleTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_role_manager(self):
@@ -204,7 +197,6 @@ class VirtWhoConfigRoleTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_role_reporter(self):
@@ -222,7 +214,6 @@ class VirtWhoConfigRoleTestCase(APITestCase):
             1. Verify the virt-who server send a report to the satellite.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_role_reporter(self):
@@ -239,7 +230,6 @@ class VirtWhoConfigRoleTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_role_viewer(self):
@@ -254,7 +244,6 @@ class VirtWhoConfigRoleTestCase(APITestCase):
             1. Verify the user can view virt-who configurations.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_role_viewer(self):
@@ -275,7 +264,6 @@ class VirtWhoConfigRoleTestCase(APITestCase):
 
 class VirtWhoConfigUpgradeTestCase(APITestCase):
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_satellite_upgrade(self):
@@ -305,7 +293,6 @@ class VirtWhoConfigUpgradeTestCase(APITestCase):
 
 class VirtWhoConfigGeneralTestCase(TestCase):
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_hypervisors(self):
@@ -331,7 +318,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
                Hyper-V, Xen)
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_multiple_config_single_instance(self):
@@ -350,7 +336,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_multiple_config_multi_instance(self):
@@ -370,7 +355,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_delete_config_delete_user(self):
@@ -389,7 +373,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_register_user_password(self):
@@ -409,7 +392,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_register_guess_no_subs(self):
@@ -427,7 +409,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_virt_who_proxy(self):
@@ -446,7 +427,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
                proxy
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_virt_who_ignoreproxy(self):
@@ -466,7 +446,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_filtering_whitelist(self):
@@ -488,7 +467,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
             reported.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_filtering_blacklist(self):
@@ -511,7 +489,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
             reported.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_filtering_unlimited(self):
@@ -528,7 +505,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
                attach to VDC subscriptions.
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_rhel6(self):

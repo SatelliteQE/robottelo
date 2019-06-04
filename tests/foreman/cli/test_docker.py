@@ -52,7 +52,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -155,7 +154,6 @@ class DockerRepositoryTestCase(CLITestCase):
         cls.org_id = make_org()['id']
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """Create one Docker-type repository
 
@@ -178,7 +176,6 @@ class DockerRepositoryTestCase(CLITestCase):
                 self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
@@ -204,7 +201,6 @@ class DockerRepositoryTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple
         products.
@@ -233,7 +229,6 @@ class DockerRepositoryTestCase(CLITestCase):
             )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_sync(self):
         """Create and sync a Docker-type repository
 
@@ -254,7 +249,6 @@ class DockerRepositoryTestCase(CLITestCase):
             int(repo['content-counts']['container-image-manifests']), 1)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
@@ -278,7 +272,6 @@ class DockerRepositoryTestCase(CLITestCase):
                 self.assertEqual(repo['name'], new_name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
@@ -305,7 +298,6 @@ class DockerRepositoryTestCase(CLITestCase):
                     new_upstream_name)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_update_upstream_name(self):
         """Attempt to update upstream name for a Docker-type repository.
 
@@ -383,7 +375,6 @@ class DockerRepositoryTestCase(CLITestCase):
             repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
@@ -403,7 +394,6 @@ class DockerRepositoryTestCase(CLITestCase):
         self.assertEqual(repo['url'], new_url)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete_by_id(self):
         """Create and delete a Docker-type repository
 
@@ -421,7 +411,6 @@ class DockerRepositoryTestCase(CLITestCase):
             Repository.info({'id': repo['id']})
 
     @tier2
-    @run_only_on('sat')
     def test_positive_delete_random_repo_by_id(self):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
@@ -496,7 +485,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_docker_repo_by_id(self):
         """Add one Docker-type repository to a non-composite content view
 
@@ -523,7 +511,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_docker_repos_by_id(self):
         """Add multiple Docker-type repositories to a non-composite CV.
 
@@ -556,7 +543,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_synced_docker_repo_by_id(self):
         """Create and sync a Docker-type repository
 
@@ -587,7 +573,7 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -621,7 +607,7 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
@@ -671,7 +657,6 @@ class DockerContentViewTestCase(CLITestCase):
             )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it once.
 
@@ -690,7 +675,6 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(self.content_view['versions']), 1)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite CV and publish it once.
 
@@ -736,7 +720,6 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(comp_content_view['versions']), 1)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_multiple_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it multiple
         times.
@@ -758,7 +741,6 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(self.content_view['versions']), publish_amount)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to content view and publish it multiple
         times.
@@ -806,7 +788,6 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(comp_content_view['versions']), publish_amount)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_promote_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -836,7 +817,6 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(cvv['lifecycle-environments']), 2)
 
     @tier2
-    @run_only_on('sat')
     @upgrade
     def test_positive_promote_multiple_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it.
@@ -868,7 +848,6 @@ class DockerContentViewTestCase(CLITestCase):
             self.assertEqual(len(cvv['lifecycle-environments']), i+1)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_promote_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -923,7 +902,6 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(cvv['lifecycle-environments']), 2)
 
     @tier2
-    @run_only_on('sat')
     @upgrade
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
@@ -981,7 +959,6 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    @run_only_on('sat')
     def test_positive_name_pattern_change(self):
         """Promote content view with Docker repository to lifecycle environment.
         Change registry name pattern for that environment. Verify that repository
@@ -1042,7 +1019,6 @@ class DockerContentViewTestCase(CLITestCase):
                 expected_pattern)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_product_name_change_after_promotion(self):
         """Promote content view with Docker repository to lifecycle environment.
         Change product name. Verify that repository name on product changed
@@ -1127,7 +1103,6 @@ class DockerContentViewTestCase(CLITestCase):
                 expected_pattern)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_repo_name_change_after_promotion(self):
         """Promote content view with Docker repository to lifecycle environment.
         Change repository name. Verify that Docker repository name on product
@@ -1210,7 +1185,6 @@ class DockerContentViewTestCase(CLITestCase):
                 expected_pattern)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_set_non_unique_name_pattern_and_promote(self):
         """Set registry name pattern to one that does not guarantee uniqueness.
         Try to promote content view with multiple Docker repositories to
@@ -1252,7 +1226,6 @@ class DockerContentViewTestCase(CLITestCase):
             })
 
     @tier2
-    @run_only_on('sat')
     def test_negative_promote_and_set_non_unique_name_pattern(self):
         """Promote content view with multiple Docker repositories to
         lifecycle environment. Set registry name pattern to one that
@@ -1343,7 +1316,6 @@ class DockerActivationKeyTestCase(CLITestCase):
         })
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_docker_repo_cv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then create an activation key and associate it with the
@@ -1363,7 +1335,6 @@ class DockerActivationKeyTestCase(CLITestCase):
             activation_key['content-view'], self.content_view['name'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_docker_repo_cv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Create an activation key and associate it with the
@@ -1409,7 +1380,6 @@ class DockerActivationKeyTestCase(CLITestCase):
             activation_key['content-view'], self.content_view['name'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
@@ -1462,7 +1432,6 @@ class DockerActivationKeyTestCase(CLITestCase):
             activation_key['content-view'], comp_content_view['name'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
@@ -1573,7 +1542,6 @@ class DockerClientTestCase(CLITestCase):
         """Destroy the docker host VM"""
         cls.docker_host.destroy()
 
-    @run_only_on('sat')
     @tier3
     def test_positive_pull_image(self):
         """A Docker-enabled client can use ``docker pull`` to pull a
@@ -1634,7 +1602,6 @@ class DockerClientTestCase(CLITestCase):
                 hostname=self.docker_host.ip_addr
             )
 
-    @run_only_on('sat')
     @skip_if_not_set('docker')
     @tier3
     def test_positive_container_admin_end_to_end_search(self):
@@ -1776,7 +1743,6 @@ class DockerClientTestCase(CLITestCase):
                 "\n".join(result.stdout)
         )
 
-    @run_only_on('sat')
     @skip_if_not_set('docker')
     @tier3
     def test_positive_container_admin_end_to_end_pull(self):
@@ -1907,7 +1873,6 @@ class DockerClientTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @stubbed()
-    @run_only_on('sat')
     @skip_if_not_set('docker')
     @tier3
     @upgrade
@@ -2015,7 +1980,6 @@ class DockerComputeResourceTestCase(CLITestCase):
         cls.org = make_org()
 
     @tier3
-    @run_only_on('sat')
     def test_positive_create_internal(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance.
@@ -2041,7 +2005,6 @@ class DockerComputeResourceTestCase(CLITestCase):
                 )
 
     @tier3
-    @run_only_on('sat')
     def test_positive_update_internal(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
@@ -2072,7 +2035,6 @@ class DockerComputeResourceTestCase(CLITestCase):
     @tier3
     @skip_if_bug_open('bugzilla', 1466240)
     @skip_if_bug_open('bugzilla', 1478966)
-    @run_only_on('sat')
     @upgrade
     def test_positive_list_containers(self):
         """Create a Docker-based Compute Resource in the Satellite 6
@@ -2116,7 +2078,6 @@ class DockerComputeResourceTestCase(CLITestCase):
             self.assertEqual(result[0]['name'], container['name'])
 
     @tier3
-    @run_only_on('sat')
     def test_positive_create_external(self):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system.
@@ -2148,7 +2109,6 @@ class DockerComputeResourceTestCase(CLITestCase):
                     )
 
     @tier3
-    @run_only_on('sat')
     def test_positive_delete_by_id(self):
         """Create a Docker-based Compute Resource then delete it.
 
@@ -2214,7 +2174,6 @@ class DockerContainersTestCase(CLITestCase):
         self.docker_host.destroy()
 
     @tier3
-    @run_only_on('sat')
     def test_positive_create_with_compresource(self):
         """Create containers on a docker compute resource
 
@@ -2232,7 +2191,6 @@ class DockerContainersTestCase(CLITestCase):
             container['compute-resource'], self.comp_resource['name'])
 
     @tier3
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1347658)
     @upgrade
@@ -2283,7 +2241,6 @@ class DockerContainersTestCase(CLITestCase):
         self.assertEqual(container['tag'], 'latest')
 
     @tier3
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230915)
     @skip_if_bug_open('bugzilla', 1269196)
     def test_positive_power_on_off(self):
@@ -2325,7 +2282,6 @@ class DockerContainersTestCase(CLITestCase):
         self.assertEqual(status[0], not_running_msg)
 
     @tier3
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230915)
     @skip_if_bug_open('bugzilla', 1479291)
     def test_positive_read_container_log(self):
@@ -2350,7 +2306,6 @@ class DockerContainersTestCase(CLITestCase):
         self.assertTrue(logs['logs'])
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_external_registry(self):
         """Create a container pulling an image from a custom external registry
@@ -2377,7 +2332,6 @@ class DockerContainersTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier3
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230915)
     def test_positive_delete_by_id(self):
         """Delete containers in local and external compute resources
@@ -2425,7 +2379,6 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
         })
 
     @tier3
-    @run_only_on('sat')
     @upgrade
     def test_positive_create_with_compresource(self):
         """Create containers on a docker compute resource
@@ -2466,7 +2419,6 @@ class DockerRegistryTestCase(CLITestCase):
         cls.url = settings.docker.external_registry_1
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
@@ -2492,7 +2444,6 @@ class DockerRegistryTestCase(CLITestCase):
                     Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name_by_id(self):
         """Create an external docker registry and update its name. Use registry
         ID to search by
@@ -2517,7 +2468,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name_by_name(self):
         """Create an external docker registry and update its name. Use registry
         name to search by
@@ -2542,7 +2492,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_url_by_id(self):
         """Create an external docker registry and update its URL. Use registry
         ID to search by
@@ -2568,7 +2517,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_url_by_name(self):
         """Create an external docker registry and update its URL. Use registry
         name to search by
@@ -2594,7 +2542,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_description_by_id(self):
         """Create an external docker registry and update its description. Use
         registry ID to search by
@@ -2620,7 +2567,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_description_by_name(self):
         """Create an external docker registry and update its description. Use
         registry name to search by
@@ -2646,7 +2592,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_username_by_id(self):
         """Create an external docker registry and update its username. Use
         registry ID to search by
@@ -2672,7 +2617,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_username_by_name(self):
         """Create an external docker registry and update its username. Use
         registry name to search by
@@ -2698,7 +2642,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.delete({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete_by_id(self):
         """Create an external docker registry. Use registry ID to search by
 
@@ -2714,7 +2657,6 @@ class DockerRegistryTestCase(CLITestCase):
             Docker.registry.info({'id': registry['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete_by_name(self):
         """Create an external docker registry. Use registry name to search by
 

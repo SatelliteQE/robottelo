@@ -33,7 +33,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -85,7 +84,6 @@ class DockerRepositoryTestCase(UITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create one Docker-type repository using different names
@@ -111,7 +109,6 @@ class DockerRepositoryTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
@@ -136,7 +133,6 @@ class DockerRepositoryTestCase(UITestCase):
                 self.products.search_and_click(product.name)
                 self.assertIsNotNone(self.repository.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple products.
@@ -163,7 +159,6 @@ class DockerRepositoryTestCase(UITestCase):
                     self.products.search_and_click(pr.name)
                     self.assertIsNotNone(self.repository.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
@@ -193,7 +188,6 @@ class DockerRepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(new_name))
                     name = new_name
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
@@ -226,7 +220,6 @@ class DockerRepositoryTestCase(UITestCase):
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'upstream', new_upstream_name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_upstream_name(self):
         """Attempt to update upstream name for a Docker-type repository.
@@ -263,7 +256,6 @@ class DockerRepositoryTestCase(UITestCase):
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'upstream', 'busybox'))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
@@ -295,7 +287,6 @@ class DockerRepositoryTestCase(UITestCase):
             self.assertTrue(self.repository.validate_field(
                 name, 'url', new_url))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Create and delete a Docker-type repository
@@ -323,7 +314,6 @@ class DockerRepositoryTestCase(UITestCase):
                     self.repository.delete(name)
                     self.assertIsNone(self.repository.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_disabled_sync_plan(self):
         """Create sync plan, disable it, add to product and create docker repo
@@ -365,7 +355,6 @@ class DockerActivationKeyTestCase(UITestCase):
 
     @stubbed()
     # Return to that case once BZ 1269829 is fixed
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_docker_repo_cv(self):
         """Add Docker-type repository to a non-composite content view and
@@ -384,7 +373,6 @@ class DockerActivationKeyTestCase(UITestCase):
 
     @stubbed()
     # Return to that case once BZ 1269829 is fixed
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view and
@@ -414,7 +402,6 @@ class DockerComputeResourceTestCase(UITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_internal(self):
         """Create a Docker-based Compute Resource in the Satellite 6
@@ -442,7 +429,6 @@ class DockerComputeResourceTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_internal(self):
         """Create a Docker-based Compute Resource in the Satellite 6
@@ -474,7 +460,6 @@ class DockerComputeResourceTestCase(UITestCase):
             self.assertIsNotNone(self.compute_resource.wait_until_element(
                 common_locators['notif.success']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_external(self):
         """Create a Docker-based Compute Resource using an external
@@ -502,7 +487,6 @@ class DockerComputeResourceTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_external(self):
         """Create a Docker-based Compute Resource using an external
@@ -535,7 +519,6 @@ class DockerComputeResourceTestCase(UITestCase):
             self.assertIsNotNone(self.compute_resource.wait_until_element(
                 common_locators['notif.success']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Create a Docker-based Compute Resource then delete it.
@@ -578,7 +561,6 @@ class DockerRegistryTestCase(UITestCase):
         super(DockerRegistryTestCase, cls).setUpClass()
         cls.url = settings.docker.external_registry_1
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create an external docker registry
@@ -603,7 +585,6 @@ class DockerRegistryTestCase(UITestCase):
                     finally:
                         entities.Registry(name=name).search()[0].delete()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Create an external docker registry and update its name
@@ -633,7 +614,6 @@ class DockerRegistryTestCase(UITestCase):
             finally:
                 registry_entity.delete()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
         """Create an external docker registry and update its URL
@@ -662,7 +642,6 @@ class DockerRegistryTestCase(UITestCase):
             finally:
                 registry_entity.delete()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
         """Create an external docker registry and update its description
@@ -693,7 +672,6 @@ class DockerRegistryTestCase(UITestCase):
             finally:
                 registry_entity.delete()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_username(self):
         """Create an external docker registry and update its username
@@ -724,7 +702,6 @@ class DockerRegistryTestCase(UITestCase):
             finally:
                 registry_entity.delete()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Create an external docker registry and then delete it

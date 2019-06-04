@@ -19,7 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_product
 from robottelo.ui.locators import common_locators
@@ -35,7 +35,6 @@ class ProductTestCase(UITestCase):
         cls.organization = entities.Organization().create()
         cls.loc = entities.Location().create()
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create Content Product providing different names and minimal
@@ -59,7 +58,6 @@ class ProductTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.products.search(prd_name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create Content Product with invalid names
@@ -83,7 +81,6 @@ class ProductTestCase(UITestCase):
                     self.assertIsNotNone(self.products.wait_until_element(
                         common_locators['common_invalid']))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
         """Create Content Product with same name input parameter
@@ -109,7 +106,6 @@ class ProductTestCase(UITestCase):
             self.assertIsNotNone(self.products.wait_until_element(
                 common_locators['common_haserror']))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update Content Product name with minimal input parameters
@@ -136,7 +132,6 @@ class ProductTestCase(UITestCase):
                     self.assertIsNotNone(self.products.search(new_prd_name))
                     prd_name = new_prd_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_to_original_name(self):
         """Rename Product back to original name.
@@ -163,7 +158,6 @@ class ProductTestCase(UITestCase):
             self.products.update(new_prd_name, new_name=prd_name)
             self.assertIsNotNone(self.products.search(prd_name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_with_too_long_name(self):
         """Update Content Product with too long input parameters
@@ -188,7 +182,6 @@ class ProductTestCase(UITestCase):
             self.assertIsNotNone(self.products.wait_until_element(
                 common_locators['alert.error']))
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):

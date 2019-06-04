@@ -19,7 +19,7 @@ from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -57,7 +57,6 @@ class DiscoveryRuleTestCase(APITestCase):
         )
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """Create a new discovery rule.
 
@@ -79,7 +78,6 @@ class DiscoveryRuleTestCase(APITestCase):
                     discovery_rule.search_,
                 )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_create_with_org_loc(self):
         """Create discovery rule by associating org and location
@@ -103,7 +101,6 @@ class DiscoveryRuleTestCase(APITestCase):
         self.assertEqual(loc.name, discovery_rule.location[0].read().name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete(self):
         """Delete a discovery rule
 
@@ -162,7 +159,6 @@ class DiscoveryRuleTestCase(APITestCase):
             self.discovery_rule.create()
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name(self):
         """Update an existing discovery rule name
 
@@ -179,7 +175,6 @@ class DiscoveryRuleTestCase(APITestCase):
                 discovery_rule = discovery_rule.update(['name'])
                 self.assertEqual(discovery_rule.name, name)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_org_loc(self):
         """Update org and location of selected discovery rule

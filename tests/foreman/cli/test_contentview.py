@@ -78,7 +78,6 @@ from robottelo.constants import (
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -172,7 +171,6 @@ class ContentViewTestCase(CLITestCase):
         cls.product = make_product({u'organization-id': cls.org['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_create_with_name(self):
         """create content views with different names
 
@@ -192,7 +190,6 @@ class ContentViewTestCase(CLITestCase):
                 self.assertEqual(content_view['name'], name)
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
         """create content views with invalid names
 
@@ -214,7 +211,6 @@ class ContentViewTestCase(CLITestCase):
                     })
 
     @tier1
-    @run_only_on('sat')
     def test_negative_create_with_org_name(self):
         # Use an invalid org name
         """Create content view with invalid org name
@@ -231,7 +227,6 @@ class ContentViewTestCase(CLITestCase):
             ContentView.create({'organization-id': gen_string('alpha')})
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_with_repo_id(self):
         """Create content view providing repository id
 
@@ -250,7 +245,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(cv['yum-repositories'][0]['id'], repo['id'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_with_repo_name(self):
         """Create content view providing repository name
 
@@ -294,7 +288,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['versions']), 1)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name_by_id(self):
         """Find content view by its id and update its name afterwards
 
@@ -319,7 +312,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(cv['name'], new_name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_update_name_by_name(self):
         """Find content view by its name and update it
 
@@ -343,7 +335,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(cv['name'], new_name)
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_update_filter(self):
         # Variations might be:
@@ -396,7 +387,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual('security', cvf['rules'][0]['types'])
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete_by_id(self):
         """delete content view by its id
 
@@ -414,7 +404,6 @@ class ContentViewTestCase(CLITestCase):
             ContentView.info({'id': con_view['id']})
 
     @tier1
-    @run_only_on('sat')
     def test_positive_delete_by_name(self):
         """delete content view by its name
 
@@ -488,7 +477,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(result.stdout), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_delete_version_by_name(self):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -521,7 +509,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['versions']), 0)
 
     @tier1
-    @run_only_on('sat')
     @upgrade
     def test_positive_delete_version_by_id(self):
         """Create content view and publish it. After that try to
@@ -570,7 +557,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['versions']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_delete_version_by_id(self):
         """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
@@ -596,7 +582,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['versions']), 1)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_remove_lce_by_id(self):
         """Remove content view from lifecycle environment
 
@@ -620,7 +605,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['lifecycle-environments']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_lce_by_id_and_reassign_ak(self):
         """Remove content view environment and re-assign activation key to
         another environment and content view
@@ -679,7 +663,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(destination_cv['activation-keys'][0], ac_key['name'])
 
     @tier2
-    @run_only_on('sat')
     @upgrade
     def test_positive_remove_lce_by_id_and_reassign_chost(self):
         """Remove content view environment and re-assign content host to
@@ -743,7 +726,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(destination_cv['content-host-count'], '1')
 
     @tier1
-    @run_only_on('sat')
     def test_positive_remove_version_by_id(self):
         """Delete content view version using 'remove' command by id
 
@@ -773,7 +755,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['versions']), 0)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_remove_version_by_name(self):
         """Delete content view version using 'remove' command by name
 
@@ -804,7 +785,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['versions']), 0)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_remove_repository_by_id(self):
         """Remove associated repository from content view by id
 
@@ -835,7 +815,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['yum-repositories']), 0)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_remove_repository_by_name(self):
         """Remove associated repository from content view by name
 
@@ -866,7 +845,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['yum-repositories']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_composite(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case
@@ -917,7 +895,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_composite_by_name(self):
         """Create a composite content view and add non-composite content
         view by its name
@@ -969,7 +946,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_version_by_id_from_composite(self):
         """Create a composite content view and remove its content version by id
 
@@ -1017,7 +993,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['versions']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_component_by_name(self):
         """Create a composite content view and remove component from it by name
 
@@ -1062,7 +1037,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(comp_cv['components']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_create_composite_with_component_ids(self):
         """Create a composite content view with a component_ids option which
         ids are from different content views
@@ -1104,7 +1078,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_negative_create_composite_with_component_ids(self):
         """Attempt to create a composite content view with a component_ids
         option which ids are from the same content view
@@ -1138,7 +1111,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_composite_with_component_ids(self):
         """Update a composite content view with a component_ids option
 
@@ -1180,7 +1152,6 @@ class ContentViewTestCase(CLITestCase):
 
     @skip_if_not_set('fake_manifest')
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_add_rh_repo_by_id(self):
         """Associate Red Hat content to a content view
@@ -1213,7 +1184,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_in_one_thread
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1359665)
     @tier2
     @upgrade
@@ -1265,7 +1235,6 @@ class ContentViewTestCase(CLITestCase):
         })
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_custom_repo_by_id(self):
         """Associate custom content to a Content view
 
@@ -1295,7 +1264,6 @@ class ContentViewTestCase(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1343006)
     @tier1
     def test_positive_add_custom_repo_by_name(self):
@@ -1328,7 +1296,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_puppet_module(self):
         """Add puppet module to Content View by name
 
@@ -1366,7 +1333,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn('Latest', cv_module[0]['version'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_puppet_module_older_version(self):
         """Add older version of puppet module to Content View by id/uuid
 
@@ -1414,7 +1380,6 @@ class ContentViewTestCase(CLITestCase):
                 self.assertEqual(cv_module[0]['version'], module['version'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_puppet_module_by_name(self):
         """Remove puppet module from Content View by name
 
@@ -1453,7 +1418,6 @@ class ContentViewTestCase(CLITestCase):
 
     @tier2
     @skip_if_bug_open('bugzilla', 1427260)
-    @run_only_on('sat')
     def test_positive_remove_puppet_module_by_id(self):
         """Remove puppet module from Content View by id
 
@@ -1491,7 +1455,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_remove_puppet_module_by_uuid(self):
         """Remove puppet module from Content View by uuid
 
@@ -1527,7 +1490,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_puppet_repo(self):
         # Again, individual modules should be ok.
         """attempt to associate puppet repos within a custom content
@@ -1554,7 +1516,6 @@ class ContentViewTestCase(CLITestCase):
             })
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_component_in_non_composite_cv(self):
         """attempt to associate components in a non-composite content
         view
@@ -1591,7 +1552,6 @@ class ContentViewTestCase(CLITestCase):
             })
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_same_yum_repo_twice(self):
         """attempt to associate the same repo multiple times within a
         content view
@@ -1633,7 +1593,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_same_puppet_repo_twice(self):
         """attempt to associate duplicate puppet module(s) within a
         content view
@@ -1681,7 +1640,6 @@ class ContentViewTestCase(CLITestCase):
                 })
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_unpublished_cv_to_composite(self):
         """Attempt to associate unpublished non-composite content view with
         composite content view.
@@ -1719,7 +1677,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_negative_add_non_composite_cv_to_composite(self):
         """Attempt to associate both published and unpublished
         non-composite content views with composite content view.
@@ -1782,7 +1739,6 @@ class ContentViewTestCase(CLITestCase):
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_promote_rh_content(self):
         """attempt to promote a content view containing RH content
@@ -1825,7 +1781,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_promote_rh_and_custom_content(self):
         """attempt to promote a content view containing RH content and
@@ -1890,7 +1845,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @tier2
-    @run_only_on('sat')
     def test_positive_promote_custom_content(self):
         """attempt to promote a content view containing custom content
 
@@ -1929,7 +1883,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_promote_ccv(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -1990,7 +1943,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_negative_promote_default_cv(self):
         """attempt to promote a default content view
 
@@ -2020,7 +1972,6 @@ class ContentViewTestCase(CLITestCase):
             })
 
     @tier2
-    @run_only_on('sat')
     def test_negative_promote_with_invalid_lce(self):
         """attempt to promote a content view using an invalid
         environment
@@ -2059,7 +2010,6 @@ class ContentViewTestCase(CLITestCase):
     # katello content definition publish --label=MyView
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_publish_rh_content(self):
         """attempt to publish a content view containing RH content
@@ -2097,7 +2047,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier2
     def test_positive_publish_rh_and_custom_content(self):
         """attempt to publish  a content view containing a RH and custom
@@ -2153,7 +2102,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(new_cv['versions'][0]['version'], '1.0')
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_custom_content(self):
         """attempt to publish a content view containing custom content
 
@@ -2242,7 +2190,6 @@ class ContentViewTestCase(CLITestCase):
             'Module Streams are not associated with Content View')
 
     @tier2
-    @run_only_on('sat')
     def test_positive_republish_after_content_removed(self):
         """Attempt to re-publish content view after all associated content
         were removed from that CV
@@ -2363,7 +2310,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(new_cv['versions']), 2)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_ccv(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -2431,7 +2377,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     @upgrade
     def test_positive_update_version_once(self):
         # Dev notes:
@@ -2523,7 +2468,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_update_version_multiple(self):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
@@ -2622,7 +2566,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_auto_update_composite_to_latest_cv_version(self):
         """Ensure that composite content view component is auto updated to the
         latest content view version.
@@ -2688,7 +2631,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(components[0]['current-version'], '2.0')
 
     @tier3
-    @run_only_on('sat')
     def test_positive_subscribe_chost_by_id(self):
         """Attempt to subscribe content host to content view
 
@@ -2721,7 +2663,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier3
     def test_positive_subscribe_chost_by_id_using_rh_content(self):
         """Attempt to subscribe content host to content view that has
@@ -2770,7 +2711,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @run_in_one_thread
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1359665)
     @tier3
     @upgrade
@@ -2840,7 +2780,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @tier3
-    @run_only_on('sat')
     def test_positive_subscribe_chost_by_id_using_custom_content(self):
         """Attempt to subscribe content host to content view that has
         custom repository assigned to it
@@ -2885,7 +2824,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @tier3
-    @run_only_on('sat')
     def test_positive_subscribe_chost_by_id_using_ccv(self):
         """Attempt to subscribe content host to composite content view
 
@@ -2924,7 +2862,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @tier3
-    @run_only_on('sat')
     @upgrade
     def test_positive_subscribe_chost_by_id_using_puppet_content(self):
         """Attempt to subscribe content host to content view that has
@@ -2984,7 +2921,6 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self):
@@ -3153,7 +3089,6 @@ class ContentViewTestCase(CLITestCase):
             self.assertEqual(len(org_hosts), 1)
             self.assertEqual(org_hosts[0]['name'], host_client.hostname)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(self):
         """Attempt to subscribe a host with restricted user permissions and
@@ -3321,7 +3256,6 @@ class ContentViewTestCase(CLITestCase):
             self.assertEqual(org_hosts[0]['name'], host_client.hostname)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_clone_by_id(self):
         """Clone existing content view by id
 
@@ -3340,7 +3274,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(new_cv['name'], cloned_cv_name)
 
     @tier1
-    @run_only_on('sat')
     def test_positive_clone_by_name(self):
         """Clone existing content view by name
 
@@ -3362,7 +3295,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(new_cv['name'], cloned_cv_name)
 
     @tier2
-    @run_only_on('sat')
     def test_positive_clone_within_same_env(self):
         """Attempt to create, publish and promote new content view based on
         existing view within the same environment as the original content view
@@ -3403,7 +3335,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_clone_with_diff_env(self):
         """Attempt to create, publish and promote new content view based on
         existing view but promoted to a different environment
@@ -3445,7 +3376,6 @@ class ContentViewTestCase(CLITestCase):
             new_cv['lifecycle-environments']
         )
 
-    @run_only_on('sat')
     @stubbed()
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
@@ -3463,7 +3393,6 @@ class ContentViewTestCase(CLITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
@@ -3481,7 +3410,6 @@ class ContentViewTestCase(CLITestCase):
 
         """
 
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
@@ -3553,7 +3481,6 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_promoted_cv_version_from_default_env(self):
         """Remove promoted content view version from Library environment
@@ -3651,7 +3578,6 @@ class ContentViewTestCase(CLITestCase):
         }
         self.assertEqual(initial_puppet_modules_ids, puppet_modules_ids)
 
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_qe_promoted_cv_version_from_default_env(self):
         """Remove QE promoted content view version from Library environment
@@ -3729,7 +3655,6 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
@@ -3836,7 +3761,6 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
@@ -3954,7 +3878,6 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
@@ -4057,7 +3980,6 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @run_only_on('sat')
     @tier2
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
@@ -4168,7 +4090,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
@@ -4208,7 +4129,6 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
@@ -4249,7 +4169,6 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @run_in_one_thread
-    @run_only_on('sat')
     @tier3
     @upgrade
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
@@ -4459,7 +4378,6 @@ class ContentViewTestCase(CLITestCase):
     # ROLES TESTING
 
     @tier1
-    @run_only_on('sat')
     def test_negative_user_with_no_create_view_cv_permissions(self):
         """Unauthorized users are not able to create/view content views
 
@@ -4498,7 +4416,6 @@ class ContentViewTestCase(CLITestCase):
                         no_rights_user['password'],
                     ).info({'id': con_view['id']})
 
-    @run_only_on('sat')
     @tier2
     def test_negative_user_with_read_only_cv_permission(self):
         """Read-only user is able to view content view
@@ -4553,7 +4470,6 @@ class ContentViewTestCase(CLITestCase):
                 'to-lifecycle-environment-id': self.environment['id'],
             })
 
-    @run_only_on('sat')
     @tier2
     def test_positive_user_with_all_cv_permissions(self):
         """A user with all content view permissions is able to create,
@@ -4838,7 +4754,6 @@ class OstreeContentViewTestCase(CLITestCase):
         Repository.synchronize({'id': cls.docker_repo['id']})
 
     @tier2
-    @run_only_on('sat')
     def test_positive_add_custom_ostree_content(self):
         """Associate custom ostree content in a view
 
@@ -4866,7 +4781,6 @@ class OstreeContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @run_only_on('sat')
     def test_positive_publish_custom_ostree(self):
         """Publish a content view with custom ostree contents
 

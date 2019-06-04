@@ -35,7 +35,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
@@ -113,7 +112,6 @@ class ContentViewTestCase(UITestCase):
             locators.contentviews.version_environments % cv_version)
         return [env_element.text for env_element in environment_elements]
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Create content views using different names
@@ -135,7 +133,6 @@ class ContentViewTestCase(UITestCase):
                             name, self.organization.name)
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
         """try to create content views using invalid names
@@ -202,7 +199,6 @@ class ContentViewTestCase(UITestCase):
             self.assertEqual(result['start_date'], start_date)
             self.assertEqual(result['end_date'], end_date)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Update content views name to valid one.
@@ -229,7 +225,6 @@ class ContentViewTestCase(UITestCase):
                     self.assertIsNotNone(self.content_views.search(new_name))
                     name = new_name  # for next iteration
 
-    @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
         """Try to update content views name to invalid one.
@@ -254,7 +249,6 @@ class ContentViewTestCase(UITestCase):
                         common_locators['alert.error_sub_form']))
                     self.assertIsNone(self.content_views.search(new_name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
         """Update content views description to valid one.
@@ -288,7 +282,6 @@ class ContentViewTestCase(UITestCase):
                         new_desc
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
         """Delete content views
@@ -313,7 +306,6 @@ class ContentViewTestCase(UITestCase):
                     self.content_views.delete(name)
 
     @stubbed()
-    @run_only_on('sat')
     @tier2
     def test_positive_restart_promote_via_dynflow(self):
         """attempt to restart a promotion
@@ -334,7 +326,6 @@ class ContentViewTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier2
     def test_positive_restart_publish_via_dynflow(self):
         """attempt to restart a publish
@@ -355,7 +346,6 @@ class ContentViewTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
         """Remove promoted content view version from environment that is used
@@ -395,7 +385,6 @@ class ContentViewTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
@@ -437,7 +426,6 @@ class ContentViewTestCase(UITestCase):
         """
 
     @stubbed()
-    @run_only_on('sat')
     @tier3
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,

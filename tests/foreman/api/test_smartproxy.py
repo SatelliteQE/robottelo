@@ -24,7 +24,6 @@ from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
@@ -50,7 +49,6 @@ class CapsuleTestCase(APITestCase):
         return proxy
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
@@ -68,7 +66,6 @@ class CapsuleTestCase(APITestCase):
             context.exception.response.text, u'Unable to communicate')
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
         """Proxy creation with valid name
@@ -87,7 +84,6 @@ class CapsuleTestCase(APITestCase):
                     self.assertEquals(proxy.name, name)
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     @upgrade
@@ -108,7 +104,6 @@ class CapsuleTestCase(APITestCase):
             proxy.read()
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
         """Proxy name update
@@ -129,7 +124,6 @@ class CapsuleTestCase(APITestCase):
                     self.assertEqual(proxy.name, new_name)
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
         """Proxy url update
@@ -152,7 +146,6 @@ class CapsuleTestCase(APITestCase):
             self.assertEqual(proxy.url, url)
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_positive_update_organization(self):
         """Proxy name update with the home proxy
@@ -176,7 +169,6 @@ class CapsuleTestCase(APITestCase):
             )
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier1
     def test_positive_update_location(self):
         """Proxy name update with the home proxy
@@ -199,7 +191,6 @@ class CapsuleTestCase(APITestCase):
             )
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_refresh_features(self):
@@ -222,7 +213,6 @@ class CapsuleTestCase(APITestCase):
             proxy.refresh()
 
     @skip_if_not_set('fake_capsules')
-    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_import_puppet_classes(self):

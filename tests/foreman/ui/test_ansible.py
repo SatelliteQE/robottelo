@@ -15,7 +15,6 @@
 
 
 from robottelo.decorators import (
-    run_only_on,
     stubbed,
     tier1,
     tier3,
@@ -28,7 +27,6 @@ from robottelo.test import UITestCase
 class AnsibleTestCase(UITestCase):
     """Implements Ansible integration tests in UI"""
 
-    @run_only_on('sat')
     @stubbed()
     @tier4
     def test_positive_install_ansible_plugin(self):
@@ -48,7 +46,6 @@ class AnsibleTestCase(UITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_setup_ansible_callback_satellite_host(self):
@@ -68,7 +65,6 @@ class AnsibleTestCase(UITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_setup_ansible_callback_capsule(self):
@@ -88,7 +84,6 @@ class AnsibleTestCase(UITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_tower_installed_in_satellite_host(self):
@@ -110,7 +105,6 @@ class AnsibleTestCase(UITestCase):
 
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_tower_installed_in_capsule(self):
@@ -130,7 +124,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_playbook_run_report_host_already_present(self):
@@ -149,7 +142,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_playbook_run_report_host_not_present(self):
@@ -166,7 +158,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -188,7 +179,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -218,7 +208,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_associate_ansible_roles_to_hostgroups(self):
@@ -241,7 +230,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_run_ansibles_role_one_host(self):
@@ -255,7 +243,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     @upgrade
@@ -272,7 +259,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_permission_view_ansible_roles(self):
@@ -291,7 +277,6 @@ class AnsibleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_permission_import_ansible_roles(self):
@@ -311,7 +296,6 @@ class AnsibleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_permission_destroy_ansible_roles(self):
@@ -331,7 +315,6 @@ class AnsibleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_permission_play_roles(self):
@@ -346,7 +329,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_permission_play_multiple_roles(self):
@@ -361,7 +343,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_permissions(self):
@@ -390,7 +371,6 @@ class AnsibleTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_add_ansible_parameter_to_host(self):
@@ -408,7 +388,6 @@ class AnsibleTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @run_only_on('sat')
     @stubbed()
     @tier1
     def test_positive_add_ansible_parameter_to_hostgroup(self):

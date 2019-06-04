@@ -20,7 +20,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_not_set, tier1, upgrade
+from robottelo.decorators import skip_if_not_set, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -38,7 +38,6 @@ class ComputeResourceTestCase(UITestCase):
             LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_name(self):
         """Create a new libvirt Compute Resource using different value
@@ -63,7 +62,6 @@ class ComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_description(self):
         """Create libvirt Compute Resource with description.
@@ -89,7 +87,6 @@ class ComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_display_type(self):
         """Create libvirt Compute Resource with different display types.
@@ -115,7 +112,6 @@ class ComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_console_password(self):
         """Create libvirt Compute Resource with checked/unchecked
@@ -142,7 +138,6 @@ class ComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
 
-    @run_only_on('sat')
     @tier1
     def test_negative_create_libvirt_with_invalid_name(self):
         """Create a new libvirt Compute Resource with incorrect values
@@ -172,7 +167,6 @@ class ComputeResourceTestCase(UITestCase):
                         )
                     )
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_libvirt_name(self):
         """Update a libvirt Compute Resource name
@@ -199,7 +193,6 @@ class ComputeResourceTestCase(UITestCase):
                     self.compute_resource.update(name=name, newname=newname)
                     self.assertIsNotNone(self.compute_resource.search(newname))
 
-    @run_only_on('sat')
     @tier1
     def test_positive_update_libvirt_organization(self):
         """Update a libvirt Compute Resource organization
@@ -228,7 +221,6 @@ class ComputeResourceTestCase(UITestCase):
                 org_select=True
             )
 
-    @run_only_on('sat')
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -254,7 +246,6 @@ class ComputeResourceTestCase(UITestCase):
                     self.assertIsNotNone(self.compute_resource.search(name))
                     self.compute_resource.delete(name, dropdown_present=True)
 
-    @run_only_on('sat')
     @tier1
     def test_positive_access_libvirt_via_profile(self):
         """Try to access libvirt compute resource via compute profile
