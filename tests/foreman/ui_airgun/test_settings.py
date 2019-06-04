@@ -15,16 +15,11 @@
 :Upstream: No
 """
 
-from random import choice, randint
-
 from fauxfactory import gen_email, gen_url
-from pytest import raises
-
 from nailgun import entities
-from robottelo.datafactory import (
-    filtered_datapoint,
-    gen_string,
-)
+from pytest import raises
+from random import choice, randint
+from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     fixture,
     stubbed,
@@ -443,6 +438,8 @@ def test_positive_remove_login_page_footer_text():
     :expectedresults: Parameter should be removed
 
     :CaseImportance: Critical
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -464,6 +461,8 @@ def test_positive_update_login_page_footer_text_with_long_string():
     :expectedresults: Parameter is updated
 
     :CaseImportance: Critical
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -507,6 +506,8 @@ def test_negative_settings_access_to_non_admin():
         non admin users
 
     :CaseImportance: Critical
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -540,6 +541,8 @@ def test_positive_update_email_delivery_method_smtp():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -573,6 +576,8 @@ def test_negative_update_email_delivery_method_smtp():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -601,6 +606,8 @@ def test_positive_update_email_delivery_method_sendmail():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -629,6 +636,8 @@ def test_negative_update_email_delivery_method_sendmail():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
+
+    :CaseAutomation: notautomated
     """
 
 
@@ -659,6 +668,8 @@ def test_positive_email_yaml_config_precedence():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
+
+    :CaseAutomation: notautomated
     """
 
 
