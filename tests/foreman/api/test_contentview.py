@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: ContentViews
 
 :TestType: Functional
 
@@ -73,9 +73,11 @@ class ContentViewTestCase(APITestCase):
         :expectedresults: It is possible to create a host and set its
             'content_view_id' facet attribute
 
-        :CaseLevel: System
+        :CaseLevel: Integration
 
         :CaseAutomation: automated
+
+        :CaseImportance: High
         """
         # organization
         # ├── lifecycle environment
@@ -124,6 +126,8 @@ class ContentViewTestCase(APITestCase):
             the same environment as the original content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()
@@ -150,6 +154,8 @@ class ContentViewTestCase(APITestCase):
             a different environment as the original content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()
@@ -172,6 +178,8 @@ class ContentViewTestCase(APITestCase):
         :expectedresults: Custom content assigned and present in content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -193,6 +201,8 @@ class ContentViewTestCase(APITestCase):
         :expectedresults: Custom content (module streams) assigned and present in content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -220,6 +230,8 @@ class ContentViewTestCase(APITestCase):
             contains direct puppet repos reference.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -245,6 +257,8 @@ class ContentViewTestCase(APITestCase):
         :expectedresults: User cannot add repos multiple times to the view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -269,6 +283,8 @@ class ContentViewTestCase(APITestCase):
             view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -318,6 +334,8 @@ class ContentViewTestCase(APITestCase):
         :CaseAutomation: notautomated
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
 
     @tier2
@@ -338,6 +356,8 @@ class ContentViewTestCase(APITestCase):
         :CaseAutomation: notautomated
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
 
 
@@ -389,7 +409,7 @@ class ContentViewCreateTestCase(APITestCase):
 
         :expectedresults: Content-view is created and has random description.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -434,7 +454,7 @@ class ContentViewCreateTestCase(APITestCase):
 
         :expectedresults: Content View is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -494,6 +514,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :BZ: 1365312, 1581628
 
+        :CaseImportance: Low
         """
         name = gen_string('alpha', 255)
         content_view = entities.ContentView(name=name).create()
@@ -512,6 +533,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             each publishing operation.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView().create()
         for _ in range(REPEAT):
@@ -529,6 +552,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             version has at least one package.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -555,6 +580,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             version is assigned to it.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -576,6 +603,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             version is assigned to it.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -597,6 +626,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             corresponding versions are assigned to it.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -620,6 +651,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             corresponding versions are assigned to it.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -642,6 +675,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             version refer to puppet module
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -669,6 +704,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             version references the puppet module.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -783,6 +820,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             lifecycle environments after the promotions.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.publish()
@@ -811,6 +850,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             least one package.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -845,6 +886,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             has one puppet module assigned too.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -880,6 +923,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             it has one puppet module.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -920,6 +965,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             one through content view versions mechanism
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -955,6 +1002,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :expectedresults: User cannot add components to the view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -982,6 +1031,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             1`` lifecycle environments after the promotions.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -1008,6 +1059,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             1`` lifecycle environments after the promotions.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -1033,6 +1086,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             random`` lifecycle environments after the promotions.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -1066,6 +1121,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             random`` lifecycle environments after the promotions.
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -1096,6 +1153,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :expectedresults: Content view promoted out of sequence properly
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
         for _ in range(REPEAT):
@@ -1260,6 +1319,8 @@ class ContentViewRedHatContent(APITestCase):
         :expectedresults: RH Content assigned and present in a view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -1281,6 +1342,8 @@ class ContentViewRedHatContent(APITestCase):
             view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1314,6 +1377,8 @@ class ContentViewRedHatContent(APITestCase):
             updated
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1345,6 +1410,8 @@ class ContentViewRedHatContent(APITestCase):
         :expectedresults: Content view can be published
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1362,6 +1429,8 @@ class ContentViewRedHatContent(APITestCase):
         :expectedresults: Content view can be published
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1383,6 +1452,8 @@ class ContentViewRedHatContent(APITestCase):
         :expectedresults: Content view can be promoted
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1405,6 +1476,8 @@ class ContentViewRedHatContent(APITestCase):
         :expectedresults: Content view can be promoted
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1448,6 +1521,8 @@ class ContentViewRolesTestCase(APITestCase):
             the content views
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1508,6 +1583,8 @@ class ContentViewRolesTestCase(APITestCase):
             the repository in the content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1568,6 +1645,8 @@ class ContentViewRolesTestCase(APITestCase):
             Modify, Delete, Publish, Promote the content views
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1636,6 +1715,8 @@ class ContentViewRolesTestCase(APITestCase):
             content view, but not read it
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1726,6 +1807,8 @@ class OstreeContentViewTestCase(APITestCase):
             view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -1747,6 +1830,8 @@ class OstreeContentViewTestCase(APITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.ostree_repo]
@@ -1764,6 +1849,8 @@ class OstreeContentViewTestCase(APITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.ostree_repo]
@@ -1785,6 +1872,8 @@ class OstreeContentViewTestCase(APITestCase):
             promoted successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [
@@ -1850,6 +1939,8 @@ class ContentViewRedHatOstreeContent(APITestCase):
             content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -1871,6 +1962,8 @@ class ContentViewRedHatOstreeContent(APITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1888,6 +1981,8 @@ class ContentViewRedHatOstreeContent(APITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1909,6 +2004,8 @@ class ContentViewRedHatOstreeContent(APITestCase):
             promoted successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',

@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: ContentViews
 
 :TestType: Functional
 
@@ -178,7 +178,6 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: content views are created
 
-
         :CaseImportance: Critical
         """
         for name in generate_strings_list(exclude_types=['cjk']):
@@ -197,7 +196,6 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: content views are not created; proper error thrown
             and system handles it gracefully
-
 
         :CaseImportance: Critical
         """
@@ -220,7 +218,6 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: content views are not created; proper error thrown
             and system handles it gracefully
 
-
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
@@ -235,6 +232,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Content view is created and repository is associated
             with CV
 
+        :CaseImportance: High
         :BZ: 1213097
         """
         repo = make_repository({'product-id': self.product['id']})
@@ -252,6 +250,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view is created and repository is associated
             with CV
+
+        :CaseImportance: High
 
         :BZ: 1213097
         """
@@ -350,6 +350,8 @@ class ContentViewTestCase(CLITestCase):
             updated
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         self.create_rhel_content()
         # Create CV
@@ -487,6 +489,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view version deleted successfully
 
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -508,7 +511,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(len(content_view['versions']), 0)
 
-    @tier1
+    @tier2
     @upgrade
     def test_positive_delete_version_by_id(self):
         """Create content view and publish it. After that try to
@@ -521,8 +524,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view version deleted successfully
 
-
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         # Create new organization, product and repository
         new_org = make_org({u'name': gen_alphanumeric()})
@@ -566,6 +568,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view version is not deleted
 
+        :CaseImportance: Critical
 
         :CaseLevel: Integration
         """
@@ -589,7 +592,6 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view removed from environment successfully
 
-
         :CaseImportance: Critical
         """
         new_org = make_org({u'name': gen_alphanumeric()})
@@ -604,7 +606,7 @@ class ContentViewTestCase(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['lifecycle-environments']), 0)
 
-    @tier2
+    @tier3
     def test_positive_remove_lce_by_id_and_reassign_ak(self):
         """Remove content view environment and re-assign activation key to
         another environment and content view
@@ -613,6 +615,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Activation key re-assigned successfully
 
+        :CaseImportance: Medium
 
         :CaseLevel: Integration
         """
@@ -662,7 +665,7 @@ class ContentViewTestCase(CLITestCase):
         destination_cv = ContentView.info({u'id': destination_cv['id']})
         self.assertEqual(destination_cv['activation-keys'][0], ac_key['name'])
 
-    @tier2
+    @tier3
     @upgrade
     def test_positive_remove_lce_by_id_and_reassign_chost(self):
         """Remove content view environment and re-assign content host to
@@ -672,6 +675,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content host re-assigned successfully
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -859,6 +863,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Composite content views are created
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -907,6 +913,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1416857
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -955,6 +963,8 @@ class ContentViewTestCase(CLITestCase):
             any values
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         # Create new repository
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1004,6 +1014,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1416857
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         # Create new repository
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1036,7 +1048,7 @@ class ContentViewTestCase(CLITestCase):
         comp_cv = ContentView.info({u'id': comp_cv['id']})
         self.assertEqual(len(comp_cv['components']), 0)
 
-    @tier2
+    @tier3
     def test_positive_create_composite_with_component_ids(self):
         """Create a composite content view with a component_ids option which
         ids are from different content views
@@ -1048,6 +1060,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1487265
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         # Create first CV
         cv1 = make_content_view({u'organization-id': self.org['id']})
@@ -1077,7 +1091,7 @@ class ContentViewTestCase(CLITestCase):
             'the input values',
         )
 
-    @tier2
+    @tier3
     def test_negative_create_composite_with_component_ids(self):
         """Attempt to create a composite content view with a component_ids
         option which ids are from the same content view
@@ -1089,6 +1103,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1487265
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         # Create CV
         new_cv = make_content_view({u'organization-id': self.org['id']})
@@ -1110,7 +1126,7 @@ class ContentViewTestCase(CLITestCase):
             str(context.exception)
         )
 
-    @tier2
+    @tier3
     def test_positive_update_composite_with_component_ids(self):
         """Update a composite content view with a component_ids option
 
@@ -1120,6 +1136,8 @@ class ContentViewTestCase(CLITestCase):
             the nested content view versions ids
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         # Create a CV to add to the composite one
         cv = make_content_view({u'organization-id': self.org['id']})
@@ -1152,7 +1170,7 @@ class ContentViewTestCase(CLITestCase):
 
     @skip_if_not_set('fake_manifest')
     @run_in_one_thread
-    @tier2
+    @tier1
     def test_positive_add_rh_repo_by_id(self):
         """Associate Red Hat content to a content view
 
@@ -1162,8 +1180,9 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: RH Content can be seen in the content view
 
-
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         self.create_rhel_content()
         # Create CV
@@ -1185,7 +1204,7 @@ class ContentViewTestCase(CLITestCase):
 
     @run_in_one_thread
     @skip_if_bug_open('bugzilla', 1359665)
-    @tier2
+    @tier3
     @upgrade
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
         """Associate Red Hat content to a content view and create filter
@@ -1199,6 +1218,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Filtered RH content only is available/can be seen in
             a view
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
 
@@ -1244,6 +1264,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Custom content can be seen in a view
 
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -1273,7 +1294,6 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: whether repos are added to cv.
 
-
         :CaseImportance: Critical
         """
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1295,7 +1315,7 @@ class ContentViewTestCase(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    @tier2
+    @tier3
     def test_positive_add_puppet_module(self):
         """Add puppet module to Content View by name
 
@@ -1304,6 +1324,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Module was added and has latest version.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         module = {'name': 'versioned', 'version': '3.3.3'}
         puppet_repository = make_repository({
@@ -1332,7 +1354,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(puppet_module['version'], cv_module[0]['version'])
         self.assertIn('Latest', cv_module[0]['version'])
 
-    @tier2
+    @tier3
     def test_positive_add_puppet_module_older_version(self):
         """Add older version of puppet module to Content View by id/uuid
 
@@ -1346,6 +1368,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Exact version (and not latest) was added.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
 
         :BZ: 1240491
         """
@@ -1379,7 +1403,7 @@ class ContentViewTestCase(CLITestCase):
                 self.assertGreater(len(cv_module), 0)
                 self.assertEqual(cv_module[0]['version'], module['version'])
 
-    @tier2
+    @tier3
     def test_positive_remove_puppet_module_by_name(self):
         """Remove puppet module from Content View by name
 
@@ -1388,6 +1412,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Module successfully removed and no modules are listed
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         puppet_repository = make_repository({
             u'content-type': u'puppet',
@@ -1416,7 +1442,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
-    @tier2
+    @tier3
     @skip_if_bug_open('bugzilla', 1427260)
     def test_positive_remove_puppet_module_by_id(self):
         """Remove puppet module from Content View by id
@@ -1428,6 +1454,8 @@ class ContentViewTestCase(CLITestCase):
         :CaseLevel: Integration
 
         :BZ: 1427260
+
+        :CaseImportance: High
         """
         puppet_repository = make_repository({
             u'content-type': u'puppet',
@@ -1454,7 +1482,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
-    @tier2
+    @tier3
     def test_positive_remove_puppet_module_by_uuid(self):
         """Remove puppet module from Content View by uuid
 
@@ -1463,6 +1491,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Module successfully removed and no modules are listed
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         puppet_repository = make_repository({
             u'content-type': u'puppet',
@@ -1489,7 +1519,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
-    @tier2
+    @tier3
     def test_negative_add_puppet_repo(self):
         # Again, individual modules should be ok.
         """attempt to associate puppet repos within a custom content
@@ -1501,6 +1531,8 @@ class ContentViewTestCase(CLITestCase):
             direct puppet repos.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         new_repo = make_repository({
             u'content-type': u'puppet',
@@ -1524,6 +1556,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: User cannot add components to the view
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -1560,6 +1593,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: User cannot add repos multiple times to the view
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -1592,7 +1626,7 @@ class ContentViewTestCase(CLITestCase):
             'No new entry of same repo is expected',
         )
 
-    @tier2
+    @tier3
     def test_negative_add_same_puppet_repo_twice(self):
         """attempt to associate duplicate puppet module(s) within a
         content view
@@ -1601,6 +1635,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: User cannot add puppet modules multiple times to the
             content view
+
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -1656,6 +1692,8 @@ class ContentViewTestCase(CLITestCase):
 
         :CaseLevel: Integration
 
+        :CaseImportance: Low
+
         :BZ: 1367123
         """
         # Create component CV
@@ -1699,6 +1737,8 @@ class ContentViewTestCase(CLITestCase):
                composite content view.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
 
         :BZ: 1367123
         """
@@ -1749,6 +1789,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be promoted
 
+        :CaseImportance: Critical
 
         :CaseLevel: Integration
         """
@@ -1781,7 +1822,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @run_in_one_thread
-    @tier2
+    @tier3
     def test_positive_promote_rh_and_custom_content(self):
         """attempt to promote a content view containing RH content and
         custom content using filters
@@ -1791,6 +1832,8 @@ class ContentViewTestCase(CLITestCase):
         :setup: Multiple environments for an org; RH content synced
 
         :expectedresults: Content view can be promoted
+
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -1854,6 +1897,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be promoted
 
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -1898,6 +1942,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be promoted
 
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -1950,6 +1995,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Default content views cannot be promoted
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -1980,6 +2026,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content views cannot be promoted; handled gracefully
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -2020,6 +2067,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be published
 
+        :CaseImportance: Critical
 
         :CaseLevel: Integration
         """
@@ -2047,7 +2095,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_in_one_thread
-    @tier2
+    @tier3
     def test_positive_publish_rh_and_custom_content(self):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
@@ -2057,6 +2105,8 @@ class ContentViewTestCase(CLITestCase):
         :setup: Multiple environments for an org; RH content synced
 
         :expectedresults: Content view can be published
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -2111,6 +2161,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be published
 
+        :CaseImportance: Critical
+
         :CaseLevel: Integration
         """
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -2138,7 +2190,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @upgrade
-    @tier2
+    @tier3
     def test_positive_publish_custom_content_module_stream(self):
         """attempt to publish a content view containing custom content
         module streams
@@ -2149,6 +2201,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view published with module streams
             and count should be correct each time even after republishing CV
+
+        :CaseImportance: Medium
 
         :CaseLevel: Integration
         """
@@ -2202,6 +2256,8 @@ class ContentViewTestCase(CLITestCase):
             is raised
 
         :BZ: 1323751
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -2275,6 +2331,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1323751
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         self.create_rhel_content(
             reposet=REPOSET['rhst7'],
@@ -2324,6 +2382,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be published
 
+        :CaseImportance: Critical
 
         :CaseLevel: Integration
         """
@@ -2400,6 +2459,8 @@ class ContentViewTestCase(CLITestCase):
 
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -2487,6 +2548,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Content view version is updated in source
             environment.
 
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -2589,6 +2651,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1177766
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         content_view = make_content_view({'organization-id': self.org['id']})
         ContentView.publish({'id': content_view['id']})
@@ -2638,6 +2702,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content host can be subscribed to content view
 
+        :CaseImportance: High
 
         :CaseLevel: System
         """
@@ -2674,6 +2739,8 @@ class ContentViewTestCase(CLITestCase):
             Red Hat repository
 
         :CaseLevel: System
+
+        :CaseImportance: Medium
         """
         self.create_rhel_content()
         env = make_lifecycle_environment({
@@ -2726,6 +2793,8 @@ class ContentViewTestCase(CLITestCase):
         :CaseLevel: System
 
         :BZ: 1359665
+
+        :CaseImportance: Low
         """
         self.create_rhel_content()
         env = make_lifecycle_environment({
@@ -2790,6 +2859,8 @@ class ContentViewTestCase(CLITestCase):
             custom repository
 
         :CaseLevel: System
+
+        :CaseImportance: High
         """
         new_org = make_org()
         new_product = make_product({u'organization-id': new_org['id']})
@@ -2832,6 +2903,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Content host can be subscribed to composite content
             view
 
+        :CaseImportance: High
 
         :CaseLevel: System
         """
@@ -2873,6 +2945,8 @@ class ContentViewTestCase(CLITestCase):
             puppet module
 
         :CaseLevel: System
+
+        :CaseImportance: Low
         """
         # see BZ #1222118
         new_org = make_org()
@@ -2921,7 +2995,6 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
-    @stubbed()
     @tier3
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self):
         """Attempt to subscribe a host with restricted user permissions and
@@ -3262,6 +3335,8 @@ class ContentViewTestCase(CLITestCase):
         :id: e3b63e6e-0964-45fb-a765-e1885c0ecbdd
 
         :expectedresults: Content view is cloned successfully
+
+        :CaseImportance: Critical
         """
         org = make_org()
         cloned_cv_name = gen_string('alpha')
@@ -3282,6 +3357,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Content view is cloned successfully
 
         :BZ: 1416857
+
+        :CaseImportance: Critical
         """
         org = make_org()
         cloned_cv_name = gen_string('alpha')
@@ -3305,6 +3382,8 @@ class ContentViewTestCase(CLITestCase):
             the same environment as the original content view
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = make_org()
         cloned_cv_name = gen_string('alpha')
@@ -3343,6 +3422,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Cloned content view can be published and promoted to
             a different environment as the original content view
+
+        :CaseImportance: Low
 
         :CaseLevel: Integration
         """
@@ -3428,6 +3509,8 @@ class ContentViewTestCase(CLITestCase):
             environment
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         new_name = gen_string('alpha')
         org = make_org()
@@ -3501,6 +3584,8 @@ class ContentViewTestCase(CLITestCase):
             2. The puppet module(s) exists in content view version
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = make_org()
         lce_dev = make_lifecycle_environment({'organization-id': org['id']})
@@ -3597,6 +3682,8 @@ class ContentViewTestCase(CLITestCase):
             Library
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = make_org()
         lce_dev = make_lifecycle_environment({'organization-id': org['id']})
@@ -3672,6 +3759,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view version exist only in DEV, QE, PROD and
             not in Library
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -3783,6 +3872,8 @@ class ContentViewTestCase(CLITestCase):
             STAGE, PROD
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = make_org()
         lce_dev = make_lifecycle_environment({'organization-id': org['id']})
@@ -3878,7 +3969,7 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @tier2
+    @tier3
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -3896,6 +3987,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Content view version exists only in Library, DEV
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = make_org()
         lce_dev = make_lifecycle_environment({'organization-id': org['id']})
@@ -3980,7 +4073,7 @@ class ContentViewTestCase(CLITestCase):
             )
         )
 
-    @tier2
+    @tier3
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments
@@ -4000,6 +4093,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: The content view doesn't exists
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         org = make_org()
         lce_dev = make_lifecycle_environment({'organization-id': org['id']})
@@ -4203,6 +4298,8 @@ class ContentViewTestCase(CLITestCase):
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :CaseImportance: High
         """
         # Note: This test case requires complete external capsule
         #  configuration.
@@ -4377,7 +4474,7 @@ class ContentViewTestCase(CLITestCase):
 
     # ROLES TESTING
 
-    @tier1
+    @tier2
     def test_negative_user_with_no_create_view_cv_permissions(self):
         """Unauthorized users are not able to create/view content views
 
@@ -4428,6 +4525,8 @@ class ContentViewTestCase(CLITestCase):
             the content view but not Create / Modify / Promote / Publish
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cv = make_content_view({'organization-id': self.org['id']})
         password = gen_string('alphanumeric')
@@ -4485,6 +4584,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1464414
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cv = make_content_view({'organization-id': self.org['id']})
         password = gen_string('alphanumeric')
@@ -4543,7 +4644,7 @@ class ContentViewTestCase(CLITestCase):
             [env['id'] for env in cv['lifecycle-environments']],
         )
 
-    @tier2
+    @tier3
     def test_positive_inc_update_no_lce(self):
         """Publish incremental update without providing lifecycle environment
         for a content view version not promoted to any lifecycle environment
@@ -4617,7 +4718,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(
             '1.1', [cvv_['version'] for cvv_ in content_view['versions']])
 
-    @tier2
+    @tier3
     def test_positive_incremental_update_propagate_composite(self):
         """Incrementally update a CVV in composite CV with
         `propagate_all_composites` flag set
@@ -4644,6 +4745,8 @@ class ContentViewTestCase(CLITestCase):
             3. New incremental composite CVV contains new puppet module
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         yum_repo = make_repository({'product-id': self.product['id']})
         Repository.synchronize({'id': yum_repo['id']})
@@ -4753,7 +4856,7 @@ class OstreeContentViewTestCase(CLITestCase):
         })
         Repository.synchronize({'id': cls.docker_repo['id']})
 
-    @tier2
+    @tier3
     def test_positive_add_custom_ostree_content(self):
         """Associate custom ostree content in a view
 
@@ -4763,6 +4866,8 @@ class OstreeContentViewTestCase(CLITestCase):
             view
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         # Create CV
         cv = make_content_view({u'organization-id': self.org['id']})
@@ -4780,7 +4885,7 @@ class OstreeContentViewTestCase(CLITestCase):
             'Ostree Repo was not associated to CV',
         )
 
-    @tier2
+    @tier3
     def test_positive_publish_custom_ostree(self):
         """Publish a content view with custom ostree contents
 
@@ -4790,6 +4895,8 @@ class OstreeContentViewTestCase(CLITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV with names.
@@ -4803,7 +4910,7 @@ class OstreeContentViewTestCase(CLITestCase):
         cv = ContentView.info({u'id': cv['id']})
         self.assertEqual(len(cv['versions']), 1)
 
-    @tier2
+    @tier3
     def test_positive_promote_custom_ostree(self):
         """Promote a content view with custom ostree contents
 
@@ -4811,6 +4918,8 @@ class OstreeContentViewTestCase(CLITestCase):
 
         :expectedresults: Content-view with custom ostree contents promoted
             successfully
+
+        CaseImportance: Critical
 
         :CaseLevel: Integration
         """
@@ -4836,7 +4945,7 @@ class OstreeContentViewTestCase(CLITestCase):
         environment = {'id': lc_env['id'], 'name': lc_env['name']}
         self.assertIn(environment, cv['lifecycle-environments'])
 
-    @tier2
+    @tier3
     def test_positive_publish_promote_with_custom_ostree_and_other(self):
         """Publish & Promote a content view with custom ostree and other contents
 
@@ -4846,6 +4955,8 @@ class OstreeContentViewTestCase(CLITestCase):
             promoted successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV with names.
@@ -4938,7 +5049,7 @@ class ContentViewRedHatOstreeContent(CLITestCase):
             u'product': PRDS['rhah'],
         })
 
-    @tier2
+    @tier3
     def test_positive_add_rh_ostree_content(self):
         """Associate RH atomic ostree content in a view
 
@@ -4946,6 +5057,8 @@ class ContentViewRedHatOstreeContent(CLITestCase):
 
         :expectedresults: RH atomic ostree content assigned and present in
             content view
+
+        :CaseImportance: Medium
 
         :CaseLevel: Integration
         """
@@ -4964,7 +5077,7 @@ class ContentViewRedHatOstreeContent(CLITestCase):
             'Ostree Repo was not associated to CV',
         )
 
-    @tier2
+    @tier3
     def test_positive_publish_RH_ostree(self):
         """Publish a content view with RH ostree contents
 
@@ -4974,6 +5087,8 @@ class ContentViewRedHatOstreeContent(CLITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV with names.
@@ -4987,7 +5102,7 @@ class ContentViewRedHatOstreeContent(CLITestCase):
         cv = ContentView.info({u'id': cv['id']})
         self.assertEqual(len(cv['versions']), 1)
 
-    @tier2
+    @tier3
     def test_positive_promote_RH_ostree(self):
         """Promote a content view with RH ostree contents
 
@@ -4997,6 +5112,8 @@ class ContentViewRedHatOstreeContent(CLITestCase):
             successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV with names.
@@ -5020,7 +5137,7 @@ class ContentViewRedHatOstreeContent(CLITestCase):
         environment = {'id': lc_env['id'], 'name': lc_env['name']}
         self.assertIn(environment, cv['lifecycle-environments'])
 
-    @tier2
+    @tier3
     @upgrade
     def test_positive_publish_promote_with_RH_ostree_and_other(self):
         """Publish & Promote a content view with RH ostree and other contents
@@ -5031,6 +5148,8 @@ class ContentViewRedHatOstreeContent(CLITestCase):
             promoted successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         RepositorySet.enable({
             'name': REPOSET['rhst7'],
@@ -5132,7 +5251,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         return new_repo
 
     @skip_if_bug_open('bugzilla', 1610309)
-    @tier2
+    @tier3
     def test_positive_arbitrary_file_repo_addition(self):
         """Check a File Repository with Arbitrary File can be added to a
         Content View
@@ -5152,6 +5271,8 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseAutomation: notautomated
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         repo = self._make_file_repository_upload_contents()
         cv = make_content_view({u'organization-id': self.org['id']})
@@ -5168,7 +5289,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
             self.repo_name)
 
     @stubbed()
-    @tier2
+    @tier3
     def test_positive_arbitrary_file_repo_removal(self):
         """Check a File Repository with Arbitrary File can be removed from a
         Content View
@@ -5218,7 +5339,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @tier2
+    @tier3
     def test_positive_arbitrary_file_repo_promotion(self):
         """Check arbitrary files availability for Content view version after
         content-view promotion.
@@ -5241,6 +5362,8 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseAutomation: automated
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
 
         cv = make_content_view({
