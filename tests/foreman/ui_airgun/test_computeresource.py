@@ -208,38 +208,6 @@ def test_positive_list_resource_vms(
 
 
 @tier2
-def test_positive_list_containers(session, module_org, module_loc):
-    """Create a Docker-based Compute Resource then list its running containers.
-
-    :id: ebac82ed-5a29-4a06-8aae-bd5b08f60fba
-
-    :expectedresults: Compute Resource can be created, listed and existing
-        running instances can be listed.
-
-    :BZ: 1466240, 1478966
-
-    :CaseLevel: Integration
-    """
-    compute_resource = entities.DockerComputeResource(
-        location=[module_loc],
-        organization=[module_org],
-        url=settings.docker.external_url,
-    ).create()
-    containers = [
-        entities.DockerHubContainer(
-            compute_resource=compute_resource,
-            location=[module_loc],
-            organization=[module_org],
-        ).create()
-        for _ in range(3)
-    ]
-    with session:
-        for container in containers:
-            assert container.name in session.computeresource.search_container(
-                compute_resource.name, container.name)[0]['Name']
-
-
-@tier2
 def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
     """Edit RHEV Compute Resource with another protocol version
 
