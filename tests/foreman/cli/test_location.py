@@ -34,7 +34,6 @@ from robottelo.cli.factory import (
     make_user,
 )
 from robottelo.cli.location import Location
-from robottelo.datafactory import filtered_datapoint, invalid_values_list
 from robottelo.decorators import (
     skip_if_bug_open,
     run_in_one_thread,
@@ -43,26 +42,6 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import CLITestCase
-
-
-@filtered_datapoint
-def valid_loc_data_list():
-    """List of valid data for input testing.
-
-    Note: The maximum allowed length of location name is 246 only.  This is an
-    intended behavior (Also note that 255 is the standard across other
-    entities.)
-
-    """
-    return [
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    ]
 
 
 class LocationTestCase(CLITestCase):
@@ -75,22 +54,6 @@ class LocationTestCase(CLITestCase):
         # Add capsule to cleanup list
         self.addCleanup(capsule_cleanup, proxy['id'])
         return proxy
-
-    @tier1
-    def test_positive_create_with_name(self):
-        """Try to create location using different value types as a name
-
-        :id: 76a90b92-296c-4b5a-9c81-183ff71937e2
-
-        :expectedresults: Location is created successfully and has proper name
-
-
-        :CaseImportance: Critical
-        """
-        for name in valid_loc_data_list():
-            with self.subTest(name):
-                loc = make_location({'name': name})
-                self.assertEqual(loc['name'], name)
 
     @skip_if_bug_open('bugzilla', 1233612)
     @tier1
@@ -431,22 +394,6 @@ class LocationTestCase(CLITestCase):
             self.assertIn(domain['name'], loc['domains'])
 
     @tier1
-    def test_negative_create_with_name(self):
-        """Try to create location using invalid names only
-
-        :id: 2dfe8ff0-e84a-42c0-a480-0f8345ee66d0
-
-        :expectedresults: Location is not created
-
-
-        :CaseImportance: Critical
-        """
-        for invalid_name in invalid_values_list():
-            with self.subTest(invalid_name):
-                with self.assertRaises(CLIFactoryError):
-                    make_location({'name': invalid_name})
-
-    @tier1
     def test_negative_create_with_same_name(self):
         """Try to create location using same name twice
 
@@ -492,27 +439,6 @@ class LocationTestCase(CLITestCase):
         """
         with self.assertRaises(CLIFactoryError):
             make_location({'users': gen_string('utf8', 80)})
-
-    @tier1
-    def test_positive_update_with_name(self):
-        """Try to update location using different value types as a name
-
-        :id: 09fa55a5-c688-4bd3-94df-8ab7a2ccda84
-
-        :expectedresults: Location is updated successfully and has proper and
-            expected name
-
-        :CaseImportance: Critical
-        """
-        loc = make_location()
-        for new_name in valid_loc_data_list():
-            with self.subTest(new_name):
-                Location.update({
-                    'id': loc['id'],
-                    'new-name': new_name,
-                })
-                loc = Location.info({'id': loc['id']})
-                self.assertEqual(loc['name'], new_name)
 
     @tier1
     def test_positive_update_with_user_by_id(self):
@@ -624,26 +550,6 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(len(loc['hostgroups']), 2)
         for host_group in new_host_groups:
             self.assertIn(host_group['name'], loc['hostgroups'])
-
-    @tier1
-    def test_negative_update_with_name(self):
-        """Try to update location using invalid names only
-
-        :id: a41abf03-61ca-4201-8a80-7062a6196851
-
-        :expectedresults: Location is not updated
-
-
-        :CaseImportance: Critical
-        """
-        for invalid_name in invalid_values_list():
-            with self.subTest(invalid_name):
-                loc = make_location()
-                with self.assertRaises(CLIReturnCodeError):
-                    Location.update({
-                        'id': loc['id'],
-                        'new-name': invalid_name,
-                    })
 
     @tier1
     def test_negative_update_with_domain_by_id(self):
@@ -782,27 +688,6 @@ class LocationTestCase(CLITestCase):
         })
         loc = Location.info({'name': loc['name']})
         self.assertNotIn(proxy['name'], loc['smart-proxies'])
-
-    @tier1
-    @upgrade
-    def test_positive_delete_by_name(self):
-        """Try to delete location using name of that location as a
-        parameter. Use different value types for testing.
-
-        :id: b44e56e4-00f0-4b7c-bef6-48b10c7b2b59
-
-        :expectedresults: Location is deleted successfully
-
-
-        :CaseImportance: Critical
-        """
-        for name in valid_loc_data_list():
-            with self.subTest(name):
-                loc = make_location({'name': name})
-                self.assertEqual(loc['name'], name)
-                Location.delete({'name': loc['name']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Location.info({'id': loc['id']})
 
     @tier1
     def test_positive_delete_by_id(self):
