@@ -6,7 +6,6 @@ import os
 import random
 import re
 import requests
-import six
 
 from tempfile import mkstemp
 from nailgun.config import ServerConfig
@@ -22,12 +21,8 @@ from robottelo.constants import (
 from robottelo.decorators import bz_bug_is_open
 
 # This conditional is here to centralize use of lru_cache and urljoin
-if six.PY3:  # pragma: no cover
-    from functools import lru_cache  # noqa
-    from urllib.parse import urljoin  # noqa
-else:  # pragma: no cover
-    from cachetools.func import lru_cache  # noqa
-    from urlparse import urljoin  # noqa
+from functools import lru_cache  # noqa
+from urllib.parse import urljoin  # noqa
 
 LOGGER = logging.getLogger(__name__)
 
