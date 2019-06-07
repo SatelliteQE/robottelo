@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: Repositories
 
 :TestType: Functional
 
@@ -14,42 +14,197 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
+from nailgun import entities
 
-from robottelo.decorators import (
-    stubbed,
-    tier4,
+from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.constants import (
+    DISTRO_RHEL6, DISTRO_RHEL7,
+    DOCKER_REGISTRY_HUB,
+    DOCKER_UPSTREAM_NAME,
+    FAKE_1_YUM_REPO,
+    FEDORA27_OSTREE_REPO,
+    REPOS,
+    REPOSET,
+    REPO_TYPE,
+    PRDS,
 )
-from robottelo.test import UITestCase
+from robottelo.decorators import (
+    fixture,
+    run_in_one_thread,
+    skip_if_not_set,
+    tier2,
+    upgrade,
+    skip_if_bug_open,
+)
+from robottelo.decorators.host import skip_if_os
+from robottelo.products import (
+    RepositoryCollection,
+    RHELCloudFormsTools,
+    SatelliteCapsuleRepository,
+)
 
 
-class SyncTestCase(UITestCase):
-    """Implements Custom Sync tests in UI"""
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
-    @stubbed()
-    @tier4
-    def test_positive_sync_disconnected_to_connected_rh_repos(self):
-        """Migrating from disconnected to connected satellite.
 
-        :id: 03b3d904-1697-441b-bb12-8b353a556218
+@fixture(scope='module')
+def module_custom_product(module_org):
+    return entities.Product(organization=module_org).create()
 
-        :Steps:
-            1. Update the link to an internal http link where the content has
-                been extracted from ISO's.
-            2. Import a valid manifest.
-            3. Enable few RedHat repos and Sync them.
-            4. Now let's revert back the link to CDN's default link which is,
-                'https://cdn.redhat.com'.
-            5. Now Navigate to the 'Sync Page' and resync the repos synced
-                earlier.
 
-        :expectedresults: 1. Syncing should work fine without any issues. 2.
-            Only the deltas are re-downloaded and not the entire repo.  [ Could
-            be an exception when 7Server was earlier pointing to 7.1 and
-            current 7Server points to latest 7.2] 3. After reverting the link
-            the repos should not be seen in 'Others Tab' and should be seen
-            only in 'RPM's Tab'.
+@fixture(scope='module')
+def module_org_with_manifest():
+    org = entities.Organization().create()
+    manifests.upload_manifest_locked(org.id)
+    return org
 
-        :CaseAutomation: notautomated
 
-        :CaseLevel: System
-        """
+@tier2
+def test_positive_sync_custom_repo(session, module_custom_product):
+    """Create Content Custom Sync with minimal input parameters
+
+    :id: 00fb0b04-0293-42c2-92fa-930c75acee89
+
+    :expectedresults: Sync procedure is successful
+
+    :CaseImportance: Critical
+    """
+    repo = entities.Repository(
+        url=FAKE_1_YUM_REPO, product=module_custom_product).create()
+    with session:
+        results = session.sync_status.synchronize([
+            (module_custom_product.name, repo.name)])
+        assert len(results) == 1
+        assert results[0] == 'Syncing Complete.'
+
+
+@run_in_one_thread
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_sync_rh_repos(session, module_org_with_manifest):
+    """Create Content RedHat Sync with two repos.
+
+    :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
+
+    :expectedresults: Sync procedure for RedHat Repos is successful
+
+    :CaseLevel: Integration
+    """
+    repos = (
+        SatelliteCapsuleRepository(cdn=True),
+        RHELCloudFormsTools(cdn=True)
+    )
+    distros = [DISTRO_RHEL7, DISTRO_RHEL6]
+    repo_collections = [
+        RepositoryCollection(distro=distro, repositories=[repo])
+        for distro, repo in zip(distros, repos)
+    ]
+    for repo_collection in repo_collections:
+        repo_collection.setup(module_org_with_manifest.id, synchronize=False)
+    repo_paths = [
+        (
+            repo.repo_data['product'],
+            repo.repo_data.get('releasever'),
+            repo.repo_data.get('arch'),
+            repo.repo_data['name'],
+        )
+        for repo in repos
+    ]
+    with session:
+        session.organization.select(org_name=module_org_with_manifest.name)
+        results = session.sync_status.synchronize(repo_paths)
+        assert len(results) == len(repo_paths)
+        assert all([result == 'Syncing Complete.' for result in results])
+
+
+@skip_if_bug_open('bugzilla', 1625783)
+@skip_if_os('RHEL6')
+@tier2
+@upgrade
+def test_positive_sync_custom_ostree_repo(session, module_custom_product):
+    """Create custom ostree repository and sync it.
+
+    :id: e4119b9b-0356-4661-a3ec-e5807224f7d2
+
+    :expectedresults: ostree repo should be synced successfully
+
+    :CaseLevel: Integration
+    """
+    repo = entities.Repository(
+        content_type='ostree',
+        url=FEDORA27_OSTREE_REPO,
+        product=module_custom_product,
+        unprotected=False,
+    ).create()
+    with session:
+        results = session.sync_status.synchronize([
+            (module_custom_product.name, repo.name)])
+        assert len(results) == 1
+        assert results[0] == 'Syncing Complete.'
+
+
+@run_in_one_thread
+@skip_if_bug_open('bugzilla', 1625783)
+@skip_if_os('RHEL6')
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
+    """Sync CDN based ostree repository.
+
+    :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
+
+    :Steps:
+        1. Import a valid manifest
+        2. Enable the OStree repo and sync it
+
+    :expectedresults: ostree repo should be synced successfully from CDN
+
+    :CaseLevel: Integration
+    """
+    enable_rhrepo_and_fetchid(
+        basearch=None,
+        org_id=module_org_with_manifest.id,
+        product=PRDS['rhah'],
+        repo=REPOS['rhaht']['name'],
+        reposet=REPOSET['rhaht'],
+        releasever=None,
+    )
+    with session:
+        session.organization.select(org_name=module_org_with_manifest.name)
+        results = session.sync_status.synchronize([
+            (PRDS['rhah'], REPOS['rhaht']['name'])])
+        assert len(results) == 1
+        assert results[0] == 'Syncing Complete.'
+
+
+@tier2
+@upgrade
+def test_positive_sync_docker_via_sync_status(session, module_org):
+    """Create custom docker repo and sync it via the sync status page.
+
+    :id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
+
+    :expectedresults: Sync procedure for specific docker repository is
+        successful
+
+    :CaseLevel: Integration
+    """
+    product = entities.Product(organization=module_org).create()
+    repo_name = gen_string('alphanumeric')
+    with session:
+        session.repository.create(
+            product.name,
+            {'name': repo_name,
+             'repo_type': REPO_TYPE['docker'],
+             'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
+             'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME}
+        )
+        assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
+        result = session.sync_status.synchronize([(product.name, repo_name)])
+        assert result[0] == 'Syncing Complete.'

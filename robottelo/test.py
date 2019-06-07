@@ -2,29 +2,16 @@
 """Test utilities for writing foreman tests
 
 All test cases for foreman tests are defined in this module and have utilities
-to help writing API, CLI and UI tests.
+to help writing API and CLI tests.
 
 """
 import logging
 import re
 import unittest2
 
-try:
-    import sauceclient
-except ImportError:
-    # Optional requirement, if installed robottelo will report results back to
-    # saucelabs.
-    sauceclient = None
-
-from fauxfactory import gen_string
-from nailgun import entities
 from robottelo import manifests
 from robottelo.config import settings
-from robottelo.constants import (
-    INTERFACE_API,
-    INTERFACE_CLI,
-    DEFAULT_ORG,
-)
+from robottelo.constants import INTERFACE_API, INTERFACE_CLI
 
 LOGGER = logging.getLogger(__name__)
 
@@ -315,104 +302,3 @@ class CLITestCase(TestCase):
         error_msg = getattr(exception, 'stderr', str(exception))
         for content in contents:
             self.assertIn(content, error_msg)
-
-
-class UITestCase(TestCase):
-    """Test case for UI tests."""
-    _default_interface = INTERFACE_API
-
-    @classmethod
-    def setUpClass(cls):  # noqa
-        """Make sure that we only read configuration values once."""
-        super(UITestCase, cls).setUpClass()
-        cls.set_session_org()
-        cls.set_session_user()
-        if cls.session_user is not None:
-            cls.foreman_user = cls.session_user.login
-        cls.driver_name = settings.webdriver
-        cls.driver_binary = settings.webdriver_binary
-        cls.locale = settings.locale
-        cls.server_name = settings.server.hostname
-        cls.logger.info(
-            u'Session set with:\n'
-            u'\tUser: {cls.session_user.id}:{cls.session_user.login}\n'
-            u'\tOrganization: {cls.session_org.id}:{cls.session_org.name}\n'
-            u'\tWeb Driver: {cls.driver_name}\n'
-            u'\tBinary: {cls.driver_binary}\n'
-            u'\tLocale: {cls.locale}\n'
-            u'\tServer Name: {cls.server_name}'
-            .format(cls=cls)
-        )
-
-    @classmethod
-    def set_session_org(cls):
-        """TestCases can overwrite this method to create a different
-        organization object for the session.
-        """
-        cls.default_org_id = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
-        cls.session_org = entities.Organization(
-            id=cls.default_org_id, name=DEFAULT_ORG
-        )
-
-    @classmethod
-    def set_session_user(cls):
-        """Creates a new user for each session this method can be overwritten
-        in TestCases in order to get different default user
-        """
-        try:
-            username = gen_string('alpha')
-            cls.session_user = entities.User(
-                firstname='Robottelo User {0}'.format(username),
-                login=username,
-                password=cls.foreman_password,
-                admin=True,
-                default_organization=cls.session_org
-            ).create()
-        except Exception as e:
-            cls.session_user = None
-            cls.logger.warn('Unable to create session_user: %s', str(e))
-
-    @classmethod
-    def tearDownClass(cls):
-        super(UITestCase, cls).tearDownClass()
-        cls.delete_session_user()
-
-    @classmethod
-    def delete_session_user(cls):
-        """Delete created session user can be overwritten in TestCase to
-        bypass user deletion
-        """
-        if cls.session_user is not None:
-            try:
-                cls.session_user.delete(synchronous=False)
-            except Exception as e:
-                cls.logger.warn('Unable to delete session_user: %s', str(e))
-            else:
-                cls.logger.info(
-                    'Session user is being deleted: %s', cls.session_user)
-
-    def _saucelabs_test_result(self, session_id):
-        """SauceLabs has no way to determine whether test passed or failed
-        automatically, so we explicitly 'tell' it
-        """
-        if settings.browser == 'saucelabs' and sauceclient:
-            sc = sauceclient.SauceClient(
-                settings.saucelabs_user, settings.saucelabs_key)
-            passed = True
-            status = 'passed'
-            if (len(self._outcome.errors) > 0 and
-                    self in self._outcome.errors[-1]):
-                passed = False
-                status = 'failed'
-            if (len(self._outcome.skipped) > 0 and
-                    self in self._outcome.skipped[-1]):
-                passed = None
-                status = 'complete'
-            LOGGER.debug(
-                'Updating SauceLabs job "%s": name "%s" and status "%s"',
-                session_id,
-                str(self),
-                status
-            )
-            sc.jobs.update_job(session_id, name=str(self), passed=passed)
