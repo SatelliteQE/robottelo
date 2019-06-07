@@ -258,7 +258,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed()
     @tier3
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
         """Override subnet parameter from host impact on subnet parameter
@@ -277,6 +276,49 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         CaseLevel: System
         """
+
+        # Create subnet with valid parameters
+        parameter = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        org_subnet = entities.Subnet(
+            location=[loc],
+            organization=[org],
+            subnet_parameters_attributes=parameter,
+        ).create()
+        self.assertEqual(
+            org_subnet.subnet_parameters_attributes[0]['name'],
+            parameter[0]['name']
+        )
+        self.assertEqual(
+            org_subnet.subnet_parameters_attributes[0]['value'],
+            parameter[0]['value']
+        )
+        # Create host with above subnet
+        host = entities.Host(
+            location=loc,
+            organization=org,
+            subnet=org_subnet,
+        ).create()
+        self.assertEqual(host.subnet.read().name, org_subnet.name)
+        parameter_new_value = [{
+            'name': org_subnet.subnet_parameters_attributes[0]['name'],
+            'value': gen_string('alpha')
+        }]
+        host.host_parameters_attributes = parameter_new_value
+        host = host.update(['host_parameters_attributes'])
+        self.assertEqual(
+            host.host_parameters_attributes[0]['value'],
+            parameter_new_value[0]['value']
+        )
+        self.assertEqual(
+            host.host_parameters_attributes[0]['name'],
+            org_subnet.subnet_parameters_attributes[0]['name']
+        )
+        self.assertEqual(
+            org_subnet.read().subnet_parameters_attributes[0]['value'],
+            parameter[0]['value']
+        )
 
     @tier1
     def test_positive_update_parameter(self):
