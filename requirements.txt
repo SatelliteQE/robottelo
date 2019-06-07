@@ -26,7 +26,7 @@ urllib3==1.24.2
 # to update it code changes is needed.
 python-bugzilla==1.2.2  # pyup: ignore
 
-PyYAML==5.1
+PyYAML==5.1.1
 robozilla==0.2.6
 
 # Get airgun, nailgun and upgrade from master
