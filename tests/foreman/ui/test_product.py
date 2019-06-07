@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Products UI
 
 :Requirement: Product
@@ -15,193 +14,150 @@
 
 :Upstream: No
 """
-
-from fauxfactory import gen_string
+from datetime import timedelta
+from fauxfactory import gen_choice
 from nailgun import entities
-from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import tier1, upgrade
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_product
-from robottelo.ui.locators import common_locators
-from robottelo.ui.session import Session
+from robottelo.constants import FAKE_1_YUM_REPO, REPO_TYPE, VALID_GPG_KEY_FILE, SYNC_INTERVAL
+from robottelo.datafactory import gen_string, valid_data_list, valid_cron_expressions
+from robottelo.decorators import fixture, parametrize, tier2
+from robottelo.helpers import read_data_file
 
 
-class ProductTestCase(UITestCase):
-    """Implements Product tests in UI"""
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
-    @classmethod
-    def setUpClass(cls):
-        super(ProductTestCase, cls).setUpClass()
-        cls.organization = entities.Organization().create()
-        cls.loc = entities.Location().create()
 
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create Content Product providing different names and minimal
-        input parameters
+@tier2
+def test_positive_end_to_end(session, module_org):
+    """Perform end to end testing for product component
 
-        :id: b73d9440-1f30-4fc5-ad7c-e1febe879cbc
+    :id: d0e1f0d1-2380-4508-b270-62c1d8b3e2ff
 
-        :expectedresults: Product is created
+    :expectedresults: All expected CRUD actions finished successfully
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for prd_name in generate_strings_list():
-                with self.subTest(prd_name):
-                    make_product(
-                        session,
-                        org=self.organization.name,
-                        loc=self.loc.name,
-                        name=prd_name,
-                        description=gen_string('alphanumeric'),
-                    )
-                    self.assertIsNotNone(self.products.search(prd_name))
+    :CaseLevel: Integration
 
-    @tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create Content Product with invalid names
+    :CaseImportance: High
+    """
+    product_name = gen_string('alpha')
+    new_product_name = gen_string('alpha')
+    product_label = gen_string('alpha')
+    product_description = gen_string('alpha')
+    gpg_key = entities.GPGKey(
+        content=read_data_file(VALID_GPG_KEY_FILE),
+        organization=module_org
+    ).create()
+    sync_plan = entities.SyncPlan(organization=module_org).create()
+    with session:
+        # Create new product using different parameters
+        session.product.create({
+            'name': product_name,
+            'label': product_label,
+            'gpg_key': gpg_key.name,
+            'sync_plan': sync_plan.name,
+            'description': product_description,
+        })
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        # Verify that created entity has expected parameters
+        product_values = session.product.read(product_name)
+        assert product_values['details']['name'] == product_name
+        assert product_values['details']['label'] == product_label
+        assert product_values['details']['gpg_key'] == gpg_key.name
+        assert product_values['details']['description'] == product_description
+        assert product_values['details']['sync_plan'] == sync_plan.name
+        # Update a product with a different name
+        session.product.update(
+            product_name, {'details.name': new_product_name}
+        )
+        assert not session.product.search(product_name)
+        assert session.product.search(new_product_name)[0]['Name'] == new_product_name
+        # Add a repo to product
+        session.repository.create(
+            new_product_name,
+            {
+                'name': gen_string('alpha'),
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+            }
+        )
+        # Synchronize the product
+        result = session.product.synchronize(new_product_name)
+        assert result['result'] == 'success'
+        product_values = session.product.read(new_product_name)
+        assert product_values['details']['repos_count'] == '1'
+        assert product_values['details']['sync_state'] == 'Syncing Complete.'
+        # Delete product
+        session.product.delete(new_product_name)
+        assert not session.product.search(new_product_name)
 
-        :id: 11efd16c-6471-4191-934f-79c7278c66e8
 
-        :expectedresults: Product is not created
+@parametrize('product_name', **valid_data_list('ui'))
+@tier2
+def test_positive_create_in_different_orgs(session, product_name):
+    """Create Product with same name but in different organizations
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in invalid_values_list(interface='ui'):
-                with self.subTest(name):
-                    make_product(
-                        session,
-                        org=self.organization.name,
-                        loc=self.loc.name,
-                        name=name,
-                        description=gen_string('alphanumeric'),
-                    )
-                    self.assertIsNotNone(self.products.wait_until_element(
-                        common_locators['common_invalid']))
+    :id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Create Content Product with same name input parameter
+    :expectedresults: Product is created successfully in both
+        organizations.
 
-        :id: 90ceee6e-0ccc-4065-87ba-42d36484f032
+    :CaseLevel: Integration
+    """
+    orgs = [entities.Organization().create() for _ in range(2)]
+    with session:
+        for org in orgs:
+            session.organization.select(org_name=org.name)
+            session.product.create(
+                {'name': product_name, 'description': org.name})
+            assert session.product.search(
+                product_name)[0]['Name'] == product_name
+            product_values = session.product.read(product_name)
+            assert product_values['details']['description'] == org.name
 
-        :expectedresults: Product is not created
 
-        :CaseImportance: Critical
-        """
-        prd_name = gen_string('alphanumeric')
-        description = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=description,
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.products.create(prd_name, description)
-            self.assertIsNotNone(self.products.wait_until_element(
-                common_locators['common_haserror']))
+@tier2
+def test_positive_product_create_with_create_sync_plan(session, module_org):
+    """Perform Sync Plan Create from Product Create Page
 
-    @tier1
-    def test_positive_update_name(self):
-        """Update Content Product name with minimal input parameters
+    :id: 4a87b533-12b6-4d4e-8a99-4bb95efc4321
 
-        :id: 2c0539b4-84e1-46c6-aaca-12fe3865da3d
+    :expectedresults: Ensure sync get created and assigned to Product.
 
-        :expectedresults: Product is updated
+    :CaseLevel: Integration
 
-        :CaseImportance: Critical
-        """
-        prd_name = gen_string('alpha')
-        with Session(self) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
-            for new_prd_name in generate_strings_list():
-                with self.subTest(new_prd_name):
-                    self.products.update(prd_name, new_name=new_prd_name)
-                    self.assertIsNotNone(self.products.search(new_prd_name))
-                    prd_name = new_prd_name  # for next iteration
-
-    @tier1
-    def test_positive_update_to_original_name(self):
-        """Rename Product back to original name.
-
-        :id: 6632effe-06ba-4690-b81d-4f5eae20b7b9
-
-        :expectedresults: Product renamed to previous value.
-
-        :CaseLevel: Integration
-        """
-        prd_name = gen_string('alphanumeric')
-        new_prd_name = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.products.update(prd_name, new_name=new_prd_name)
-            self.assertIsNotNone(self.products.search(new_prd_name))
-            # Rename Product to original and verify
-            self.products.update(new_prd_name, new_name=prd_name)
-            self.assertIsNotNone(self.products.search(prd_name))
-
-    @tier1
-    def test_negative_update_with_too_long_name(self):
-        """Update Content Product with too long input parameters
-
-        :id: c6938675-4a2a-4bec-9315-b1c951b628bb
-
-        :expectedresults: Product is not updated
-
-        :CaseImportance: Critical
-        """
-        prd_name = gen_string('alpha')
-        with Session(self) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.products.update(prd_name, new_name=gen_string('alpha', 256))
-            self.assertIsNotNone(self.products.wait_until_element(
-                common_locators['alert.error']))
-
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Delete Content Product
-
-        :id: cf80bafb-8581-483a-b5c1-3a162642c6c1
-
-        :expectedresults: Product is deleted
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for prd_name in generate_strings_list():
-                with self.subTest(prd_name):
-                    make_product(
-                        session,
-                        org=self.organization.name,
-                        loc=self.loc.name,
-                        name=prd_name,
-                        description=gen_string('alphanumeric'),
-                    )
-                    self.assertIsNotNone(self.products.search(prd_name))
-                    self.products.delete(prd_name)
+    :CaseImportance: medium
+    """
+    product_name = gen_string('alpha')
+    product_description = gen_string('alpha')
+    gpg_key = entities.GPGKey(
+        content=read_data_file(VALID_GPG_KEY_FILE),
+        organization=module_org
+    ).create()
+    plan_name = gen_string('alpha')
+    description = gen_string('alpha')
+    cron_expression = gen_choice(valid_cron_expressions())
+    with session:
+        startdate = (
+                session.browser.get_client_datetime() + timedelta(minutes=10))
+        sync_plan_values = {
+            'name': plan_name,
+            'interval': SYNC_INTERVAL['custom'],
+            'description': description,
+            'cron_expression': cron_expression,
+            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+            'date_time.hours': startdate.strftime('%H'),
+            'date_time.minutes': startdate.strftime('%M'),
+        }
+        session.product.create({
+            'name': product_name,
+            'gpg_key': gpg_key.name,
+            'description': product_description,
+        }, sync_plan_values=sync_plan_values)
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        product_values = session.product.read(product_name)
+        assert product_values['details']['name'] == product_name
+        assert product_values['details']['sync_plan'] == plan_name
+        # Delete product
+        session.product.delete(product_name)
+        assert not session.product.search(product_name)

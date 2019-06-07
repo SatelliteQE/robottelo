@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Organization UI
 
 :Requirement: Organization
@@ -17,319 +16,376 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-
-from robottelo.datafactory import (
-    filtered_datapoint,
-    generate_strings_list,
-    invalid_names_list,
-    invalid_values_list,
-)
-from robottelo.decorators import (
-    skip_if_bug_open,
-    stubbed,
-    tier1,
-    tier2,
-    upgrade
-)
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
-from robottelo.ui.locators import common_locators, locators
-from robottelo.ui.session import Session
-
-
-@filtered_datapoint
-def valid_labels():
-    """Returns a list of valid labels"""
-    return [
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-    ]
-
-
-@filtered_datapoint
-def valid_users():
-    """Returns a list of valid users"""
-    return [
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-        gen_string('utf8'),
-        gen_string('latin1'),
-        # Note: HTML username is invalid as per the UI msg.
-    ]
-
-
-@filtered_datapoint
-def valid_env_names():
-    """Returns a list of valid environment names"""
-    return [
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-    ]
-
-
-class OrganizationTestCase(UITestCase):
-    """Implements Organization tests in UI"""
-
-    @tier1
-    def test_positive_search_autocomplete(self):
-        """Search for an organization can be auto-completed by partial
-        name
-
-        :id: f3c492ab-46fb-4b1d-b5d5-29a82385d681
-
-        :expectedresults: Auto search for created organization works as
-            intended
-
-        :CaseImportance: Critical
-        """
-        org_name = gen_string('alpha')
-        part_string = org_name[:3]
-        with Session(self) as session:
-            page = session.nav.go_to_org
-            make_org(session, org_name=org_name)
-            auto_search = self.org.auto_complete_search(
-                page, locators['org.org_name'], part_string, org_name,
-                search_key='name')
-            self.assertIsNotNone(auto_search)
-
-    @tier1
-    def test_positive_search_scoped(self):
-        """Test scoped search functionality for organization by label
-
-        :id: 18ad9aad-335a-414e-843e-e1c05ec6bcbb
-
-        :customerscenario: true
-
-        :expectedresults: Proper organization is found
-
-        :BZ: 1259374
-
-        :CaseImportance: Critical
-        """
-        org_name = gen_string('alpha')
-        label = gen_string('alpha')
-        with Session(self) as session:
-            make_org(session, org_name=org_name, label=label)
-            for query in [
-                'label = {}'.format(label),
-                'label ~ {}'.format(label[:-5]),
-                'label ^ "{}"'.format(label),
-            ]:
-                self.assertIsNotNone(
-                    self.org.search(org_name, _raw_query=query))
-
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create organization with valid name only.
-
-        :id: bb5c6400-e837-4e3b-add9-bab2c0b826c9
-
-        :expectedresults: Organization is created, label is auto-generated
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for org_name in generate_strings_list():
-                with self.subTest(org_name):
-                    make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
-
-    @tier1
-    def test_positive_create_with_unmatched_name_label(self):
-        """Create organization with valid unmatching name and label only
-
-        :id: 82954640-05c2-4d6c-a293-dc4aa3e5611b
-
-        :expectedresults: organization is created, label does not match name
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for label in valid_labels():
-                with self.subTest(label):
-                    org_name = gen_string('alphanumeric')
-                    make_org(
-                        session, org_name=org_name, label=label)
-                    self.org.search_and_click(org_name)
-                    name = session.nav.wait_until_element(
-                        locators['org.name']).get_attribute('value')
-                    label = session.nav.wait_until_element(
-                        locators['org.label']).get_attribute('value')
-                    self.assertNotEqual(name, label)
-
-    @tier1
-    def test_positive_create_with_same_name_and_label(self):
-        """Create organization with valid matching name and label only.
-
-        :id: 73befc8c-bf96-48b7-8315-34f0cfef9382
-
-        :expectedresults: organization is created, label matches name
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for item in valid_labels():
-                with self.subTest(item):
-                    make_org(session, org_name=item, label=item)
-                    self.org.search_and_click(item)
-                    name = self.org.wait_until_element(
-                        locators['org.name']).get_attribute('value')
-                    label = self.org.wait_until_element(
-                        locators['org.label']).get_attribute('value')
-                    self.assertEqual(name, label)
-
-    @skip_if_bug_open('bugzilla', 1079482)
-    @tier1
-    def test_positive_create_with_auto_populated_label(self):
-        """Create organization with valid name. Check that organization
-        label is auto-populated
-
-        :id: 29793945-c553-4a6e-881f-cdcde373aa62
-
-        :expectedresults: organization is created, label is auto-generated
-
-        :BZ: 1079482
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for org_name in generate_strings_list():
-                with self.subTest(org_name):
-                    make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
-                    self.org.search_and_click(org_name)
-                    label = session.nav.wait_until_element(
-                        locators['org.label'])
-                    label_value = label.get_attribute('value')
-                    self.assertIsNotNone(label_value)
-
-    @tier1
-    def test_negative_create(self):
-        """Try to create organization and use whitespace, blank, tab
-        symbol or too long string of different types as its name value
-
-        :id: e69ab8c1-e53f-41fa-a84f-290c6c152484
-
-        :expectedresults: organization is not created
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for org_name in invalid_values_list(interface='ui'):
-                with self.subTest(org_name):
-                    make_org(session, org_name=org_name)
-                    error = session.nav.wait_until_element(
-                        common_locators['name_haserror'])
-                    self.assertIsNotNone(error)
-
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Create organization with valid names, then create a new one
-        with same names.
-
-        :id: d7fd91aa-1a0e-4403-8dea-cc03cbb93070
-
-        :expectedresults: organization is not created
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for org_name in generate_strings_list():
-                with self.subTest(org_name):
-                    make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
-                    self.org.create(org_name)
-                    error = session.nav.wait_until_element(
-                        common_locators['name_haserror'])
-                    self.assertIsNotNone(error)
-
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Create organization with valid values then delete it.
-
-        :id: 6b69d505-56b1-4d7d-bf2a-8762d5184ca8
-
-        :expectedresults: Organization is deleted successfully
-
-        :CaseImportance: Critical
-        """
-        with Session(self):
-            for org_name in generate_strings_list():
-                with self.subTest(org_name):
-                    entities.Organization(name=org_name).create()
-                    self.org.delete(org_name, dropdown_present=True)
-
-    @tier1
-    def test_positive_update_name(self):
-        """Create organization with valid values then update its name.
-
-        :id: 776f5268-4f05-4cfc-a1e9-339a3e224677
-
-        :expectedresults: Organization name is updated successfully
-
-        :CaseImportance: Critical
-        """
-        org_name = gen_string('alpha')
-        with Session(self) as session:
-            make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
-            for new_name in generate_strings_list():
-                with self.subTest(new_name):
-                    self.org.update(org_name, new_name=new_name)
-                    self.assertIsNotNone(self.org.search(new_name))
-                    org_name = new_name  # for next iteration
-
-    @tier1
-    def test_negative_update(self):
-        """Create organization with valid values then try to update it
-        using incorrect name values
-
-        :id: 1467a04e-ebd6-4106-94b1-841a4f0ddecb
-
-        :expectedresults: Organization name is not updated
-
-        :CaseImportance: Critical
-        """
-        org_name = gen_string('alpha')
-        with Session(self) as session:
-            make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
-            for new_name in invalid_names_list():
-                with self.subTest(new_name):
-                    self.org.update(org_name, new_name=new_name)
-                    error = session.nav.wait_until_element(
-                        common_locators['name_haserror'])
-                    self.assertIsNotNone(error)
-
-    @stubbed()
-    @tier2
-    def test_positive_create_with_smartproxy(self):
-        """Add a smart proxy during org creation.
-
-        :id: 7ad6f610-91ca-4f1f-b9c4-8ce82f50ea9e
-
-        :expectedresults: smartproxy is added
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_update_smartproxy(self):
-        """Add and Remove smartproxy by using organization name and smartproxy
-        name
-
-        :id: 25bc6334-de59-462c-824a-51d615d9fdd0
-
-        :expectedresults: smartproxy is added then removed
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
+from pytest import raises
+
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2, upgrade
+from robottelo.manifests import original_manifest, upload_manifest_locked
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session):
+    """Perform end to end testing for organization component
+
+    :id: 91003f52-63a6-4b0d-9b68-2b5717fd200e
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    label = gen_string('alphanumeric')
+    description = gen_string('alpha')
+    with session:
+        session.organization.create({
+            'name': name, 'label': label, 'description': description,
+        })
+        assert session.organization.search(name)[0]['Name'] == name
+        org_values = session.organization.read(name)
+        assert org_values['primary']['name'] == name
+        assert org_values['primary']['label'] == label
+        assert org_values['primary']['description'] == description
+        session.organization.update(name, {'primary.name': new_name})
+        assert session.organization.search(new_name)[0]['Name'] == new_name
+        with raises(AssertionError):
+            session.organization.delete(new_name)
+        session.organization.select(DEFAULT_ORG)
+        session.organization.delete(new_name)
+        assert not session.organization.search(new_name)
+
+
+@tier2
+def test_positive_update_user(session):
+    """Add new user and then remove it from organization
+
+    :id: 01a221f7-d0fe-4b46-ab5c-b4e861677126
+
+    :expectedresults: User successfully added and then removed from
+        organization resources
+
+    :CaseLevel: Integration
+    """
+    user = entities.User().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'users.resources.assigned': [user.login]})
+        org_values = session.organization.read(org.name)
+        assert org_values['users']['resources']['assigned'][0] == user.login
+        session.organization.update(
+            org.name, {'users.resources.unassigned': [user.login]})
+        org_values = session.organization.read(org.name)
+        assert len(org_values['users']['resources']['assigned']) == 0
+        assert user.login in org_values['users']['resources']['unassigned']
+
+
+@skip_if_bug_open('bugzilla', 1321543)
+@tier2
+def test_positive_create_with_all_users(session):
+    """Create organization and new user. Check 'all users' setting for
+    organization. Verify that user is assigned to organization and
+    vice versa organization is assigned to user
+
+    :id: 5bfcbd10-750c-4ef6-87b6-a8eb2eae4ce7
+
+    :expectedresults: Organization and user entities assigned to each other
+
+    :BZ: 1321543
+
+    :CaseLevel: Integration
+    """
+    user = entities.User().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'users.all_users': True})
+        org_values = session.organization.read(org.name)
+        assert user.login in org_values['users']['resources']['assigned']
+        session.organization.search(org.name)
+        session.organization.select(org_name=org.name)
+        assert session.user.search(user.login)[0]['Username'] == user.login
+        user_values = session.user.read(user.login)
+        assert org.name == user_values[
+            'organizations']['resources']['assigned'][0]
+
+
+@skip_if_not_set('compute_resources')
+@tier2
+def test_positive_update_compresource(session):
+    """Add/Remove compute resource from/to organization.
+
+    :id: db119bb1-8f79-415b-a056-70a19ffceeea
+
+    :expectedresults: Compute resource is added and then removed.
+
+    :CaseLevel: Integration
+    """
+    url = (
+        LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname)
+    resource = entities.LibvirtComputeResource(url=url).create()
+    resource_name = resource.name + ' (Libvirt)'
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name,
+            {'compute_resources.resources.assigned': [resource_name]}
+        )
+        org_values = session.organization.read(org.name)
+        assert org_values[
+            'compute_resources']['resources']['assigned'][0] == resource_name
+        session.organization.update(
+            org.name,
+            {'compute_resources.resources.unassigned': [resource_name]}
+        )
+        org_values = session.organization.read(org.name)
+        assert len(
+            org_values['compute_resources']['resources']['assigned']) == 0
+        assert resource_name in org_values[
+            'compute_resources']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_media(session):
+    """Add/Remove medium from/to organization.
+
+    :id: bcf3aaf4-cad9-4a22-a087-60b213eb87cf
+
+    :expectedresults: Medium is added and then removed.
+
+    :CaseLevel: Integration
+    """
+    media = entities.Media(
+        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
+        os_family='Redhat',
+    ).create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'media.resources.assigned': [media.name]})
+        org_values = session.organization.read(org.name)
+        assert org_values['media']['resources']['assigned'][0] == media.name
+        session.organization.update(
+            org.name, {'media.resources.unassigned': [media.name]})
+        org_values = session.organization.read(org.name)
+        assert len(org_values['media']['resources']['assigned']) == 0
+        assert media.name in org_values['media']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_template(session):
+    """Add and remove provisioning template from/to organization.
+
+    :id: 67bec745-5f10-494c-92a7-173ee63e8297
+
+    :expectedresults: Provisioning Template is added and then removed.
+
+    :CaseLevel: Integration
+    """
+    template = entities.ProvisioningTemplate().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name,
+            {'provisioning_templates.resources.assigned': [template.name]}
+        )
+        org_values = session.organization.read(org.name)
+        assert template.name in org_values[
+            'provisioning_templates']['resources']['assigned']
+        session.organization.update(
+            org.name,
+            {'provisioning_templates.resources.unassigned': [template.name]}
+        )
+        org_values = session.organization.read(org.name)
+        assert template.name in org_values[
+            'provisioning_templates']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_ptable(session):
+    """Add/Remove partition table from/to organization.
+
+    :id: 75662a83-0921-45fd-a4b5-012c48bb003a
+
+    :expectedresults: Partition table is added and then removed.
+
+    :CaseLevel: Integration
+    """
+    ptable = entities.PartitionTable().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'partition_tables.resources.assigned': [ptable.name]})
+        org_values = session.organization.read(org.name)
+        assert ptable.name in org_values[
+            'partition_tables']['resources']['assigned']
+        session.organization.update(
+            org.name, {'partition_tables.resources.unassigned': [ptable.name]})
+        org_values = session.organization.read(org.name)
+        assert ptable.name in org_values[
+            'partition_tables']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_domain(session):
+    """Add/Remove domain from/to organization.
+
+    :id: a49e86c7-f859-4120-b59e-3f89e99a9054
+
+    :expectedresults: Domain is added and removed from the organization
+
+    :CaseLevel: Integration
+    """
+    domain = entities.Domain().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'domains.resources.assigned': [domain.name]})
+        org_values = session.organization.read(org.name)
+        assert org_values['domains']['resources']['assigned'][0] == domain.name
+        session.organization.update(
+            org.name, {'domains.resources.unassigned': [domain.name]})
+        org_values = session.organization.read(org.name)
+        assert len(org_values['domains']['resources']['assigned']) == 0
+        assert domain.name in org_values['domains']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_environment(session):
+    """Add/Remove environment from/to organization.
+
+    :id: 270de90d-062e-4893-89c9-f6d0665ab967
+
+    :expectedresults: Environment is added then removed from organization.
+
+    :CaseLevel: Integration
+    """
+    env = entities.Environment().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'environments.resources.assigned': [env.name]})
+        org_values = session.organization.read(org.name)
+        assert org_values[
+            'environments']['resources']['assigned'][0] == env.name
+        session.organization.update(
+            org.name, {'environments.resources.unassigned': [env.name]})
+        org_values = session.organization.read(org.name)
+        assert len(org_values['environments']['resources']['assigned']) == 0
+        assert env.name in org_values[
+            'environments']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_hostgroup(session):
+    """Add/Remove host group from/to organization.
+
+    :id: 12e2fc40-d721-4e71-af7c-3db67b9e718e
+
+    :expectedresults: Host group is added to organization and then removed.
+
+    :CaseLevel: Integration
+    """
+    hostgroup = entities.HostGroup().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'host_groups.resources.assigned': [hostgroup.name]})
+        org_values = session.organization.read(org.name)
+        assert org_values[
+            'host_groups']['resources']['assigned'][0] == hostgroup.name
+        session.organization.update(
+            org.name, {'host_groups.resources.unassigned': [hostgroup.name]})
+        org_values = session.organization.read(org.name)
+        assert len(org_values['host_groups']['resources']['assigned']) == 0
+        assert hostgroup.name in org_values[
+            'host_groups']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_location(session):
+    """Add/Remove location from/to organization.
+
+    :id: 086efafa-0d7f-11e7-81e9-68f72889dc7f
+
+    :expectedresults: Location is added/removed to/from organization.
+
+    :CaseLevel: Integration
+    """
+    location = entities.Location().create()
+    org = entities.Organization().create()
+    with session:
+        session.organization.update(
+            org.name, {'locations.resources.assigned': [location.name]})
+        org_values = session.organization.read(org.name)
+        assert org_values[
+            'locations']['resources']['assigned'][0] == location.name
+        session.organization.update(
+            org.name, {'locations.resources.unassigned': [location.name]})
+        org_values = session.organization.read(org.name)
+        assert len(org_values['locations']['resources']['assigned']) == 0
+        assert location.name in org_values[
+            'locations']['resources']['unassigned']
+
+
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_delete_with_manifest_lces(session):
+    """Create Organization with valid values and upload manifest.
+    Then try to delete that organization.
+
+    :id: 851c8557-a406-4a70-9c8b-94bcf0482f8d
+
+    :expectedresults: Organization is deleted successfully.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    org = entities.Organization().create()
+    upload_manifest_locked(org.id)
+    with session:
+        session.organization.select(org.name)
+        session.lifecycleenvironment.create({'name': 'DEV'})
+        session.lifecycleenvironment.create(
+            {'name': 'QE'},
+            prior_entity_name='DEV',
+        )
+        # Org cannot be deleted when selected,
+        # So switching to Default Org and then deleting.
+        session.organization.select(DEFAULT_ORG)
+        session.organization.delete(org.name)
+        assert not session.organization.search(org.name)
+
+
+@skip_if_not_set('fake_manifest')
+@tier2
+@upgrade
+def test_positive_download_debug_cert_after_refresh(session):
+    """Create organization with valid manifest. Download debug
+    certificate for that organization and refresh added manifest for few
+    times in a row
+
+    :id: 1fcd7cd1-8ba1-434f-b9fb-c4e920046eb4
+
+    :expectedresults: Scenario passed successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    org = entities.Organization().create()
+    try:
+        upload_manifest_locked(org.id, original_manifest())
+        with session:
+            session.organization.select(org.name)
+            for _ in range(3):
+                assert org.download_debug_certificate()
+                session.subscription.refresh_manifest()
+    finally:
+        entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})

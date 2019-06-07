@@ -5,9 +5,9 @@ FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_ENDTOEND_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), endtoend)
-FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui_airgun})
+FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui})
 FOREMAN_TESTS_PATH=tests/foreman/
-FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui_airgun)
+FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
 PYTEST=python -m cProfile -o $@.pstats $$(which py.test)
 PYTEST_OPTS=-v --junit-xml=foreman-results.xml -m 'not stubbed'
 PYTEST_XDIST_NUMPROCESSES=auto
@@ -77,7 +77,6 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
-	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui_airgun
 
 test-robottelo:
 	$(info "Running robottelo framework unit tests...")
@@ -192,7 +191,7 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
-        test-foreman-ui_airgun \
+        test-foreman-ui \
         test-foreman-endtoend graph-entities lint logs-join \
         logs-clean pyc-clean uuid-check uuid-fix token-prefix-editor \
         can-i-push? install-commit-hook gitflake8 clean-cache clean-all \
