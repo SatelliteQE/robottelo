@@ -114,6 +114,63 @@ def set_original_property_value():
         after_test_setting_param.value = value
 
 
+def add_content_views_to_composite(composite_cv, org, repo):
+    """Add necessary number of content views to the composite one
+
+    :param composite_cv: Composite content view object
+    :param org: Organisation of satellite
+    :param repo: repository need to added in content view
+    """
+    content_view = entities.ContentView(organization=org).create()
+    content_view.repository = [repo]
+    content_view.update(['repository'])
+    content_view.publish()
+    composite_cv.component = [content_view.read().version[0]]
+    composite_cv.update(['component'])
+
+
+@tier3
+def test_positive_update_restrict_composite_view(session, set_original_property_value):
+    """Update settings parameter restrict_composite_view to Yes/True and ensure
+    a composite content view may not be published or promoted, unless the component
+    content view versions that it includes exist in the target environment.
+
+    :id: a5d2d73d-064e-48af-ad62-da68e963e3ee
+
+    :expectedresults: Parameter is updated successfully
+
+    :CaseImportance: Critical
+    """
+    repo_name = gen_string('alpha')
+    property_name = 'restrict_composite_view'
+    set_original_property_value(property_name)
+    org = entities.Organization().create()
+    product = entities.Product(organization=org).create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    repo = entities.Repository(name=repo_name, product=product).create()
+    composite_cv = entities.ContentView(
+        composite=True,
+        organization=org,
+    ).create()
+    add_content_views_to_composite(composite_cv, org, repo)
+    composite_cv.publish()
+    with session:
+        session.organization.select(org_name=org.name)
+        for param_value in ('Yes', 'No'):
+            session.settings.update(
+                'name = {}'.format(property_name),
+                param_value
+            )
+            if param_value == 'Yes':
+                with raises(AssertionError) as context:
+                    session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
+                assert 'Administrator -> Settings -> Content page using the ' \
+                       'restrict_composite_view flag.' in str(context.value)
+            else:
+                result = session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
+                assert lce.name in result['Environments']
+
+
 @tier1
 def test_positive_update_authorize_login_delegation_param(session, set_original_property_value):
     """Updates parameter "authorize_login_delegation" under Auth tab
