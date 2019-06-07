@@ -301,18 +301,15 @@ class ParameterizedSubnetTestCase(APITestCase):
             subnet=org_subnet,
         ).create()
         self.assertEqual(host.subnet.read().name, org_subnet.name)
-        new_parameter = [{
-            'name': '{}'.format(org_subnet.subnet_parameters_attributes[0]['name']),
+        parameter_new_value = [{
+            'name': org_subnet.subnet_parameters_attributes[0]['name'],
             'value': gen_string('alpha')
         }]
-        host.host_parameters_attributes = new_parameter
+        host.host_parameters_attributes = parameter_new_value
         host = host.update(['host_parameters_attributes'])
         self.assertEqual(
-            host.host_parameters_attributes[0]['name'],
-            new_parameter[0]['name'])
-        self.assertEqual(
             host.host_parameters_attributes[0]['value'],
-            new_parameter[0]['value']
+            parameter_new_value[0]['value']
         )
         self.assertEqual(
             host.host_parameters_attributes[0]['name'],
