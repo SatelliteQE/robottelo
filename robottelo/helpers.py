@@ -19,6 +19,7 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
+from robottelo.decorators import bz_bug_is_open
 
 # This conditional is here to centralize use of lru_cache and urljoin
 if six.PY3:  # pragma: no cover
@@ -630,7 +631,10 @@ def extract_capsule_satellite_installer_command(text):
     """Extract satellite installer command from capsule-certs-generate command
     output
     """
-    cmd_start_with = 'satellite-installer'
+    if bz_bug_is_open(1711177):
+        cmd_start_with = 'foreman-installer'
+    else:
+        cmd_start_with = 'satellite-installer'
     cmd_lines = []
     if text:
         if isinstance(text, (list, tuple)):
@@ -651,7 +655,8 @@ def extract_capsule_satellite_installer_command(text):
         # remove empty spaces
         while '  ' in cmd:
             cmd = cmd.replace('  ', ' ')
-
+        if bz_bug_is_open(1709761):
+            cmd = cmd.replace('foreman-proxy-content', 'capsule', 1)
         return cmd
     return None
 

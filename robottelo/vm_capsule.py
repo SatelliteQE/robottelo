@@ -238,7 +238,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 u'Failed to install satellite-capsule package\n{}'.format(
                     result.stderr)
             )
-        cert_file_path = '/tmp/{0}-certs.tar'.format(self.hostname)
+        cert_file_path = '/root/{0}-certs.tar'.format(self.hostname)
         certs_gen = ssh.command(
             'capsule-certs-generate '
             '--foreman-proxy-fqdn {0} '
