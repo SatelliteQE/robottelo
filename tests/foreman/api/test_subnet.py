@@ -315,9 +315,9 @@ class ParameterizedSubnetTestCase(APITestCase):
             host.host_parameters_attributes[0]['name'],
             org_subnet.subnet_parameters_attributes[0]['name']
         )
-        self.assertNotEqual(
-            host.host_parameters_attributes[0]['value'],
-            org_subnet.subnet_parameters_attributes[0]['value']
+        self.assertEqual(
+            org_subnet.read().subnet_parameters_attributes[0]['value'],
+            parameter[0]['value']
         )
 
     @tier1
