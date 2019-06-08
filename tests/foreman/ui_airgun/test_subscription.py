@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: UI
+:CaseComponent: SubscriptionManagement
 
 :TestType: Functional
 
@@ -312,7 +312,7 @@ def test_positive_view_vdc_guest_subscription_products(session):
             assert content_products and product_name in content_products
 
 
-@tier2
+@tier3
 def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
     """Ensures that no column headers from checkboxes show up in the table after
     unticking everything from selectable customizable column
@@ -332,6 +332,8 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
     :expectedresults:
         1. No column headers show up
+
+    :CaseImportance: Medium
     """
     checkbox_dict = {
         'Name': False,

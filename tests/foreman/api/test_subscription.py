@@ -8,9 +8,9 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: SubscriptionManagement
 
 :TestType: Functional
 
@@ -23,7 +23,7 @@ from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import upload_manifest
 from robottelo import manifests
 from robottelo.decorators import (
-    run_in_one_thread, skip_if_not_set, tier1
+    run_in_one_thread, skip_if_not_set, tier1, tier2
 )
 from robottelo.test import APITestCase
 
@@ -117,7 +117,7 @@ class SubscriptionsTestCase(APITestCase):
         self.assertEqual(len(sub.search()), 0)
 
     @skip_if_not_set('fake_manifest')
-    @tier1
+    @tier2
     def test_negative_upload(self):
         """Upload the same manifest to two organizations.
 
@@ -125,8 +125,6 @@ class SubscriptionsTestCase(APITestCase):
 
         :expectedresults: The manifest is not uploaded to the second
             organization.
-
-        :CaseImportance: Critical
         """
         orgs = [entities.Organization().create() for _ in range(2)]
         with manifests.clone() as manifest:

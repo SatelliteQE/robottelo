@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: SubscriptionManagement
 
 :TestType: Functional
 
@@ -46,6 +46,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    tier4,
     upgrade
 )
 from robottelo.ssh import download_file, upload_file
@@ -174,7 +175,7 @@ class SubscriptionTestCase(CLITestCase):
             'product': PRDS['rhel'],
         })
 
-    @tier1
+    @tier3
     def test_positive_manifest_history(self):
         """upload manifest and check history
 
@@ -182,7 +183,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :expectedresults: Manifest history is shown properly
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -222,7 +223,7 @@ class SubscriptionTestCase(CLITestCase):
         })
 
     @skip_if_bug_open('bugzilla', 1226425)
-    @tier1
+    @tier2
     def test_negative_manifest_refresh(self):
         """manifest refresh must fail with a cloned manifest
 
@@ -232,7 +233,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :BZ: 1226425
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -244,7 +245,7 @@ class SubscriptionTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
 
-    @tier3
+    @tier4
     def test_positive_restore_ak_and_content_hosts_subscriptions(self):
         """Restore activation key and content hosts subscriptions
 
@@ -410,7 +411,7 @@ class SubscriptionTestCase(CLITestCase):
                     [sub['name'] for sub in host_subscriptions]
                 )
 
-    @tier3
+    @tier4
     def test_positive_restore_content_hosts_with_modified_subscription(self):
         """Restore content hosts subscription from an exported content host csv
         file with modified subscription.
