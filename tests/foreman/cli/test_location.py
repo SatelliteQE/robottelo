@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Location
 
 :TestType: Functional
 
@@ -49,6 +49,7 @@ class LocationTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Set up reusable entities for tests."""
+        super(LocationTestCase, cls).setUpClass()
         cls.subnet = entities.Subnet().create()
         cls.env = entities.Environment().create()
         cls.env2 = entities.Environment().create()
@@ -143,7 +144,6 @@ class LocationTestCase(CLITestCase):
         :expectedresults: Location created successfully and has correct and
             expected parent location set
 
-        :CaseImportance: High
         """
         parent_loc = make_location()
         loc = make_location({'parent-id': parent_loc['id']})
@@ -156,7 +156,6 @@ class LocationTestCase(CLITestCase):
         :id: 4fbaea41-9775-40a2-85a5-4dc05cc95134
 
         :expectedresults: Second location is not created
-
 
         :CaseImportance: Critical
         """
@@ -174,7 +173,6 @@ class LocationTestCase(CLITestCase):
         :id: fa892edf-8c42-44dc-8f36-bed50798b59b
 
         :expectedresults: Location is not created
-
 
         :CaseImportance: Critical
         """
@@ -257,7 +255,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(len(location['parameters']), 0)
         self.assertNotIn(param_name.lower(), location['parameters'])
 
-    @tier1
+    @tier2
     def test_positive_update_parent(self):
         """Update location's parent location
 
