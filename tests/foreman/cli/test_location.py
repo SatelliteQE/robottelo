@@ -48,10 +48,7 @@ class LocationTestCase(CLITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Set up reusable entities for tests.
-        make_location,
-        make_proxy,
-        """
+        """Set up reusable entities for tests."""
         cls.subnet = entities.Subnet().create()
         cls.env = entities.Environment().create()
         cls.env2 = entities.Environment().create()
