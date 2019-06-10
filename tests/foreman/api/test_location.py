@@ -3,14 +3,13 @@
 A full API reference for locations can be found here:
 http://theforeman.org/api/apidoc/v2/locations.html
 
-
 :Requirement: Location
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Location
 
 :TestType: Functional
 
@@ -68,6 +67,7 @@ class LocationTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Set up reusable entities for tests."""
+        super(LocationTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.org2 = entities.Organization().create()
         cls.domain = entities.Domain().create()
@@ -171,7 +171,6 @@ class LocationTestCase(APITestCase):
 
         :expectedresults: Location is not created and expected error is raised
 
-        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Location(domain=[gen_integer(10000, 99999)]).create()
@@ -251,6 +250,8 @@ class LocationTestCase(APITestCase):
         :bz: 1398695
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         proxy_id_1 = self._make_proxy()['id']
         proxy_id_2 = self._make_proxy()['id']
@@ -302,7 +303,6 @@ class LocationTestCase(APITestCase):
 
         :expectedresults: The default_location ID remain 2.
 
-        :CaseImportance: Critical
         """
         default_loc_id = entities.Location().search(
             query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
