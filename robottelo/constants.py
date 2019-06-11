@@ -202,6 +202,7 @@ REPO_TAB = {
 PRDS = {
     'rhcf': 'Red Hat CloudForms',
     'rhel': 'Red Hat Enterprise Linux Server',
+    'rhel8': 'Red Hat Enterprise Linux for x86_64',
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
@@ -214,6 +215,8 @@ REPOSET = {
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
     'rhel7ks': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
+    'rhel8ksbaseos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
+    'rhel8ksappstream': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
     'rhva6': (
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
@@ -233,6 +236,24 @@ REPOSET = {
 }
 
 REPOS = {
+    'rhel8ksbaseos': {
+        'id': None,
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart x86_64 8.0',
+        'releasever': '8.0',
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL8,
+        'reposet': REPOSET['rhel8ksbaseos'],
+        'product': PRDS['rhel8'],
+    },
+    'rhel8ksappstream': {
+        'id': None,
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart x86_64 8.0',
+        'releasever': '8.0',
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL8,
+        'reposet': REPOSET['rhel8ksappstream'],
+        'product': PRDS['rhel8'],
+    },
     'rhel7ks': {
         'id': None,
         'name': 'Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.6',

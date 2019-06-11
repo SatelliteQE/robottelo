@@ -152,12 +152,12 @@ def rhel7(user_credentials, org):
 @pytest.fixture(scope='session')
 def rhel7ks(user_credentials, org):
     repo_id = enable_rhrepo_and_fetchid(
-        basearch='x86_64',
+        basearch=REPOS['rhel7ks']['arch'],
         org_id=org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhel7ks']['name'],
-        reposet=REPOSET['rhel7ks'],
+        product=REPOS['rhel7ks']['product'],
         releasever=REPOS['rhel7ks']['releasever'],
+        repo=REPOS['rhel7ks']['name'],
+        reposet=REPOS['rhel7ks']['reposet'],
     )
     repo = entities.Repository(user_credentials, id=repo_id)
     response = repo.sync(synchronous=False)
@@ -169,23 +169,23 @@ def rhel7ks(user_credentials, org):
 def rhel8ks(user_credentials, org):
     # First RHEL8 AppStream KS
     repo_id = enable_rhrepo_and_fetchid(
-            basearch='x86_64',
+            basearch=REPOS['rhel8ksappstream']['arch'],
             org_id=org.id,
-            product='Red Hat Enterprise Linux for x86_64',
-            repo='Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart x86_64 8.0',
-            reposet='Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
-            releasever='8.0',
+            product=REPOS['rhel8ksappstream']['product'],
+            releasever=REPOS['rhel8ksappstream']['releasever'],
+            repo=REPOS['rhel8ksappstream']['name'],
+            reposet=REPOS['rhel8ksappstream']['reposet'],
     )
     repo = entities.Repository(user_credentials, id=repo_id)
     response = repo.sync(synchronous=False)
     # Now RHEL8 BaseOS KS which we will return at the end
     repo_id = enable_rhrepo_and_fetchid(
-            basearch='x86_64',
+            basearch=REPOS['rhel8ksbaseos']['arch'],
             org_id=org.id,
-            product='Red Hat Enterprise Linux for x86_64',
-            repo='Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart x86_64 8.0',
-            reposet='Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
-            releasever='8.0',
+            product=REPOS['rhel8ksbaseos']['product'],
+            releasever=REPOS['rhel8ksbaseos']['releasever'],
+            repo=REPOS['rhel8ksbaseos']['name'],
+            reposet=REPOS['rhel8ksbaseos']['reposet'],
     )
     repo = entities.Repository(user_credentials, id=repo_id)
     response = repo.sync(synchronous=False)
