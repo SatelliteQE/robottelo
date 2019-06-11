@@ -8,9 +8,9 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Environment
 
 :TestType: Functional
 
@@ -92,14 +92,13 @@ class EnvironmentTestCase(APITestCase):
 
         :expectedresults: The server returns an error.
 
-        :CaseImportance: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.Environment(name=name).create()
 
-    @tier2
+    @tier1
     def test_negative_create_with_invalid_characters(self):
         """Create an environment and provide an illegal name.
 
@@ -107,7 +106,6 @@ class EnvironmentTestCase(APITestCase):
 
         :expectedresults: The server returns an error.
 
-        :CaseLevel: Integration
         """
         str_types = ('cjk', 'latin1', 'utf8')
         for name in (gen_string(str_type) for str_type in str_types):
@@ -124,7 +122,6 @@ class EnvironmentTestCase(APITestCase):
 
         :expectedresults: Environment entity is created and updated properly
 
-        :CaseImportance: Critical
         """
         env = entities.Environment().create()
         for new_name in valid_data_list():
@@ -136,16 +133,20 @@ class EnvironmentTestCase(APITestCase):
     @tier2
     def test_positive_update_and_remove(self):
         """Update environment and assign it to a new organization
-        and location. Delete env
+        and location. Delete environment afterwards.
 
         :id: 31e43faa-65ee-4757-ac3d-3825eba37ae5
 
         :expectedresults: Environment entity is updated and removed
             properly
 
+        :CaseImportance: Critical
+
         :CaseLevel: Integration
         """
         env = entities.Environment().create()
+        self.assertEqual(len(env.organization), 0)
+        self.assertEqual(len(env.location), 0)
         env = entities.Environment(
             id=env.id, organization=[self.org]).update(['organization'])
         self.assertEqual(len(env.organization), 1)
@@ -169,7 +170,6 @@ class EnvironmentTestCase(APITestCase):
 
         :expectedresults: Environment entity is not updated
 
-        :CaseImportance: Critical
         """
         env = entities.Environment().create()
         for new_name in invalid_names_list():
