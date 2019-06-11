@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Component
 
 :TestType: Functional
 
@@ -65,7 +65,7 @@ class EnvironmentTestCase(CLITestCase):
         })
 
     @tier2
-    def test_negative_list(self):
+    def test_negative_list_with_parameters(self):
         """Test Environment List filtering parameters validation.
 
         :id: 97872953-e1aa-44bd-9ce0-a04bccbc9e94
@@ -195,7 +195,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :expectedresults: Environment is not deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -210,7 +210,6 @@ class EnvironmentTestCase(CLITestCase):
 
         :expectedresults: Environment is not updated
 
-        :CaseImportance: Critical
         """
         environment = make_environment()
         for new_name in invalid_values_list():
@@ -232,7 +231,6 @@ class EnvironmentTestCase(CLITestCase):
 
         :expectedresults: The command runs without raising an error
 
-        :CaseImportance: Critical
         """
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
