@@ -128,7 +128,7 @@ class EnvironmentTestCase(CLITestCase):
             1. Environment is created and has parameters assigned
             2. Environment can be listed by parameters
             3. Environment can be updated
-            3. Environment can be removed
+            4. Environment can be removed
 
         :CaseImportance: Critical
         """

@@ -41,6 +41,12 @@ def valid_data_list():
 class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
 
+    @classmethod
+    def setUpClass(cls):
+        super(EnvironmentTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location().create()
+
     @tier1
     def test_positive_create_with_name(self):
         """Create an environment and provide a valid name.
@@ -58,7 +64,7 @@ class EnvironmentTestCase(APITestCase):
                 self.assertEqual(env.name, name)
 
     @tier1
-    def test_positive_create_with_org(self):
+    def test_positive_create_with_org_and_loc(self):
         """Create an environment and assign it to new organization.
 
         :id: de7e4132-5ca7-4b41-9af3-df075d31f8f4
@@ -68,32 +74,15 @@ class EnvironmentTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        org = entities.Organization().create()
         env = entities.Environment(
             name=gen_string('alphanumeric'),
-            organization=[org],
+            organization=[self.org],
+            location=[self.loc],
         ).create()
         self.assertEqual(len(env.organization), 1)
-        self.assertEqual(env.organization[0].id, org.id)
-
-    @tier1
-    def test_positive_create_with_loc(self):
-        """Create an environment and assign it to new location.
-
-        :id: 34d4bf4a-f36e-4433-999c-beda6916e781
-
-        :expectedresults: The environment created successfully and has expected
-            attributes.
-
-        :CaseImportance: Critical
-        """
-        location = entities.Location().create()
-        env = entities.Environment(
-            name=gen_string('alphanumeric'),
-            location=[location],
-        ).create()
+        self.assertEqual(env.organization[0].id, self.org.id)
         self.assertEqual(len(env.location), 1)
-        self.assertEqual(env.location[0].id, location.id)
+        self.assertEqual(env.location[0].id, self.loc.id)
 
     @tier1
     def test_negative_create_with_too_long_name(self):
@@ -145,38 +134,31 @@ class EnvironmentTestCase(APITestCase):
                 self.assertEqual(env.name, new_name)
 
     @tier2
-    def test_positive_update_org(self):
+    def test_positive_update_and_remove(self):
         """Update environment and assign it to a new organization
+        and location. Delete env
 
         :id: 31e43faa-65ee-4757-ac3d-3825eba37ae5
 
-        :expectedresults: Environment entity is updated properly
+        :expectedresults: Environment entity is updated and removed
+            properly
 
         :CaseLevel: Integration
         """
         env = entities.Environment().create()
-        org = entities.Organization().create()
         env = entities.Environment(
-            id=env.id, organization=[org]).update(['organization'])
+            id=env.id, organization=[self.org]).update(['organization'])
         self.assertEqual(len(env.organization), 1)
-        self.assertEqual(env.organization[0].id, org.id)
+        self.assertEqual(env.organization[0].id, self.org.id)
 
-    @tier2
-    def test_positive_update_loc(self):
-        """Update environment and assign it to a new location
-
-        :id: da56b040-69e3-4d4f-8ab3-3bfe923eaffe
-
-        :expectedresults: Environment entity is updated properly
-
-        :CaseLevel: Integration
-        """
-        env = entities.Environment().create()
-        location = entities.Location().create()
         env = entities.Environment(
-            id=env.id, location=[location]).update(['location'])
+            id=env.id, location=[self.loc]).update(['location'])
         self.assertEqual(len(env.location), 1)
-        self.assertEqual(env.location[0].id, location.id)
+        self.assertEqual(env.location[0].id, self.loc.id)
+
+        env.delete()
+        with self.assertRaises(HTTPError):
+            env.read()
 
     @tier1
     def test_negative_update_name(self):
@@ -195,23 +177,6 @@ class EnvironmentTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Environment(
                         id=env.id, name=new_name).update(['name'])
-
-    @tier1
-    def test_positive_delete(self):
-        """Create new environment entity and then delete it.
-
-        :id: 500539c0-f839-4c6b-838f-a3a256962d65
-
-        :expectedresults: Environment entity is deleted successfully
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                env = entities.Environment(name=name).create()
-                env.delete()
-                with self.assertRaises(HTTPError):
-                    env.read()
 
 
 class MissingAttrEnvironmentTestCase(APITestCase):
