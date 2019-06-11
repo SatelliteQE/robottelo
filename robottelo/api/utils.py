@@ -794,7 +794,6 @@ def wait_for_errata_applicability_task(host_id, search_rate=1, max_tries=10, pol
             if host_id in task.input['host_ids']:
                 task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                 return task
-        import code; code.interact(local=locals())
         time.sleep(search_rate)
     else:
         raise AssertionError(
