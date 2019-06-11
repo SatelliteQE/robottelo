@@ -23,7 +23,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
         super(VirtualMachineTestCase, self).tearDown()
         self.settings_patcher.stop()
 
-    def configure_provisoning_server(self):
+    def configure_provisioning_server(self):
         """Helper for configuring the provisioning server on robottelo config.
 
         """
@@ -31,14 +31,18 @@ class VirtualMachineTestCase(unittest2.TestCase):
 
     @patch('time.sleep')
     @patch('robottelo.ssh.command', side_effect=[
-        ssh.SSHCommandResult(),
+        ssh.SSHCommandResult(
+            return_code=0,
+            stdout=['CPUs:     1', 'Memory:   512 MB', 'MAC:      52:54:00:f7:bb:a8']
+        ),
+        ssh.SSHCommandResult(return_code=1, stderr=''),
         ssh.SSHCommandResult(stdout=['(192.168.0.1)']),
         ssh.SSHCommandResult()
     ])
     def test_dont_create_if_already_created(
             self, ssh_command, sleep):
         """Check if the creation steps are run more than once"""
-        self.configure_provisoning_server()
+        self.configure_provisioning_server()
         vm = VirtualMachine()
 
         with patch.multiple(
@@ -49,7 +53,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
             vm.create()
             vm.create()
         self.assertEqual(vm.ip_addr, '192.168.0.1')
-        self.assertEqual(ssh_command.call_count, 3)
+        self.assertEqual(ssh_command.call_count, 4)
 
     def test_invalid_distro(self):
         """Check if an exception is raised if an invalid distro is passed"""
@@ -64,7 +68,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
     @patch('robottelo.ssh.command')
     def test_run(self, ssh_command):
         """Check if run calls ssh.command"""
-        self.configure_provisoning_server()
+        self.configure_provisioning_server()
         vm = VirtualMachine()
 
         def create_mock():
@@ -82,7 +86,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
     def test_name_limit(self):
         """Check whether exception is risen in case of too long host name (more
         than 59 chars)"""
-        self.configure_provisoning_server()
+        self.configure_provisioning_server()
         domain = self.provisioning_server.split('.', 1)[1]
         with self.assertRaises(VirtualMachineError):
             VirtualMachine(
@@ -92,7 +96,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
 
     def test_run_raises_exception(self):
         """Check if run raises an exception if the vm is not created"""
-        self.configure_provisoning_server()
+        self.configure_provisioning_server()
         vm = VirtualMachine()
         with self.assertRaises(VirtualMachineError):
             vm.run('ls')
@@ -100,7 +104,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
     @patch('robottelo.ssh.command')
     def test_destroy(self, ssh_command):
         """Check if destroy runs the required ssh commands"""
-        self.configure_provisoning_server()
+        self.configure_provisioning_server()
         image_dir = '/opt/robottelo/images'
         vm = VirtualMachine()
 
@@ -126,3 +130,24 @@ class VirtualMachineTestCase(unittest2.TestCase):
         ]
 
         self.assertListEqual(ssh_command.call_args_list, ssh_command_args_list)
+
+    @patch('time.sleep')
+    @patch('robottelo.ssh.command', side_effect=[
+        ssh.SSHCommandResult(
+            return_code=0,
+            stdout=['CPUs:     1', 'Memory:   512 MB', 'MAC:      52:54:00:f7:bb:a8']
+        ),
+        ssh.SSHCommandResult(stdout=[
+            '{"return":[{"name":"lo","ip-addresses":[{"ip-address-type":"ipv4",'
+            '"ip-address":"127.0.0.1","prefix":8}],"hardware-address":"00:00:00:00:00:00"}'
+            ',{"name":"ens3","ip-addresses":[{"ip-address-type":"ipv4",'
+            '"ip-address":"10.8.30.135","prefix":19}],"hardware-address":"52:54:00:f7:bb:a8"}]}'
+        ]),
+        ssh.SSHCommandResult()
+    ])
+    def test_qemu_ga_gets_ip(self, ssh_command, sleep):
+        """Verify that the IP is correctly parsed from the qemu-guest-agent output"""
+        self.configure_provisioning_server()
+        vm = VirtualMachine()
+        vm.create()
+        self.assertEqual(vm.ip_addr, '10.8.30.135')
