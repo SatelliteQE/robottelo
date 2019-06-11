@@ -9,6 +9,7 @@ make sure that the server have in place: the base images for rhel66 and rhel71,
 snap-guest and its dependencies and the ``image_dir`` path created.
 
 """
+import json
 import logging
 import os
 import six
@@ -28,6 +29,7 @@ from robottelo.constants import (
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.host_info import get_host_os_version
 from six.moves.urllib.parse import urlunsplit
+from time import sleep
 # This conditional is here to centralize use of urljoin
 if six.PY3:  # pragma: no cover
     from urllib.parse import urljoin  # noqa
@@ -77,6 +79,7 @@ class VirtualMachine(object):
             DISTRO_SLES12: settings.distro.image_sles12,
         }
         self.cpu = cpu
+        self.mac = None
         self.ram = ram
         self.nw_type = None
         if distro is None:
@@ -182,6 +185,7 @@ class VirtualMachine(object):
             '-m {vm_ram}',
             '-c {vm_cpu}',
             '-n {nw_type}={nw_name} -f',
+            '--qemu-ga',
         ]
 
         if self.image_dir is not None:
@@ -214,17 +218,16 @@ class VirtualMachine(object):
         )
 
         result = ssh.command(
-                command,
-                self.provisioning_server,
-                connection_timeout=30
+            command,
+            self.provisioning_server,
+            connection_timeout=30
         )
-
         if result.return_code != 0:
             raise VirtualMachineError(
                 u'Failed to run snap-guest: {0}'.format(result.stderr))
         else:
             self._created = True
-
+            self.mac = [n.split('MAC:')[1].strip() for n in result.stdout if 'MAC:' in n][0]
         # outside of VLANs ping from hypervisor, in VLANs ping from SAT
         if self.bridge == 'br0':
             ping_from_hostname = self.provisioning_server
@@ -232,19 +235,49 @@ class VirtualMachine(object):
             ping_from_hostname = settings.server.hostname
 
         # Give some time to machine boot
-        result = ssh.command(
-            u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
-            u' done; exit 1'.format(self._target_image),
-            ping_from_hostname,
-            connection_timeout=30
-        )
-        if result.return_code != 0:
-            logger.error('Failed to obtain VM IP, reverting changes')
-            self.destroy()
-            raise VirtualMachineError(
-                'Failed to fetch virtual machine IP address information')
-        output = ''.join(result.stdout)
-        self.ip_addr = output.split('(')[1].split(')')[0]
+        for i in range(60):
+            qemu_ga_check = ssh.command(
+                u'virsh qemu-agent-command {0} '
+                '\'{{"execute":"guest-network-get-interfaces"}}\''.format(self.hostname),
+                ping_from_hostname,
+                connection_timeout=30
+            )
+            if qemu_ga_check.return_code != 0:
+                if 'guest agent is not connected' in qemu_ga_check.stderr:
+                    # this means the agent wasn't started yet (vm still booting)
+                    sleep(1)
+                else:
+                    # this means there's another error with agent, e.g. it is not configured
+                    break
+            else:
+                ifaces = json.loads(qemu_ga_check.stdout[0])
+                mgmt_if = next((i for i in ifaces['return']
+                               if i['hardware-address'].lower() == self.mac.lower()), {})
+                try:
+                    # get only the ipv4 addresses
+                    self.ip_addr = next(i['ip-address'] for i in mgmt_if['ip-addresses']
+                                        if i['ip-address-type'] == 'ipv4')
+                    break
+                except(KeyError, StopIteration):
+                    sleep(1)
+                    continue
+
+        if not self.ip_addr:
+            # fallback to avahi in case of any issue with qemu-guest-agent
+            logger.warning('Failed to parse the mgmt IPv4 using qemu-guest-agent, trying Avahi')
+            result = ssh.command(
+                u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
+                u' done; exit 1'.format(self._target_image),
+                ping_from_hostname,
+                connection_timeout=30
+            )
+            if result.return_code != 0:
+                logger.error('Failed to obtain VM IP, reverting changes')
+                self.destroy()
+                raise VirtualMachineError(
+                    'Failed to fetch virtual machine IP address information')
+            output = ''.join(result.stdout)
+            self.ip_addr = output.split('(')[1].split(')')[0]
         ssh_check = ssh.command(
             u'for i in {{1..60}}; do nc -vn {0} 22 <<< "" && exit 0; sleep 1;'
             u' done; exit 1'.format(self.ip_addr),
