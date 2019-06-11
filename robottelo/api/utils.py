@@ -775,13 +775,13 @@ def wait_for_errata_applicability_task(host_id, search_rate=1, max_tries=10, pol
                                        poll_timeout=15):
     """Search the generate applicability task for given host and make sure it finishes
 
-    :param host_id: Content host ID of the host where we are regenerating applicability.
-    :param search_rate: Delay between searches.
-    :param max_tries: How many times search should be executed.
-    :param poll_rate: Delay between the end of one task check-up and
+    :param int host_id: Content host ID of the host where we are regenerating applicability.
+    :param int search_rate: Delay between searches.
+    :param int max_tries: How many times search should be executed.
+    :param int poll_rate: Delay between the end of one task check-up and
             the start of the next check-up. Parameter for
             ``nailgun.entities.ForemanTask.poll()`` method.
-    :param poll_timeout: Maximum number of seconds to wait until timing out.
+    :param int poll_timeout: Maximum number of seconds to wait until timing out.
             Parameter for ``nailgun.entities.ForemanTask.poll()`` method.
     :return: Relevant errata applicability task.
     :raises: ``AssertionError``. If not tasks were found for given host until timeout.
