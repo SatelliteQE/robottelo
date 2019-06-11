@@ -471,12 +471,14 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
     host_parameters = [{'name': 'remote_execution_connect_by_ip', 'value': True}]
     host_parameters_str = ','.join(["%s=%s" % (i['name'], i['value']) for i in host_parameters])
     LOGGER.info(">>> Host parameters: %s" % host_parameters_str)
+    host_bridging = 'compute_type=bridge, compute_bridge=%s' % settings.vlan_networking.bridge
+    LOGGER.info(">>> Host bridge setup: %s" % host_bridging)
     parameters = {
         'build': 'yes',
         'compute-attributes': 'start=1',
         'compute-resource-id': cr.id,   # FIXME This should be in host group
         'hostgroup-id': hg.id,
-        'interface': 'compute_type=bridge, compute_bridge=br0',
+        'interface': host_bridging,
         'ip': host_ip,
         'location-id': loc.id,
         'name': host_name,
