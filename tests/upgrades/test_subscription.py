@@ -15,13 +15,9 @@
 :Upstream: No
 """
 from nailgun import entities
-from robottelo.test import APITestCase
+from robottelo.test import APITestCase, manifests
 from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    delete_manifest,
-    upload_manifest
-)
-import os
+from upgrade_tests.helpers.scenarios import delete_manifest
 
 
 class Scenario_manifest_refresh(APITestCase):
@@ -39,7 +35,6 @@ class Scenario_manifest_refresh(APITestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.manifest_url = os.environ.get('MANIFEST_URL')
         cls.org_name = 'preupgrade_subscription_org'
 
     @pre_upgrade
@@ -56,7 +51,7 @@ class Scenario_manifest_refresh(APITestCase):
         :expectedresults: Manifest should upload and refresh successfully.
          """
         org = entities.Organization(name=self.org_name).create()
-        upload_manifest(self.manifest_url, org.name)
+        manifests.upload_manifest_locked(org.id, interface=manifests.INTERFACE_API)
         history = entities.Subscription(organization=org).manifest_history(
             data={'organization_id': org.id})
         self.assertEqual(
