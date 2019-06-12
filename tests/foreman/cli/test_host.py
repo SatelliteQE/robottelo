@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import time
 from random import choice
 
 from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
@@ -2560,10 +2561,12 @@ class KatelloAgentTestCase(CLITestCase):
             'yum update --security | grep "No packages needed for security"'
         )
         self.assertEqual(result.return_code, 0)
+        before_downgrade = int(time.time())
         # Downgrade walrus package
         self.client.run('yum downgrade -y {0}'.format(
             FAKE_2_CUSTOM_PACKAGE_NAME))
-        wait_for_errata_applicability_task(int(self.host['id']))
+        # Wait for errata applicability cache is counted
+        wait_for_errata_applicability_task(int(self.host['id']), before_downgrade)
         # Check that host has applicable errata
         host_errata = Host.errata_list({u'host-id': self.host['id']})
         self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
