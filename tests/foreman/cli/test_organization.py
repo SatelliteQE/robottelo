@@ -16,9 +16,6 @@
 
 :Upstream: No
 """
-import random
-import unicodedata
-
 from fauxfactory import gen_string
 from itertools import cycle
 from robottelo.cleanup import capsule_cleanup, org_cleanup
@@ -115,7 +112,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(set(lines)), len(lines))
 
     @tier1
-    def test_positive_create(self):
+    def test_positive_CRD(self):
         """Create organization with valid name, label and description
 
         :id: 35840da7-668e-4f78-990a-738aa688d586
@@ -123,7 +120,10 @@ class OrganizationTestCase(CLITestCase):
         :expectedresults: organization is created with attributes
 
         :CaseImportance: Critical
+
+        create read
         """
+        # Create
         name = valid_org_names_list()[0]
         label = valid_org_names_list()[0]
         desc = valid_data_list()[0]
@@ -137,46 +137,37 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(org['label'], label)
         self.assertEqual(org['description'], desc)
 
-    @tier1
-    def test_positive_list(self):
-        """Check if Org can be listed
+        # List
+        result = Org.list({'search': 'name=%s' % org['name']})
+        self.assertTrue(len(result) > 0)
+        self.assertEqual(result[0]['name'], org['name'])
 
-        :id: bdd26bb3-e3d2-4a5c-8be7-fb12c1114ccc
-
-        :expectedresults: Org is listed
-
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        result_list = Org.list({'search': 'name=%s' % org['name']})
-        self.assertTrue(len(result_list) > 0)
-        self.assertEqual(result_list[0]['name'], org['name'])
-
-    @tier1
-    def test_positive_search_scoped(self):
-        """Check if scoped search work properly for organization entity
-
-        :id: d66ebe1d-aba1-4042-87e4-7de8ea0f8fc8
-
-        :customerscenario: true
-
-        :expectedresults: Necessary organization is listed
-
-        :BZ: 1259374
-
-        :CaseImportance: High
-        """
-        label = gen_string('alpha')
-        desc = gen_string('alpha', 15)
-        org = make_org({'label': label, 'description': desc})
+        # Search scoped
         for query in [
             'label = {}'.format(label),
             'description ~ {}'.format(desc[:-5]),
             'name ^ "{}"'.format(org['name']),
         ]:
-            result_list = Org.list({'search': query})
-            self.assertTrue(len(result_list), 1)
-            self.assertEqual(result_list[0]['name'], org['name'])
+            result = Org.list({'search': query})
+            self.assertTrue(len(result), 1)
+            self.assertEqual(result[0]['name'], org['name'])
+
+        # Search by name and label
+        result = Org.exists(search=('name', org['name']))
+        self.assertEqual(org['name'], result['name'])
+        result = Org.exists(search=('label', org['label']))
+        self.assertEqual(org['name'], result['name'])
+
+        # Info by name and label
+        result = Org.info({'label': org['label']})
+        self.assertEqual(org['id'], result['id'])
+        result = Org.info({'name': org['name']})
+        self.assertEqual(org['id'], result['id'])
+
+        # Delete
+        Org.delete({'id': org['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Org.info({'id': org['id']})
 
     @tier2
     @upgrade
@@ -831,8 +822,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org['parameters']), 0)
         self.assertNotIn(param_name.lower(), org['parameters'])
 
-    # Negative Create
-
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Try to create an organization with invalid name, but valid label and
@@ -881,62 +870,6 @@ class OrganizationTestCase(CLITestCase):
                         'label': label,
                         'name': name,
                     })
-
-    # Positive Delete
-
-    @tier1
-    @run_in_one_thread
-    @upgrade
-    def test_positive_delete_by_id(self):
-        """Delete an organization by ID
-
-        :id: b1f5d246-2b12-4302-9824-00d3561f8699
-
-        :expectedresults: organization is deleted
-
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        Org.delete({'id': org['id']})
-        # Can we find the object?
-        with self.assertRaises(CLIReturnCodeError):
-            Org.info({'id': org['id']})
-
-    @tier1
-    def test_positive_delete_by_label(self):
-        """Delete an organization by label
-
-        :id: 5624f318-ce10-4eaa-815b-0d6ec1e6b438
-
-        :expectedresults: organization is deleted
-
-        :CaseImportance: Critical
-        """
-        for label in valid_labels_list():
-            with self.subTest(label):
-                org = make_org({'label': label})
-                Org.delete({'label': org['label']})
-                # Can we find the object?
-                with self.assertRaises(CLIReturnCodeError):
-                    Org.info({'id': org['id']})
-
-    @tier1
-    def test_positive_delete_by_name(self):
-        """Delete an organization by name
-
-        :id: c2787b85-fa87-4aaf-bee4-4695249dd5d8
-
-        :expectedresults: organization is deleted
-
-        :CaseImportance: Critical
-        """
-        for name in valid_org_names_list():
-            with self.subTest(name):
-                org = make_org({'name': name})
-                Org.delete({'name': org['name']})
-                # Can we find the object?
-                with self.assertRaises(CLIReturnCodeError):
-                    Org.info({'id': org['id']})
 
     @tier1
     def test_positive_update_name(self):
@@ -1008,8 +941,6 @@ class OrganizationTestCase(CLITestCase):
                 self.assertEqual(org['description'], new_desc)
                 self.assertEqual(org['name'], new_name)
 
-    # Negative Update
-
     @tier1
     def test_negative_update_name(self):
         """Create organization then fail to update its name
@@ -1029,106 +960,3 @@ class OrganizationTestCase(CLITestCase):
                         'id': org['id'],
                         'new-name': new_name,
                     })
-
-    # This test also covers the redmine bug 4443
-    @tier1
-    def test_positive_search_by_name(self):
-        """Can search for an organization by name
-
-        :id: 4279972b-180d-40ce-944f-47a1940af25d
-
-        :expectedresults: organization is created and can be searched by name
-
-        :CaseImportance: Critical
-        """
-        for name in valid_org_names_list():
-            with self.subTest(name):
-                org = make_org({'name': name})
-                # Can we find the new object?
-                result = Org.exists(search=('name', org['name']))
-                self.assertEqual(org['name'], result['name'])
-
-    @tier1
-    def test_positive_search_by_label(self):
-        """Can search for an organization by name
-
-        :id: 0e5a23fa-86d2-4114-be39-0e6228c76f19
-
-        :expectedresults: organization is created and can be searched by label
-
-        :CaseImportance: Critical
-        """
-        for name in valid_org_names_list():
-            with self.subTest(name):
-                org = make_org({'name': name})
-                # Can we find the new object?
-                result = Org.exists(search=('label', org['label']))
-                self.assertEqual(org['name'], result['name'])
-
-    @tier1
-    def test_positive_info_by_label(self):
-        """Get org information by its label
-
-        :id: 02328b67-5d24-4873-b716-113eee3ff67b
-
-        :expectedresults: Organization is created and info can be obtained by
-            its label graciously
-
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        result = Org.info({'label': org['label']})
-        self.assertEqual(org['id'], result['id'])
-
-    @tier1
-    def test_positive_info_by_name(self):
-        """Get org information by its name
-
-        :id: cf971026-26a4-428f-b560-bb14e5324207
-
-        :expectedresults: Organization is created and info can be obtained by
-            its name graciously
-
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        result = Org.info({'name': org['name']})
-        self.assertEqual(org['id'], result['id'])
-
-    @tier1
-    def test_positive_multibyte_latin1_org_names(self):
-        """Hammer Multibyte and Latin-1 Org names break list pagination
-
-        :id: 4fa0afe7-6d0a-4c3e-a0fc-4ecb95c50fc9
-
-        :BZ: 1418412
-
-        :expectedresults: Multibyte and latin1 names need to be
-            displayed with consistent spacing
-        """
-        org_names = [
-            gen_string('alpha', random.randint(1, 30)),
-            gen_string('latin1', random.randint(1, 30)),
-            u'大傻瓜-{0}'.format(gen_string('alpha', 5)),
-            u'你好你-{0}'.format(gen_string('alpha', 5)),
-            u'jalapeño-{0}'.format(gen_string('alpha', 5)),
-            u'организация-{0}'.format(gen_string('alpha', 5)),
-        ]
-        for org in org_names:
-            make_org({'name': org})
-        org_list_lines = [
-            line.strip() for line in Org.list(output_format='table') if line]
-        self.assertGreaterEqual(len(org_list_lines), len(org_names))
-        org_names_lines = [
-            line
-            for line in org_list_lines
-            if any(name in line for name in org_names)
-        ]
-        self.assertEqual(len(org_names_lines), len(org_names))
-        for org_str in org_names_lines:
-            width = sum(
-                1 if unicodedata.east_asian_width(char)
-                in ["Na", "N", "A", "H"]
-                else 2 for char in org_str
-            )
-            self.assertEqual(len(org_names_lines[0]), width)
