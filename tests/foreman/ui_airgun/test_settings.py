@@ -140,6 +140,8 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
     :expectedresults: Parameter is updated successfully
 
     :CaseImportance: Critical
+
+    :CaseLevel: Acceptance
     """
     repo_name = gen_string('alpha')
     property_name = 'restrict_composite_view'
@@ -172,7 +174,7 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
 
 
 @tier1
-def test_positive_update_authorize_login_delegation_param(session, set_original_property_value):
+def test_positive_check_setting_update(session, set_original_property_value):
     """Updates parameter "authorize_login_delegation" under Auth tab
 
     :id: 86ebe42f-0401-4e91-8448-9851d0d5ce10
@@ -193,54 +195,8 @@ def test_positive_update_authorize_login_delegation_param(session, set_original_
             assert result['table'][0]['Value'] == param_value
 
 
-@tier1
-@upgrade
-def test_positive_update_administrator_param(session, set_original_property_value):
-    """Updates parameter "administrator" under General tab
-
-    :id: c3d53354-b190-4beb-94b7-d2c6e5759608
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'administrator'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_settings_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_positive_update_authorize_login_delegation_api_param(session,
-                                                              set_original_property_value):
-    """Updates parameter "authorize_login_delegation_api" under Auth tab
-
-    :id: 70245d20-c940-40c6-bf3a-80127fb81758
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'authorize_login_delegation_api'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_boolean_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_negative_update_entries_per_page_param(session, set_original_property_value):
+@tier2
+def test_negative_validate_error_message(session, set_original_property_value):
     """Updates parameter "entries_per_page" under General tab with
     invalid values
 
@@ -248,7 +204,7 @@ def test_negative_update_entries_per_page_param(session, set_original_property_v
 
     :expectedresults: Parameter is not updated
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
     """
     property_name = 'entries_per_page'
     set_original_property_value(property_name)
@@ -262,193 +218,15 @@ def test_negative_update_entries_per_page_param(session, set_original_property_v
             assert is_valid_error_message(str(context.value))
 
 
-@tier1
-def test_positive_update_entries_per_page_param(session, set_original_property_value):
-    """Updates parameter "entries_per_page" under General tab
-
-    :id: 781ffa76-0646-4359-a0de-e9fc61ed03f1
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    param_value = str(randint(30, 1000))
-    property_name = 'entries_per_page'
-    set_original_property_value(property_name)
-    with session:
-        session.settings.update(
-            'name = {}'.format(property_name),
-            param_value
-        )
-        result = session.settings.read('name = {}'.format(property_name))
-        assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_positive_update_email_reply_address_param(session, set_original_property_value):
-    """Updates parameter "email_reply_address" under General tab
-
-    :id: 9440e8f2-612d-452a-843d-38282067380b
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'email_reply_address'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_settings_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_positive_update_fix_db_cache_param(session, set_original_property_value):
-    """Updates parameter "fix_db_cache" under General tab
-
-    :id: 7ecae561-e2f1-45db-a55a-1f59c80d2903
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'fix_db_cache'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_boolean_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_negative_update_max_trend_param(session, set_original_property_value):
-    """Updates parameter "max_trend" under General tab with invalid
-    values
-
-    :id: 2a3102c1-fc3c-41ab-8884-e7402036346a
-
-    :expectedresults: Parameter is not updated
-
-    :CaseImportance: Critical
-    """
-    property_name = 'max_trend'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in invalid_settings_values():
-            with raises(AssertionError) as context:
-                session.settings.update(
-                    'name = {}'.format(property_name),
-                    param_value
-                )
-            assert is_valid_error_message(str(context.value))
-
-
-@tier1
-def test_positive_update_max_trend_param(session, set_original_property_value):
-    """Updates parameter "max_trend" under General tab
-
-    :id: a171d2fc-0e09-4953-a038-42d78171b465
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'max_trend'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_maxtrend_timeout_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_negative_update_idle_timeout_param(session, set_original_property_value):
-    """Updates parameter "idle_timeout" under General tab with
-    invalid values
-
-    :id: 3b09ea93-753e-40d0-a425-8e4548b8181c
-
-    :expectedresults: Parameter is not updated
-
-    :CaseImportance: Critical
-    """
-    property_name = 'idle_timeout'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in invalid_settings_values():
-            with raises(AssertionError) as context:
-                session.settings.update(
-                    'name = {}'.format(property_name),
-                    param_value
-                )
-            assert is_valid_error_message(str(context.value))
-
-
-@tier1
-def test_positive_update_idle_timeout_param(session, set_original_property_value):
-    """Updates parameter "idle_timeout" under Auth tab
-
-    :id: d3188607-0c75-4808-81fe-cc6fea0637fe
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'idle_timeout'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_maxtrend_timeout_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_positive_update_foreman_url_param(session, set_original_property_value):
-    """Updates parameter "foreman_url" under General tab
-
-    :id: c1dd73e0-25f6-4fad-8c8f-b4a39ce108f1
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'foreman_url'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_urls():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
-def test_negative_update_foreman_url_param(session, set_original_property_value):
+@tier2
+def test_negative_validate_url(session, set_original_property_value):
     """Updates parameter "foreman_url" under General tab
 
     :id: 087028ac-66bc-4a99-b6dd-adcc4c1e9478
 
     :expectedresults: Parameter is not updated
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
     """
     property_name = 'foreman_url'
     set_original_property_value(property_name)
@@ -463,45 +241,8 @@ def test_negative_update_foreman_url_param(session, set_original_property_value)
                    in str(context.value)
 
 
-@tier1
-def test_positive_update_login_page_footer_text(session, set_original_property_value):
-    """Updates parameter "Login_page_footer_text" under General tab
-
-    :id: 75000fca-e14e-41ff-ab56-eabff83ac4da
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'login_text'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_urls():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
 @stubbed()
-@tier1
-def test_positive_remove_login_page_footer_text():
-    """Remove parameter "Login_page_footer_text" under General tab
-
-    :id: cb11148c-c22d-4ed5-90e7-dd7b6f0eb5e4
-
-    :expectedresults: Parameter should be removed
-
-    :CaseImportance: Critical
-
-    :CaseAutomation: notautomated
-    """
-
-
-@stubbed()
-@tier1
+@tier3
 def test_positive_update_login_page_footer_text_with_long_string():
     """Attempt to update parameter "Login_page_footer_text"
         with long length string under General tab
@@ -517,37 +258,16 @@ def test_positive_update_login_page_footer_text_with_long_string():
 
     :expectedresults: Parameter is updated
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
 
     :CaseAutomation: notautomated
+
+    :CaseLevel: Acceptance
     """
-
-
-@tier1
-def test_positive_update_dynflow_enable_console_param(session, set_original_property_value):
-    """Updates parameter "dynflow_enable_console" under ForemanTasks
-    tab
-
-    :id: 1c1d6973-afbd-4317-ae9b-30093b3e1fd1
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'dynflow_enable_console'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_boolean_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
 
 
 @stubbed()
-@tier1
+@tier3
 def test_negative_settings_access_to_non_admin():
     """Check non admin users can't access Administer -> Settings tab
 
@@ -562,9 +282,11 @@ def test_negative_settings_access_to_non_admin():
     :expectedresults: Administer -> Settings tab should not be available to
         non admin users
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
 
     :CaseAutomation: notautomated
+
+    :CaseLevel: Acceptance
     """
 
 
