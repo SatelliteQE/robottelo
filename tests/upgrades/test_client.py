@@ -14,12 +14,11 @@
 
 :Upstream: No
 """
-import os
 import time
 
 from fabric.api import execute
 from nailgun import entities
-from robottelo.test import APITestCase
+from robottelo.test import APITestCase, settings
 from robottelo.api.utils import (
     attach_custom_product_subscription,
     call_entity_method_with_timeout
@@ -48,10 +47,10 @@ def create_activation_key_for_client_registration(
     :return nailgun.entity.ActivationKey: Activation key
     """
     client_os = client_os.upper()
-    from_ver = os.environ.get('FROM_VERSION')
+    from_ver = settings.upgrade.from_version
     rhel_prod_name = 'scenarios_rhel{}_prod'.format(client_os[-1])
     rhel_repo_name = '{}_repo'.format(rhel_prod_name)
-    rhel_url = os.environ.get('{}_CUSTOM_REPO'.format(client_os))
+    rhel_url = settings.rhel7_os
     if rhel_url is None:
         raise ValueError('The RHEL Repo URL environment variable for OS {} '
                          'is not provided!'.format(client_os))
@@ -95,8 +94,7 @@ def create_activation_key_for_client_registration(
         )[0]
     elif sat_state.lower() == 'post':
         product_name = 'scenarios_tools_product'
-        tools_repo_url = os.environ.get(
-            'TOOLS_{}'.format(client_os.upper()))
+        tools_repo_url = settings.sattools_repo[client_os]
         if tools_repo_url is None:
             raise ValueError('The Tools Repo URL environment variable for '
                              'OS {} is not provided!'.format(client_os))
@@ -248,7 +246,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.docker_vm = os.environ.get('DOCKER_VM')
+        cls.docker_vm = settings.upgrade.docker_vm
         cls.default_org_id = entities.Organization().search(
             query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
         cls.org = entities.Organization(id=cls.default_org_id).read()
@@ -372,7 +370,7 @@ class Scenario_upgrade_new_client_and_package_installation(APITestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.docker_vm = os.environ.get('DOCKER_VM')
+        cls.docker_vm = settings.upgrade.docker_vm
         cls.org_name = 'new_client_package_install'
         cls.ak_name = 'scenario_new_client_package_install'
         cls.le_name = cls.ak_name+'_env'

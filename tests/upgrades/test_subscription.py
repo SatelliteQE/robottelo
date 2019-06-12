@@ -14,21 +14,19 @@
 
 :Upstream: No
 """
-import os
 from wait_for import wait_for
 
 from fabric.api import execute
 from nailgun import entities
 from robottelo import manifests
-from robottelo.test import APITestCase
+from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
     delete_manifest,
     dockerize,
-    get_entity_data,
-    upload_manifest,
+    get_entity_data
 )
 
 
@@ -47,7 +45,6 @@ class Scenario_manifest_refresh(APITestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.manifest_url = os.environ.get('MANIFEST_URL')
         cls.org_name = 'preupgrade_subscription_org'
 
     @pre_upgrade
@@ -64,7 +61,7 @@ class Scenario_manifest_refresh(APITestCase):
         :expectedresults: Manifest should upload and refresh successfully.
          """
         org = entities.Organization(name=self.org_name).create()
-        upload_manifest(self.manifest_url, org.name)
+        manifests.upload_manifest_locked(org.id, interface=manifests.INTERFACE_API)
         history = entities.Subscription(organization=org).manifest_history(
             data={'organization_id': org.id})
         self.assertEqual(
@@ -119,7 +116,7 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.docker_vm = os.environ.get('DOCKER_VM')
+        cls.docker_vm = settings.upgrade.docker_vm
 
     def _host_status(self, client_container_name=None):
         """ fetch the content host details.
