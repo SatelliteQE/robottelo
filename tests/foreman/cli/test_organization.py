@@ -115,101 +115,27 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(set(lines)), len(lines))
 
     @tier1
-    def test_positive_create_with_name(self):
-        """Create organization with valid name only
+    def test_positive_create(self):
+        """Create organization with valid name, label and description
 
         :id: 35840da7-668e-4f78-990a-738aa688d586
 
-        :expectedresults: organization is created and has appropriate name
+        :expectedresults: organization is created with attributes
 
         :CaseImportance: Critical
         """
-        for name in valid_org_names_list():
-            with self.subTest(name):
-                org = make_org({'name': name})
-                self.assertEqual(org['name'], name)
-
-    @tier1
-    def test_positive_create_with_matching_name_label(self):
-        """Create organization with valid matching name and label only
-
-        :id: aea551de-145b-4894-b4fb-65878ff1f101
-
-        :expectedresults: organization is created, label matches name
-
-        :CaseImportance: Critical
-        """
-        for test_data in valid_labels_list():
-            with self.subTest(test_data):
-                org = make_org({
-                    'label': test_data,
-                    'name': test_data,
-                })
-                self.assertEqual(org['name'], org['label'])
-
-    @tier1
-    def test_positive_create_with_unmatched_name_label(self):
-        """Create organization with valid unmatching name and label only
-
-        :id: a4730b09-1bd7-4b00-a7ee-76080a916ea8
-
-        :expectedresults: organization is created, label does not match name
-
-        :CaseImportance: Critical
-        """
-        for name in valid_org_names_list():
-            with self.subTest(name):
-                label = gen_string('alpha')
-                org = make_org({
-                    'label': label,
-                    'name': name,
-                })
-                self.assertNotEqual(org['name'], org['label'])
-                self.assertEqual(org['name'], name)
-                self.assertEqual(org['label'], label)
-
-    @tier1
-    def test_positive_create_with_name_description(self):
-        """Create organization with valid name and description only
-
-        :id: b28c95ba-918e-47fe-8681-61e05b8fe2ea
-
-        :expectedresults: organization is created
-
-        :CaseImportance: Critical
-        """
-        for name, desc in zip(valid_org_names_list(), valid_data_list()):
-            with self.subTest(name + desc):
-                org = make_org({
-                    'description': desc,
-                    'name': name,
-                })
-                self.assertEqual(org['name'], name)
-                self.assertEqual(org['description'], desc)
-
-    @tier1
-    @upgrade
-    def test_positive_create_with_name_label_description(self):
-        """Create organization with valid name, label and description
-
-        :id: 9a1f70f6-fb5f-4b23-9f7e-b0973fbbba30
-
-        :expectedresults: organization is created
-
-        :CaseImportance: Critical
-        """
-        for description in valid_data_list():
-            with self.subTest(description):
-                label = gen_string('alpha')
-                name = gen_string('alpha')
-                org = make_org({
-                    'description': description,
-                    'label': label,
-                    'name': name,
-                })
-                self.assertEqual(org['description'], description)
-                self.assertEqual(org['label'], label)
-                self.assertEqual(org['name'], name)
+        name = valid_org_names_list()[0]
+        label = valid_org_names_list()[0]
+        desc = valid_data_list()[0]
+        org = make_org({
+            'name': name,
+            'label': label,
+            'description': desc,
+            })
+        self.assertEqual(org['name'], name)
+        self.assertNotEqual(org['name'], org['label'])
+        self.assertEqual(org['label'], label)
+        self.assertEqual(org['description'], desc)
 
     @tier1
     def test_positive_list(self):
