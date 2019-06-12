@@ -285,7 +285,7 @@ class ContentViewSync(CLITestCase):
         return content_view, cvv_id
 
     @staticmethod
-    def _enable_rhel_content(organization, repo_name, releasever, sync=True):
+    def _enable_rhel_content(organization, repo_name, releasever=None, product=None, sync=True):
         """Enable and/or Synchronize rhel content
 
         :param organization: The organization directory into which the rhel
@@ -299,13 +299,13 @@ class ContentViewSync(CLITestCase):
             'basearch': 'x86_64',
             'name': REPOSET[repo_name],
             'organization-id': organization['id'],
-            'product': PRDS['rhel'],
+            'product': PRDS[product],
             'releasever': releasever,
         })
         repo = Repository.info({
             'name': REPOS[repo_name]['name'],
             'organization-id': organization['id'],
-            'product': PRDS['rhel'],
+            'product': PRDS[product],
         })
         # Update the download policy to 'immediate'
         Repository.update({
@@ -315,11 +315,11 @@ class ContentViewSync(CLITestCase):
         })
         if sync:
             # Synchronize the repository
-            Repository.synchronize({'id': repo['id']})
+            Repository.synchronize({'id': repo['id']}, timeout=7200)
         repo = Repository.info({
             'name': REPOS[repo_name]['name'],
             'organization-id': organization['id'],
-            'product': PRDS['rhel'],
+            'product': PRDS[product],
         })
         return repo
 
@@ -560,8 +560,9 @@ class ContentViewSync(CLITestCase):
         """
         rhva_repo_name = 'rhva6'
         releasever = '6Server'
+        product = 'rhel'
         rhva_repo = ContentViewSync._enable_rhel_content(
-            self.exporting_org, rhva_repo_name, releasever)
+            self.exporting_org, rhva_repo_name, releasever, product)
         rhva_cv_name = gen_string('alpha')
         rhva_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhva_cv_name, rhva_repo, self.exporting_org)
@@ -578,7 +579,8 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(exported_packages) > 0)
         Subscription.delete_manifest({'organization-id': self.exporting_org['id']})
         importing_org = make_org()
-        imp_rhva_repo = ContentViewSync._enable_rhel_content(importing_org, sync=False)
+        imp_rhva_repo = ContentViewSync._enable_rhel_content(
+            importing_org, rhva_repo_name, releasever, product, sync=False)
         importing_cv, _ = ContentViewSync._create_cv(
             rhva_cv_name, imp_rhva_repo, importing_org, publish=False)
         ContentView.version_import({
@@ -593,7 +595,6 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(len(exported_packages), len(imported_packages))
 
     @tier4
-    @upgrade
     def test_positive_export_import_redhat_cv_with_huge_contents(self):
         """Export CV version redhat contents in directory and Import them
 
@@ -622,17 +623,17 @@ class ContentViewSync(CLITestCase):
 
         :CaseLevel: Acceptance
         """
-        rhel_repo_name = 'rhel7'
+        rhel_repo_name = 'rhscl7'
+        product = 'rhscl'
         releasever = '7Server'
         rhel_repo = ContentViewSync._enable_rhel_content(
-            self.exporting_org, rhel_repo_name, releasever)
+            self.exporting_org, rhel_repo_name, releasever, product)
         rhel_cv_name = gen_string('alpha')
         rhel_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhel_cv_name, rhel_repo, self.exporting_org)
         ContentView.version_export({
             'export-dir': '{}'.format(self.export_base),
-            'id': exporting_cvv_id
-        })
+            'id': exporting_cvv_id}, timeout=7200)
         exporting_cvv_version = rhel_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
             self.export_base, rhel_cv_name, exporting_cvv_version)
@@ -642,13 +643,13 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(exported_packages) > 0)
         Subscription.delete_manifest({'organization-id': self.exporting_org['id']})
         importing_org = make_org()
-        imp_rhel_repo = ContentViewSync._enable_rhel_content(importing_org, sync=False)
+        imp_rhel_repo = ContentViewSync._enable_rhel_content(
+            importing_org, rhel_repo_name, releasever, product, sync=False)
         importing_cv, _ = ContentViewSync._create_cv(
             rhel_cv_name, imp_rhel_repo, importing_org, publish=False)
         ContentView.version_import({
             'export-tar': exported_tar,
-            'organization-id': importing_org['id']
-        })
+            'organization-id': importing_org['id']}, timeout=7200)
         importing_cvv_id = ContentView.info({
             u'id': importing_cv['id']
         })['versions'][0]['id']
