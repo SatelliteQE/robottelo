@@ -791,11 +791,12 @@ def wait_for_errata_applicability_task(host_id, from_when, search_rate=1, max_tr
     assert isinstance(from_when, int), 'Param from_when have to be int'
     now = int(time.time())
     assert from_when <= now, 'Param from_when have to be timestamp in the past'
-    max_age = now - from_when + 1
-    search_query = '( label = Actions::Katello::Host::GenerateApplicability OR label = ' \
-        'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"' \
-        % max_age
     for _ in range(max_tries):
+        now = int(time.time())
+        max_age = now - from_when + 1
+        search_query = '( label = Actions::Katello::Host::GenerateApplicability OR label = ' \
+            'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"' \
+            % max_age
         tasks = entities.ForemanTask().search(query={'search': search_query})
         tasks_finished = 0
         for task in tasks:
