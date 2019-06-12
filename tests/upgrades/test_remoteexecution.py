@@ -14,13 +14,11 @@
 
 :Upstream: No
 """
-import os
-
 from nailgun import entities
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
-from robottelo.test import APITestCase
+from robottelo.test import APITestCase, settings
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
@@ -45,18 +43,18 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
+        cls.libvirt_vm = settings.compute_resources.libvirt_hostname
         cls.default_org_id = entities.Organization().search(
             query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
         cls.org = entities.Organization(id=cls.default_org_id).read()
-        cls.bridge = os.environ.get('BRIDGE')
-        cls.subnet = os.environ.get('SUBNET')
-        cls.gateway = os.environ.get('GATEWAY')
-        cls.netmask = os.environ.get('NETMASK')
-        cls.vm_domain_name = os.environ.get('VM_DOMAIN')
+        cls.bridge = settings.vlan_networking.bridge
+        cls.subnet = settings.vlan_networking.subnet
+        cls.gateway = settings.vlan_networking.gateway
+        cls.netmask = settings.vlan_networking.netmask
+        cls.vm_domain_name = settings.upgrade.vm_domain
         cls.vm_domain = entities.Domain().search(query={'search': 'name="{}"'
                                                  .format(cls.vm_domain_name)})
-        cls.proxy_name = os.environ.get('RHEV_CAP_HOST')
+        cls.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
 
     def _vm_cleanup(self, hostname=None):
         """ Cleanup the VM from provisioning server
@@ -171,18 +169,18 @@ class Scenario_remoteexecution_satellite(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.libvirt_vm = os.environ.get('LIBVIRT_HOSTNAME')
+        cls.libvirt_vm = settings.compute_resources.libvirt_hostname
         cls.default_org_id = entities.Organization().search(
             query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
         cls.org = entities.Organization(id=cls.default_org_id).read()
-        cls.bridge = os.environ.get('BRIDGE')
-        cls.subnet = os.environ.get('SUBNET')
-        cls.gateway = os.environ.get('GATEWAY')
-        cls.netmask = os.environ.get('NETMASK')
-        cls.vm_domain_name = os.environ.get('VM_DOMAIN')
+        cls.bridge = settings.vlan_networking.bridge
+        cls.subnet = settings.vlan_networking.subnet
+        cls.gateway = settings.vlan_networking.gateway
+        cls.netmask = settings.vlan_networking.netmask
+        cls.vm_domain_name = settings.upgrade.vm_domain
         cls.vm_domain = entities.Domain().search(query={'search': 'name="{}"'
                                                  .format(cls.vm_domain_name)})
-        cls.proxy_name = os.environ.get('RHEV_SAT_HOST')
+        cls.proxy_name = settings.server.hostname
 
     def _vm_cleanup(self, hostname=None):
         """ Cleanup the VM from provisioning server

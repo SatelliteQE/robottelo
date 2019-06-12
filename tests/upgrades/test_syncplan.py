@@ -14,8 +14,6 @@
 
 :Upstream: No
 """
-
-
 from fauxfactory import gen_choice, gen_string
 from requests.exceptions import HTTPError
 

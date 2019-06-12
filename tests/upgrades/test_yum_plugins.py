@@ -14,14 +14,13 @@
 
 :Upstream: No
 """
-import os
 from wait_for import wait_for
 
 from fabric.api import execute
 from nailgun import entities
 from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.constants import DISTRO_DEFAULT
-from robottelo.test import APITestCase
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
@@ -51,8 +50,8 @@ class Scenario_yum_plugins_count(APITestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.docker_vm = os.environ.get('DOCKER_VM')
-        cls.client_os = DISTRO_DEFAULT
+        cls.docker_vm = settings.upgrade.docker_vm
+        cls.client_os = DISTRO_RHEL7
 
     def _run_goferd(self, client_container_id):
         """Start the goferd process."""
@@ -76,8 +75,9 @@ class Scenario_yum_plugins_count(APITestCase):
     def _check_yum_plugins_count(self, client_container_id):
         """Check yum loaded plugins counts """
         kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command, client_container_id,
-                'yum clean all', **kwargs)[self.docker_vm]
+        execute(
+            docker_execute_command, client_container_id, 'yum clean all', **kwargs
+        )[self.docker_vm]
         plugins_count = execute(
             docker_execute_command,
             client_container_id,
@@ -89,7 +89,6 @@ class Scenario_yum_plugins_count(APITestCase):
     def _check_package_installed(self, client_container_id, package):
         """Verify if package is installed on docker content host."""
         kwargs = {'host': self.docker_vm}
-        docker_execute_command
         installed_package = execute(
             docker_execute_command,
             client_container_id,
@@ -112,10 +111,8 @@ class Scenario_yum_plugins_count(APITestCase):
 
     def _create_custom_rhel_tools_repos(self, product):
         """Install packge on docker content host."""
-        rhel_repo_url = os.environ.get('{}_CUSTOM_REPO'.format(self.client_os.upper()))
-
-        tools_repo_url = os.environ.get(
-            'TOOLS_{}'.format(self.client_os.upper()))
+        rhel_repo_url = settings.rhel7_os
+        tools_repo_url = settings.sattools_repo[DISTRO_RHEL7]
         if None in [rhel_repo_url, tools_repo_url]:
             raise ValueError('The Tools Repo URL/RHEL Repo url environment variable for '
                              'OS {} is not provided!'.format(self.client_os))
