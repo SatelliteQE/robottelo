@@ -792,15 +792,19 @@ def wait_for_errata_applicability_task(host_id, from_when, search_rate=1, max_tr
     now = int(time.time())
     assert from_when <= now, 'Param from_when have to be timestamp in the past'
     max_age = now - from_when + 1
-    search_query = '( label = Actions::Katello::Host::GenerateApplicability OR label = Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"' % max_age
+    search_query = '( label = Actions::Katello::Host::GenerateApplicability OR label = ' \
+        'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"' \
+        % max_age
     for _ in range(max_tries):
         tasks = entities.ForemanTask().search(query={'search': search_query})
         tasks_finished = 0
         for task in tasks:
-            if task.label == 'Actions::Katello::Host::GenerateApplicability' and host_id in task.input['host_ids']:
+            if task.label == 'Actions::Katello::Host::GenerateApplicability' and \
+                  host_id in task.input['host_ids']:
                 task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                 tasks_finished += 1
-            elif task.label == 'Actions::Katello::Host::UploadPackageProfile' and host_id == task.input['host']['id']:
+            elif task.label == 'Actions::Katello::Host::UploadPackageProfile' and \
+                    host_id == task.input['host']['id']:
                 task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                 tasks_finished += 1
         if tasks_finished > 0:
