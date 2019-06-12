@@ -771,11 +771,12 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
         time.sleep(2)
 
 
-def wait_for_errata_applicability_task(host_id, search_rate=1, max_tries=10, poll_rate=None,
-                                       poll_timeout=15):
+def wait_for_errata_applicability_task(host_id, from_when, search_rate=1, max_tries=10,
+                                       poll_rate=None, poll_timeout=15):
     """Search the generate applicability task for given host and make sure it finishes
 
     :param int host_id: Content host ID of the host where we are regenerating applicability.
+    :param int from_when: Timestamp (in UTC) to limit number of returned tasks to investigate.
     :param int search_rate: Delay between searches.
     :param int max_tries: How many times search should be executed.
     :param int poll_rate: Delay between the end of one task check-up and
@@ -787,13 +788,23 @@ def wait_for_errata_applicability_task(host_id, search_rate=1, max_tries=10, pol
     :raises: ``AssertionError``. If not tasks were found for given host until timeout.
     """
     assert isinstance(host_id, int), 'Param host_id have to be int'
-    search_query = "label = Actions::Katello::Host::GenerateApplicability"
+    assert isinstance(from_when, int), 'Param from_when have to be int'
+    now = int(time.time())
+    assert from_when <= now, 'Param from_when have to be timestamp in the past'
+    max_age = now - from_when + 1
+    search_query = '( label = Actions::Katello::Host::GenerateApplicability OR label = Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"' % max_age
     for _ in range(max_tries):
         tasks = entities.ForemanTask().search(query={'search': search_query})
+        tasks_finished = 0
         for task in tasks:
-            if host_id in task.input['host_ids']:
+            if task.label == 'Actions::Katello::Host::GenerateApplicability' and host_id in task.input['host_ids']:
                 task.poll(poll_rate=poll_rate, timeout=poll_timeout)
-                return task
+                tasks_finished += 1
+            elif task.label == 'Actions::Katello::Host::UploadPackageProfile' and host_id == task.input['host']['id']:
+                task.poll(poll_rate=poll_rate, timeout=poll_timeout)
+                tasks_finished += 1
+        if tasks_finished > 0:
+            break
         time.sleep(search_rate)
     else:
         raise AssertionError(
