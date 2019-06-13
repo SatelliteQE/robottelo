@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_url
 from navmazing import NavigationTriesExceeded
 from pytest import raises, skip
 from widgetastic.exceptions import NoSuchElementException
@@ -138,7 +139,7 @@ def test_positive_end_to_end_ad(session, ldap_data):
     :CaseImportance: High
     """
     name = gen_string('alpha')
-    new_name = gen_string('alpha')
+    new_server = gen_url()
     with session:
         session.ldapauthentication.create({
             'ldap_server.name': name,
@@ -154,11 +155,10 @@ def test_positive_end_to_end_ad(session, ldap_data):
             'attribute_mappings.mail': LDAP_ATTR['mail'],
         })
         assert session.ldapauthentication.read_table_row(name)['Name'] == name
-        session.ldapauthentication.update(name, {'ldap_server.name': new_name})
-        assert session.ldapauthentication.read_table_row(new_name)['Name'] == new_name
+        session.ldapauthentication.update(name, {'ldap_server.host': new_server})
+        assert session.ldapauthentication.read_table_row(name)['Server'] == new_server
+        session.ldapauthentication.delete(name)
         assert not session.ldapauthentication.read_table_row(name)
-        session.ldapauthentication.delete(new_name)
-        assert not session.ldapauthentication.read_table_row(new_name)
 
 
 @tier2

@@ -390,7 +390,7 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
         organization=module_org,
     ).create()
     # Creates new repository without GPGKey
-    entities.Repository(
+    repo = entities.Repository(
         url=FAKE_1_YUM_REPO,
         product=product,
     ).create()
@@ -398,6 +398,8 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
         values = session.contentcredential.read(gpg_key.name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
+        assert len(values['repositories']['table']) == 1
+        assert values['repositories']['table'][0]['Name'] == repo.name
         product_values = session.contentcredential.get_product_details(
             gpg_key.name, product.name
         )
