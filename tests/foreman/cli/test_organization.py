@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from itertools import cycle
 from robottelo.cleanup import capsule_cleanup, org_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
@@ -81,8 +80,6 @@ class OrganizationTestCase(CLITestCase):
         # Add capsule to cleanup list
         self.addCleanup(capsule_cleanup, proxy['id'])
         return proxy
-
-    # Tests for issues
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     @tier1
@@ -465,38 +462,36 @@ class OrganizationTestCase(CLITestCase):
         org = make_org()
 
         # create and remove templates by name
-        for name in valid_data_list():
-            with self.subTest(name):
-                org = make_org()
-                template = make_template({
-                    'content': gen_string('alpha'),
-                    'name': name,
-                })
-                # Add config-template
-                Org.add_config_template({
-                    'name': org['name'],
-                    'config-template': template['name'],
-                })
-                org_info = Org.info({'name': org['name']})
-                self.assertIn(
-                    u'{0} ({1})'. format(template['name'], template['type']),
-                    org_info['templates'],
-                    "Failed to add template by name"
-                )
-                # Remove config-template
-                Org.remove_config_template({
-                    'config-template': template['name'],
-                    'name': org['name'],
-                })
-                org_info = Org.info({'name': org['name']})
-                self.assertNotIn(
-                    u'{0} ({1})'. format(template['name'], template['type']),
-                    org_info['templates'],
-                    "Failed to remove template by name"
-                )
+        name = valid_data_list()[0]
 
-        # create and remove templates by id
-        template = make_template({'content': gen_string('alpha')})
+        template = make_template({
+            'content': gen_string('alpha'),
+            'name': name,
+        })
+        # Add config-template
+        Org.add_config_template({
+            'name': org['name'],
+            'config-template': template['name'],
+        })
+        org_info = Org.info({'name': org['name']})
+        self.assertIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            org_info['templates'],
+            "Failed to add template by name"
+        )
+        # Remove config-template
+        Org.remove_config_template({
+            'config-template': template['name'],
+            'name': org['name'],
+        })
+        org_info = Org.info({'name': org['name']})
+        self.assertNotIn(
+            u'{0} ({1})'. format(template['name'], template['type']),
+            org_info['templates'],
+            "Failed to remove template by name"
+        )
+
+        # add and remove templates by id
         # Add config-template
         Org.add_config_template({
             'config-template-id': template['id'],
@@ -693,70 +688,30 @@ class OrganizationTestCase(CLITestCase):
                          "Failed to remove locations")
 
     @tier1
-    def test_positive_add_parameter_by_org_name(self):
-        """Add a parameter to organization
+    @upgrade
+    def test_positive_add_and_remove_parameter(self):
+        """Remove a parameter from organization
 
-        :id: b0b59650-5718-45e2-8724-151dc52b1486
+        :id: e4099279-4e73-4c14-9e7c-912b3787b99f
 
-        :expectedresults: Parameter is added to the org
-
-        :CaseImportance: Critical
-        """
-        param_name = gen_string('alpha')
-        param_value = gen_string('alpha')
-        org = make_org()
-        Org.set_parameter({
-            'name': param_name,
-            'value': param_value,
-            'organization': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['parameters']), 1)
-        self.assertEqual(param_value, org['parameters'][param_name.lower()])
-
-    @tier1
-    def test_positive_add_parameter_by_org_id(self):
-        """Add a parameter to organization
-
-        :id: bb76f67e-5329-4777-b563-3fe4ebffc9ce
-
-        :expectedresults: Parameter is added to the org
-
-        :CaseImportance: Critical
-        """
-        param_name = gen_string('alpha')
-        param_value = gen_string('alpha')
-        org = make_org()
-        Org.set_parameter({
-            'name': param_name,
-            'value': param_value,
-            'organization-id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['parameters']), 1)
-        self.assertEqual(param_value, org['parameters'][param_name.lower()])
-
-    @tier1
-    def test_positive_update_parameter(self):
-        """Update a parameter associated with organization
-
-        :id: 4a7ed165-a0c5-4ba6-833a-5a1b3ee47ace
-
-        :expectedresults: Parameter is updated
+        :expectedresults: Parameter is removed from the org
 
         :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_new_value = gen_string('alpha')
         org = make_org()
+
         # Create parameter
         Org.set_parameter({
             'name': param_name,
             'value': gen_string('alpha'),
-            'organization': org['name'],
+            'organization-id': org['id'],
         })
         org = Org.info({'id': org['id']})
         self.assertEqual(len(org['parameters']), 1)
+
+        # Update
         Org.set_parameter({
             'name': param_name,
             'value': param_new_value,
@@ -767,56 +722,10 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(
             param_new_value, org['parameters'][param_name.lower()])
 
-    @tier1
-    @upgrade
-    def test_positive_remove_parameter_by_org_name(self):
-        """Remove a parameter from organization
-
-        :id: e4099279-4e73-4c14-9e7c-912b3787b99f
-
-        :expectedresults: Parameter is removed from the org
-
-        :CaseImportance: Critical
-        """
-        param_name = gen_string('alpha')
-        org = make_org()
-        Org.set_parameter({
-            'name': param_name,
-            'value': gen_string('alpha'),
-            'organization': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['parameters']), 1)
+        # Delete parameter
         Org.delete_parameter({
             'name': param_name,
             'organization': org['name'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['parameters']), 0)
-        self.assertNotIn(param_name.lower(), org['parameters'])
-
-    @tier1
-    def test_positive_remove_parameter_by_org_id(self):
-        """Remove a parameter from organization
-
-        :id: 9b0e7c5c-32cd-4428-8798-3469599c9b05
-
-        :expectedresults: Parameter is removed from the org
-
-        :CaseImportance: Critical
-        """
-        param_name = gen_string('alpha')
-        org = make_org()
-        Org.set_parameter({
-            'name': param_name,
-            'value': gen_string('alpha'),
-            'organization-id': org['id'],
-        })
-        org = Org.info({'id': org['id']})
-        self.assertEqual(len(org['parameters']), 1)
-        Org.delete_parameter({
-            'name': param_name,
-            'organization-id': org['id'],
         })
         org = Org.info({'id': org['id']})
         self.assertEqual(len(org['parameters']), 0)
@@ -853,27 +762,25 @@ class OrganizationTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for desc, name, label in zip(
-                valid_data_list(),
-                valid_org_names_list(),
-                cycle(valid_labels_list()),
-        ):
-            with self.subTest(desc + name + label):
-                Org.create({
-                    'description': desc,
-                    'label': label,
-                    'name': name,
-                })
-                with self.assertRaises(CLIReturnCodeError):
-                    Org.create({
-                        'description': desc,
-                        'label': label,
-                        'name': name,
-                    })
+        name = valid_org_names_list()[0]
+        desc = valid_data_list()[0]
+        label = valid_labels_list()[0]
+
+        Org.create({
+            'description': desc,
+            'label': label,
+            'name': name,
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            Org.create({
+                'description': desc,
+                'label': label,
+                'name': name,
+            })
 
     @tier1
-    def test_positive_update_name(self):
-        """Create organization with valid values then update its name
+    def test_positive_update(self):
+        """Create organization and update its name and description
 
         :id: 66581003-f5d9-443c-8cd6-00f68087e8e9
 
@@ -881,65 +788,25 @@ class OrganizationTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for new_name in valid_org_names_list():
-            with self.subTest(new_name):
-                org = make_org()
-                # Update the org name
-                Org.update({
-                    'id': org['id'],
-                    'new-name': new_name,
-                })
-                # Fetch the org again
-                org = Org.info({'id': org['id']})
-                self.assertEqual(org['name'], new_name)
+        new_name = valid_org_names_list()[0]
+        new_desc = valid_data_list()[0]
+        org = make_org()
 
-    @tier1
-    def test_positive_update_description(self):
-        """Create organization with valid values then update its description
+        # upgrade name
+        Org.update({
+            'id': org['id'],
+            'new-name': new_name,
+        })
+        org = Org.info({'id': org['id']})
+        self.assertEqual(org['name'], new_name)
 
-        :id: c5cb0d68-10dd-48ee-8d56-83be8b33d729
-
-        :expectedresults: organization description is updated
-
-        :CaseImportance: Critical
-        """
-        for new_desc in valid_data_list():
-            with self.subTest(new_desc):
-                org = make_org()
-                # Update the org name
-                Org.update({
-                    'description': new_desc,
-                    'id': org['id'],
-                })
-                # Fetch the org again
-                org = Org.info({'id': org['id']})
-                self.assertEqual(org['description'], new_desc)
-
-    @tier1
-    def test_positive_update_name_description(self):
-        """Create organization with valid values then update its name and
-        description
-
-        :id: 42635526-fb10-4811-8fe7-1d4c218a056e
-
-        :expectedresults: organization name and description are updated
-
-        :CaseImportance: Critical
-        """
-        for new_name, new_desc in zip(
-                valid_org_names_list(), valid_data_list()):
-            with self.subTest(new_name + new_desc):
-                org = make_org()
-                # Update the org name
-                Org.update({
-                    'description': new_desc,
-                    'id': org['id'],
-                    'new-name': new_name,
-                })
-                # Fetch the org again
-                org = Org.info({'id': org['id']})
-                self.assertEqual(org['description'], new_desc)
-                self.assertEqual(org['name'], new_name)
+        # upgrade description
+        Org.update({
+            'description': new_desc,
+            'id': org['id'],
+        })
+        org = Org.info({'id': org['id']})
+        self.assertEqual(org['description'], new_desc)
 
     @tier1
     def test_negative_update_name(self):
@@ -951,10 +818,9 @@ class OrganizationTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
+        org = make_org()
         for new_name in invalid_values_list():
             with self.subTest(new_name):
-                org = make_org()
-                # Update the org name
                 with self.assertRaises(CLIReturnCodeError):
                     Org.update({
                         'id': org['id'],
