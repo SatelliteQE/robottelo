@@ -15,6 +15,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from pytest import raises
 
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_CV, ENVIRONMENT
@@ -75,6 +76,37 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # Delete host group
         session.hostgroup.delete(new_name)
         assert not session.hostgroup.search(new_name)
+
+
+@tier2
+def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
+    """Attempt to delete hostgroup which has dependent discovery rule
+
+    :id: bd046e9a-f0d0-4110-8f94-fd04193cb3af
+
+    :customerscenario: true
+
+    :BZ: 1254102
+
+    :expectedresults: Hostgroup was not deleted. Informative error message
+        was shown
+
+    :CaseImportance: High
+
+    :CaseLevel: Integration
+    """
+    hostgroup = entities.HostGroup(
+        organization=[module_org], location=[module_loc]).create()
+    entities.DiscoveryRule(
+        hostgroup=hostgroup, organization=[module_org], location=[module_loc]).create()
+    with session:
+        assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
+        # Make an attempt to delete host group that associated with discovery rule
+        with raises(AssertionError) as context:
+            session.hostgroup.delete(hostgroup.name)
+        assert "Cannot delete record because dependent discovery rules exist" in str(
+            context.value)
+        assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
 
 
 @tier2

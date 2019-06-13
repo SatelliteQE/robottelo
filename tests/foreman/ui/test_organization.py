@@ -60,6 +60,32 @@ def test_positive_end_to_end(session):
 
 
 @tier2
+def test_positive_search_scoped(session):
+    """Test scoped search functionality for organization by label
+
+    :id: 18ad9aad-335a-414e-843e-e1c05ec6bcbb
+
+    :customerscenario: true
+
+    :expectedresults: Proper organization is found
+
+    :BZ: 1259374
+
+    :CaseImportance: Critical
+    """
+    org_name = gen_string('alpha')
+    label = gen_string('alpha')
+    with session:
+        session.organization.create({'name': org_name, 'label': label})
+        for query in [
+            'label = {}'.format(label),
+            'label ~ {}'.format(label[:-5]),
+            'label ^ "{}"'.format(label),
+        ]:
+            assert session.organization.search(query)[0]['Name'] == org_name
+
+
+@tier2
 def test_positive_update_user(session):
     """Add new user and then remove it from organization
 

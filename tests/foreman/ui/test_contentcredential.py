@@ -362,6 +362,53 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
 
 
 @tier2
+def test_positive_add_product_and_search(session, module_org, gpg_content):
+    """Create gpg key with valid name and valid gpg key
+    then associate it with custom product that has one repository
+    After search and select product through gpg key interface
+
+    :id: 0bef0c1b-4811-489e-89e9-609d57fc45ee
+
+    :customerscenario: true
+
+    :expectedresults: Associated product can be found and selected through
+        gpg key 'Product' tab
+
+    :BZ: 1411800
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    gpg_key = entities.GPGKey(
+        content=gpg_content,
+        name=name,
+        organization=module_org,
+    ).create()
+    # Creates new product and associate GPGKey with it
+    product = entities.Product(
+        gpg_key=gpg_key,
+        organization=module_org,
+    ).create()
+    # Creates new repository without GPGKey
+    repo = entities.Repository(
+        url=FAKE_1_YUM_REPO,
+        product=product,
+    ).create()
+    with session:
+        values = session.contentcredential.read(gpg_key.name)
+        assert len(values['products']['table']) == 1
+        assert values['products']['table'][0]['Name'] == product.name
+        assert len(values['repositories']['table']) == 1
+        assert values['repositories']['table'][0]['Name'] == repo.name
+        product_values = session.contentcredential.get_product_details(
+            gpg_key.name, product.name
+        )
+        assert product_values['details']['name'] == product.name
+        assert product_values['details']['gpg_key'] == gpg_key.name
+        assert product_values['details']['repos_count'] == '1'
+
+
+@tier2
 @upgrade
 def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid content then associate it with custom product
