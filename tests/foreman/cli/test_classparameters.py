@@ -140,19 +140,20 @@ class SmartClassParametersTestCase(CLITestCase):
 
         # check listing parameters for selected queries
         for query in list_queries:
-            sc_params = SmartClassParameter.list(query)
-            self.assertGreater(
-                    len(sc_params), 0,
-                    "Failed to list parameters for query: {}".format(query))
+            with self.subTest(query):
+                sc_params = SmartClassParameter.list(query)
+                self.assertGreater(
+                        len(sc_params), 0,
+                        "Failed to list parameters for query: {}".format(query))
 
-            self.assertIn(sc_param_id, [scp['id'] for scp in sc_params])
+                self.assertIn(sc_param_id, [scp['id'] for scp in sc_params])
 
-            # Check that only unique results are returned
-            self.assertEqual(
-                len(sc_params),
-                len({scp['id'] for scp in sc_params}),
-                "Not only unique resutls returned for query: {}".format(query)
-            )
+                # Check that only unique results are returned
+                self.assertEqual(
+                    len(sc_params),
+                    len({scp['id'] for scp in sc_params}),
+                    "Not only unique resutls returned for query: {}".format(query)
+                )
 
     @tier1
     def test_positive_list_with_non_admin_user(self):
