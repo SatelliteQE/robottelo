@@ -23,7 +23,6 @@ from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     fixture,
     stubbed,
-    tier1,
     tier2,
     tier3,
     upgrade
@@ -175,31 +174,9 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
                 assert lce.name in result['Environments']
 
 
-@tier1
-def test_positive_check_setting_update(session, set_original_property_value):
-    """Updates parameter "authorize_login_delegation" under Auth tab
-
-    :id: 86ebe42f-0401-4e91-8448-9851d0d5ce10
-
-    :expectedresults: Parameter is updated successfully
-
-    :CaseImportance: Critical
-    """
-    property_name = 'authorize_login_delegation'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in valid_boolean_values():
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
-            result = session.settings.read('name = {}'.format(property_name))
-            assert result['table'][0]['Value'] == param_value
-
-
-@tier1
+@tier2
 def test_negative_validate_error_message(session, set_original_property_value):
-    """Updates some settings with invalid values
+    """Updates some settings with invalid values (an exceptional tier2 test)
 
     :id: 7c75083d-1b4d-4744-aaa4-6fb9e93ab3c2
 
