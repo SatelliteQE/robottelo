@@ -89,8 +89,9 @@ class Scenario_yum_plugins_count(APITestCase):
         """Check yum loaded plugins counts """
 
         kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command, client_container_id,
-                'yum clean all', **kwargs)[self.docker_vm]
+        execute(
+            docker_execute_command, client_container_id, 'yum clean all', **kwargs
+        )[self.docker_vm]
         plugins_count = execute(
             docker_execute_command,
             client_container_id,
