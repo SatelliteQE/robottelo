@@ -86,7 +86,9 @@ def valid_urls():
 def valid_error_messages():
     """Returns the list of valid error messages"""
     return ['Value is invalid: must be integer',
-            'Value must be greater than 0']
+            'Value must be greater than 0',
+            'Value URL must be valid and schema must be one of http and https'
+            ]
 
 
 def is_valid_error_message(actual_error_message):
@@ -195,10 +197,9 @@ def test_positive_check_setting_update(session, set_original_property_value):
             assert result['table'][0]['Value'] == param_value
 
 
-@tier2
+@tier1
 def test_negative_validate_error_message(session, set_original_property_value):
-    """Updates parameter "entries_per_page" under General tab with
-    invalid values
+    """Updates some settings with invalid values
 
     :id: 7c75083d-1b4d-4744-aaa4-6fb9e93ab3c2
 
@@ -206,39 +207,17 @@ def test_negative_validate_error_message(session, set_original_property_value):
 
     :CaseImportance: Medium
     """
-    property_name = 'entries_per_page'
-    set_original_property_value(property_name)
+    property_names = ['entries_per_page', 'foreman_url']
     with session:
-        for param_value in invalid_settings_values():
-            with raises(AssertionError) as context:
-                session.settings.update(
-                    'name = {}'.format(property_name),
-                    param_value
-                )
-            assert is_valid_error_message(str(context.value))
-
-
-@tier2
-def test_negative_validate_url(session, set_original_property_value):
-    """Updates parameter "foreman_url" under General tab
-
-    :id: 087028ac-66bc-4a99-b6dd-adcc4c1e9478
-
-    :expectedresults: Parameter is not updated
-
-    :CaseImportance: Medium
-    """
-    property_name = 'foreman_url'
-    set_original_property_value(property_name)
-    with session:
-        for param_value in invalid_settings_values():
-            with raises(AssertionError) as context:
-                session.settings.update(
-                    'name = {}'.format(property_name),
-                    param_value
-                )
-            assert 'Value URL must be valid and schema must be one of http and https' \
-                   in str(context.value)
+        for property_name in property_names:
+            set_original_property_value(property_name)
+            for param_value in invalid_settings_values():
+                with raises(AssertionError) as context:
+                    session.settings.update(
+                        'name = {}'.format(property_name),
+                        param_value
+                    )
+                assert is_valid_error_message(str(context.value))
 
 
 @stubbed()
