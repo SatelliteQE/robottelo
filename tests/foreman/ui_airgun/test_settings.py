@@ -15,10 +15,8 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_email, gen_url
 from nailgun import entities
 from pytest import raises
-from random import choice, randint
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     fixture,
@@ -33,53 +31,6 @@ from robottelo.decorators import (
 def invalid_settings_values():
     """Returns a list of invalid settings values"""
     return [' ', '-1', 'text', '0']
-
-
-@filtered_datapoint
-def valid_boolean_values():
-    """Returns a list of valid boolean values"""
-    return [
-        'Yes',
-        'No',
-    ]
-
-
-@filtered_datapoint
-def valid_settings_values():
-    """Returns a list of valid settings values"""
-    return [
-        gen_email(gen_string('alpha')),
-        gen_email(gen_string('alphanumeric')),
-        gen_email(gen_string('numeric')),
-    ]
-
-
-@filtered_datapoint
-def valid_maxtrend_timeout_values():
-    """Returns a list of valid maxtrend, timeout values"""
-    return [
-        str(randint(10, 99)),
-        str(randint(10000, 99999)),
-    ]
-
-
-@filtered_datapoint
-def valid_urls():
-    """Returns a list of valid urls"""
-    return [
-        gen_url(
-            scheme=choice(('http', 'https')),
-            subdomain=gen_string('alpha'),
-        ),
-        gen_url(
-            scheme=choice(('http', 'https')),
-            subdomain=gen_string('alphanumeric'),
-        ),
-        gen_url(
-            scheme=choice(('http', 'https')),
-            subdomain=gen_string('numeric'),
-        ),
-    ]
 
 
 def valid_error_messages():
