@@ -2940,11 +2940,13 @@ class KatelloHostToolsTestCase(CLITestCase):
 
         :CaseLevel: System
         """
+        before_install = int(time.time())
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         result = self.client.run(
             'rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE)
         )
         self.assertEqual(result.return_code, 0)
+        wait_for_errata_applicability_task(int(self.host_info['id']), before_install)
         applicable_erratum = Host.errata_list({
             'host-id': self.host_info['id'],
         })
@@ -2954,10 +2956,12 @@ class KatelloHostToolsTestCase(CLITestCase):
             if errata['installable'] == 'true'
         ]
         self.assertIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
+        before_upgrade = int(time.time())
         # apply errata
         result = self.client.run(
             'yum update -y --advisory {0}'.format(FAKE_2_ERRATA_ID))
         self.assertEqual(result.return_code, 0)
+        wait_for_errata_applicability_task(int(self.host_info['id']), before_upgrade)
         applicable_erratum = Host.errata_list({
             'host-id': self.host_info['id'],
         })
