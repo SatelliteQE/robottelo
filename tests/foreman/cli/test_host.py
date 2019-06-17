@@ -70,6 +70,7 @@ from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
     DEFAULT_CV,
     DISTRO_RHEL7,
+    DEFAULT_SUBSCRIPTION_NAME,
     ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
@@ -3062,7 +3063,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self.client.install_katello_ca()
 
     def _register_client(self, activation_key=None, lce=False,
-                         enable_repo=False, auto_attach=False):
+                         enable_repo=False, auto_attach=False, attach_to_default=False):
         """Register the client as a content host consumer
 
         :param activation_key: activation key if registration with activation
@@ -3073,8 +3074,13 @@ class HostSubscriptionTestCase(CLITestCase):
         :param auto_attach: boolean to indicate whether to register with
             auto-attach option, in case of registration with activation key a
             command is launched
+        :param attach_to_default: boolean to indicate whether to attach to
+            plain RHEL subsctiption
         :return: the registration result
         """
+        assert not auto_attach or not attach_to_default, \
+            'Only one of auto_attach or attach_to_default can be set'
+
         if activation_key is None:
             activation_key = self.activation_key
 
@@ -3092,6 +3098,13 @@ class HostSubscriptionTestCase(CLITestCase):
             )
             if auto_attach and self.client.subscribed:
                 result = self.client.run('subscription-manager attach --auto')
+
+        if attach_to_default:
+            result = self.client.run(
+                'subscription-manager list --available --matches "%s" --pool-only'
+                % DEFAULT_SUBSCRIPTION_NAME)
+            pool_id = result.stdout[0]
+            result = self.client.run('subscription-manager attach --pool "%s"' % pool_id)
 
         if self.client.subscribed and enable_repo:
             self.client.enable_repo(self.repository_id)
@@ -3261,7 +3274,7 @@ class HostSubscriptionTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self._register_client(lce=True, auto_attach=True)
+        self._register_client(lce=True, attach_to_default=True)
         self.assertTrue(self.client.subscribed)
         result = self._client_enable_repo()
         self.assertNotEqual(result.return_code, 0)
