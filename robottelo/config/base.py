@@ -1136,8 +1136,11 @@ class Settings(object):
         self.upgrade = UpgradeSettings()
         self.vmware = VmWareSettings()
 
-    def configure(self):
+    def configure(self, settings_path=None):
         """Read the settings file and parse the configuration.
+
+        :param str settings_path: path to settings file to read. If None, looks in the project
+            root for a file named 'robottelo.properties'.
 
         :raises: ImproperlyConfigured if any issue is found during the parsing
             or validation of the configuration.
@@ -1146,8 +1149,10 @@ class Settings(object):
             # TODO: what to do here, raise and exception, just skip or ...?
             return
 
-        # Expect the settings file to be on the robottelo project root.
-        settings_path = os.path.join(get_project_root(), SETTINGS_FILE_NAME)
+        if not settings_path:
+            # Expect the settings file to be on the robottelo project root.
+            settings_path = os.path.join(get_project_root(), SETTINGS_FILE_NAME)
+
         if not os.path.isfile(settings_path):
             raise ImproperlyConfigured(
                 'Not able to find settings file at {}'.format(settings_path))

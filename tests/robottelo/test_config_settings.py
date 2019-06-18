@@ -51,6 +51,15 @@ class SettingsTestCase(TestCase):
             self.assertEqual(settings.server.hostname, 'example.com')
             self.assertEqual(settings.server.ssh_password, '1234')
 
+    @mock.patch(builtin_open, new_callable=lambda: get_valid_ini)
+    def test_configure_with_file_validation_success(self, mock_open):
+        with mock.patch('os.path.isfile', return_value=True):
+            settings = Settings()
+            settings.configure(settings_path='robottelo.properties')
+            self.assertTrue(settings.configured)
+            self.assertEqual(settings.server.hostname, 'example.com')
+            self.assertEqual(settings.server.ssh_password, '1234')
+
 
 class FakeOpen(object):
     def __init__(self, lines, *args, **kwargs):
