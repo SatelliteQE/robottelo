@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Location
+:CaseComponent: OrganizationsLocations
 
 :TestType: Functional
 
