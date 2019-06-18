@@ -118,7 +118,7 @@ class OpenScapTestCase(CLITestCase):
         cls.scap_id_rhel6, cls.scap_profile_id_rhel6 = (
             cls.fetch_scap_and_profile_id(
                 cls.title,
-                OSCAP_PROFILE['common']
+                OSCAP_PROFILE['security6']
             )
         )
         Ansible.roles_import({'proxy-id': 1})
