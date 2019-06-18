@@ -191,6 +191,42 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(len(host_attrs['all_puppetclasses']), 1)
         self.assertEqual(host_attrs['all_puppetclasses'][0]['name'], 'ntp')
 
+    @upgrade
+    @tier3
+    def test_rebuild_config(self):
+        """ 'Rebuild orchestration config' of an existing host group
+
+        :id: 58bf7015-18fc-4d25-9b64-7f2dd6dde425
+
+        :expectedresults: rebuild hostgroup orchestration configs successfully.
+
+        :BZ: 1686493
+
+        :CaseLevel: System
+        """
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], environment_id=lce.id)
+        hostgroup = entities.HostGroup(
+            location=[self.loc],
+            organization=[self.org],
+        ).create()
+        entities.Host(
+            hostgroup=hostgroup,
+            location=self.loc,
+            organization=self.org,
+            managed=True,
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lce.id,
+            },
+            ).create()
+        hostgroup = hostgroup.read()
+        self.assertEqual(hostgroup.rebuild_config()['message'],
+                         'Configuration successfully rebuilt.')
+
     @tier1
     def test_positive_create_with_name(self):
         """Create a hostgroup with different names
