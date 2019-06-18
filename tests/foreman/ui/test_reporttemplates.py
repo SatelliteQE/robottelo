@@ -143,9 +143,11 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert rt['template']['name'] == name
         assert rt['template']['default'] is True
         assert rt['template']['template_editor']['editor'] == content
-        assert rt['inputs'][0]['name'] == input_name
-        assert rt['inputs'][0]['required'] is True
-        assert rt['inputs'][0]['input_type'] == 'User input'
+        assert rt['inputs'][0]['name'] == template_input[0]['name']
+        assert rt['inputs'][0]['required'] is template_input[0]['required']
+        assert rt['inputs'][0]['input_type'] == template_input[0]['input_type']
+        assert rt['inputs'][0]['input_content']['description'] == \
+            template_input[0]['input_content.description']
         assert rt['type']['snippet'] is False
         assert rt['locations']['resources']['assigned'][0] == module_loc.name
         assert rt['organizations']['resources']['assigned'][0] == module_org.name
@@ -154,8 +156,8 @@ def test_positive_end_to_end(session, module_org, module_loc):
             name,
             {'template.name': new_name, 'type.snippet': True}
         )
-        assert session.reporttemplate.search(new_name)[0]['Name'] == new_name
         rt = session.reporttemplate.read(new_name)
+        assert rt['template']['name'] == new_name
         assert rt['type']['snippet'] is True
         # LOCK
         session.reporttemplate.lock(new_name)
@@ -170,13 +172,16 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'template.name': clone_name,
             }
         )
-        rt = entities.ReportTemplate().search(
-                query={'search': 'name={0}'.format(clone_name)})[0].read()
-        assert rt.name == clone_name
-        assert rt.organization[0].read().name == module_org.name
-        assert rt.location[0].read().name == module_loc.name
-        assert rt.template == content
-        assert rt.default is True
+        rt = session.reporttemplate.read(clone_name)
+        assert rt['template']['name'] == clone_name
+        assert rt['template']['default'] is True
+        assert rt['template']['template_editor']['editor'] == content
+        assert rt['inputs'][0]['name'] == input_name
+        assert rt['inputs'][0]['required'] is True
+        assert rt['inputs'][0]['input_type'] == 'User input'
+        assert rt['type']['snippet'] is True
+        assert rt['locations']['resources']['assigned'][0] == module_loc.name
+        assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # EXPORT
         file_path = session.reporttemplate.export(new_name)
         assert os.path.isfile(file_path)
@@ -184,8 +189,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
             assert content in dfile.read()
         # DELETE report template
         session.reporttemplate.delete(new_name)
-        assert len(entities.ReportTemplate().search(
-            query={'search': 'name={0}'.format(new_name)})) == 0
+        assert not session.reporttemplate.search(new_name)
 
 
 @upgrade
