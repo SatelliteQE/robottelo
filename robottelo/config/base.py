@@ -20,6 +20,7 @@ import airgun.settings
 from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
 from robottelo.config import casts
+from robottelo.constants import VALID_GCE_ZONES
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -511,6 +512,43 @@ class FakeManifestSettings(FeatureSettings):
             validation_errors.append(
                 'URL with key "default" is required if multiple URLs are provided'
             )
+        return validation_errors
+
+
+class GCESettings(FeatureSettings):
+    """Google Compute Engine settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(GCESettings, self).__init__(*args, **kwargs)
+        self.project_id = None
+        self.client_email = None
+        self.cert_path = None
+        self.zone = None
+        self.cert_url = None
+
+    def read(self, reader):
+        """Read GCE settings."""
+        self.project_id = reader.get('gce', 'project_id')
+        self.client_email = reader.get('gce', 'client_email')
+        self.cert_path = reader.get('gce', 'cert_path')
+        self.zone = reader.get('gce', 'zone')
+        self.cert_url = reader.get('gce', 'cert_url')
+
+    def validate(self):
+        """Validate GCE settings."""
+        valid_cert_path = '/usr/share/foreman/'
+        validation_errors = []
+        if not all(self.__dict__.values()):
+            validation_errors.append(
+                'All [gce] {} options must be provided'.format(self.__dict__.keys()))
+        if not str(self.cert_path).startswith(valid_cert_path):
+            validation_errors.append(
+                '[gce] cert_path - cert should be available '
+                'from satellites {}'.format(valid_cert_path))
+        if self.zone not in VALID_GCE_ZONES:
+            validation_errors.append(
+                'Invalid [gce] zone - {0}, The zone should be one of {1}'.format(
+                    self.zone, VALID_GCE_ZONES))
         return validation_errors
 
 
@@ -1122,6 +1160,7 @@ class Settings(object):
         self.ec2 = EC2Settings()
         self.fake_capsules = FakeCapsuleSettings()
         self.fake_manifest = FakeManifestSettings()
+        self.gce = GCESettings()
         self.ldap = LDAPSettings()
         self.ipa = LDAPIPASettings()
         self.oscap = OscapSettings()
