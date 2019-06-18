@@ -1,15 +1,14 @@
 """Module that gather several informations about host"""
+import functools
 import logging
-
 import re
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.helpers import lru_cache
 
 from robottelo import ssh
 LOGGER = logging.getLogger(__name__)
 
 
-@lru_cache(maxsize=1)
+@functools.lru_cache(maxsize=1)
 def get_host_os_version():
     """Fetches host's OS version through SSH
     :return: str with version
@@ -37,7 +36,7 @@ _SAT_6_1_VERSION_COMMAND = (
 )
 
 
-@lru_cache(maxsize=1)
+@functools.lru_cache(maxsize=1)
 def get_host_sat_version():
     """Fetches host's Satellite version through SSH
     :return: Satellite version
