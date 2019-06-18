@@ -390,6 +390,18 @@ port_range=9091, 14999
 # default value is private
 # managed_ip=Private
 
+#[gce]
+# Google Provider as Compute Resource
+# Project name in Google provider
+#project_id=sat6qe
+# Service Account email id which has compute admin permission
+#client_email=
+# client json Certificate path which is local path on satellite
+#cert_path=/usr/share/foreman/sat6qetester_key.json
+# Zones
+#zone=
+# client certificate URL
+#cert_url=
 
 # [rhev]
 # RHEV to be added as a compute resource.

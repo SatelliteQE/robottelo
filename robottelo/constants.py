@@ -83,6 +83,23 @@ AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
 COMPUTE_PROFILE_LARGE = '3-Large'
 COMPUTE_PROFILE_SMALL = '1-Small'
 
+# GCE specific constants
+_bcds = dict.fromkeys(['us-east1', 'europe-west1'], ['b', 'c', 'd'])
+_abcfs = dict.fromkeys(['us-central1'], ['a', 'b', 'c', 'f'])
+_abcs = dict.fromkeys(
+    ['us-east4', 'us-west1', 'europe-west4', 'europe-west3', 'europe-west2', 'asia-east1',
+     'asia-southeast1', 'asia-northeast1', 'asia-south1', 'australia-southeast1',
+     'southamerica-east1', 'asia-east2', 'asia-northeast2', 'europe-north1', 'europe-west6',
+     'northamerica-northeast1', 'us-west2'],
+    ['a', 'b', 'c']
+)
+_zones_combo = {**_bcds, **_abcfs, **_abcs}
+VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
+
+GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
+GCE_NETWORK_DEFAULT = 'default'
+GCE_EXTERNAL_IP_DEFAULT = True
+
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
     'BASE', 'BASEFONT', 'BDO', 'BIG', 'BLINK', 'BLOCKQUOTE', 'BODY', 'BR',
