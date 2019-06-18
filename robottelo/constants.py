@@ -1603,8 +1603,8 @@ OSCAP_PROFILE = {
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
-    'tailoring_rhel7': ('Common Profile for General-Purpose Systems '
-                        '[CUSTOMIZED1]'),
+    'tailoring_rhel7': ('Standard System Security Profile for Red Hat Enterprise Linux 7 '
+                        '[CUSTOMIZED]'),
     'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
     'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7'
 }
