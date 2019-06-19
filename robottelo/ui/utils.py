@@ -30,6 +30,7 @@ def create_fake_host(session, host, interface_id=gen_string('alpha'),
         'interfaces.interface.interface_additional_data.virtual_nic': False,
         'parameters.global_params': global_parameters,
         'parameters.host_params': host_parameters,
+        'additional_information.comment': 'Host with fake data'
     }
     values.update(extra_values)
     session.host.create(values)
