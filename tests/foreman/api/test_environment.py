@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseLevel: Component
 
-:CaseComponent: Environment
+:CaseComponent: ConfigurationManagement
 
 :TestType: Functional
 
