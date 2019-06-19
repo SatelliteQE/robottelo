@@ -200,8 +200,6 @@ class HostGroupTestCase(APITestCase):
 
         :expectedresults: rebuild hostgroup orchestration configs successfully.
 
-        :BZ: 1686493
-
         :CaseLevel: System
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
