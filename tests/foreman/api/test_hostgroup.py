@@ -221,7 +221,6 @@ class HostGroupTestCase(APITestCase):
                 'lifecycle_environment_id': lce.id,
             },
             ).create()
-        hostgroup = hostgroup.read()
         self.assertEqual(hostgroup.rebuild_config()['message'],
                          'Configuration successfully rebuilt.')
 
