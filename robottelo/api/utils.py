@@ -214,7 +214,7 @@ def create_sync_custom_repo(org_id=None, product_name=None, repo_name=None,
     return repo.id
 
 
-def enable_sync_redhat_repo(rh_repo, org_id):
+def enable_sync_redhat_repo(rh_repo, org_id, timeout=1500):
     """Enable the RedHat repo, sync it and returns repo_id"""
     # Enable RH repo and fetch repository_id
     repo_id = enable_rhrepo_and_fetchid(
@@ -227,7 +227,7 @@ def enable_sync_redhat_repo(rh_repo, org_id):
     )
     # Sync repository
     call_entity_method_with_timeout(
-        entities.Repository(id=repo_id).sync, timeout=1500)
+        entities.Repository(id=repo_id).sync, timeout=timeout)
     return repo_id
 
 
