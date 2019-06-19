@@ -309,7 +309,6 @@ class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
         :raises BugTypeError: If ``bug_type`` is not recognized.
         """
         self.register_bug_id(func)
-
         if self.bug_type not in ('bugzilla', 'redmine'):
             raise BugTypeError(
                 '"{0}" is not a recognized bug type. Did you mean '
@@ -325,6 +324,7 @@ class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
                 config_picker=self.config_picker
         )) or (self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id)):
             func = self._wrapper(func)
+            func.run_in_one_thread = func.pytestmark
         return func
 
 
