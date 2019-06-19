@@ -227,7 +227,7 @@ def enable_sync_redhat_repo(rh_repo, org_id):
     )
     # Sync repository
     call_entity_method_with_timeout(
-        entities.Repository(id=repo_id).sync, timeout=1500)
+        entities.Repository(id=repo_id).sync, timeout=3500)
     return repo_id
 
 
