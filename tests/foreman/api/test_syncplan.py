@@ -1,7 +1,7 @@
-"""Unit tests for the ``sync_plans`` paths.
+"""Tests for the ``sync_plans`` API paths.
 
-A full API reference for sync plans can be found here:
-http://www.katello.org/docs/api/apidoc/sync_plans.html
+API reference for sync plans can be found on your Satellite:
+<sat6.example.com>/apidoc/v2/sync_plans.html
 
 
 :Requirement: Syncplan
@@ -10,7 +10,7 @@ http://www.katello.org/docs/api/apidoc/sync_plans.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: SyncPlans
 
 :TestType: Functional
 
@@ -323,7 +323,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan.name = name
                 self.assertEqual(sync_plan.update(['name']).name, name)
 
-    @tier1
+    @tier2
     def test_positive_update_description(self):
         """Create a sync plan and update its description.
 
@@ -331,8 +331,6 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :expectedresults: A sync plan is created and its description can be
             updated with the specified description.
-
-        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(
             description=gen_string('alpha'),
@@ -484,6 +482,8 @@ class SyncPlanProductTestCase(APITestCase):
             added to it.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
@@ -591,13 +591,14 @@ class SyncPlanProductTestCase(APITestCase):
 
     @tier2
     def test_positive_add_remove_products_custom_cron(self):
-        """Create a sync plan with two products having custom_cron interval
+        """Create a sync plan with two products having custom cron interval
          and then remove both products from it.
 
          :id: 5ce34eaa-3574-49ba-ab02-aa25515394aa
 
          :expectedresults: A sync plan can be created and both products can be
             removed from it.
+
          :CaseLevel: Integration
         """
         cron_expression = gen_choice(valid_cron_expressions())

@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: SyncPlans
 
 :TestType: Functional
 
@@ -43,6 +43,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
     tier1,
+    tier2,
     tier3,
     tier4,
     upgrade,
@@ -234,11 +235,11 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """Check if syncplan can be created with random names
+        """Check if syncplan can be created with random invalid names
 
         :id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
 
-        :expectedresults: Sync plan is created and has random name
+        :expectedresults: Sync plan is not created
 
         :CaseImportance: Critical
         """
@@ -250,15 +251,13 @@ class SyncPlanTestCase(CLITestCase):
                 ):
                     self._make_sync_plan({u'name': name})
 
-    @tier1
+    @tier2
     def test_positive_update_description(self):
         """Check if syncplan description can be updated
 
         :id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
 
         :expectedresults: Sync plan is created and description is updated
-
-        :CaseImportance: Critical
         """
         new_sync_plan = self._make_sync_plan()
         for new_desc in valid_data_list():
@@ -374,7 +373,7 @@ class SyncPlanTestCase(CLITestCase):
         result = SyncPlan.info({'id': new_sync_plan['id']})
         self.assertIsNotNone(result.get('enabled'))
 
-    @tier1
+    @tier2
     @upgrade
     def test_positive_info_with_assigned_product(self):
         """Verify that sync plan info command returns list of products which
@@ -388,6 +387,10 @@ class SyncPlanTestCase(CLITestCase):
             command
 
         :BZ: 1390545
+
+        :CaseImportance: Critical
+
+        :CaseLevel: Integration
         """
         prod1 = gen_string('alpha')
         prod2 = gen_string('alpha')
