@@ -11,7 +11,7 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: OrganizationsLocations
 
 :TestType: Functional
 
@@ -108,7 +108,6 @@ class OrganizationTestCase(APITestCase):
 
         :expectedresults: The organization cannot be created.
 
-        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -169,7 +168,7 @@ class OrganizationTestCase(APITestCase):
         self.assertIn(
             'Route overriden by Katello', err.exception.response.text)
 
-    @tier1
+    @tier2
     def test_default_org_id_check(self):
         """test to check the default_organization id
 
@@ -179,7 +178,7 @@ class OrganizationTestCase(APITestCase):
 
         :expectedresults: The default_organization ID remain 1.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         default_org_id = entities.Organization().search(
             query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id

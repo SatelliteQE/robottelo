@@ -8,7 +8,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: OrganizationsLocations
 
 :TestType: Functional
 
@@ -17,7 +17,7 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from robottelo.cleanup import capsule_cleanup, org_cleanup
+from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     make_compute_resource,
@@ -45,7 +45,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -87,7 +86,7 @@ class OrganizationTestCase(CLITestCase):
         super(OrganizationTestCase, cls).setUpClass()
         cls.org = make_org()
 
-    @tier1
+    @tier2
     def test_verify_bugzilla_1078866(self):
         """hammer organization <info,list> --help types information
         doubled
@@ -98,7 +97,7 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: no duplicated lines in usage message
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         # org list --help:
         result = Org.list({'help': True}, output_format=None)
@@ -339,7 +338,6 @@ class OrganizationTestCase(CLITestCase):
                          "Failed to remove hostgroup by id")
 
     @skip_if_not_set('compute_resources')
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     @upgrade
     def test_positive_add_and_remove_compresources(self):
@@ -357,8 +355,6 @@ class OrganizationTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        # org = make_org()
-
         compute_res_a = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
             'url': u'qemu+ssh://root@{0}/system'.format(
@@ -637,8 +633,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(proxy['name'], org_info['smart-proxies'],
                          "Failed to add capsule by name")
 
-    @skip_if_bug_open('bugzilla', 1395229)
-    @skip_if_bug_open('bugzilla', 1473387)
     @tier2
     @upgrade
     def test_positive_add_and_remove_locations(self):
@@ -738,7 +732,6 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: organization is not created
 
-        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -814,7 +807,6 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: organization name is not updated
 
-        :CaseImportance: Critical
         """
         org = make_org()
         for new_name in invalid_values_list():
