@@ -17,7 +17,6 @@
 from fauxfactory import gen_url
 from navmazing import NavigationTriesExceeded
 from pytest import raises, skip
-from widgetastic.exceptions import NoSuchElementException
 
 from airgun.session import Session
 from nailgun import entities
@@ -31,7 +30,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    bz_bug_is_open,
     fixture,
     run_in_one_thread,
     setting_is_set,
@@ -126,8 +124,19 @@ def ldap_usergroup_name():
         user_groups[0].delete()
 
 
+@fixture(scope='module')
+def ldap_auth_name():
+    """Return some random ldap name, and attempt to delete all ldap when test starts.
+    """
+    ldap = entities.AuthSourceLDAP().search()
+    for ldap_auth in range(len(ldap)):
+        ldap[ldap_auth].delete()
+    ldap_name = gen_string('alphanumeric')
+    yield ldap_name
+
+
 @tier2
-def test_positive_end_to_end_ad(session, ldap_data):
+def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
     """Perform end to end testing for LDAP authentication component with AD
 
     :id: a6528239-e090-4379-a850-3900ee625b24
@@ -138,11 +147,10 @@ def test_positive_end_to_end_ad(session, ldap_data):
 
     :CaseImportance: High
     """
-    name = gen_string('alpha')
     new_server = gen_url()
     with session:
         session.ldapauthentication.create({
-            'ldap_server.name': name,
+            'ldap_server.name': ldap_auth_name,
             'ldap_server.host': ldap_data['ldap_hostname'],
             'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
             'account.account_name': ldap_data['ldap_user_name'],
@@ -154,16 +162,16 @@ def test_positive_end_to_end_ad(session, ldap_data):
             'attribute_mappings.last_name': LDAP_ATTR['surname'],
             'attribute_mappings.mail': LDAP_ATTR['mail'],
         })
-        assert session.ldapauthentication.read_table_row(name)['Name'] == name
-        session.ldapauthentication.update(name, {'ldap_server.host': new_server})
-        assert session.ldapauthentication.read_table_row(name)['Server'] == new_server
-        session.ldapauthentication.delete(name)
-        assert not session.ldapauthentication.read_table_row(name)
+        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
+        session.ldapauthentication.update(ldap_auth_name, {'ldap_server.host': new_server})
+        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Server'] == new_server
+        session.ldapauthentication.delete(ldap_auth_name)
+        assert not session.ldapauthentication.read_table_row(ldap_auth_name)
 
 
 @tier2
 @upgrade
-def test_positive_create_with_ad_org_and_loc(session, ldap_data):
+def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name):
     """Create LDAP auth_source for AD with org and loc assigned.
 
     :id: 4f595af4-fc01-44c6-a614-a9ec827e3c3c
@@ -176,12 +184,11 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data):
     :expectedresults: Whether creating LDAP Auth with AD and associating org
         and loc is successful.
     """
-    name = gen_string('alpha')
     org = entities.Organization().create()
     loc = entities.Location().create()
     with session:
         session.ldapauthentication.create({
-            'ldap_server.name': name,
+            'ldap_server.name': ldap_auth_name,
             'ldap_server.host': ldap_data['ldap_hostname'],
             'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
             'account.account_name': ldap_data['ldap_user_name'],
@@ -197,9 +204,9 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data):
         })
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.ldapauthentication.read_table_row(name)['Name'] == name
-        ldap_source = session.ldapauthentication.read(name)
-        assert ldap_source['ldap_server']['name'] == name
+        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
+        ldap_source = session.ldapauthentication.read(ldap_auth_name)
+        assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source['ldap_server']['host'] == ldap_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
         assert ldap_source[
@@ -222,7 +229,7 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data):
 
 @skip_if_not_set('ipa')
 @tier2
-def test_positive_create_with_idm_org_and_loc(session, ipa_data):
+def test_positive_create_with_idm_org_and_loc(session, ipa_data, ldap_auth_name):
     """Create LDAP auth_source for IDM with org and loc assigned.
 
     :id: bc70bcff-1241-4d8e-9713-da752d6c4798
@@ -235,12 +242,11 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
     :expectedresults: Whether creating LDAP Auth source with IDM and
         associating org and loc is successful.
     """
-    name = gen_string('alpha')
     org = entities.Organization().create()
     loc = entities.Location().create()
     with session:
         session.ldapauthentication.create({
-            'ldap_server.name': name,
+            'ldap_server.name': ldap_auth_name,
             'ldap_server.host': ipa_data['ldap_ipa_hostname'],
             'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
             'account.account_name': ipa_data['ldap_ipa_user_name'],
@@ -256,9 +262,9 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
         })
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.ldapauthentication.read_table_row(name)['Name'] == name
-        ldap_source = session.ldapauthentication.read(name)
-        assert ldap_source['ldap_server']['name'] == name
+        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
+        ldap_source = session.ldapauthentication.read(ldap_auth_name)
+        assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source[
             'ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
@@ -319,11 +325,6 @@ def test_positive_add_katello_role(
     ) as session:
         with raises(NavigationTriesExceeded):
             session.architecture.search('')
-        if bz_bug_is_open(1652938):
-            try:
-                session.activationkey.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
@@ -389,11 +390,6 @@ def test_positive_update_external_roles(
             ldap_data['ldap_user_name'],
             ldap_data['ldap_user_passwd'],
     ) as session:
-        if bz_bug_is_open(1652938):
-            try:
-                session.activationkey.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
@@ -519,11 +515,6 @@ def test_positive_update_external_user_roles(
     ) as session:
         with raises(NavigationTriesExceeded):
             ldapsession.architecture.search('')
-        if bz_bug_is_open(1652938):
-            try:
-                session.activationkey.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
@@ -573,11 +564,6 @@ def test_positive_add_admin_role_with_org_loc(
         location = session.location.read(location_name, ['current_user', 'primary'])
         assert location['current_user'] == ldap_data['ldap_user_name']
         assert location['primary']['name'] == location_name
-        if bz_bug_is_open(1652938):
-            try:
-                session.activationkey.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
@@ -633,11 +619,6 @@ def test_positive_add_foreman_role_with_org_loc(
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
-            if bz_bug_is_open(1652938):
-                try:
-                    ldapsession.hostgroup.search('')
-                except NoSuchElementException:
-                    ldapsession.browser.refresh()
             ldapsession.hostgroup.create({'host_group.name': name})
         hostgroup = session.hostgroup.read(name, ['organizations', 'locations'])
         assert len(hostgroup['organizations']['resources']['assigned']) == 1
@@ -693,24 +674,11 @@ def test_positive_add_katello_role_with_org(
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
-            if bz_bug_is_open(1652938):
-                try:
-                    ldapsession.activationkey.search('')
-                except NoSuchElementException:
-                    ldapsession.browser.refresh()
             ldapsession.activationkey.create({'name': ak_name})
-        # Since it's not possible to fetch assigned organization via UI directly,
-        # verify AK can be found in right org, can't be found in wrong one and
-        # double check via API
-        if bz_bug_is_open(1652938):
-            try:
-                session.activationkey.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         results = session.activationkey.search(ak_name)
         assert results[0]['Name'] == ak_name
         session.organization.select(different_org.name)
-        assert not session.activationkey.search(ak_name)
+        assert not session.activationkey.search(ak_name)[0]['Name'] == ak_name
     ak = entities.ActivationKey(organization=module_org).search(
         query={'search': 'name={}'.format(ak_name)})[0].read()
     assert ak.organization.id == module_org.id
