@@ -134,13 +134,12 @@ class OrganizationTestCase(CLITestCase):
             'description': desc,
             })
         self.assertEqual(org['name'], name)
-        self.assertNotEqual(org['name'], org['label'])
         self.assertEqual(org['label'], label)
         self.assertEqual(org['description'], desc)
 
         # List
         result = Org.list({'search': 'name=%s' % org['name']})
-        self.assertTrue(len(result) > 0)
+        self.assertTrue(len(result) > 1)
         self.assertEqual(result[0]['name'], org['name'])
 
         # Search scoped
