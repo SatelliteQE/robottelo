@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 
@@ -53,6 +53,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     skip_if_not_set,
     tier2,
+    tier3,
     tier4,
 )
 from robottelo.helpers import (
@@ -160,7 +161,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         proxy.download_policy = download_policy
         proxy.update(['download_policy'])
 
-    @tier4
+    @tier3
     def test_positive_insights_puppet_package_availability(self):
         """Check `redhat-access-insights-puppet` package availability for
         capsule
@@ -288,6 +289,8 @@ class CapsuleContentManagementTestCase(APITestCase):
             repository on  capsule
 
         :CaseLevel: System
+
+        :CaseImportance: Critical
         """
         repomd_path = 'repodata/repomd.xml'
         # Create organization, product, lce and repository with sha256 checksum
@@ -1145,6 +1148,8 @@ class CapsuleContentManagementTestCase(APITestCase):
             puppet module is present on capsule
 
         :CaseLevel: System
+
+        :CaseImportance: Medium
         """
         module_name = 'versioned'
         module_versions = ['2.2.2', '3.3.3']
