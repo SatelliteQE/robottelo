@@ -8,9 +8,9 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: ContentViews
 
 :TestType: Functional
 
@@ -66,6 +66,8 @@ class ContentViewFilterTestCase(APITestCase):
             issued with no arguments specified.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
@@ -84,6 +86,8 @@ class ContentViewFilterTestCase(APITestCase):
             issued with bad arguments specified.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
@@ -123,6 +127,8 @@ class ContentViewFilterTestCase(APITestCase):
             correct name and type
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -143,6 +149,8 @@ class ContentViewFilterTestCase(APITestCase):
             correct name and type
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -182,6 +190,8 @@ class ContentViewFilterTestCase(APITestCase):
             correct description
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -220,6 +230,8 @@ class ContentViewFilterTestCase(APITestCase):
             'original packages' value
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         for original_packages in (True, False):
             with self.subTest(original_packages):
@@ -283,7 +295,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseAutomation: Automated
 
-        :CaseImportance: High
+        :CaseImportance: Critical
 
         :CaseLevel: Integration
         """
@@ -333,6 +345,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter was not created
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -351,6 +365,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Second content view filter was not created
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         kwargs = {
             'content_view': self.content_view,
@@ -370,6 +386,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter is not created
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(content_view=None).create()
@@ -384,6 +402,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter is not created
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(
@@ -400,6 +420,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter was deleted
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
@@ -437,6 +459,8 @@ class ContentViewFilterTestCase(APITestCase):
             description was changed
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
@@ -501,6 +525,8 @@ class ContentViewFilterTestCase(APITestCase):
             repositories assigned
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
@@ -585,6 +611,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter was not updated
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
@@ -604,6 +632,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter was not updated
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         name = gen_string('alpha', 8)
         entities.RPMContentViewFilter(
@@ -664,6 +694,8 @@ class ContentViewFilterTestCase(APITestCase):
         :expectedresults: Content view filter was not updated
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,

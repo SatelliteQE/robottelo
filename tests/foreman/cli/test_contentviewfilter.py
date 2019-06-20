@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: ContentViews
 
 :TestType: Functional
 
@@ -73,7 +73,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter created successfully and has
             correct and expected parameters
 
-
         :CaseImportance: Critical
         """
         for name in valid_data_list():
@@ -106,7 +105,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter created successfully and has
             correct and expected parameters
 
-
         :CaseImportance: Critical
         """
         for filter_content_type in ('rpm', 'package_group', 'erratum'):
@@ -133,7 +131,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter created successfully and has
             correct and expected parameters
-
 
         :CaseImportance: Critical
         """
@@ -163,8 +160,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter created successfully and has
             proper description
 
-
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         description = gen_string('utf8')
         cvf_name = gen_string('utf8')
@@ -287,7 +283,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter created successfully
 
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -311,7 +306,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :id: f233e223-c08c-4ce1-b87a-9e055fdd7b83
 
         :expectedresults: Content view filter created successfully
-
 
         :CaseImportance: Critical
         """
@@ -402,7 +396,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter created successfully and has
             proper repository affected
 
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -420,7 +413,7 @@ class ContentViewFilterTestCase(CLITestCase):
         })
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
-    @tier1
+    @tier2
     def test_positive_create_with_repos_yum_and_docker(self):
         """Create new docker repository and add to content view that has yum
         repo already assigned to it. Create new content view filter and assign
@@ -431,9 +424,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter created successfully and has both
             repositories affected (yum and docker)
-
-
-        :CaseImportance: Critical
         """
         docker_repository = make_repository({
             u'content-type': u'docker',
@@ -471,8 +461,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter is not created
 
-
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -492,8 +481,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Second content view filter is not created
 
-
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -519,7 +507,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter is not created
 
-
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
@@ -538,7 +525,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter is not created
 
-
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
@@ -554,7 +540,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :id: 21fdbeca-ad0a-4e29-93dc-f850b5639f4f
 
         :expectedresults: Content view filter is not created
-
 
         :CaseImportance: Critical
         """
@@ -578,8 +563,9 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter updated successfully and has
             proper and expected name
 
-
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         cvf = make_content_view_filter({
@@ -613,8 +599,9 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter updated successfully and has new
             repository affected
 
-
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -712,7 +699,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter updated successfully and has
             correct and expected value for inclusion parameter
 
-
         :CaseLevel: Integration
         """
         cvf_name = gen_string('utf8')
@@ -789,7 +775,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter is not updated
 
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -822,7 +807,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter is not updated
 
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -853,7 +837,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter is not updated
 
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -878,7 +861,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :id: aa550619-c436-4184-bb29-2becadf69e5b
 
         :expectedresults: Content view filter is not updated
-
 
         :CaseImportance: Critical
         """
@@ -906,7 +888,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :id: a01baf17-9c3c-4923-bfe0-865a4cbc4223
 
         :expectedresults: Content view filter deleted successfully
-
 
         :CaseImportance: Critical
         """
@@ -942,7 +923,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :expectedresults: Content view filter deleted successfully
 
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -973,7 +953,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :id: 61b25ae5-98d5-4b7d-9197-2b1935054a92
 
         :expectedresults: Content view filter deleted successfully
-
 
         :CaseImportance: Critical
         """
@@ -1006,7 +985,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :id: 84509061-6652-4594-b68a-4566c04bc289
 
         :expectedresults: System returned error
-
 
         :CaseImportance: Critical
         """

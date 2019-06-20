@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: ContentViews
 
 :TestType: Functional
 
@@ -64,6 +64,8 @@ class ContentViewVersionCreateTestCase(APITestCase):
         :expectedresults: Content View Version is created.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         # Fetch content view for latest information
         cv = self.content_view.read()
@@ -85,6 +87,8 @@ class ContentViewVersionCreateTestCase(APITestCase):
         :expectedresults: Content View Version is not created
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         # The default content view cannot be published
         cv = entities.ContentView(
@@ -130,6 +134,8 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         :expectedresults: Promotion succeeds.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -186,6 +192,8 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         :expectedresults: The promotion fails.
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         with self.assertRaises(HTTPError):
             promote(self.default_cv, self.lce1.id)
@@ -231,6 +239,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :expectedresults: Content version deleted successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
         org = entities.Organization().create()
@@ -280,6 +290,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :expectedresults: Content view version deleted successfully
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -346,7 +358,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.read().version), 0)
 
     @upgrade
-    @tier2
+    @tier3
     def test_positive_delete_with_puppet_content(self):
         """Delete content view version with puppet module content
 
@@ -425,6 +437,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :expectedresults: Content view version is not deleted
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -753,6 +767,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :expectedresults: Content view version exists only in Library, DEV
 
         :CaseLevel: Integration
+
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -841,6 +857,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :expectedresults: The content view doesn't exists
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -1028,7 +1046,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
     """Tests for content view version promotion."""
 
     @upgrade
-    @tier2
+    @tier3
     def test_positive_incremental_update_puppet(self):
         """Incrementally update a CVV with a puppet module.
 
@@ -1100,7 +1118,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
             puppet_module.id,
         )
 
-    @tier2
+    @tier3
     def test_positive_incremental_update_propagate_composite(self):
         """Incrementally update a CVV in composite CV with
         `propagate_all_composites` flag set
@@ -1127,6 +1145,8 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
             3. New incremental composite CVV contains new puppet module
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         product = entities.Product().create()
         yum_repo = entities.Repository(
