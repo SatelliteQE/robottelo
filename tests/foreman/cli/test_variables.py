@@ -97,17 +97,19 @@ class SmartVariablesTestCase(CLITestCase):
     #     delete_puppet_class(cls.puppet_class['name'])
 
     @tier2
-    def test_positive_list_by_host_name(self):
-        """List all smart variables associated to host by hostname.
+    def test_positive_list(self):
+        """List all smart variables associated to host, hostgroup, puppetlass
 
         :id: ee0da54c-ab60-4dde-8e1f-d548b52bac73
 
-        :expectedresults: Smart Variables listed for specific Host by hostname.
+        :expectedresults: Smart Variables listed based on selected filter
 
         :CaseLevel: Integration
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
+
+        # List by host name and id
         host = entities.Host(organization=self.org['id'],
                              location=self.loc['id']).create()
         Host.update({
@@ -121,44 +123,12 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['variable'],
             [sv['variable'] for sv in host_variables]
         )
-
-    @tier2
-    def test_positive_list_by_host_id(self):
-        """List all smart variables associated to host by host id.
-
-        :id: ee2e994b-2a6d-4069-a2f7-e244a3134772
-
-        :expectedresults: Smart Variables listed for specific Host by host id.
-
-        :CaseLevel: Integration
-        """
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
-        host = entities.Host(organization=self.org['id'],
-                             location=self.loc['id']).create()
-        Host.update({
-            u'name': host.name,
-            u'environment': self.env['name'],
-            u'puppet-classes': self.puppet_class['name'],
-        })
         host_variables = SmartVariable.list({'host-id': host.id})
         self.assertGreater(len(host_variables), 0)
         self.assertIn(
             smart_variable['id'], [sv['id'] for sv in host_variables])
 
-    @tier2
-    def test_positive_list_by_hostgroup_name(self):
-        """List all smart variables associated to hostgroup by hostgroup name
-
-        :id: cb69abe0-2349-4114-91e9-ef93f261dc50
-
-        :expectedresults: Smart Variables listed for specific HostGroup by
-            hostgroup name.
-
-        :CaseLevel: Integration
-        """
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
+        # List by hostgroup name and id
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
@@ -170,44 +140,13 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['variable'],
             [sv['variable'] for sv in hostgroup_variables]
         )
-
-    @tier2
-    def test_positive_list_by_hostgroup_id(self):
-        """List all smart variables associated to hostgroup by hostgroup id
-
-        :id: 0f167c4c-e4de-4b66-841f-d5a9e410391e
-
-        :expectedresults: Smart Variables listed for specific HostGroup by
-            hostgroup id.
-
-        :CaseLevel: Integration
-        """
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet_class['id']
-        })
         hostgroup_variables = SmartVariable.list(
             {'hostgroup-id': hostgroup['id']})
         self.assertGreater(len(hostgroup_variables), 0)
         self.assertIn(
             smart_variable['id'], [sv['id'] for sv in hostgroup_variables])
 
-    @tier1
-    def test_positive_list_by_puppetclass_name(self):
-        """List all smart variables associated to puppet class by puppet class
-        name.
-
-        :id: 43b795c2-a64d-4a84-bb35-1e8fd0e1a0c9
-
-        :expectedresults: Smart Variables listed for specific puppet class by
-            puppet class name.
-
-        :CaseImportance: Critical
-        """
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
+        # List by puppetclass name and id
         sc_params_list = SmartVariable.list({
             'puppet-class': self.puppet_class['name']
         })
@@ -216,21 +155,6 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['variable'],
             [sv['variable'] for sv in sc_params_list]
         )
-
-    @tier1
-    def test_positive_list_by_puppetclass_id(self):
-        """List all smart variables associated to puppet class by puppet class
-        id.
-
-        :id: 57d290e8-2ae2-4c09-ab1e-7c7914bc4ba8
-
-        :expectedresults: Smart Variables listed for specific puppet class by
-            puppet class id.
-
-        :CaseImportance: Critical
-        """
-        smart_variable = make_smart_variable(
-            {'puppet-class-id': self.puppet_class['id']})
         sc_params_list = SmartVariable.list({
             'puppet-class-id': self.puppet_class['id']
         })
@@ -239,8 +163,8 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['id'], [sv['id'] for sv in sc_params_list])
 
     @tier1
-    def test_positive_create(self):
-        """Create a Smart Variable.
+    def test_positive_CRUD(self):
+        """Create, Update, and Delete Smart Variable.
 
         :id: 8be9ed26-9a27-42a8-8edd-b255637f205e
 
@@ -250,13 +174,30 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                smart_variable = make_smart_variable({
-                    'variable': name,
-                    'puppet-class': self.puppet_class['name']
-                })
-                self.assertEqual(smart_variable['variable'], name)
+        name = valid_data_list()[0]
+        smart_variable = make_smart_variable({
+            'variable': name,
+            'puppet-class': self.puppet_class['name']
+        })
+        self.assertEqual(smart_variable['variable'], name)
+
+        # Update name and puppet class
+        new_name = valid_data_list()[1]
+        new_puppet = Puppet.info(
+            {u'name': choice(self.puppet_subclasses)['name']})
+        SmartVariable.update({
+            'id': smart_variable['id'],
+            'new-variable': new_name,
+            'puppet-class': new_puppet['name']
+        })
+        updated_sv = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(updated_sv['puppet-class'], new_puppet['name'])
+        self.assertEqual(updated_sv['variable'], new_name)
+
+        # Delete
+        SmartVariable.delete({'variable': smart_variable['variable']})
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.info({'variable': smart_variable['variable']})
 
     @tier1
     def test_negative_create(self):
@@ -270,109 +211,12 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIReturnCodeError):
-                    SmartVariable.create({
-                        'variable': name,
-                        'puppet-class': self.puppet_class['name']
-                    })
-
-    @tier1
-    def test_positive_delete_smart_variable_by_id(self):
-        """Delete a Smart Variable by id.
-
-        :id: b0c4f7f0-d568-411f-94c2-fa525f36a8fd
-
-        :steps: Delete a smart Variable by id.
-
-        :expectedresults: The smart Variable is deleted successfully.
-
-        :CaseImportance: Critical
-        """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name']})
-        SmartVariable.delete({'id': smart_variable['id']})
+        name = invalid_values_list()[0]
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.info({'id': smart_variable['id']})
-
-    @tier1
-    def test_positive_delete_smart_variable_by_name(self):
-        """Delete a Smart Variable by name.
-
-        :id: 52900000-d7e1-4f0c-b67e-a2a1d25fc76e
-
-        :steps: Delete a smart Variable by name.
-
-        :expectedresults: The smart Variable is deleted successfully.
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: automated
-        """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name']})
-        SmartVariable.delete({'variable': smart_variable['variable']})
-        with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.info({'variable': smart_variable['variable']})
-
-    @tier1
-    def test_positive_update_variable_puppet_class(self):
-        """Update Smart Variable's puppet class.
-
-        :id: 0f2d617b-c9ec-46e9-ac84-7a0d59a84811
-
-        :steps:
-
-            1. Create a smart variable with valid name.
-            2. Update the puppet class associated to the smart variable created
-               in step1.
-
-        :expectedresults: The variable is updated with new puppet class.
-
-        :CaseImportance: Critical
-        """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name']})
-        self.assertEqual(
-            smart_variable['puppet-class'], self.puppet_class['name'])
-        new_puppet = Puppet.info(
-            {u'name': choice(self.puppet_subclasses)['name']})
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'puppet-class': new_puppet['name']
-        })
-        updated_sv = SmartVariable.info(
-            {'variable': smart_variable['variable']})
-        self.assertEqual(updated_sv['puppet-class'], new_puppet['name'])
-
-    @skip_if_bug_open('bugzilla', 1367032)
-    @tier1
-    def test_positive_update_name(self):
-        """Update Smart Variable's name
-
-        :id: e73c1366-6745-4576-ae22-d87cbf03faf9
-
-        :steps:
-
-            1. Create a smart variable with valid name.
-            2. Update smart variable name created in step1.
-
-        :expectedresults: The variable is updated with new name.
-
-        :CaseImportance: Critical
-        """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name']})
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                SmartVariable.update({
-                    'id': smart_variable['id'],
-                    'new-variable': new_name,
-                    'puppet-class': self.puppet_class['name']
-                })
-                updated_sv = SmartVariable.info({'id': smart_variable['id']})
-                self.assertEqual(updated_sv['variable'], new_name)
+            SmartVariable.create({
+                'variable': name,
+                'puppet-class': self.puppet_class['name']
+            })
 
     @tier1
     def test_negative_duplicate_name_variable(self):
@@ -411,52 +255,12 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for value in valid_data_list():
-            with self.subTest(value):
-                smart_variable = make_smart_variable({
-                    'puppet-class': self.puppet_class['name'],
-                    'default-value': value,
-                })
-                self.assertEqual(smart_variable['default-value'], value)
-
-    @stubbed()
-    @tier1
-    @upgrade
-    def test_positive_create_type(self):
-        """Create smart variable with all valid key types and values.
-
-        Types - string, boolean, integer, real, array, hash, yaml, json
-
-        :id: 63d9c79a-5d54-44f8-b36d-45eb183cb148
-
-        :steps: Create a variable with valid key type and default value.
-
-        :expectedresults: Variable is created with a new type successfully.
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @stubbed()
-    @tier1
-    def test_negative_update_type(self):
-        """Create smart variable with all valid key types but invalid values.
-
-        Types - string, boolean, integer, real, array, hash, yaml, json
-
-        :id: aab8423e-3857-4ac9-9f18-aec64f95a90d
-
-        :steps: Create a variable with valid key type and invalid default
-            value.
-
-        :expectedresults: Variable is not created with new type for invalid
-            value.
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
+        value = valid_data_list()[0]
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet_class['name'],
+            'default-value': value,
+        })
+        self.assertEqual(smart_variable['default-value'], value)
 
     @tier1
     def test_positive_create_empty_matcher_value(self):
