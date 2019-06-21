@@ -9,6 +9,7 @@ try:
 except ImportError:
     pass
 from time import time
+from types import SimpleNamespace
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
 from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
@@ -118,22 +119,30 @@ def log_test_execution(robottelo_logger, request):
     robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
-def pytest_namespace():
+class NestedDict(SimpleNamespace):
+    def __init__(self, dict_data, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in dict_data.items():
+            if isinstance(value, dict):
+                self.__setattr__(key, NestedDict(value))
+            else:
+                self.__setattr__(key, value)
+
+
+def pytest_configure():
     """return dict of name->object to be made globally available in
-    the pytest namespace.  This hook is called at plugin registration
+    the pytest configure.  This hook is called at plugin registration
     time.
     Object is accessible only via dotted notation `item.key.nested_key`
 
     Exposes the list of all WONTFIX bugs and a mapping between decorated
     functions and Bug IDS (populated by decorator).
     """
-    log("Registering custom pytest_namespace")
-    return {
-        'bugzilla': {
+    log("Registering custom pytest_configure")
+    pytest.bugzilla = NestedDict({
             'removal_ids': get_deselect_bug_ids(log=log),
             'decorated_functions': []
-        }
-    }
+    })
 
 
 def _extract_setup_class_ids(item):
