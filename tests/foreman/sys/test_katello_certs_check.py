@@ -7,7 +7,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: CLI
+:CaseComponent: Certificates
 
 :TestType: Functional
 
@@ -30,7 +30,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Get hostname and credentials"""
+        """Get host name and credentials"""
         super(KatelloCertsCheckTestCase, cls).setUpClass()
         _, cls.ca_bundle_file_name = os.path.split(
             settings.certs.ca_bundle_file
@@ -79,7 +79,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
     @tier1
     def test_positive_validate_katello_certs_check_output(self):
-        """Validate that katello-certs-check generate correct output
+        """Validate that katello-certs-check generates correct output
 
         :id: 4c9e4c6e-8d8e-4953-87a1-09cb55df3adf
 
