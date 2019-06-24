@@ -481,7 +481,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed()
     @tier1
     def test_positive_list_parameters(self):
         """Satellite lists all the subnet parameters
@@ -497,6 +496,28 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The satellite should display all the subnet
             parameters
         """
+        parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        org_subnet = entities.Subnet(
+            location=[loc],
+            organization=[org],
+            ipam=u'DHCP',
+            vlanid=gen_string('numeric', 3),
+            subnet_parameters_attributes=[parameter]).create()
+        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['name'],
+                         parameter['name'])
+        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['value'],
+                         parameter['value'])
+        sub_param = entities.Parameter(
+            name=gen_string('alpha'),
+            subnet=org_subnet.id,
+            value=gen_string('alpha')).create()
+        org_subnet = entities.Subnet(id=org_subnet.id).read()
+        params_list = {param['name']: param['value']
+                       for param in org_subnet.subnet_parameters_attributes
+                       if param['name'] == sub_param.name}
+        self.assertEqual(params_list[sub_param.name], sub_param.value)
 
     @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
