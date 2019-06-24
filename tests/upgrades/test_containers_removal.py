@@ -156,7 +156,7 @@ class Scenario_containers_support_removal(APITestCase):
         """Post-upgrade scenario test to verify containers created and run
         before upgrade are still running after upgrade.
 
-        :id: preupgrade-f6de07ae-14c7-4452-9cb1-cafe2aa648ae
+        :id: postupgrade-f6de07ae-14c7-4452-9cb1-cafe2aa648ae
 
         :steps:
 
