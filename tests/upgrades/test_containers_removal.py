@@ -92,60 +92,64 @@ class Scenario_containers_support_removal(APITestCase):
             tag=u'docker'
         )
         docker_host.create()
-        docker_host.install_katello_ca()
-
-        compute_resource = entities.DockerComputeResource(
-            name=compute_resource_name,
-            organization=[org],
-            url='http://{0}:2375'.format(docker_host.ip_addr),
-        ).create()
-
-        # Only one registry with given URL can exist on Satellite,
-        # so search for it first and create it only if necessary
         try:
-            registry = entities.Registry().search(filters={'url': registry_url})[0]
-        except IndexError:
-            registry = entities.Registry(
-                url=registry_url,
+            docker_host.install_katello_ca()
+
+            compute_resource = entities.DockerComputeResource(
+                name=compute_resource_name,
                 organization=[org],
+                url='http://{0}:2375'.format(docker_host.ip_addr),
             ).create()
 
-        # container from dockerhub
-        dockerhub_container = entities.DockerHubContainer(
-            command='sleep inf',
-            compute_resource=compute_resource,
-            organization=[org],
-        ).create()
-        self.assertEqual(
-            dockerhub_container.compute_resource.id, compute_resource.id)
+            # Only one registry with given URL can exist on Satellite,
+            # so search for it first and create it only if necessary
+            try:
+                registry = entities.Registry().search(filters={'url': registry_url})[0]
+            except IndexError:
+                registry = entities.Registry(
+                    url=registry_url,
+                    organization=[org],
+                ).create()
 
-        # container from external registry
-        external_container = entities.DockerRegistryContainer(
-            command='sleep inf',
-            compute_resource=compute_resource,
-            organization=[org],
-            registry=registry,
-            repository_name=repo_name,
-        ).create()
-        self.assertEqual(
-            external_container.compute_resource.id, compute_resource.id)
-        self.assertEqual(external_container.registry.id, registry.id)
-        self.assertEqual(external_container.repository_name, repo_name)
+            # container from dockerhub
+            dockerhub_container = entities.DockerHubContainer(
+                command='sleep inf',
+                compute_resource=compute_resource,
+                organization=[org],
+            ).create()
+            self.assertEqual(
+                dockerhub_container.compute_resource.id, compute_resource.id)
 
-        running_containers = docker_host.run('docker ps')
-        self.assertEqual(running_containers.return_code, 0)
+            # container from external registry
+            external_container = entities.DockerRegistryContainer(
+                command='sleep inf',
+                compute_resource=compute_resource,
+                organization=[org],
+                registry=registry,
+                repository_name=repo_name,
+            ).create()
+            self.assertEqual(
+                external_container.compute_resource.id, compute_resource.id)
+            self.assertEqual(external_container.registry.id, registry.id)
+            self.assertEqual(external_container.repository_name, repo_name)
 
-        self.assertTrue(any(dockerhub_container.name in line
-                            for line in running_containers.stdout))
-        self.assertTrue(any(external_container.name in line
-                            for line in running_containers.stdout))
+            running_containers = docker_host.run('docker ps')
+            self.assertEqual(running_containers.return_code, 0)
 
-        scenario_dict = {self.__class__.__name__: {
-            'docker_host': docker_host.hostname,
-            'dockerhub_container': dockerhub_container.name,
-            'external_container': external_container.name,
-        }}
-        create_dict(scenario_dict)
+            self.assertTrue(any(dockerhub_container.name in line
+                                for line in running_containers.stdout))
+            self.assertTrue(any(external_container.name in line
+                                for line in running_containers.stdout))
+
+            scenario_dict = {self.__class__.__name__: {
+                'docker_host': docker_host.hostname,
+                'dockerhub_container': dockerhub_container.name,
+                'external_container': external_container.name,
+            }}
+            create_dict(scenario_dict)
+        except Exception as exp:
+            self._vm_cleanup(hostname=docker_host.hostname)
+            raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_containers_support_removal)
     def test_post_scenario_containers_support_removal(self):
