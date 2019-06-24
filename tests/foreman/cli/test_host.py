@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: Hammer
 
 :TestType: Functional
 
@@ -357,7 +357,7 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(new_host['organization'], self.new_org['name'])
 
     @skip_if_bug_open('bugzilla', 1483252)
-    @tier1
+    @tier2
     def test_positive_create_with_content_source(self):
         """Create a host with content source specified
 
@@ -384,7 +384,7 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(host['content-information']['content-source']['name'],
                          content_source['name'])
 
-    @tier1
+    @tier2
     def test_negative_create_with_content_source(self):
         """Attempt to create a host with invalid content source specified
 
@@ -407,7 +407,7 @@ class HostCreateTestCase(CLITestCase):
     @run_in_one_thread
     @skip_if_bug_open('bugzilla', 1483252)
     @skip_if_bug_open('bugzilla', 1488465)
-    @tier1
+    @tier2
     def test_positive_update_content_source(self):
         """Update host's content source
 
@@ -442,7 +442,7 @@ class HostCreateTestCase(CLITestCase):
                          new_content_source['name'])
 
     @skip_if_bug_open('bugzilla', 1483252)
-    @tier1
+    @tier2
     def test_negative_update_content_source(self):
         """Attempt to update host's content source with invalid value
 
@@ -606,7 +606,7 @@ class HostCreateTestCase(CLITestCase):
             [puppet['name'] for puppet in host_classes]
         )
 
-    @tier1
+    @tier2
     def test_positive_create_with_openscap_proxy_id(self):
         """Check if host can be created with OpenSCAP Proxy id
 
@@ -678,6 +678,8 @@ class HostCreateTestCase(CLITestCase):
             and foreman_openscap are available in help message
             (note: help is generated dynamically based on apipie cache)
 
+        :CaseLevel: System
+
         :CaseImportance: Medium
 
         :BZ: 1671148
@@ -741,6 +743,7 @@ class HostCreateTestCase(CLITestCase):
             # host being already registered.
             self.assertEqual(result.return_code, 64)
 
+    @tier3
     def test_positive_register_twice_with_uppercase_chars_in_hostname(self):
         """Register twice a client host that contain upper case chars in
         hostname.
@@ -1192,7 +1195,7 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @stubbed()
-    @tier2
+    @tier3
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader
 
@@ -2011,8 +2014,6 @@ class HostParameterTestCase(CLITestCase):
         :expectedresults: The non admin user is not able to read the parameters
 
         :BZ: 1296662
-
-        :CaseImportance: Critical
         """
         param_name = gen_string('alpha').lower()
         param_value = gen_string('alphanumeric')
@@ -2070,8 +2071,6 @@ class HostParameterTestCase(CLITestCase):
         :expectedresults: The non admin user is able to read the parameters
 
         :BZ: 1296662
-
-        :CaseImportance: Critical
         """
         param_name = gen_string('alpha').lower()
         param_value = gen_string('alphanumeric')
@@ -2131,8 +2130,6 @@ class HostParameterTestCase(CLITestCase):
         :expectedresults: The non admin user is not able to edit the parameter
 
         :BZ: 1296662
-
-        :CaseImportance: Critical
         """
         param_name = gen_string('alpha').lower()
         param_value = gen_string('alphanumeric')
@@ -2191,7 +2188,7 @@ class HostParameterTestCase(CLITestCase):
 
         :BZ: 1315282
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
         param_name = gen_string('alpha').lower()
         # long string that should be escaped and affected by line break with
@@ -2971,6 +2968,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         ]
         self.assertNotIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
 
+    @tier3
     def test_negative_install_package(self):
         """Attempt to install a package to a host remotely
 
