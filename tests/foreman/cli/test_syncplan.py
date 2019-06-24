@@ -572,6 +572,7 @@ class SyncPlanTestCase(CLITestCase):
             'organization-id': self.org['id'],
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
                         .strftime("%Y-%m-%d %H:%M:%S"),
+            'cron-expression': ["*/4 * * * *"],
         })
         products = [
             make_product({'organization-id': self.org['id']})
@@ -724,6 +725,7 @@ class SyncPlanTestCase(CLITestCase):
             'organization-id': org['id'],
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
                         .strftime("%Y-%m-%d %H:%M:%S"),
+            'cron-expression': ["*/4 * * * *"],
         })
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
