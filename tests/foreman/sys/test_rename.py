@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for ``katello-change-hostname``
 
-:Requirement: katello-change-hostname
+:Requirement: satellite-change-hostname
 
 :CaseAutomation: Automated
 
 :CaseLevel: System
 
-:CaseComponent: katello-change-hostname
+:CaseComponent: satellite-change-hostname
 
 :TestType: Functional
 
@@ -51,6 +51,7 @@ class RenameHostTestCase(TestCase):
         cls.org = entities.Organization(id=cls.default_org_id)
         cls.product = entities.Product(organization=cls.org).create()
 
+    @tier3
     @run_in_one_thread
     def test_positive_rename_satellite(self):
         """run katello-change-hostname on Satellite server
@@ -166,6 +167,7 @@ class RenameHostTestCase(TestCase):
         cv.update(['repository'])
         cv.publish()
 
+    @tier3
     @run_in_one_thread
     def test_negative_rename_sat_to_invalid_hostname(self):
         """change to invalid hostname on Satellite server
@@ -194,6 +196,7 @@ class RenameHostTestCase(TestCase):
             self.assertEqual(self.hostname, result.stdout[0],
                              "Invalid hostame assigned")
 
+    @tier3
     @run_in_one_thread
     def test_negative_rename_sat_no_credentials(self):
         """change hostname without credentials on Satellite server
@@ -220,6 +223,7 @@ class RenameHostTestCase(TestCase):
             self.assertEqual(self.hostname, result.stdout[0],
                              "Invalid hostame assigned")
 
+    @tier3
     @run_in_one_thread
     def test_negative_rename_sat_wrong_passwd(self):
         """change hostname with wrong password on Satellite server
@@ -245,6 +249,7 @@ class RenameHostTestCase(TestCase):
             self.assertEqual(result.return_code, 1)
             self.assertIn(BAD_CREDS_MSG, result.stderr)
 
+    @tier3
     @stubbed()
     def test_positive_rename_capsule(self):
         """run katello-change-hostname on Capsule

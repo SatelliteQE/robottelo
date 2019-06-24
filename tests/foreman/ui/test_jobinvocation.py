@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: WebUI
 
 :TestType: Functional
 
@@ -22,7 +22,7 @@ from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DISTRO_RHEL6
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier3
+from robottelo.decorators import fixture, tier4
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 
@@ -50,7 +50,7 @@ def module_subnet(module_org):
     ).create()
 
 
-@tier3
+@tier4
 def test_positive_run_default_job_template_by_ip(
         session, module_org, module_subnet):
     """Run a job template on a host connected by ip
@@ -68,7 +68,7 @@ def test_positive_run_default_job_template_by_ip(
 
     :expectedresults: Verify the job was successfully ran against the host
 
-    :CaseLevel: Integration
+    :CaseLevel: System
     """
     with VirtualMachine(
         distro=DISTRO_RHEL6,
@@ -106,7 +106,7 @@ def test_positive_run_default_job_template_by_ip(
             assert status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
-@tier3
+@tier4
 def test_positive_run_custom_job_template_by_ip(
         session, module_org, module_subnet):
     """Run a job template on a host connected by ip

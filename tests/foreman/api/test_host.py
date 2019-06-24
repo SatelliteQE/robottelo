@@ -9,7 +9,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: API
 

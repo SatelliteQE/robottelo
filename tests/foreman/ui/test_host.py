@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: WebUI
 
 :TestType: Functional
 
@@ -64,7 +64,7 @@ from robottelo.constants import (
     RHEL_7_MAJOR_VERSION
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, tier3, skip_if, skip_if_not_set, upgrade
+from robottelo.decorators import tier2, tier3, tier4, skip_if, skip_if_not_set, upgrade
 from robottelo.ui.utils import create_fake_host
 
 
@@ -385,7 +385,7 @@ def module_libvirt_hostgroup(
     ).create()
 
 
-@tier3
+@tier4
 def test_positive_create(session, module_host_template):
     """Create a new Host
 
@@ -400,7 +400,7 @@ def test_positive_create(session, module_host_template):
         assert session.host.search(host_name)[0]['Name'] == host_name
 
 
-@tier3
+@tier4
 def test_positive_read_from_details_page(session, module_host_template):
     """Create new Host and read all its content through details page
 
@@ -439,7 +439,7 @@ def test_positive_read_from_details_page(session, module_host_template):
             'Owner'] == values['current_user']
 
 
-@tier3
+@tier4
 def test_positive_read_from_edit_page(session, module_host_template):
     """Create new Host and read all its content through edit page
 
@@ -481,7 +481,7 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['additional_information']['enabled'] is True
 
 
-@tier3
+@tier4
 def test_positive_delete(session, module_host_template):
     """Delete a Host
 
@@ -548,7 +548,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
         assert values['host']['puppet_environment'] == env.name
 
 
-@tier2
+@tier4
 def test_positive_create_host_with_parameters(session, module_global_params):
     """"Create new Host with parameters, override one global parameter and read
     all parameters.
@@ -799,7 +799,7 @@ def test_positive_export(session):
         assert set(actual_fields) == expected_fields
 
 
-@tier3
+@tier4
 def test_positive_create_with_inherited_params(session):
     """Create a new Host in organization and location with parameters
 
@@ -833,7 +833,7 @@ def test_positive_create_with_inherited_params(session):
         )
 
 
-@tier3
+@tier4
 def test_negative_delete_primary_interface(session, module_host_template):
     """Attempt to delete primary interface of a host
 
@@ -1088,7 +1088,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
 
-@tier2
+@tier4
 def test_positive_update_name(session, module_host_template):
     """Create a new Host and update its name to valid one
 
@@ -1108,7 +1108,7 @@ def test_positive_update_name(session, module_host_template):
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
 
 
-@tier2
+@tier4
 def test_positive_update_name_with_prefix(session, module_host_template):
     """Create a new Host and update its name to valid one. Host should
     contain word 'new' in its name
@@ -1160,7 +1160,7 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
         assert values[0]['Name'] == param_host.name
 
 
-@tier2
+@tier4
 def test_positive_search_by_parameter_with_different_values(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it by its value
 
@@ -1511,7 +1511,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
         assert host_parameters[param_name] == param_value
 
 
-@tier3
+@tier4
 @upgrade
 def test_positive_bulk_delete_host(session, module_loc):
     """Delete a multiple hosts from the list
@@ -1550,7 +1550,7 @@ def test_positive_bulk_delete_host(session, module_loc):
         assert not values['table']
 
 
-@tier3
+@tier4
 def test_positive_provision_end_to_end(
         session,
         module_org,
@@ -1606,7 +1606,7 @@ def test_positive_provision_end_to_end(
             name)['properties']['properties_table']['Build'] == 'Installed'
 
 
-@tier3
+@tier4
 def test_positive_delete_libvirt(
         session,
         module_org,
