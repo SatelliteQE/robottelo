@@ -295,7 +295,8 @@ def config_picker():
 class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
     """A decorator that sets pytest marker and allows to select test that
     should be run sequentially only if bug is open.
-    TODO// Will be handled in new issue
+
+    TODO// Removed as part of GitHub PR#7027, see Issue #7048
     """
 
     '''
