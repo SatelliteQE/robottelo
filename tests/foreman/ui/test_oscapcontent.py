@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: SCAPPlugin
 
 :TestType: Functional
 
@@ -20,7 +20,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture, tier1, upgrade
 
 
 @fixture(scope='module')
@@ -28,7 +28,7 @@ def oscap_content_path():
     return settings.oscap.content_path
 
 
-@tier2
+@tier1
 @upgrade
 def test_positive_end_to_end(session, oscap_content_path):
     """Perform end to end testing for openscap content component
@@ -70,7 +70,7 @@ def test_positive_end_to_end(session, oscap_content_path):
         assert not session.oscapcontent.search(new_title)
 
 
-@tier2
+@tier1
 def test_negative_create_with_same_name(session, oscap_content_path):
     """Create OpenScap content with same name
 

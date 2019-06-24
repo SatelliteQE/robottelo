@@ -2,7 +2,7 @@
 """
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ComputeResources
 
 :TestType: Functional
 
@@ -124,6 +124,8 @@ class ComputeResourceHostTestCase(CLITestCase):
 
         :Requirement: Computeresource RHV
 
+        :CaseComponent: ComputeResources-RHEV
+
         :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
 
         :setup: Hostgroup and provisioning setup like domain, subnet etc.
@@ -198,6 +200,8 @@ class ComputeResourceHostTestCase(CLITestCase):
         the help of hostgroup.
 
         :Requirement: Computeresource Vmware
+
+        :CaseComponent: ComputeResources-VMWare
 
         :id: ae4d5949-f0e6-44ca-93b6-c5241a02b64b
 

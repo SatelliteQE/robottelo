@@ -4,7 +4,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ComputeResources-VMWare
 
 :TestType: Functional
 
