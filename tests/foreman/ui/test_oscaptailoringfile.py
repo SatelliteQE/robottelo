@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: SCAPPlugin
 
 :TestType: Functional
 
@@ -21,6 +21,7 @@ from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
+    tier1,
     tier2,
     tier4,
     stubbed,
@@ -33,7 +34,7 @@ def oscap_tailoring_path():
     return settings.oscap.tailoring_path
 
 
-@tier2
+@tier1
 @upgrade
 def test_positive_end_to_end(session, oscap_tailoring_path):
     """Perform end to end testing for tailoring file component

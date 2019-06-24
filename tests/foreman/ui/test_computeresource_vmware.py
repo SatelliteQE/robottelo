@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: UI
+:CaseComponent: ComputeResources-VMWare
 
 :CaseLevel: Acceptance
 
@@ -26,6 +26,7 @@ from robottelo.decorators import (
     fixture,
     run_in_one_thread,
     setting_is_set,
+    tier1,
     tier2
 )
 from robottelo.config import settings
@@ -104,7 +105,7 @@ def module_vmware_settings():
     )
 
 
-@tier2
+@tier1
 def test_positive_end_to_end(session, module_org, module_loc, module_vmware_settings):
     """Perform end to end testing for compute resource VMware component.
 

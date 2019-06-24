@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: SCAPPlugin
 
 :TestType: Functional
 
@@ -20,7 +20,7 @@ from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture, tier1, tier2, upgrade
 
 
 @fixture(scope='module')
@@ -120,7 +120,7 @@ def test_positive_check_dashboard(
         assert host_breakdown_chart[1] == 'Not audited'
 
 
-@tier2
+@tier1
 @upgrade
 def test_positive_end_to_end(
         session, module_host_group, module_loc, module_org,
