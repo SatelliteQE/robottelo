@@ -7,7 +7,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: SYS
+:CaseComponent: HooksPlugin
 
 :TestType: Functional
 
