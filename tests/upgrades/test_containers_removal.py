@@ -64,7 +64,7 @@ class Scenario_containers_support_removal(APITestCase):
     @pre_upgrade
     def test_pre_scenario_containers_support_removal(self):
         """Pre-upgrade scenario test to verify containers created and run
-        before upgrade are still running after upgrade.
+        before upgrade
 
         :id: preupgrade-f6de07ae-14c7-4452-9cb1-cafe2aa648ae
 
@@ -176,34 +176,38 @@ class Scenario_containers_support_removal(APITestCase):
         dockerhub_container = entity_data.get('dockerhub_container')
         external_container = entity_data.get('external_container')
 
-        extract_log_command = "sed -n '/{delimiter}/,/{delimiter}/p' {path}".format(
-            delimiter="RemoveForemanDockerSupport",
-            path="/var/log/foreman-installer/satellite.log"
-        )
-        docker_log = ssh.command(extract_log_command, output_format='plain')
-        self.assertEqual(docker_log.return_code, 0)
+        try:
+            extract_log_command = "sed -n '/{delimiter}/,/{delimiter}/p' {path}".format(
+                delimiter="RemoveForemanDockerSupport",
+                path="/var/log/foreman-installer/satellite.log"
+            )
+            docker_log = ssh.command(extract_log_command, output_format='plain')
+            self.assertEqual(docker_log.return_code, 0)
 
-        docker_log = docker_log.stdout.split("\n")
+            docker_log = docker_log.stdout.split("\n")
 
-        self.assertTrue(any("RemoveForemanDockerSupport: migrated" in line
-                            for line in docker_log))
-        self.assertTrue(any("remove_column(:containers, :capsule_id)" in line
-                            for line in docker_log))
+            self.assertTrue(any("RemoveForemanDockerSupport: migrated" in line
+                                for line in docker_log))
+            self.assertTrue(any("remove_column(:containers, :capsule_id)" in line
+                                for line in docker_log))
 
-        removed_tables = ('docker_images', 'docker_tags',
-                          'docker_container_wizard_states_images',
-                          'containers')
+            removed_tables = ('docker_images', 'docker_tags',
+                              'docker_container_wizard_states_images',
+                              'containers')
 
-        for table in removed_tables:
-            self.assertTrue(any("table_exists?(:{})".format(table)
-                                in line for line in docker_log))
+            for table in removed_tables:
+                self.assertTrue(any("table_exists?(:{})".format(table)
+                                    in line for line in docker_log))
 
-        running_containers = ssh.command('docker ps', hostname=docker_host_hostname)
-        self.assertEqual(running_containers.return_code, 0)
+            running_containers = ssh.command('docker ps', hostname=docker_host_hostname)
+            self.assertEqual(running_containers.return_code, 0)
 
-        self.assertTrue(any(dockerhub_container in line
-                            for line in running_containers.stdout))
-        self.assertTrue(any(external_container in line
-                            for line in running_containers.stdout))
+            self.assertTrue(any(dockerhub_container in line
+                                for line in running_containers.stdout))
+            self.assertTrue(any(external_container in line
+                                for line in running_containers.stdout))
+        except Exception as exp:
+            self._vm_cleanup(hostname=docker_host_hostname)
+            raise Exception(exp)
 
         self._vm_cleanup(hostname=docker_host_hostname)
