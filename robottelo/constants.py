@@ -1637,7 +1637,7 @@ ROLES = [
     'Virt-who Viewer',
     'Manager',
     'Viewer',
-    'System Admin',
+    'System admin',
 ]
 
 ROLES_UNLOCKED = [
@@ -1758,7 +1758,7 @@ BOOKMARK_ENTITIES = [
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
         'name': 'ComputeResource', 'controller': 'compute_resources',
-        'setup': entities.DockerComputeResource
+        'setup': entities.DockerComputeResource, 'skip_for_ui': True
     },
     {
         'name': 'ComputeProfile', 'controller': 'compute_profiles',
