@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Email
 
 :TestType: Functional
 
