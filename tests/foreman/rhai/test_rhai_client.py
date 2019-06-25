@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: rubygem-foreman-redhat_access
 
 :TestType: Functional
 
