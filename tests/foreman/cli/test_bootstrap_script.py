@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""Test for bootstrap script
+"""Test for bootstrap script (bootstrap.py)
 
 :Requirement: Bootstrap Script
 
@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Bootstrap
 
 :TestType: Functional
 
