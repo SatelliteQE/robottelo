@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for ``katello-change-hostname``
 
-:Requirement: satellite-change-hostname
+:Requirement: katello-change-hostname
 
 :CaseAutomation: Automated
 
@@ -24,6 +24,7 @@ from robottelo.decorators import (
         destructive,
         run_in_one_thread,
         stubbed,
+        tier3,
 )
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
