@@ -490,19 +490,16 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
         storage=[
             dict(
                 size='10',
-                storage_domain=rhev_data['storage_domain'],
                 bootable=False,
                 preallocate_disk=True,
             ),
             dict(
                 size='20',
-                storage_domain=rhev_data['storage_domain'],
                 bootable=True,
                 preallocate_disk=True,
             ),
             dict(
                 size='5',
-                storage_domain=rhev_data['storage_domain'],
                 bootable=False,
                 preallocate_disk=False,
             ),
