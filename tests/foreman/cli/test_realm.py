@@ -8,7 +8,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Realm
 
 :TestType: Functional
 
@@ -27,13 +27,14 @@ from robottelo.cli.factory import (
     CLIFactoryError,
 )
 from robottelo.cli.realm import Realm
-from robottelo.decorators import tier1, run_in_one_thread
+from robottelo.decorators import tier1, tier2, run_in_one_thread
 from robottelo.test import CLITestCase
 
 
 @run_in_one_thread
 class RealmTestCase(CLITestCase):
-    """Tests for Realms via Hammer CLI, must be run on QE RHEL7 Sat6.3 host"""
+    """Tests for Realms via Hammer CLI, must be run on QE Satellite Server.
+    Requires enroll_idm() and configure_realm() to configure the test environment."""
 
     def _make_proxy(self, options=None):
         """Create a Proxy and register the cleanup function"""
@@ -70,7 +71,7 @@ class RealmTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """Realm deletion by realm id
+        """Realm deletion by realm ID
 
         :id: 7c1aca0e-9724-40de-b38f-9189bdae0514
 
@@ -91,7 +92,7 @@ class RealmTestCase(CLITestCase):
 
         :id: 2e3e92df-61f3-4c6b-98b9-dc9c2f8d140c
 
-        :expectedresults: Realm info information from name is correct
+        :expectedresults: Realm information obtained by name is correct
         """
         proxy = self._make_proxy()
         self.realm = make_realm({
@@ -110,7 +111,7 @@ class RealmTestCase(CLITestCase):
 
         :id: 1ae7b3af-221e-4480-9e93-d05d573456b4
 
-        :expectedresults: Realm info information from ID is correct
+        :expectedresults: Realm information obtained by ID is correct
         """
         proxy = self._make_proxy()
         self.realm = make_realm({
@@ -124,13 +125,13 @@ class RealmTestCase(CLITestCase):
             self.assertEquals(info[key], self.realm[key])
         self.assertEquals(info, Realm.info({'id': self.realm['id']}))
 
-    @tier1
+    @tier2
     def test_positive_realm_update_name(self):
         """Test updating realm name
 
         :id: c09e6599-c77a-4290-ac93-311d06e3d860
 
-        :expectedresults: Realm name updated
+        :expectedresults: Realm name can be updated
         """
         realm_name = gen_string('alphanumeric')
         new_realm_name = self.realm_name
@@ -186,7 +187,7 @@ class RealmTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_invalid_id(self):
-        """Create a realm with an invalid proxy id
+        """Create a realm with an invalid proxy ID
 
         :id: 916bd1fb-4649-469c-b511-b0b07301a990
 
@@ -247,7 +248,7 @@ class RealmTestCase(CLITestCase):
                 'realm-type': 'Red Hat Identity Management'
             })
 
-    @tier1
+    @tier2
     def test_negative_delete_nonexistent_realm_name(self):
         """Delete a realm with a name that does not exist
 
@@ -258,9 +259,9 @@ class RealmTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Realm.delete({'name': self.realm_name})
 
-    @tier1
+    @tier2
     def test_negative_delete_nonexistent_realm_id(self):
-        """Delete a realm with an id that does not exist
+        """Delete a realm with an ID that does not exist
 
         :id: 70bb9d4e-7e71-479a-8c82-e6fcff88ea14
 
@@ -269,7 +270,7 @@ class RealmTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Realm.delete({'id': 0})
 
-    @tier1
+    @tier2
     def test_negative_info_nonexistent_realm_name(self):
         """Get info for a realm with a name that does not exist
 
@@ -280,9 +281,9 @@ class RealmTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Realm.info({'name': self.realm_name})
 
-    @tier1
+    @tier2
     def test_negative_info_nonexistent_realm_id(self):
-        """Get info for a realm with an id that does not exists
+        """Get info for a realm with an ID that does not exists
 
         :id: db8382eb-6d0b-4d6a-a9bf-38a462389f7b
 
