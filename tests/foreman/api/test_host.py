@@ -11,7 +11,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Hosts
 
 :TestType: Functional
 

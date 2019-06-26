@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: WebUI
+:CaseComponent: Hosts
 
 :TestType: Functional
 

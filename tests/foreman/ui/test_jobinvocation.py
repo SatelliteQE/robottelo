@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: WebUI
+:CaseComponent: RemoteExecution
 
 :TestType: Functional
 

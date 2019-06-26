@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: TasksPlugin
 
 :TestType: Functional
 
