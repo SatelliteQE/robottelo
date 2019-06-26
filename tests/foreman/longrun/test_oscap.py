@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: SCAPPlugin
 
 :TestType: Functional
 
@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
-from robottelo.helpers import get_data_file, add_remote_execution_ssh_key
+from robottelo.helpers import get_data_file, add_remote_execution_ssh_key, ProxyError
 from robottelo.cli.arfreport import Arfreport
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
@@ -110,6 +110,12 @@ class OpenScapTestCase(CLITestCase):
         cls.rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         cls.rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
         sat6_hostname = settings.server.hostname
+        proxy = Proxy.list({'search': sat6_hostname})[0]
+        p_features = set(proxy.get('features').split(', '))
+        if {'Puppet', 'Ansible', 'Openscap'}.issubset(p_features):
+            cls.proxy_id = proxy.get('id')
+        else:
+            raise ProxyError('Some features like Puppet, DHCP, Openscap, Ansible are not present')
         ak_name_7 = gen_string('alpha')
         ak_name_6 = gen_string('alpha')
         repo_values = [
@@ -125,16 +131,16 @@ class OpenScapTestCase(CLITestCase):
         # Create new organization and environment.
         org = entities.Organization(name=gen_string('alpha')).create()
         loc = entities.Location().search(query={'search': "{0}".format(DEFAULT_LOC)})[0].read()
-        puppet_env = entities.Environment().search(
+        cls.puppet_env = entities.Environment().search(
             query={u'search': u'name=production'})[0].read()
-        puppet_env.location.append(loc)
-        puppet_env.organization.append(org)
-        puppet_env = puppet_env.update(['location', 'organization'])
+        cls.puppet_env.location.append(loc)
+        cls.puppet_env.organization.append(org)
+        cls.puppet_env = cls.puppet_env.update(['location', 'organization'])
         Proxy.import_classes({
-            u'environment': puppet_env.name,
+            u'environment': cls.puppet_env.name,
             u'name': sat6_hostname,
         })
-        Proxy.update({'id': 1, 'organizations': org.name, 'locations': DEFAULT_LOC})
+        Proxy.update({'id': cls.proxy_id, 'organizations': org.name, 'locations': DEFAULT_LOC})
         env = entities.LifecycleEnvironment(
             organization=org,
             name=gen_string('alpha')
@@ -187,7 +193,7 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseLevel: System
 
-        :BZ: 1479413
+        :BZ: 1479413, 1722475
         """
         if settings.rhel6_repo is None:
             self.skipTest('Missing configuration for rhel6_repo')
@@ -231,9 +237,9 @@ class OpenScapTestCase(CLITestCase):
         # Creates host_group for both rhel6 and rhel7
         for host_group in [hgrp6_name, hgrp7_name]:
             make_hostgroup({
-                'content-source-id': 1,
+                'content-source': self.sat6_hostname,
                 'name': host_group,
-                'environment-id': 1,
+                'environment-id': self.puppet_env.id,
                 'puppet-ca-proxy': self.config_env['sat6_hostname'],
                 'puppet-proxy': self.config_env['sat6_hostname'],
                 'organizations': self.config_env['org_name'],
@@ -274,9 +280,9 @@ class OpenScapTestCase(CLITestCase):
                     'lifecycle-environment': self.config_env['env_name'],
                     'content-view': self.config_env['cv_name'],
                     'hostgroup': value['hgrp'],
-                    'openscap-proxy-id': 1,
+                    'openscap-proxy-id': self.proxy_id,
                     'organization': self.config_env['org_name'],
-                    'environment-id': 1,
+                    'environment-id': self.puppet_env.id,
                     'locations': DEFAULT_LOC
                 })
 
@@ -310,7 +316,7 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseLevel: System
 
-        :BZ: 1420439
+        :BZ: 1420439, 1722475
         """
         if settings.rhel7_repo is None:
             self.skipTest('Missing configuration for rhel7_repo')
@@ -334,9 +340,9 @@ class OpenScapTestCase(CLITestCase):
         })
         # Creates host_group for rhel7
         make_hostgroup({
-            'content-source-id': 1,
+            'content-source-id': self.proxy_id,
             'name': hgrp7_name,
-            'environment-id': 1,
+            'environment-id': self.puppet_env.id,
             'puppet-ca-proxy': self.config_env['sat6_hostname'],
             'puppet-proxy': self.config_env['sat6_hostname'],
             'organizations': self.config_env['org_name']
@@ -374,9 +380,9 @@ class OpenScapTestCase(CLITestCase):
                 'lifecycle-environment': self.config_env['env_name'],
                 'content-view': self.config_env['cv_name'],
                 'hostgroup': vm_values.get('hgrp'),
-                'openscap-proxy-id': 1,
+                'openscap-proxy-id': self.proxy_id,
                 'organization': self.config_env['org_name'],
-                'environment-id': 1
+                'environment-id': self.puppet_env.id,
             })
             # Run "puppet agent -t" twice so that it detects it's,
             # satellite6 and fetch katello SSL certs.
@@ -451,6 +457,8 @@ class OpenScapTestCase(CLITestCase):
         :expectedresults: ARF report should be sent to satellite reflecting
                          the changes done via tailoring files
 
+        :BZ: 1722475
+
         :CaseImportance: Critical
         """
         if settings.rhel7_repo is None:
@@ -477,9 +485,9 @@ class OpenScapTestCase(CLITestCase):
         )
         # Creates host_group for rhel7
         make_hostgroup({
-            'content-source-id': 1,
+            'content-source-id': self.proxy_id,
             'name': hgrp7_name,
-            'environment-id': 1,
+            'environment-id': self.puppet_env.id,
             'puppet-ca-proxy': self.config_env['sat6_hostname'],
             'puppet-proxy': self.config_env['sat6_hostname'],
             'organizations': self.config_env['org_name']
@@ -524,9 +532,9 @@ class OpenScapTestCase(CLITestCase):
                 'lifecycle-environment': self.config_env['env_name'],
                 'content-view': self.config_env['cv_name'],
                 'hostgroup': vm_values.get('hgrp'),
-                'openscap-proxy-id': 1,
+                'openscap-proxy-id': self.proxy_id,
                 'organization': self.config_env['org_name'],
-                'environment-id': 1
+                'environment-id': self.puppet_env.id,
             })
             # Run "puppet agent -t" twice so that it detects it's,
             # satellite6 and fetch katello SSL certs.
@@ -571,6 +579,8 @@ class OpenScapTestCase(CLITestCase):
         :expectedresults: REX job should be success and ARF report should be sent to satellite
                          reflecting the changes done via tailoring files
 
+        :BZ: 1716307
+
         :CaseImportance: Critical
         """
         if settings.rhel7_repo is None:
@@ -597,7 +607,7 @@ class OpenScapTestCase(CLITestCase):
         )
         # Creates host_group for rhel7
         make_hostgroup({
-            'content-source-id': 1,
+            'content-source-id': self.proxy_id,
             'name': hgrp7_name,
             'organizations': self.config_env['org_name']
         })
@@ -614,8 +624,8 @@ class OpenScapTestCase(CLITestCase):
             policy_values.get('content'),
             policy_values.get('profile')
         )
-        Ansible.roles_import({'proxy-id': 1})
-        Ansible.variables_import({'proxy-id': 1})
+        Ansible.roles_import({'proxy-id': self.proxy_id})
+        Ansible.variables_import({'proxy-id': self.proxy_id})
         role_id = Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
         make_scap_policy({
             'scap-content-id': scap_id,
@@ -650,12 +660,12 @@ class OpenScapTestCase(CLITestCase):
                 'lifecycle-environment': self.config_env['env_name'],
                 'content-view': self.config_env['cv_name'],
                 'hostgroup': vm_values.get('hgrp'),
-                'openscap-proxy-id': 1,
+                'openscap-proxy-id': self.proxy_id,
                 'organization': self.config_env['org_name'],
                 'ansible-role-ids': role_id
             })
-            # needed to work around BZ#1656480
-            if bz_bug_is_open(1656480):
+            # needed to work around BZ#1650103
+            if bz_bug_is_open(1650103):
                 ssh.command('''sed -i '/ProxyCommand/s/^/#/g' /etc/ssh/ssh_config''')
             job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
             wait_for_tasks("resource_type = JobInvocation and resource_id = {0} and "

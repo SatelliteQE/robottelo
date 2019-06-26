@@ -2488,6 +2488,7 @@ def make_hostgroup(options=None):
         u'config-group-ids': None,
         u'config-groups': None,
         u'content-source-id': None,
+        u'content-source': None,
         u'content-view': None,
         u'content-view-id': None,
         u'domain': None,
