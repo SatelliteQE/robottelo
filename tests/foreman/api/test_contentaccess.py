@@ -5,7 +5,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Hosts-Content
 
 :TestType: Functional
 
