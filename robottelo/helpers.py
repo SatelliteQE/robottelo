@@ -42,6 +42,10 @@ class InvalidArgumentError(Exception):
     """Indicates an error when an invalid argument is received."""
 
 
+class ProxyError(Exception):
+    """Indicates an error in state of proxy"""
+
+
 class DownloadFileError(Exception):
     """Indicates an error when failure in downloading file from server."""
 
