@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Hammer
+:CaseComponent: Hosts
 
 :TestType: Functional
 
