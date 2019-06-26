@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Atomic
 
 :TestType: Functional
 
@@ -29,7 +29,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.constants import FEDORA27_OSTREE_REPO
-from robottelo.decorators import skip_if_bug_open, tier1, upgrade
+from robottelo.decorators import skip_if_bug_open, tier3, upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 
@@ -82,20 +82,18 @@ class OstreeBranchTestCase(CLITestCase):
     def get_user_credentials(cls):
         return cls.user['login'], cls.user['password']
 
-    @tier1
+    @tier3
     def test_positive_list(self):
         """List Ostree Branches
 
         :id: 0f5e7e63-c0e3-43fc-8238-caf19a478a46
 
         :expectedresults: Ostree Branch List is displayed
-
-        :CaseImportance: Critical
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list()
         self.assertGreater(len(result), 0)
 
-    @tier1
+    @tier3
     @upgrade
     def test_positive_list_by_repo_id(self):
         """List Ostree branches by repo id
@@ -104,42 +102,37 @@ class OstreeBranchTestCase(CLITestCase):
 
         :expectedresults: Ostree Branch List is displayed
 
-        :CaseImportance: Critical
         """
 
         branch = OstreeBranch.with_user(*self.get_user_credentials())
         result = branch.list({'repository-id': self.ostree_repo['id']})
         self.assertGreater(len(result), 0)
 
-    @tier1
+    @tier3
     def test_positive_list_by_product_id(self):
         """List Ostree branches by product id
 
         :id: e7b9d04d-cace-4271-b166-214017200c53
 
         :expectedresults: Ostree Branch List is displayed
-
-        :CaseImportance: Critical
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list(
             {'product-id': self.product['id']})
         self.assertGreater(len(result), 0)
 
-    @tier1
+    @tier3
     def test_positive_list_by_org_id(self):
         """List Ostree branches by org id
 
         :id: 5b169619-305f-4934-b363-068193330701
 
         :expectedresults: Ostree Branch List is displayed
-
-        :CaseImportance: Critical
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list(
             {'organization-id': self.org['id']})
         self.assertGreater(len(result), 0)
 
-    @tier1
+    @tier3
     def test_positive_list_by_cv_id(self):
         """List Ostree branches by cv id
 
@@ -147,21 +140,18 @@ class OstreeBranchTestCase(CLITestCase):
 
         :expectedresults: Ostree Branch List is displayed
 
-        :CaseImportance: Critical
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list(
             {'content-view-id': self.cv['id']})
         self.assertGreater(len(result), 0)
 
-    @tier1
+    @tier3
     def test_positive_info_by_id(self):
         """Get info for Ostree branch by id
 
         :id: 7838c9a8-56da-44de-883c-28571ecfa75c
 
         :expectedresults: Ostree Branch Info is displayed
-
-        :CaseImportance: Critical
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list()
         self.assertGreater(len(result), 0)
