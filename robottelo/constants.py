@@ -1758,7 +1758,7 @@ BOOKMARK_ENTITIES = [
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
         'name': 'ComputeResource', 'controller': 'compute_resources',
-        'setup': entities.DockerComputeResource, 'skip_for_ui': True
+        'setup': entities.LibvirtComputeResource
     },
     {
         'name': 'ComputeProfile', 'controller': 'compute_profiles',
