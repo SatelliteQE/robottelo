@@ -10,7 +10,7 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Candlepin
 
 :TestType: Functional
 
@@ -38,7 +38,7 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
             with an ``application/json`` content-type, and the response is a
             list.
 
-        This test targets bugzilla bug 1112802.
+        :BZ: 1112802
 
         :CaseImportance: Critical
         """
