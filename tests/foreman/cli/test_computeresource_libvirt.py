@@ -24,7 +24,7 @@ Subcommands::
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ComputeResources-libvirt
 
 :TestType: Functional
 

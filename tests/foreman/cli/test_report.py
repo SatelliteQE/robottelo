@@ -8,7 +8,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Reporting
 
 :TestType: Functional
 
