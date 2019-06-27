@@ -1242,8 +1242,8 @@ class Settings(object):
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""
         validation_errors = []
-        browsers = ('selenium', 'docker', 'saucelabs')
-        webdrivers = ('chrome', 'edge', 'firefox', 'ie', 'phantomjs', 'remote')
+        browsers = ('selenium', 'docker', 'saucelabs', 'remote')
+        webdrivers = ('chrome', 'edge', 'firefox', 'ie', 'phantomjs')
         if self.browser not in browsers:
             validation_errors.append(
                 '[robottelo] browser should be one of {0}.'
@@ -1354,6 +1354,7 @@ class Settings(object):
                 'screenshots_path': self.screenshots_path,
                 'webdriver': self.webdriver,
                 'webdriver_binary': self.webdriver_binary,
+                'command_executor': self.command_executor,
             },
             'webdriver_desired_capabilities': (
                 self.webdriver_desired_capabilities or {}),

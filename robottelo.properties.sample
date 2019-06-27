@@ -62,9 +62,11 @@ ssh_key=
 #   saucelabs_key are required and the browser used is the same specified on
 #   webdriver.  Supported values for webdriver are firefox, chrome and ie, the
 #   other valid webdriver values are going to be translated to firefox.
+# * remote: to access the remote browser, the webdriver and command_executor
+#   are required.
 # browser=selenium
 
-# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs, remote
+# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
 # webdriver=chrome
 
 # Binary location for selected wedriver (not needed if using saucelabs)
