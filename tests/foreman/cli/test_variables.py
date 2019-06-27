@@ -691,44 +691,8 @@ class SmartVariablesTestCase(CLITestCase):
             })
 
     @tier1
-    def test_positive_create_matcher(self):
-        """Create a Smart Variable with matcher.
-
-        :id: 9ab8ae74-ee58-4738-8d8b-0e465eee8696
-
-        :steps:
-
-            1. Create a smart variable with valid name and default value.
-            2. Create a matcher for Host with valid value.
-
-        :expectedresults:
-
-            1. The smart Variable with matcher is created successfully.
-            2. The variable is associated with host with match.
-
-        :CaseImportance: Critical
-        """
-        value = gen_string('alpha')
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'override-value-order': 'is_virtual',
-        })
-        SmartVariable.add_override_value({
-            'smart-variable-id': smart_variable['id'],
-            'match': 'is_virtual=true',
-            'value': value,
-        })
-        smart_variable = SmartVariable.info({'id': smart_variable['id']})
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['match'],
-            'is_virtual=true'
-        )
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['value'], value)
-
-    @tier1
     @upgrade
-    def test_positive_remove_matcher(self):
+    def test_positive_add_and_remove_matcher(self):
         """Create a Smart Variable with matcher and remove that matcher
         afterwards.
 
@@ -771,56 +735,6 @@ class SmartVariablesTestCase(CLITestCase):
         })
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
-
-    @stubbed()
-    @tier2
-    def test_positive_create_matcher_attribute_priority(self):
-        """Matcher Value set on Attribute Priority for Host.
-
-        :id: 1a774df6-d704-4e89-b951-bc6740c233cd
-
-        :steps:
-
-            1.  Create variable with some default value.
-            2.  Set fqdn as top priority attribute.
-            3.  Create first matcher for fqdn with valid details.
-            4.  Create second matcher for some attribute with valid details.
-                Note - The fqdn/host should have this attribute.
-            5.  Go to YAML output of associated host.
-
-        :expectedresults: The YAML output has the value only for fqdn matcher.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_negative_create_matcher_attribute_priority(self):
-        """Matcher Value set on Attribute Priority for Host - alternate priority.
-
-        :id: e4e8da4d-f37c-44c8-8cbb-17171cc0648b
-
-        :steps:
-
-            1.  Create variable with some default value.
-            2.  Set some attribute(other than fqdn) as top priority attribute.
-                Note - The fqdn/host should have this attribute.
-            3.  Create first matcher for fqdn with valid details.
-            4.  Create second matcher for attribute of step 3 with valid
-                details.
-            5.  Go to YAML output of associated host.
-
-        :expectedresults:
-
-            1.  The YAML output has the value only for step 5 matcher.
-            2.  The YAML output doesn't have value for fqdn/host matcher.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @stubbed()
     @tier2
@@ -872,161 +786,6 @@ class SmartVariablesTestCase(CLITestCase):
             'merge-default': 1,
         })
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
-
-    @stubbed()
-    @tier2
-    def test_negative_create_matcher_merge_override(self):
-        """Test merge the values from non associated matchers.
-
-        :id: 97831f91-c55a-4861-8730-4857c92f8829
-
-        :steps:
-
-            1.  Create variable with some default value.
-            2.  Create first matcher for attribute fqdn with valid details.
-            3.  Create second matcher for other attribute with valid details.
-                Note - The fqdn/host should not have this attribute.
-            4.  Create more matchers for some more attributes if any.
-                Note - The fqdn/host should not have this attributes.
-            5.  Set --merge-overrides to true.
-            6.  Go to YAML output of associated host.
-
-        :expectedresults:
-
-            1.  The YAML output has the values only for fqdn.
-            2.  The YAML output doesn't have the values for attribute which are
-                not associated to host.
-            3.  The YAML output doesn't have the default value of variable.
-            4.  Duplicate values in YAML output if any are displayed.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_create_matcher_merge_default(self):
-        """Merge the values of all the associated matchers + default value.
-
-        :id: 3ff6bddd-c384-41bf-9209-d554b9859da0
-
-        :steps:
-
-            1. Create variable with some default value.
-            2. Create first matcher for attribute fqdn with valid details.
-            3. Create second matcher for other attribute with valid details.
-               Note - The fqdn/host should have this attribute.
-            4. Create more matchers for some more attributes if any.
-               Note - The fqdn/host should have this attributes.
-            5. Set --merge-overrides to true.
-            6. Set --merge-default to true.
-            7. Go to YAML output of associated host.
-
-        :expectedresults:
-
-            1. The YAML output has the values merged from all the associated
-               matchers.
-            2. The YAML output has the default value of variable.
-            3. Duplicate values in YAML output if any are displayed.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_negative_create_matcher_merge_default(self):
-        """Test empty default value in merged values.
-
-        :id: 7a7211f2-be81-4d5b-9a9b-755ba064fc76
-
-        :steps:
-
-            1. Create variable with some default value.
-            2. Create first matcher for attribute fqdn with valid details.
-            3. Create second matcher for other attribute with valid details.
-               Note - The fqdn/host should have this attribute.
-            4. Create more matchers for some more attributes if any.
-               Note - The fqdn/host should have this attributes.
-            5. Set --merge-overrides to true.
-            6. Set --merge-default to true.
-            7. Go to YAML output of associated host.
-
-        :expectedresults:
-
-            1.  The YAML output has the values merged from all the associated
-                matchers.
-            2.  The YAML output doesn't have the empty default value of
-                variable.
-            3.  Duplicate values in YAML output if any are displayed.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_create_matcher_avoid_duplicate(self):
-        """Merge the values of all the associated matchers, remove duplicates.
-
-        :id: d37bb265-796b-485f-8305-85c84f830fe5
-
-        :steps:
-
-            1.  Create variable with type array and value.
-            2.  Create first matcher for attribute fqdn with some value.
-            3.  Create second matcher for other attribute with same value as
-                fqdn matcher.
-                Note - The fqdn/host should have this attribute.
-            4.  Set --merge-overrides to true.
-            5.  Set --merge-default to true.
-            6.  Set --avoid -duplicates' to true.
-            7.  Go to YAML output of associated host.
-
-        :expectedresults:
-
-            1.  The YAML output has the values merged from all the associated
-                matchers.
-            2.  The YAML output has the default value of variable.
-            3.  Duplicate values in YAML output are removed / not displayed.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_negative_create_matcher_avoid_duplicate(self):
-        """Duplicates not removed as they were not really present.
-
-        :id: 972cf68b-fd3d-4731-97bf-119e03c61b33
-
-        :steps:
-
-            1.  Create variable with type array and value.
-            2.  Create first matcher for attribute fqdn with some value.
-            3.  Create second matcher for other attribute with other value than
-                fqdn matcher and default value.
-                Note - The fqdn/host should have this attribute.
-            4.  Set --merge-overrides to true.
-            5.  Set --merge-default to true.
-            6.  Set --avoid -duplicates' to true.
-            7.  Go to YAML output of associated host.
-
-        :expectedresults:
-
-            1.  The YAML output has the values merged from all matchers.
-            2.  The YAML output has the default value of variable.
-            3.  No value removed as duplicate value.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier1
     def test_positive_enable_merge_overrides_default_flags(self):
@@ -1221,9 +980,8 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
-    @skip_if_bug_open('bugzilla', 1371794)
     @tier1
-    def test_positive_hide_default_value(self):
+    def test_positive_hide_update_and_unhide_default_value(self):
         """Test hiding of the default value of variable.
 
         :id: 00dd5627-5d7c-4fb2-9bbc-bf812205459e
@@ -1233,6 +991,9 @@ class SmartVariablesTestCase(CLITestCase):
             1. Create a variable.
             2. Enter some valid default value.
             3. Set '--hidden-value' to true.
+            4. After hiding, set '--hidden-value' to false.
+
+        :bz: 1371794
 
         :expectedresults: The 'hidden value' set to true for that variable.
             Default value is hidden
@@ -1247,28 +1008,18 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(smart_variable['hidden-value?'], True)
         self.assertEqual(smart_variable['default-value'], '*****')
 
-    @tier1
-    def test_positive_unhide_default_value(self):
-        """Test unhiding of the default value of variable.
-
-        :id: e1928ebf-32dd-4fb6-a40b-4c84507c1e2f
-
-        :steps:
-
-            1. Create a variable with some default value.
-            2. Set '--hidden-value' to true.
-            3. After hiding, set '--hidden-value' to false.
-
-        :expectedresults: The hidden value is set to false.
-
-        :CaseImportance: Critical
-        """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': gen_string('alpha'),
-            'hidden-value': 1,
+        # Update hidden value to empty
+        SmartVariable.update({
+            'variable': smart_variable['variable'],
+            'default-value': '',
         })
-        self.assertEqual(smart_variable['hidden-value?'], True)
+        updated_sv = SmartVariable.info({
+            'variable': smart_variable['variable'],
+            'show-hidden': 'true',
+        })
+        self.assertEqual(updated_sv['default-value'], '')
+
+        # Unhide value
         SmartVariable.update({
             'variable': smart_variable['variable'],
             'hidden-value': 0
@@ -1276,72 +1027,3 @@ class SmartVariablesTestCase(CLITestCase):
         updated_sv = SmartVariable.info(
             {'variable': smart_variable['variable']})
         self.assertEqual(updated_sv['hidden-value?'], False)
-
-    @tier1
-    @upgrade
-    def test_positive_update_hidden_value(self):
-        """Update the hidden default value of variable.
-
-        :id: 944d3fb9-ce90-47d8-bc54-fdf505bd5317
-
-        :steps:
-
-            1. Create a variable with some valid default value.
-            2. Set '--hidden-value' to true.
-            3. Again update the default value.
-
-        :expectedresults:
-
-            1. The variable default value is updated.
-            2. The variable '--hidden-value' is set true.
-
-        :CaseImportance: Critical
-        """
-        value = gen_string('alpha')
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': gen_string('alpha'),
-            'hidden-value': 1,
-        })
-        self.assertEqual(smart_variable['hidden-value?'], True)
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'default-value': value,
-        })
-        updated_sv = SmartVariable.info({
-            'variable': smart_variable['variable'],
-            'show-hidden': 'true',
-        })
-        self.assertEqual(updated_sv['default-value'], value)
-
-    @tier1
-    def test_positive_hide_empty_default_value(self):
-        """Hiding the empty default value.
-
-        :id: dc4f7200-dd20-4b63-a27a-e6dc4d5607a5
-
-        :steps:
-
-            1.  Create a variable with empty value.
-            2.  Set '--hidden-value' to true.
-
-        :expectedresults:
-
-            1.  The '--hidden-value' is set to true.
-            2.  The default value is empty.
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: automated
-        """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': '',
-            'hidden-value': 1,
-        })
-        smart_variable = SmartVariable.info({
-            'variable': smart_variable['variable'],
-            'show-hidden': 'true',
-        })
-        self.assertEqual(smart_variable['hidden-value?'], True)
-        self.assertEqual(smart_variable['default-value'], '')
