@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: UsersRoles
 
 :TestType: Functional
 
