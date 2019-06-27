@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: UsersRoles
 
 :TestType: Functional
 
@@ -458,6 +458,8 @@ class CannedRoleTestCases(CLITestCase):
 
         :expectedresults: The taxonomies of overridden filter should not be
             updated with role taxonomies
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -476,6 +478,8 @@ class CannedRoleTestCases(CLITestCase):
             overridden filter in role filters table
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -497,6 +501,8 @@ class CannedRoleTestCases(CLITestCase):
             should be set to false in role filters table
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -557,6 +563,8 @@ class CannedRoleTestCases(CLITestCase):
             permissions in taxonomies selected in Org Admin role
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -579,6 +587,8 @@ class CannedRoleTestCases(CLITestCase):
             permissions in taxonomies selected in Org Admin role
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -601,6 +611,8 @@ class CannedRoleTestCases(CLITestCase):
             permissions in his own taxonomies
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -619,6 +631,8 @@ class CannedRoleTestCases(CLITestCase):
         :expectedresults: Filter in cloned role should be overridden
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -643,6 +657,8 @@ class CannedRoleTestCases(CLITestCase):
             2. Override flag is set to True in filters table
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -664,6 +680,8 @@ class CannedRoleTestCases(CLITestCase):
             assign to 'parent role overridden filters'
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -687,6 +705,8 @@ class CannedRoleTestCases(CLITestCase):
             filter that is overridden in parent role
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -709,6 +729,8 @@ class CannedRoleTestCases(CLITestCase):
             False on filter that is not overridden in parent role
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -731,6 +753,8 @@ class CannedRoleTestCases(CLITestCase):
             False on filter that is unlimited in parent role
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -753,6 +777,8 @@ class CannedRoleTestCases(CLITestCase):
             True on filter that is overridden in parent role
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -776,6 +802,8 @@ class CannedRoleTestCases(CLITestCase):
             2. Override flag should be set to False
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -799,6 +827,8 @@ class CannedRoleTestCases(CLITestCase):
             2. Override flag should be set to False
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -821,6 +851,8 @@ class CannedRoleTestCases(CLITestCase):
             when no taxonomies are set to role and filter
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -844,6 +876,8 @@ class CannedRoleTestCases(CLITestCase):
             organization A and Location A
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -872,6 +906,8 @@ class CannedRoleTestCases(CLITestCase):
                 access to the resources of organization A and Location A
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -894,6 +930,8 @@ class CannedRoleTestCases(CLITestCase):
             organization A and Location A
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -916,6 +954,8 @@ class CannedRoleTestCases(CLITestCase):
             of organization A,B and Location A,B
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -940,6 +980,8 @@ class CannedRoleTestCases(CLITestCase):
             to any of its resources
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -958,6 +1000,8 @@ class CannedRoleTestCases(CLITestCase):
             4. Delete the Org Admin role
 
         :expectedresults: Super Admin should be able to remove Org Admin role
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -978,6 +1022,8 @@ class CannedRoleTestCases(CLITestCase):
             taxonomies assigned to Org Admin
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1000,6 +1046,8 @@ class CannedRoleTestCases(CLITestCase):
             taxonomies assigned to Org Admin after deleting Org Admin
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1034,6 +1082,8 @@ class CannedRoleTestCases(CLITestCase):
 
         :expectedresults: Org Admin should not have permissions to update
             existing roles
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1053,6 +1103,8 @@ class CannedRoleTestCases(CLITestCase):
         :expectedresults: Org Admin should not have access of Admin user
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1076,6 +1128,8 @@ class CannedRoleTestCases(CLITestCase):
             3. Org Admin should be able to assign Org Admin role to its users
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1099,6 +1153,8 @@ class CannedRoleTestCases(CLITestCase):
             its taxonomies
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1122,6 +1178,8 @@ class CannedRoleTestCases(CLITestCase):
             its taxonomies
 
         :CaseLevel: Integration
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1139,6 +1197,8 @@ class CannedRoleTestCases(CLITestCase):
                 user
 
         :expectedresults: Org Admin should not have access to create taxonomies
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1159,6 +1219,8 @@ class CannedRoleTestCases(CLITestCase):
 
         :expectedresults: Org Admin should have access to all the global
             entities in any taxonomies
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1181,6 +1243,8 @@ class CannedRoleTestCases(CLITestCase):
             and permissions in taxonomies selected in Org Admin role
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1203,6 +1267,8 @@ class CannedRoleTestCases(CLITestCase):
             permissions in taxonomies selected in Org Admin role
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1225,6 +1291,8 @@ class CannedRoleTestCases(CLITestCase):
             and permissions in its own taxonomies
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1249,6 +1317,8 @@ class CannedRoleTestCases(CLITestCase):
             same
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1272,6 +1342,8 @@ class CannedRoleTestCases(CLITestCase):
             same
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
 

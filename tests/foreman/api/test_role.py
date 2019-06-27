@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: UsersRoles
 
 :TestType: Functional
 
@@ -682,9 +682,7 @@ class CannedRoleTestCases(APITestCase):
                 None in cloned role
             2. Override flag is set to True in cloned role filter
 
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
+                :CaseLevel: Integration
         """
         role = entities.Role(
             name=gen_string('alpha'),
@@ -1668,6 +1666,8 @@ class CannedRoleTestCases(APITestCase):
             permissions in taxonomies selected in Org Admin role
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1690,6 +1690,8 @@ class CannedRoleTestCases(APITestCase):
             and permissions in its own taxonomies
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1713,6 +1715,8 @@ class CannedRoleTestCases(APITestCase):
             same
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1736,4 +1740,6 @@ class CannedRoleTestCases(APITestCase):
             same
 
         :CaseLevel: System
+
+        :CaseAutomation: notautomated
         """
