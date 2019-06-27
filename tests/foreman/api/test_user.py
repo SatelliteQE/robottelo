@@ -10,7 +10,7 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: UsersRoles
 
 :TestType: Functional
 
