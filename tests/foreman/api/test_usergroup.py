@@ -10,7 +10,7 @@ http://theforeman.org/api/1.11/apidoc/v2/usergroups.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: UsersRoles
 
 :TestType: Functional
 
