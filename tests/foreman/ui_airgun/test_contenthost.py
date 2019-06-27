@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+from datetime import datetime
 import pytest
 
 from airgun.session import Session
@@ -60,6 +61,7 @@ from robottelo.products import (
     SatelliteToolsRepository,
 )
 from robottelo.vm import VirtualMachine
+from robottelo.api.utils import wait_for_tasks
 
 
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
@@ -211,6 +213,64 @@ def test_positive_end_to_end(session, repos_collection, vm):
         session.contenthost.delete(vm.hostname)
         if not bz_bug_is_open(1662325):
             assert not session.contenthost.search(vm.hostname)
+
+
+@upgrade
+@tier3
+def test_positive_end_to_end_bulk_update(session, vm):
+    """Create VM, set up VM as host, register it as a content host,
+    read content host details, install a package ( e.g. walrus-0.71) and
+    use bulk action (Update All Packages) to update the package by name
+    to a later version.
+
+    :id: d460ba30-82c7-11e9-9af5-54ee754f2151
+
+    :expectedresults: package installation and update to a later version
+        are successful.
+
+    :BZ: 1712069
+
+    :CaseLevel: System
+    """
+    hc_name = gen_string('alpha')
+    description = gen_string('alpha')
+    result = vm.run('yum -y install {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    assert result.return_code == 0
+    with session:
+        # Ensure content host is searchable
+        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+
+        # Update package using bulk action
+        # use the Host Collection view to access Update Packages dialogue
+        session.hostcollection.create({
+            'name': hc_name,
+            'unlimited_hosts': False,
+            'max_hosts': 2,
+            'description': description
+        })
+        session.hostcollection.associate_host(hc_name, vm.hostname)
+        # Update the package by name
+        timestamp = datetime.utcnow()
+        session.hostcollection.manage_packages(
+            hc_name, content_type='Package',
+            packages=FAKE_1_CUSTOM_PACKAGE_NAME,
+            action='update_all'
+        )
+        # Wait for upload profile event (in case system system slow)
+        host = entities.Host().search(
+            query={'search': 'name={}'.format(vm.hostname)})
+        wait_for_tasks(
+            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+                         ' and resource_id = {}'
+                         ' and started_at >= "{}"'.format(
+                             host[0].id, timestamp),
+            search_rate=10, max_tries=10,
+        )
+        # Ensure package updated to a later version
+        packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
+        assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+        # Delete content host
+        session.contenthost.delete(vm.hostname)
 
 
 @tier3
