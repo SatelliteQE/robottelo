@@ -1138,7 +1138,9 @@ class UserWithCleanUpTestCase(CLITestCase):
 
 
 class SshKeyInUserTestCase(CLITestCase):
-    """Implements the SSH Key in User Tests"""
+    """Implements the SSH Key in User Tests
+    :CaseAutomation: notautomated
+    """
 
     @stubbed()
     @tier1
@@ -1150,8 +1152,6 @@ class SshKeyInUserTestCase(CLITestCase):
         :expectedresults: SSH key should be added to new user
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1164,8 +1164,6 @@ class SshKeyInUserTestCase(CLITestCase):
         :expectedresults: SSH key should be added to user from ssh pub file
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1178,8 +1176,6 @@ class SshKeyInUserTestCase(CLITestCase):
         :expectedresults: SSH Key should be added to Super Admin user
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1201,8 +1197,6 @@ class SshKeyInUserTestCase(CLITestCase):
             2. Satellite returns 'Fingerprint could not be generated' error
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1221,8 +1215,6 @@ class SshKeyInUserTestCase(CLITestCase):
             calculated' error
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1240,8 +1232,6 @@ class SshKeyInUserTestCase(CLITestCase):
 
         :expectedresults: Multiple types of supported ssh keys can be added to
             user
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1260,8 +1250,6 @@ class SshKeyInUserTestCase(CLITestCase):
         :expectedresults: SSH key should be deleted from admin user
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1280,8 +1268,6 @@ class SshKeyInUserTestCase(CLITestCase):
         :expectedresults: Satellite should list all the SSH keys of user
 
         :CaseLevel: Integration
-
-        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1301,6 +1287,4 @@ class SshKeyInUserTestCase(CLITestCase):
             user
 
         :CaseImportance: Critical
-
-        :CaseAutomation: notautomated
         """
