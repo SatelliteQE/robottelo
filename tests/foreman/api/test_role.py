@@ -1634,19 +1634,13 @@ class CannedRoleTestCases(APITestCase):
             verify=False
         )
         with self.assertNotRaises(HTTPError):
-            entities.Architecture(sc).search()
-            entities.Audit(sc).search()
-            entities.Bookmark(sc).search()
-            entities.CommonParameter(sc).search()
-            entities.DockerComputeResource(sc).search()
-            entities.LibvirtComputeResource(sc).search()
-            entities.OVirtComputeResource(sc).search()
-            entities.VMWareComputeResource(sc).search()
-            entities.ConfigGroup(sc).search()
-            entities.DockerHubContainer(sc).search()
-            entities.DockerRegistryContainer(sc).search()
-            entities.Errata(sc).search()
-            entities.OperatingSystem(sc).search()
+            for entity in [
+                entities.Architecture, entities.Audit, entities.Bookmark,
+                entities.CommonParameter, entities.LibvirtComputeResource,
+                entities.OVirtComputeResource, entities.VMWareComputeResource,
+                entities.ConfigGroup, entities.Errata, entities.OperatingSystem,
+            ]:
+                entity(sc).search()
 
     @stubbed()
     @tier3

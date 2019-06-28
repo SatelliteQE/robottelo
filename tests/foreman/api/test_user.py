@@ -807,10 +807,9 @@ class ActiveDirectoryUserTestCase(APITestCase):
         with self.assertNotRaises(HTTPError):
             for entity in [
                 entities.Architecture, entities.Audit, entities.Bookmark,
-                entities.CommonParameter, entities.DockerComputeResource,
-                entities.LibvirtComputeResource, entities.OVirtComputeResource,
-                entities.VMWareComputeResource, entities.ConfigGroup, entities.DockerHubContainer,
-                entities.DockerRegistryContainer, entities.Errata, entities.OperatingSystem
+                entities.CommonParameter, entities.LibvirtComputeResource,
+                entities.OVirtComputeResource, entities.VMWareComputeResource,
+                entities.ConfigGroup, entities.Errata, entities.OperatingSystem
             ]:
                 entity(sc).search()
 
@@ -923,9 +922,8 @@ class FreeIPAUserTestCase(APITestCase):
         with self.assertNotRaises(HTTPError):
             for entity in [
                 entities.Architecture, entities.Audit, entities.Bookmark,
-                entities.CommonParameter, entities.DockerComputeResource,
-                entities.LibvirtComputeResource, entities.OVirtComputeResource,
-                entities.VMWareComputeResource, entities.ConfigGroup, entities.DockerHubContainer,
-                entities.DockerRegistryContainer, entities.Errata, entities.OperatingSystem
+                entities.CommonParameter, entities.LibvirtComputeResource,
+                entities.OVirtComputeResource, entities.VMWareComputeResource,
+                entities.ConfigGroup, entities.Errata, entities.OperatingSystem
             ]:
                 entity(sc).search()
