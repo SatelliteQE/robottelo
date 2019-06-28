@@ -4,13 +4,13 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Capsule
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -57,7 +57,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy is not created
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
@@ -74,7 +75,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy is created
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -94,7 +96,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy is deleted
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -112,7 +115,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy has the name updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -132,7 +136,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy has the url updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         # Create fake capsule
         port = get_available_capsule_port()
@@ -154,7 +159,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy has the name updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         organizations = [
             entities.Organization().create() for _ in range(2)]
@@ -177,7 +183,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Proxy has the name updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
@@ -201,6 +208,7 @@ class CapsuleTestCase(APITestCase):
         :expectedresults: Proxy features are refreshed
 
         :CaseLevel: Integration
+
         """
         # Since we want to run multiple commands against our fake capsule, we
         # need the tunnel kept open in order not to allow different concurrent
@@ -214,7 +222,7 @@ class CapsuleTestCase(APITestCase):
 
     @skip_if_not_set('fake_capsules')
     @skip_if_bug_open('bugzilla', 1398695)
-    @tier1
+    @tier2
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
 
@@ -222,7 +230,8 @@ class CapsuleTestCase(APITestCase):
 
         :expectedresults: Puppet classes are imported from proxy
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
+
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -272,7 +281,10 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         :BZ: 1262037
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
+
         """
         names = one_to_many_names('location')
         self.assertGreaterEqual(
@@ -292,7 +304,10 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         :BZ: 1262037
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
+
         """
         names = one_to_many_names('organization')
         self.assertGreaterEqual(

@@ -5,13 +5,13 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: Capsule
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -57,8 +57,9 @@ class CapsuleTestCase(CLITestCase):
 
         :expectedresults: Proxy is not created
 
-        :CaseImportance: Critical
-        """
+        :CaseLevel: Component
+
+       """
         # Create a random proxy
         with self.assertRaisesRegex(
             CLIFactoryError,
@@ -80,7 +81,8 @@ class CapsuleTestCase(CLITestCase):
 
         :expectedresults: Proxy is created
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -97,7 +99,8 @@ class CapsuleTestCase(CLITestCase):
 
         :expectedresults: Proxy is deleted
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -116,7 +119,8 @@ class CapsuleTestCase(CLITestCase):
 
         :expectedresults: Proxy has the name updated
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         proxy = self._make_proxy({u'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -141,6 +145,9 @@ class CapsuleTestCase(CLITestCase):
         :expectedresults: Proxy features are refreshed
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
+
         """
         # Since we want to run multiple commands against our fake capsule, we
         # need the tunnel kept open in order not to allow different concurrent
@@ -162,6 +169,9 @@ class CapsuleTestCase(CLITestCase):
         :expectedresults: Proxy features are refreshed
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
+
         """
         # Since we want to run multiple commands against our fake capsule, we
         # need the tunnel kept open in order not to allow different concurrent
@@ -182,7 +192,8 @@ class CapsuleTestCase(CLITestCase):
 
         :expectedresults: Puppet classes are imported from proxy
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
         """
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
@@ -213,7 +224,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: Instance can be provisioned, with content coming
             through proxy-enabled capsule.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -226,7 +237,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         :expectedresults: system is successfully registered
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -239,7 +250,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         :expectedresults: system is successfully unregistered
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -258,7 +269,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: system is successfully subscribed to each content
             type
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -280,7 +291,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         :expectedresults: system successfully consume content
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -303,7 +314,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: system is successfully unsubscribed from each content
             type
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -325,7 +336,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: Registration works , and certs RPM installed from
             capsule.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -343,7 +354,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: No failures executing said test scenarios against
             SSL, baseline functionality identical to non-SSL
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed()
@@ -370,5 +381,5 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :expectedresults: Katello installer should show the options to enable
             BMC
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
