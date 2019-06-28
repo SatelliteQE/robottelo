@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: System
 
-:CaseComponent: CLI
+:CaseComponent: Capsule
 
 :TestType: Functional
 
@@ -52,7 +52,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :expectedresults: product is installed
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -69,7 +69,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Capsule installs correctly and qpid functionality is
             enabled.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -86,7 +86,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Capsule installs correctly and functionality is
             enabled.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -102,7 +102,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: user is told that such parameters are invalid and
             install aborts.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -120,7 +120,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :expectedresults: user told parameters are invalid; install aborts.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -138,7 +138,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Install commences/completes with proxy installed
             correctly.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -157,7 +157,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :expectedresults: Install commences and completes with proxy installed
             correctly.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -176,6 +176,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         :BZ: 1327442
 
         :CaseLevel: System
+
         """
         # Note: capsule-remove has been replaced by katello-remove
         with CapsuleVirtualMachine() as capsule_vm:
