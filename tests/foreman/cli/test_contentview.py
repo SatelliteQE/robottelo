@@ -2243,6 +2243,7 @@ class ContentViewTestCase(CLITestCase):
             len(module_streams), 44,
             'Module Streams are not associated with Content View')
 
+    @skip_if_bug_open('bugzilla', 1625783)
     @tier2
     def test_positive_republish_after_content_removed(self):
         """Attempt to re-publish content view after all associated content
