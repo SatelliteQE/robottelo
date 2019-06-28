@@ -52,7 +52,6 @@ def valid_entities():
         entities.ConfigTemplate,
         entities.ContentView,
         entities.DiscoveryRule,
-        entities.DockerComputeResource,
         entities.Domain,
         entities.Environment,
         entities.GPGKey,
