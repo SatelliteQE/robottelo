@@ -302,7 +302,7 @@ def pytest_collection_modifyitems(items, config):
     # mark the pre upgrade test functions with node_id
     pre_upgrade_items = [
         item
-        for item in items if item.get_marker(PRE_UPGRADE_MARK) is not None
+        for item in items if item.get_closest_marker(PRE_UPGRADE_MARK) is not None
     ]
     for item in pre_upgrade_items:
         _set_test_node_id(item.function, item.nodeid)
@@ -311,7 +311,7 @@ def pytest_collection_modifyitems(items, config):
         # will skip item/post_upgrade test if pre_upgrade test status failed.
         post_upgrade_items = [
             item
-            for item in items if item.get_marker(POST_UPGRADE_MARK) is not None
+            for item in items if item.get_closest_marker(POST_UPGRADE_MARK) is not None
         ]
         deselected_items = []
         for item in post_upgrade_items:
