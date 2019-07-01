@@ -64,7 +64,15 @@ from robottelo.constants import (
     RHEL_7_MAJOR_VERSION
 )
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, tier3, tier4, skip_if, skip_if_not_set, upgrade
+from robottelo.decorators import (
+    tier2,
+    tier3,
+    tier4,
+    skip_if,
+    skip_if_bug_open,
+    skip_if_not_set,
+    upgrade,
+)
 from robottelo.ui.utils import create_fake_host
 
 
@@ -1131,6 +1139,7 @@ def test_positive_update_name_with_prefix(session, module_host_template):
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
 
 
+@skip_if_bug_open('bugzilla', 1725686)
 @tier2
 def test_positive_search_by_parameter(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it
@@ -1160,6 +1169,7 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
         assert values[0]['Name'] == param_host.name
 
 
+@skip_if_bug_open('bugzilla', 1725686)
 @tier4
 def test_positive_search_by_parameter_with_different_values(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it by its value
