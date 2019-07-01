@@ -1,9 +1,9 @@
 """Unit tests for the ``operatingsystems`` paths.
 
-References for the relevant paths can be found here:
+References for the relevant paths can be found on your Satellite:
 
-* http://theforeman.org/api/apidoc/v2/operatingsystems.html
-* http://theforeman.org/api/apidoc/v2/parameters.html
+* http://<sat6>/apidoc/v2/operatingsystems.html
+* http://<sat6>/apidoc/v2/parameters.html
 
 
 :Requirement: Operatingsystem
@@ -12,7 +12,7 @@ References for the relevant paths can be found here:
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Hosts-Content
 
 :TestType: Functional
 

@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Host-Content
 
 :TestType: Functional
 

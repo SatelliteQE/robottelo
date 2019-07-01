@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 """Unit tests for the ``products`` paths.
 
-A full API reference for products can be found here:
-http://theforeman.org/api/apidoc/v2/products.html
+An API reference for products can be found on your Satellite:
+http://<sat6>/apidoc/v2/products.html
 
 :Requirement: Product
 
@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/products.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Hosts-Content
 
 :TestType: Functional
 
