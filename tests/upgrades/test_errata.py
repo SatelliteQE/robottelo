@@ -68,7 +68,7 @@ class Scenario_errata_count(APITestCase):
             '/usr/bin/goferd -f',
             **kwargs
         )
-        status = execute(docker_execute_command, client_container_id, 'ps -aux',
+        status = execute(docker_execute_command, client_container_id, 'ps -ef',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn('goferd', status)
 
