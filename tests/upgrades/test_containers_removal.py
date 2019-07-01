@@ -18,6 +18,7 @@ from fauxfactory import gen_string
 
 from nailgun import entities
 from robottelo import ssh
+from robottelo.decorators import bz_bug_is_open
 from robottelo.test import APITestCase, settings
 from robottelo.vm import VirtualMachine
 from upgrade_tests import post_upgrade, pre_upgrade
@@ -81,6 +82,7 @@ class Scenario_containers_support_removal(APITestCase):
             3. Container from external registry is created and running
 
         """
+        rh_registry_available = not bz_bug_is_open(1703397)
         repo_name = 'rhel'
         compute_resource_name = gen_string('alpha')
         registry_url = settings.docker.external_registry_1
@@ -121,30 +123,35 @@ class Scenario_containers_support_removal(APITestCase):
                 dockerhub_container.compute_resource.id, compute_resource.id)
 
             # container from external registry
-            external_container = entities.DockerRegistryContainer(
-                command='sleep inf',
-                compute_resource=compute_resource,
-                organization=[org],
-                registry=registry,
-                repository_name=repo_name,
-            ).create()
-            self.assertEqual(
-                external_container.compute_resource.id, compute_resource.id)
-            self.assertEqual(external_container.registry.id, registry.id)
-            self.assertEqual(external_container.repository_name, repo_name)
+            if rh_registry_available:
+                external_container = entities.DockerRegistryContainer(
+                    command='sleep inf',
+                    compute_resource=compute_resource,
+                    organization=[org],
+                    registry=registry,
+                    repository_name=repo_name,
+                ).create()
+                self.assertEqual(
+                    external_container.compute_resource.id, compute_resource.id)
+                self.assertEqual(external_container.registry.id, registry.id)
+                self.assertEqual(external_container.repository_name, repo_name)
 
             running_containers = docker_host.run('docker ps')
             self.assertEqual(running_containers.return_code, 0)
 
             self.assertTrue(any(dockerhub_container.name in line
                                 for line in running_containers.stdout))
-            self.assertTrue(any(external_container.name in line
-                                for line in running_containers.stdout))
+            if rh_registry_available:
+                self.assertTrue(any(external_container.name in line
+                                    for line in running_containers.stdout))
+
+            ext_container_name = external_container.name if rh_registry_available else ''
 
             scenario_dict = {self.__class__.__name__: {
+                'rh_registry_available': rh_registry_available,
                 'docker_host': docker_host.hostname,
                 'dockerhub_container': dockerhub_container.name,
-                'external_container': external_container.name,
+                'external_container': ext_container_name,
             }}
             create_dict(scenario_dict)
         except Exception as exp:
@@ -172,6 +179,7 @@ class Scenario_containers_support_removal(APITestCase):
 
         """
         entity_data = get_entity_data(self.__class__.__name__)
+        rh_registry_available = entity_data.get('rh_registry_available')
         docker_host_hostname = entity_data.get('docker_host')
         dockerhub_container = entity_data.get('dockerhub_container')
         external_container = entity_data.get('external_container')
@@ -204,8 +212,9 @@ class Scenario_containers_support_removal(APITestCase):
 
             self.assertTrue(any(dockerhub_container in line
                                 for line in running_containers.stdout))
-            self.assertTrue(any(external_container in line
-                                for line in running_containers.stdout))
+            if rh_registry_available:
+                self.assertTrue(any(external_container in line
+                                    for line in running_containers.stdout))
         except Exception as exp:
             self._vm_cleanup(hostname=docker_host_hostname)
             raise Exception(exp)
