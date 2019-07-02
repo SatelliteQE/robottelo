@@ -5,7 +5,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: API
 
@@ -38,7 +38,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report is created
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -56,7 +56,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: All report templates accessible by user are listed
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -74,10 +74,10 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report template data is shown
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_update_report(self):
         """Update report template
@@ -95,7 +95,7 @@ class ComputeResourceTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_delete_report(self):
         """Delete report template
@@ -128,10 +128,10 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report is generated for all hosts visible for user
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_generate_report_filter(self):
         """Generate Host Status report
@@ -164,7 +164,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: User input is assigned to the report template
 
-        :CaseImportance: Medium
+        :CaseImportance: High
         """
 
     @tier2
@@ -182,7 +182,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report is locked
 
-        :CaseImportance: Medium
+        :CaseImportance: High
         """
 
     @tier2
@@ -200,7 +200,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report is unlocked
 
-        :CaseImportance: Medium
+        :CaseImportance: High
         """
 
     @tier2
@@ -218,7 +218,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report script is shown
 
-        :CaseImportance: Medium
+        :CaseImportance: High
         """
 
     @tier2
@@ -236,7 +236,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Report is cloned
 
-        :CaseImportance: Medium
+        :CaseImportance: High
         """
 
     @tier2

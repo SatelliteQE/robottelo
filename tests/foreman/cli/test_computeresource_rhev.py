@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: ComputeResources-RHEV
 
@@ -135,7 +135,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertFalse(result)
 
-    @tier1
+    @tier2
     def test_negative_create_rhev_with_url(self):
         """RHEV compute resource negative create with invalid values
 
@@ -143,7 +143,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         with self.assertRaises(CLIReturnCodeError):
             ComputeResource.create({
@@ -154,7 +154,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 u'url': 'invalid url'
             })
 
-    @tier1
+    @tier2
     def test_negative_create_with_same_name(self):
         """RHEV compute resource negative create with the same name
 
@@ -167,7 +167,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         name = gen_string('alpha')
         compute_resource = make_compute_resource({
@@ -392,4 +392,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :expectedresults: The host should be provisioned successfully
 
         :CaseAutomation: notautomated
+
+        :CaseLevel: Integration
         """

@@ -4,13 +4,13 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Integration
 
 :CaseComponent: Reporting
 
 :TestType: Functional
 
-:CaseImportance: Medium
+:CaseImportance: High
 
 :Upstream: No
 """
@@ -23,6 +23,7 @@ from nailgun import entities
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     tier2,
+    tier3,
     stubbed,
     fixture,
     upgrade
@@ -40,7 +41,7 @@ def module_loc():
     return entities.Location().create()
 
 
-@tier2
+@tier3
 @stubbed()
 def test_negative_create_report_without_name(session):
     """ Edit a report template
@@ -61,7 +62,7 @@ def test_negative_create_report_without_name(session):
     """
 
 
-@tier2
+@tier3
 @stubbed()
 def test_negative_cannont_delete_locked_report(session):
     """ Edit a report template
@@ -81,7 +82,7 @@ def test_negative_cannont_delete_locked_report(session):
     """
 
 
-@tier2
+@tier3
 @stubbed()
 def test_positive_preview_report(session):
     """ Preview a report
@@ -113,7 +114,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     content = gen_string('alpha')
