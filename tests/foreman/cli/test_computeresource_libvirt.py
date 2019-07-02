@@ -45,6 +45,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
+    tier2,
     upgrade
 )
 from robottelo.test import CLITestCase
@@ -126,8 +127,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is created
 
-
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         ComputeResource.create({
             'name': 'cr {0}'.format(gen_string(str_type='alpha')),
@@ -143,8 +145,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource Info is displayed
 
-
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         name = gen_string('utf8')
         compute_resource = make_compute_resource({
@@ -163,8 +166,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource List is displayed
 
-
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -186,8 +190,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource deleted
 
-
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -208,8 +213,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource created
 
-
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         for options in valid_name_desc_data():
             with self.subTest(options):
@@ -220,7 +226,7 @@ class ComputeResourceTestCase(CLITestCase):
                     u'url': gen_url(),
                 })
 
-    @tier1
+    @tier2
     def test_positive_create_with_loc(self):
         """Create Compute Resource with location
 
@@ -228,15 +234,16 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is created and has location assigned
 
+        :CaseImportance: High
 
-        :CaseImportance: Critical
+        :CaseLevel: Integration
         """
         location = make_location()
         comp_resource = make_compute_resource({'location-ids': location['id']})
         self.assertEqual(1, len(comp_resource['locations']))
         self.assertEqual(comp_resource['locations'][0], location['name'])
 
-    @tier1
+    @tier2
     def test_positive_create_with_locs(self):
         """Create Compute Resource with multiple locations
 
@@ -245,7 +252,9 @@ class ComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is created and has multiple
             locations assigned
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Integration
         """
         locations_amount = random.randint(3, 5)
         locations = [make_location() for _ in range(locations_amount)]
@@ -256,7 +265,7 @@ class ComputeResourceTestCase(CLITestCase):
         for location in locations:
             self.assertIn(location['name'], comp_resource['locations'])
 
-    @tier1
+    @tier2
     @skip_if_bug_open('bugzilla', 1214312)
     def test_positive_create_with_console_password(self):
         """Create Compute Resource with different values of
@@ -269,8 +278,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :BZ: 1214312
 
+        :CaseImportance: High
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         for console_password in (u'True', u'Yes', 1, u'False', u'No', 0):
             with self.subTest(console_password):
@@ -287,7 +297,7 @@ class ComputeResourceTestCase(CLITestCase):
 
     # Negative create
 
-    @tier1
+    @tier2
     def test_negative_create_with_name_url(self):
         """Compute Resource negative create with invalid values
 
@@ -295,7 +305,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         for options in invalid_create_data():
             with self.subTest(options):
@@ -307,7 +319,7 @@ class ComputeResourceTestCase(CLITestCase):
                         u'url': options.get('url', gen_url()),
                     })
 
-    @tier1
+    @tier2
     def test_negative_create_with_same_name(self):
         """Compute Resource negative create with the same name
 
@@ -315,8 +327,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource not created
 
+        :CaseImportance: High
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         comp_res = make_compute_resource()
         with self.assertRaises(CLIReturnCodeError):
@@ -336,8 +349,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource successfully updated
 
-
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         for options in valid_update_data():
             with self.subTest(options):
@@ -366,7 +380,7 @@ class ComputeResourceTestCase(CLITestCase):
 
     # Update Negative
 
-    @tier1
+    @tier2
     def test_negative_update(self):
         """Compute Resource negative update
 
@@ -374,8 +388,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource not updated
 
+        :CaseImportance: High
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         for options in invalid_update_data():
             with self.subTest(options):
@@ -390,7 +405,7 @@ class ComputeResourceTestCase(CLITestCase):
                 for key in options.keys():
                     self.assertEqual(comp_res[key], result[key])
 
-    @tier1
+    @tier2
     def test_positive_create_with_console_password_and_name(self):
         """Create a compute resource with ``--set-console-password``.
 
@@ -400,8 +415,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         Targets BZ 1100344.
 
+        :CaseImportance: High
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         for set_console_password in ('true', 'false'):
             with self.subTest(set_console_password):
@@ -412,7 +428,7 @@ class ComputeResourceTestCase(CLITestCase):
                     'url': gen_url(),
                 })
 
-    @tier1
+    @tier2
     def test_positive_update_console_password(self):
         """Update a compute resource with ``--set-console-password``.
 
@@ -422,8 +438,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         Targets BZ 1100344.
 
+        :CaseImportance: High
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
         """
         cr_name = gen_string('utf8')
         ComputeResource.create({
