@@ -21,7 +21,10 @@ from robottelo.test import APITestCase
 
 
 class AuditTestCase(APITestCase):
-    """Tests for audit functionality"""
+    """Tests for audit functionality
+
+    :CaseImportance: High
+    """
 
     @tier1
     def test_positive_create_by_type(self):
@@ -37,7 +40,11 @@ class AuditTestCase(APITestCase):
 
         :BZ: 1426742, 1492668, 1492696
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: AuditLog
         """
         for entity_item in [
             {'entity': entities.Architecture()},
@@ -112,6 +119,12 @@ class AuditTestCase(APITestCase):
 
         :expectedresults: Audit logs contain corresponding entries per each
             update event
+
+        :CaseImportance: Medium
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: AuditLog
         """
         for entity in [
             entities.Architecture(),
@@ -152,6 +165,12 @@ class AuditTestCase(APITestCase):
 
         :expectedresults: Audit logs contain corresponding entries per each
             delete event
+
+        :CaseImportance: Medium
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: AuditLog
         """
         for entity in [
             entities.Architecture(),

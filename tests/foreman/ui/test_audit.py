@@ -4,13 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Medium
 
-:CaseComponent: UI
+:CaseComponent: AuditLog
 
 :TestType: Functional
-
-:CaseImportance: Low
 
 :Upstream: No
 """
@@ -50,9 +48,11 @@ def test_positive_create_event(session, module_org, module_loc):
 
     :expectedresults: Audit entry for created host contains valid data
 
+    :CaseAutomation: Automated
+
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Medium
     """
     host = entities.Host(organization=module_org, location=module_loc).create()
     with session:
@@ -93,7 +93,11 @@ def test_positive_audit_comment(session, module_org):
 
     :expectedresults: Audit entry for created partition table contains proper audit comment
 
-    :CaseLevel: Integration
+    :CaseAutomation: Automated
+
+    :CaseLevel: Component
+
+    :CaseImportance: Low
     """
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
@@ -122,7 +126,11 @@ def test_positive_update_event(session, module_org):
 
     :expectedresults: Audit entry for updated content view contains valid data
 
+    :CaseAutomation: Automated
+
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -150,7 +158,11 @@ def test_positive_delete_event(session, module_org):
 
     :expectedresults: Audit entry for deleted architecture contains valid data
 
-    :CaseLevel: Integration
+    :CaseAutomation: Automated
+
+    :CaseLevel: Component
+
+    :CaseImportance: Medium
     """
     architecture = entities.Architecture().create()
     architecture.delete()
@@ -173,7 +185,11 @@ def test_positive_add_event(session, module_org):
 
     :expectedresults: Audit entry for added environment contains valid data
 
+    :CaseAutomation: Automated
+
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     cv = entities.ContentView(organization=module_org).create()
     cv.publish()
@@ -205,9 +221,11 @@ def test_positive_create_role_filter(session, module_org):
 
     :BZ: 1425977, 1701118, 1701132
 
+    :CaseAutomation: Automated
+
     :CaseLevel: Integration
 
-    :CaseImportance: Critical
+    :CaseImportance: Medium
     """
     role = entities.Role(organization=[module_org]).create()
     with session:
