@@ -1591,7 +1591,9 @@ class HostTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseComponent: TFTP
+
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -1622,7 +1624,9 @@ class HostTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseComponent: TFTP
+
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -1653,7 +1657,9 @@ class HostTestCase(APITestCase):
 
         :CaseAutomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
+
+        :CaseComponent: TFTP
         """
 
     @tier1
