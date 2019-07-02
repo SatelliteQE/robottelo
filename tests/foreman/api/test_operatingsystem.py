@@ -10,9 +10,9 @@ References for the relevant paths can be found on your Satellite:
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Hosts-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 

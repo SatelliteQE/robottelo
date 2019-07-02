@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: Hosts-Content
 
@@ -154,6 +154,8 @@ def test_positive_end_to_end(session, repos_collection, vm):
         and errata installation are successful
 
     :CaseLevel: System
+
+    :CaseImportance: Critical
     """
     result = vm.run('yum -y install {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     assert result.return_code == 0
@@ -630,8 +632,6 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
     :expectedresults: Remote execution for module actions should succeed.
 
     :CaseLevel: System
-
-    :CaseImportance: High
     """
     stream_version = "5.21"
     run_remote_command_on_content_host(
@@ -794,8 +794,6 @@ def test_install_modular_errata(session, vm_module_streams):
     :expectedresults: Modular Errata should get installed on content host.
 
     :CaseLevel: System
-
-    :CaseImportance: High
     """
     with session:
         stream_version = "0"
@@ -855,8 +853,6 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
     :expectedresults: module stream status should get updated in Satellite
 
     :CaseLevel: System
-
-    :CaseImportance: High
     """
     with session:
         module_name = "walrus"
@@ -920,8 +916,6 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
     :expectedresults: module stream should get updated.
 
     :CaseLevel: System
-
-    :CaseImportance: High
     """
     with session:
         module_name = "duck"
