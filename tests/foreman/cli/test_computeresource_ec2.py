@@ -65,6 +65,8 @@ class EC2ComputeResourceTestCase(CLITestCase):
         :CaseAutomation: Automated
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         cr_name = gen_string(str_type='alpha')
         cr_description = gen_string(str_type='alpha')

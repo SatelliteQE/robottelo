@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: ComputeResources-libvirt
 
 :TestType: Functional
 
