@@ -8,9 +8,9 @@ http://<sat6>/apidoc/v2/products.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Hosts-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 

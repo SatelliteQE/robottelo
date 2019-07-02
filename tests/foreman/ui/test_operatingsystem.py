@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Hosts-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 
@@ -68,6 +68,8 @@ def test_positive_end_to_end(session):
     :expectedresults: All scenarios flows work properly
 
     :CaseLevel: Integration
+
+    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     major_version = gen_string('numeric', 2)

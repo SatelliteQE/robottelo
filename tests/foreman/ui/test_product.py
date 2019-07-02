@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Hosts-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 
@@ -38,7 +38,7 @@ def test_positive_end_to_end(session, module_org):
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     product_name = gen_string('alpha')
     new_product_name = gen_string('alpha')
