@@ -7,11 +7,11 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: SmartVariables
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Medium
 
 :Upstream: No
 """
@@ -111,9 +111,10 @@ class SmartVariablesTestCase(CLITestCase):
         host = entities.Host(organization=self.org['id'],
                              location=self.loc['id']).create()
         Host.update({
-            u'name': host.name,
-            u'environment': self.env['name'],
-            u'puppet-classes': self.puppet_class['name'],
+            'name': host.name,
+            'environment': self.env['name'],
+            'puppet-classes': self.puppet_class['name'],
+            'organization': self.org['id'],
         })
         host_variables = SmartVariable.list({'host': host.name})
         self.assertGreater(len(host_variables), 0)
@@ -193,11 +194,11 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(updated_sv['variable'], new_name)
 
         # Delete
-        SmartVariable.delete({'variable': smart_variable['variable']})
+        SmartVariable.delete({'variable': updated_sv['variable']})
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.info({'variable': smart_variable['variable']})
+            SmartVariable.info({'variable': updated_sv['variable']})
 
-    @tier1
+    @tier2
     def test_negative_create(self):
         """Create Smart Variable with invalid name.
 
@@ -207,7 +208,6 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: The smart Variable is not created.
 
-        :CaseImportance: Critical
         """
         name = invalid_values_list()[0]
         with self.assertRaises(CLIReturnCodeError):
@@ -260,7 +260,7 @@ class SmartVariablesTestCase(CLITestCase):
         })
         self.assertEqual(smart_variable['default-value'], value)
 
-    @tier1
+    @tier2
     def test_negative_create_empty_matcher_value(self):
         """Create matcher with empty value for non string type.
 
@@ -271,7 +271,6 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Matcher is not created with empty value
 
-        :CaseImportance: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -286,7 +285,7 @@ class SmartVariablesTestCase(CLITestCase):
                 'value': '',
             })
 
-    @tier1
+    @tier2
     def test_negative_create_with_invalid_match_value(self):
         """Attempt to create matcher with invalid match value.
 
@@ -296,7 +295,6 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Matcher is not created
 
-        :CaseImportance: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -308,7 +306,7 @@ class SmartVariablesTestCase(CLITestCase):
                 'value': gen_string('alpha'),
             })
 
-    @tier1
+    @tier2
     def test_positive_validate_default_value_with_regex(self):
         """Test variable is created for matched validator type regex.
 
@@ -322,7 +320,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Variable is created for matched validator rule.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
@@ -340,7 +338,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(updated_sv['validator']['type'], 'regexp')
         self.assertEqual(updated_sv['validator']['rule'], '[0-9]')
 
-    @tier1
+    @tier2
     def test_positive_validate_matcher_value_with_regex(self):
         """Test matcher is created for matched validator type regex.
 
@@ -353,7 +351,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Matcher is created for matched validator rule.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
@@ -377,7 +375,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(
             smart_variable['override-values']['values']['1']['value'], value)
 
-    @tier1
+    @tier2
     def test_negative_validate_default_value_with_list(self):
         """Test variable is not created for unmatched validator type list.
 
@@ -388,7 +386,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Variable is not created for unmatched validator rule.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.create({
@@ -398,7 +396,7 @@ class SmartVariablesTestCase(CLITestCase):
                 'validator-rule': '5, test',
             })
 
-    @tier1
+    @tier2
     def test_positive_validate_matcher_value_with_list(self):
         """Test matcher is created for matched validator type list.
 
@@ -412,7 +410,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Matcher is created for matched validator rule.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -436,7 +434,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(
             smart_variable['override-values']['values']['1']['value'], '30')
 
-    @tier1
+    @tier2
     def test_positive_validate_matcher_value_with_default_type(self):
         """Matcher is created for default type value.
 
@@ -449,7 +447,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Matcher is created for matched type.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -470,7 +468,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(
             smart_variable['override-values']['values']['1']['value'], False)
 
-    @tier1
+    @tier2
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Attempt to create Smart Variable with a matcher that has value for
         non existing attribute.
@@ -479,7 +477,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: Matcher is not created and error is raised
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -493,7 +491,7 @@ class SmartVariablesTestCase(CLITestCase):
                 'value': 'false',
             })
 
-    @tier1
+    @tier2
     def test_negative_create_matcher_with_invalid_attribute(self):
         """Attempt to create Smart Variable with a matcher that has value for
         invalid attribute that is not in order priority list.
@@ -504,7 +502,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :BZ: 1379277
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -564,7 +562,7 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
-    @tier1
+    @tier2
     def test_positive_enable_merge_overrides_default_flags(self):
         """Enable Merge Overrides, Merge Default flags for supported types.
 
@@ -579,7 +577,6 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: The Merge Overrides, Merge Default flags are allowed
             to set True.
 
-        :CaseImportance: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -597,7 +594,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(
             smart_variable['override-values']['merge-default-value'], True)
 
-    @tier1
+    @tier2
     def test_positive_enable_avoid_duplicates_flag(self):
         """Enable Avoid duplicates flag for supported array type.
 
@@ -610,7 +607,6 @@ class SmartVariablesTestCase(CLITestCase):
 
         :expectedresults: The '--avoid-duplicates' flag is allowed to set true.
 
-        :CaseImportance: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -684,7 +680,7 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
-    @tier1
+    @tier2
     def test_positive_hide_update_and_unhide_default_value(self):
         """Test hiding of the default value of variable.
 
@@ -702,7 +698,6 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: The 'hidden value' set to true for that variable.
             Default value is hidden
 
-        :CaseImportance: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],

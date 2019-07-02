@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: SmartVariables
 
 :TestType: Functional
 
@@ -309,7 +309,6 @@ class SmartVariablesTestCase(APITestCase):
 
         :expectedresults: Variable is not created for invalid value
 
-        :CaseImportance: Critical
         """
         for data in invalid_sc_variable_data():
             with self.subTest(data):
@@ -324,7 +323,7 @@ class SmartVariablesTestCase(APITestCase):
                     "Default value is invalid"
                 )
 
-    @tier1
+    @tier2
     def test_positive_create_default_value_with_list(self):
         """Create variable with matching list validator
 
@@ -338,7 +337,6 @@ class SmartVariablesTestCase(APITestCase):
 
         :expectedresults: Variable is created for matching value with list
 
-        :CaseImportance: Critical
         """
         # Generate list of values
         values_list = [
