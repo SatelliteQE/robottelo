@@ -2,7 +2,7 @@
 
 :Requirement: Provisioning
 
-:CaseAutomation: Automated
+:CaseAutomation: NotAutomated
 
 :CaseLevel: System
 
@@ -10,7 +10,7 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -37,6 +37,4 @@ def test_rhel_pxe_provisioning_on_libvirt():
         1. Host installs
         2. Host is registered to Satellite and subscription status is 'Success'
         3. Host can install package from Satellite
-
-    CaseLevel: Integration
     """

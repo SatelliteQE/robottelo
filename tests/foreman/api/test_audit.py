@@ -42,8 +42,6 @@ class AuditTestCase(APITestCase):
 
         :CaseImportance: Medium
 
-        :CaseAutomation: Automated
-
         :CaseComponent: AuditLog
         """
         for entity_item in [
@@ -122,8 +120,6 @@ class AuditTestCase(APITestCase):
 
         :CaseImportance: Medium
 
-        :CaseAutomation: Automated
-
         :CaseComponent: AuditLog
         """
         for entity in [
@@ -167,8 +163,6 @@ class AuditTestCase(APITestCase):
             delete event
 
         :CaseImportance: Medium
-
-        :CaseAutomation: Automated
 
         :CaseComponent: AuditLog
         """
