@@ -93,7 +93,7 @@ def test_positive_host_configuration_status(session):
         'last_report > \"30 minutes ago\" and status.pending > 0'
         ' and status.enabled = true',
         'last_report < \"30 minutes ago\" and status.enabled = true',
-        'last_report > \"30 minutes ago\" and status.enabled = false',
+        'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
     if bz_bug_is_open(1631219):
