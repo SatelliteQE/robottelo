@@ -5,13 +5,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: ProvisioningTemplates
 
 :TestType: Functional
-
-:CaseImportance: Medium
 
 :Upstream: No
 """
