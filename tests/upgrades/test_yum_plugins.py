@@ -208,8 +208,8 @@ class Scenario_yum_plugins_count(APITestCase):
         }
         with manifests.clone() as manifest:
             upload_manifest(org_id, manifest.content)
-            repo1_id = enable_sync_redhat_repo(rh_rhel, org_id, timeout=3500)
-            repo2_id = enable_sync_redhat_repo(rh_tools, org_id, timeout=3500)
+            repo1_id = enable_sync_redhat_repo(rh_rhel, org_id, timeout=5500)
+            repo2_id = enable_sync_redhat_repo(rh_tools, org_id, timeout=5500)
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
