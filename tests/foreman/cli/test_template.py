@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ProvisioningTemplates
 
 :TestType: Functional
 
@@ -78,7 +78,7 @@ class TemplateTestCase(CLITestCase):
         :expectedresults: Provisioning Template is created, and its name can
             be updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :BZ: 1277308
         """
@@ -113,7 +113,7 @@ class TemplateTestCase(CLITestCase):
         :expectedresults: Template is created and new Location has been
             assigned
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         new_loc = make_location()
         new_template = make_template({'location-ids': new_loc['id']})
@@ -127,7 +127,8 @@ class TemplateTestCase(CLITestCase):
 
         :expectedresults: The locked template is created successfully
 
-        :CaseImportance: Critical
+
+        :CaseImportance: Medium
         """
         new_template = make_template({
             'locked': 'true',
@@ -135,7 +136,7 @@ class TemplateTestCase(CLITestCase):
         })
         self.assertEqual(new_template['locked'], 'yes')
 
-    @tier1
+    @tier2
     def test_positive_create_with_org(self):
         """Check if Template with Organization can be created
 
@@ -144,7 +145,7 @@ class TemplateTestCase(CLITestCase):
         :expectedresults: Template is created and new Organization has been
             assigned
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         new_org = make_org()
         new_template = make_template({
@@ -185,6 +186,8 @@ class TemplateTestCase(CLITestCase):
         :expectedresults: Operating system is removed from template
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         template = make_template()
         new_os = make_os()
@@ -281,6 +284,8 @@ class TemplateTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
 
         :CaseLevel: System
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed
@@ -301,6 +306,8 @@ class TemplateTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
 
         :CaseLevel: System
+
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed
@@ -319,9 +326,9 @@ class TemplateTestCase(CLITestCase):
             1. Assert task shows depreciation message of rake import is
             depreciated
 
-        :CaseAutomation: NotAutomated
+        :CaseImportance: Low
 
-        :CaseLevel: System
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed
@@ -340,9 +347,9 @@ class TemplateTestCase(CLITestCase):
             1. Assert task shows depreciation message of rake export is
             depreciated
 
-        :CaseAutomation: NotAutomated
+        :CaseImportance: Low
 
-        :CaseLevel: System
+        :CaseAutomation: NotAutomated
         """
 
     @stubbed
@@ -361,7 +368,7 @@ class TemplateTestCase(CLITestCase):
             1. Assert task shows depreciation message of rake purge is
             depreciated
 
-        :CaseAutomation: NotAutomated
+        :CaseImportance: Low
 
-        :CaseLevel: System
+        :CaseAutomation: NotAutomated
         """

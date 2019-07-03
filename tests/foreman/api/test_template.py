@@ -7,7 +7,11 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 :CaseAutomation: Automated
 
+:CaseComponent: ProvisioningTemplates
+
 :TestType: Functional
+
+:CaseLevel: Integration
 
 :CaseImportance: High
 
@@ -79,7 +83,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :expectedresults: Config template is associated with organization
 
-        :CaseLevel: Integration
+        :CaseImportance: Medium
         """
         orgs = [entities.Organization().create() for _ in range(2)]
 
@@ -116,6 +120,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: Configuration Template is created and contains
             provided name.
 
+        :CaseLevel: Component
+
         :CaseImportance: Critical
         """
         for name in valid_data_list():
@@ -130,6 +136,10 @@ class ConfigTemplateTestCase(APITestCase):
         :id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
         :expectedresults: Configuration Template is not created
+
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -144,6 +154,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :expectedresults: Provisioning Template is created and contains
             provided template kind.
+
+        :CaseLevel: Component
 
         :CaseImportance: Critical
         """
@@ -163,6 +175,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: Provisioning Template is created
 
         :BZ: 1379006
+
+        :CaseLevel: Component
 
         :CaseImportance: Critical
         """
@@ -185,7 +199,9 @@ class ConfigTemplateTestCase(APITestCase):
 
         :BZ: 1379006
 
-        :CaseImportance: Critical
+        :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         template = entities.ProvisioningTemplate(snippet=False)
         template.create_missing()
@@ -209,6 +225,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: Configuration Template is created, and its name can
             be updated.
 
+        :CaseLevel: Component
+
         :CaseImportance: Critical
         """
         c_temp = entities.ConfigTemplate().create()
@@ -229,7 +247,7 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: Provisioning Template is created, and its name can
             be updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :BZ: 1277308
         """
@@ -266,6 +284,10 @@ class ConfigTemplateTestCase(APITestCase):
 
         :expectedresults: Configuration Template is created, and its name is
             not updated.
+
+        :CaseImportance: Medium
+
+        :CaseLevel: Component
         """
         c_temp = entities.ConfigTemplate().create()
         for new_name in invalid_names_list():
@@ -286,6 +308,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: Configuration Template is successfully deleted.
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -303,6 +327,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: The template is cloned successfully with all values
 
         :CaseLevel: Component
+
+        :CaseImportance: Medium
         """
         template = entities.ConfigTemplate().create()
         template_origin = template.read_json()
@@ -414,8 +440,7 @@ class TemplateSyncTestCase(APITestCase):
         ssh.command('chcon -t httpd_sys_rw_content_t {} -R'.format(dir_path))
         return dir_path
 
-    # Import tests
-    @tier1
+    @tier2
     def test_positive_import_filtered_templates_from_git(self):
         """Assure only templates with a given filter regex are pulled from
         git repo.
@@ -437,7 +462,7 @@ class TemplateSyncTestCase(APITestCase):
                'Name is not matching filter condition, skipping' info message
                for imported template
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         org = entities.Organization().create()
         filtered_imported_templates = entities.Template().imports(
@@ -471,7 +496,7 @@ class TemplateSyncTestCase(APITestCase):
                 'organization_id': org.id})
         self.assertEqual(len(jtemplates), 1)
 
-    @tier1
+    @tier2
     def test_negative_import_filtered_templates_from_git(self):
         """Assure templates with a given filter regex are NOT pulled from
         git repo.
@@ -486,7 +511,9 @@ class TemplateSyncTestCase(APITestCase):
 
         :expectedresults:
             1. Assert result is {'message': 'success'}
-            2. Assert templates mathing the regex were not pulled
+            2. Assert templates mathing the regex were not pulled.
+
+        :CaseImportance: Medium
         """
         org = entities.Organization().create()
         filtered_imported_templates = entities.Template().imports(
@@ -522,7 +549,7 @@ class TemplateSyncTestCase(APITestCase):
         self.assertEqual(len(jtemplates), 1)
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_import_from_branch(self):
         """Assure only templates from a given branch are imported
 
@@ -537,13 +564,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'} and templates imported
             2. Assert only templates from that branch were imported
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_import_from_subdirectory(self):
         """Assure only templates from a given subdirectory are imported
 
@@ -558,13 +585,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'} and templates imported
             2. Assert only templates from that subdirectory were imported
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_import_locked_template(self):
         """Assure locked templates are not pulled from repository.
 
@@ -576,13 +603,13 @@ class TemplateSyncTestCase(APITestCase):
         :expectedresults:
             1. Assert locked template is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_import_force_locked_template(self):
         """Assure locked templates are updated from repository when `force` is
         specified.
@@ -598,13 +625,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'}
             2. Assert locked template is forced to update
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_import_associated_with_taxonomies(self):
         """Assure imported template is automatically associated with
         Organization and Location.
@@ -622,13 +649,13 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert template is imported and org/loc are associated based on
                template metadata.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_import_all_templates_from_repo(self):
         """Assure all templates are imported if no filter is specified.
 
@@ -642,12 +669,12 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'}
             2. Assert all existing templates are imported.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
 
         :CaseAutomation: NotAutomated
         """
 
-    @tier1
+    @tier2
     def test_positive_export_filtered_templates_to_localdir(self):
         """Assure only templates with a given filter regex are pushed to
         local directory (new templates are created, existing updated).
@@ -664,7 +691,7 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert no other template has been exported but only those
                matching specified regex.
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         # First import all the templates to be exported in dir later
         org = entities.Organization().create()
@@ -694,7 +721,7 @@ class TemplateSyncTestCase(APITestCase):
                 'find {} -type f | wc -l'.format(dir_path)).stdout[0], '7')
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_file_based_sync(self):
         """Assure template sync work from a local directory
 
@@ -755,11 +782,14 @@ class TemplateSyncTestCase(APITestCase):
         The complete test script is available in
         http://pastebin.test.redhat.com/516304
 
+        :CaseAutomation: NotAutomated
+
+        :CaseImportance: Medium
         """
 
     # Export tests
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_export_filtered_templates_to_git(self):
         """Assure only templates with a given filter regex are pushed to
         git template (new templates are created, existing updated).
@@ -776,13 +806,13 @@ class TemplateSyncTestCase(APITestCase):
             2. Assert no other template has been exported but only those
                matching specified regex.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_export_filtered_templates_to_git(self):
         """Assure templates with a given filter regex are NOT pushed to
         git repo.
@@ -800,11 +830,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'}
             2. Assert templates mathing the regex are not pushed
 
+        :CaseImportance: Medium
+
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_export_to_branch(self):
         """Assure templates are exported to specified existing branch
 
@@ -819,13 +851,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'} and templates exported
             2. Assert templates were exported to specified branch on repo
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_export_to_subdirectory(self):
         """Assure templates are exported to repository existing subdirectory
 
@@ -840,13 +872,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'} and templates exported
             2. Assert templates are exported to the given subdirectory on repo
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_export_and_import_with_metadata(self):
         """Assure exported template contains metadata.
 
@@ -868,13 +900,13 @@ class TemplateSyncTestCase(APITestCase):
             3. Assert template can be imported with associated Org/Loc
                as specified in metadata
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
 
         :CaseAutomation: NotAutomated
         """
 
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_export_all_templates_to_repo(self):
         """Assure all templates are exported if no filter is specified.
 
@@ -888,13 +920,13 @@ class TemplateSyncTestCase(APITestCase):
             1. Assert result is {'message': 'success'}
             2. Assert all existing templates were exported to repository
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
 
         :CaseAutomation: NotAutomated
         """
 
     # Take Templates out of Tech Preview Feature Tests
-    @tier2
+    @tier3
     def test_positive_import_json_output_verbose_true(self):
         """Assert all the required fields displayed in import output when
         verbose is True
@@ -912,7 +944,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         templates = entities.Template().imports(
@@ -949,7 +981,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         templates = entities.Template().imports(
@@ -988,7 +1020,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1035,7 +1067,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1074,7 +1106,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1110,7 +1142,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1142,7 +1174,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1176,7 +1208,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Medium
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1214,7 +1246,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1251,7 +1283,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1290,7 +1322,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1329,7 +1361,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         dir_name = gen_string('alpha')
@@ -1365,7 +1397,7 @@ class TemplateSyncTestCase(APITestCase):
 
         :Requirement: Take Templates out of tech preview
 
-        :CaseLevel: Integration
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         imported_templates = entities.Template().imports(
@@ -1419,6 +1451,8 @@ class TemplateSyncTestCase(APITestCase):
         :Requirement: Take Templates out of tech preview
 
         :CaseLevel: System
+
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         entities.Template().imports(
@@ -1450,6 +1484,8 @@ class TemplateSyncTestCase(APITestCase):
         :Requirement: Take Templates out of tech preview
 
         :CaseLevel: System
+
+        :CaseImportance: Low
         """
         org = entities.Organization().create()
         entities.Template().imports(
