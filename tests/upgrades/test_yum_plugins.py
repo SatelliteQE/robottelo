@@ -170,12 +170,12 @@ class Scenario_yum_plugins_count(APITestCase):
         """
 
         from_version = settings.upgrade.from_version
-        repo_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
+        repo2_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
 
         repo1_id = entities.Repository(organization=self.org).\
             search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0].id
         repo2_id = entities.Repository(organization=self.org).\
-            search(query={'search': '{}'.format(REPOS[repo_name]['id'])})[0].id
+            search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0].id
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
@@ -213,7 +213,7 @@ class Scenario_yum_plugins_count(APITestCase):
                                              client_container_id,
                                              'subscription-manager identity',
                                              host=self.docker_vm)[self.docker_vm],
-            timeout=500,
+            timeout=300,
             delay=2,
             logger=self.logger
         )
