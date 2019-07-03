@@ -2705,7 +2705,7 @@ def test_positive_update_filter_affected_repos(session, module_org):
             cv.name, VERSION,
             'name = "{}" and version = "{}"'.format(repo1_package_name, '0.71')
         )
-        assert packages
+        assert len(packages) == 1
         assert (
                 packages[0]['Name'] == repo1_package_name
                 and packages[0]['Version'] == '0.71'
@@ -2714,14 +2714,15 @@ def test_positive_update_filter_affected_repos(session, module_org):
             cv.name, VERSION,
             'name = "{}" and version = "{}"'.format(repo1_package_name, '5.21')
         )
-        assert not packages
+        # checking search showing empty result
+        assert not packages[0]['Name']
         # Verify repo2 was not affected and repo2 packages are present
         packages = session.contentview.search_version_package(
             cv.name, VERSION,
             'name = "{}" and version = "{}"'
             .format(repo2_package_name, '5.6.6')
         )
-        assert packages
+        assert len(packages) == 1
         assert (
                 packages[0]['Name'] == repo2_package_name
                 and packages[0]['Version'] == '5.6.6'
