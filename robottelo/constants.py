@@ -452,7 +452,7 @@ LANGUAGES = {
     u'zh_TW': u'zh_TW'
 }
 
-SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
+SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Infrastructure Subscription'
 SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 VDC_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux for Virtual Datacenters, Premium')
