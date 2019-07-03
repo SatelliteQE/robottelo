@@ -46,7 +46,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         1. Before Satellite upgrade.
         2. Create LifecycleEnvironment.
-        3. Get details of 'base os RHEL7' and tools repos.
+        3. Enable/sync 'base os RHEL7' and tools repos.
         4. Create 'Content View' and activation key.
         5. Create a content host, register and install katello-agent on it.
         6. Upgrade Satellite/Capsule.
@@ -189,7 +189,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
             1. Before Satellite upgrade.
             2. Create LifecycleEnvironment.
-            3. Get details of 'base os RHEL7' and tools repos.
+            3. Enable/sync 'base os RHEL7' and tools repos.
             4. Create 'Content View' and activation key.
             5. Create a content host, register and install katello-agent on it.
 
