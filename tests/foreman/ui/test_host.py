@@ -106,7 +106,7 @@ def scap_content():
     scap_profile_id = [
         profile['id']
         for profile in scap_info['scap-content-profiles']
-        if OSCAP_PROFILE['common'] in profile['title']
+        if OSCAP_PROFILE['security6'] in profile['title']
     ][0]
     return scap_id, scap_profile_id
 
