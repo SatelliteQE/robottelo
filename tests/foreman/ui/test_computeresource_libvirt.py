@@ -15,266 +15,84 @@
 
 :Upstream: No
 """
+from random import choice
+
 from fauxfactory import gen_string
 from nailgun import entities
+from pytest import skip
+
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_not_set, tier1, upgrade
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_resource
-from robottelo.ui.locators import common_locators
-from robottelo.ui.session import Session
+from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.decorators import bz_bug_is_open,  fixture, setting_is_set, tier2
 
 
-class ComputeResourceTestCase(UITestCase):
-    """Implements Compute Resource tests in UI"""
+if not setting_is_set('compute_resources'):
+    skip('skipping tests due to missing compute_resources settings', allow_module_level=True)
 
-    @classmethod
-    @skip_if_not_set('compute_resources')
-    def setUpClass(cls):
-        super(ComputeResourceTestCase, cls).setUpClass()
-        cls.current_libvirt_url = (
-            LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
-        )
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_libvirt_with_name(self):
-        """Create a new libvirt Compute Resource using different value
-        types as a name
+@fixture(scope='module')
+def module_libvirt_url():
+    return LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
 
-        :id: 71307d6d-04be-431f-b8fc-81ea883b4f19
 
-        :expectedresults: A libvirt Compute Resource is created successfully
+@tier2
+def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url):
+    """Perform end to end testing for compute resource Libvirt component.
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in valid_data_list():
-                with self.subTest(name):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field']
-                        ],
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
+    :id: 4f4650c8-32f3-4dab-b3bf-9c54d0cda3b2
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_libvirt_with_description(self):
-        """Create libvirt Compute Resource with description.
+    :expectedresults: All expected CRUD actions finished successfully.
 
-        :id: 0ef00468-d6e6-449b-be3e-de95ba03a73b
+    :CaseLevel: Integration
 
-        :expectedresults: A libvirt Compute Resource is created successfully
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for description in valid_data_list():
-                with self.subTest(description):
-                    name = gen_string('alpha')
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field'],
-                            ['Description', description, 'field']
-                        ],
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_libvirt_with_display_type(self):
-        """Create libvirt Compute Resource with different display types.
-
-        :id: 95e8cf49-8cb5-4c3b-9b21-8d33c51c9ac6
-
-        :expectedresults: A libvirt Compute Resource is created successfully
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for display_type in 'VNC', 'SPICE':
-                with self.subTest(display_type):
-                    name = gen_string('alpha')
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field'],
-                            ['Display Type', display_type, 'select']
-                        ],
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_libvirt_with_console_password(self):
-        """Create libvirt Compute Resource with checked/unchecked
-        console password checkbox
-
-        :id: 26726673-a467-47d5-b24a-4535b98b3e50
-
-        :expectedresults: A libvirt Compute Resource is created successfully
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for console_password in True, False:
-                with self.subTest(console_password):
-                    name = gen_string('alpha')
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field'],
-                            ['Console Passwords', console_password, 'checkbox']
-                        ],
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_libvirt_with_invalid_name(self):
-        """Create a new libvirt Compute Resource with incorrect values
-        only
-
-        :id: 4d9be6b5-f9d4-402e-ad13-843335d83879
-
-        :expectedresults: A libvirt Compute Resource is not created
-
-        :CaseImportance: Critical
-        """
-        include_list = [' ']
-        with Session(self) as session:
-            for name in invalid_names_list() + include_list:
-                with self.subTest(name):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field']
-                        ],
-                    )
-                    self.assertIsNotNone(
-                        self.compute_resource.wait_until_element(
-                            common_locators["name_haserror"]
-                        )
-                    )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_libvirt_name(self):
-        """Update a libvirt Compute Resource name
-
-        :id: 508d34bd-491c-461d-b568-7063c68e971d
-
-        :expectedresults: The libvirt Compute Resource is updated
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for newname in valid_data_list():
-                with self.subTest(newname):
-                    name = gen_string('alpha')
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field']
-                        ],
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
-                    self.compute_resource.update(name=name, newname=newname)
-                    self.assertIsNotNone(self.compute_resource.search(newname))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_libvirt_organization(self):
-        """Update a libvirt Compute Resource organization
-
-        :id: a1c3fd14-62e9-4e80-8ef7-bfa36420ce9b
-
-        :expectedresults: The libvirt Compute Resource is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[
-                    ['URL', self.current_libvirt_url, 'field']],
-                orgs=[entities.Organization().create().name],
-                org_select=True
-            )
-            self.assertIsNotNone(self.compute_resource.search(name))
-            self.compute_resource.update(
-                name=name,
-                orgs=[entities.Organization().create().name],
-                org_select=True
-            )
-
-    @run_only_on('sat')
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Delete a Compute Resource
-
-        :id: 2790e1c2-ecdc-4257-9912-49b50891aa1f
-
-        :expectedresults: The Compute Resource is deleted
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in valid_data_list():
-                with self.subTest(name):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field']
-                        ],
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
-                    self.compute_resource.delete(name, dropdown_present=True)
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_access_libvirt_via_profile(self):
-        """Try to access libvirt compute resource via compute profile
-        (1-Small) screen
-
-        :id: 860b0036-24ab-49de-8d99-75243444df06
-
-        :expectedresults: The Compute Resource created and opened successfully
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[[
-                    'URL', self.current_libvirt_url, 'field'
-                ]],
-            )
-            self.assertIsNotNone(self.compute_profile.select_resource(
-                '1-Small', name, 'Libvirt'))
+    :CaseImportance: High
+    """
+    cr_name = gen_string('alpha')
+    cr_description = gen_string('alpha')
+    new_cr_name = gen_string('alpha')
+    new_cr_description = gen_string('alpha')
+    new_org = entities.Organization().create()
+    new_loc = entities.Location().create()
+    display_type = choice(('VNC', 'SPICE'))
+    if bz_bug_is_open(1662164):
+        display_type = 'VNC'
+    console_passwords = choice((True, False))
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'description': cr_description,
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'provider_content.url': module_libvirt_url,
+            'provider_content.display_type': display_type,
+            'provider_content.console_passwords': console_passwords,
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+        cr_values = session.computeresource.read(cr_name)
+        assert cr_values['name'] == cr_name
+        assert cr_values['description'] == cr_description
+        assert cr_values['provider_content']['url'] == module_libvirt_url
+        assert cr_values['provider_content']['display_type'] == display_type
+        assert cr_values['provider_content']['console_passwords'] == console_passwords
+        assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        session.computeresource.edit(cr_name, {
+            'name': new_cr_name,
+            'description': new_cr_description,
+            'organizations.resources.assigned': [new_org.name],
+            'locations.resources.assigned': [new_loc.name],
+        })
+        assert not session.computeresource.search(cr_name)
+        cr_values = session.computeresource.read(new_cr_name)
+        assert cr_values['name'] == new_cr_name
+        assert cr_values['description'] == new_cr_description
+        assert (set(cr_values['organizations']['resources']['assigned'])
+                == {module_org.name, new_org.name})
+        assert (set(cr_values['locations']['resources']['assigned'])
+                == {module_loc.name, new_loc.name})
+        # check that the compute resource is listed in one of the default compute profiles
+        profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_SMALL)
+        profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
+        assert '{0} ({1})'.format(new_cr_name, FOREMAN_PROVIDERS['libvirt']) in profile_cr_names
+        session.computeresource.delete(new_cr_name)
+        assert not session.computeresource.search(new_cr_name)

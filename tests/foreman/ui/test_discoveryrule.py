@@ -15,781 +15,364 @@
 
 :Upstream: No
 """
+from pytest import raises
+
+from airgun.session import Session
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
-from robottelo.datafactory import (
-    generate_strings_list,
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    run_only_on,
-    skip_if_bug_open,
-    tier1,
-    stubbed,
-    upgrade,
-)
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_discoveryrule
-from robottelo.ui.locators import common_locators, locators
-from robottelo.ui.session import Session
-
-
-@filtered_datapoint
-def valid_search_queries():
-    """Generates a list of all the input strings, (excluding html)"""
-    return [
-        'cpu_count ^ 10',
-        'disk_count > 5',
-        'disks_size <= {0}'.format(gen_string('numeric', 8)),
-        'ip = {0}'.format(gen_ipaddr()),
-        'model = KVM',
-        u'organization ~ {0}'.format(entities.Organization().create().name),
-        u'subnet = {0}'.format(entities.Subnet().create().name),
-    ]
-
-
-class DiscoveryRuleTestCase(UITestCase):
-    """Implements Foreman discovery Rules in UI."""
-
-    @classmethod
-    def set_session_org(cls):
-        cls.session_org = entities.Organization().create()
-        cls.session_loc = entities.Location(
-            organization=[cls.session_org]
-        ).create()
-
-    @classmethod
-    def setUpClass(cls):
-        """Display all the discovery rules on the same page"""
-        super(DiscoveryRuleTestCase, cls).setUpClass()
-        cls.per_page = entities.Setting().search(
-            query={'search': 'name="entries_per_page"'})[0]
-        cls.saved_per_page = str(cls.per_page.value)
-        cls.per_page.value = '100000'
-        cls.per_page.update({'value'})
-        cls.host_group = entities.HostGroup(
-            organization=[cls.session_org],
-            location=[cls.session_loc],
-        ).create()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Restore previous 'entries_per_page' value"""
-        cls.per_page.value = cls.saved_per_page
-        cls.per_page.update({'value'})
-
-        super(DiscoveryRuleTestCase, cls).tearDownClass()
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create Discovery Rule using different names
-
-        :id: afdf7000-4bd0-41ec-9773-96ff68e27b8d
-
-        :expectedresults: Rule should be successfully created
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in valid_data_list():
-                with self.subTest(name):
-                    make_discoveryrule(
-                        session,
-                        name=name,
-                        hostgroup=self.host_group.name,
-                        locations=[self.session_loc.name],
-                    )
-                    self.assertIsNotNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_search(self):
-        """Create Discovery Rule using different search queries
-
-        :id: 973ff6e5-572e-401c-bc8c-d614a583e883
-
-        :expectedresults: Rule should be successfully created and has expected
-            search field value
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for query in valid_search_queries():
-                with self.subTest(query):
-                    name = gen_string('alpha')
-                    make_discoveryrule(
-                        session,
-                        name=name,
-                        hostgroup=self.host_group.name,
-                        search_rule=query,
-                        locations=[self.session_loc.name],
-                    )
-                    self.assertIsNotNone(self.discoveryrules.search(name))
-                    self.assertEqual(
-                        self.discoveryrules.get_attribute_value(
-                            name, 'search'),
-                        query
-                    )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_hostname(self):
-        """Create Discovery Rule using valid hostname value
-
-        :id: e6742ca5-1d41-4ba3-8f2c-2169db92485b
-
-        :expectedresults: Rule should be successfully created and has expected
-            hostname field value
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        hostname = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                locations=[self.session_loc.name],
-                hostgroup=self.host_group.name,
-                hostname=hostname,
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'hostname'),
-                hostname
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_hosts_limit(self):
-        """Create Discovery Rule providing any number from range 1..100 for
-        hosts limit field
-
-        :id: 64b90586-c1a9-4be4-8c44-4fa19ca998f8
-
-        :expectedresults: Rule should be successfully created and has expected
-            hosts limit field value
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        limit = str(gen_integer(1, 100))
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                host_limit=limit,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'host_limit'),
-                limit
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_priority(self):
-        """Create Discovery Rule providing any number from range 1..100 for
-        priority field
-
-        :id: de847288-257a-4f0e-9cb6-9a0dd0877d23
-
-        :expectedresults: Rule should be successfully created and has expected
-            priority field value
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        priority = str(gen_integer(1, 100))
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                priority=priority,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'priority'),
-                priority
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_disabled(self):
-        """Create Discovery Rule in disabled state
-
-        :id: 0b98d467-aabf-4efe-890f-50d6edcd99ff
-
-        :expectedresults: Disabled rule should be successfully created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                enabled=False,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(
-                    name, 'enabled', element_type='checkbox'),
-                False
-            )
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1378486)
-    @tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create Discovery Rule with invalid names
-
-        :id: 79d950dc-4ca1-407e-84ca-9092d1cba978
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in invalid_values_list(interface='ui'):
-                with self.subTest(name):
-                    make_discoveryrule(
-                        session, name=name, hostgroup=self.host_group.name)
-                    self.assertIsNotNone(
-                        self.discoveryrules.wait_until_element(
-                            common_locators['name_haserror'])
-                    )
-                    self.assertIsNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_invalid_hostname(self):
-        """Create Discovery Rule with invalid hostname
-
-        :id: a322c8ce-4f05-401a-88cb-a3d30b4ac446
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                hostname=gen_string('numeric'),
-            )
-            self.assertIsNotNone(self.discoveryrules.wait_until_element(
-                common_locators['haserror']
-            ))
-            self.assertIsNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_limit(self):
-        """Create Discovery Rule with invalid host limit
-
-        :id: 743d29f4-a901-400c-ad98-a3b8942f02b5
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            for limit in '-1', gen_string('alpha'):
-                with self.subTest(limit):
-                    make_discoveryrule(
-                        session,
-                        name=name,
-                        host_limit=limit,
-                        hostgroup=self.host_group.name,
-                    )
-                    msg = self.discoveryrules.find_element(
-                        locators['discoveryrules.host_limit']
-                    ).get_attribute("validationMessage")
-                    if limit == '-1':
-                        self.assertEqual(
-                            msg,
-                            u'Please select a value that is no less than 0.'
-                        )
-                    else:
-                        self.assertEqual(msg, u'Please enter a number.')
-                    self.assertIsNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1308831)
-    @tier1
-    def test_negative_create_with_too_long_limit(self):
-        """Create Discovery Rule with too long host limit value
-
-        :id: 450b49d9-1058-4186-9b23-15cc615e5bd6
-
-        :expectedresults: Validation error should be raised and rule should not
-            be created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                host_limit=gen_string('numeric', 50),
-                hostgroup=self.host_group.name,
-            )
-            msg = self.discoveryrules.find_element(
-                locators['discoveryrules.host_limit']
-            ).get_attribute("validationMessage")
-            self.assertEqual(
-                msg, u'Please select a value that is no more than 2147483647.')
-            self.assertIsNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Create Discovery Rule with name that already exists
-
-        :id: 5a914e76-de01-406d-9860-0e4e1521b074
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.wait_until_element(
-                common_locators['name_haserror']
-            ))
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_invalid_priority(self):
-        """Create Discovery Rule with invalid priority
-
-        :id: f8829cce-86c0-452c-b866-d5645174e9e1
-
-        :expectedresults: Error should be raised and rule should not be created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                priority=gen_string('alpha'),
-            )
-            msg = self.discoveryrules.find_element(
-                locators['discoveryrules.priority']
-            ).get_attribute("validationMessage")
-            self.assertEqual(msg, u'Please enter a number.')
-            self.assertIsNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Delete existing Discovery Rule
-
-        :id: fc5b714c-e5bc-4b0f-bc94-88e080318704
-
-        :expectedresults: Rule should be successfully deleted
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in generate_strings_list():
-                with self.subTest(name):
-                    make_discoveryrule(
-                        session,
-                        name=name,
-                        hostgroup=self.host_group.name,
-                        locations=[self.session_loc.name],
-                    )
-                    self.assertIsNotNone(self.discoveryrules.search(name))
-                    self.discoveryrules.delete(name, dropdown_present=True)
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_name(self):
-        """Update discovery rule name
-
-        :id: 16a79449-7200-492e-9ddb-65fc034e510d
-
-        :expectedresults: Rule name is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_name in valid_data_list():
-                with self.subTest(new_name):
-                    self.discoveryrules.update(name=name, new_name=new_name)
-                    self.assertIsNotNone(self.discoveryrules.search(new_name))
-                    name = new_name  # for next iteration
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_query(self):
-        """Update discovery rule search query
-
-        :id: bcf85a4c-0b27-47a5-8d5d-7ede0f6eea41
-
-        :expectedresults: Rule search field is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_query in valid_search_queries():
-                with self.subTest(new_query):
-                    self.discoveryrules.update(
-                        name=name, search_rule=new_query)
-                    self.assertEqual(
-                        self.discoveryrules.get_attribute_value(
-                            name, 'search'),
-                        new_query
-                    )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_hostgroup(self):
-        """Update discovery rule host group
-
-        :id: e10274e9-bf1b-42cd-a809-f19e707e7f4c
-
-        :expectedresults: Rule host group is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        new_hostgroup_name = entities.HostGroup(
-            organization=[self.session_org]).create().name
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(
-                    name, 'hostgroup', element_type='select'),
-                self.host_group.name
-            )
-            self.discoveryrules.update(name=name, hostgroup=new_hostgroup_name)
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(
-                    name, 'hostgroup', element_type='select'),
-                new_hostgroup_name
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_hostname(self):
-        """Update discovery rule hostname value
-
-        :id: 753ff15b-da73-4fb3-87cd-14d504d8e882
-
-        :expectedresults: Rule host name is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        hostname = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.discoveryrules.update(name=name, hostname=hostname)
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'hostname'),
-                hostname
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_limit(self):
-        """Update discovery rule limit value
-
-        :id: 69d59c34-407b-47d0-a2b8-46decb95ef47
-
-        :expectedresults: Rule host limit field is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        limit = str(gen_integer(1, 100))
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.discoveryrules.update(name=name, host_limit=limit)
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'host_limit'),
-                limit
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_priority(self):
-        """Update discovery rule priority value
-
-        :id: be4de7a9-df8e-44ae-9910-7397341f6d07
-
-        :expectedresults: Rule priority is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        priority = str(gen_integer(1, 100))
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.discoveryrules.update(name=name, priority=priority)
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'priority'),
-                priority
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_disable_enable(self):
-        """Update discovery rule enabled state. (Disabled->Enabled)
-
-        :id: 60d619e4-a039-4f9e-a16c-b05f0598e8fa
-
-        :expectedresults: Rule enabled checkbox is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-                enabled=False,
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.discoveryrules.update(name=name, enabled=True)
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(
-                    name, 'enabled', element_type='checkbox'),
-                True
-            )
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1378486)
-    @tier1
-    def test_negative_update_name(self):
-        """Update discovery rule name using invalid names only
-
-        :id: 65f32628-796a-4d7e-bf2c-c84c6b06f309
-
-        :expectedresults: Rule name is not updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_name in invalid_values_list(interface='ui'):
-                with self.subTest(new_name):
-                    self.discoveryrules.update(name=name, new_name=new_name)
-                    self.assertIsNotNone(
-                        self.discoveryrules.wait_until_element(
-                            common_locators['name_haserror'])
-                    )
-                    self.assertIsNone(self.discoveryrules.search(new_name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_update_hostname(self):
-        """Update discovery rule host name using number as a value
-
-        :id: 18713425-22fe-4eaa-a515-8e08aa07e116
-
-        :expectedresults: Rule host name is not updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        hostname = gen_string('alpha')
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                hostname=hostname,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            self.discoveryrules.update(
-                name=name, hostname=gen_string('numeric'))
-            self.assertIsNotNone(self.discoveryrules.wait_until_element(
-                common_locators['haserror']
-            ))
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'hostname'),
-                hostname
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_update_limit(self):
-        """Update discovery rule host limit using invalid values
-
-        :id: 7e8b7218-3c8a-4b03-b0df-484e0d793ceb
-
-        :expectedresults: Rule host limit is not updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        limit = str(gen_integer(1, 100))
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                host_limit=limit,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_limit in '-1', gen_string('alpha'):
-                with self.subTest(new_limit):
-                    self.discoveryrules.update(
-                        name=name, host_limit=new_limit)
-                    msg = self.discoveryrules.find_element(
-                        locators['discoveryrules.host_limit']
-                    ).get_attribute("validationMessage")
-                    if new_limit == '-1':
-                        self.assertEqual(
-                            msg,
-                            u'Please select a value that is no less than 0.'
-                        )
-                    else:
-                        self.assertEqual(msg, u'Please enter a number.')
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'host_limit'),
-                limit
-            )
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_update_priority(self):
-        """Update discovery rule priority using invalid values
-
-        :id: d44ad49c-5d95-442f-a1b3-cd82dd8ffabf
-
-        :expectedresults: Rule priority is not updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        priority = str(gen_integer(1, 100))
-        with Session(self) as session:
-            make_discoveryrule(
-                session,
-                name=name,
-                hostgroup=self.host_group.name,
-                priority=priority,
-                locations=[self.session_loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_priority in '-1', gen_string('alpha'):
-                with self.subTest(new_priority):
-                    self.discoveryrules.update(
-                        name=name, priority=new_priority)
-                    msg = self.discoveryrules.find_element(
-                        locators['discoveryrules.priority']
-                    ).get_attribute("validationMessage")
-                    if new_priority == '-1':
-                        self.assertEqual(
-                            msg,
-                            u'Please select a value that is no less than 0.'
-                        )
-                    else:
-                        self.assertEqual(msg, u'Please enter a number.')
-            self.assertEqual(
-                self.discoveryrules.get_attribute_value(name, 'priority'),
-                priority
-            )
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_order_rules_by_priority_and_create_time(self):
-        """Create rule with same priority and see their ordering should be based
-        on create time.
-
-        :id: 585c4bc2-6e34-4fdd-88fb-d788f9e0625b
-
-        :expectedresults: The ordering of rules should be based on priority as
-            well as create time.
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
+
+from robottelo.api.utils import create_discovered_host
+from robottelo.decorators import fixture, run_in_one_thread, tier2, upgrade
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
+@fixture(scope='module')
+def manager_loc():
+    return entities.Location().create()
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@fixture
+def module_discovery_env(module_org, module_loc):
+    discovery_loc = entities.Setting().search(
+        query={'search': 'name="discovery_location"'})[0]
+    default_discovery_loc = discovery_loc.value
+    discovery_loc.value = module_loc.name
+    discovery_loc.update(['value'])
+    discovery_org = entities.Setting().search(
+        query={'search': 'name="discovery_organization"'})[0]
+    default_discovery_org = discovery_org.value
+    discovery_org.value = module_org.name
+    discovery_org.update(['value'])
+    yield
+    discovery_loc.value = default_discovery_loc
+    discovery_loc.update(['value'])
+    discovery_org.value = default_discovery_org
+    discovery_org.update(['value'])
+
+
+@fixture
+def manager_user(manager_loc, module_loc, module_org):
+    manager_role = entities.Role().search(
+        query={'search': 'name="Discovery Manager"'}
+    )[0]
+    password = gen_string('alphanumeric')
+    manager_user = entities.User(
+        login=gen_string('alpha'),
+        role=[manager_role],
+        password=password,
+        location=[module_loc, manager_loc],
+        organization=[module_org],
+    ).create()
+    manager_user.password = password
+    return manager_user
+
+
+@fixture
+def reader_user(module_loc, module_org):
+    password = gen_string('alphanumeric')
+    reader_role = entities.Role().search(
+        query={'search': 'name="Discovery Reader"'}
+    )[0]
+    reader_user = entities.User(
+        login=gen_string('alpha'),
+        role=[reader_role],
+        password=password,
+        organization=[module_org],
+        location=[module_loc],
+    ).create()
+    reader_user.password = password
+    return reader_user
+
+
+@tier2
+def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
+                                                  module_org, test_name):
+    """Create rule with non-admin user by associating discovery_manager role
+
+    :id: 6a03983b-363d-4646-b277-34af5f5abc55
+
+    :expectedresults: Rule should be created successfully.
+
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    search = gen_string('alpha')
+    hg = entities.HostGroup(organization=[module_org]).create()
+    with Session(
+            test_name,
+            user=manager_user.login,
+            password=manager_user.password
+    ) as session:
+        session.location.select(loc_name=manager_loc.name)
+        session.discoveryrule.create({
+            'primary.name': name,
+            'primary.search': search,
+            'primary.host_group': hg.name,
+        })
+        dr_val = session.discoveryrule.read(name)
+        assert dr_val['primary']['name'] == name
+        assert dr_val['primary']['host_group'] == hg.name
+
+
+@tier2
+def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user,
+                                                  module_org, test_name):
+    """Delete rule with non-admin user by associating discovery_manager role
+
+    :id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703
+
+    :expectedresults: Rule should be deleted successfully.
+
+    :CaseLevel: Integration
+    """
+    hg = entities.HostGroup(organization=[module_org]).create()
+    dr = entities.DiscoveryRule(
+        hostgroup=hg,
+        organization=[module_org],
+        location=[manager_loc]
+    ).create()
+    with Session(
+            test_name,
+            user=manager_user.login,
+            password=manager_user.password
+    ) as session:
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name in [rule['Name'] for rule in dr_val]
+        session.discoveryrule.delete(dr.name)
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name not in [rule['Name'] for rule in dr_val]
+
+
+@tier2
+def test_positive_view_existing_rule_with_non_admin_user(module_loc,
+                                                         module_org,
+                                                         reader_user,
+                                                         test_name):
+    """Existing rule should be viewed to non-admin user by associating
+    discovery_reader role.
+
+    :id: 0f5b0221-43be-47bc-8619-749824c4e54f
+
+    :Steps:
+
+        1. create a rule with admin user
+        2. create a non-admin user and assign 'Discovery Reader' role
+        3. Login with non-admin user
+
+    :expectedresults: Rule should be visible to non-admin user.
+
+    :CaseLevel: Integration
+    """
+    hg = entities.HostGroup(organization=[module_org]).create()
+    dr = entities.DiscoveryRule(
+        hostgroup=hg,
+        organization=[module_org],
+        location=[module_loc]
+    ).create()
+    with Session(
+            test_name,
+            user=reader_user.login,
+            password=reader_user.password
+    ) as session:
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name in [rule['Name'] for rule in dr_val]
+
+
+@tier2
+def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
+                                                  reader_user, test_name):
+    """Delete rule with non-admin user by associating discovery_reader role
+
+    :id: 23a7627c-6a9b-493b-871f-698543adf1d2
+
+    :expectedresults: User should validation error and rule should not be
+        deleted successfully.
+
+    :CaseLevel: Integration
+    """
+    hg = entities.HostGroup(organization=[module_org]).create()
+    dr = entities.DiscoveryRule(
+        hostgroup=hg,
+        organization=[module_org],
+        location=[module_loc]
+    ).create()
+    with Session(
+            test_name,
+            user=reader_user.login,
+            password=reader_user.password
+    ) as session:
+        with raises(ValueError):
+            session.discoveryrule.delete(dr.name)
+        dr_val = session.discoveryrule.read_all()
+        assert dr.name in [rule['Name'] for rule in dr_val]
+
+
+@run_in_one_thread
+@tier2
+def test_positive_list_host_based_on_rule_search_query(
+        session, module_org, module_loc, module_discovery_env):
+    """List all the discovered hosts resolved by given rule's search query
+    e.g. all discovered hosts with cpu_count = 2, and list rule's associated
+    hosts.
+
+    :id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
+
+    :Steps:
+
+        1. discovered host with cpu_count = 2
+        2. Define a rule 'rule1' with search query cpu_count = 2
+        3. Click on 'Discovered Hosts' from rule1
+        4. Auto Provision the discovered host
+        5. Click on 'Associated Hosts' from rule1
+
+    :expectedresults:
+
+        1. After step 3, the rule's Discovered host should be listed.
+        2. The rule's Associated Host should be listed.
+
+    :CaseLevel: Integration
+    """
+    ip_address = gen_ipaddr()
+    cpu_count = gen_integer(2, 10)
+    rule_search = 'cpu_count = {0}'.format(cpu_count)
+    # any way create a host to be sure that this org has more than one host
+    host = entities.Host(organization=module_org, location=module_loc).create()
+    host_group = entities.HostGroup(
+        organization=[module_org],
+        location=[module_loc],
+        medium=host.medium,
+        root_pass=gen_string('alpha'),
+        operatingsystem=host.operatingsystem,
+        ptable=host.ptable,
+        domain=host.domain,
+        architecture=host.architecture,
+    ).create()
+    discovery_rule = entities.DiscoveryRule(
+        hostgroup=host_group,
+        search_=rule_search,
+        organization=[module_org],
+        location=[module_loc]
+    ).create()
+    discovered_host = create_discovered_host(
+        ip_address=ip_address,
+        options={'physicalprocessorcount': cpu_count}
+    )
+    # create an other discovered host with an other cpu count
+    create_discovered_host(options={'physicalprocessorcount': cpu_count+1})
+    provisioned_host_name = '{0}.{1}'.format(
+        discovered_host['name'], host.domain.read().name)
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        values = session.discoveryrule.read_all()
+        assert discovery_rule.name in [rule['Name'] for rule in values]
+        values = session.discoveryrule.read_discovered_hosts(
+            discovery_rule.name)
+        assert values['searchbox'] == rule_search
+        assert len(values['table']) == 1
+        assert values['table'][0]['IP Address'] == ip_address
+        assert values['table'][0]['CPUs'] == str(cpu_count)
+        # auto provision the discovered host
+        session.discoveredhosts.apply_action(
+            'Auto Provision', [discovered_host['name']])
+        assert not session.discoveredhosts.search(
+            'name = "{0}"'.format(discovered_host['name']))
+        values = session.discoveryrule.read_associated_hosts(
+            discovery_rule.name)
+        assert (values['searchbox']
+                == 'discovery_rule = "{0}"'.format(discovery_rule.name))
+        assert len(values['table']) == 1
+        assert values['table'][0]['Name'] == provisioned_host_name
+        values = session.host.get_details(provisioned_host_name)
+        assert (values['properties']['properties_table']['IP Address']
+                == ip_address)
+
+
+@tier2
+@upgrade
+def test_positive_end_to_end(session, module_org, module_loc):
+    """Perform end to end testing for discovery rule component.
+
+    :id: dd35e566-dc3a-43d3-939c-a33ae528740f
+
+    :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    rule_name = gen_string('alpha')
+    search = 'cpu_count = {0}'.format(gen_integer(1, 5))
+    hg_name = gen_string('alpha')
+    hostname = gen_string('alpha')
+    hosts_limit = str(gen_integer(0, 100))
+    priority = str(gen_integer(1, 100))
+    new_rule_name = gen_string('alpha')
+    new_search = 'cpu_count = {0}'.format(gen_integer(6, 10))
+    new_hg_name = gen_string('alpha')
+    new_hostname = gen_string('alpha')
+    new_hosts_limit = str(gen_integer(101, 200))
+    new_priority = str(gen_integer(101, 200))
+    entities.HostGroup(name=hg_name, organization=[module_org], location=[module_loc]).create()
+    entities.HostGroup(name=new_hg_name, organization=[module_org], location=[module_loc]).create()
+    new_org = entities.Organization().create()
+    new_loc = entities.Location().create()
+    with session:
+        session.discoveryrule.create({
+            'primary.name': rule_name,
+            'primary.search': search,
+            'primary.host_group': hg_name,
+            'primary.hostname': hostname,
+            'primary.hosts_limit': hosts_limit,
+            'primary.priority': priority,
+            'primary.enabled': False,
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+        values = session.discoveryrule.read(rule_name)
+        assert values['primary']['name'] == rule_name
+        assert values['primary']['search'] == search
+        assert values['primary']['host_group'] == hg_name
+        assert values['primary']['hostname'] == hostname
+        assert values['primary']['hosts_limit'] == hosts_limit
+        assert values['primary']['priority'] == priority
+        assert values['primary']['enabled'] is False
+        assert values['organizations']['resources']['assigned'] == [module_org.name]
+        assert values['locations']['resources']['assigned'] == [module_loc.name]
+        session.discoveryrule.update(rule_name, {
+            'primary.name': new_rule_name,
+            'primary.search': new_search,
+            'primary.host_group': new_hg_name,
+            'primary.hostname': new_hostname,
+            'primary.hosts_limit': new_hosts_limit,
+            'primary.priority': new_priority,
+            'primary.enabled': True,
+            'organizations.resources.assigned': [new_org.name],
+            'locations.resources.assigned': [new_loc.name],
+        })
+        rules = session.discoveryrule.read_all()
+        assert rule_name not in [rule['Name'] for rule in rules]
+        values = session.discoveryrule.read(new_rule_name)
+        assert values['primary']['name'] == new_rule_name
+        assert values['primary']['search'] == new_search
+        assert values['primary']['host_group'] == new_hg_name
+        assert values['primary']['hostname'] == new_hostname
+        assert values['primary']['hosts_limit'] == new_hosts_limit
+        assert values['primary']['priority'] == new_priority
+        assert values['primary']['enabled'] is True
+        assert {new_org.name, module_org.name} == set(
+            values['organizations']['resources']['assigned'])
+        assert {new_loc.name, module_loc.name} == set(
+            values['locations']['resources']['assigned'])
+        session.discoveryrule.delete(new_rule_name)
+        rules = session.discoveryrule.read_all()
+        assert new_rule_name not in [rule['Name'] for rule in rules]
