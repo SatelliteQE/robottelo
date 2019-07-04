@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-from nailgun import entities
 from robottelo.decorators import tier1
 
 
@@ -22,7 +21,7 @@ from robottelo.decorators import tier1
 def test_positive_deploy_configure_script():
     """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
-    :id: d5a0e807-8e61-4f9e-9177-c4d07b86500f
+    :id: b469822f-8b1f-437b-8193-6723ad3648dd
 
     :steps:
         1. Register the guest to satllite by CLI

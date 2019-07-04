@@ -48,7 +48,7 @@ def form_data():
 def test_positive_deploy_configure_by_id(session, form_data):
     """ Verify configure created and deployed with id.
 
-    :id: 8930849f-37dc-43a6-b734-51db146c7f2e
+    :id: c5385f69-aa7e-4fc0-b126-08aacb14bfb8
 
     :steps:
         1. Register guest to the satellite by CLI
@@ -81,7 +81,7 @@ def test_positive_deploy_configure_by_id(session, form_data):
 def test_positive_deploy_configure_by_script(session):
     """ Verify configure created and deployed with script.
 
-    :id: 8930849f-37dc-43a6-b734-51db146c7f2e
+    :id: cae3671c-a583-4e67-a0de-95d191d2174c
 
     :steps:
         1. Register guest to the satellite by CLI

@@ -6,7 +6,6 @@ from fauxfactory import gen_string
 from robottelo.constants import DEFAULT_ORG, DEFAULT_LOC
 from requests.exceptions import HTTPError
 from robottelo.decorators import fixture
-from robottelo.config import settings
 
 
 LOGGER = logging.getLogger('robottelo')
