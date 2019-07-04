@@ -18,15 +18,13 @@ from wait_for import wait_for
 
 from fabric.api import execute
 from nailgun import entities
-from robottelo import manifests
 from robottelo.api.utils import (
     attach_custom_product_subscription,
     call_entity_method_with_timeout,
-    enable_sync_redhat_repo,
-    upload_manifest,
 )
 from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
+    DEFAULT_LOC,
+    DEFAULT_ORG,
     DISTRO_RHEL7,
     REPOS,
 )
@@ -47,8 +45,8 @@ class Scenario_yum_plugins_count(APITestCase):
     Test Steps:
 
         1. Before Satellite upgrade.
-        2. Create Organization, Location and LifecycleEnvironment.
-        3. Upload Manifest, enable/sync 'base os RHEL7' and tools repos.
+        2. Create LifecycleEnvironment.
+        3. Enable/sync 'base os RHEL7' and tools repos.
         4. Create 'Content View' and activation key.
         5. Create a content host, register and install katello-agent on it.
         6. Upgrade Satellite/Capsule.
@@ -64,6 +62,10 @@ class Scenario_yum_plugins_count(APITestCase):
     def setUpClass(cls):
         cls.docker_vm = settings.upgrade.docker_vm
         cls.client_os = DISTRO_RHEL7
+        cls.org = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0]
+        cls.loc = entities.Location().search(
+            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
 
     def _run_goferd(self, client_container_id):
         """Start the goferd process."""
@@ -151,26 +153,6 @@ class Scenario_yum_plugins_count(APITestCase):
             query={'search': '{0}'.format(client_container_name)})
         return host
 
-    def _host_location_update(self, client_container_name=None, loc=None):
-        """ Check the content host status (as package profile update task does take time to
-        upload) and update location.
-
-        :param: str client_container_name: The content host hostname
-        :param: str loc: Location
-        """
-
-        if len(self._host_status(client_container_name=client_container_name)) == 0:
-            wait_for(
-                lambda: len(self._host_status(client_container_name=client_container_name)) > 0,
-                timeout=100,
-                delay=2,
-                logger=self.logger
-            )
-        host_loc = self._host_status(client_container_name=client_container_name)[0]
-        host_loc.location = loc
-        host_loc.update(['location'])
-        self.assertEqual(loc.name, host_loc.location.name)
-
     def _publish_content_view(self, org, repolist):
         """publish content view and return content view"""
 
@@ -181,35 +163,19 @@ class Scenario_yum_plugins_count(APITestCase):
         content_view = content_view.read()
         return content_view
 
-    def _create_rh_rhel_tools_repos(self, org_id):
-        """ Upload manifest, enable RHEL7 and tools repos
-        and sync them
-
-        :param: int org_id: Organization ID
+    def _get_rh_rhel_tools_repos(self):
+        """ Get list of RHEL7 and tools repos
 
         :return: nailgun.entities.Repository: repository
         """
 
         from_version = settings.upgrade.from_version
-        repo_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
-        rh_rhel = {
-            'name': REPOS['rhel7']['name'],
-            'product': REPOS['rhel7']['product'],
-            'reposet': REPOS['rhel7']['reposet'],
-            'basearch': REPOS['rhel7']['arch'],
-            'releasever': '7Server',
-        }
-        rh_tools = {
-            'name': REPOS[repo_name]['name'],
-            'product': REPOS[repo_name]['product'],
-            'reposet': REPOS[repo_name]['reposet'],
-            'basearch': DEFAULT_ARCHITECTURE,
-            'releasever': '7Server',
-        }
-        with manifests.clone() as manifest:
-            upload_manifest(org_id, manifest.content)
-            repo1_id = enable_sync_redhat_repo(rh_rhel, org_id, timeout=3500)
-            repo2_id = enable_sync_redhat_repo(rh_tools, org_id, timeout=3500)
+        repo2_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
+
+        repo1_id = entities.Repository(organization=self.org).\
+            search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0].id
+        repo2_id = entities.Repository(organization=self.org).\
+            search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0].id
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
@@ -222,8 +188,8 @@ class Scenario_yum_plugins_count(APITestCase):
         :steps:
 
             1. Before Satellite upgrade.
-            2. Create Organization, Location and LifecycleEnvironment.
-            3. Upload Manifest, enable/sync 'base os RHEL7' and tools repos.
+            2. Create LifecycleEnvironment.
+            3. Enable/sync 'base os RHEL7' and tools repos.
             4. Create 'Content View' and activation key.
             5. Create a content host, register and install katello-agent on it.
 
@@ -232,28 +198,22 @@ class Scenario_yum_plugins_count(APITestCase):
             1. The content host is created.
             2. katello-agent install and goferd run.
         """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-
-        environment = entities.LifecycleEnvironment(organization=org
+        environment = entities.LifecycleEnvironment(organization=self.org
                                                     ).search(query={'search': 'name=Library'})[0]
-        repos = self._create_rh_rhel_tools_repos(org.id)
-        content_view = self._publish_content_view(org=org, repolist=repos)
+        repos = self._get_rh_rhel_tools_repos()
+        content_view = self._publish_content_view(org=self.org, repolist=repos)
         ak = entities.ActivationKey(content_view=content_view,
-                                    organization=org.id,
+                                    organization=self.org.id,
                                     environment=environment).create()
 
-        rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=org.label)
+        rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=self.org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
-        client_container_name = [key for key in rhel7_client.keys()][0]
-
-        self._host_location_update(client_container_name=client_container_name, loc=loc)
         wait_for(
-            lambda: org.name in execute(docker_execute_command,
-                                        client_container_id,
-                                        'subscription-manager identity',
-                                        host=self.docker_vm)[self.docker_vm],
-            timeout=100,
+            lambda: self.org.name in execute(docker_execute_command,
+                                             client_container_id,
+                                             'subscription-manager identity',
+                                             host=self.docker_vm)[self.docker_vm],
+            timeout=300,
             delay=2,
             logger=self.logger
         )
@@ -261,13 +221,12 @@ class Scenario_yum_plugins_count(APITestCase):
                          client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
-        self.assertIn(org.name, status)
+        self.assertIn(self.org.name, status)
 
         self._install_or_update_package(client_container_id, 'katello-agent')
         self._run_goferd(client_container_id)
 
         scenario_dict = {self.__class__.__name__: {
-            'org_id': org.id,
             'rhel_client': rhel7_client,
             'cv_id': content_view.id
         }}
@@ -296,8 +255,7 @@ class Scenario_yum_plugins_count(APITestCase):
         client_container_id = list(client.values())[0]
         client_container_name = list(client.keys())[0]
         cv = entities.ContentView(id=entity_data.get('cv_id')).read()
-        org = entities.Organization(id=entity_data.get('org_id')).read()
-        product = entities.Product(organization=org).create()
+        product = entities.Product(organization=self.org).create()
 
         tools_repo = self._create_custom_tools_repos(product)
         product.sync()
