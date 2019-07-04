@@ -15,2247 +15,494 @@
 
 :Upstream: No
 """
-import six
-import yaml
+import csv
+import copy
+import os
 
-from fauxfactory import gen_string
-from nailgun import entities, entity_mixins
-from time import sleep
+from nailgun import entities
+import pytest
 
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-)
-from robottelo import manifests
-from robottelo.cleanup import host_cleanup
-from robottelo.cli.contentview import ContentView as cli_ContentView
-from robottelo.cli.proxy import Proxy as cli_Proxy
+from robottelo import ssh
+from robottelo.cli.factory import make_scap_policy, make_scapcontent
+from robottelo.cli.scap_policy import Scappolicy
+from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import (
-    ANY_CONTEXT,
-    DEFAULT_ATOMIC_TEMPLATE,
     DEFAULT_CV,
     DEFAULT_LOC,
-    DEFAULT_PTABLE,
-    DEFAULT_PXE_TEMPLATE,
     ENVIRONMENT,
-    FOREMAN_PROVIDERS,
-    PRDS,
-    REPOS,
-    REPOSET,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
+    OSCAP_PROFILE,
+    OSCAP_PERIOD,
+    OSCAP_WEEKDAY,
 )
-from robottelo.decorators import (
-    run_in_one_thread,
-    run_only_on,
-    skip_if_bug_open,
-    skip_if_not_set,
-    stubbed,
-    tier2,
-    tier3,
-    upgrade,
-)
-from robottelo.decorators.host import skip_if_os
-from robottelo.test import UITestCase
-from robottelo.ui.factory import (
-    make_host,
-    make_hostgroup,
-    make_loc,
-    make_org,
-    set_context,
-)
-from robottelo.ui.base import UINoSuchElementError
-from robottelo.ui.locators import common_locators, locators, tab_locators
-from robottelo.ui.session import Session
-
-import robottelo.cli.factory as cli_factory
+from robottelo.datafactory import gen_string
+from robottelo.decorators import tier2, tier3, skip_if, skip_if_not_set
 
 
-class LibvirtHostTestCase(UITestCase):
-    """Implements Libvirt Host tests in UI"""
+def _get_set_from_list_of_dict(value):
+    """Returns a set of tuples representation of each dict sorted by keys
 
-    @classmethod
-    @skip_if_not_set('vlan_networking', 'compute_resources')
-    def setUpClass(cls):
-        """Steps required to create a real host on libvirt
+    :param list value: a list of simple dict.
+    """
+    return {
+        tuple(sorted(list(global_param.items()), key=lambda t: t[0]))
+        for global_param in value
+    }
 
-        1. Creates new Organization and Location.
-        2. Search 'Kickstart default' partition table and OS along with
-            provisioning/PXE templates.
-        3. Associates org, location and OS with provisioning and PXE templates
-        4. Search for x86_64 architecture
-        5. Associate arch, partition table, provisioning/PXE templates with OS
-        6. Find and specify proper Repo URL for OS distribution folder
-        7. Creates new life-cycle environment.
-        8. Creates new product and OS custom repository.
-        9. Creates new content-view and associate with created repository.
-        10. Publish and promote the content-view to next environment.
-        11. Search for puppet environment and associate location.
-        12. Search for smart-proxy and associate organization/location.
-        13. Search for existing domain or create new otherwise. Associate org,
-            location and dns proxy.
-        14. Search for '192.168.100.0' network and associate org, location,
-            dns/dhcp/tftp proxy, and if its not there then creates new.
-        15. Search for existing compute-resource with 'libvirt' provider and
-            associate org.location, and if its not there then creates new.
-        16. Create new host group with all required entities
 
-        """
-        super(LibvirtHostTestCase, cls).setUpClass()
-        # Create a new Organization and Location
-        cls.org_ = entities.Organization(name=gen_string('alpha')).create()
-        cls.org_name = cls.org_.name
-        cls.loc = entities.Location(
+@pytest.fixture
+def scap_content():
+    oscap_content_path = settings.oscap.content_path
+    _, file_name = os.path.split(oscap_content_path)
+    title = 'rhel-content-{0}'.format(gen_string('alpha'))
+    ssh.upload_file(
+        local_file=oscap_content_path,
+        remote_file="/tmp/{0}".format(file_name)
+    )
+    scap_info = make_scapcontent({
+        'title': title,
+        'scap-file': '/tmp/{0}'.format(file_name)
+    })
+    scap_id = scap_info['id']
+    scap_info = Scapcontent.info({'id': scap_id}, output_format='json')
+
+    scap_profile_id = [
+        profile['id']
+        for profile in scap_info['scap-content-profiles']
+        if OSCAP_PROFILE['common'] in profile['title']
+    ][0]
+    return scap_id, scap_profile_id
+
+
+@pytest.fixture
+def scap_policy(scap_content):
+    scap_id, scap_profile_id = scap_content
+    scap_policy = make_scap_policy({
+        'name': gen_string('alpha'),
+        'scap-content-id': scap_id,
+        'scap-content-profile-id': scap_profile_id,
+        'period': OSCAP_PERIOD['weekly'].lower(),
+        'weekday': OSCAP_WEEKDAY['friday'].lower()
+    })
+    return scap_policy
+
+
+@pytest.fixture(scope='module')
+def module_global_params():
+    """Create 3 global parameters and clean up at teardown"""
+    global_parameters = []
+    for _ in range(3):
+        global_parameter = entities.CommonParameter(
             name=gen_string('alpha'),
-            organization=[cls.org_]
+            value=gen_string('alphanumeric')
         ).create()
-        cls.loc_name = cls.loc.name
+        global_parameters.append(global_parameter)
+    yield global_parameters
+    # cleanup global parameters
+    for global_parameter in global_parameters:
+        global_parameter.delete()
 
-        # Get the Partition table ID
-        cls.ptable = entities.PartitionTable().search(
-            query={
-                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+
+def create_fake_host(session, host, interface_id=gen_string('alpha'),
+                     global_parameters=None, host_parameters=None):
+    os_name = u'{0} {1}'.format(
+        host.operatingsystem.name, host.operatingsystem.major)
+    session.host.create({
+        'host.name': host.name,
+        'host.organization': host.organization.name,
+        'host.location': host.location.name,
+        'host.lce': ENVIRONMENT,
+        'host.content_view': DEFAULT_CV,
+        'host.puppet_environment': host.environment.name,
+        'operating_system.architecture': host.architecture.name,
+        'operating_system.operating_system': os_name,
+        'operating_system.media_type': 'All Media',
+        'operating_system.media': host.medium.name,
+        'operating_system.ptable': host.ptable.name,
+        'operating_system.root_password': host.root_pass,
+        'interfaces.interface.interface_type': 'Interface',
+        'interfaces.interface.device_identifier': interface_id,
+        'interfaces.interface.mac': host.mac,
+        'interfaces.interface.domain': host.domain.name,
+        'interfaces.interface.primary': True,
+        'interfaces.interface.interface_additional_data.virtual_nic': False,
+        'parameters.global_params': global_parameters,
+        'parameters.host_params': host_parameters,
+    })
+
+
+@tier3
+def test_positive_create(session):
+    """Create a new Host
+
+    :id: 4821444d-3c86-4f93-849b-60460e025ba0
+
+    :expectedresults: Host is created
+
+    :CaseLevel: System
+    """
+    host = entities.Host()
+    host.create_missing()
+    host_name = u'{0}.{1}'.format(host.name, host.domain.name)
+    with session:
+        session.organization.select(org_name=host.organization.name)
+        session.location.select(loc_name=host.location.name)
+        create_fake_host(session, host)
+        assert session.host.search(host_name)[0]['Name'] == host_name
+
+
+@tier3
+def test_positive_read_from_details_page(session):
+    """Create new Host and read all its content through details page
+
+    :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
+
+    :expectedresults: Host is created and has expected content
+
+    :CaseLevel: System
+    """
+    host = entities.Host()
+    host.create_missing()
+    os_name = u'{0} {1}'.format(
+        host.operatingsystem.name, host.operatingsystem.major)
+    interface_id = gen_string('alpha')
+    host_name = u'{0}.{1}'.format(host.name, host.domain.name)
+    with session:
+        session.organization.select(org_name=host.organization.name)
+        session.location.select(loc_name=host.location.name)
+        create_fake_host(session, host, interface_id)
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.get_details(host_name)
+        assert values['properties']['properties_table'][
+            'Status'] == 'OK'
+        assert values['properties']['properties_table'][
+            'Build'] == 'Pending installation'
+        assert values['properties']['properties_table'][
+            'Domain'] == host.domain.name
+        assert values['properties']['properties_table'][
+            'MAC Address'] == host.mac
+        assert values['properties']['properties_table'][
+            'Puppet Environment'] == host.environment.name
+        assert values['properties']['properties_table'][
+            'Architecture'] == host.architecture.name
+        assert values['properties']['properties_table'][
+            'Operating System'] == os_name
+        assert values['properties']['properties_table'][
+            'Location'] == host.location.name
+        assert values['properties']['properties_table'][
+            'Organization'] == host.organization.name
+        assert values['properties']['properties_table'][
+            'Owner'] == values['current_user']
+
+
+@tier3
+def test_positive_read_from_edit_page(session):
+    """Create new Host and read all its content through edit page
+
+    :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
+
+    :expectedresults: Host is created and has expected content
+
+    :CaseLevel: System
+    """
+    host = entities.Host()
+    host.create_missing()
+    os_name = u'{0} {1}'.format(
+        host.operatingsystem.name, host.operatingsystem.major)
+    interface_id = gen_string('alpha')
+    host_name = u'{0}.{1}'.format(host.name, host.domain.name)
+    with session:
+        session.organization.select(org_name=host.organization.name)
+        session.location.select(loc_name=host.location.name)
+        create_fake_host(session, host, interface_id)
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.read(host_name)
+        assert values['host']['name'] == host.name
+        assert values['host']['organization'] == host.organization.name
+        assert values['host']['location'] == host.location.name
+        assert values['host']['lce'] == ENVIRONMENT
+        assert values['host']['content_view'] == DEFAULT_CV
+        assert values['host']['puppet_environment'] == host.environment.name
+        assert values[
+            'operating_system']['architecture'] == host.architecture.name
+        assert values['operating_system']['operating_system'] == os_name
+        assert values['operating_system']['media_type'] == 'All Media'
+        assert values['operating_system']['media'] == host.medium.name
+        assert values['operating_system']['ptable'] == host.ptable.name
+        assert values['interfaces']['interfaces_list'][0][
+            'Identifier'] == interface_id
+        assert values['interfaces']['interfaces_list'][0][
+            'Type'] == 'Interface physical'
+        assert values['interfaces']['interfaces_list'][0][
+            'MAC Address'] == host.mac
+        assert values['interfaces']['interfaces_list'][0][
+            'FQDN'] == host_name
+        assert values['additional_information'][
+            'owned_by'] == values['current_user']
+        assert values['additional_information']['enabled'] is True
+
+
+@tier3
+def test_positive_delete(session):
+    """Delete a Host
+
+    :id: 13735af1-f1c7-466e-a969-80618a1d854d
+
+    :expectedresults: Host is delete
+
+    :CaseLevel: System
+    """
+    host = entities.Host()
+    host.create_missing()
+    host_name = u'{0}.{1}'.format(host.name, host.domain.name)
+    with session:
+        session.organization.select(org_name=host.organization.name)
+        session.location.select(loc_name=host.location.name)
+        create_fake_host(session, host)
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        session.host.delete(host_name)
+        assert not session.host.search(host_name)
+
+
+@tier3
+def test_positive_inherit_puppet_env_from_host_group_when_action(session):
+    """Host group puppet environment is inherited to already created
+    host when corresponding action is applied to that host
+
+    :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
+
+    :customerscenario: true
+
+    :expectedresults: Expected puppet environment is inherited to the host
+
+    :BZ: 1414914
+
+    :CaseLevel: System
+    """
+    org = entities.Organization().create()
+    host = entities.Host(organization=org).create()
+    env = entities.Environment(
+        name=gen_string('alpha'), organization=[org]).create()
+    hostgroup = entities.HostGroup(
+        environment=env, organization=[org]).create()
+    with session:
+        session.organization.select(org_name=org.name)
+        session.host.apply_action(
+            'Change Environment',
+            [host.name],
+            {'environment': '*Clear environment*'})
+        host_values = session.host.search(host.name)
+        assert host_values[0]['Host group'] == ''
+        assert host_values[0]['Puppet Environment'] == ''
+        session.host.apply_action(
+            'Change Group',
+            [host.name],
+            {'host_group': hostgroup.name})
+        host_values = session.host.search(host.name)
+        assert host_values[0]['Host group'] == hostgroup.name
+        assert host_values[0]['Puppet Environment'] == ''
+        session.host.apply_action(
+            'Change Environment',
+            [host.name],
+            {'environment': '*Inherit from host group*'})
+        host_values = session.host.search(host.name)
+        assert host_values[0]['Puppet Environment'] == env.name
+        values = session.host.read(host.name)
+        assert values['host']['hostgroup'] == hostgroup.name
+        assert values['host']['puppet_environment'] == env.name
+
+
+@tier2
+def test_positive_create_host_with_parameters(session, module_global_params):
+    """"Create new Host with parameters, override one global parameter and read
+    all parameters.
+
+    :id: d37be8de-77f0-46c1-a431-bbc4db0eb7f6
+
+    :expectedresults: Host is created and has expected parameters values
+
+    :CaseLevel: System
+    """
+    global_params = [
+        global_param.to_json_dict(
+            lambda attr, field: attr in ['name', 'value'])
+        for global_param in module_global_params
+    ]
+
+    host = entities.Host()
+    host.create_missing()
+    host_name = u'{0}.{1}'.format(host.name, host.domain.name)
+    host_parameters = []
+    for _ in range(2):
+        host_parameters.append(
+            dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
+        )
+    expected_host_parameters = copy.deepcopy(host_parameters)
+    # override the first global parameter
+    overridden_global_parameter = {
+                'name': global_params[0]['name'],
+                'value': gen_string('alpha')
             }
-        )[0]
-
-        # Get the OS ID
-        cls.os = entities.OperatingSystem().search(query={
-            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
-                       .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-        })[0].read()
-
-        # Get the templates and update with OS, Org, Location
-        cls.templates = []
-        for template_name in [
-            'Kickstart default PXELinux',
-            'Discovery Red Hat kexec',
-            'Kickstart default iPXE',
-            'Satellite Kickstart Default',
-            'Satellite Kickstart Default Finish',
-            'Satellite Kickstart Default User Data'
-        ]:
-            template = entities.ConfigTemplate().search(
-                query={
-                    u'search': u'name="{}"'.format(template_name)
-                }
-            )[0].read()
-            template.operatingsystem.append(cls.os)
-            template.organization.append(cls.org_)
-            template.location.append(cls.loc)
-            template = template.update([
-                'location',
-                'operatingsystem',
-                'organization'
-            ])
-            cls.templates.append(template)
-
-        # Get the arch ID
-        cls.arch = entities.Architecture().search(
-            query={u'search': u'name="x86_64"'}
-        )[0]
-
-        # Update the OS to associate arch, ptable, templates
-        cls.os.architecture = [cls.arch]
-        cls.os.ptable = [cls.ptable]
-        cls.os.config_template = cls.templates
-        cls.os = cls.os.update([
-            'architecture',
-            'config_template',
-            'ptable',
-        ])
-
-        # Check what OS was found to use correct media
-        if cls.os.major == str(RHEL_6_MAJOR_VERSION):
-            os_distr_url = settings.rhel6_os
-        elif cls.os.major == str(RHEL_7_MAJOR_VERSION):
-            os_distr_url = settings.rhel7_os
+    expected_host_parameters.append(overridden_global_parameter)
+    expected_global_parameters = copy.deepcopy(global_params)
+    for global_param in expected_global_parameters:
+        # update with overridden expected value
+        if global_param['name'] == overridden_global_parameter['name']:
+            global_param['overridden'] = True
         else:
-            raise ValueError('Proposed RHEL version is not supported')
+            global_param['overridden'] = False
 
-        # Create a new Life-Cycle environment
-        cls.lc_env = entities.LifecycleEnvironment(
-            name=gen_string('alpha'),
-            organization=cls.org_
-        ).create()
-
-        # Create a Product and Repository for OS distribution content
-        cls.product = entities.Product(
-            name=gen_string('alpha'),
-            organization=cls.org_
-        ).create()
-        cls.repo = entities.Repository(
-            name=gen_string('alpha'),
-            product=cls.product,
-            url=os_distr_url
-        ).create()
-
-        # Increased timeout value for repo sync
-        cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
-        entity_mixins.TASK_TIMEOUT = 3600
-        cls.repo.sync()
-
-        # Create, Publish and promote CV
-        cls.content_view = entities.ContentView(
-            name=gen_string('alpha'),
-            organization=cls.org_
-        ).create()
-        cls.content_view.repository = [cls.repo]
-        cls.content_view = cls.content_view.update(['repository'])
-        cls.content_view.publish()
-        cls.content_view = cls.content_view.read()
-        promote(cls.content_view.version[0], cls.lc_env.id)
-        entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
-        # Search for puppet environment and associate location
-        cls.environment = entities.Environment(
-            organization=[cls.org_.id]).search()[0]
-        cls.environment.location = [cls.loc]
-        cls.environment = cls.environment.update(['location'])
-
-        # Search for SmartProxy, and associate organization/location
-        cls.proxy = entities.SmartProxy().search(
-            query={
-                u'search': u'name={0}'.format(
-                    settings.server.hostname
-                )
-            }
-        )[0].read()
-        cls.proxy.location.append(cls.loc)
-        cls.proxy.organization.append(cls.org_)
-        cls.proxy = cls.proxy.update(['location', 'organization'])
-
-        # Search for existing domain or create new otherwise. Associate org,
-        # location and dns to it
-        _, _, domain = settings.server.hostname.partition('.')
-        domain = entities.Domain().search(
-            query={
-                u'search': u'name="{0}"'.format(domain)
-            }
+    with session:
+        session.organization.select(org_name=host.organization.name)
+        session.location.select(loc_name=host.location.name)
+        create_fake_host(
+            session,
+            host,
+            host_parameters=host_parameters,
+            global_parameters=[overridden_global_parameter],
         )
-        if len(domain) > 0:
-            cls.domain = domain[0].read()
-            cls.domain.location.append(cls.loc)
-            cls.domain.organization.append(cls.org_)
-            cls.domain.dns = cls.proxy
-            cls.domain = cls.domain.update(['dns', 'location', 'organization'])
-        else:
-            cls.domain = entities.Domain(
-                dns=cls.proxy,
-                location=[cls.loc],
-                organization=[cls.org_],
-            ).create()
-        cls.domain_name = cls.domain.name
-
-        # Search if subnet is defined with given network.
-        # If so, just update its relevant fields otherwise,
-        # Create new subnet
-        network = settings.vlan_networking.subnet
-        subnet = entities.Subnet().search(
-            query={u'search': u'network={0}'.format(network)}
-        )
-        if len(subnet) > 0:
-            cls.subnet = subnet[0].read()
-            cls.subnet.domain.append(cls.domain)
-            cls.subnet.location.append(cls.loc)
-            cls.subnet.organization.append(cls.org_)
-            cls.subnet.dns = cls.proxy
-            cls.subnet.dhcp = cls.proxy
-            cls.subnet.ipam = 'DHCP'
-            cls.subnet.tftp = cls.proxy
-            cls.subnet.discovery = cls.proxy
-            cls.subnet = cls.subnet.update([
-                'domain',
-                'discovery',
-                'dhcp',
-                'dns',
-                'ipam',
-                'location',
-                'organization',
-                'tftp',
-            ])
-        else:
-            # Create new subnet
-            cls.subnet = entities.Subnet(
-                name=gen_string('alpha'),
-                network=network,
-                mask=settings.vlan_networking.netmask,
-                domain=[cls.domain],
-                ipam='DHCP',
-                location=[cls.loc],
-                organization=[cls.org_],
-                dns=cls.proxy,
-                dhcp=cls.proxy,
-                tftp=cls.proxy,
-                discovery=cls.proxy
-            ).create()
-
-        # Search if Libvirt compute-resource already exists
-        # If so, just update its relevant fields otherwise,
-        # Create new compute-resource with 'libvirt' provider.
-        resource_url = u'qemu+ssh://root@{0}/system'.format(
-            settings.compute_resources.libvirt_hostname
-        )
-        comp_res = [
-            res for res in entities.LibvirtComputeResource().search()
-            if (res.provider == FOREMAN_PROVIDERS['libvirt']
-                and res.url == resource_url)
-        ]
-        if len(comp_res) > 0:
-            cls.computeresource = entities.LibvirtComputeResource(
-                id=comp_res[0].id).read()
-            cls.computeresource.location.append(cls.loc)
-            cls.computeresource.organization.append(cls.org_)
-            cls.computeresource = cls.computeresource.update([
-                'location', 'organization'])
-        else:
-            # Create Libvirt compute-resource
-            cls.computeresource = entities.LibvirtComputeResource(
-                name=gen_string('alpha'),
-                provider=FOREMAN_PROVIDERS['libvirt'],
-                url=resource_url,
-                set_console_password=False,
-                display_type=u'VNC',
-                location=[cls.loc.id],
-                organization=[cls.org_.id],
-            ).create()
-
-        cls.resource = u'{0} (Libvirt)'.format(cls.computeresource.name)
-
-        cls.puppet_env = entities.Environment(
-            location=[cls.loc],
-            organization=[cls.org_],
-        ).create(True)
-
-        cls.root_pwd = gen_string('alpha', 15)
-
-        # Create Hostgroup
-        cls.host_group = entities.HostGroup(
-            architecture=cls.arch,
-            domain=cls.domain.id,
-            subnet=cls.subnet.id,
-            lifecycle_environment=cls.lc_env.id,
-            content_view=cls.content_view.id,
-            location=[cls.loc.id],
-            name=gen_string('alpha'),
-            environment=cls.environment.id,
-            puppet_proxy=cls.proxy,
-            puppet_ca_proxy=cls.proxy,
-            content_source=cls.proxy,
-            operatingsystem=cls.os.id,
-            organization=[cls.org_.id],
-            ptable=cls.ptable.id,
-        ).create()
-
-    @run_only_on('sat')
-    @tier3
-    def test_positive_provision_end_to_end(self):
-        """Provision Host on libvirt compute resource
-
-        :id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
-
-        :expectedresults: Host is provisioned successfully
-
-        :CaseLevel: System
-        """
-        hostname = gen_string('numeric')
-        with Session(self) as session:
-            make_host(
-                session,
-                name=hostname,
-                org=self.org_name,
-                loc=self.loc_name,
-                force_context=True,
-                parameters_list=[
-                    ['Host', 'Organization', self.org_name],
-                    ['Host', 'Location', self.loc_name],
-                    ['Host', 'Host group', self.host_group.name],
-                    ['Host', 'Deploy on', self.resource],
-                    ['Host', 'Puppet Environment', self.puppet_env.name],
-                    ['Virtual Machine', 'Memory', '1 GB'],
-                    ['Operating System', 'Root password', self.root_pwd],
-                ],
-                interface_parameters=[
-                    ['Network type', 'Physical (Bridge)'],
-                    ['Network', settings.vlan_networking.bridge],
-                ],
-            )
-            name = u'{0}.{1}'.format(hostname, self.domain_name)
-            self.assertIsNotNone(self.hosts.search(name))
-            self.addCleanup(host_cleanup, entities.Host().search(
-                query={'search': 'name={}'.format(name)})[0].id)
-            for _ in range(25):
-                result = self.hosts.get_host_properties(name, ['Build'])
-                if result['Build'] == 'Pending installation':
-                    sleep(30)
-                else:
-                    break
-            self.assertEqual(result['Build'], 'Installed')
-
-    @run_only_on('sat')
-    @tier3
-    def test_positive_delete_libvirt(self):
-        """Create a new Host on libvirt compute resource and delete it
-        afterwards
-
-        :id: 6a9175e7-bb96-4de3-bc45-ba6c10dd14a4
-
-        :customerscenario: true
-
-        :expectedresults: Proper warning message is displayed on delete attempt
-            and host deleted successfully afterwards
-
-        :BZ: 1243223
-
-        :CaseLevel: System
-        """
-        hostname = gen_string('alpha').lower()
-        with Session(self) as session:
-            make_host(
-                session,
-                name=hostname,
-                org=self.org_name,
-                loc=self.loc_name,
-                force_context=True,
-                parameters_list=[
-                    ['Host', 'Organization', self.org_name],
-                    ['Host', 'Location', self.loc_name],
-                    ['Host', 'Host group', self.host_group.name],
-                    ['Host', 'Deploy on', self.resource],
-                    ['Host', 'Puppet Environment', self.puppet_env.name],
-                    ['Virtual Machine', 'Memory', '1 GB'],
-                    ['Operating System', 'Root password', self.root_pwd],
-                ],
-                interface_parameters=[
-                    ['Network type', 'Physical (Bridge)'],
-                    ['Network', settings.vlan_networking.bridge],
-                ],
-            )
-            name = u'{0}.{1}'.format(hostname, self.domain_name)
-            self.assertIsNotNone(self.hosts.search(name))
-            self.hosts.click(common_locators['select_action_dropdown'] % name)
-            self.hosts.click(
-                common_locators['delete_button'] % name,
-                wait_for_ajax=False
-            )
-            text = self.hosts.get_alert_text()
-            self.assertIn(
-                'This will delete the virtual machine and its disks, and is '
-                'irreversible.',
-                text
-            )
-            self.hosts.handle_alert(True)
-            self.hosts.wait_for_ajax()
-            self.assertIsNone(self.hosts.search(name))
-
-
-class HostTestCase(UITestCase):
-    """Implements Host tests in UI"""
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_positive_create_baremetal_with_bios(self):
-        """Create a new Host AR from provided MAC address
-
-        :id: 2cedc634-7761-4326-b77a-b999098f5c00
-
-        :setup: Create a PXE-based VM with BIOS boot mode (outside of
-            Satellite).
-
-        :steps: Create a new host using 'BareMetal' option and MAC address of
-            the pre-created VM
-
-        :expectedresults: Host AR is created, TFTP files are deployed
-
-        :caseautomation: notautomated
-
-        :caselevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    @upgrade
-    def test_positive_create_baremetal_with_uefi(self):
-        """Create a new Host AR from provided MAC address
-
-        :id: ec62e90b-1b2a-4eac-8b15-7e36c8179086
-
-        :setup: Create a PXE-based VM with UEFI boot mode (outside of
-            Satellite).
-
-        :steps: Create a new host using 'BareMetal' option and MAC address of
-            the pre-created VM
-
-        :expectedresults: Host AR is created, TFTP files are deployed
-
-        :caseautomation: notautomated
-
-        :caselevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_negative_create_with_incompatible_pxe_loader(self):
-        """Try to create host with a known OS and incompatible PXE loader
-
-        :id: c45391d2-c244-4b64-a956-4a329f687a4b
-
-        :Setup:
-          1. Synchronize RHEL[5,6,7] kickstart repos
-
-        :Steps:
-          1. create a new RHEL host using 'BareMetal' option and the following
-             OS-PXE_loader combinations:
-
-            1.1 RHEL5,6 - GRUB2_UEFI
-            1.2 RHEL5,6 - GRUB2_UEFI_SB
-            1.3 RHEL7 - GRUB_UEFI
-            1.4 RHEL7 - GRUB_UEFI_SB
-
-        :expectedresults:
-          1. Warning message appears
-          2. Files not deployed on TFTP
-          3. Host not created
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed('unstub once os/browser/env combination is changed')
-    @tier3
-    def test_positive_create_with_inherited_params(self):
-        """Create a new Host in organization and location with parameters
-
-        :BZ: 1287223
-
-        :id: 628122f2-bda9-4aa1-8833-55debbd99072
-
-        :expectedresults: Host has inherited parameters from organization and
-            location
-
-        :CaseImportance: High
-        """
-        org_name = gen_string('alphanumeric')
-        loc_name = gen_string('alphanumeric')
-        org_param_name = gen_string('alphanumeric')
-        loc_param_name = gen_string('alphanumeric')
-        org_param_value = gen_string('alphanumeric')
-        loc_param_value = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_org(
-                session,
-                org_name=org_name,
-                params=[(org_param_name, org_param_value)],
-            )
-            session.nav.go_to_select_org(org_name)
-            make_loc(
-                session,
-                name=loc_name,
-                params=[(loc_param_name, loc_param_value)],
-            )
-            session.nav.go_to_select_loc(loc_name)
-            org = entities.Organization().search(
-                query={'search': 'name={}'.format(org_name)})[0]
-            loc = entities.Location().search(
-                query={'search': 'name={}'.format(loc_name)})[0]
-            host = entities.Host(
-                location=loc,
-                organization=org,
-            )
-            host.create_missing()
-            os_name = u'{0} {1}'.format(
-                host.operatingsystem.name, host.operatingsystem.major)
-            make_host(
-                session,
-                name=host.name,
-                org=host.organization.name,
-                parameters_list=[
-                    ['Host', 'Organization', host.organization.name],
-                    ['Host', 'Location', host.location.name],
-                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
-                    ['Host', 'Content View', DEFAULT_CV],
-                    ['Host', 'Puppet Environment', host.environment.name],
-                    [
-                        'Operating System',
-                        'Architecture',
-                        host.architecture.name
-                    ],
-                    ['Operating System', 'Operating system', os_name],
-                    ['Operating System', 'Media', host.medium.name],
-                    ['Operating System', 'Partition table', host.ptable.name],
-                    ['Operating System', 'Root password', host.root_pass],
-                ],
-                interface_parameters=[
-                    ['Type', 'Interface'],
-                    ['MAC address', host.mac],
-                    ['Domain', host.domain.name],
-                    ['Primary', True],
-                ],
-            )
-            actual_params = self.hosts.fetch_global_parameters(
-                host.name, host.domain.name)
-            self.assertEqual(len(actual_params), 2)
-            self.assertEqual(
-                {(org_param_name, org_param_value),
-                 (loc_param_name, loc_param_value)},
-                set(actual_params)
-            )
-
-    @run_only_on('sat')
-    @tier3
-    def test_negative_delete_primary_interface(self):
-        """Attempt to delete primary interface of a host
-
-        :id: bc747e2c-38d9-4920-b4ae-6010851f704e
-
-        :BZ: 1417119
-
-        :expectedresults: Interface was not deleted
-
-        :CaseLevel: System
-        """
-        host = entities.Host()
-        host.create_missing()
-        os_name = u'{0} {1}'.format(
-            host.operatingsystem.name, host.operatingsystem.major)
-        interface_id = gen_string('alpha')
-        with Session(self) as session:
-            make_host(
-                session,
-                name=host.name,
-                org=host.organization.name,
-                parameters_list=[
-                    ['Host', 'Organization', host.organization.name],
-                    ['Host', 'Location', host.location.name],
-                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
-                    ['Host', 'Content View', DEFAULT_CV],
-                    ['Host', 'Puppet Environment', host.environment.name],
-                    [
-                        'Operating System',
-                        'Architecture',
-                        host.architecture.name
-                    ],
-                    ['Operating System', 'Operating system', os_name],
-                    ['Operating System', 'Media', host.medium.name],
-                    ['Operating System', 'Partition table', host.ptable.name],
-                    ['Operating System', 'Root password', host.root_pass],
-                ],
-                interface_parameters=[
-                    ['Type', 'Interface'],
-                    ['Device Identifier', interface_id],
-                    ['MAC address', host.mac],
-                    ['Domain', host.domain.name],
-                    ['Primary', True],
-                ],
-            )
-            host_el = self.hosts.search(
-                u'{0}.{1}'.format(host.name, host.domain.name)
-            )
-            self.assertIsNotNone(host_el)
-            self.hosts.click(host_el)
-            self.hosts.click(locators['host.edit'])
-            self.hosts.click(tab_locators['host.tab_interfaces'])
-            delete_button = self.hosts.wait_until_element(
-                locators['host.delete_interface'] % interface_id)
-            # Verify the button is disabled
-            self.assertFalse(delete_button.is_enabled())
-            self.assertEqual(delete_button.get_attribute('disabled'), 'true')
-            # Attempt to delete the interface
-            self.hosts.delete_interface(
-                host.name, host.domain.name, interface_id)
-            # Verify interface wasn't deleted by fetching one of its parameters
-            # (e.g., MAC address)
-            results = self.hosts.fetch_host_parameters(
-                host.name,
-                host.domain.name,
-                [['Interfaces', 'Primary Interface MAC']],
-            )
-            self.assertEqual(results['Primary Interface MAC'], host.mac)
-
-    @tier3
-    def test_positive_remove_parameter_non_admin_user(self):
-        """Remove a host parameter as a non-admin user with enough permissions
-
-        :id: 598111c1-fdb6-42e9-8c28-fae999b5d112
-
-        :expectedresults: user with sufficient permissions may remove host
-            parameter
-
-        :CaseLevel: System
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alpha')
-        param_name = gen_string('alpha')
-        default_loc = entities.Location().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
-        role = entities.Role().create()
-        entities.Filter(
-            permission=entities.Permission(resource_type='Parameter').search(),
-            role=role,
-        ).create()
-        entities.Filter(
-            permission=entities.Permission(resource_type='Host').search(),
-            role=role,
-        ).create()
-        entities.User(
-            role=[role],
-            admin=False,
-            login=user_login,
-            password=user_password,
-            organization=[self.session_org],
-            location=[default_loc],
-            default_organization=self.session_org,
-        ).create()
-        # Read session org details for default cv and lce
-        org = entities.Organization(id=self.session_org.id).read()
-        host = entities.Host(
-            content_facet_attributes={
-                'content_view_id': org.default_content_view.id,
-                'lifecycle_environment_id': org.library.id,
-            },
-            location=default_loc,
-            organization=self.session_org,
-            host_parameters_attributes=[
-                {'name': param_name, 'value': gen_string('alpha')}
-            ],
-        ).create()
-        with Session(self, user=user_login, password=user_password):
-            self.hosts.search_and_click(host.name)
-            self.hosts.click(locators['host.edit'])
-            self.hosts.remove_parameter(param_name)
-            self.hosts.click(locators['host.edit'])
-            self.assertIsNone(self.hosts.get_parameter(param_name))
-
-    @tier3
-    def test_negative_remove_parameter_non_admin_user(self):
-        """Attempt to remove host parameter as a non-admin user with
-        insufficient permissions
-
-        :BZ: 1317868
-
-        :id: 78fd230e-2ec4-4158-823b-ddbadd5e232f
-
-        :customerscenario: true
-
-        :expectedresults: user with insufficient permissions is unable to
-            remove host parameter, 'Remove' link is not visible for him
-
-        :CaseLevel: System
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alpha')
-        param_name = gen_string('alpha')
-        param_value = gen_string('alpha')
-        default_loc = entities.Location().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
-        role = entities.Role().create()
-        entities.Filter(
-            permission=entities.Permission(name='view_params').search(),
-            role=role,
-        ).create()
-        entities.Filter(
-            permission=entities.Permission(resource_type='Host').search(),
-            role=role,
-        ).create()
-        entities.User(
-            role=[role],
-            admin=False,
-            login=user_login,
-            password=user_password,
-            organization=[self.session_org],
-            location=[default_loc],
-            default_organization=self.session_org,
-        ).create()
-        host = entities.Host(
-            location=default_loc,
-            organization=self.session_org,
-            host_parameters_attributes=[
-                {'name': param_name, 'value': param_value}
-            ],
-        ).create()
-        with Session(self, user=user_login, password=user_password):
-            self.hosts.search_and_click(host.name)
-            self.hosts.click(locators['host.edit'])
-            self.assertEqual(self.hosts.get_parameter(param_name), param_value)
-            with self.assertRaises(UINoSuchElementError):
-                self.hosts.remove_parameter(param_name)
-
-    @tier3
-    def test_positive_check_permissions_affect_create_procedure(self):
-        """Verify whether user permissions affect what entities can be selected
-        when host is created
-
-        :id: 4502f99d-86fb-4655-a9dc-b2612cf849c6
-
-        :customerscenario: true
-
-        :expectedresults: user with specific permissions can choose only
-            entities for create host procedure that he has access to
-
-        :BZ: 1293716
-
-        :CaseLevel: System
-        """
-        # Create new organization
-        org = entities.Organization().create()
-        # Create two lifecycle environments
-        lc_env = entities.LifecycleEnvironment(organization=org).create()
-        filter_lc_env = entities.LifecycleEnvironment(
-            organization=org).create()
-        # Create two content views and promote them to one lifecycle
-        # environment which will be used in filter
-        cv = entities.ContentView(organization=org).create()
-        filter_cv = entities.ContentView(organization=org).create()
-        for content_view in [cv, filter_cv]:
-            content_view.publish()
-            content_view = content_view.read()
-            promote(content_view.version[0], filter_lc_env.id)
-        # Create two host groups
-        hg = entities.HostGroup(organization=[org]).create()
-        filter_hg = entities.HostGroup(organization=[org]).create()
-
-        # Create new role
-        role = entities.Role().create()
-
-        # Create lifecycle environment permissions and select one specific
-        # environment user will have access to
-        env_permissions_entities = entities.Permission(
-            resource_type='Katello::KTEnvironment').search()
-        user_env_permissions = [
-            'promote_or_remove_content_views_to_environments',
-            'view_lifecycle_environments'
-        ]
-        user_env_permissions_entities = [
-            entity
-            for entity in env_permissions_entities
-            if entity.name in user_env_permissions
-        ]
-        entities.Filter(
-            organization=[org],
-            permission=user_env_permissions_entities,
-            role=role,
-            # allow access only to the mentioned here environment
-            search='name = {0}'.format(filter_lc_env.name)
-        ).create()
-
-        # Add necessary permissions for content view as we did for lce
-        cv_permissions_entities = entities.Permission(
-            resource_type='Katello::ContentView').search()
-        user_cv_permissions = [
-            'promote_or_remove_content_views',
-            'view_content_views',
-            'publish_content_views',
-        ]
-        user_cv_permissions_entities = [
-            entity
-            for entity in cv_permissions_entities
-            if entity.name in user_cv_permissions
-        ]
-        entities.Filter(
-            organization=[org],
-            permission=user_cv_permissions_entities,
-            role=role,
-            # allow access only to the mentioned here cv
-            search='name = {0}'.format(filter_cv.name)
-        ).create()
-
-        # Add necessary permissions for hosts as we did for lce
-        host_permissions_entities = entities.Permission(
-            resource_type='Host').search()
-        user_host_permissions = [
-            'create_hosts',
-            'view_hosts',
-        ]
-        user_host_permissions_entities = [
-            entity
-            for entity in host_permissions_entities
-            if entity.name in user_host_permissions
-        ]
-        entities.Filter(
-            organization=[org],
-            permission=user_host_permissions_entities,
-            role=role,
-            search='hostgroup_fullname = {0}'.format(filter_hg.name)
-        ).create()
-
-        # Add necessary permissions for host groups as we did for lce
-        entities.Filter(
-            organization=[org],
-            permission=entities.Permission(name='view_hostgroups').search(),
-            role=role,
-            search='name = {0}'.format(filter_hg.name)
-        ).create()
-
-        # Add permissions for Organization and Location
-        entities.Filter(
-            permission=entities.Permission(
-                resource_type='Organization').search(),
-            role=role,
-        ).create()
-        entities.Filter(
-            permission=entities.Permission(
-                resource_type='Location').search(),
-            role=role,
-        ).create()
-
-        # Create new user with a configured role
-        default_loc = entities.Location().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
-        user_login = gen_string('alpha')
-        user_password = gen_string('alpha')
-        entities.User(
-            role=[role],
-            admin=False,
-            login=user_login,
-            password=user_password,
-            organization=[org],
-            location=[default_loc],
-            default_organization=org,
-        ).create()
-        with Session(self, user=user_login, password=user_password):
-            host_entities = [
-                {
-                    'locator': locators['host.host_group'],
-                    'unexpected_entity': hg,
-                    'expected_entity': filter_hg,
-                },
-                {
-                    'locator': locators['host.lifecycle_environment'],
-                    'unexpected_entity': lc_env,
-                    'expected_entity': filter_lc_env,
-                },
-                {
-                    'locator': locators['host.content_view'],
-                    'unexpected_entity': cv,
-                    'expected_entity': filter_cv,
-                },
-            ]
-            self.hosts.navigate_to_entity()
-            self.hosts.click(locators['host.new'])
-            for entity in host_entities:
-                # Check that only one entity per each type is accessible in
-                # create host procedure
-                with self.assertRaises(UINoSuchElementError):
-                    self.hosts.assign_value(
-                        entity['locator'], entity['unexpected_entity'].name)
-                self.hosts.perform_action_send_keys_to_browser("escape")
-                self.hosts.assign_value(
-                    entity['locator'], entity['expected_entity'].name)
-
-    @run_only_on('sat')
-    @stubbed('unstub once os/browser/env combination is changed')
-    @tier3
-    def test_positive_update_name(self):
-        """Create a new Host and update its name to valid one
-
-        :id: f1c19599-f613-431d-bf09-62addec1e60b
-
-        :expectedresults: Host is updated successfully
-
-        :CaseLevel: System
-        """
-        host = entities.Host()
-        host.create_missing()
-        os_name = u'{0} {1}'.format(
-            host.operatingsystem.name, host.operatingsystem.major)
-        host_name = host.name
-        with Session(self) as session:
-            make_host(
-                session,
-                name=host_name,
-                org=host.organization.name,
-                parameters_list=[
-                    ['Host', 'Organization', host.organization.name],
-                    ['Host', 'Location', host.location.name],
-                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
-                    ['Host', 'Content View', DEFAULT_CV],
-                    ['Host', 'Puppet Environment', host.environment.name],
-                    [
-                        'Operating System',
-                        'Architecture',
-                        host.architecture.name],
-                    ['Operating System', 'Operating system', os_name],
-                    ['Operating System', 'Media', host.medium.name],
-                    ['Operating System', 'Partition table', host.ptable.name],
-                    ['Operating System', 'Root password', host.root_pass],
-                ],
-                interface_parameters=[
-                    ['Type', 'Interface'],
-                    ['MAC address', host.mac],
-                    ['Domain', host.domain.name],
-                    ['Primary', True],
-                ],
-            )
-            # confirm the Host appears in the UI
-            search = self.hosts.search(
-                u'{0}.{1}'.format(host_name, host.domain.name)
-            )
-            self.assertIsNotNone(search)
-            new_name = gen_string('alpha')
-            self.hosts.update(host_name, host.domain.name, new_name)
-            new_host_name = (
-                u'{0}.{1}'.format(new_name, host.domain.name)).lower()
-            self.assertIsNotNone(self.hosts.search(new_host_name))
-            self.hostname = new_name
-
-    @run_only_on('sat')
-    @stubbed('unstub once os/browser/env combination is changed')
-    @tier3
-    def test_positive_update_name_with_prefix(self):
-        """Create a new Host and update its name to valid one. Host should
-        contain word 'new' in its name
-
-        :id: b08cb5c9-bd2c-4dc7-97b1-d1f20d1373d7
-
-        :expectedresults: Host is updated successfully
-
-        :BZ: 1419161
-
-        :CaseLevel: System
-        """
-        current_name = 'new{0}'.format(gen_string('alpha'), 6).lower()
-        new_name = 'new{0}'.format(gen_string('alpha')).lower()
-        host = entities.Host(name=current_name)
-        host.create_missing()
-        os_name = u'{0} {1}'.format(
-            host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self) as session:
-            make_host(
-                session,
-                name=current_name,
-                org=host.organization.name,
-                parameters_list=[
-                    ['Host', 'Organization', host.organization.name],
-                    ['Host', 'Location', host.location.name],
-                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
-                    ['Host', 'Content View', DEFAULT_CV],
-                    ['Host', 'Puppet Environment', host.environment.name],
-                    [
-                        'Operating System',
-                        'Architecture',
-                        host.architecture.name],
-                    ['Operating System', 'Operating system', os_name],
-                    ['Operating System', 'Media', host.medium.name],
-                    ['Operating System', 'Partition table', host.ptable.name],
-                    ['Operating System', 'Root password', host.root_pass],
-                ],
-                interface_parameters=[
-                    ['Type', 'Interface'],
-                    ['MAC address', host.mac],
-                    ['Domain', host.domain.name],
-                    ['Primary', True],
-                ],
-            )
-            # confirm the Host appears in the UI
-            search = self.hosts.search(
-                u'{0}.{1}'.format(current_name, host.domain.name)
-            )
-            self.assertIsNotNone(search)
-            self.hosts.update(current_name, host.domain.name, new_name)
-            new_host_name = (
-                u'{0}.{1}'.format(new_name, host.domain.name)).lower()
-            self.assertIsNotNone(self.hosts.search(new_host_name))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_search_by_parameter(self):
-        """Search for the host by global parameter assigned to it
-
-        :id: 8e61127c-d0a0-4a46-a3c6-22d3b2c5457c
-
-        :expectedresults: Only one specific host is returned by search
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        param_name = gen_string('alpha')
-        param_value = gen_string('alpha')
-        parameters = [{'name': param_name, 'value': param_value}]
-        param_host = entities.Host(
-            organization=org,
-            host_parameters_attributes=parameters,
-        ).create()
-        additional_host = entities.Host(organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            # Check that hosts present in the system
-            for host in [param_host, additional_host]:
-                self.assertIsNotNone(self.hosts.search(host.name))
-            # Check that search by parameter returns only one host in the list
-            self.assertIsNotNone(
-                self.hosts.search(
-                    param_host.name,
-                    _raw_query='params.{0} = {1}'.format(
-                        param_name, param_value)
-                )
-            )
-            strategy, value = locators['host.select_name']
-            self.assertIsNone(self.hosts.wait_until_element(
-                (strategy, value % additional_host.name)))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_search_by_parameter_with_different_values(self):
-        """Search for the host by global parameter assigned to it by its value
-
-        :id: c3a4551e-d759-4a9d-ba90-8db4cab3db2c
-
-        :expectedresults: Only one specific host is returned by search
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        name = gen_string('alpha')
-        param_values = [gen_string('alpha'), gen_string('alphanumeric')]
-        hosts = [
-            entities.Host(
-                organization=org,
-                host_parameters_attributes=[{'name': name, 'value': value}]
-            ).create()
-            for value in param_values
-        ]
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            # Check that hosts present in the system
-            for host in hosts:
-                self.assertIsNotNone(self.hosts.search(host.name))
-            # Check that search by parameter returns only one host in the list
-            strategy, value = locators['host.select_name']
-            for i in range(2):
-                self.assertIsNotNone(
-                    self.hosts.search(
-                        hosts[i].name,
-                        _raw_query='params.{0} = {1}'.format(
-                            name, param_values[i])
-                    )
-                )
-                self.assertIsNone(self.hosts.wait_until_element(
-                    (strategy, value % hosts[-i-1])))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_search_by_parameter_with_prefix(self):
-        """Search by global parameter assigned to host using prefix 'not' and
-        any random string as parameter value to make sure that all hosts will
-        be present in the list
-
-        :id: a4affb90-1222-4d9a-94be-213f9e5be573
-
-        :expectedresults: All assigned hosts to organization are returned by
-            search
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        param_name = gen_string('alpha')
-        param_value = gen_string('alpha')
-        parameters = [{'name': param_name, 'value': param_value}]
-        param_host = entities.Host(
-            organization=org,
-            host_parameters_attributes=parameters,
-        ).create()
-        additional_host = entities.Host(organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            # Check that hosts present in the system
-            for host in [param_host, additional_host]:
-                self.assertIsNotNone(self.hosts.search(host.name))
-            # Check that search by parameter with 'not' prefix returns both
-            # hosts in the list
-            self.assertIsNotNone(
-                self.hosts.search(
-                    param_host.name,
-                    _raw_query='not params.{0} = {1}'.format(
-                        param_name, gen_string('alphanumeric'))
-                )
-            )
-            strategy, value = locators['host.select_name']
-            self.assertIsNotNone(self.hosts.wait_until_element(
-                (strategy, value % additional_host.name)))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_search_by_parameter_with_operator(self):
-        """Search by global parameter assigned to host using operator '<>' and
-        any random string as parameter value to make sure that all hosts will
-        be present in the list
-
-        :id: 264065b7-0d04-467d-887a-0aba0d871b7c
-
-        :expectedresults: All assigned hosts to organization are returned by
-            search
-
-        :BZ: 1463806
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        param_name = gen_string('alpha')
-        param_value = gen_string('alpha')
-        param_global_value = gen_string('numeric')
-        entities.CommonParameter(
-            name=param_name,
-            value=param_global_value
-        ).create()
-        parameters = [{'name': param_name, 'value': param_value}]
-        param_host = entities.Host(
-            organization=org,
-            host_parameters_attributes=parameters,
-        ).create()
-        additional_host = entities.Host(organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            # Check that hosts present in the system
-            for host in [param_host, additional_host]:
-                self.assertIsNotNone(self.hosts.search(host.name))
-            # Check that search by parameter with '<>' operator returns both
-            # hosts in the list
-            self.assertIsNotNone(
-                self.hosts.search(
-                    param_host.name,
-                    _raw_query='params.{0} <> {1}'.format(
-                        param_name, gen_string('alphanumeric'))
-                )
-            )
-            strategy, value = locators['host.select_name']
-            self.assertIsNotNone(self.hosts.wait_until_element(
-                (strategy, value % additional_host.name)))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_search_with_org_and_loc_context(self):
-        """Perform usual search for host, but organization and location used
-        for host create procedure should have 'All capsules' checkbox selected
-
-        :id: 2ce50df0-2b30-42cc-a40b-0e1f4fde3c6f
-
-        :expectedresults: Search functionality works as expected and correct
-            result is returned
-
-        :BZ: 1405496
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        loc = entities.Location().create()
-        host = entities.Host(organization=org, location=loc).create()
-        with Session(self) as session:
-            self.org.update(org.name, all_capsules=True)
-            self.location.update(loc.name, all_capsules=True)
-            set_context(session, org=org.name, loc=loc.name)
-            # Check that host present in the system
-            self.assertIsNotNone(self.hosts.search(host.name))
-            self.assertIsNotNone(
-                self.hosts.search(host.name, _raw_query=host.name))
-
-    @tier2
-    def test_positive_search_by_org(self):
-        """Search for host by specifying host's organization name
-
-        :id: a3bb5bc5-cb9c-4b56-b383-f3e4d3d4d222
-
-        :customerscenario: true
-
-        :expectedresults: Search functionality works as expected and correct
-            result is returned
-
-        :BZ: 1447958
-
-        :CaseLevel: Integration
-        """
-        host = entities.Host().create()
-        with Session(self) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
-            self.assertIsNotNone(
-                self.hosts.search(
-                    host.name,
-                    _raw_query='organization = {}'.format(
-                        host.organization.read().name)
-                )
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_sort_by_name(self):
-        """Create some Host entities and sort them by name ascendingly and then
-        descendingly
-
-        :id: 12f75ef9-23e6-48be-80ed-b354e8ac212b
-
-        :customerscenario: true
-
-        :expectedresults: Host entities are sorted properly
-
-        :CaseImportance: High
-
-        :BZ: 1268085
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        name_list = [gen_string('alpha', 20).lower() for _ in range(5)]
-        host = entities.Host(organization=org)
-        host.create_missing()
-        for name in name_list:
-            entities.Host(
-                name=name,
-                organization=org,
-                architecture=host.architecture,
-                domain=host.domain,
-                environment=host.environment,
-                location=host.location,
-                mac=host.mac,
-                medium=host.medium,
-                operatingsystem=host.operatingsystem,
-                ptable=host.ptable,
-                root_pass=host.root_pass,
-            ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.hosts.navigate_to_entity()
-            sorted_list_asc = self.hosts.sort_table_by_column('Name')
-            self.assertEqual(
-                [el.split('.', 1)[0] for el in sorted_list_asc],
-                sorted(name_list)
-            )
-            sorted_list_desc = self.hosts.sort_table_by_column('Name')
-            self.assertEqual(
-                [el.split('.', 1)[0] for el in sorted_list_desc],
-                sorted(name_list, reverse=True)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_sort_by_os(self):
-        """Create some Host entities and sort them by operation system
-        ascendingly and then descendingly
-
-        :id: 617e812d-258e-4ba4-8a9a-d7d02f2fb405
-
-        :customerscenario: true
-
-        :expectedresults: Host entities are sorted properly
-
-        :CaseImportance: High
-
-        :BZ: 1268085
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        name_list = [gen_string('alpha', 20) for _ in range(5)]
-        host = entities.Host(organization=org)
-        host.create_missing()
-        for name in name_list:
-            os = entities.OperatingSystem(name=name).create()
-            entities.Host(
-                organization=org,
-                architecture=host.architecture,
-                domain=host.domain,
-                environment=host.environment,
-                location=host.location,
-                mac=host.mac,
-                medium=host.medium,
-                operatingsystem=os,
-                ptable=host.ptable,
-                root_pass=host.root_pass,
-            ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.hosts.navigate_to_entity()
-            sorted_list_asc = self.hosts.sort_table_by_column(
-                'Operating system')
-            self.assertEqual(
-                [el.split(' ', 1)[0] for el in sorted_list_asc],
-                sorted(name_list, key=six.text_type.lower)
-            )
-            sorted_list_desc = self.hosts.sort_table_by_column(
-                'Operating system')
-            self.assertEqual(
-                [el.split(' ', 1)[0] for el in sorted_list_desc],
-                sorted(name_list, key=six.text_type.lower, reverse=True)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_sort_by_env(self):
-        """Create some Host entities and sort them by environment
-        ascendingly and then descendingly
-
-        :id: 8a1e8d6d-dc5f-4b78-9844-80355452c979
-
-        :customerscenario: true
-
-        :expectedresults: Host entities are sorted properly
-
-        :CaseImportance: High
-
-        :BZ: 1268085
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        name_list = [gen_string('alpha', 20) for _ in range(5)]
-        host = entities.Host(organization=org)
-        host.create_missing()
-        for name in name_list:
-            env = entities.Environment(name=name).create()
-            entities.Host(
-                organization=org,
-                architecture=host.architecture,
-                domain=host.domain,
-                environment=env,
-                location=host.location,
-                mac=host.mac,
-                medium=host.medium,
-                operatingsystem=host.operatingsystem,
-                ptable=host.ptable,
-                root_pass=host.root_pass,
-            ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.hosts.navigate_to_entity()
-            self.assertEqual(
-                self.hosts.sort_table_by_column('Environment'),
-                sorted(name_list, key=six.text_type.lower)
-            )
-            self.assertEqual(
-                self.hosts.sort_table_by_column('Environment'),
-                sorted(name_list, key=six.text_type.lower, reverse=True)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_sort_by_model(self):
-        """Create some Host entities and sort them by hardware model
-        ascendingly and then descendingly
-
-        :id: 56853ffb-47b2-47ce-89c5-d295c16200c8
-
-        :customerscenario: true
-
-        :expectedresults: Host entities are sorted properly
-
-        :CaseImportance: High
-
-        :BZ: 1268085
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        name_list = [gen_string('alpha', 20) for _ in range(5)]
-        host = entities.Host(organization=org)
-        host.create_missing()
-        for name in name_list:
-            model = entities.Model(name=name).create()
-            entities.Host(
-                organization=org,
-                architecture=host.architecture,
-                domain=host.domain,
-                environment=host.environment,
-                location=host.location,
-                mac=host.mac,
-                medium=host.medium,
-                operatingsystem=host.operatingsystem,
-                ptable=host.ptable,
-                root_pass=host.root_pass,
-                model=model
-            ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.hosts.navigate_to_entity()
-            self.assertEqual(
-                self.hosts.sort_table_by_column('Model'),
-                sorted(name_list, key=six.text_type.lower)
-            )
-            self.assertEqual(
-                self.hosts.sort_table_by_column('Model'),
-                sorted(name_list, key=six.text_type.lower, reverse=True)
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_sort_by_hostgroup(self):
-        """Create some Host entities and sort them by host group ascendingly
-        and then descendingly
-
-        :id: d1ac744a-ff76-4afe-84a1-3a7e4b3ca3f1
-
-        :customerscenario: true
-
-        :expectedresults: Host entities are sorted properly
-
-        :CaseImportance: High
-
-        :BZ: 1268085
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        lce = entities.LifecycleEnvironment(organization=org).create()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        promote(content_view.version[0], environment_id=lce.id)
-        name_list = [gen_string('alpha', 20) for _ in range(5)]
-        host = entities.Host(organization=org)
-        host.create_missing()
-        for name in name_list:
-            hg = entities.HostGroup(name=name, organization=[org]).create()
-            entities.Host(
-                hostgroup=hg,
-                organization=org,
-                architecture=host.architecture,
-                domain=host.domain,
-                environment=host.environment,
-                content_facet_attributes={
-                    'content_view_id': content_view.id,
-                    'lifecycle_environment_id': lce.id,
-                },
-                location=host.location,
-                mac=host.mac,
-                medium=host.medium,
-                operatingsystem=host.operatingsystem,
-                ptable=host.ptable,
-                root_pass=host.root_pass,
-            ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.hosts.navigate_to_entity()
-            self.assertEqual(
-                self.hosts.sort_table_by_column('Host group'),
-                sorted(name_list, key=six.text_type.lower)
-            )
-            self.assertEqual(
-                self.hosts.sort_table_by_column('Host group'),
-                sorted(name_list, key=six.text_type.lower, reverse=True)
-            )
-
-    @tier2
-    def test_positive_validate_inherited_cv_lce(self):
-        """Create a host with hostgroup specified via CLI. Make sure host
-        inherited hostgroup's lifecycle environment, content view and both
-        fields are properly reflected via WebUI
-
-        :id: c83f6819-2649-4a8b-bb1d-ce93b2243765
-
-        :expectedresults: Host's lifecycle environment and content view match
-            the ones specified in hostgroup
-
-        :CaseLevel: Integration
-
-        :BZ: 1391656
-        """
-        host = entities.Host()
-        host.create_missing()
-
-        new_lce = cli_factory.make_lifecycle_environment({
-            'organization-id': host.organization.id})
-        new_cv = cli_factory.make_content_view({
-            'organization-id': host.organization.id})
-        cli_ContentView.publish({'id': new_cv['id']})
-        version_id = cli_ContentView.version_list({
-            'content-view-id': new_cv['id'],
-        })[0]['id']
-        cli_ContentView.version_promote({
-            'id': version_id,
-            'to-lifecycle-environment-id': new_lce['id'],
-            'organization-id': host.organization.id,
-        })
-        hostgroup = cli_factory.make_hostgroup({
-            'content-view-id': new_cv['id'],
-            'lifecycle-environment-id': new_lce['id'],
-            'organization-ids': host.organization.id,
-        })
-        puppet_proxy = cli_Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-
-        cli_factory.make_host({
-            'architecture-id': host.architecture.id,
-            'domain-id': host.domain.id,
-            'environment-id': host.environment.id,
-            'hostgroup-id': hostgroup['id'],
-            'location-id': host.location.id,
-            'medium-id': host.medium.id,
-            'name': host.name,
-            'operatingsystem-id': host.operatingsystem.id,
-            'organization-id': host.organization.id,
-            'partition-table-id': host.ptable.id,
-            'puppet-proxy-id': puppet_proxy['id'],
-        })
-        with Session(self) as session:
-            set_context(session, host.organization.name, host.location.name)
-            result = self.hosts.fetch_host_parameters(
-                host.name,
-                host.domain.name,
-                [['Host', 'Lifecycle Environment'],
-                 ['Host', 'Content View']],
-            )
-            self.assertEqual(result['Lifecycle Environment'], new_lce['name'])
-            self.assertEqual(result['Content View'], new_cv['name'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_inherit_puppet_env_from_host_group_when_create(self):
-        """Host group puppet environment is inherited to host in create
-        procedure
-
-        :id: 05831ecc-3132-4eb7-ad90-155470f331b6
-
-        :customerscenario: true
-
-        :expectedresults: Expected puppet environment is inherited to the form
-
-        :BZ: 1414914
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        hg_name = gen_string('alpha')
-        env = entities.Environment(
-            name=gen_string('alpha'), organization=[org]).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            make_hostgroup(
-                session,
-                name=hg_name,
-                parameters_list=[
-                    ['Host Group', 'Puppet Environment', env.name],
-                ],
-            )
-            self.assertIsNotNone(self.hostgroup.search(hg_name))
-            self.hosts.navigate_to_entity()
-            self.hosts.click(locators['host.new'])
-            self.hosts.assign_value(locators['host.host_group'], hg_name)
-            self.assertEqual(
-                self.hosts.wait_until_element(
-                    locators['host.fetch_puppet_environment']).text,
-                env.name
-            )
-            self.hosts.click(locators['host.inherit_puppet_environment'])
-            self.assertEqual(
-                self.hosts.wait_until_element(
-                    locators['host.fetch_puppet_environment']).text,
-                env.name
-            )
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_reset_puppet_env_from_cv(self):
-        """Content View puppet environment is inherited to host in create
-        procedure and can be rolled back to its value at any moment using
-        'Reset Puppet Environment to match selected Content View' button
-
-        :id: f8f35bd9-9e7c-418f-837a-ccec21c05d59
-
-        :customerscenario: true
-
-        :expectedresults: Expected puppet environment is inherited to the field
-
-        :BZ: 1336802
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        puppet_env = entities.Environment(
-            name=gen_string('alpha'), organization=[org]).create()
-        cv = entities.ContentView(organization=org).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.content_views.update(name=cv.name, force_puppet=True)
-            self.content_views.publish(cv.name)
-            published_puppet_env = [
-                env for env in entities.Environment().search(
-                    query={'search': 'organization_id={}'.format(org.id)}
-                )
-                if cv.name in env.name
-            ][0]
-            self.hosts.navigate_to_entity()
-            self.hosts.click(locators['host.new'])
-            self.hosts.assign_value(
-                locators['host.lifecycle_environment'], ENVIRONMENT)
-            self.hosts.assign_value(locators['host.content_view'], cv.name)
-            self.assertEqual(
-                self.hosts.wait_until_element(
-                    locators['host.fetch_puppet_environment']).text,
-                published_puppet_env.name
-            )
-            self.hosts.assign_value(
-                locators['host.puppet_environment'],
-                puppet_env.name
-            )
-            self.hosts.click(locators['host.reset_puppet_environment'])
-            self.assertEqual(
-                self.hosts.wait_until_element(
-                    locators['host.fetch_puppet_environment']).text,
-                published_puppet_env.name
-            )
-
-    @stubbed()
-    @tier3
-    def test_positive_create_with_user(self):
-        """Create Host with new user specified
-
-        :id: b97d6fe5-b0a1-4ddc-8d7f-cbf7b17c823d
-
-        :expectedresults: Host is created
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    def test_positive_update_with_user(self):
-        """Update Host with new user specified
-
-        :id: 4c030cf5-b89c-4dec-bb3e-0cb3215a2315
-
-        :expectedresults: Host is updated
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @tier3
-    def test_positive_set_multi_line_and_with_spaces_parameter_value(self):
-        """Check that host parameter value with multi-line and spaces is
-        correctly represented in yaml format
-
-        :id: d72b481d-2279-4478-ab2d-128f92c76d9c
-
-        :customerscenario: true
-
-        :expectedresults:
-            1. parameter is correctly represented in yaml format without
-               line break (special chars should be escaped)
-            2. host parameter value is the same when restored from yaml format
-
-        :BZ: 1315282
-
-        :CaseLevel: System
-        """
-        host_name = gen_string('alpha').lower()
-        param_name = gen_string('alpha').lower()
-        # long string that should be escaped and affected by line break with
-        # yaml dump by default
-        param_value = (
-            u'auth                          include              '
-            u'password-auth\r\n'
-            u'account     include                  password-auth'
-        )
-        org = entities.Organization().create()
-        host = entities.Host(organization=org)
-        host.create_missing()
-        entities.Host(
-            name=host_name,
-            organization=org,
-            architecture=host.architecture,
-            domain=host.domain,
-            environment=host.environment,
-            location=host.location,
-            mac=host.mac,
-            medium=host.medium,
-            operatingsystem=host.operatingsystem,
-            ptable=host.ptable,
-            root_pass=host.root_pass,
-            content_facet_attributes={
-                'content_view_id': entities.ContentView(
-                    organization=org, name=DEFAULT_CV).search()[0].id,
-                'lifecycle_environment_id': entities.LifecycleEnvironment(
-                    organization=org, name=ENVIRONMENT).search()[0].id
-            }
-        ).create()
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            session.hosts.update(host_name, host.domain.name,
-                                 host_parameters=[(param_name, param_value)])
-            yaml_text = session.hosts.get_yaml_output(
-                u'{0}.{1}'.format(host_name, host.domain.name))
-            # ensure parameter value is represented in yaml format without
-            # line break (special chars should be escaped)
-            self.assertIn(
-                param_value.encode('unicode_escape'),
-                yaml_text
-            )
-            # host parameter value is the same when restored from yaml format
-            yaml_content = yaml.load(yaml_text)
-            host_parameters = yaml_content.get('parameters')
-            self.assertIsNotNone(host_parameters)
-            self.assertIn(param_name, host_parameters)
-            self.assertEqual(host_parameters[param_name], param_value)
-
-
-@run_in_one_thread
-class AtomicHostTestCase(UITestCase):
-    """Implements Atomic Host tests in UI"""
-
-    hostname = gen_string('numeric')
-
-    @classmethod
-    @skip_if_bug_open('bugzilla', 1414134)
-    @skip_if_os('RHEL6')
-    @skip_if_not_set('vlan_networking', 'compute_resources', 'ostree')
-    def setUpClass(cls):
-        """Steps required to create a Atomic host on libvirt
-
-        1. Creates new Organization and Location.
-        2. Creates new life-cycle environment.
-        3. Creates new product and sync RH Atomic OSTree repository.
-        4. Creates new content-view by associating RH Atomic repository.
-        5. Publish and promote the content-view to next environment.
-        6. Search for smart-proxy and associate location.
-        7. Search for existing domain or create new otherwise. Associate org,
-           location and dns proxy.
-        8. Search for '192.168.100.0' network and associate org, location,
-           dns/dhcp/tftp proxy, and if its not there then creates new.
-        9. Search for existing compute-resource with 'libvirt' provider and
-            associate org.location, and if its not there then creates
-            new.
-        10. Search 'Kickstart default' partition table and RH Atomic OS along
-            with PXE templates.
-        11. Associates org, location and OS with provisioning and PXE templates
-        12. Search for x86_64 architecture
-        13. Associate arch, partition table, provisioning/PXE templates with OS
-        14. Search for existing Atomic media or create new otherwise and
-            associate org/location
-        15. Create new host group with all required entities
-        """
-        super(AtomicHostTestCase, cls).setUpClass()
-        # Create a new Organization and Location
-        cls.org = entities.Organization().create()
-        cls.org_name = cls.org.name
-        cls.loc = entities.Location(organization=[cls.org]).create()
-        cls.loc_name = cls.loc.name
-        # Create a new Life-Cycle environment
-        cls.lc_env = entities.LifecycleEnvironment(
-            organization=cls.org
-        ).create()
-        cls.rh_ah_repo = {
-            'name': REPOS['rhaht']['name'],
-            'product': PRDS['rhah'],
-            'reposet': REPOSET['rhaht'],
-            'basearch': None,
-            'releasever': None,
-        }
-        with manifests.clone() as manifest:
-            upload_manifest(cls.org.id, manifest.content)
-        # Enables the RedHat repo and fetches it's Id.
-        cls.repo_id = enable_rhrepo_and_fetchid(
-            basearch=cls.rh_ah_repo['basearch'],
-            # OrgId is passed as data in API hence str
-            org_id=str(cls.org.id),
-            product=cls.rh_ah_repo['product'],
-            repo=cls.rh_ah_repo['name'],
-            reposet=cls.rh_ah_repo['reposet'],
-            releasever=cls.rh_ah_repo['releasever'],
-        )
-        # Sync repository with custom timeout
-        call_entity_method_with_timeout(
-            entities.Repository(id=cls.repo_id).sync, timeout=1500)
-        cls.cv = entities.ContentView(organization=cls.org).create()
-        cls.cv.repository = [entities.Repository(id=cls.repo_id)]
-        cls.cv = cls.cv.update(['repository'])
-        cls.cv.publish()
-        cls.cv = cls.cv.read()
-        promote(cls.cv.version[0], cls.lc_env.id)
-        # Search for SmartProxy, and associate location
-        cls.proxy = entities.SmartProxy().search(
-            query={
-                u'search': u'name={0}'.format(
-                    settings.server.hostname
-                )
-            }
-        )[0].read()
-        cls.proxy.location.append(cls.loc)
-        cls.proxy.organization.append(cls.org)
-        cls.proxy = cls.proxy.update(['organization', 'location'])
-
-        # Search for existing domain or create new otherwise. Associate org,
-        # location and dns to it
-        _, _, domain = settings.server.hostname.partition('.')
-        cls.domain = entities.Domain().search(
-            query={
-                u'search': u'name="{0}"'.format(domain)
+        assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.read(host_name)
+        assert (_get_set_from_list_of_dict(values['parameters']['host_params'])
+                == _get_set_from_list_of_dict(expected_host_parameters))
+        assert _get_set_from_list_of_dict(
+            expected_global_parameters).issubset(
+            _get_set_from_list_of_dict(values['parameters']['global_params']))
+
+
+@tier2
+def test_positive_assign_taxonomies(session, module_org):
+    """Ensure Host organization and Location can be assigned.
+
+    :id: 52466df5-6f56-4faa-b0f8-42b63731f494
+
+    :expectedresults: Host Assign Organization and Location actions are
+        working as expected.
+
+    :CaseLevel: Integration
+    """
+    default_loc = entities.Location().search(
+        query={'search': 'name="{0}"'.format(DEFAULT_LOC)}
+    )[0]
+    host = entities.Host(
+        organization=module_org, location=default_loc).create()
+    new_host_org = entities.Organization().create()
+    new_host_location = entities.Location(organization=[new_host_org]).create()
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=default_loc.name)
+        assert session.host.search(host.name)[0]['Name'] == host.name
+        session.host.apply_action(
+            'Assign Organization',
+            [host.name],
+            {
+                'organization': new_host_org.name,
+                'on_mismatch': 'Fix Organization on Mismatch'
             }
         )
-        if len(cls.domain) > 0:
-            cls.domain = cls.domain[0].read()
-            cls.domain.location.append(cls.loc)
-            cls.domain.organization.append(cls.org)
-            cls.domain.dns = cls.proxy
-            cls.domain = cls.domain.update(['dns', 'location', 'organization'])
-        else:
-            cls.domain = entities.Domain(
-                dns=cls.proxy,
-                location=[cls.loc],
-                organization=[cls.org],
-            ).create()
-        cls.domain_name = cls.domain.name
-
-        # Search if subnet is defined with given network.
-        # If so, just update its relevant fields otherwise,
-        # Create new subnet
-        network = settings.vlan_networking.subnet
-        subnet = entities.Subnet().search(
-            query={u'search': u'network={0}'.format(network)}
-        )
-        if len(subnet) > 0:
-            cls.subnet = subnet[0].read()
-            cls.subnet.domain.append(cls.domain)
-            cls.subnet.location.append(cls.loc)
-            cls.subnet.organization.append(cls.org)
-            cls.subnet.dns = cls.proxy
-            cls.subnet.dhcp = cls.proxy
-            cls.subnet.ipam = 'DHCP'
-            cls.subnet.tftp = cls.proxy
-            cls.subnet.discovery = cls.proxy
-            cls.subnet = cls.subnet.update([
-                'domain',
-                'discovery',
-                'dhcp',
-                'dns',
-                'ipam',
-                'location',
-                'organization',
-                'tftp',
-            ])
-        else:
-            # Create new subnet
-            cls.subnet = entities.Subnet(
-                name=gen_string('alpha'),
-                network=network,
-                mask=settings.vlan_networking.netmask,
-                domain=[cls.domain],
-                location=[cls.loc],
-                organization=[cls.org],
-                dns=cls.proxy,
-                dhcp=cls.proxy,
-                ipam='DHCP',
-                tftp=cls.proxy,
-                discovery=cls.proxy
-            ).create()
-
-        # Search if Libvirt compute-resource already exists
-        # If so, just update its relevant fields otherwise,
-        # Create new compute-resource with 'libvirt' provider.
-        resource_url = u'qemu+ssh://root@{0}/system'.format(
-            settings.compute_resources.libvirt_hostname
-        )
-        comp_res = [
-            res for res in entities.LibvirtComputeResource().search()
-            if res.provider == 'Libvirt' and res.url == resource_url
-        ]
-        if len(comp_res) > 0:
-            cls.computeresource = entities.LibvirtComputeResource(
-                id=comp_res[0].id).read()
-            cls.computeresource.location.append(cls.loc)
-            cls.computeresource.organization.append(cls.org)
-            cls.computeresource = cls.computeresource.update([
-                'location', 'organization'])
-        else:
-            # Create Libvirt compute-resource
-            cls.computeresource = entities.LibvirtComputeResource(
-                name=gen_string('alpha'),
-                provider=u'libvirt',
-                url=resource_url,
-                set_console_password=False,
-                display_type=u'VNC',
-                location=[cls.loc.id],
-                organization=[cls.org.id],
-            ).create()
-
-        # Get the Partition table ID
-        cls.ptable = entities.PartitionTable().search(
-            query={
-                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+        assert not session.host.search(host.name)
+        session.organization.select(org_name=new_host_org.name)
+        assert session.host.search(host.name)[0]['Name'] == host.name
+        session.host.apply_action(
+            'Assign Location',
+            [host.name],
+            {
+                'location': new_host_location.name,
+                'on_mismatch': 'Fix Location on Mismatch'
             }
-        )[0].read()
-        cls.ptable.location.append(cls.loc)
-        cls.ptable.organization.append(cls.org)
-        cls.ptable = cls.ptable.update(['location', 'organization'])
-
-        # Get the OS ID
-        os = entities.OperatingSystem().search(query={
-            u'search': u'name="RedHat_Enterprise_Linux_Atomic_Host"'
-        })
-        if len(os) > 0:
-            cls.os = os[0].read()
-        else:
-            cls.os = entities.OperatingSystem(
-                name='RedHat_Enterprise_Linux_Atomic_Host',
-                family='Redhat',
-                major=RHEL_7_MAJOR_VERSION,
-            ).create()
-
-        # update the provisioning templates with OS, Org and Location
-        cls.templates = []
-        for template_name in [DEFAULT_ATOMIC_TEMPLATE, DEFAULT_PXE_TEMPLATE]:
-            template = entities.ConfigTemplate().search(
-                query={
-                    u'search': u'name="{0}"'.format(template_name)
-                }
-            )[0].read()
-            template.operatingsystem.append(cls.os)
-            template.organization.append(cls.org)
-            template.location.append(cls.loc)
-            template = template.update(
-                ['location', 'operatingsystem', 'organization']
-            )
-            cls.templates.append(template)
-
-        # Get the arch ID
-        cls.arch = entities.Architecture().search(
-            query={u'search': u'name="x86_64"'}
-        )[0]
-        # Get the ostree installer URL
-        ostree_path = settings.ostree.ostree_installer
-        # Get the Media
-        media = entities.Media().search(query={
-            u'search': u'path={0}'.format(ostree_path)
-        })
-        if len(media) > 0:
-            cls.media = media[0].read()
-            cls.media.location.append(cls.loc)
-            cls.media.organization.append(cls.org)
-            cls.media = cls.media.update(['location', 'organization'])
-        else:
-            cls.media = entities.Media(
-                organization=[cls.org],
-                location=[cls.loc],
-                os_family='Redhat',
-                path_=ostree_path
-            ).create()
-        # Update the OS to associate arch, ptable, templates
-        cls.os.architecture = [cls.arch]
-        cls.os.ptable = [cls.ptable]
-        cls.os.config_template = cls.templates
-        cls.os.medium = [cls.media]
-        cls.os = cls.os.update([
-            'architecture',
-            'config_template',
-            'ptable',
-            'medium',
-        ])
-
-        # Create Hostgroup
-        cls.host_group = entities.HostGroup(
-            architecture=cls.arch,
-            domain=cls.domain.id,
-            subnet=cls.subnet.id,
-            lifecycle_environment=cls.lc_env.id,
-            content_view=cls.cv.id,
-            location=[cls.loc.id],
-            name=gen_string('alpha'),
-            medium=cls.media,
-            operatingsystem=cls.os.id,
-            organization=[cls.org.id],
-            ptable=cls.ptable.id,
-        ).create()
-
-    def tearDown(self):
-        """Delete the host to free the resources"""
-        hosts = entities.Host().search(
-            query={u'search': u'organization={0}'.format(self.org_name)})
-        for host in hosts:
-            host.delete()
-        super(AtomicHostTestCase, self).tearDown()
-
-    @tier3
-    def test_positive_provision_atomic_host(self):
-        """Provision an atomic host on libvirt and register it with satellite
-
-        :id: 5ddf2f7f-f7aa-4321-8717-372c7b6e99b6
-
-        :expectedresults: Atomic host should be provisioned and listed under
-            content-hosts/Hosts
-
-        :CaseLevel: System
-        """
-        resource = u'{0} (Libvirt)'.format(self.computeresource.name)
-        root_pwd = gen_string('alpha', 15)
-        with Session(self) as session:
-            make_host(
-                session,
-                name=self.hostname,
-                org=self.org_name,
-                loc=self.loc_name,
-                force_context=True,
-                parameters_list=[
-                    ['Host', 'Organization', self.org_name],
-                    ['Host', 'Location', self.loc_name],
-                    ['Host', 'Host group', self.host_group.name],
-                    ['Host', 'Deploy on', resource],
-                    ['Virtual Machine', 'Memory', '1 GB'],
-                    ['Operating System', 'Media', self.media.name],
-                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
-                    ['Operating System', 'Root password', root_pwd],
-                ],
-                interface_parameters=[
-                    ['Network type', 'Physical (Bridge)'],
-                    ['Network', settings.vlan_networking.bridge],
-                ],
-            )
-            search = self.hosts.search(
-                u'{0}.{1}'.format(self.hostname, self.domain_name)
-            )
-            self.assertIsNotNone(search)
-
-    @stubbed()
-    @tier3
-    def test_positive_register_pre_installed_atomic_host(self):
-        """Register a pre-installed atomic host with satellite using admin
-        credentials
-
-        :id: 09729944-b60b-4742-8f1b-e8859e2e36d3
-
-        :expectedresults: Atomic host should be registered successfully and
-            listed under content-hosts/Hosts
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    def test_positive_register_pre_installed_atomic_host_using_ak(self):
-        """Register a pre-installed atomic host with satellite using activation
-        key
-
-        :id: 31e5ffcf-2e3c-474a-a6a3-6d8e2f392abe
-
-        :expectedresults: Atomic host should be registered successfully and
-            listed under content-hosts/Hosts
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @tier3
-    @upgrade
-    def test_positive_delete_atomic_host(self):
-        """Delete a provisioned atomic host
-
-        :id: c0bcf753-8ddf-4e95-b214-42d1e077a6cf
-
-        :expectedresults: Atomic host should be deleted successfully and
-            shouldn't be listed under hosts/content-hosts
-
-        :CaseLevel: System
-        """
-        resource = u'{0} (Libvirt)'.format(self.computeresource.name)
-        root_pwd = gen_string('alpha', 15)
-        with Session(self) as session:
-            make_host(
-                session,
-                name=self.hostname,
-                org=self.org_name,
-                loc=self.loc_name,
-                force_context=True,
-                parameters_list=[
-                    ['Host', 'Organization', self.org_name],
-                    ['Host', 'Location', self.loc_name],
-                    ['Host', 'Host group', self.host_group.name],
-                    ['Host', 'Deploy on', resource],
-                    ['Virtual Machine', 'Memory', '1 GB'],
-                    ['Operating System', 'Media', self.media.name],
-                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
-                    ['Operating System', 'Root password', root_pwd],
-                ],
-                interface_parameters=[
-                    ['Network type', 'Physical (Bridge)'],
-                    ['Network', settings.vlan_networking.bridge],
-                ],
-            )
-            # Delete host
-            self.hosts.delete(
-                u'{0}.{1}'.format(self.hostname, self.domain_name),
-                dropdown_present=True,
-            )
-
-    @stubbed()
-    @tier3
-    def test_positive_update_atomic_host_cv(self):
-        """Update atomic-host with a new environment and content-view
-
-        :id: 2ddd3bb7-ef58-42c0-908c-ae4d4bd0bff9
-
-        :expectedresults: Atomic host should be updated with new content-view
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    def test_positive_execute_cmd_on_atomic_host_with_job_templates(self):
-        """Execute ostree/atomic commands on provisioned atomic host with job
-        templates
-
-        :id: 56a46a1e-9e24-4ad7-9cea-3d78c7310b14
-
-        :expectedresults: Ostree/atomic commands should be executed
-            successfully via job templates
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
+        )
+        assert not session.host.search(host.name)
+        session.location.select(loc_name=new_host_location.name)
+        assert session.host.search(host.name)[0]['Name'] == host.name
+        values = session.host.get_details(host.name)
+        assert (values['properties']['properties_table']['Organization']
+                == new_host_org.name)
+        assert (values['properties']['properties_table']['Location']
+                == new_host_location.name)
 
 
-class BulkHostTestCase(UITestCase):
-    """Implements tests for Bulk Hosts actions in UI"""
+@skip_if_not_set('oscap')
+@tier2
+def test_positive_assign_compliance_policy(session, scap_policy):
+    """Ensure host compliance Policy can be assigned.
 
-    @tier3
-    @upgrade
-    def test_positive_bulk_delete_host(self):
-        """Delete a multiple hosts from the list
+    :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
 
-        :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
+    :expectedresults: Host Assign Compliance Policy action is working as
+        expected.
 
-        :expectedresults: All selected hosts should be deleted successfully
+    :CaseLevel: Integration
+    """
+    host = entities.Host().create()
+    org = host.organization.read()
+    loc = host.location.read()
+    # add host organization and location to scap policy
+    scap_policy = Scappolicy.info(
+        {'id': scap_policy['id']}, output_format='json')
+    organization_ids = [
+        policy_org['id']
+        for policy_org in scap_policy.get('organizations', [])
+    ]
+    organization_ids.append(org.id)
+    location_ids = [
+        policy_loc['id']
+        for policy_loc in scap_policy.get('locations', [])
+    ]
 
-        :BZ: 1368026
+    location_ids.append(loc.id)
+    Scappolicy.update({
+        'id': scap_policy['id'],
+        'organization-ids': organization_ids,
+        'location-ids': location_ids
+    })
+    with session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
+        assert not session.host.search(
+            'compliance_policy = {0}'.format(scap_policy['name']))
+        assert session.host.search(host.name)[0]['Name'] == host.name
+        session.host.apply_action(
+            'Assign Compliance Policy',
+            [host.name],
+            {
+                'policy': scap_policy['name'],
+            }
+        )
+        assert (session.host.search(
+            'compliance_policy = {0}'.format(scap_policy['name']))[0]['Name']
+            ==
+            host.name)
 
-        :CaseLevel: System
-        """
-        org = entities.Organization().create()
-        hosts_names = [
-            entities.Host(
-                organization=org
-            ).create().name
-            for _ in range(18)
-        ]
-        with Session(self) as session:
-            set_context(session, org=org.name)
-            self.assertIsNotNone(self.hosts.update_host_bulkactions(
-                hosts_names,
-                action='Delete Hosts',
-                parameters_list=[{'timeout': 300}],
-            ))
 
-    @stubbed()
-    @tier3
-    def test_positive_bulk_delete_atomic_host(self):
-        """Delete a multiple atomic hosts
+@skip_if(settings.webdriver != 'chrome')
+@tier3
+def test_positive_export(session):
+    """Create few hosts and export them via UI
 
-        :id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
+    :id: ffc512ad-982e-4b60-970a-41e940ebc74c
 
-        :expectedresults: All selected atomic hosts should be deleted
-            successfully
+    :expectedresults: csv file contains same values as on web UI
 
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
+    :CaseLevel: System
+    """
+    org = entities.Organization().create()
+    hosts = [entities.Host(organization=org).create() for _ in range(3)]
+    expected_fields = set(
+        (host.name,
+         host.operatingsystem.read().title,
+         host.environment.read().name)
+        for host in hosts
+    )
+    with session:
+        session.organization.select(org.name)
+        file_path = session.host.export()
+        assert os.path.isfile(file_path)
+        with open(file_path, newline='') as csvfile:
+            actual_fields = []
+            for row in csv.DictReader(csvfile):
+                actual_fields.append(
+                    (row['Name'],
+                     row['Operatingsystem'],
+                     row['Environment'])
+                )
+        assert set(actual_fields) == expected_fields

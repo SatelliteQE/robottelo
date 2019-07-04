@@ -14,247 +14,105 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
+from nailgun import entities
 
+from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import (
-    OSCAP_PERIOD,
-    OSCAP_PROFILE,
-    OSCAP_WEEKDAY,
-)
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    skip_if_not_set,
-    tier1,
-    upgrade
-)
-from robottelo.helpers import get_data_file
-from robottelo.test import UITestCase
-from robottelo.ui.factory import (
-    make_oscapcontent,
-    make_oscappolicy,
-)
-from robottelo.ui.session import Session
+from robottelo.constants import ANY_CONTEXT
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture, tier2
 
 
-class OpenScapPolicy(UITestCase):
-    """Implements Oscap Policy tests in UI."""
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
-    @classmethod
-    @skip_if_not_set('oscap')
-    def setUpClass(cls):
-        super(OpenScapPolicy, cls).setUpClass()
-        cls.content_path = get_data_file(
-            settings.oscap.content_path
-        )
 
-    @tier1
-    def test_positive_create_with_policy_name(self):
-        """Create OpenScap Policy.
+@fixture(scope='module')
+def module_loc(module_org):
+    return entities.Location(organization=[module_org]).create()
 
-        :id: cdf2bc8c-ce60-4d49-b4e9-9acbf1192bc2
 
-        :Steps:
+@fixture(scope='module')
+def module_host_group(module_loc, module_org):
+    return entities.HostGroup(
+        location=[module_loc],
+        organization=[module_org],
+    ).create()
 
-            1. Create an openscap content.
-            2. Create an openscap Policy.
-            3. Provide all the appropriate parameters.
 
-        :expectedresults: Whether creating  Policy for OpenScap is successful.
+@fixture(scope='module')
+def oscap_content_path():
+    return settings.oscap.content_path
 
-        :CaseImportance: Critical
-        """
-        content_name = gen_string('alpha')
-        with Session(self) as session:
-            make_oscapcontent(
-                session,
-                name=content_name,
-                content_path=self.content_path,
-            )
-            self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
-            for policy_name in valid_data_list():
-                with self.subTest(policy_name):
-                    make_oscappolicy(
-                        session,
-                        content=content_name,
-                        name=policy_name,
-                        period=OSCAP_PERIOD['weekly'],
-                        profile=OSCAP_PROFILE['c2s_rhel6'],
-                        period_value=OSCAP_WEEKDAY['friday'],
-                    )
-                    self.assertIsNotNone(
-                        self.oscappolicy.search(policy_name))
 
-    @tier1
-    @upgrade
-    def test_positive_delete_by_policy_name(self):
-        """Create OpenScap Policy.
+@fixture(scope='module')
+def oscap_tailoring_path():
+    return settings.oscap.tailoring_path
 
-        :id: 7497aad0-1e2f-426e-928d-72e430a0e853
 
-        :Steps:
+@tier2
+def test_positive_check_dashboard(session, module_host_group, module_loc,
+                                  module_org, oscap_content_path):
+    """Create OpenScap Policy which is connected to the host. That policy
+    dashboard should be rendered and correctly display information about
+    the host
 
-            1. Create an openscap content.
-            2. Create an openscap Policy.
-            3. Provide all the appropriate parameters.
-            4. Delete the openscap Policy.
+    :id: 3c1575cb-f290-4d99-bb86-61b9ca6a62eb
 
-        :expectedresults: Whether deleting  Policy for OpenScap is successful.
+    :customerscenario: true
 
-        :CaseImportance: Critical
-        """
-        content_name = gen_string('alpha')
-        with Session(self) as session:
-            make_oscapcontent(
-                session,
-                name=content_name,
-                content_path=self.content_path,
-            )
-            self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
-            for policy_name in valid_data_list():
-                with self.subTest(policy_name):
-                    make_oscappolicy(
-                        session,
-                        content=content_name,
-                        name=policy_name,
-                        period=OSCAP_PERIOD['weekly'],
-                        profile=OSCAP_PROFILE['c2s_rhel6'],
-                        period_value=OSCAP_WEEKDAY['friday'],
-                    )
-                    self.assertIsNotNone(
-                        self.oscappolicy.search(policy_name))
-                    self.oscappolicy.delete(policy_name, dropdown_present=True)
+    :Steps:
 
-    @tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create OpenScap Policy with negative values.
+        1. Create new host group
+        2. Create new host using host group from step 1
+        3. Create an openscap content.
+        4. Create an openscap Policy using host group from step 1
 
-        :id: dfebf26b-194f-473d-b5a6-9061c520f57e
+    :expectedresults: Policy dashboard rendered properly and has necessary
+        data
 
-        :Steps:
+    :BZ: 1424936
 
-            1. Create an openscap content.
-            2. Create an openscap Policy.
-            3. Provide all the appropriate parameters.
+    :CaseLevel: Integration
 
-        :expectedresults: Creating  Policy for OpenScap is not successful.
-
-        :BZ: 1293296
-
-        :CaseImportance: Critical
-        """
-        content_name = gen_string('alpha')
-        with Session(self) as session:
-            make_oscapcontent(
-                session,
-                name=content_name,
-                content_path=self.content_path,
-            )
-            self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
-            for policy_name in invalid_values_list(interface='ui'):
-                with self.subTest(policy_name):
-                    make_oscappolicy(
-                        session,
-                        content=content_name,
-                        name=policy_name,
-                        period=OSCAP_PERIOD['weekly'],
-                        profile=OSCAP_PROFILE['c2s_rhel6'],
-                        period_value=OSCAP_WEEKDAY['friday'],
-                    )
-                    self.assertIsNone(self.oscappolicy.search(policy_name))
-
-    @tier1
-    def test_positive_update(self):
-        """Update OpenScap Policy.
-
-        :id: 58392782-ab25-4c12-aebc-adf23c5d9d43
-
-        :Steps:
-
-            1. Create an openscap content.
-            2. Create an openscap Policy.
-            3. Provide all the appropriate parameters.
-            4. Update openscap policy with valid values.
-
-        :expectedresults: Updating Policy for OpenScap is successful.
-
-        :CaseImportance: Critical
-        """
-        content_name = gen_string('alpha')
-        policy_name = gen_string('alpha')
-        with Session(self) as session:
-            make_oscapcontent(
-                session,
-                name=content_name,
-                content_path=self.content_path,
-            )
-            self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
-            make_oscappolicy(
-                session,
-                content=content_name,
-                name=policy_name,
-                period=OSCAP_PERIOD['weekly'],
-                profile=OSCAP_PROFILE['c2s_rhel6'],
-                period_value=OSCAP_WEEKDAY['friday'],
-            )
-            self.assertIsNotNone(
-                self.oscappolicy.search(policy_name))
-            for new_policy_name in valid_data_list():
-                with self.subTest(new_policy_name):
-                    self.oscappolicy.update(
-                        name=policy_name,
-                        new_name=new_policy_name,
-                        content=content_name,
-                        profile=OSCAP_PROFILE['esp'],
-                        period=OSCAP_PERIOD['weekly'],
-                        period_value=OSCAP_WEEKDAY['sunday'],
-                    )
-                    self.assertIsNotNone(
-                        self.oscappolicy.search(new_policy_name))
-                    policy_name = new_policy_name
-
-    @tier1
-    def test_positive_create_with_space_policy_name(self):
-        """Create OpenScap Policy with a space in its name.
-
-        :id: a45ec231-0ca9-4719-9239-eef0355822dc
-
-        :Steps:
-
-            1. Create an openscap content.
-            2. Create an openscap Policy.
-            3. Provide openscap policy name with space in it.
-            4. Provide all other the appropriate parameters.
-
-        :expectedresults: Creation of Policy with a space in its name is
-            successful.
-
-        :BZ: 1292622
-
-        :CaseImportance: Critical
-        """
-        content_name = gen_string('alpha')
-        with Session(self) as session:
-            make_oscapcontent(
-                session,
-                name=content_name,
-                content_path=self.content_path,
-            )
-            self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
-            policy_name = "Test policy"
-            with self.subTest(policy_name):
-                make_oscappolicy(
-                    session,
-                    content=content_name,
-                    name=policy_name,
-                    period=OSCAP_PERIOD['weekly'],
-                    profile=OSCAP_PROFILE['c2s_rhel6'],
-                    period_value=OSCAP_WEEKDAY['friday'],
-                )
-                self.assertIsNotNone(
-                    self.oscappolicy.search(policy_name))
+    :CaseImportance: Critical
+    """
+    name = gen_string('alpha')
+    oscap_content_title = gen_string('alpha')
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    content_view = entities.ContentView(organization=module_org).create()
+    content_view.publish()
+    content_view = content_view.read()
+    promote(content_view.version[0], environment_id=lce.id)
+    entities.Host(
+        hostgroup=module_host_group,
+        location=module_loc,
+        organization=module_org,
+        content_facet_attributes={
+            'content_view_id': content_view.id,
+            'lifecycle_environment_id': lce.id,
+        },
+    ).create()
+    with session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.oscapcontent.create({
+            'file_upload.title': oscap_content_title,
+            'file_upload.scap_file': oscap_content_path,
+        })
+        session.oscappolicy.create({
+            'create_policy.name': name,
+            'scap_content.scap_content_resource': oscap_content_title,
+            'scap_content.xccdf_profile': 'C2S for Red Hat Enterprise Linux 6',
+            'schedule.period': 'Weekly',
+            'schedule.period_selection.weekday': 'Friday',
+            'locations.resources.assigned': [module_loc.name],
+            'organizations.resources.assigned': [module_org.name],
+            'host_group.resources.assigned': [module_host_group.name]
+        })
+        policy_details = session.oscappolicy.details(name)
+        assert policy_details['HostsBreakdownStatus']['total_count'] == 1
+        host_breakdown_chart = policy_details[
+            'HostBreakdownChart']['hosts_breakdown'].split(" ", 1)
+        assert host_breakdown_chart[0] == '100%'
+        assert host_breakdown_chart[1] == 'Not audited'

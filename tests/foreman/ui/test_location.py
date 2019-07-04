@@ -16,260 +16,332 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_string
+from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
-from robottelo.datafactory import (
-    filtered_datapoint,
-    generate_strings_list,
-    invalid_values_list,
+
+from robottelo.config import settings
+from robottelo.constants import (
+    ANY_CONTEXT,
+    INSTALL_MEDIUM_URL,
+    LIBVIRT_RESOURCE_URL,
 )
 from robottelo.decorators import (
-    run_only_on,
-    tier1,
-    upgrade,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier2,
 )
-from robottelo.constants import (
-    DEFAULT_ORG,
-)
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_loc
-from robottelo.ui.locators import common_locators, locators, tab_locators
-from robottelo.ui.session import Session
 
 
-@filtered_datapoint
-def valid_org_loc_data():
-    """Returns a list of valid org/location data"""
-    return [
-        {'org_name': gen_string('alpha', 242),
-         'loc_name': gen_string('alpha', 242)},
-        {'org_name': gen_string('numeric', 242),
-         'loc_name': gen_string('numeric', 242)},
-        {'org_name': gen_string('alphanumeric', 242),
-         'loc_name': gen_string('alphanumeric', 242)},
-        {'org_name': gen_string('utf8', 80),
-         'loc_name': gen_string('utf8', 80)},
-        {'org_name': gen_string('latin1', 242),
-         'loc_name': gen_string('latin1', 242)},
-        {'org_name': gen_string('html', 217),
-         'loc_name': gen_string('html', 217)}
-    ]
+@tier2
+def test_positive_update_subnet(session):
+    """Add/Remove subnet from/to location
+
+    :id: fe70ffba-e594-48d5-b2c5-be93e827cc60
+
+    :expectedresults: subnet is added and removed from the location
+
+    :CaseLevel: Integration
+    """
+    ip_addres = gen_ipaddr(ip3=True)
+    subnet = entities.Subnet(
+        network=ip_addres,
+        mask='255.255.255.0',
+    ).create()
+    loc = entities.Location().create()
+    with session:
+        subnet_name = '{0} ({1}/{2})'.format(
+            subnet.name, subnet.network, subnet.cidr)
+        session.location.update(
+            loc.name, {'subnets.resources.assigned': [subnet_name]})
+        loc_values = session.location.read(loc.name)
+        assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
+        session.location.update(
+            loc.name, {'subnets.resources.unassigned': [subnet_name]})
+        loc_values = session.location.read(loc.name)
+        assert len(loc_values['subnets']['resources']['assigned']) == 0
+        assert subnet_name in loc_values['subnets']['resources']['unassigned']
 
 
-@filtered_datapoint
-def valid_env_names():
-    """Returns a list of valid environment names"""
-    return [
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-    ]
+@tier2
+def test_positive_update_domain(session):
+    """Add/Remove domain from/to a Location
+
+    :id: 4f50f5cb-64eb-4790-b4c5-62d67669f48f
+
+    :expectedresults: Domain is added and removed from the location
+
+    :CaseLevel: Integration
+    """
+    domain = entities.Domain().create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name, {'domains.resources.assigned': [domain.name]})
+        loc_values = session.location.read(loc.name)
+        assert loc_values['domains']['resources']['assigned'][0] == domain.name
+        session.location.update(
+            loc.name, {'domains.resources.unassigned': [domain.name]})
+        loc_values = session.location.read(loc.name)
+        assert len(loc_values['domains']['resources']['assigned']) == 0
+        assert domain.name in loc_values['domains']['resources']['unassigned']
 
 
-class LocationTestCase(UITestCase):
-    """Implements Location tests in UI"""
-    location = None
+@tier2
+def test_positive_update_user(session):
+    """Add new user and then remove it from location
 
-    @classmethod
-    def setUpClass(cls):
-        """Set up an organization for tests."""
-        super(LocationTestCase, cls).setUpClass()
-        cls.org_ = entities.Organization().search(query={
-            'search': 'name="{0}"'.format(DEFAULT_ORG)
-        })[0]
+    :id: bf9b3fc2-6193-4edc-aaec-cd7b87f0804c
 
-    # Auto Search
+    :expectedresults: User successfully added and then removed from
+        location resources
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_auto_search(self):
-        """Can auto-complete search for location by partial name
+    :CaseLevel: Integration
+    """
+    user = entities.User().create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name, {'users.resources.assigned': [user.login]})
+        loc_values = session.location.read(loc.name)
+        assert loc_values['users']['resources']['assigned'][0] == user.login
+        session.location.update(
+            loc.name, {'users.resources.unassigned': [user.login]})
+        loc_values = session.location.read(loc.name)
+        assert len(loc_values['users']['resources']['assigned']) == 0
+        assert user.login in loc_values['users']['resources']['unassigned']
 
-        :id: 6aaf104b-481a-4dd9-8639-8ddb1e4d6828
 
-        :expectedresults: Created location can be auto search by its partial
-            name
+@skip_if_bug_open('bugzilla', 1321543)
+@tier2
+def test_positive_update_with_all_users(session):
+    """Create location and add user to it. Check and uncheck 'all users'
+    setting. Verify that user is assigned to location and vice versa
+    location is assigned to user
 
-        :CaseImportance: Critical
-        """
-        loc_name = gen_string('alpha')
-        with Session(self) as session:
-            page = session.nav.go_to_loc
-            make_loc(session, name=loc_name)
-            auto_search = self.location.auto_complete_search(
-                page,
-                locators['location.select_name'],
-                loc_name[:3],
-                loc_name,
-                search_key='name'
-            )
-            self.assertIsNotNone(auto_search)
+    :id: 17f85968-4aa6-4e2e-82d9-b01bc17031e7
 
-    # Positive Create
+    :customerscenario: true
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create Location with valid name only
+    :expectedresults: Location and user entities assigned to each other
 
-        :id: 92b23082-09e4-49e1-92e1-d6d89d5180ac
+    :BZ: 1479736
 
-        :expectedresults: Location is created, label is auto-generated
+    :CaseLevel: Integration
+    """
+    user = entities.User().create()
+    loc = entities.Location().create()
+    with session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=loc.name)
+        session.location.update(
+            loc.name, {'users.resources.assigned': [user.login]})
+        loc_values = session.location.read(loc.name)
+        user_values = session.user.read(user.login)
+        assert loc_values['users']['resources']['assigned'][0] == user.login
+        assert user_values['locations']['resources']['assigned'][0] == loc.name
+        session.location.update(loc.name, {'users.all_users': True})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['assigned']
+        session.location.update(loc.name, {'users.all_users': False})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['unassigned']
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for loc_name in generate_strings_list():
-                with self.subTest(loc_name):
-                    make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_invalid_names(self):
-        """Create location with invalid name
+@skip_if_bug_open('bugzilla', 1321543)
+@tier2
+def test_positive_update_with_all_users_setting_only(session):
+    """Create location and do not add user to it. Check and uncheck
+    'all users' setting. Verify that for both operation expected location
+    is assigned to user
 
-        :id: 85f05458-b86c-4d94-a412-ea03412c4588
+    :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
 
-        :expectedresults: location is not created
+    :expectedresults: Location entity is assigned to user after checkbox
+        was enabled and then disabled afterwards
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for loc_name in invalid_values_list(interface='ui'):
-                with self.subTest(loc_name):
-                    make_loc(session, name=loc_name)
-                    error = session.nav.wait_until_element(
-                        common_locators['name_haserror'])
-                    self.assertIsNotNone(error)
+    :BZ: 1321543
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Create location with valid values, then create a new one with same
-        values.
+    :CaseLevel: Integration
+    """
+    user = entities.User().create()
+    loc = entities.Location().create()
+    with session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=loc.name)
+        session.location.update(loc.name, {'users.all_users': True})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['assigned']
+        session.location.update(loc.name, {'users.all_users': False})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['unassigned']
 
-        :id: 33983f00-406b-4289-b9e2-ffe6901bf99d
 
-        :expectedresults: location is not created
+@tier2
+def test_positive_update_hostgroup(session):
+    """Add/Remove host group from/to location.
 
-        :CaseImportance: Critical
-        """
-        loc_name = gen_string('utf8')
-        with Session(self) as session:
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
-            make_loc(session, name=loc_name)
-            error = session.nav.wait_until_element(
-                common_locators['name_haserror'])
-            self.assertIsNotNone(error)
+    :id: e998d20c-e201-4675-b45f-8768f59584da
 
-    # Positive Update
+    :expectedresults: hostgroup is removed and then added to the location
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_name(self):
-        """Create Location with valid values then update its name
+    :CaseLevel: Integration
+    """
+    hostgroup = entities.HostGroup().create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name,
+            {'host_groups.all_hostgroups': False,
+             'host_groups.resources.unassigned': [hostgroup.name]}
+        )
 
-        :id: 79d8dbbb-9b7f-4482-a0f5-4fe72713d575
+        loc_values = session.location.read(loc.name)
+        assert loc_values[
+            'host_groups']['resources']['unassigned'][0] == hostgroup.name
+        session.location.update(
+            loc.name, {'host_groups.resources.assigned': [hostgroup.name]})
+        new_loc_values = session.location.read(loc.name)
+        assert len(new_loc_values['host_groups']['resources']['assigned']) == \
+            len(loc_values['host_groups']['resources']['assigned']) + 1
+        assert hostgroup.name in new_loc_values[
+            'host_groups']['resources']['assigned']
 
-        :expectedresults: Location name is updated
 
-        :CaseImportance: Critical
-        """
-        loc_name = gen_string('alpha')
-        with Session(self) as session:
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
-            for new_name in generate_strings_list():
-                with self.subTest(new_name):
-                    self.location.update(loc_name, new_name=new_name)
-                    self.assertIsNotNone(self.location.search(new_name))
-                    loc_name = new_name  # for next iteration
+@tier2
+def test_positive_add_org(session):
+    """Add a organization by using the location name
 
-    # Negative Update
+    :id: 27d56d64-6866-46b6-962d-1ac2a11ae136
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_update_with_too_long_name(self):
-        """Create Location with valid values then fail to update
-        its name
+    :expectedresults: organization is added to location
 
-        :id: 57fed455-47f0-4b7c-a58e-3d8f6d761da9
+    :CaseLevel: Integration
+    """
+    org = entities.Organization().create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name, {'organizations.resources.assigned': [org.name]})
+        loc_values = session.location.read(loc.name)
+        assert loc_values[
+            'organizations']['resources']['assigned'][0] == org.name
 
-        :expectedresults: Location name is not updated
 
-        :CaseImportance: Critical
-        """
-        loc_name = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
-            new_name = gen_string('alpha', 247)
-            self.location.update(loc_name, new_name=new_name)
-            error = session.nav.wait_until_element(
-                common_locators['name_haserror'])
-            self.assertIsNotNone(error)
+@tier2
+def test_update_environment(session):
+    """Add/Remove environment from/to location
 
-    @run_only_on('sat')
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Create location with valid values then delete it.
+    :id: bbca1af0-a31f-4096-bc6e-bb341ffed575
 
-        :id: b7664152-9398-499c-b165-3107f4350ba4
+    :expectedresults: environment is added and removed from the location
 
-        :expectedresults: Location is deleted
+    :CaseLevel: Integration
+    """
+    env = entities.Environment().create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name, {'environments.resources.assigned': [env.name]})
+        loc_values = session.location.read(loc.name)
+        assert loc_values[
+            'environments']['resources']['assigned'][0] == env.name
+        session.location.update(
+            loc.name, {'environments.resources.unassigned': [env.name]})
+        loc_values = session.location.read(loc.name)
+        assert len(loc_values['environments']['resources']['assigned']) == 0
+        assert env.name in loc_values[
+            'environments']['resources']['unassigned']
 
-        :CaseImportance: Critical
-        """
-        with Session(self):
-            for loc_name in generate_strings_list():
-                with self.subTest(loc_name):
-                    entities.Location(name=loc_name).create()
-                    self.location.delete(loc_name, dropdown_present=True)
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_check_all_values_hostgroup(self):
-        """check whether host group has the 'All values' checked.
+@skip_if_not_set('compute_resources')
+@tier2
+def test_positive_update_compresource(session):
+    """Add/Remove compute resource from/to location
 
-        :id: ca2f2522-ba34-4d20-87f4-7777ec9a1282
+    :id: 1d24414a-666d-490d-89b9-cd0704684cdd
 
-        :expectedresults: host group 'All values' checkbox is checked.
+    :expectedresults: compute resource is added and removed from the location
 
-        :CaseImportance: Critical
-        """
-        loc_name = gen_string('alpha')
-        with Session(self) as session:
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
-            selected = self.location.check_all_values(
-                session.nav.go_to_loc,
-                loc_name,
-                locators['location.select_name'],
-                tab_locators['context.tab_hostgrps'],
-                context='location',
-            )
-            self.assertIsNotNone(selected)
+    :CaseLevel: Integration
+    """
+    url = (
+            LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname)
+    resource = entities.LibvirtComputeResource(url=url).create()
+    resource_name = resource.name + ' (Libvirt)'
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name,
+            {'compute_resources.resources.assigned': [resource_name]}
+        )
+        loc_values = session.location.read(loc.name)
+        assert loc_values['compute_resources'][
+                   'resources']['assigned'][0] == resource_name
+        session.location.update(
+            loc.name,
+            {'compute_resources.resources.unassigned': [resource_name]}
+        )
+        loc_values = session.location.read(loc.name)
+        assert len(
+            loc_values['compute_resources']['resources']['assigned']) == 0
+        assert resource_name in loc_values[
+            'compute_resources']['resources']['unassigned']
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_check_all_values_template(self):
-        """check whether config template has the 'All values' checked.
 
-        :id: 358cf1c0-4187-4b5a-b900-5971e708b83f
+@tier2
+def test_positive_update_medium(session):
+    """Add/Remove medium from/to location
 
-        :expectedresults: configtemplate 'All values' checkbox is checked.
+    :id: 738c5ff1-ef09-466f-aaac-64f194cac78d
 
-        :CaseImportance: Critical
-        """
-        loc_name = gen_string('alpha')
-        with Session(self) as session:
-            page = session.nav.go_to_loc
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
-            selected = self.location.check_all_values(
-                page, loc_name, locators['location.select_name'],
-                tab_locators['context.tab_template'], context='location')
-            self.assertIsNotNone(selected)
+    :expectedresults: medium is added and removed from the location
+
+    :CaseLevel: Integration
+    """
+    media = entities.Media(
+        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
+        os_family='Redhat',
+    ).create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name, {'media.resources.assigned': [media.name]})
+        loc_values = session.location.read(loc.name)
+        assert loc_values['media']['resources']['assigned'][0] == media.name
+        session.location.update(
+            loc.name, {'media.resources.unassigned': [media.name]})
+        loc_values = session.location.read(loc.name)
+        assert len(loc_values['media']['resources']['assigned']) == 0
+        assert media.name in loc_values['media']['resources']['unassigned']
+
+
+@tier2
+def test_positive_update_template(session):
+    """Add/Remove template from/to location
+
+    :id: 8faf60d1-f4d6-4a58-a484-606a42957ce7
+
+    :expectedresults: config template is removed and then added to the location
+
+    :CaseLevel: Integration
+    """
+    template = entities.ProvisioningTemplate().create()
+    loc = entities.Location().create()
+    with session:
+        session.location.update(
+            loc.name,
+            {'provisioning_templates.all_templates': False,
+             'provisioning_templates.resources.unassigned': [template.name]}
+        )
+        loc_values = session.location.read(loc.name)
+        assert loc_values['provisioning_templates']['resources'][
+                   'unassigned'][0] == template.name
+        session.location.update(loc.name, {
+            'provisioning_templates.resources.assigned': [template.name]})
+        new_loc_values = session.location.read(loc.name)
+        assert len(new_loc_values[
+                       'provisioning_templates']['resources']['assigned']) == \
+            len(loc_values[
+                    'provisioning_templates']['resources']['assigned']) + 1
+        assert template.name in new_loc_values[
+            'provisioning_templates']['resources']['assigned']

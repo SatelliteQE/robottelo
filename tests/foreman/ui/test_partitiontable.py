@@ -16,279 +16,172 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+from pytest import raises
+
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_names_list,
-    invalid_values_list,
-)
-from robottelo.decorators import (
-    run_only_on,
-    tier1,
-    upgrade
-)
+from robottelo.decorators import tier2
 from robottelo.helpers import get_data_file
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_partitiontable
-from robottelo.ui.locators import common_locators
-from robottelo.ui.session import Session
 
 PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 
 
-class PartitionTableTestCase(UITestCase):
-    """Implements the partition table tests from UI"""
+@tier2
+def test_positive_create_default_for_organization(session):
+    """Create new partition table with enabled 'default' option. Check
+    that newly created organization has that partition table assigned to it
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_one_character_name(self):
-        """Create a Partition table with 1 character in name
+    :id: 91c64054-cd0c-4d4b-888b-17d42e298527
 
-        :id: 2b8ee84f-34d4-464f-8fcb-4dd9647e43f0
+    :expectedresults: New partition table is created and is present in the
+        list of selected partition tables for any new organization
 
-        :expectedresults: Partition table is created
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    org_name = gen_string('alpha')
+    with session:
+        session.partitiontable.create({
+            'name': name,
+            'default': True,
+            'template': PARTITION_SCRIPT_DATA_FILE
+        })
+        session.organization.create({'name': org_name})
+        session.organization.select(org_name)
+        assert session.partitiontable.search(name)[0]['Name'] == name
 
-        :BZ: 1229384
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in generate_strings_list(length=1):
-                with self.subTest(name):
-                    make_partitiontable(
-                        session,
-                        name=name,
-                        template_path=PARTITION_SCRIPT_DATA_FILE,
-                        os_family='Red Hat'
-                    )
-                    self.assertIsNotNone(self.partitiontable.search(name))
+@tier2
+def test_positive_create_custom_organization(session):
+    """Create new partition table with disabled 'default' option. Check
+    that newly created organization does not contain that partition table.
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create a new partition table
+    :id: 69e6df0f-af1f-4aa2-8987-3e3b9a16be37
 
-        :id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
+    :expectedresults: New partition table is created and is not present in
+        the list of selected partition tables for any new organization
 
-        :customerscenario: true
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    org_name = gen_string('alpha')
+    with session:
+        session.partitiontable.create({
+            'name': name,
+            'default': False,
+            'template': PARTITION_SCRIPT_DATA_FILE
+        })
+        session.organization.create({'name': org_name})
+        session.organization.select(org_name)
+        assert not session.partitiontable.search(name)
 
-        :expectedresults: Partition table is created
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in generate_strings_list():
-                with self.subTest(name):
-                    make_partitiontable(
-                        session,
-                        name=name,
-                        template_path=PARTITION_SCRIPT_DATA_FILE,
-                        os_family='Red Hat',
-                    )
-                    self.assertIsNotNone(self.partitiontable.search(name))
+@tier2
+def test_positive_create_default_for_location(session):
+    """Create new partition table with enabled 'default' option. Check
+    that newly created location has that partition table assigned to it
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_snippet(self):
-        """Create a new partition table with enabled snippet option
+    :id: 8dfaae7c-2f33-4f0d-93f6-1f78ea4d750d
 
-        :id: 37bb748a-63d1-4d88-954f-71634168072a
+    :expectedresults: New partition table is created and is present in the
+        list of selected partition tables for any new location
 
-        :expectedresults: Partition table is created
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    loc_name = gen_string('alpha')
+    with session:
+        session.partitiontable.create({
+            'name': name,
+            'default': True,
+            'template': PARTITION_SCRIPT_DATA_FILE
+        })
+        session.location.create({'name': loc_name})
+        session.location.select(loc_name)
+        assert session.partitiontable.search(name)[0]['Name'] == name
 
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                snippet=True,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_audit_comment(self):
-        """Create a new partition table with some text inputted into audit
-        comment section
+@tier2
+def test_positive_create_custom_location(session):
+    """Create new partition table with disabled 'default' option. Check
+    that newly created location does not contain that partition table.
 
-        :id: f17e16ff-b07f-44ec-a824-b9af460c35aa
+    :id: 094d4583-763b-48d4-a89a-23b90741fd6f
 
-        :expectedresults: Partition table is created
+    :expectedresults: New partition table is created and is not present in
+        the list of selected partition tables for any new location
 
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha')
-        with Session(self) as session:
-            for comment_text in generate_strings_list():
-                with self.subTest(comment_text):
-                    make_partitiontable(
-                        session,
-                        name=name,
-                        template_path=PARTITION_SCRIPT_DATA_FILE,
-                        audit_comment=comment_text,
-                    )
-                    self.assertIsNotNone(self.partitiontable.search(name))
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    loc_name = gen_string('alpha')
+    with session:
+        session.partitiontable.create({
+            'name': name,
+            'default': False,
+            'template': PARTITION_SCRIPT_DATA_FILE
+        })
+        session.location.create({'name': loc_name})
+        session.location.select(loc_name)
+        assert not session.partitiontable.search(name)
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create partition table with invalid names
 
-        :id: 225f1bb9-d5b2-4863-b89b-416f7cf5a7be
+@tier2
+def test_positive_delete_with_lock_and_unlock(session):
+    """Create new partition table and lock it, try delete unlock and retry
 
-        :expectedresults: Partition table is not created
+    :id: a5143f5b-7c8e-4700-a850-01815bb54760
 
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in invalid_values_list(interface='ui'):
-                with self.subTest(name):
-                    make_partitiontable(
-                        session,
-                        name=name,
-                        template_path=PARTITION_SCRIPT_DATA_FILE,
-                        os_family='Red Hat',
-                    )
-                    self.assertIsNotNone(
-                        self.partitiontable.wait_until_element(
-                            common_locators['name_haserror'])
-                    )
+    :expectedresults: New partition table is created and not deleted when
+        locked and only deleted after unlock
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Create a new partition table with same name
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    audit_comment = gen_string('alpha')
+    with session:
+        session.partitiontable.create({
+            'name': name,
+            'default': True,
+            'snippet': True,
+            'audit_comment': audit_comment,
+            'template': PARTITION_SCRIPT_DATA_FILE
+        }, )
+        assert session.partitiontable.search(name)[0]['Name'] == name
+        session.partitiontable.lock(name)
+        with raises(ValueError):
+            session.partitiontable.delete(name)
+        session.partitiontable.unlock(name)
+        session.partitiontable.delete(name)
+        assert not session.partitiontable.search(name)
 
-        :id: 3462ff33-1645-41c1-8fbd-513c7e4a18ed
 
-        :expectedresults: Partition table is not created
+@tier2
+def test_positive_clone(session):
+    """Create new partition table and clone it
 
-        :CaseImportance: Critical
-        """
-        name = gen_string('utf8')
-        os_family = 'Red Hat'
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                os_family=os_family,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                os_family=os_family,
-            )
-            self.assertIsNotNone(self.partitiontable.wait_until_element(
-                common_locators['name_haserror']))
+    :id: 6050f66f-82e0-4694-a482-5ea449ed9a9d
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_empty_layout(self):
-        """Create a new partition table with empty layout
+    :expectedresults: New partition table is created and cloned successfully
 
-        :id: 427bce9b-c38e-4d78-943f-3cc7f422ebcd
-
-        :expectedresults: Partition table is not created
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('utf8')
-        with Session(self) as session:
-            make_partitiontable(
-                session, name=name, template_path='', os_family='Red Hat')
-            self.assertIsNotNone(self.partitiontable.wait_until_element(
-                common_locators['haserror']))
-            self.assertIsNone(self.partitiontable.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Delete a partition table
-
-        :id: 405ed98a-4207-4bf8-899e-dcea7791850e
-
-        :customerscenario: true
-
-        :expectedresults: Partition table is deleted
-
-        :CaseImportance: Critical
-        """
-        with Session(self) as session:
-            for name in generate_strings_list():
-                with self.subTest(name):
-                    make_partitiontable(
-                        session,
-                        name=name,
-                        template_path=PARTITION_SCRIPT_DATA_FILE,
-                        os_family='Red Hat',
-                    )
-                    self.partitiontable.delete(name, dropdown_present=True)
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update(self):
-        """Update partition table with its name, layout and OS family
-
-        :id: 63203508-7c73-4ce0-853e-64564167bec3
-
-        :customerscenario: true
-
-        :expectedresults: Partition table is updated
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-                os_family='Debian',
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            for new_name in generate_strings_list():
-                with self.subTest(new_name):
-                    self.partitiontable.update(
-                        old_name=name,
-                        new_name=new_name,
-                        new_template_path=PARTITION_SCRIPT_DATA_FILE,
-                        new_os_family='Red Hat',
-                    )
-                    self.assertIsNotNone(self.partitiontable.search(new_name))
-                    name = new_name  # for next iteration
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_update_name(self):
-        """Update invalid name in partition table
-
-        :id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
-
-        :expectedresults: Partition table is not updated.  Appropriate error
-            shown.
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alphanumeric')
-        with Session(self) as session:
-            make_partitiontable(
-                session,
-                name=name,
-                template_path=PARTITION_SCRIPT_DATA_FILE,
-            )
-            self.assertIsNotNone(self.partitiontable.search(name))
-            for new_name in invalid_names_list():
-                with self.subTest(new_name):
-                    self.partitiontable.update(name, new_name=new_name)
-                    self.assertIsNotNone(
-                        self.partitiontable.wait_until_element(
-                            common_locators['name_haserror'])
-                    )
-                    self.assertIsNone(self.partitiontable.search(new_name))
+    :CaseLevel: Integration
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    audit_comment = gen_string('alpha')
+    os_family_selection = {'os_family': 'Red Hat'}
+    with session:
+        session.partitiontable.create({
+            'name': name,
+            'template': PARTITION_SCRIPT_DATA_FILE}
+        )
+        session.partitiontable.clone({
+            'name': new_name,
+            'default': True,
+            'snippet': False,
+            'os_family_selection': os_family_selection,
+            'audit_comment': audit_comment,
+        }, name)
+        pt = session.partitiontable.read(new_name)
+        assert pt['os_family_selection']['os_family'] == \
+            os_family_selection['os_family']
+        assert pt['name'] == new_name
