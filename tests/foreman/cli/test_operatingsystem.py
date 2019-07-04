@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Hosts-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 

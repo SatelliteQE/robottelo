@@ -5,9 +5,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Hosts-Content
+:CaseComponent: GPGKeys
 
 :TestType: Functional
 
@@ -54,8 +54,6 @@ def test_positive_end_to_end(session, module_org, gpg_content):
     :expectedresults: All expected CRUD actions finished successfully
 
     :CaseLevel: Integration
-
-    :CaseImportance: High
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -104,8 +102,6 @@ def test_positive_search_scoped(session, gpg_content):
     :expectedresults: correct gpg key is found
 
     :BZ: 1259374
-
-    :CaseImportance: High
     """
     name = gen_string('alpha')
     org = entities.Organization().create()
