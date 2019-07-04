@@ -11,65 +11,72 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Low
 
 :Upstream: No
 """
-
+from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, upgrade
-from robottelo.test import UITestCase
-from robottelo.ui.session import Session
+from pytest import raises
+
+from robottelo.decorators import fixture, tier2, upgrade
 
 
-class PuppetClassTestCase(UITestCase):
-    """Implements puppet classes tests in UI."""
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_description(self):
-        """Create new puppet-class and update its description to a valid
-        one
 
-        :id: 711fe4de-b62f-48b5-9845-2d8725eb3548
+@fixture(scope='module')
+def module_loc(module_org):
+    return entities.Location(organization=[module_org]).create()
 
-        :expectedresults: Puppet-Classes is updated successfully.
 
-        :CaseImportance: Critical
-        """
-        class_name = 'foreman_scap_client'
-        param_name = 'ca_file'
-        with Session(self):
-            for description in valid_data_list():
-                with self.subTest(description):
-                    # Importing puppet classes from puppet-foreman_scap_client
-                    # module for update process
-                    if self.puppetclasses.search(class_name) is None:
-                        self.puppetclasses.import_scap_client_puppet_classes()
-                    self.assertIsNotNone(self.puppetclasses.search(class_name))
-                    self.puppetclasses.update_class_parameter(
-                        class_name, param_name, description=description)
-                    self.assertEqual(
-                        description,
-                        self.puppetclasses.fetch_class_parameter_description(
-                            class_name, param_name)
-                    )
+@tier2
+@upgrade
+def test_positive_end_to_end(session, module_org, module_loc):
+    """Perform end to end testing for puppet class component
 
-    @run_only_on('sat')
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Create new puppet-class and then delete it
+    :id: f837eec0-101c-4aff-a270-652005bdee51
 
-        :id: 0d6e579e-8a7a-46a1-9932-5f345905671d
+    :expectedresults: All expected CRUD actions finished successfully
 
-        :expectedresults: Puppet-Class is deleted successfully.
+    :CaseLevel: Integration
 
-        :CaseImportance: Critical
-        """
-        with Session(self):
-            for name in valid_data_list():
-                with self.subTest(name):
-                    entities.PuppetClass(name=name).create()
-                    self.puppetclasses.delete(name)
+    :CaseImportance: High
+    """
+    variable_name = gen_string('alpha')
+    name = gen_string('alpha')
+    hostgroup = entities.HostGroup(
+        organization=[module_org], location=[module_loc]).create()
+    puppet_class = entities.PuppetClass(name=name).create()
+    entities.SmartVariable(variable=variable_name, puppetclass=puppet_class).create()
+    with session:
+        # Check that created puppet class can be found in UI
+        assert session.puppetclass.search(name)[0]['Class name'] == name
+        # Read puppet class values and check that they are expected
+        pc_values = session.puppetclass.read(name)
+        assert pc_values['puppet_class']['name'] == name
+        assert not pc_values['puppet_class']['puppet_environment']
+        assert not pc_values['puppet_class']['host_group']['assigned']
+        assert pc_values['smart_variables']['variable']['key'] == variable_name
+        # Update puppet class
+        session.puppetclass.update(
+            puppet_class.name,
+            {'puppet_class.host_group.assigned': [hostgroup.name]}
+        )
+        pc_values = session.puppetclass.read(name)
+        assert pc_values['puppet_class']['host_group']['assigned'] == [hostgroup.name]
+        # Make an attempt to delete puppet class that associated with host group
+        with raises(AssertionError) as context:
+            session.puppetclass.delete(name)
+        assert "error: '{} is used by {}'".format(
+            puppet_class.name, hostgroup.name) in str(context.value)
+        # Unassign puppet class from host group
+        session.puppetclass.update(
+            puppet_class.name,
+            {'puppet_class.host_group.unassigned': [hostgroup.name]}
+        )
+        # Delete puppet class
+        session.puppetclass.delete(name)
+        assert not session.puppetclass.search(name)

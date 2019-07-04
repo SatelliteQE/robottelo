@@ -1,6 +1,8 @@
-"""Test for compute resource UI
+"""Test for Compute Resource UI
 
-:Requirement: Computeresource EC2
+:Requirement: Computeresource RHV
+
+:CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
@@ -12,436 +14,157 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+from nailgun import entities
+from pytest import skip
 
 from robottelo.config import settings
 from robottelo.constants import (
+    AWS_EC2_FLAVOR_T2_MICRO,
     COMPUTE_PROFILE_LARGE,
-    FOREMAN_PROVIDERS,
+    DEFAULT_LOC_ID,
+    EC2_REGION_CA_CENTRAL_1,
+    FOREMAN_PROVIDERS
 )
-from robottelo.decorators import (
-    run_only_on,
-    skip_if_bug_open,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_resource
-from robottelo.ui.session import Session
-
-
-class Ec2ComputeResourceTestCase(UITestCase):
-    """Implements EC2 compute resource tests in UI"""
-
-    @classmethod
-    @skip_if_not_set('ec2')
-    def setUpClass(cls):
-        super(Ec2ComputeResourceTestCase, cls).setUpClass()
-        cls.aws_access_key = settings.ec2.access_key
-        cls.aws_secret_key = settings.ec2.secret_key
-        cls.aws_region = settings.ec2.region
-        cls.aws_image = settings.ec2.image
-        cls.aws_availability_zone = settings.ec2.availability_zone
-        cls.aws_subnet = settings.ec2.subnet
-        cls.aws_security_groups = settings.ec2.security_groups
-        cls.aws_managed_ip = settings.ec2.managed_ip
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_ec2_with_name(self):
-        """Create a new ec2 compute resource with valid name
-
-        :id: 4c74d04a-a276-4d6a-b080-77b2b64942ef
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a valid name to ec2 compute resource.
-            4. Test the connection using Load Regions and submit.
-
-        :expectedresults: An ec2 compute resource is created
-            successfully.
-
-        :CaseAutomation: Automated
-
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['Access Key', self.aws_access_key, 'field'],
-            ['Secret Key', self.aws_secret_key, 'field'],
-            ['Region', self.aws_region, 'special select']
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['ec2'],
-                parameter_list=parameter_list
-            )
-            self.assertIsNotNone(self.compute_resource.search(name))
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_create_ec2_with_description(self):
-        """Create ec2 compute resource with description.
-
-        :id: bca54de0-ac53-432c-85af-6f5b842cd10b
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a valid description to ec2 compute resource.
-            4. Test the connection using Load Regions and submit.
-
-        :expectedresults: An ec2 compute resource is created successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_negative_create_ec2_with_invalid_name(self):
-        """Create a new ec2 compute resource with invalid names.
-
-        :id: 36e48e72-e6fa-4b1a-add8-90810902e976
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a invalid name to ec2 compute resource.
-            4. Test the connection using Load Regions and submit.
-
-        :expectedresults: An ec2 compute resource is not created
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_update_ec2_name(self):
-        """Update An ec2 compute resource name
-
-        :id: bfc43b84-518b-4ec9-a2ac-e77a1e7cdcb0
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a valid name to ec2 compute resource.
-            4. Test the connection using Load Regions and submit.
-            5. Update the name of the created CR with valid string.
-
-        :expectedresults: The ec2 compute resource is updated
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1451626)
-    @tier1
-    def test_positive_delete_ec2(self):
-        """Delete An ec2 compute resource
-
-        :id: fd1ba240-d47f-42c8-a1d1-146ab5fd2641
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Provide a valid name to ec2 compute resource.
-            4. Test the connection using Load Regions and submit.
-            5. Delete the created compute resource.
-
-        :expectedresults: The compute resource is deleted
-
-        :BZ: 1451626
-
-        :CaseAutomation: Automated
-
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['Access Key', self.aws_access_key, 'field'],
-            ['Secret Key', self.aws_secret_key, 'field'],
-            ['Region', self.aws_region, 'special select']
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['ec2'],
-                parameter_list=parameter_list
-            )
-            self.assertIsNotNone(self.compute_resource.search(name))
-            self.compute_resource.delete(name, dropdown_present=True)
-            self.assertIsNone(self.compute_resource.search(name))
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_positive_add_image_ec2_with_name(self):
-        """Add images to the ec2 compute resource with valid name.
-
-        :id: f70c9520-e8cb-46fb-99b6-045877c70170
-
-        :setup: ec2 hostname, credentials and images in ec2.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Select the created ec2 CR and click images tab.
-            4. Select "New image" , provide it valid name and information.
-            5. The user for the image should be "ec2-user".
-            6. Select the desired Amazon Machine Image (ami) to create image
-               and submit.
-
-        :expectedresults: The image is added to the CR successfully
-
-        :CaseAutomation: notautomated
-         """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_negative_add_image_ec2_with_invalid_name(self):
-        """Add images to the ec2 compute resource with invalid name.
-
-        :id: e6cba3ec-83f8-484d-b4ef-862f20faa37f
-
-        :setup: ec2 hostname, credentials and images in ec2.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Select the created ec2 CR and click images tab.
-            4. Select "New image" , provide it invalid name.
-            5. The user for the image should be "ec2-user".
-            6. Select the desired Amazon Machine Image (ami) to create the
-               image from and submit.
-
-        :expectedresults: The image should not be added to the CR
-
-        :CaseAutomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_access_ec2_with_default_profile(self):
-        """Associate default (3-Large) compute profile to ec2 compute
-        resource
-
-        :id: 11577087-8c0c-4e87-aed0-4d1b147fd274
-
-        :setup: ec2 hostname, credentials, and flavor.
-
-        :steps:
-
-            1. Create a compute resource of type ec2.
-            2. Provide a valid Access Key and Secret Key.
-            3. Select the created ec2 CR.
-            4. Click Compute Profile tab.
-            5. Select (3-Large) and submit.
-
-        :expectedresults: The compute resource created and opened successfully
-
-        :CaseAutomation: Automated
-        """
-        parameter_list = [
-            ['Access Key', self.aws_access_key, 'field'],
-            ['Secret Key', self.aws_secret_key, 'field'],
-            ['Region', self.aws_region, 'special select']
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['ec2'],
-                parameter_list=parameter_list
-            )
-            self.assertIsNotNone(
-                self.compute_resource.select_profile(
-                    name,
-                    COMPUTE_PROFILE_LARGE
-                )
-            )
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_positive_retrieve_ec2_vm_list(self):
-        """List the virtual machines from ec2 compute resource.
-
-        :id: a8f09878-4aec-484c-a9d6-710ffe2cc8df
-
-        :setup: ec2 hostname and credentials.
-
-        :steps:
-
-            1. Select the created compute resource.
-            2. Go to "Virtual Machines" tab.
-
-        :expectedresults: The Virtual machines should be displayed
-
-        :CaseAutomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_ec2_host_with_image(self):
-        """Provision a host on ec2 compute resource with image based
-
-        :id: 5b68bfb8-6c15-4629-b25a-8928afdc7ca9
-
-        :setup:
-                1. Ec2 hostname and credentials.
-                2. Addition of custom provisioning template
-                   to add ssh-key parameter. (Refer step 3)
-                3. Clone the Satellite Kickstart Default Finish, add new
-                   ssh-key parameter support in the template and save the
-                   template using custom name.
-                4. Update the OS to use the provisioning template
-                5. Ec2 ami image added to compute resource.
-
-        :steps:
-            1. Populate images into satellite from ec2 ami images.
-            2. Associate Activation key and CV to the host.
-            3. Edit the required Operating system to use the custom
-               provisioning template.
-            4. Go to "Hosts --> New host".
-            5. Fill in the required details.(eg name,loc, org)(hostgroup)
-            6. Select ec2 compute resource from "Deploy on" drop down.
-            7. Interfaces Tab: Deselect subnet option.
-            8. Virtual Machine Tab: Select Flavor, Availability zone, Subnet,
-               Security groups, Managed IP if we are not using HG.
-            9. Parameters Tab: Ensure the sshkey parameter and it's value
-               (public key) is added depending upon whether we are using HG
-               or not.
-            10. Associate appropriate feature capsules.
-            11. Go to "operating system tab".
-            12. Select the appropriate image .
-            13. Associate the activation key and submit.
-
-        :expectedresults: The host should be provisioned successfully
-
-        :CaseAutomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_ec2_with_compute_profile(self):
-        """ Provision a host on ec2 compute resource with compute profile
-        default (3-Large)
-
-        :id: 01c8b5de-2b37-4cb2-989c-fae5a9446944
-
-        :setup: ec2 hostname, credentials and provisioning setup.
-
-        :steps:
-            1. Go to "Hosts --> New host".
-            2. Fill in the required details.(eg name,loc, org).
-            3. Select ec2 compute resource from "Deploy on" drop down.
-            4. Interfaces Tab: Deselect subnet option
-            5. Virtual Machine Tab: Select Flavor, Availability zone, Subnet,
-               Security groups, Managed IP if we are not using HG.
-            6. Parameters Tab: Ensure the sshkey parameter and it's value
-               (public key) is added depending upon whether we are using HG
-               or not.
-            7. Select the "Compute profile" from the drop down.
-            8. Provision the host using the compute profile.
-
-        :expectedresults: The host should be provisioned successfully
-
-        :CaseAutomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_ec2_with_custom_compute_settings(self):
-        """ Provision a host on ec2 compute resource with
-         custom flavour.
-
-        :id: 441ba03a-98e7-4475-a0d5-56bad23e645b
-
-        :setup: ec2 hostname, credentials and provisioning setup.
-
-        :steps:
-            1. Go to "Hosts --> New host".
-            2. Fill in the required details.(eg name,loc, org).
-            3. Select ec2 custom compute resource from "Deploy on" drop
-               down.
-            4. Interfaces Tab: Deselect subnet option
-            5. Virtual Machine Tab: Select Flavor, Availability zone, Subnet,
-               Security groups, Managed IP if we are not using HG.
-            6. Parameters Tab: Ensure the sshkey parameter and it's value
-               (public key) is added depending upon whether we are using HG
-               or not.
-            7. Select the custom compute profile and flavor.
-            8. Provision the host using the compute profile.
-
-        :expectedresults: The host should be provisioned with custom settings
-
-        :CaseAutomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_provision_ec2_with_host_group(self):
-        """ Provision a host on ec2 compute resource with
-        the help of hostgroup.
-
-        :id: a8f4f26b-e075-411d-b4b2-d0ba1e7f09d4
-
-        :setup: ec2 hostname, credentials, provisioning setup and
-                hostgroup for ec2.
-
-        :steps:
-            1. Go to "Hosts --> New host".
-            2. Assign the host group to the host.
-            3. Select the Deploy on as ec2 compute resource.
-            4. Interfaces Tab: Deselect subnet option
-            5. Virtual Machine Tab: Select Flavor, Availability zone, Subnet,
-               Security groups, Managed IP if we are not using HG.
-            6. Parameters Tab: Ensure the sshkey parameter and it's value
-               (public key) is added depending upon whether we are using HG
-               or not.
-            7. Provision the host.
-
-        :expectedresults: The host should be provisioned with host group
-
-        :CaseAutomation: notautomated
-        """
+from robottelo.decorators import fixture, setting_is_set, tier2
+
+
+if not setting_is_set('ec2'):
+    skip('skipping tests due to missing ec2 settings', allow_module_level=True)
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location(id=DEFAULT_LOC_ID).read()
+
+
+@fixture(scope='module')
+def module_ec2_settings():
+    return dict(
+        access_key=settings.ec2.access_key,
+        secret_key=settings.ec2.secret_key,
+        region=settings.ec2.region,
+        image=settings.ec2.image,
+        availability_zone=settings.ec2.availability_zone,
+        subnet=settings.ec2.subnet,
+        security_groups=settings.ec2.security_groups,
+        managed_ip=settings.ec2.managed_ip,
+    )
+
+
+@tier2
+def test_positive_default_end_to_end_with_custom_profile(
+        session, module_org, module_loc, module_ec2_settings):
+    """Create EC2 compute resource with default properties and apply it's basic functionality.
+
+    :id: 33f80a8f-2ecf-4f15-b0c3-aab5fe0ac8d3
+
+    :Steps:
+
+        1. Create an EC2 compute resource with default properties and taxonomies.
+        2. Update the compute resource name and add new taxonomies.
+        3. Associate compute profile with custom properties to ec2 compute resource
+        4. Delete the compute resource.
+
+    :expectedresults: The EC2 compute resource is created, updated, compute profile associated and
+        deleted.
+
+    :CaseLevel: Integration
+
+    :BZ: 1451626
+
+    :CaseImportance: High
+    """
+    cr_name = gen_string('alpha')
+    new_cr_name = gen_string('alpha')
+    cr_description = gen_string('alpha')
+    new_org = entities.Organization().create()
+    new_loc = entities.Location().create()
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'description': cr_description,
+            'provider': FOREMAN_PROVIDERS['ec2'],
+            'provider_content.access_key': module_ec2_settings['access_key'],
+            'provider_content.secret_key': module_ec2_settings['secret_key'],
+            'provider_content.region.value': module_ec2_settings['region'],
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+        cr_values = session.computeresource.read(cr_name)
+        assert cr_values['name'] == cr_name
+        assert cr_values['description'] == cr_description
+        assert (cr_values['organizations']['resources']['assigned']
+                == [module_org.name])
+        assert (cr_values['locations']['resources']['assigned']
+                == [module_loc.name])
+        session.computeresource.edit(cr_name, {
+            'name': new_cr_name,
+            'organizations.resources.assigned': [new_org.name],
+            'locations.resources.assigned': [new_loc.name],
+        })
+        assert not session.computeresource.search(cr_name)
+        cr_values = session.computeresource.read(new_cr_name)
+        assert cr_values['name'] == new_cr_name
+        assert (set(cr_values['organizations']['resources']['assigned'])
+                == {module_org.name, new_org.name})
+        assert (set(cr_values['locations']['resources']['assigned'])
+                == {module_loc.name, new_loc.name})
+        session.computeresource.update_computeprofile(
+            new_cr_name,
+            COMPUTE_PROFILE_LARGE,
+            {
+                'provider_content.flavor': AWS_EC2_FLAVOR_T2_MICRO,
+                'provider_content.availability_zone': module_ec2_settings['availability_zone'],
+                'provider_content.subnet': module_ec2_settings['subnet'],
+                'provider_content.security_groups.assigned': module_ec2_settings[
+                    'security_groups'],
+                'provider_content.managed_ip': module_ec2_settings['managed_ip'],
+            }
+        )
+        cr_profile_values = session.computeresource.read_computeprofile(
+            new_cr_name, COMPUTE_PROFILE_LARGE)
+        assert cr_profile_values['breadcrumb'] == 'Edit {0}'.format(COMPUTE_PROFILE_LARGE)
+        assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_LARGE
+        assert cr_profile_values['compute_resource'] == '{0} ({1}-{2})'.format(
+            new_cr_name, module_ec2_settings['region'], FOREMAN_PROVIDERS['ec2'])
+        assert (cr_profile_values['provider_content']['managed_ip']
+                == module_ec2_settings['managed_ip'])
+        assert cr_profile_values['provider_content']['flavor'] == AWS_EC2_FLAVOR_T2_MICRO
+        session.computeresource.delete(new_cr_name)
+        assert not session.computeresource.search(new_cr_name)
+
+
+@tier2
+def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
+    """Create a new ec2 compute resource with custom region
+
+    :id: aeb0c52e-34dd-4574-af34-a6d8721724a7
+
+    :customerscenario: true
+
+    :expectedresults: An ec2 compute resource is created
+        successfully.
+
+    :BZ: 1456942
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    cr_name = gen_string('alpha')
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['ec2'],
+            'provider_content.access_key': module_ec2_settings['access_key'],
+            'provider_content.secret_key': module_ec2_settings['secret_key'],
+            'provider_content.region.value': EC2_REGION_CA_CENTRAL_1
+        })
+        cr_values = session.computeresource.read(cr_name)
+        assert cr_values['name'] == cr_name

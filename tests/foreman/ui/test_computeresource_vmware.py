@@ -2,6 +2,8 @@
 
 :Requirement: Computeresource Vmware
 
+:CaseAutomation: Automated
+
 :CaseComponent: UI
 
 :CaseLevel: Acceptance
@@ -12,533 +14,441 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
+from random import choice
+
+import pytest
 from nailgun import entities
-from robottelo.config import settings
-from robottelo.constants import (
-    COMPUTE_PROFILE_LARGE,
-    FOREMAN_PROVIDERS,
-    VMWARE_CONSTANTS
-)
-from robottelo.datafactory import invalid_names_list, valid_data_list
+from wrapanapi.systems.virtualcenter import vim, VMWareSystem
+
+from robottelo.api.utils import check_create_os_with_title
+from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    run_only_on,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
+    fixture,
+    run_in_one_thread,
+    setting_is_set,
+    tier2
 )
-from robottelo.test import UITestCase
-from robottelo.ui.factory import make_hostgroup, make_resource
-from robottelo.ui.locators import common_locators, locators, tab_locators
-from robottelo.ui.session import Session
+from robottelo.config import settings
+from robottelo.constants import COMPUTE_PROFILE_LARGE, FOREMAN_PROVIDERS, VMWARE_CONSTANTS
+
+if not setting_is_set('vmware'):
+    pytest.skip('skipping tests due to missing vmware settings', allow_module_level=True)
 
 
-class VmwareComputeResourceTestCase(UITestCase):
-    """Implement vmware compute resource tests in UI"""
+def _get_normalized_size(size):
+    """Convert a size in bytes to KB or MB or GB or TB
 
-    @classmethod
-    @skip_if_not_set('vmware')
-    def setUpClass(cls):
-        super(VmwareComputeResourceTestCase, cls).setUpClass()
-        cls.vmware_url = settings.vmware.vcenter
-        cls.vmware_password = settings.vmware.password
-        cls.vmware_username = settings.vmware.username
-        cls.vmware_datacenter = settings.vmware.datacenter
-        cls.vmware_img_name = settings.vmware.image_name
-        cls.vmware_img_arch = settings.vmware.image_arch
-        cls.vmware_img_os = settings.vmware.image_os
-        cls.vmware_img_user = settings.vmware.image_username
-        cls.vmware_img_pass = settings.vmware.image_password
-        cls.vmware_vm_name = settings.vmware.vm_name
-        cls.current_interface = (
-            VMWARE_CONSTANTS.get(
-                'network_interfaces') % settings.vlan_networking.bridge
+    example :
+
+        _get_normalized_size(2527070196732)
+        return '2.3 TB'
+
+    :return a string size number + the corresponding suffix  B or KB or MB or GB or TB
+    """
+    suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
+    suffix_index = 0
+    while size > 1024 and suffix_index < 4:
+        suffix_index += 1
+        size = size / 1024.0
+    if size >= 100:
+        size = round(size, 0)
+    else:
+        size = round(size, 2)
+    if size == int(size):
+        size = int(size)
+    return '{0} {1}'.format(size, suffixes[suffix_index])
+
+
+def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datastore']):
+    """Return the datastore string summary for data_store_name
+
+    For "Local-Ironforge" datastore the string looks Like:
+
+        "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
+     """
+    system = VMWareSystem(
+        hostname=settings.vmware.vcenter,
+        username=settings.vmware.username,
+        password=settings.vmware.password
+    )
+    data_store_summary = [h for h in system.get_obj_list(vim.Datastore)
+                          if h.host and h.name == data_store_name][0].summary
+    uncommitted = data_store_summary.uncommitted or 0
+    capacity = _get_normalized_size(data_store_summary.capacity)
+    free_space = _get_normalized_size(data_store_summary.freeSpace)
+    prov = _get_normalized_size(data_store_summary.capacity + uncommitted
+                                - data_store_summary.freeSpace)
+    return '{0} (free: {1}, prov: {2}, total: {3})'.format(
+        data_store_name, free_space, prov, capacity)
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_vmware_settings():
+    return dict(
+        vcenter=settings.vmware.vcenter,
+        user=settings.vmware.username,
+        password=settings.vmware.password,
+        datacenter=settings.vmware.datacenter,
+        image_name=settings.vmware.image_name,
+        image_arch=settings.vmware.image_arch,
+        image_os=settings.vmware.image_os,
+        image_username=settings.vmware.image_username,
+        image_password=settings.vmware.image_password,
+        vm_name=settings.vmware.vm_name,
+        current_interface=VMWARE_CONSTANTS['network_interfaces'] % settings.vlan_networking.bridge
+    )
+
+
+@tier2
+def test_positive_end_to_end(session, module_org, module_loc, module_vmware_settings):
+    """Perform end to end testing for compute resource VMware component.
+
+    :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
+
+    :expectedresults: All expected CRUD actions finished successfully.
+
+    :CaseLevel: Integration
+    """
+    cr_name = gen_string('alpha')
+    new_cr_name = gen_string('alpha')
+    description = gen_string('alpha')
+    display_type = choice(('VNC', 'VMRC'))
+    vnc_console_passwords = choice((False, True))
+    enable_caching = choice((False, True))
+    new_org = entities.Organization().create()
+    new_loc = entities.Location().create()
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'description': description,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'provider_content.vcenter': module_vmware_settings['vcenter'],
+            'provider_content.user': module_vmware_settings['user'],
+            'provider_content.password': module_vmware_settings['password'],
+            'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+            'provider_content.display_type': display_type,
+            'provider_content.vnc_console_passwords': vnc_console_passwords,
+            'provider_content.enable_caching': enable_caching,
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+        cr_values = session.computeresource.read(cr_name)
+        assert cr_values['name'] == cr_name
+        assert cr_values['description'] == description
+        assert cr_values['provider'] == FOREMAN_PROVIDERS['vmware']
+        assert cr_values['provider_content']['user'] == module_vmware_settings['user']
+        assert (cr_values['provider_content']['datacenter']['value']
+                == module_vmware_settings['datacenter'])
+        assert cr_values['provider_content']['display_type'] == display_type
+        assert cr_values['provider_content']['vnc_console_passwords'] == vnc_console_passwords
+        assert cr_values['provider_content']['enable_caching'] == enable_caching
+        assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        session.computeresource.edit(cr_name, {
+            'name': new_cr_name,
+            'organizations.resources.assigned': [new_org.name],
+            'locations.resources.assigned': [new_loc.name],
+        })
+        assert not session.computeresource.search(cr_name)
+        cr_values = session.computeresource.read(new_cr_name)
+        assert cr_values['name'] == new_cr_name
+        assert (set(cr_values['organizations']['resources']['assigned'])
+                == {module_org.name, new_org.name})
+        assert (set(cr_values['locations']['resources']['assigned'])
+                == {module_loc.name, new_loc.name})
+        # check that the compute resource is listed in one of the default compute profiles
+        profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_LARGE)
+        profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
+        assert '{0} ({1})'.format(new_cr_name, FOREMAN_PROVIDERS['vmware']) in profile_cr_names
+        session.computeresource.delete(new_cr_name)
+        assert not session.computeresource.search(new_cr_name)
+
+
+@tier2
+def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings):
+    """List the virtual machine list from vmware compute resource
+
+    :id: 21ade57a-0caa-4144-9c46-c8e22f33414e
+
+    :setup: vmware hostname and credentials.
+
+    :steps:
+
+        1. Select the created compute resource.
+        2. Go to "Virtual Machines" tab.
+
+    :expectedresults: The Virtual machines should be displayed
+
+    :CaseLevel: Integration
+    """
+    cr_name = gen_string('alpha')
+    vm_name = module_vmware_settings['vm_name']
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'provider_content.vcenter': module_vmware_settings['vcenter'],
+            'provider_content.user': module_vmware_settings['user'],
+            'provider_content.password': module_vmware_settings['password'],
+            'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+        })
+        assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
+        assert (session.computeresource.search_virtual_machine(cr_name, vm_name)[0]['Name']
+                == vm_name)
+
+
+@tier2
+def test_positive_image_end_to_end(session, module_vmware_settings):
+    """Perform end to end testing for compute resource VMware component image.
+
+    :id: 6b7949ef-c684-40aa-b181-11f8d4cd39c6
+
+    :expectedresults: All expected CRUD actions finished successfully.
+
+    :CaseLevel: Integration
+    """
+    cr_name = gen_string('alpha')
+    image_name = gen_string('alpha')
+    new_image_name = gen_string('alpha')
+    check_create_os_with_title(module_vmware_settings['image_os'])
+    image_user_data = choice((False, True))
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'provider_content.vcenter': module_vmware_settings['vcenter'],
+            'provider_content.user': module_vmware_settings['user'],
+            'provider_content.password': module_vmware_settings['password'],
+            'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+        })
+        assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
+        session.computeresource.create_image(
+            cr_name,
+            dict(
+                name=image_name,
+                operating_system=module_vmware_settings['image_os'],
+                architecture=module_vmware_settings['image_arch'],
+                username=module_vmware_settings['image_username'],
+                user_data=image_user_data,
+                password=module_vmware_settings['image_password'],
+                image=module_vmware_settings['image_name'],
+            )
         )
+        values = session.computeresource.read_image(cr_name, image_name)
+        assert values['name'] == image_name
+        assert values['operating_system'] == module_vmware_settings['image_os']
+        assert values['architecture'] == module_vmware_settings['image_arch']
+        assert values['username'] == module_vmware_settings['image_username']
+        assert values['user_data'] == image_user_data
+        assert values['image'] == module_vmware_settings['image_name']
+        session.computeresource.update_image(cr_name, image_name, dict(name=new_image_name))
+        assert session.computeresource.search_images(cr_name, image_name)[0]['Name'] != image_name
+        assert (session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+                == new_image_name)
+        session.computeresource.delete_image(cr_name, new_image_name)
+        assert (session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+                != new_image_name)
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_vmware_with_name(self):
-        """Create a new vmware compute resource using valid name.
 
-        :id: 944ed0da-49d4-4c14-8884-9184d2aef126
+@tier2
+@run_in_one_thread
+def test_positive_resource_vm_power_management(session,  module_vmware_settings):
+    """Read current VMware Compute Resource virtual machine power status and
+    change it to opposite one
 
-        :setup: vmware hostname and credentials.
+    :id: faeabe45-5112-43a6-bde9-f869dfb26cf5
 
-        :steps:
-            1. Create a compute resource of type vmware.
-            2. Provide a valid hostname, username and password.
-            3. Provide a valid name to vmware compute resource.
-            4. Test the connection using Load Datacenters and submit.
+    :expectedresults: virtual machine is powered on or powered off depending on its initial state
 
-        :expectedresults: A vmware compute resource is created successfully.
+    :CaseLevel: Integration
+    """
+    cr_name = gen_string('alpha')
+    vm_name = module_vmware_settings['vm_name']
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'provider_content.vcenter': module_vmware_settings['vcenter'],
+            'provider_content.user': module_vmware_settings['user'],
+            'provider_content.password': module_vmware_settings['password'],
+            'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+        })
+        assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
+        power_status = session.computeresource.vm_status(cr_name, vm_name)
+        if power_status:
+            session.computeresource.vm_poweroff(cr_name, vm_name)
+        else:
+            session.computeresource.vm_poweron(cr_name, vm_name)
+        assert session.computeresource.vm_status(cr_name, vm_name) is not power_status
 
-        :CaseAutomation: Automated
 
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        with Session(self) as session:
-            for name in valid_data_list():
-                with self.subTest(name):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['vmware'],
-                        parameter_list=parameter_list
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
+@tier2
+def test_positive_select_vmware_custom_profile_guest_os_rhel7(session,  module_vmware_settings):
+    """Select custom default (3-Large) compute profile guest OS RHEL7.
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_vmware_with_description(self):
-        """Create vmware compute resource with valid description.
+    :id: 24f7bb5f-2aaf-48cb-9a56-d2d0713dfe3d
 
-        :id: bdd879be-3467-41ca-9a67-d98f185ba892
+    :customerscenario: true
 
-        :setup: vmware hostname and credentials.
+    :setup: vmware hostname and credentials.
 
-        :steps:
-            1. Create a compute resource of type vmware.
-            2. Provide a valid hostname, username and password.
-            3. Provide a valid description to vmware compute resource.
-            4. Test the connection using Load Datacenters and submit.
+    :steps:
 
-        :expectedresults: A vmware compute resource is created successfully
+        1. Create a compute resource of type vmware.
+        2. Provide valid hostname, username and password.
+        3. Select the created vmware CR.
+        4. Click Compute Profile tab.
+        5. Select 3-Large profile
+        6. Set Guest OS field to RHEL7 OS.
 
-        :CaseAutomation: Automated
+    :expectedresults: Guest OS RHEL7 is selected successfully.
 
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            for description in valid_data_list():
-                with self.subTest(description):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['vmware'],
-                        parameter_list=parameter_list
-                    )
-                    self.assertIsNotNone(self.compute_resource.search(name))
+    :BZ: 1315277
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_vmware_with_invalid_name(self):
-        """Create a new vmware compute resource with invalid names.
+    :CaseLevel: Integration
+    """
+    cr_name = gen_string('alpha')
+    guest_os_name = 'Red Hat Enterprise Linux 7 (64-bit)'
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'provider_content.vcenter': module_vmware_settings['vcenter'],
+            'provider_content.user': module_vmware_settings['user'],
+            'provider_content.password': module_vmware_settings['password'],
+            'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+        })
+        assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
+        session.computeresource.update_computeprofile(
+            cr_name,
+            COMPUTE_PROFILE_LARGE,
+            {'provider_content.guest_os': guest_os_name}
+        )
+        values = session.computeresource.read_computeprofile(cr_name, COMPUTE_PROFILE_LARGE)
+        assert values['provider_content']['guest_os'] == guest_os_name
 
-        :id: 19c206dc-5efc-4a7d-b04d-2aa04a22448c
 
-        :setup: vmware hostname and credentials.
+@tier2
+def test_positive_access_vmware_with_custom_profile(session,  module_vmware_settings):
+    """Associate custom default (3-Large) compute profile
 
-        :steps:
-            1. Create a compute resource of type vmware.
-            2. Provide valid hostname, username and password.
-            3. Provide invalid name to vmware compute resource.
-            4. Test the connection using Load Datacenters and submit.
+    :id: 751ef765-5091-4322-a0d9-0c9c73009cc4
 
-        :expectedresults: A vmware compute resource is not created
+    :setup: vmware hostname and credentials.
 
-        :CaseAutomation: Automated
+    :steps:
 
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        with Session(self) as session:
-            for name in invalid_names_list():
-                with self.subTest(name):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['vmware'],
-                        parameter_list=parameter_list
-                    )
-                    self.assertIsNotNone(
-                        self.compute_resource.wait_until_element(
-                            common_locators["name_haserror"]
-                        )
-                    )
+        1. Create a compute resource of type vmware.
+        2. Provide valid hostname, username and password.
+        3. Select the created vmware CR.
+        4. Click Compute Profile tab.
+        5. Edit (3-Large) with valid configurations and submit.
 
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update_vmware_name(self):
-        """Update a vmware compute resource name
+    :expectedresults: The Compute Resource created and associated to compute profile (3-Large)
+        with provided values.
 
-        :id: e2bf2fcb-4611-445e-bc36-a54b3fd2d559
-
-        :setup: vmware hostname and credentials.
-
-        :steps:
-            1. Create a compute resource of type vmware.
-            2. Provide valid hostname, username and password.
-            3. Provide valid name to vmware compute resource.
-            4. Test the connection using Load Datacenters and submit.
-            5. Update the name of the created CR with valid string.
-
-        :expectedresults: The vmware compute resource is updated
-
-        :CaseAutomation: Automated
-
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        newname = gen_string('alpha')
-        name = gen_string('alpha')
-        with Session(self) as session:
-            with self.subTest(newname):
-                make_resource(
-                    session,
-                    name=name,
-                    provider_type=FOREMAN_PROVIDERS['vmware'],
-                    parameter_list=parameter_list
-                )
-                self.assertIsNotNone(self.compute_resource.search(name))
-                self.compute_resource.update(name=name, newname=newname)
-                self.assertIsNotNone(self.compute_resource.search(newname))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_delete_vmware(self):
-        """Delete a vmware compute resource
-
-        :id: b38f2c9b-f4e3-41e3-8ee1-3b342025860c
-
-        :setup: vmware hostname and credentials.
-
-        :steps:
-            1. Create compute resource of type vmware.
-            2. Provide valid hostname, username and password.
-            3. Provide valid name to vmware compute resource.
-            4. Test the connection using Load Datacenters and submit.
-            5. Delete the created compute resource.
-
-        :expectedresults: The compute resource is deleted
-
-        :CaseAutomation: Automated
-
-        :CaseImportance: Critical
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            with self.subTest(name):
-                make_resource(
-                    session,
-                    name=name,
-                    provider_type=FOREMAN_PROVIDERS['vmware'],
-                    parameter_list=parameter_list
-                )
-                self.assertIsNotNone(self.compute_resource.search(name))
-                self.compute_resource.delete(name, dropdown_present=True)
-
-    @run_only_on('sat')
-    @tier2
-    def test_negative_add_image_vmware_with_invalid_name(self):
-        """Add images to the vmware compute resource
-
-        :id: 436324bf-7dcf-4197-b1ca-198492bf0356
-
-        :setup:
-
-            1. Valid vmware hostname, credentials.
-            2. Add images as templates in vmware.
-
-        :steps:
-
-            1. Create a compute resource of type vmware.
-            2. Provide valid hostname, username and password.
-            3. Select the created vmware CR and click images tab.
-            4. Select "New image" , provide invalid name and valid information.
-            5. Select the desired template to create the image from and submit.
-
-        :expectedresults: The image should not be added to the CR
-
-        :CaseAutomation: Automated
-
-        :CaseLevel: Integration
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        name = gen_string('alpha')
-        with Session(self) as session:
-            self.compute_resource.check_image_os(self.vmware_img_os)
-            for img_name in invalid_names_list():
-                with self.subTest(name):
-                    make_resource(
-                        session,
-                        name=name,
-                        provider_type=FOREMAN_PROVIDERS['vmware'],
-                        parameter_list=parameter_list
-                    )
-                parameter_list_img = [
-                    ['Name', img_name],
-                    ['Operatingsystem', self.vmware_img_os],
-                    ['Architecture', self.vmware_img_arch],
-                    ['Username', self.vmware_img_user],
-                    ['Password', self.vmware_img_pass],
-                    ['uuid', self.vmware_img_name],
-                ]
-                self.compute_resource.add_image(name, parameter_list_img)
-                self.assertIsNotNone(
-                    self.compute_resource.wait_until_element(
-                        common_locators["name_haserror"]
-                    ))
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_apply_vmware_with_custom_profile_to_host(self):
-        """Associate custom default (3-Large) compute profile with hostgroup
-        and then inherit it to the host
-
-        :id: c16c6d42-3950-46a7-bfe6-5e19bcfa29d0
-
-        :customerscenario: true
-
-        :setup: vmware hostname and credentials.
-
-        :steps:
-
-            1. Create a compute resource of type vmware.
-            2. Provide valid hostname, username and password.
-            3. Select the created vmware CR.
-            4. Click Compute Profile tab.
-            5. Edit (3-Large) with valid configurations and submit.
-            6. Create new host group with custom profile
-            7. Open new host page and put host group name into corresponding
-               field
-            8. Check that compute profile is inherited and then switch to
-               Virtual Machine tab
-
-        :expectedresults: All fields values for Virtual Machine tab are
-            inherited from custom profile and have non default values
-
-        :CaseAutomation: Automated
-
-        :BZ: 1249744
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        name = gen_string('alpha')
-        hg_name = gen_string('alpha')
-        with Session(self) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['vmware'],
-                orgs=[org.name],
-                org_select=True,
-                parameter_list=parameter_list
-            )
-            self.compute_resource.set_profile_values(
-                name, COMPUTE_PROFILE_LARGE,
-                cpus=3,
-                corespersocket=4,
-                memory=2048,
-                cluster=VMWARE_CONSTANTS.get('cluster'),
-                folder=VMWARE_CONSTANTS.get('folder'),
-            )
-            self.assertIsNotNone(self.compute_resource.search(name))
-            make_hostgroup(
-                session,
-                name=hg_name,
-                organizations=[org.name],
-                parameters_list=[
-                    ['Host Group', 'Compute Profile', COMPUTE_PROFILE_LARGE],
+    :CaseLevel: Integration
+    """
+    cr_name = gen_string('alpha')
+    data_store_summary_string = _get_vmware_datastore_summary_string()
+    cr_profile_data = dict(
+        cpus='2',
+        cores_per_socket='2',
+        memory='1024',
+        firmware='EFI',
+        cluster=VMWARE_CONSTANTS.get('cluster'),
+        resource_pool=VMWARE_CONSTANTS.get('pool'),
+        folder=VMWARE_CONSTANTS.get('folder'),
+        guest_os=VMWARE_CONSTANTS.get('guest_os'),
+        virtual_hw_version=VMWARE_CONSTANTS.get('virtualhw_version'),
+        memory_hot_add=True,
+        cpu_hot_add=True,
+        cdrom_drive=True,
+        annotation_notes=gen_string('alpha'),
+        network_interfaces=[
+            dict(nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
+                 network=module_vmware_settings['current_interface']),
+            dict(nic_type=VMWARE_CONSTANTS.get('network_interface_name'),
+                 network=module_vmware_settings['current_interface']),
+        ],
+        storage=[
+            dict(
+                controller=VMWARE_CONSTANTS.get('scsicontroller'),
+                disks=[
+                    dict(
+                        data_store=data_store_summary_string,
+                        size='10 GB',
+                        thin_provision=True,
+                        eager_zero=True,
+                    ),
+                    dict(
+                        data_store=data_store_summary_string,
+                        size='20 GB',
+                        thin_provision=False,
+                        eager_zero=False,
+                    ),
                 ],
-            )
-            self.hosts.navigate_to_entity()
-            self.hosts.click(locators['host.new'])
-            self.hosts.assign_value(locators['host.organization'], org.name)
-            # Selecting host group and then compute resource. It is not
-            # possible to do it in opposite order as mentioned in initial BZ,
-            # because selecting host group will always reset most fields values
-            self.hosts.assign_value(locators['host.host_group'], hg_name)
-            self.hosts.click(locators['host.deploy_on'])
-            self.hosts.assign_value(
-                common_locators['select_list_search_box'], name)
-            self.hosts.click(
-                common_locators['entity_select_list'] %
-                '{} (VMware)'.format(name)
-            )
-            # Check that compute profile is inherited automatically from host
-            # group
-            self.assertEqual(
-                self.hosts.get_element_value(
-                    locators['host.fetch_compute_profile']),
-                COMPUTE_PROFILE_LARGE
-            )
-            # Open Virtual Machine tab
-            self.hosts.click(tab_locators['host.tab_virtual_machine'])
-            # Check that all values are inherited from custom profile
-            for locator, value in [
-                ['host.cpus', '3'],
-                ['host.cores', '4'],
-                ['host.memory', '2048'],
-                ['host.fetch_cluster', VMWARE_CONSTANTS.get('cluster')],
-                ['host.fetch_folder', VMWARE_CONSTANTS.get('folder')],
-
-            ]:
-                self.assertEqual(
-                    self.hosts.get_element_value(locators[locator]), value)
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_vmware_with_image(self):
-        """ Provision a host on vmware compute resource with image based
-
-        :id: 2cbddac9-c5fa-4f6e-a098-d3e47a3aeb3c
-
-        :setup: vmware hostname and credentials.
-
-            1. Configured subnet for provisioning of the host.
-            2. Configured domains for the host.
-            3. Population of images into satellite from vmware templates.
-            4. Activation key and CV for the host.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Fill the required details.(eg name,loc, org).
-            3. Select vmware compute resource from "Deploy on" drop down.
-            4. Associate appropriate feature capsules.
-            5. Go to "operating system tab".
-            6. Edit Provisioning Method to image based.
-            7. Select the appropriate image .
-            8. Associate the activation key and submit.
-
-        :expectedresults: The host should be provisioned successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_vmware_with_compute_profile(self):
-        """ Provision a host on vmware compute resource with compute profile
-        default (3-Large)
-
-        :id: cfe68708-f062-425e-bed7-a46e04007b11
-
-        :setup:
-
-            1. Vaild vmware hostname ,credentials.
-            2. Configure provisioning setup.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Fill the required details.(eg name,loc, org).
-            3. Select vmware compute resource from "Deploy on" drop down.
-            4. Select the "Compute profile" from the drop down.
-            5. Provision the host using the compute profile.
-
-        :expectedresults: The host should be provisioned successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @upgrade
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_vmware_with_custom_compute_settings(self):
-        """ Provision a host on vmware compute resource with
-        custom disk, cpu count and memory
-
-        :id: d82c2b81-3a24-4d6e-82eb-c35709861a44
-
-        :setup:
-
-            1. Vaild vmware hostname ,credentials.
-            2. Configure provisioning setup.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Fill the required details.(eg name,loc, org).
-            3. Select vmware custom compute resource from "Deploy on" drop
-               down.
-            4. Select the custom compute profile" with custom disk size, cpu
-               count and memory.
-            5. Provision the host using the compute profile.
-
-        :expectedresults: The host should be provisioned with custom settings
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_vmware_with_host_group(self):
-        """ Provision a host on vmware compute resource with
-        the help of hostgroup.
-
-        :id: d4e442ad-77f1-4d5e-9d1b-9a60d69b034f
-
-        :setup:
-
-            1. Vaild vmware hostname ,credentials.
-            2. Configure provisioning setup.
-            3. Configure host group setup.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Assign the host group to the host.
-            3. Select the Deploy on as vmware Compute Resource.
-            4. Provision the host.
-
-        :expectedresults: The host should be provisioned with host group
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
+            ),
+            dict(
+                controller=VMWARE_CONSTANTS.get('scsicontroller'),
+                disks=[
+                    dict(
+                        data_store=data_store_summary_string,
+                        size='30 GB',
+                        thin_provision=False,
+                        eager_zero=True,
+                    ),
+                ],
+            ),
+        ],
+    )
+    with session:
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'provider_content.vcenter': module_vmware_settings['vcenter'],
+            'provider_content.user': module_vmware_settings['user'],
+            'provider_content.password': module_vmware_settings['password'],
+            'provider_content.datacenter.value': module_vmware_settings['datacenter'],
+        })
+        assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
+        session.computeresource.update_computeprofile(
+            cr_name,
+            COMPUTE_PROFILE_LARGE,
+            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()}
+        )
+        values = session.computeresource.read_computeprofile(cr_name, COMPUTE_PROFILE_LARGE)
+        provider_content = values['provider_content']
+        # assert main compute resource profile data updated successfully.
+        excluded_keys = ['network_interfaces', 'storage']
+        expected_value = {key: value for key, value in cr_profile_data.items()
+                          if key not in excluded_keys}
+        provided_value = {key: value for key, value in provider_content.items()
+                          if key in expected_value}
+        assert provided_value == expected_value
+        # assert compute resource profile network data updated successfully.
+        for network_index, expected_network_value in enumerate(
+                cr_profile_data['network_interfaces']):
+            provided_network_value = {
+                    key: value
+                    for key, value in provider_content['network_interfaces'][network_index].items()
+                    if key in expected_network_value
+            }
+            assert provided_network_value == expected_network_value
+        # assert compute resource profile storage data updated successfully.
+        for controller_index, expected_controller_value in enumerate(cr_profile_data['storage']):
+            provided_controller_value = provider_content['storage'][controller_index]
+            assert (provided_controller_value['controller']
+                    == expected_controller_value['controller'])
+            for disk_index, expected_disk_value in enumerate(expected_controller_value['disks']):
+                provided_disk_value = {
+                        key: value
+                        for key, value in provided_controller_value['disks'][disk_index].items()
+                        if key in expected_disk_value
+                }
+                assert provided_disk_value == expected_disk_value
