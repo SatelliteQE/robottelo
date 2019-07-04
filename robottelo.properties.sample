@@ -521,7 +521,13 @@ port_range=9091, 14999
 
 # Section for virtwho configure function
 # [virtwho]
-# The hypervisor type, one of the values: esx,xen,hyperv,rhevm,libvirt,kubevirt
+# The hypervisor type, should be one of the values:
+#   'VMware vSphere / vCenter (esx)',
+#   'XenServer (xen)',
+#   'Red Hat Virtualization Hypervisor (rhevm)',
+#   'Microsoft Hyper-V (hyperv)',
+#   'libvirt',
+#   'Container-native virtualization'
 # hypervisor_type=
 # The hostname or ip or other values for hypervisor server, depends on the type
 # hypervisor_server=
