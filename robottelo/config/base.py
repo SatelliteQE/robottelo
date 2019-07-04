@@ -1126,13 +1126,8 @@ class VirtWhoSettings(FeatureSettings):
                 'sku_vdc_virtual options must be provided.'
             )
         supported_hypervisors = (
-            'VMware vSphere / vCenter (esx)',
-            'XenServer (xen)',
-            'Red Hat Virtualization Hypervisor (rhevm)',
-            'Microsoft Hyper-V (hyperv)',
-            'libvirt',
-            'Container-native virtualization'
-            )
+                'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt'
+                )
         if self.hypervisor_type not in supported_hypervisors:
             validation_errors.append(
                 '[virtwho] hypervisor_type must be one of {}'

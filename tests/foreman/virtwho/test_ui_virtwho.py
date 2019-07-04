@@ -15,12 +15,37 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from robottelo.decorators import tier2
-from .utils import get_form_data
+from robottelo.config import settings
+from robottelo.decorators import fixture, tier2
+
+
+@fixture(scope='module')
+def form_data():
+    hypervisor_type = settings.virtwho.hypervisor_type
+    hypervisor_server = settings.virtwho.hypervisor_server
+    form = {
+        'debug': True,
+        'interval': 'Every hour',
+        'hypervisor_id': 'hostname',
+        'hypervisor_type': hypervisor_type,
+        'hypervisor_content.server': hypervisor_server,
+    }
+    if hypervisor_type == 'libvirt':
+        form['hypervisor_content.username'] = (
+            settings.virtwho.hypervisor_username)
+    elif hypervisor_type == 'kubevirt':
+        form['hypervisor_content.kubeconfig'] = (
+            settings.virtwho.hypervisor_config_file)
+    else:
+        form['hypervisor_content.username'] = (
+            settings.virtwho.hypervisor_username)
+        form['hypervisor_content.password'] = (
+            settings.virtwho.hypervisor_password)
+    return form
 
 
 @tier2
-def test_positive_deploy_configure_by_id(session):
+def test_positive_deploy_configure_by_id(session, form_data):
     """ Verify configure created and deployed with id.
 
     :id: 8930849f-37dc-43a6-b734-51db146c7f2e
@@ -41,7 +66,7 @@ def test_positive_deploy_configure_by_id(session):
         5. Config can be deleted
     """
     name = gen_string('alpha')
-    form_data = get_form_data(name)
+    form_data['name'] = name
     with session:
         session.virtwho_configure.create(form_data)
         assert session.virtwho_configure.search(name)[0]['Name'] == name
