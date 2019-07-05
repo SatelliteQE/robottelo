@@ -7,7 +7,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: Clone
+:CaseComponent: SatelliteClone
 
 :TestType: functional
 
@@ -98,6 +98,7 @@ class SatCloneTestCase(TestCase):
         :CaseAutomation: notautomated
 
         """
+
     @destructive
     @stubbed()
     def test_migrate_with_rename(self):

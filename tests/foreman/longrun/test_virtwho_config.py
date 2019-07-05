@@ -4,7 +4,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Virt-whoConfigurePlugin
 
 :TestType: Functional
 
