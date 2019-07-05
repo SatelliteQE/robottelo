@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: Trends
 
 :TestType: Functional
 
