@@ -26,7 +26,8 @@ from upgrade_tests.helpers.scenarios import (
     create_dict,
     delete_manifest,
     dockerize,
-    get_entity_data
+    get_entity_data,
+    upload_manifest,
 )
 
 
@@ -46,6 +47,7 @@ class Scenario_manifest_refresh(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.org_name = 'preupgrade_subscription_org'
+        cls.manifest_url = settings.fake_manifest.url
 
     @pre_upgrade
     def test_pre_manifest_scenario_refresh(self):
@@ -61,7 +63,7 @@ class Scenario_manifest_refresh(APITestCase):
         :expectedresults: Manifest should upload and refresh successfully.
          """
         org = entities.Organization(name=self.org_name).create()
-        manifests.upload_manifest_locked(org.id, interface=manifests.INTERFACE_API)
+        upload_manifest(self.manifest_url['default'], org.name)
         history = entities.Subscription(organization=org).manifest_history(
             data={'organization_id': org.id})
         self.assertEqual(

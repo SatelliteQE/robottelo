@@ -68,7 +68,7 @@ class Scenario_errata_count(APITestCase):
             '/usr/bin/goferd -f',
             **kwargs
         )
-        status = execute(docker_execute_command, client_container_id, 'ps -aux',
+        status = execute(docker_execute_command, client_container_id, 'ps -ef',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn('goferd', status)
 
@@ -216,6 +216,15 @@ class Scenario_errata_count(APITestCase):
         client_container_id = list(rhel7_client.values())[0]
         client_container_name = [key for key in rhel7_client.keys()][0]
         self._host_location_update(client_container_name=client_container_name, loc=loc)
+        wait_for(
+            lambda: org.name in execute(docker_execute_command,
+                                        client_container_id,
+                                        'subscription-manager identity',
+                                        host=self.docker_vm)[self.docker_vm],
+            timeout=100,
+            delay=2,
+            logger=self.logger
+        )
         self._install_or_update_package(client_container_id, 'katello-agent')
         self._run_goferd(client_container_id)
 
