@@ -84,7 +84,7 @@ def test_positive_update_configure_interval():
         2. Check the config id by hammer virt-who-config list
         3. Deploy the config by hammer virt-who-config deploy
         4. Update VIRTWHO_INTERVAL to differernt value
-        by hammer virt-who-config update
+           by hammer virt-who-config update
         5. Deploy the config again by hammer virt-who-config deploy
 
     :expectedresults:

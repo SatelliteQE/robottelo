@@ -26,12 +26,12 @@ def test_positive_deploy_configure_script():
 
     :steps:
         1. Register the guest to satllite by CLI
-        1. Create config by API
-        2. Check the config by API
-        3. Deploy the config by API
-        4. Attach physical vdc to hypervisor, check the virtual
+        2. Create config by API
+        3. Check the config by API
+        4. Deploy the config by API
+        5. Attach physical vdc to hypervisor, check the virtual
            vdc is generated and attachable in guest by API
-        5. Delete config by API
+        6. Delete config by API
 
     :expectedresults:
         1. Config can be created and deployed

@@ -2,11 +2,11 @@
 
 :Requirement: Puppet
 
-:CaseAutomation: Automated
+:CaseAutomation: NotAutomated
 
-:CaseLevel: Acceptance
+:CaseLevel: System
 
-:CaseComponent: CLI
+:CaseComponent: ConfigurationManagement
 
 :TestType: Functional
 
