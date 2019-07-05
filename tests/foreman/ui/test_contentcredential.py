@@ -28,6 +28,8 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier2, upgrade
 from robottelo.helpers import get_data_file, read_data_file
 
+table_empty_message = "You currently don't have any Products associated with this Content Credential."
+
 
 @fixture(scope='module')
 def module_org():
@@ -273,7 +275,7 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
             product.name, repo.name, {'repo_content.gpg_key': gpg_key.name}
         )
         values = session.contentcredential.read(name)
-        assert len(values['products']['table']) == 0
+        assert table_empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
         assert (
@@ -315,7 +317,7 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
     ).create()
     with session:
         values = session.contentcredential.read(name)
-        assert len(values['products']['table']) == 0
+        assert table_empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
 
@@ -676,7 +678,7 @@ def test_positive_update_key_for_repo_from_product_with_repo(
         )
         values = session.contentcredential.read(new_name)
         # Assert that after update GPGKey is not associated with product
-        assert len(values['products']['table']) == 0
+        assert table_empty_message in values['products']['table']
         # Assert that after update GPGKey is still associated
         # with repository
         assert len(values['repositories']['table']) == 1
@@ -726,7 +728,7 @@ def test_positive_update_key_for_repo_from_product_with_repos(
             {'details.name': new_name},
         )
         values = session.contentcredential.read(new_name)
-        assert len(values['products']['table']) == 0
+        assert table_empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
 
@@ -904,7 +906,7 @@ def test_positive_delete_key_for_repo_from_product_with_repo(
     with session:
         # Assert that GPGKey is associated with product
         values = session.contentcredential.read(gpg_key.name)
-        assert len(values['products']['table']) == 0
+        assert table_empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
         repo_values = session.repository.read(product.name, repo.name)
@@ -959,7 +961,7 @@ def test_positive_delete_key_for_repo_from_product_with_repos(
     with session:
         # Assert that GPGKey is associated with product
         values = session.contentcredential.read(gpg_key.name)
-        assert len(values['products']['table']) == 0
+        assert table_empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
         repo_values = session.repository.read(product.name, repo1.name)
