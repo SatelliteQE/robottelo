@@ -518,3 +518,26 @@ port_range=9091, 14999
 # redis_password=
 # How much time we retry if a function call fail, by default call_retries=2
 # call_retries=2
+
+# Section for virtwho configure function
+# [virtwho]
+# The hypervisor type, one of the values: esx, xen, hyperv, rhevm, libvirt, kubevirt
+# hypervisor_type=
+# The hostname or ip or other values for hypervisor server, depends on the type
+# hypervisor_server=
+# Admin username to access hypervisor server
+# hypervisor_username=
+# Admin password to access hypervisor server
+# hypervisor_password=
+# The config file to connect hypervisor, only for kubevirt
+# hypervisor_config_file=
+# The guest ip or hostname in the hypervisor
+# guest=
+# ssh username to access guest
+# guest_username=
+# ssh password to access guest
+# guest_password=
+# The SKU ID for physical vdc
+# sku_vdc_physical=
+# The SKU ID for virtual vdc
+# sku_vdc_virtual=

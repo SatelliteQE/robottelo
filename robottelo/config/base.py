@@ -1075,6 +1075,80 @@ class SharedFunctionSettings(FeatureSettings):
         return validation_errors
 
 
+class VirtWhoSettings(FeatureSettings):
+    """VirtWho settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(VirtWhoSettings, self).__init__(*args, **kwargs)
+        # Hypervisor Information
+        self.hypervisor_type = None
+        self.hypervisor_server = None
+        self.hypervisor_username = None
+        self.hypervisor_password = None
+        self.hypervisor_config_file = None
+        self.guest = None
+        self.guest_username = None
+        self.guest_password = None
+        # SKU Information
+        self.sku_vdc_physical = None
+        self.sku_vdc_virtual = None
+
+    def read(self, reader):
+        """Read virtwho settings."""
+        # Hypervisor Information
+        self.hypervisor_type = reader.get('virtwho', 'hypervisor_type')
+        self.hypervisor_server = reader.get('virtwho', 'hypervisor_server')
+        self.hypervisor_username = reader.get('virtwho', 'hypervisor_username')
+        self.hypervisor_password = reader.get('virtwho', 'hypervisor_password')
+        self.hypervisor_config_file = reader.get('virtwho', 'hypervisor_config_file')
+        self.guest = reader.get('virtwho', 'guest')
+        self.guest_username = reader.get('virtwho', 'guest_username')
+        self.guest_password = reader.get('virtwho', 'guest_password')
+        # SKU Information
+        self.sku_vdc_physical = reader.get('virtwho', 'sku_vdc_physical')
+        self.sku_vdc_virtual = reader.get('virtwho', 'sku_vdc_virtual')
+
+    def validate(self):
+        """Validate virtwho settings."""
+        validation_errors = []
+        mandatory = (
+            self.hypervisor_type,
+            self.hypervisor_server,
+            self.guest,
+            self.guest_username,
+            self.guest_password,
+            self.sku_vdc_physical,
+            self.sku_vdc_virtual,
+            )
+        if not all(mandatory):
+            validation_errors.append(
+                '[virtwho] hypervisor_type, hypervisor_server, guest, '
+                'guest_username, guest_password, sku_vdc_physical, '
+                'sku_vdc_virtual options must be provided.'
+            )
+        supported_hypervisors = (
+                'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt'
+                )
+        if self.hypervisor_type not in supported_hypervisors:
+            validation_errors.append(
+                '[virtwho] hypervisor_type must be one of {}'
+                .format(supported_hypervisors)
+            )
+        if self.hypervisor_type == 'kubevirt' and self.hypervisor_config_file is None:
+            validation_errors.append(
+                '[virtwho] hypervisor_config_file '
+                'must be provided for kubevirt type.')
+        if self.hypervisor_type == 'libvirt' and self.hypervisor_username is None:
+            validation_errors.append(
+                '[virtwho] hypervisor_username '
+                'must be provided for libvirt type')
+        if self.hypervisor_type in ('esx', 'xen', 'hyperv', 'rhevm') and (
+                self.hypervisor_username is None or self.hypervisor_password is None):
+            validation_errors.append(
+                '[virtwho] hypervisor_username and hypervisor_password '
+                'must be provided for esx, xen, hyperv, rhevm')
+        return validation_errors
+
+
 class Settings(object):
     """Robottelo's settings representation."""
 
@@ -1135,6 +1209,7 @@ class Settings(object):
         self.vlan_networking = VlanNetworkSettings()
         self.upgrade = UpgradeSettings()
         self.vmware = VmWareSettings()
+        self.virtwho = VirtWhoSettings()
 
     def configure(self, settings_path=None):
         """Read the settings file and parse the configuration.
