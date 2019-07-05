@@ -170,7 +170,7 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
     ).create()
     with session:
         values = session.contentcredential.read(name)
-        assert len(values['products']['table']) == 0
+        assert empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 0
         # Associate gpg key with a product
         session.product.update(
@@ -264,7 +264,7 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
     ).create()
     with session:
         values = session.contentcredential.read(name)
-        assert len(values['products']['table']) == 0
+        assert empty_message in values['products']['table']
         assert len(values['repositories']['table']) == 0
         # Associate gpg key with repository
         session.repository.update(
