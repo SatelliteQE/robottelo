@@ -16,7 +16,7 @@
 """
 from fauxfactory import gen_string
 from robottelo.config import settings
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import stubbed, fixture, tier2
 
 
 @fixture(scope='module')
@@ -77,6 +77,7 @@ def test_positive_deploy_configure_by_id(session, form_data):
         assert not session.virtwho_configure.search(name)
 
 
+@stubbed()
 @tier2
 def test_positive_deploy_configure_by_script(session):
     """ Verify configure created and deployed with script.

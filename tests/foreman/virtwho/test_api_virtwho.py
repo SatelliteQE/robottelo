@@ -14,9 +14,10 @@
 
 :Upstream: No
 """
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, stubbed
 
 
+@stubbed()
 @tier1
 def test_positive_deploy_configure_script():
     """ Verify "POST /foreman_virt_who_configure/api/v2/configs"

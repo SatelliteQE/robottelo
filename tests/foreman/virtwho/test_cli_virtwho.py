@@ -14,9 +14,10 @@
 
 :Upstream: No
 """
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, stubbed
 
 
+@stubbed()
 @tier1
 def test_positive_deploy_configure_by_id():
     """ Verify " hammer virt-who-config deploy"
@@ -43,6 +44,7 @@ def test_positive_deploy_configure_by_id():
     """
 
 
+@stubbed()
 @tier1
 def test_positive_deploy_configure_by_script():
     """ Verify " hammer virt-who-config fetch"
@@ -70,6 +72,7 @@ def test_positive_deploy_configure_by_script():
     """
 
 
+@stubbed()
 @tier1
 def test_positive_update_configure_interval():
     """ Verify " hammer virt-who-config update"
