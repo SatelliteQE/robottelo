@@ -3079,7 +3079,7 @@ class HostSubscriptionTestCase(CLITestCase):
         :return: the registration result
         """
         assert not auto_attach or not attach_to_default, \
-            'Only one of auto_attach or attach_to_default can be set'
+            'Only one of auto_attach or attach_to_default must be set'
 
         if activation_key is None:
             activation_key = self.activation_key
