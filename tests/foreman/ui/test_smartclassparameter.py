@@ -179,7 +179,7 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
                 sc_param.parameter,
                 {
                     'parameter.override': True,
-                    'parameter.key_type': data['sc_type'],
+                    'parameter.parameter_type': data['sc_type'],
                     'parameter.default_value': data['value'],
                 }
             )
@@ -190,14 +190,14 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
                 data['value'] = '{}{}'.format(data['value'], '\n...\n')
             elif data['sc_type'] == 'hash':
                 data['value'] = '{}{}'.format(data['value'], '\n')
-            assert sc_parameter_values['parameter']['key_type'] == data['sc_type']
+            assert sc_parameter_values['parameter']['parameter_type'] == data['sc_type']
             assert sc_parameter_values['parameter']['default_value']['value'] == data['value']
         session.sc_parameter.update(
             sc_param.parameter,
             {
                 'parameter.description': desc,
                 'parameter.puppet_class': puppet_class.name,
-                'parameter.key_type': 'string',
+                'parameter.parameter_type': 'string',
                 'parameter.default_value': validation_value,
                 'parameter.optional_input_validators.validator_type': 'regexp',
                 'parameter.optional_input_validators.validator_rule': '[0-9]',
@@ -424,7 +424,7 @@ def test_positive_create_matcher_merge_override(
             {
                 'parameter.override': True,
                 'parameter.default_value': '[20]',
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
                 'parameter.prioritize_attribute_order.merge_overrides': True,
                 'parameter.matchers': [
                     {
@@ -493,7 +493,7 @@ def test_negative_create_matcher_merge_override(
             {
                 'parameter.override': True,
                 'parameter.default_value': '[20]',
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
                 'parameter.prioritize_attribute_order.merge_overrides': True,
                 'parameter.matchers': [
                     {
@@ -563,7 +563,7 @@ def test_positive_create_matcher_merge_default(
             {
                 'parameter.override': True,
                 'parameter.default_value': '[example]',
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
                 'parameter.prioritize_attribute_order.merge_overrides': True,
                 'parameter.prioritize_attribute_order.merge_default': True,
                 'parameter.matchers': [
@@ -635,7 +635,7 @@ def test_negative_create_matcher_merge_default(
             {
                 'parameter.override': True,
                 'parameter.default_value': '[]',
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
                 'parameter.prioritize_attribute_order.merge_overrides': True,
                 'parameter.prioritize_attribute_order.merge_default': True,
                 'parameter.matchers': [
@@ -699,7 +699,7 @@ def test_positive_create_matcher_avoid_duplicate(
             {
                 'parameter.override': True,
                 'parameter.default_value': '[20]',
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
                 'parameter.prioritize_attribute_order.merge_overrides': True,
                 'parameter.prioritize_attribute_order.merge_default': True,
                 'parameter.prioritize_attribute_order.avoid_duplicates': True,
@@ -770,7 +770,7 @@ def test_negative_create_matcher_avoid_duplicate(
             {
                 'parameter.override': True,
                 'parameter.default_value': '[20]',
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
                 'parameter.prioritize_attribute_order.merge_overrides': True,
                 'parameter.prioritize_attribute_order.merge_default': True,
                 'parameter.prioritize_attribute_order.avoid_duplicates': True,
@@ -838,7 +838,7 @@ def test_positive_view_yaml_output_after_resubmit_array_type(
             {
                 'parameter.override': True,
                 'parameter.default_value': initial_value,
-                'parameter.key_type': 'array',
+                'parameter.parameter_type': 'array',
             }
         )
         output = yaml.load(session.host.read_yaml_output(module_host.name))
@@ -886,7 +886,7 @@ def test_positive_view_yaml_output_after_resubmit_yaml_type(
             {
                 'parameter.override': True,
                 'parameter.default_value': initial_value,
-                'parameter.key_type': 'yaml',
+                'parameter.parameter_type': 'yaml',
             }
         )
         output = yaml.load(session.host.read_yaml_output(module_host.name))
@@ -932,7 +932,7 @@ def test_positive_update_matcher_from_attribute(session, sc_params_list, module_
             sc_param.parameter,
             {
                 'parameter.override': True,
-                'parameter.key_type': 'integer',
+                'parameter.parameter_type': 'integer',
                 'parameter.default_value': param_default_value,
                 'parameter.matchers': [
                     {
@@ -996,7 +996,7 @@ def test_positive_impact_parameter_delete_attribute(
             {
                 'parameter.override': True,
                 'parameter.default_value': gen_string('alpha'),
-                'parameter.key_type': 'string',
+                'parameter.parameter_type': 'string',
                 'parameter.matchers': [
                     {
                         'Attribute type': {
@@ -1056,7 +1056,7 @@ def test_positive_hide_default_value_in_attribute(session, sc_params_list, modul
             sc_param.parameter,
             {
                 'parameter.override': True,
-                'parameter.key_type': 'string',
+                'parameter.parameter_type': 'string',
                 'parameter.default_value': param_default_value,
                 'parameter.hidden': True,
             }
@@ -1114,7 +1114,7 @@ def test_positive_unhide_default_value_in_attribute(session, sc_params_list, mod
             sc_param.parameter,
             {
                 'parameter.override': True,
-                'parameter.key_type': 'string',
+                'parameter.parameter_type': 'string',
                 'parameter.default_value': param_default_value,
                 'parameter.hidden': True,
             }
@@ -1169,7 +1169,7 @@ def test_positive_update_hidden_value_in_attribute(session, sc_params_list, modu
             sc_param.parameter,
             {
                 'parameter.override': True,
-                'parameter.key_type': 'string',
+                'parameter.parameter_type': 'string',
                 'parameter.default_value': param_default_value,
                 'parameter.hidden': True,
             }
