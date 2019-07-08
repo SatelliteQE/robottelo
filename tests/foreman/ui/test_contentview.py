@@ -2162,7 +2162,7 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
         assert packages[0]['Name'] == package1_name
         packages = session.contentview.search_version_package(
             cv.name, VERSION, 'name = "{}"'.format(package2_name))
-        assert not packages
+        assert not packages[0]['Name']
 
 
 @tier3
@@ -2202,7 +2202,7 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
         assert packages[0]['Name'] == package2_name
         packages = session.contentview.search_version_package(
             cv.name, VERSION, 'name = "{}"'.format(package1_name))
-        assert not packages
+        assert not packages[0]['Name']
 
 
 @tier3
@@ -2236,7 +2236,7 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
         assert result['Version'] == 'Version 2.0'
         packages = session.contentview.search_version_package(
             cv['name'], 'Version 2.0', 'name = "{}"'.format(package_name))
-        assert not packages
+        assert not packages[0]['Name']
         session.contentviewfilter.remove_package_rule(cv['name'], filter_name, package_name)
         result = session.contentview.publish(cv['name'])
         assert result['Version'] == 'Version 3.0'
@@ -2292,7 +2292,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
             cv.name, VERSION,
             'name = "{}" and version = "{}"'.format(package_name, '5.21')
         )
-        assert not packages
+        assert not packages[0]['Name']
         session.contentviewfilter.update_package_rule(
             cv.name, filter_name, package_name,
             {'Version': ('Equal To', '5.21-1')},
@@ -2303,7 +2303,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
             cv.name, new_version,
             'name = "{}" and version = "{}"'.format(package_name, '0.71')
         )
-        assert not packages
+        assert not packages[0]['Name']
         packages = session.contentview.search_version_package(
             cv.name, new_version,
             'name = "{}" and version = "{}"'.format(package_name, '5.21')
@@ -2361,7 +2361,7 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
             cv.name, VERSION,
             'name = "{}" and version = "{}"'.format(package_name, '0.71')
         )
-        assert not packages
+        assert not packages[0]['Name']
         session.contentviewfilter.update_package_rule(
             cv.name, filter_name, package_name,
             {'Version': ('Equal To', '5.21-1')},
@@ -2372,7 +2372,7 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
             cv.name, new_version,
             'name = "{}" and version = "{}"'.format(package_name, '5.21')
         )
-        assert not packages
+        assert not packages[0]['Name']
         packages = session.contentview.search_version_package(
             cv.name, new_version,
             'name = "{}" and version = "{}"'.format(package_name, '0.71')
