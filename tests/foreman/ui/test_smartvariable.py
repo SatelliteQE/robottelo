@@ -320,7 +320,7 @@ def test_positive_create_matcher_merge_override(session, puppet_class, module_ho
             'variable.key': name,
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': '[20]',
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
             'variable.matchers': [
                 {
@@ -379,7 +379,7 @@ def test_negative_create_matcher_merge_override(session, puppet_class, module_ho
             'variable.key': name,
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': '[20]',
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
             'variable.matchers': [
                 {
@@ -438,7 +438,7 @@ def test_positive_create_matcher_merge_default(session, puppet_class, module_hos
             'variable.key': name,
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': '[test]',
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
             'variable.prioritize_attribute_order.merge_default': True,
             'variable.matchers': [
@@ -498,7 +498,7 @@ def test_negative_create_matcher_merge_default(session, puppet_class, module_hos
             'variable.key': name,
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': '[]',
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
             'variable.prioritize_attribute_order.merge_default': True,
             'variable.matchers': [
@@ -560,7 +560,7 @@ def test_positive_create_matcher_avoid_duplicate(session, puppet_class, module_h
             'variable.key': name,
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': '[20]',
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
             'variable.prioritize_attribute_order.merge_default': True,
             'variable.prioritize_attribute_order.avoid_duplicates': True,
@@ -621,7 +621,7 @@ def test_negative_create_matcher_avoid_duplicate(session, puppet_class, module_h
             'variable.key': name,
             'variable.puppet_class': puppet_class.name,
             'variable.default_value': '[20]',
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.prioritize_attribute_order.merge_overrides': True,
             'variable.prioritize_attribute_order.merge_default': True,
             'variable.prioritize_attribute_order.avoid_duplicates': True,
@@ -824,7 +824,7 @@ def test_positive_override_default_value_from_attribute(session, module_host, pu
         session.smartvariable.create({
             'variable.key': variable_name,
             'variable.puppet_class': puppet_class.name,
-            'variable.key_type': 'array',
+            'variable.parameter_type': 'array',
             'variable.default_value': variable_default_value,
         })
         values = session.smartvariable.search(variable_name)
@@ -872,7 +872,7 @@ def test_negative_create_override_from_attribute(session, module_host, puppet_cl
         session.smartvariable.create({
             'variable.key': variable_name,
             'variable.puppet_class': puppet_class.name,
-            'variable.key_type': 'integer',
+            'variable.parameter_type': 'integer',
             'variable.default_value': variable_default_value,
         })
         values = session.smartvariable.search(variable_name)
@@ -924,7 +924,7 @@ def test_positive_update_matcher_from_attribute(session, module_host, puppet_cla
         session.smartvariable.create({
             'variable.key': variable_name,
             'variable.puppet_class': puppet_class.name,
-            'variable.key_type': 'integer',
+            'variable.parameter_type': 'integer',
             'variable.default_value': variable_value,
             'variable.matchers': [
                 {
@@ -986,7 +986,7 @@ def test_negative_update_matcher_from_attribute(session, module_host, puppet_cla
         session.smartvariable.create({
             'variable.key': variable_name,
             'variable.puppet_class': puppet_class.name,
-            'variable.key_type': 'integer',
+            'variable.parameter_type': 'integer',
             'variable.default_value': variable_default_value,
             'variable.matchers': [
                 {
