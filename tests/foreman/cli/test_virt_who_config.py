@@ -4,7 +4,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Virt-whoConfigurePlugin
 
 :TestType: Functional
 
