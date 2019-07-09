@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -59,8 +59,6 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is created and has proper OS family
             assigned
-
-        :CaseImportance: Critical
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
@@ -112,7 +110,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -127,7 +125,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         with self.assertRaises(HTTPError):
             entities.Media(path_='NON_EXISTENT_URL').create()
@@ -140,7 +138,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         with self.assertRaises(HTTPError):
             entities.Media(os_family='NON_EXISTENT_OS').create()
@@ -153,8 +151,6 @@ class MediaTestCase(APITestCase):
         :id: a99c3c27-ad0a-474f-ad80-cb61022618a9
 
         :expectedresults: Media entity is created and updated properly
-
-        :CaseImportance: Critical
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in valid_data_list():
@@ -172,7 +168,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is created and updated properly
 
-        :CaseLevel: Integration
+        :CaseImportance: Medium
         """
         media = entities.Media(organization=[self.org]).create()
         new_url = gen_url(subdomain=gen_string('alpha'))
@@ -188,7 +184,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is created and updated properly
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         media = entities.Media(
             organization=[self.org],
@@ -208,7 +204,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in invalid_values_list():
@@ -224,7 +220,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -239,7 +235,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -255,7 +251,7 @@ class MediaTestCase(APITestCase):
 
         :expectedresults: Media entity is deleted successfully
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in valid_data_list():
             with self.subTest(name):

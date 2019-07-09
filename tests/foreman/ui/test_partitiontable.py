@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -50,6 +50,8 @@ def test_positive_create_default_for_organization(session):
         list of selected partition tables for any new organization
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     org_name = gen_string('alpha')
@@ -75,6 +77,8 @@ def test_positive_create_custom_organization(session):
         the list of selected partition tables for any new organization
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     org_name = gen_string('alpha')
@@ -100,6 +104,8 @@ def test_positive_create_default_for_location(session):
         list of selected partition tables for any new location
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     loc_name = gen_string('alpha')
@@ -125,6 +131,8 @@ def test_positive_create_custom_location(session):
         the list of selected partition tables for any new location
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     loc_name = gen_string('alpha')
@@ -149,6 +157,8 @@ def test_positive_delete_with_lock_and_unlock(session):
         locked and only deleted after unlock
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     with session:
@@ -175,6 +185,8 @@ def test_positive_clone(session):
     :expectedresults: New partition table is created and cloned successfully
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')

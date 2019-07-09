@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -54,7 +54,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :expectedresults: Architecture is not created.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -91,7 +91,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :expectedresults: Architecture name is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         architecture = make_architecture()
         for new_name in invalid_values_list():
@@ -133,7 +133,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :expectedresults: Architecture is not deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

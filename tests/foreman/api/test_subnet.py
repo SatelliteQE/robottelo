@@ -11,7 +11,7 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Networking
 
 :TestType: Functional
 
@@ -78,6 +78,8 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. Create subnet parameter with single key and single value
 
         :expectedresults: The parameter should be created in subnet
+
+        :CaseImportance: Medium
         """
         subnet = entities.Subnet().create()
         for name in generate_strings_list():
@@ -105,6 +107,8 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :expectedresults: The parameter with values separated by comma should
             be saved in subnet
+
+        :CaseImportance: Low
         """
         subnet = entities.Subnet().create()
         name = gen_string('alpha')
@@ -131,6 +135,8 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :expectedresults: The parameter with name separated by valid
             separators should be saved in subnet
+
+        :CaseImportance: Low
         """
         subnet = entities.Subnet().create()
         valid_separators = [',', '/', '-', '|']
@@ -168,6 +174,8 @@ class ParameterizedSubnetTestCase(APITestCase):
             1. The parameter with name separated by invalid separators
                 should not be saved in subnet
             2. An error for invalid name should be thrown.
+
+        :CaseImportance: Low
         """
         subnet = entities.Subnet().create()
         invalid_values = invalid_values_list() + ['name with space']
@@ -196,6 +204,8 @@ class ParameterizedSubnetTestCase(APITestCase):
             1. The subnet parameters should not be created with duplicate
                 names
             2. An error for duplicate parameter should be thrown
+
+        :CaseImportance: Low
         """
         subnet = entities.Subnet().create()
         entities.Parameter(
@@ -231,7 +241,9 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. The parameters from subnet should be displayed in
                 host enc output
 
-        CaseLevel: System
+        :CaseLevel: System
+
+        :CaseImportance: Medium
         """
 
     @stubbed()
@@ -255,7 +267,9 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. The new value should be assigned to parameter
             3. The parameter and value should be accessible as host parameters
 
-        CaseLevel: Integration
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
 
     @tier3
@@ -274,7 +288,9 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The override value of subnet parameter from host
             should not change actual value in subnet parameter
 
-        CaseLevel: System
+        :CaseLevel: System
+
+        :CaseImportance: Medium
         """
 
         # Create subnet with valid parameters
@@ -333,6 +349,8 @@ class ParameterizedSubnetTestCase(APITestCase):
                 value
 
         :expectedresults: The parameter name and value should be updated
+
+        :CaseImportance: Medium
         """
         parameter = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -369,6 +387,8 @@ class ParameterizedSubnetTestCase(APITestCase):
 
             1. The parameter should not be updated with invalid name
             2. An error for invalid name should be thrown
+
+        :CaseImportance: Medium
         """
         subnet = entities.Subnet().create()
         sub_param = entities.Parameter(
@@ -405,7 +425,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. The inherited subnet parameter in host enc should have
                 updated name and value
 
-        CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier1
@@ -451,7 +471,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             1. The parameter should be deleted from host
             2. The parameter should be deleted from host enc
 
-        CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -478,7 +498,7 @@ class ParameterizedSubnetTestCase(APITestCase):
                 host parameter now
             2. The parameter should not be deleted from host enc as well
 
-        CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier1
@@ -543,7 +563,9 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. Host enc should display the parameter with value inherited from
                 higher priority component(HostGroup in this case)
 
-        CaseLevel: System
+        :CaseLevel: System
+
+        :CaseImportance: Low
         """
 
     @stubbed()
@@ -570,5 +592,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. Host enc should not display the parameter with value inherited
                 from lower priority component(domain in this case)
 
-        CaseLevel: System
+        :CaseLevel: System
+
+        :CaseImportance: Low
         """

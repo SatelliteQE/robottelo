@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -42,7 +42,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :BZ: 1229384
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for name in generate_strings_list(length=1):
             with self.subTest(name):
@@ -104,7 +104,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :expectedresults: Partition Table is created and its name can be
             updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         ptable = make_partition_table()
         for new_name in generate_strings_list(length=randint(4, 30)):
@@ -139,8 +139,6 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :id: 27bd427c-7601-4f3b-998f-b7baaaad0fb0
 
         :expectedresults: Partition Table is deleted
-
-        :CaseImportance: Critical
         """
         ptable = make_partition_table()
         PartitionTable.delete({'name': ptable['name']})

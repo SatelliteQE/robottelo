@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -46,7 +46,7 @@ class PartitionTableTestCase(APITestCase):
 
         :BZ: 1229384
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         for name in generate_strings_list(length=1):
             with self.subTest(name):
@@ -110,7 +110,6 @@ class PartitionTableTestCase(APITestCase):
         :expectedresults: Partition table created successfully and has correct
             operating system
 
-        :CaseImportance: Critical
         """
         os_family = OPERATING_SYSTEMS[randint(0, 8)]
         ptable = entities.PartitionTable(os_family=os_family).create()
@@ -124,7 +123,7 @@ class PartitionTableTestCase(APITestCase):
         :expectedresults: Partition table created successfully and has correct
             organization assigned
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         org = entities.Organization().create()
         ptable = entities.PartitionTable(organization=[org]).create()
@@ -137,8 +136,6 @@ class PartitionTableTestCase(APITestCase):
 
         :expectedresults: Search functionality works as expected and correct
             partition table returned
-
-        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         result = entities.PartitionTable().search(
@@ -158,7 +155,7 @@ class PartitionTableTestCase(APITestCase):
 
         :BZ: 1375788
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         org = entities.Organization().create()
         ptable = entities.PartitionTable(organization=[org]).create()
@@ -176,7 +173,7 @@ class PartitionTableTestCase(APITestCase):
 
         :expectedresults: Partition table was not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -190,8 +187,6 @@ class PartitionTableTestCase(APITestCase):
         :id: 03cb7a35-e4c3-4874-841b-0760c3b8d6af
 
         :expectedresults: Partition table was not created
-
-        :CaseImportance: Critical
         """
         for layout in ('', ' ', None):
             with self.subTest(layout):
@@ -222,7 +217,7 @@ class PartitionTableTestCase(APITestCase):
         :expectedresults: Partition table updated successfully and name was
             changed
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         ptable = entities.PartitionTable().create()
         for new_name in generate_strings_list(length=gen_integer(4, 30)):
@@ -238,8 +233,6 @@ class PartitionTableTestCase(APITestCase):
 
         :expectedresults: Partition table updated successfully and layout was
             changed
-
-        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         for new_layout in valid_data_list():
@@ -255,8 +248,6 @@ class PartitionTableTestCase(APITestCase):
 
         :expectedresults: Partition table updated successfully and operating
             system was changed
-
-        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable(
             os_family=OPERATING_SYSTEMS[0],
@@ -273,7 +264,7 @@ class PartitionTableTestCase(APITestCase):
 
         :expectedresults: Partition table was not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         ptable = entities.PartitionTable().create()
         for new_name in invalid_values_list():
@@ -290,7 +281,7 @@ class PartitionTableTestCase(APITestCase):
 
         :expectedresults: Partition table was not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         ptable = entities.PartitionTable().create()
         for new_layout in ('', ' ', None):

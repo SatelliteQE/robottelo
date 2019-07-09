@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -73,6 +73,8 @@ def test_negative_set_parameter(session, valid_domain_name):
     :expectedresults: Domain parameter is not updated. Error is raised
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     update_values = {
         'parameters.params': [
@@ -102,6 +104,8 @@ def test_negative_set_parameter_same(session, valid_domain_name):
     :expectedresults: Domain parameter with same values is not created.
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
@@ -126,6 +130,8 @@ def test_positive_remove_parameter(session, valid_domain_name):
     :expectedresults: Domain parameter is removed
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')

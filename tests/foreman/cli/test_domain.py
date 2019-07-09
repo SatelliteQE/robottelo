@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -156,7 +156,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain is created and has new location assigned
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         location = make_location()
         domain = make_domain({'location-ids': location['id']})
@@ -171,7 +171,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain is created and has new organization assigned
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         org = make_org()
         domain = make_domain({'organization-ids': org['id']})
@@ -186,7 +186,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain is not created
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for options in invalid_create_params():
             with self.subTest(options):
@@ -204,6 +204,8 @@ class DomainTestCase(CLITestCase):
         :BZ: 1398392
 
         :CaseLevel: Integration
+
+        :CaseImportance: Medium
         """
         with self.assertRaises(CLIFactoryError) as context:
             make_domain({
@@ -251,7 +253,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain is not updated
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         domain = make_domain()
         for options in invalid_update_params():
@@ -272,7 +274,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain parameter is set
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for options in valid_set_params():
             with self.subTest(options):
@@ -295,7 +297,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain parameter is not set
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Low
         """
         domain = make_domain()
         for options in invalid_set_params():
@@ -334,7 +336,7 @@ class DomainTestCase(CLITestCase):
 
         :expectedresults: Domain is not deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -351,7 +353,7 @@ class DomainTestCase(CLITestCase):
         :expectedresults: Domain parameter is removed
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for options in valid_delete_params():
             with self.subTest(options):
