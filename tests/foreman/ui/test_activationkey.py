@@ -105,7 +105,7 @@ def test_positive_end_to_end_crud(session, module_org):
         assert session.activationkey.search(name)[0]['Name'] != name
         # Delete activation key
         session.activationkey.delete(new_name)
-        assert session.activationkey.search(name)[0]['Name'] != new_name
+        assert session.activationkey.search(new_name)[0]['Name'] != new_name
 
 
 @tier3
