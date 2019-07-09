@@ -413,7 +413,7 @@ def test_positive_create_overridable_filter(
             })
         assert "You don't have permission create_subnets with attributes" \
                " that you have specified or you don't have access to" \
-               " specified locations or organizations" in str(context.value)
+               " specified organizations or locations" in str(context.value)
 
 
 @tier2
