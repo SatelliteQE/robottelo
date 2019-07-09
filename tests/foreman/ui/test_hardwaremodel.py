@@ -6,11 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: Hosts
 
 :TestType: Functional
-
-:CaseImportance: Low
 
 :Upstream: No
 """
@@ -33,7 +31,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Medium
     """
     name = gen_string('alpha')
     model = gen_string('alphanumeric')
