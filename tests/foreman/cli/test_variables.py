@@ -112,9 +112,9 @@ class SmartVariablesTestCase(CLITestCase):
                              location=self.loc['id']).create()
         Host.update({
             'name': host.name,
-            'environment': self.env['name'],
+            'environment-id': self.env['id'],
             'puppet-classes': self.puppet_class['name'],
-            'organization': self.org['id'],
+            'organization-id': self.org['id'],
         })
         host_variables = SmartVariable.list({'host': host.name})
         self.assertGreater(len(host_variables), 0)
