@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -63,7 +63,7 @@ class MediumTestCase(CLITestCase):
         :expectedresults: Medium is created and has new location assigned
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         location = make_location()
         medium = make_medium({'location-ids': location['id']})
@@ -78,7 +78,7 @@ class MediumTestCase(CLITestCase):
         :expectedresults: Medium is created and has new organization assigned
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         org = make_org()
         medium = make_medium({'organization-ids': org['id']})
@@ -157,7 +157,7 @@ class MediumTestCase(CLITestCase):
         :expectedresults: Medium updated
 
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         new_name = gen_alphanumeric(6)
         medium = make_medium()

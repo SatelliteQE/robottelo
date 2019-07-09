@@ -7,11 +7,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Networking
 
 :TestType: Functional
-
-:CaseImportance: High
 
 :Upstream: No
 """
@@ -68,7 +66,10 @@ def invalid_missing_attributes():
 
 
 class SubnetTestCase(CLITestCase):
-    """Subnet CLI tests."""
+    """Subnet CLI tests.
+
+    :CaseImportance: High
+    """
 
     @tier1
     def test_positive_create_with_name(self):
@@ -135,8 +136,6 @@ class SubnetTestCase(CLITestCase):
         :id: e81ddec5-38b0-4c42-b89b-5cf2af580d39
 
         :expectedresults: Subnet is created and has new domains assigned
-
-        :CaseImportance: Critical
         """
         domains_amount = random.randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
@@ -188,7 +187,7 @@ class SubnetTestCase(CLITestCase):
 
         :expectedresults: Subnet is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
@@ -207,7 +206,7 @@ class SubnetTestCase(CLITestCase):
 
         :expectedresults: Subnet is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         mask = '255.255.255.0'
         network = gen_ipaddr()
@@ -231,8 +230,6 @@ class SubnetTestCase(CLITestCase):
         :id: 2ee376f7-9dd9-4b46-b414-801197d5455c
 
         :expectedresults: Subnet is listed
-
-        :CaseImportance: Critical
         """
         # Make a new subnet
         subnet = make_subnet()
@@ -248,7 +245,7 @@ class SubnetTestCase(CLITestCase):
 
         :expectedresults: Subnet name is updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         new_subnet = make_subnet()
         for new_name in valid_data_list():
@@ -264,8 +261,6 @@ class SubnetTestCase(CLITestCase):
         :id: 6a8d7750-71f1-4cd8-bf90-f2eac457c3b4
 
         :expectedresults: Subnet network and mask are updated
-
-        :CaseImportance: Critical
         """
         network = gen_ipaddr()
         mask = '255.255.255.0'
@@ -292,8 +287,6 @@ class SubnetTestCase(CLITestCase):
         :id: 18ced88f-d62e-4e15-8b7b-0a08c4ef239b
 
         :expectedresults: Subnet address pool is updated
-
-        :CaseImportance: Critical
         """
         subnet = make_subnet({u'mask': '255.255.255.0'})
         for pool in valid_addr_pools():
@@ -319,7 +312,7 @@ class SubnetTestCase(CLITestCase):
 
         :expectedresults: Subnet is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         subnet = make_subnet()
         for options in invalid_missing_attributes():
@@ -343,7 +336,7 @@ class SubnetTestCase(CLITestCase):
 
         :expectedresults: Subnet is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         subnet = make_subnet()
         for options in invalid_addr_pools():
@@ -382,7 +375,10 @@ class SubnetTestCase(CLITestCase):
 
 
 class ParameterizedSubnetTestCase(CLITestCase):
-    """Implements parametrized subnet tests in CLI"""
+    """Implements parametrized subnet tests in CLI
+
+    :CaseImportance: Medium
+    """
 
     @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)

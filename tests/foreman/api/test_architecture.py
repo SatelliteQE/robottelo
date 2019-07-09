@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -67,7 +67,7 @@ class ArchitectureTestCase(APITestCase):
 
         :expectedresults: Architecture is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -102,7 +102,7 @@ class ArchitectureTestCase(APITestCase):
 
         :expectedresults: Architecture is created, and its name is not updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         arch = entities.Architecture().create()
         for new_name in invalid_names_list():

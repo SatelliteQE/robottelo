@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts
 
 :TestType: Functional
 
@@ -39,7 +39,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model is created.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -54,7 +54,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model is created with specific vendor class
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         vendor_class = gen_string('utf8')
         model = make_model({'vendor-class': vendor_class})
@@ -68,7 +68,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model is not created.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -83,7 +83,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model is updated.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         model = make_model()
         for new_name in valid_data_list():
@@ -103,7 +103,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model name is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         model = make_model()
         for new_name in invalid_values_list():
@@ -126,7 +126,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model is deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -143,7 +143,7 @@ class ModelTestCase(CLITestCase):
 
         :expectedresults: Model is not deleted
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

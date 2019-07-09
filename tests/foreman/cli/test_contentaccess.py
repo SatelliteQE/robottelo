@@ -5,7 +5,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts-Content
 
 :TestType: Functional
 
@@ -219,7 +219,7 @@ class ContentAccessTestCase(CLITestCase):
             3. list the host applicable errata with searching the required
                errata id
 
-        :expectedresults: errata listed successfully and is installable
+        :expectedresults: errata listed successfuly and is installable
 
         :BZ: 1344049, 1498158
 
@@ -260,7 +260,7 @@ class ContentAccessTestCase(CLITestCase):
         :expectedresults:
             1. Assert `Content Access Mode: org_environment` is not present.
 
-        :CaseImportance: Critical
+        :CaseImportance: High
         """
         org = make_org()
         # upload organization manifest with org environment access enabled
@@ -294,7 +294,7 @@ class ContentAccessTestCase(CLITestCase):
         :expectedresults:
             1. Assert `Content Access Mode: org_environment` is present.
 
-        :CaseImportance: Critical
+        :CaseImportance: Medium
         """
         result = ssh.command(
             'rct cat-manifest {0}'.format(self.manifest.filename))
