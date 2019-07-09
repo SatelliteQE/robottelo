@@ -86,7 +86,7 @@ def _call_paramiko_sshclient():  # pragma: no cover
 
 
 def get_client(hostname=None, username=None, password=None,
-               key_filename=None, timeout=None):
+               key_filename=None, timeout=None, port=22):
     """Returns a SSH client connected to given hostname"""
     if hostname is None:
         hostname = settings.server.hostname
@@ -105,7 +105,8 @@ def get_client(hostname=None, username=None, password=None,
         username=username,
         key_filename=key_filename,
         password=password,
-        timeout=timeout
+        timeout=timeout,
+        port=port,
     )
     client._id = hex(id(client))
     return client
@@ -113,7 +114,7 @@ def get_client(hostname=None, username=None, password=None,
 
 @contextmanager
 def get_connection(hostname=None, username=None, password=None,
-                   key_filename=None, timeout=None):
+                   key_filename=None, timeout=None, port=22):
     """Yield an ssh connection object.
 
     The connection will be configured with the specified arguments or will
@@ -138,6 +139,7 @@ def get_connection(hostname=None, username=None, password=None,
         connecting to the server. If it is ``None`` ``key_filename`` from
         configuration's ``server`` section will be used.
     :param int timeout: Time to wait for establish the connection.
+    :param int port: The server port to connect to, the default port is 22.
 
     :return: An SSH connection.
     :rtype: ``paramiko.SSHClient``
@@ -146,7 +148,7 @@ def get_connection(hostname=None, username=None, password=None,
     if timeout is None:
         timeout = settings.ssh_client.connection_timeout
     client = get_client(
-        hostname, username, password, key_filename, timeout
+        hostname, username, password, key_filename, timeout, port
     )
     try:
         logger.debug('Instantiated Paramiko client {0}'.format(client._id))
@@ -335,7 +337,7 @@ def download_file(remote_file, local_file=None, hostname=None):
 
 def command(cmd, hostname=None, output_format=None, username=None,
             password=None, key_filename=None, timeout=None,
-            connection_timeout=None):
+            connection_timeout=None, port=22):
     """Executes SSH command(s) on remote hostname.
 
     :param str cmd: The command to run
@@ -353,6 +355,7 @@ def command(cmd, hostname=None, output_format=None, username=None,
         configuration's ``server`` section will be used.
     :param int timeout: Time to wait for the ssh command to finish.
     :param connection_timeout: Time to wait for establishing the connection.
+    :param int port: The server port to connect to, the default port is 22.
     """
     hostname = hostname or settings.server.hostname
     if timeout is None:
@@ -361,7 +364,7 @@ def command(cmd, hostname=None, output_format=None, username=None,
         connection_timeout = settings.ssh_client.connection_timeout
     with get_connection(hostname=hostname, username=username,
                         password=password, key_filename=key_filename,
-                        timeout=connection_timeout) as connection:
+                        timeout=connection_timeout, port=port) as connection:
         return execute_command(
             cmd, connection, output_format, timeout, connection_timeout)
 
