@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: CLI
+:CaseComponent: Repositories
 
 :TestType: Functional
 
@@ -29,6 +29,7 @@ from robottelo.constants import (
     FAKE_0_YUM_REPO,
 )
 from robottelo.datafactory import xdist_adapter
+from robottelo.decorators import tier4
 from robottelo.products import (
     DockerRepository,
     PuppetRepository,
@@ -58,6 +59,7 @@ def module_lce(module_org):
     return make_lifecycle_environment({'organization-id': module_org['id']})
 
 
+@tier4
 @pytest.mark.parametrize('value', **xdist_adapter(_distro_cdn_variants()))
 def test_vm_install_package(value, module_org, module_lce):
     """Install a package with all supported distros and cdn not cdn variants
