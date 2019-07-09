@@ -10,7 +10,7 @@ from robozilla.filters import BZDecorator
 from robozilla.parser import Parser
 
 BASE_PATH = os.path.join(get_project_root(), 'tests', 'foreman')
-VFLAGS = ['sat-{0}.{1}.{2}'.format(6, m, p) for m in '012345' for p in '0z']
+VFLAGS = ['sat-{0}.{1}.{2}'.format(6, m, p) for m in '0123456' for p in '0z']
 
 LOGGER = logging.getLogger(__name__)
 
