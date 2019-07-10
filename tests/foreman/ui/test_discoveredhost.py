@@ -171,7 +171,7 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_bug_open('bugzilla', 1665471)
+@skip_if_bug_open('bugzilla', 1728306)
 @tier3
 @upgrade
 def test_positive_provision_using_quick_host_button(
@@ -207,6 +207,7 @@ def test_positive_provision_using_quick_host_button(
             'name = {0}'.format(discovered_host_name))
 
 
+@skip_if_bug_open('bugzilla', 1728306)
 @tier3
 def test_positive_update_name(
         session, module_org, module_loc, module_host_group, discovered_host):
