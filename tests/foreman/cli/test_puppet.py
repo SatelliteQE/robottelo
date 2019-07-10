@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Puppet
 
 :TestType: Functional
 
