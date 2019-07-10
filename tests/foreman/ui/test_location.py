@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: OrganizationsLocations
 
 :TestType: Functional
 
@@ -26,7 +26,6 @@ from robottelo.constants import (
     LIBVIRT_RESOURCE_URL,
 )
 from robottelo.decorators import (
-    skip_if_bug_open,
     skip_if_not_set,
     tier2,
     upgrade,
@@ -148,7 +147,6 @@ def test_positive_update_user(session):
         assert user.login in loc_values['users']['resources']['unassigned']
 
 
-@skip_if_bug_open('bugzilla', 1321543)
 @tier2
 def test_positive_update_with_all_users(session):
     """Create location and add user to it. Check and uncheck 'all users'
@@ -161,7 +159,7 @@ def test_positive_update_with_all_users(session):
 
     :expectedresults: Location and user entities assigned to each other
 
-    :BZ: 1479736
+    :BZ: 1479736, 1479736
 
     :CaseLevel: Integration
     """
@@ -184,7 +182,6 @@ def test_positive_update_with_all_users(session):
         assert loc.name in user_values['locations']['resources']['unassigned']
 
 
-@skip_if_bug_open('bugzilla', 1321543)
 @tier2
 def test_positive_update_with_all_users_setting_only(session):
     """Create location and do not add user to it. Check and uncheck

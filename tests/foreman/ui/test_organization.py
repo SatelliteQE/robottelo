@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: UI
+:CaseComponent: OrganizationsLocations
 
 :TestType: Functional
 
@@ -20,7 +20,7 @@ from pytest import raises
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2, upgrade
+from robottelo.decorators import skip_if_not_set, tier2, upgrade
 from robottelo.manifests import original_manifest, upload_manifest_locked
 
 
@@ -110,7 +110,6 @@ def test_positive_update_user(session):
         assert user.login in org_values['users']['resources']['unassigned']
 
 
-@skip_if_bug_open('bugzilla', 1321543)
 @tier2
 def test_positive_create_with_all_users(session):
     """Create organization and new user. Check 'all users' setting for
