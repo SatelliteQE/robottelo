@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Component
+:CaseComponent: Puppet
 
 :TestType: Functional
 
