@@ -24,7 +24,6 @@ from robottelo.decorators import (
         destructive,
         run_in_one_thread,
         stubbed,
-        tier3,
 )
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
