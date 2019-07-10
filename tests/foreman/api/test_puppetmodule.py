@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Puppet
 
 :TestType: Functional
 
@@ -16,7 +16,7 @@
 """
 from nailgun import entities
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import skip_if_bug_open, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -55,13 +55,14 @@ class RepositorySearchTestCase(APITestCase):
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1711929)
     def test_positive_search_single_result(self):
         """Search for puppet modules in a non-empty repository.
 
         :id: 5337b2be-e207-4580-8407-19b88cb40403
 
         :expectedresults: Only the modules in that repository are returned.
+
+        :bz: 1711929
 
         :CaseImportance: Critical
         """

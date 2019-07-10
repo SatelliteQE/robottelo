@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Puppet
 
 :TestType: Functional
 
@@ -20,7 +20,7 @@ from robottelo.cli.factory import make_org, make_product, make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.constants import FAKE_0_PUPPET_REPO, FAKE_1_PUPPET_REPO
-from robottelo.decorators import skip_if_bug_open, tier1, upgrade
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -42,7 +42,6 @@ class PuppetModuleTestCase(CLITestCase):
         })
         Repository.synchronize({'id': cls.repo['id']})
 
-    @skip_if_bug_open('bugzilla', 1283173)
     @tier1
     def test_positive_list(self):
         """Check if puppet-module list retrieves puppet-modules of
@@ -51,6 +50,8 @@ class PuppetModuleTestCase(CLITestCase):
         :id: 77635e70-19e7-424d-9c89-ec5dbe91de75
 
         :expectedresults: Puppet-modules are retrieved for the given org
+
+        :bz: 1283173
 
         :CaseImportance: Critical
         """
@@ -79,7 +80,7 @@ class PuppetModuleTestCase(CLITestCase):
             )
             self.assertEqual(result['id'], return_value[i]['id'])
 
-    @tier1
+    @tier2
     @upgrade
     def test_positive_list_multiple_repos(self):
         """Verify that puppet-modules list for specific repo is correct
