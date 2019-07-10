@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: RemoteExecution
 
 :TestType: Functional
 
@@ -30,6 +30,7 @@ from robottelo.cli.job_template import JobTemplate
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
     tier1,
+    tier2,
     run_in_one_thread,
     upgrade
 )
@@ -164,7 +165,7 @@ class JobTemplateTestCase(CLITestCase):
             JobTemplate.info({u'name': template_name})
 
     @run_in_one_thread
-    @tier1
+    @tier2
     def test_positive_list_job_template_with_saved_org_and_loc(self):
         """List available job templates with saved default organization and
         location in config
@@ -174,8 +175,6 @@ class JobTemplateTestCase(CLITestCase):
         :expectedresults: The Job Template can be listed without errors
 
         :BZ: 1368173
-
-        :CaseImportance: Critical
         """
         template_name = gen_string('alpha')
         location = make_location()
@@ -202,7 +201,7 @@ class JobTemplateTestCase(CLITestCase):
             Defaults.delete({u'param-name': 'organization_id'})
             Defaults.delete({u'param-name': 'location_id'})
 
-    @tier1
+    @tier2
     def test_positive_view_dump(self):
         """Export contents of a job template
 
@@ -210,7 +209,6 @@ class JobTemplateTestCase(CLITestCase):
 
         :expectedresults: Verify no errors are thrown
 
-        :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
