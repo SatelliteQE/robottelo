@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ComputeResources-OpenStack
 
 :TestType: Functional
 
@@ -69,7 +69,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             })
             self.assertEquals(compute_resource['name'], name)
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_osp_info(self):
         """List the info of Openstack compute resource
@@ -93,7 +93,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             self.assertEquals(compute_resource['name'], name)
             self.assertIsNotNone(compute_resource['id'])
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_delete_by_name(self):
         """Delete the Openstack compute resource by name
@@ -117,7 +117,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             result = ComputeResource.exists(search=('name', comp_res['name']))
             self.assertFalse(result)
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1579714)
     @upgrade
     def test_positive_delete_by_id(self):
@@ -142,7 +142,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             result = ComputeResource.exists(search=('name', comp_res['name']))
             self.assertFalse(result)
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1579714)
     def test_negative_create_osp_with_url(self):
         """Attempt to create Openstack compute resource with invalid URL
@@ -162,7 +162,7 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'url': 'invalid url'
             })
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1579714)
     def test_negative_create_with_same_name(self):
         """Attempt to create Openstack compute resource with the same name as
@@ -199,7 +199,7 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'url': self.current_osp_url
             })
 
-    @tier1
+    @tier3
     @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_update_name(self):
         """Update Openstack compute resource name
