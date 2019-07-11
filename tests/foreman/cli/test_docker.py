@@ -31,6 +31,7 @@ from robottelo.cli.factory import (
     make_product_wait,  # workaround for BZ 1332650
     make_registry,
     make_repository,
+    CLIFactoryError
 )
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
@@ -50,7 +51,6 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
     stubbed,
@@ -506,7 +506,7 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertIn(
             repo['id'],
             [repo_['id'] for repo_ in
-                content_view['container-image-repositories']],
+             content_view['container-image-repositories']],
         )
 
     @tier2
@@ -538,7 +538,7 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(
             set([repo['id'] for repo in repos]),
             set([repo['id'] for repo in
-                content_view['container-image-repositories']]),
+                 content_view['container-image-repositories']]),
         )
 
     @tier2
@@ -568,7 +568,7 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertIn(
             repo['id'],
             [repo_['id'] for repo_ in
-                content_view['container-image-repositories']],
+             content_view['container-image-repositories']],
         )
 
     @tier2
@@ -844,7 +844,7 @@ class DockerContentViewTestCase(CLITestCase):
             cvv = ContentView.version_info({
                 'id': self.content_view['versions'][0]['id'],
             })
-            self.assertEqual(len(cvv['lifecycle-environments']), i+1)
+            self.assertEqual(len(cvv['lifecycle-environments']), i + 1)
 
     @tier2
     def test_positive_promote_with_docker_repo_composite(self):
@@ -954,7 +954,7 @@ class DockerContentViewTestCase(CLITestCase):
             cvv = ContentView.version_info({
                 'id': comp_content_view['versions'][0]['id'],
             })
-            self.assertEqual(len(cvv['lifecycle-environments']), i+1)
+            self.assertEqual(len(cvv['lifecycle-environments']), i + 1)
 
     @tier2
     @upgrade
@@ -972,11 +972,11 @@ class DockerContentViewTestCase(CLITestCase):
         docker_upstream_name = 'hello-world'
         new_pattern = ("{}-<%= content_view.label %>"
                        + "/<%= repository.docker_upstream_name %>").format(
-                pattern_prefix)
+            pattern_prefix)
 
         repo = _make_docker_repo(
-                make_product_wait({'organization-id': self.org_id})['id'],
-                upstream_name=docker_upstream_name)
+            make_product_wait({'organization-id': self.org_id})['id'],
+            upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
         content_view = make_content_view({
             'composite': False,
@@ -1014,8 +1014,8 @@ class DockerContentViewTestCase(CLITestCase):
                                              docker_upstream_name).lower()
         self.assertEqual(lce['registry-name-pattern'], new_pattern)
         self.assertEqual(
-                Repository.info({'id': repos[0]['id']})['container-repository-name'],
-                expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'],
+            expected_pattern)
 
     @tier2
     def test_positive_product_name_change_after_promotion(self):
@@ -1079,8 +1079,8 @@ class DockerContentViewTestCase(CLITestCase):
                                           old_prod_name).lower()
         self.assertEqual(lce['registry-name-pattern'], new_pattern)
         self.assertEqual(
-                Repository.info({'id': repos[0]['id']})['container-repository-name'],
-                expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'],
+            expected_pattern)
 
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({
@@ -1098,8 +1098,8 @@ class DockerContentViewTestCase(CLITestCase):
         expected_pattern = "{}/{}".format(content_view['label'],
                                           new_prod_name).lower()
         self.assertEqual(
-                Repository.info({'id': repos[0]['id']})['container-repository-name'],
-                expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'],
+            expected_pattern)
 
     @tier2
     def test_positive_repo_name_change_after_promotion(self):
@@ -1161,8 +1161,8 @@ class DockerContentViewTestCase(CLITestCase):
         expected_pattern = "{}/{}".format(content_view['label'],
                                           old_repo_name).lower()
         self.assertEqual(
-                Repository.info({'id': repos[0]['id']})['container-repository-name'],
-                expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'],
+            expected_pattern)
 
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({
@@ -1180,8 +1180,8 @@ class DockerContentViewTestCase(CLITestCase):
         expected_pattern = "{}/{}".format(content_view['label'],
                                           new_repo_name).lower()
         self.assertEqual(
-                Repository.info({'id': repos[0]['id']})['container-repository-name'],
-                expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'],
+            expected_pattern)
 
     @tier2
     def test_negative_set_non_unique_name_pattern_and_promote(self):
@@ -1563,14 +1563,14 @@ class DockerClientTestCase(CLITestCase):
         try:
             # publishing takes few seconds sometimes
             result, _ = wait_for(
-                    lambda: ssh.command(
-                            'docker pull {0}'.format(repo['published-at']),
-                            hostname=self.docker_host.ip_addr
-                    ),
-                    num_sec=60,
-                    delay=2,
-                    fail_condition=lambda out: out.return_code != 0,
-                    logger=self.logger
+                lambda: ssh.command(
+                    'docker pull {0}'.format(repo['published-at']),
+                    hostname=self.docker_host.ip_addr
+                ),
+                num_sec=60,
+                delay=2,
+                fail_condition=lambda out: out.return_code != 0,
+                logger=self.logger
             )
             self.assertEqual(result.return_code, 0)
             try:
@@ -1637,7 +1637,7 @@ class DockerClientTestCase(CLITestCase):
         # create lifecycle environment and promote content view to it
         product = make_product_wait({'organization-id': self.org['id']})
         repo = _make_docker_repo(
-                product['id'], upstream_name=docker_upstream_name)
+            product['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
         content_view = make_content_view({
             'composite': False,
@@ -1663,65 +1663,65 @@ class DockerClientTestCase(CLITestCase):
             'organization-id': self.org['id'],
         })
         docker_repo_uri = " {}/{}-{}/{} ".format(
-                settings.server.hostname,
-                pattern_prefix,
-                content_view['label'],
-                docker_upstream_name
+            settings.server.hostname,
+            pattern_prefix,
+            content_view['label'],
+            docker_upstream_name
         ).lower()
 
         # 3. Try to search for docker images on Satellite
         remote_search_command = 'docker search {0}/{1}'.format(
-                settings.server.hostname,
-                docker_upstream_name
+            settings.server.hostname,
+            docker_upstream_name
         )
         result = ssh.command(
-                remote_search_command,
-                hostname=self.docker_host.ip_addr
+            remote_search_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
         self.assertNotIn(
-                docker_repo_uri,
-                "\n".join(result.stdout)
+            docker_repo_uri,
+            "\n".join(result.stdout)
         )
 
         # 4. Use Docker client to login to Satellite docker hub
         result = ssh.command(
-                'docker login -u {} -p {} {}'.format(
-                        settings.server.admin_username,
-                        settings.server.admin_password,
-                        settings.server.hostname
-                ),
-                hostname=self.docker_host.ip_addr
+            'docker login -u {} -p {} {}'.format(
+                settings.server.admin_username,
+                settings.server.admin_password,
+                settings.server.hostname
+            ),
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 5. Search for docker images
         result = ssh.command(
-                remote_search_command,
-                hostname=self.docker_host.ip_addr
+            remote_search_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
         self.assertIn(
-                docker_repo_uri,
-                "\n".join(result.stdout)
+            docker_repo_uri,
+            "\n".join(result.stdout)
         )
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
-                'docker logout {}'.format(settings.server.hostname),
-                hostname=self.docker_host.ip_addr
+            'docker logout {}'.format(settings.server.hostname),
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 7. Try to search for docker images
         result = ssh.command(
-                remote_search_command,
-                hostname=self.docker_host.ip_addr
+            remote_search_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
         self.assertNotIn(
-                docker_repo_uri,
-                "\n".join(result.stdout)
+            docker_repo_uri,
+            "\n".join(result.stdout)
         )
 
         # 8. Set "Unauthenticated Pull" option to true
@@ -1733,13 +1733,13 @@ class DockerClientTestCase(CLITestCase):
 
         # 9. Search for docker images
         result = ssh.command(
-                remote_search_command,
-                hostname=self.docker_host.ip_addr
+            remote_search_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
         self.assertIn(
-                docker_repo_uri,
-                "\n".join(result.stdout)
+            docker_repo_uri,
+            "\n".join(result.stdout)
         )
 
     @skip_if_not_set('docker')
@@ -1778,7 +1778,7 @@ class DockerClientTestCase(CLITestCase):
         # create lifecycle environment and promote content view to it
         product = make_product_wait({'organization-id': self.org['id']})
         repo = _make_docker_repo(
-                product['id'], upstream_name=docker_upstream_name)
+            product['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
         content_view = make_content_view({
             'composite': False,
@@ -1804,56 +1804,56 @@ class DockerClientTestCase(CLITestCase):
             'organization-id': self.org['id'],
         })
         docker_repo_uri = "{}/{}-{}/{}".format(
-                settings.server.hostname,
-                pattern_prefix,
-                content_view['label'],
-                docker_upstream_name
+            settings.server.hostname,
+            pattern_prefix,
+            content_view['label'],
+            docker_upstream_name
         ).lower()
 
         # 3. Try to pull in docker image from Satellite
         docker_pull_command = 'docker pull {0}'.format(docker_repo_uri)
         result = ssh.command(
-                docker_pull_command,
-                hostname=self.docker_host.ip_addr
+            docker_pull_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 1)
 
         # 4. Use Docker client to login to Satellite docker hub
         result = ssh.command(
-                'docker login -u {} -p {} {}'.format(
-                        settings.server.admin_username,
-                        settings.server.admin_password,
-                        settings.server.hostname
-                ),
-                hostname=self.docker_host.ip_addr
+            'docker login -u {} -p {} {}'.format(
+                settings.server.admin_username,
+                settings.server.admin_password,
+                settings.server.hostname
+            ),
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 5. Pull in docker image
         # publishing takes few seconds sometimes
         result, _ = wait_for(
-                lambda: ssh.command(
-                        docker_pull_command,
-                        hostname=self.docker_host.ip_addr
-                ),
-                num_sec=60,
-                delay=2,
-                fail_condition=lambda out: out.return_code != 0,
-                logger=self.logger
+            lambda: ssh.command(
+                docker_pull_command,
+                hostname=self.docker_host.ip_addr
+            ),
+            num_sec=60,
+            delay=2,
+            fail_condition=lambda out: out.return_code != 0,
+            logger=self.logger
         )
         self.assertEqual(result.return_code, 0)
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
-                'docker logout {}'.format(settings.server.hostname),
-                hostname=self.docker_host.ip_addr
+            'docker logout {}'.format(settings.server.hostname),
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 7. Try to pull in docker image
         result = ssh.command(
-                docker_pull_command,
-                hostname=self.docker_host.ip_addr
+            docker_pull_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 1)
 
@@ -1866,8 +1866,8 @@ class DockerClientTestCase(CLITestCase):
 
         # 9. Pull in docker image
         result = ssh.command(
-                docker_pull_command,
-                hostname=self.docker_host.ip_addr
+            docker_pull_command,
+            hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
@@ -2006,7 +2006,6 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
             container['compute-resource'], self.cr_internal['name'])
 
 
-@run_in_one_thread
 class DockerRegistryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
@@ -2027,257 +2026,19 @@ class DockerRegistryTestCase(CLITestCase):
         super(DockerRegistryTestCase, cls).setUpClass()
         cls.url = settings.docker.external_registry_1
 
-    @tier1
-    def test_positive_create_with_name(self):
+    @tier3
+    def test_negative_create_with_name(self):
         """Create an external docker registry
 
-        :id: c2380323-56d6-4465-ad79-06868b97be16
+        :id: c2380323-56d6-4465-ad79-0f9c6b97be16
 
-        :expectedresults: the external registry is created
-
-        :CaseImportance: Critical
+        :expectedresults: the external registry is not created
         """
         for name in valid_data_list():
-            with self.subTest(name):
-                description = gen_string('alphanumeric')
-                registry = make_registry({
+            description = gen_string('alphanumeric')
+            with self.assertRaises(CLIFactoryError):
+                make_registry({
                     'description': description,
                     'name': name,
                     'url': self.url,
                 })
-                try:
-                    self.assertEqual(registry['name'], name)
-                    self.assertEqual(registry['description'], description)
-                    self.assertEqual(registry['url'], self.url)
-                finally:
-                    Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_name_by_id(self):
-        """Create an external docker registry and update its name. Use registry
-        ID to search by
-
-        :id: b702a33c-1c23-4b55-9ea1-f0b3bfc9cca2
-
-        :expectedresults: the external registry is updated with the new name
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry()
-        try:
-            for new_name in valid_data_list():
-                with self.subTest(new_name):
-                    Docker.registry.update({
-                        'id': registry['id'],
-                        'new-name': new_name,
-                    })
-                    registry = Docker.registry.info({'id': registry['id']})
-                    self.assertEqual(registry['name'], new_name)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_name_by_name(self):
-        """Create an external docker registry and update its name. Use registry
-        name to search by
-
-        :id: d74e5795-5336-414c-844f-04bf1171d337
-
-        :expectedresults: the external registry is updated with the new name
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry()
-        try:
-            for new_name in valid_data_list():
-                with self.subTest(new_name):
-                    Docker.registry.update({
-                        'name': registry['name'],
-                        'new-name': new_name,
-                    })
-                    registry = Docker.registry.info({'name': new_name})
-                    self.assertEqual(registry['name'], new_name)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_url_by_id(self):
-        """Create an external docker registry and update its URL. Use registry
-        ID to search by
-
-        :id: 71e8c75a-ce5d-4e8a-9564-2c6d9084f8fc
-
-        :expectedresults: the external registry is updated with the new URL
-
-        :BZ: 1489322
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry()
-        try:
-            new_url = settings.docker.external_registry_2
-            Docker.registry.update({
-                'id': registry['id'],
-                'url': new_url,
-            })
-            registry = Docker.registry.info({'id': registry['id']})
-            self.assertEqual(registry['url'], new_url)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_url_by_name(self):
-        """Create an external docker registry and update its URL. Use registry
-        name to search by
-
-        :id: 7d4fcdb3-c66f-4d0b-9df0-7a105ab29cb2
-
-        :expectedresults: the external registry is updated with the new URL
-
-        :BZ: 1489322
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry()
-        try:
-            new_url = settings.docker.external_registry_2
-            Docker.registry.update({
-                'name': registry['name'],
-                'url': new_url,
-            })
-            registry = Docker.registry.info({'name': registry['name']})
-            self.assertEqual(registry['url'], new_url)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_description_by_id(self):
-        """Create an external docker registry and update its description. Use
-        registry ID to search by
-
-        :id: 84efd73c-517e-411a-8a4a-5cf2718ca03c
-
-        :expectedresults: the external registry is updated with the new
-            description
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry({'description': gen_string('alpha')})
-        try:
-            for new_desc in valid_data_list():
-                with self.subTest(new_desc):
-                    Docker.registry.update({
-                        'description': new_desc,
-                        'id': registry['id'],
-                    })
-                    registry = Docker.registry.info({'id': registry['id']})
-                    self.assertEqual(registry['description'], new_desc)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_description_by_name(self):
-        """Create an external docker registry and update its description. Use
-        registry name to search by
-
-        :id: 0c452868-096f-46ae-b884-a6553611b1f3
-
-        :expectedresults: the external registry is updated with the new
-            description
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry({'description': gen_string('alpha')})
-        try:
-            for new_desc in valid_data_list():
-                with self.subTest(new_desc):
-                    Docker.registry.update({
-                        'description': new_desc,
-                        'name': registry['name'],
-                    })
-                    registry = Docker.registry.info({'name': registry['name']})
-                    self.assertEqual(registry['description'], new_desc)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_username_by_id(self):
-        """Create an external docker registry and update its username. Use
-        registry ID to search by
-
-        :id: 58e119e9-5681-49f3-bb33-41bb7d024930
-
-        :expectedresults: the external registry is updated with the new
-            username
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry({'username': gen_string('alpha')})
-        try:
-            for new_user in valid_data_list():
-                with self.subTest(new_user):
-                    Docker.registry.update({
-                        'id': registry['id'],
-                        'username': new_user,
-                    })
-                    registry = Docker.registry.info({'id': registry['id']})
-                    self.assertEqual(registry['username'], new_user)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_update_username_by_name(self):
-        """Create an external docker registry and update its username. Use
-        registry name to search by
-
-        :id: d139f89f-ce84-449c-9938-945c6dc980b6
-
-        :expectedresults: the external registry is updated with the new
-            username
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry({'username': gen_string('alpha')})
-        try:
-            for new_user in valid_data_list():
-                with self.subTest(new_user):
-                    Docker.registry.update({
-                        'name': registry['name'],
-                        'username': new_user,
-                    })
-                    registry = Docker.registry.info({'name': registry['name']})
-                    self.assertEqual(registry['username'], new_user)
-        finally:
-            Docker.registry.delete({'id': registry['id']})
-
-    @tier1
-    def test_positive_delete_by_id(self):
-        """Create an external docker registry. Use registry ID to search by
-
-        :id: c518011c-8665-4a7f-8b0e-af00232f876a
-
-        :expectedresults: the external registry is created
-
-        :CaseImportance: Critical
-        """
-        registry = make_registry()
-        Docker.registry.delete({'id': registry['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            Docker.registry.info({'id': registry['id']})
-
-    @tier1
-    def test_positive_delete_by_name(self):
-        """Create an external docker registry. Use registry name to search by
-
-        :id: a0c52cef-1757-4b91-a144-7dc0405cd33d
-
-        :expectedresults: the external registry is created
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                registry = make_registry({'name': name})
-                Docker.registry.delete({'name': registry['name']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Docker.registry.info({'name': registry['name']})
