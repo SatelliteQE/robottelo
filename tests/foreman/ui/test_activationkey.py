@@ -843,7 +843,8 @@ def test_positive_access_non_admin_user(session, test_name):
         session.organization.select(org.name)
         session.location.select(DEFAULT_LOC)
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        assert session.activationkey.search(non_searchable_ak_name)[0]['Name'] != non_searchable_ak_name
+        assert session.activationkey.search(
+            non_searchable_ak_name)[0]['Name'] != non_searchable_ak_name
 
 
 @tier2
