@@ -1037,8 +1037,8 @@ PERMISSIONS = {
     'Host': [
         'auto_provision_discovered_hosts',
         'build_hosts',
-        'console_hosts',
         'cockpit_hosts',
+        'console_hosts',
         'create_hosts',
         'destroy_discovered_hosts',
         'destroy_hosts',
