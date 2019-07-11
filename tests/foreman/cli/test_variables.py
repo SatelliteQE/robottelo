@@ -181,7 +181,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(smart_variable['variable'], name)
 
         # Update name and puppet class
-        new_name = valid_data_list()[1]
+        new_name = valid_data_list()[0]
         new_puppet = Puppet.info(
             {u'name': choice(self.puppet_subclasses)['name']})
         SmartVariable.update({
