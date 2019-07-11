@@ -102,10 +102,10 @@ def test_positive_end_to_end_crud(session, module_org):
         # Update activation key with new name
         session.activationkey.update(name, {'details.name': new_name})
         assert session.activationkey.search(new_name)[0]['Name'] == new_name
-        assert not session.activationkey.search(name)
+        assert session.activationkey.search(name)[0]['Name'] != name
         # Delete activation key
         session.activationkey.delete(new_name)
-        assert not session.activationkey.search(new_name)
+        assert session.activationkey.search(new_name)[0]['Name'] != new_name
 
 
 @tier3
@@ -381,7 +381,7 @@ def test_positive_delete_with_env(session, module_org):
         })
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
-        assert not session.activationkey.search(name)
+        assert session.activationkey.search(name)[0]['Name'] != name
 
 
 @tier2
@@ -409,7 +409,7 @@ def test_positive_delete_with_cv(session, module_org):
         })
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
-        assert not session.activationkey.search(name)
+        assert session.activationkey.search(name)[0]['Name'] != name
 
 
 @run_in_one_thread
@@ -843,7 +843,7 @@ def test_positive_access_non_admin_user(session, test_name):
         session.organization.select(org.name)
         session.location.select(DEFAULT_LOC)
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        assert not session.activationkey.search(non_searchable_ak_name)
+        assert session.activationkey.search(non_searchable_ak_name)[0]['Name'] != non_searchable_ak_name
 
 
 @tier2
@@ -1038,7 +1038,7 @@ def test_positive_delete_with_system(session):
             vm.register_contenthost(org.label, name)
             assert vm.subscribed
             session.activationkey.delete(name)
-            assert not session.activationkey.search(name)
+            assert session.activationkey.search(name)[0]['Name'] != name
 
 
 @skip_if_not_set('clients')
