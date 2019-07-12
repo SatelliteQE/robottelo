@@ -130,6 +130,9 @@ def ldap_auth_name():
     """
     ldap = entities.AuthSourceLDAP().search()
     for ldap_auth in range(len(ldap)):
+        users = entities.User(auth_source=ldap[ldap_auth]).search()
+        for user in range(len(users)):
+            users[user].delete()
         ldap[ldap_auth].delete()
     ldap_name = gen_string('alphanumeric')
     yield ldap_name
