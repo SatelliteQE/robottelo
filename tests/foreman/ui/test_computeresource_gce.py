@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: ComputeResourcesGCE
+:CaseComponent: ComputeResources-GCE
 
 :TestType: Functional
 
