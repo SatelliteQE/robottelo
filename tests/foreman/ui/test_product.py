@@ -70,7 +70,7 @@ def test_positive_end_to_end(session, module_org):
         session.product.update(
             product_name, {'details.name': new_product_name}
         )
-        assert not session.product.search(product_name)
+        assert session.product.search(product_name)[0]['Name'] != product_name
         assert session.product.search(new_product_name)[0]['Name'] == new_product_name
         # Add a repo to product
         session.repository.create(
@@ -89,7 +89,7 @@ def test_positive_end_to_end(session, module_org):
         assert product_values['details']['sync_state'] == 'Syncing Complete.'
         # Delete product
         session.product.delete(new_product_name)
-        assert not session.product.search(new_product_name)
+        assert session.product.search(new_product_name)[0]['Name'] != new_product_name
 
 
 @parametrize('product_name', **valid_data_list('ui'))
@@ -160,4 +160,4 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
         assert product_values['details']['sync_plan'] == plan_name
         # Delete product
         session.product.delete(product_name)
-        assert not session.product.search(product_name)
+        assert session.product.search(product_name)[0]['Name'] != product_name
