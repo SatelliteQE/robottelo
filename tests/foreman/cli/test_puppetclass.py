@@ -49,7 +49,7 @@ class PuppetClassTestCase(CLITestCase):
         })[0]
         cls.puppet = Puppet.info({
             'name': cls.puppet_modules[0]['name'],
-            'environment': cls.env['name'],
+            'puppet-environment': cls.env['name'],
         })
 
     @tier2

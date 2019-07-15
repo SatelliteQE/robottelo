@@ -61,7 +61,7 @@ class EnvironmentTestCase(CLITestCase):
             'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
         cls.puppet_class = Puppet.info({
             'name': puppet_modules[0]['name'],
-            'environment': cls.env['name'],
+            'puppet-environment': cls.env['name'],
         })
 
     @tier2
@@ -234,12 +234,12 @@ class EnvironmentTestCase(CLITestCase):
         """
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
         })
         scp_id = choice(sc_params_list)['id']
         SmartClassParameter.update({'id': scp_id, 'override': 1})
         # Verify that affected sc-param is listed
         env_scparams = Environment.sc_params(
-            {'environment-id': self.env['id']})
+            {'puppet-environment-id': self.env['id']})
         self.assertIn(scp_id, [scp['id'] for scp in env_scparams])
