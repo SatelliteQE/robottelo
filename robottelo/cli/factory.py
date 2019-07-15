@@ -53,6 +53,7 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import CapsuleTunnelError, Proxy
 from robottelo.cli.realm import Realm
+from robottelo.cli.report_template import ReportTemplate
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
@@ -63,6 +64,7 @@ from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.template import Template
+from robottelo.cli.template_input import TemplateInput
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.smart_variable import SmartVariable
@@ -92,7 +94,9 @@ from robottelo.constants import (
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import bz_bug_is_open, cacheable
 from robottelo.helpers import (
-    update_dictionary, default_url_on_new_port, get_available_capsule_port
+    update_dictionary,
+    default_url_on_new_port,
+    get_available_capsule_port,
 )
 from robottelo.ssh import download_file, upload_file
 from tempfile import mkstemp
@@ -2321,6 +2325,101 @@ def make_realm(options=None):
 
 
 @cacheable
+def make_report_template(options=None):
+    """
+    Usage::
+
+        hammer report-template create [OPTIONS]
+
+    Options::
+
+        --audit-comment AUDIT_COMMENT
+        --default DEFAULT           Whether or not the template is added
+                                    automatically to new organizations
+                                    and Locations
+                                    One of true/false, yes/no, 1/0.
+        --file LAYOUT               Path to a file that contains
+                                    the report template content
+        --interactive, -i           Open empty template in an $EDITOR.
+                                    Upload the result
+        --location LOCATION_NAME    Location name
+        --location-id LOCATION_ID
+        --location-ids LOCATION_IDS REPLACE locations with given ids
+                                    Comma separated list of values. Values
+                                    containing comma should be quoted
+                                    or escaped with backslash.
+                                    JSON is acceptable and preferred way
+                                    for complex parameters
+        --location-title LOCATION_TITLE     Location title
+        --location-titles LOCATION_TITLES   Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --locations LOCATION_NAMES          Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --locked LOCKED     Whether or not the template is locked for editing
+                            One of true/false, yes/no, 1/0.
+        --name NAME
+        --organization ORGANIZATION_NAME    Organization name
+        --organization-id ORGANIZATION_ID   Organization ID
+        --organization-ids ORGANIZATION_IDS REPLACE organizations
+                                            with given ids.
+                                            Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --organization-title ORGANIZATION_TITLE   Organization title
+        --organization-titles ORGANIZATION_TITLES Comma separated
+                                                  list of values. Values
+                                                  containing comma should be
+                                                  quoted or escaped
+                                                  with backslash.
+                                                  JSON is acceptable and
+                                                  preferred way
+                                                  for complex parameters
+        --organizations ORGANIZATION_NAMES  Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --snippet SNIPPET                   One of true/false, yes/no, 1/0.
+        -h, --help                          Print help
+    """
+    if options is not None and 'content' in options.keys():
+        content = options.pop('content')
+    else:
+        content = gen_alphanumeric()
+
+    args = {
+        u'audit-comment': None,
+        u'default': None,
+        u'file': content,
+        u'interactive': None,
+        u'location': None,
+        u'location-id': None,
+        u'location-ids': None,
+        u'location-title': None,
+        u'location-titles': None,
+        u'locations': None,
+        u'locked': None,
+        u'name': gen_alphanumeric(10),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-ids': None,
+        u'organization-title': None,
+        u'organization-titles': None,
+        u'organizations': None,
+        u'snippet': None,
+    }
+    return create_object(ReportTemplate, args, options)
+
+
+@cacheable
 def make_os(options=None):
     """
     Usage::
@@ -2832,6 +2931,123 @@ def make_template(options=None):
     # End - Special handling for template factory
 
     return create_object(Template, args, options)
+
+
+@cacheable
+def make_template_input(options=None):
+    """
+    Usage::
+
+        hammer template-input create [OPTIONS]
+
+    Options::
+
+        --advanced ADVANCED                Input is advanced
+                                           One of true/false, yes/no, 1/0.
+        --description DESCRIPTION          Input description
+        --fact-name FACT_NAME          Fact name, used when input type is fact
+        --input-type INPUT_TYPE        Input type
+                                       Possible value(s): 'user', 'fact',
+                                       'variable', 'puppet_parameter'
+        --location LOCATION_NAME           Location name
+        --location-id LOCATION_ID
+        --location-title LOCATION_TITLE    Location title
+        --name NAME                        Input name
+        --options OPTIONS              Selectable values for user inputs
+                                       Comma separated list of values.
+                                       Values containing comma should be quoted
+                                       or escaped with backslash.
+                                       JSON is acceptable and preferred way
+                                       for complex parameters.
+        --organization ORGANIZATION_NAME              Organization name
+        --organization-id ORGANIZATION_ID             Organization ID
+        --organization-title ORGANIZATION_TITLE       Organization title
+        --puppet-class-name PUPPET_CLASS_NAME         Puppet class name,
+                                                      used when input type is
+                                                      puppet_parameter
+        --puppet-parameter-name PUPPET_PARAMETER_NAME Puppet parameter name,
+                                                      used when input type is
+                                                      puppet_parameter
+        --required REQUIRED            Input is required
+                                       One of true/false, yes/no, 1/0.
+        --resource-type RESOURCE_TYPE  For values of type search, this is
+                                       the resource the value searches in
+                                       Possible value(s): 'AnsibleRole',
+                                       'AnsibleVariable', 'Architecture',
+                                       'Audit', 'AuthSource', 'Bookmark',
+                                       'ComputeProfile', 'ComputeResource',
+                                       'ConfigGroup', 'ConfigReport',
+                                       'DiscoveryRule', 'Domain',
+                                       'Environment', 'ExternalUsergroup',
+                                       'FactValue', 'Filter',
+                                       'ForemanOpenscap::ArfReport',
+                                       'ForemanOpenscap::Policy',
+                                       'ForemanOpenscap::ScapContent',
+                                       'ForemanOpenscap::TailoringFile',
+                                       'ForemanTasks::RecurringLogic',
+                                       'ForemanTasks::Task',
+                                       'ForemanVirtWhoConfigure::Config',
+                                       'Host', 'HostClass', 'Hostgroup',
+                                       'HttpProxy', 'Image', 'JobInvocation',
+                                       'JobTemplate', 'Katello::ActivationKey',
+                                       'Katello::ContentView',
+                                       'Katello::GpgKey',
+                                       'Katello::HostCollection',
+                                       'Katello::KTEnvironment',
+                                       'Katello::Product',
+                                       'Katello::Subscription',
+                                       'Katello::SyncPlan', 'KeyPair',
+                                       'Location', 'MailNotification',
+                                       'Medium', 'Model', 'Operatingsystem',
+                                       'Organization', 'Parameter',
+                                       'PersonalAccessToken',
+                                       'ProvisioningTemplate', 'Ptable',
+                                       'Puppetclass', 'PuppetclassLookupKey',
+                                       'Realm', 'RemoteExecutionFeature',
+                                       'Report', 'ReportTemplate', 'Role',
+                                       'Setting', 'SmartProxy', 'SshKey',
+                                       'Subnet', 'Template',
+                                       'TemplateInvocation', 'Trend', 'User',
+                                       'Usergroup', 'VariableLookupKey'
+        --template-id TEMPLATE_ID
+        --value-type VALUE_TYPE         Value type, defaults to plain
+                                        Possible value(s):
+                                        'plain', 'search', 'date'
+        --variable-name VARIABLE_NAME   Variable name, used when
+                                        input type is variable
+        -h, --help                      Print help
+    """
+    if(
+            not options or
+            not options.get('input-type') or
+            not options.get('template-id')
+    ):
+        raise CLIFactoryError(
+            'Please provide valid template-id and input-type'
+        )
+
+    args = {
+        u'advanced': None,
+        u'description': None,
+        u'fact-name': None,
+        u'input-type': None,
+        u'location': None,
+        u'location-id': None,
+        u'location-title': None,
+        u'name': gen_alphanumeric(6),
+        u'options': None,
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-title': None,
+        u'puppet-class-name': None,
+        u'puppet-parameter-name': None,
+        u'required': None,
+        u'resource-type': None,
+        u'template-id': None,
+        u'value-type': None,
+        u'variable-name': None,
+    }
+    return create_object(TemplateInput, args, options)
 
 
 @cacheable

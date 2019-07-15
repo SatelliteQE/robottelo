@@ -1,0 +1,13 @@
+# this custom template only generate report with all hosts
+<%#
+name: Custom template
+snippet: false
+model: ReportTemplate
+-%>
+<%- load_hosts().each_record do |host| -%>
+<%-   report_row({
+        'Name': host.name,
+        'Operating System': host.operatingsystem,
+      }) -%>
+<%- end -%>
+<%= report_render -%>

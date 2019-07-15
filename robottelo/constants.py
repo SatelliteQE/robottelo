@@ -498,12 +498,31 @@ FILTER_TYPE = {
 FILTER_ERRATA_TYPE = {
     'security': "security",
     'enhancement': "enhancement",
-    'bugfix': "bugfix"
+    'bugfix': "bugfix",
+    'all': 'all',
+    'recommended': 'recommended',
+    'optional': 'optional',
 }
 
 FILTER_ERRATA_DATE = {
     'updated': "updated",
     'issued': "issued"
+}
+
+REPORT_TEMPLATE_FILE = 'report_template.txt'
+REP_TEM_APPLIED_ERRATA_INPUT = {
+    'Filter Errata Type': FILTER_ERRATA_TYPE,
+    'Status': {
+        'success': 'success',
+        'warning': 'warning',
+        'error': 'error',
+        'canceled': 'canceled',
+        'pending': 'pending',
+    },
+    'Include Last Reboot': {
+        'yes': 'yes',
+        'no': 'no',
+    }
 }
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
