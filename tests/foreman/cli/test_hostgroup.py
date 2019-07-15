@@ -89,7 +89,7 @@ class HostGroupTestCase(CLITestCase):
         cls.env = Environment.list({
             'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
         cls.puppet_classes = [
-            Puppet.info({'name': mod['name'], 'environment': cls.env['name']})
+            Puppet.info({'name': mod['name'], 'puppet-environment': cls.env['name']})
             for mod in puppet_modules
         ]
 
@@ -134,7 +134,7 @@ class HostGroupTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         environment = make_environment()
-        hostgroup = make_hostgroup({'environment-id': environment['id']})
+        hostgroup = make_hostgroup({'puppet-environment-id': environment['id']})
         self.assertEqual(environment['name'], hostgroup['puppet-environment'])
 
     @tier2
@@ -251,7 +251,7 @@ class HostGroupTestCase(CLITestCase):
         """
         hostgroup = make_hostgroup({
             'puppet-class-ids': self.puppet_classes[0]['id'],
-            'environment-id': self.env['id'],
+            'puppet-environment-id': self.env['id'],
             'content-view-id': self.cv['id'],
             'query-organization-id': self.org['id'],
         })
@@ -270,7 +270,7 @@ class HostGroupTestCase(CLITestCase):
         """
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'content-view': self.cv['name'],
             'query-organization': self.org['name'],
         })
@@ -422,7 +422,7 @@ class HostGroupTestCase(CLITestCase):
         make_hostgroup_params = {
             'organizations': org['name'],
             'locations': loc['name'],
-            'environment': env['name'],
+            'puppet-environment': env['name'],
             'lifecycle-environment': lce['name'],
             'puppet-proxy': proxy['name'],
             'puppet-ca-proxy': proxy['name'],
@@ -526,7 +526,7 @@ class HostGroupTestCase(CLITestCase):
         })
         make_hostgroup_params = {
             'location-ids': loc['id'],
-            'environment-id': env['id'],
+            'puppet-environment-id': env['id'],
             'lifecycle-environment-id': lce['id'],
             'puppet-proxy-id': proxy['id'],
             'puppet-ca-proxy-id': proxy['id'],
@@ -690,7 +690,7 @@ class HostGroupTestCase(CLITestCase):
         synced_repo = Repository.list({
             'content-view-version-id': cvv['id'],
             'organization-id': org['id'],
-            'environment-id': lce['id'],
+            'lifecycle-environment-id': lce['id'],
         })[0]
         hostgroup = make_hostgroup({
             'lifecycle-environment-id': lce['id'],
@@ -933,13 +933,13 @@ class HostGroupTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'content-view': self.cv['name'],
             'query-organization': self.org['name'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'search': u'puppetclass="{0}"'.format(
                 self.puppet_classes[0]['name'])
         })
@@ -962,13 +962,13 @@ class HostGroupTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'content-view': self.cv['name'],
             'query-organization': self.org['name'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'search': u'puppetclass="{0}"'.format(
                 self.puppet_classes[0]['name'])
         })
@@ -991,7 +991,7 @@ class HostGroupTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'content-view': self.cv['name'],
             'query-organization': self.org['name'],
         })
@@ -1016,7 +1016,7 @@ class HostGroupTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
+            'puppet-environment': self.env['name'],
             'content-view': self.cv['name'],
             'query-organization': self.org['name'],
         })

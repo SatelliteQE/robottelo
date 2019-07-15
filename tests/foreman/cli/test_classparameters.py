@@ -70,10 +70,10 @@ class SmartClassParametersTestCase(CLITestCase):
         })
         cls.puppet_class = Puppet.info({
             'name': cls.puppet_modules[0]['name'],
-            'environment': cls.env['name'],
+            'puppet-environment': cls.env['name'],
         })
         cls.sc_params_list = SmartClassParameter.list({
-            'environment': cls.env['name'],
+            'puppet-environment': cls.env['name'],
             'search': u'puppetclass="{0}"'.format(cls.puppet_class['name'])
         })
         cls.sc_params_ids_list = [
@@ -84,7 +84,7 @@ class SmartClassParametersTestCase(CLITestCase):
         cls.host.add_puppetclass(
             data={'puppetclass_id': cls.puppet_class['id']})
         cls.hostgroup = make_hostgroup({
-            'environment-id': cls.env['id'],
+            'puppet-environment-id': cls.env['id'],
             'puppet-class-ids': cls.puppet_class['id']
         })
 
@@ -117,8 +117,8 @@ class SmartClassParametersTestCase(CLITestCase):
         """
 
         list_queries = [
-            {'environment': self.env['name']},
-            {'environment-id': self.env['id']},
+            {'puppet-environment': self.env['name']},
+            {'puppet-environment-id': self.env['id']},
             {'host': self.host.name},
             {'host-id': self.host.id},
             {'hostgroup': self.hostgroup["name"]},
@@ -213,10 +213,10 @@ class SmartClassParametersTestCase(CLITestCase):
         })[0]
         puppet_class = Puppet.info({
             'name': self.puppet_modules[0]['name'],
-            'environment': env['name'],
+            'puppet-environment': env['name'],
         })
         sc_params = SmartClassParameter.list({
-            'environment': env['name'],
+            'puppet-environment': env['name'],
             'puppet-class-id': puppet_class['id'],
             'per-page': 1000,
         })

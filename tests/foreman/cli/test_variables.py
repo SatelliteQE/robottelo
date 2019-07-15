@@ -75,11 +75,11 @@ class SmartVariablesTestCase(CLITestCase):
         # Find imported puppet class
         cls.puppet_class = Puppet.info({
             'name': cls.puppet_modules[0]['name'],
-            'environment': cls.env['name'],
+            'puppet-environment': cls.env['name'],
         })
         # And all its subclasses
         cls.puppet_subclasses = Puppet.list({
-            'search': "name ~ {0}:: and environment = {1}".format(
+            'search': "name ~ {0}:: and puppet-environment = {1}".format(
                 cls.puppet_class['name'], cls.env['name'])
         })
 
@@ -112,7 +112,7 @@ class SmartVariablesTestCase(CLITestCase):
                              location=self.loc['id']).create()
         Host.update({
             'name': host.name,
-            'environment-id': self.env['id'],
+            'puppet-environment-id': self.env['id'],
             'puppet-classes': self.puppet_class['name'],
             'organization-id': self.org['id'],
         })
@@ -129,7 +129,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         # List by hostgroup name and id
         hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
+            'puppet-environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
         hostgroup_variables = SmartVariable.list(
@@ -652,7 +652,7 @@ class SmartVariablesTestCase(CLITestCase):
             {'puppet-class': self.puppet_class['name']})
         hostgroup = make_hostgroup({
             'name': hostgroup_name,
-            'environment-id': self.env['id'],
+            'puppet-environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
         SmartVariable.add_override_value({
@@ -674,7 +674,7 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
         make_hostgroup({
             'name': hostgroup_name,
-            'environment-id': self.env['id'],
+            'puppet-environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
