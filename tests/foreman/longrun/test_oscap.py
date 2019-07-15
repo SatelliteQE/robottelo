@@ -237,13 +237,12 @@ class OpenScapTestCase(CLITestCase):
         # Creates host_group for both rhel6 and rhel7
         for host_group in [hgrp6_name, hgrp7_name]:
             make_hostgroup({
-                'content-source': self.sat6_hostname,
+                'content-source': self.config_env['sat6_hostname'],
                 'name': host_group,
-                'environment-id': self.puppet_env.id,
+                'puppet-environment-id': self.puppet_env.id,
                 'puppet-ca-proxy': self.config_env['sat6_hostname'],
                 'puppet-proxy': self.config_env['sat6_hostname'],
                 'organizations': self.config_env['org_name'],
-                'locations': DEFAULT_LOC
             })
         # Creates oscap_policy for both rhel6 and rhel7.
         for value in policy_values:
@@ -260,7 +259,6 @@ class OpenScapTestCase(CLITestCase):
                 'scap-content-profile-id': scap_profile_id,
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'organizations': self.config_env['org_name'],
-                'locations': DEFAULT_LOC
             })
         # Creates two vm's each for rhel6 and rhel7, runs
         # openscap scan and uploads report to satellite6.
@@ -282,8 +280,7 @@ class OpenScapTestCase(CLITestCase):
                     'hostgroup': value['hgrp'],
                     'openscap-proxy-id': self.proxy_id,
                     'organization': self.config_env['org_name'],
-                    'environment-id': self.puppet_env.id,
-                    'locations': DEFAULT_LOC
+                    'puppet-environment-id': self.puppet_env.id,
                 })
 
                 # Run "puppet agent -t" twice so that it detects it's,
@@ -342,7 +339,7 @@ class OpenScapTestCase(CLITestCase):
         make_hostgroup({
             'content-source-id': self.proxy_id,
             'name': hgrp7_name,
-            'environment-id': self.puppet_env.id,
+            'puppet-environment-id': self.puppet_env.id,
             'puppet-ca-proxy': self.config_env['sat6_hostname'],
             'puppet-proxy': self.config_env['sat6_hostname'],
             'organizations': self.config_env['org_name']
@@ -382,7 +379,7 @@ class OpenScapTestCase(CLITestCase):
                 'hostgroup': vm_values.get('hgrp'),
                 'openscap-proxy-id': self.proxy_id,
                 'organization': self.config_env['org_name'],
-                'environment-id': self.puppet_env.id,
+                'puppet-environment-id': self.puppet_env.id,
             })
             # Run "puppet agent -t" twice so that it detects it's,
             # satellite6 and fetch katello SSL certs.
@@ -487,7 +484,7 @@ class OpenScapTestCase(CLITestCase):
         make_hostgroup({
             'content-source-id': self.proxy_id,
             'name': hgrp7_name,
-            'environment-id': self.puppet_env.id,
+            'puppet-environment-id': self.puppet_env.id,
             'puppet-ca-proxy': self.config_env['sat6_hostname'],
             'puppet-proxy': self.config_env['sat6_hostname'],
             'organizations': self.config_env['org_name']
@@ -534,7 +531,7 @@ class OpenScapTestCase(CLITestCase):
                 'hostgroup': vm_values.get('hgrp'),
                 'openscap-proxy-id': self.proxy_id,
                 'organization': self.config_env['org_name'],
-                'environment-id': self.puppet_env.id,
+                'puppet-environment-id': self.puppet_env.id,
             })
             # Run "puppet agent -t" twice so that it detects it's,
             # satellite6 and fetch katello SSL certs.
