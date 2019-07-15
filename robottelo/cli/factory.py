@@ -2494,7 +2494,7 @@ def make_hostgroup(options=None):
         u'domain': None,
         u'domain-id': None,
         u'environment': None,
-        u'environment-id': None,
+        u'puppet-environment-id': None,
         u'locations': None,
         u'location-ids': None,
         u'kickstart-repository-id': None,
