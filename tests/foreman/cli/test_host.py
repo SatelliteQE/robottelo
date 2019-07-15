@@ -149,7 +149,7 @@ class HostCreateTestCase(CLITestCase):
             'search': u'content_view="{0}"'.format(cls.puppet_cv['name'])})[0]
         cls.puppet_class = Puppet.info({
             'name': puppet_modules[0]['name'],
-            'environment': cls.puppet_env['name'],
+            'puppet-environment': cls.puppet_env['name'],
         })
         # adding org to a puppet env
         Org.set_parameter({
@@ -576,7 +576,7 @@ class HostCreateTestCase(CLITestCase):
         """
         host = make_fake_host({
             'puppet-class-ids': self.puppet_class['id'],
-            'environment-id': self.puppet_env['id'],
+            'puppet-environment-id': self.puppet_env['id'],
             'organization-id': self.new_org['id'],
         })
         host_classes = Host.puppetclasses({'host-id': host['id']})
@@ -597,7 +597,7 @@ class HostCreateTestCase(CLITestCase):
         """
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
+            'puppet-environment': self.puppet_env['name'],
             'organization-id': self.new_org['id'],
         })
         host_classes = Host.puppetclasses({'host': host['name']})
@@ -813,12 +813,12 @@ class HostCreateTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
+            'puppet-environment': self.puppet_env['name'],
             'organization-id': self.new_org['id'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
-            'environment': self.puppet_env['name'],
+            'puppet-environment': self.puppet_env['name'],
             'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
         })
         scp_id = choice(sc_params_list)['id']
@@ -840,12 +840,12 @@ class HostCreateTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
+            'pupppet-environment': self.puppet_env['name'],
             'organization-id': self.new_org['id'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
-            'environment': self.puppet_env['name'],
+            'puppet-environment': self.puppet_env['name'],
             'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
         })
         scp_id = choice(sc_params_list)['id']
@@ -867,7 +867,7 @@ class HostCreateTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
+            'puppet-environment': self.puppet_env['name'],
             'organization-id': self.new_org['id'],
         })
         # Create smart variable
@@ -891,7 +891,7 @@ class HostCreateTestCase(CLITestCase):
         # Create hostgroup with associated puppet class
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
+            'puppet-environment': self.puppet_env['name'],
             'organization-id': self.new_org['id'],
         })
         # Create smart variable
@@ -926,7 +926,6 @@ class HostCreateTestCase(CLITestCase):
             self.assertTrue(client.subscribed)
             hosts = Host.list({
                 'organization-id': self.new_org['id'],
-                'environment-id': self.new_lce['id'],
             })
             self.assertGreaterEqual(len(hosts), 1)
             self.assertIn(client.hostname, [host['name'] for host in hosts])
@@ -987,7 +986,6 @@ class HostCreateTestCase(CLITestCase):
             self.assertTrue(client.subscribed)
             hosts = Host.list({
                 'organization-id': self.new_org['id'],
-                'environment-id': self.new_lce['id'],
             })
             self.assertGreaterEqual(len(hosts), 1)
             self.assertIn(client.hostname, [host['name'] for host in hosts])
@@ -995,7 +993,6 @@ class HostCreateTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             hosts = Host.list({
                 'organization-id': self.new_org['id'],
-                'environment-id': self.new_lce['id'],
             })
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
