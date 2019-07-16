@@ -1,5 +1,4 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
-import os
 import re
 import time
 from robottelo import ssh
