@@ -664,6 +664,12 @@ def make_location(options=None):
         --environments ENVIRONMENT_NAMES            Environment names
                                                     Comma separated list of
                                                     values.
+        --puppet-environment-ids ENVIRONMENT_IDS    Environment IDs
+                                                    Comma separated list of
+                                                    values.
+        --puppet-environments ENVIRONMENT_NAMES     Environment names
+                                                    Comma separated list of
+                                                    values.
         --hostgroup-ids HOSTGROUP_IDS               Host group IDs
                                                     Comma separated list of
                                                     values.
@@ -708,6 +714,8 @@ def make_location(options=None):
         u'domains': None,
         u'environment-ids': None,
         u'environments': None,
+        u'puppet-environment-ids': None,
+        u'puppet-environments': None,
         u'hostgroup-ids': None,
         u'hostgroups': None,
         u'medium-ids': None,

@@ -83,7 +83,7 @@ class LocationTestCase(CLITestCase):
         loc = make_location({
             'description': description,
             'subnet-ids': self.subnet.id,
-            'environment-ids': self.env.id,
+            'puppet-environment-ids': self.env.id,
             'domain-ids': [self.domain.id, self.domain2.id],
             'hostgroup-ids': [self.host_group.id, self.host_group2.id],
             'medium-ids': self.medium["id"],
@@ -115,7 +115,7 @@ class LocationTestCase(CLITestCase):
         # Update
         Location.update({
             'id': loc['id'],
-            'environment-ids': [self.env.id, self.env2.id],
+            'puppet-environment-ids': [self.env.id, self.env2.id],
             'domain-ids': self.domain2.id,
             'hostgroup-ids': [self.host_group2.id, self.host_group3.id],
         })
