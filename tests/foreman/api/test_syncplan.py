@@ -366,6 +366,7 @@ class SyncPlanUpdateTestCase(APITestCase):
             sync_plan = sync_plan.create()
 
             valid_intervals = valid_sync_interval()
+            self.assertIn(interval, valid_intervals)
             valid_intervals.remove(interval)
             new_interval = gen_choice(valid_intervals)
             sync_plan.interval = new_interval
