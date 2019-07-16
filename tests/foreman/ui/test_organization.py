@@ -19,10 +19,9 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT, DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_not_set, tier2, upgrade
 from robottelo.manifests import original_manifest, upload_manifest_locked
-from robozilla.decorators import skip_if_bug_open
 
 
 @tier2
@@ -109,37 +108,6 @@ def test_positive_update_user(session):
         org_values = session.organization.read(org.name)
         assert len(org_values['users']['resources']['assigned']) == 0
         assert user.login in org_values['users']['resources']['unassigned']
-
-
-@skip_if_bug_open('bugzilla', 1730292)
-@tier2
-def test_positive_create_with_all_users(session):
-    """Create organization and new user. Check 'all users' setting for
-    organization. Verify that user is assigned to organization and
-    vice versa organization is assigned to user
-
-    :id: 5bfcbd10-750c-4ef6-87b6-a8eb2eae4ce7
-
-    :expectedresults: Organization and user entities assigned to each other
-
-    :BZ: 1321543
-
-    :CaseLevel: Integration
-    """
-    user = entities.User().create()
-    org = entities.Organization().create()
-    with session:
-        session.organization.update(
-            org.name, {'users.all_users': True})
-        org_values = session.organization.read(org.name)
-        assert user.login in org_values['users']['resources']['assigned']
-        session.organization.search(org.name)
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=ANY_CONTEXT['location'])
-        assert session.user.search(user.login)[0]['Username'] == user.login
-        user_values = session.user.read(user.login)
-        assert org.name == user_values[
-            'organizations']['resources']['assigned'][0]
 
 
 @skip_if_not_set('compute_resources')

@@ -30,7 +30,6 @@ from robottelo.decorators import (
     tier2,
     upgrade,
 )
-from robozilla.decorators import skip_if_bug_open
 
 
 @tier2
@@ -146,71 +145,6 @@ def test_positive_update_user(session):
         loc_values = session.location.read(loc.name)
         assert len(loc_values['users']['resources']['assigned']) == 0
         assert user.login in loc_values['users']['resources']['unassigned']
-
-
-@skip_if_bug_open('bugzilla', 1730292)
-@tier2
-def test_positive_update_with_all_users(session):
-    """Create location and add user to it. Check and uncheck 'all users'
-    setting. Verify that user is assigned to location and vice versa
-    location is assigned to user
-
-    :id: 17f85968-4aa6-4e2e-82d9-b01bc17031e7
-
-    :customerscenario: true
-
-    :expectedresults: Location and user entities assigned to each other
-
-    :BZ: 1479736, 1479736
-
-    :CaseLevel: Integration
-    """
-    user = entities.User().create()
-    loc = entities.Location().create()
-    with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=loc.name)
-        session.location.update(
-            loc.name, {'users.resources.assigned': [user.login]})
-        loc_values = session.location.read(loc.name)
-        user_values = session.user.read(user.login)
-        assert loc_values['users']['resources']['assigned'][0] == user.login
-        assert user_values['locations']['resources']['assigned'][0] == loc.name
-        session.location.update(loc.name, {'users.all_users': True})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['assigned']
-        session.location.update(loc.name, {'users.all_users': False})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['unassigned']
-
-
-@skip_if_bug_open('bugzilla', 1730292)
-@tier2
-def test_positive_update_with_all_users_setting_only(session):
-    """Create location and do not add user to it. Check and uncheck
-    'all users' setting. Verify that for both operation expected location
-    is assigned to user
-
-    :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
-
-    :expectedresults: Location entity is assigned to user after checkbox
-        was enabled and then disabled afterwards
-
-    :BZ: 1321543
-
-    :CaseLevel: Integration
-    """
-    user = entities.User().create()
-    loc = entities.Location().create()
-    with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=loc.name)
-        session.location.update(loc.name, {'users.all_users': True})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['assigned']
-        session.location.update(loc.name, {'users.all_users': False})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['unassigned']
 
 
 @tier2
