@@ -139,7 +139,7 @@ class OrganizationTestCase(CLITestCase):
 
         # List
         result = Org.list({'search': 'name=%s' % org['name']})
-        self.assertTrue(len(result) > 1)
+        self.assertTrue(len(result), 1)
         self.assertEqual(result[0]['name'], org['name'])
 
         # Search scoped
