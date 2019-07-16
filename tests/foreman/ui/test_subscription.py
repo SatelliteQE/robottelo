@@ -327,7 +327,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         5. Verify that the table header column doesn't have any headers from
            checkboxes
 
-        Note: Table header will always contain 'Select all rows' header in htlm,
+        Note: Table header will always contain 'Select all rows' header in html,
         but will not be displayed in UI
 
     :expectedresults:
@@ -337,20 +337,32 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
     """
     checkbox_dict = {
         'Name': False,
-        'Type': False,
         'SKU': False,
         'Contract': False,
         'Start Date': False,
         'End Date': False,
         'Requires Virt-Who': False,
+        'Type': False,
         'Consumed': False,
         'Entitlements': False
     }
+    org = entities.Organization().create()
+    _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
+    with manifests.clone() as manifest:
+        with open(temporary_local_manifest_path, 'wb') as file_handler:
+            file_handler.write(manifest.content.read())
 
     with session:
+        session.organization.select(org.name)
+        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
+        # the consumer uuid, that will be displayed in flash error messages
+        # Note: this happen only when using clone manifest.
+        session.subscription.add_manifest(temporary_local_manifest_path,
+                                          ignore_error_messages=['404 Not Found'])
         headers = session.subscription.filter_columns(checkbox_dict)
         assert headers[0] not in list(checkbox_dict)
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
-        col = session.subscription.filter_columns(checkbox_dict)
-        assert list(col[1:]) == list(checkbox_dict)
+        columns = session.subscription.filter_columns(checkbox_dict)
+        for column_name in list(columns[1:]):
+            assert column_name in list(checkbox_dict)
