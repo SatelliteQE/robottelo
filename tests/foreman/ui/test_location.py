@@ -30,6 +30,7 @@ from robottelo.decorators import (
     tier2,
     upgrade,
 )
+from robozilla.decorators import skip_if_bug_open
 
 
 @tier2
@@ -147,6 +148,7 @@ def test_positive_update_user(session):
         assert user.login in loc_values['users']['resources']['unassigned']
 
 
+@skip_if_bug_open('bugzilla', 1730292)
 @tier2
 def test_positive_update_with_all_users(session):
     """Create location and add user to it. Check and uncheck 'all users'
@@ -182,6 +184,7 @@ def test_positive_update_with_all_users(session):
         assert loc.name in user_values['locations']['resources']['unassigned']
 
 
+@skip_if_bug_open('bugzilla', 1730292)
 @tier2
 def test_positive_update_with_all_users_setting_only(session):
     """Create location and do not add user to it. Check and uncheck
