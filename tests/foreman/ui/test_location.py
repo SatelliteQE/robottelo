@@ -21,7 +21,6 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import (
-    ANY_CONTEXT,
     INSTALL_MEDIUM_URL,
     LIBVIRT_RESOURCE_URL,
 )
