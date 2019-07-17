@@ -1314,7 +1314,10 @@ def test_positive_delete_manifest(session):
             == DEFAULT_SUBSCRIPTION_NAME
         )
         # Delete the manifest
-        session.subscription.delete_manifest()
+        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
+        # the consumer uuid, that will be displayed in flash error messages
+        # Note: this happen only when using clone manifest.
+        session.subscription.delete_manifest(ignore_error_messages='404 Not Found')
         assert not session.subscription.has_manifest
         # Verify subscription is not assigned to activation key anymore
         ak = session.activationkey.read(activation_key.name)
