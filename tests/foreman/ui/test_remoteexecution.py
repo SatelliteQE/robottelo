@@ -19,7 +19,9 @@ import time
 
 from nailgun import entities
 
+from robottelo.api.utils import update_vm_host_location
 from robottelo.cli.host import Host
+from robottelo.config import settings
 from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier3, upgrade
@@ -59,11 +61,22 @@ def module_org():
     return entities.Organization().create()
 
 
+@fixture(scope='module')
+def module_loc(module_org):
+    location = entities.Location(organization=[module_org]).create()
+    smart_proxy = entities.SmartProxy().search(
+        query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+    smart_proxy.location = [entities.Location(id=location.id)]
+    smart_proxy.update(['location'])
+    return location
+
+
 @fixture
-def module_vm_client_by_ip(module_org):
+def module_vm_client_by_ip(module_org, module_loc):
     """Setup a VM client to be used in remote execution by ip"""
     with VirtualMachine(distro=DISTRO_DEFAULT) as vm_client:
         _setup_vm_client_host(vm_client, module_org.label)
+        update_vm_host_location(vm_client, location_id=module_loc.id)
         yield vm_client
 
 
