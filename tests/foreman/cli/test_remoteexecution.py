@@ -36,7 +36,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -154,11 +153,12 @@ class TestRemoteExecution():
             raise AssertionError(result)
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup, fixture_org):
         """Run default job template as effective user on a host by ip
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
+
+        :bz: 1451675
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host
@@ -583,16 +583,7 @@ class TestAnsibleREX():
                     )
                 )
             raise AssertionError(result)
-        # Wait until the job runs
-        pending_state = u'1'
-        for _ in range(10):
-            if pending_state != u'0':
-                invocation_info = JobInvocation.info({
-                    'id': invocation_command[u'id']})
-                pending_state = invocation_info[u'pending']
-                sleep(30)
-            else:
-                break
+        sleep(150)
         rec_logic = RecurringLogic.info({
             'id': invocation_command['recurring-logic-id']})
         assert rec_logic['state'] == u'finished'
