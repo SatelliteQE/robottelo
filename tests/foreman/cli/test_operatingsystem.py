@@ -352,3 +352,24 @@ class OperatingSystemTestCase(CLITestCase):
         os = OperatingSys.info({'id': os_id})
         self.assertEqual(len(os['partition-tables']), 1)
         self.assertEqual(os['partition-tables'][0], ptable_name)
+
+    @tier2
+    def test_positive_update_parameters_attributes(self):
+        """Update os-parameters-attributes to operating system
+
+        :id: 5d566eea-b323-4128-9356-3bf39943e4d4
+
+        :BZ: 1713553
+
+        :expectedresults: Os-parameters-attributes are updated to Operating System
+        """
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        os_id = make_os()['id']
+        OperatingSys.update({
+            'id': os_id,
+            'os-parameters-attributes': 'name={}, value={}'.format(param_name+'\\', param_value),
+        })
+        os = OperatingSys.info({'id': os_id}, output_format='json')
+        self.assertEqual(param_name, os['parameters'][0]['name'])
+        self.assertEqual(param_value, os['parameters'][0]['value'])
