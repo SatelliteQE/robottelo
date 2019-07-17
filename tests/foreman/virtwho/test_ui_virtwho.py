@@ -89,9 +89,6 @@ def test_positive_deploy_configure_by_id(session, form_data):
         assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
         session.contenthost.add_subscription(guest_name, vdc_virtual)
         assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
-        virtwho_cleanup()
-        session.contenthost.delete(hypervisor_display_name)
-        session.contenthost.delete(guest_name)
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
 

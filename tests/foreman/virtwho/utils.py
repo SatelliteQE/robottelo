@@ -93,8 +93,10 @@ def virtwho_cleanup():
     4. clean all the configure files in /etc/virt-who.d/
     """
     runcmd("systemctl stop virt-who")
-    runcmd("ps -ef | grep virt-who -i | grep -v grep \
-            | awk '{print $2}' | xargs -I {} kill -9 {}")
+    runcmd(
+        "ps -ef | grep virt-who -i | grep -v grep |"
+        "awk '{print $2}' | xargs -I {} kill -9 {}"
+    )
     runcmd("rm -f /var/run/virt-who.pid")
     runcmd("rm -rf /var/log/rhsm/*")
     runcmd("rm -rf /etc/virt-who.d/*")
@@ -166,9 +168,17 @@ def deploy_configure_by_command(command):
     if (status == 'running' and
             data['error'] == 0 and 'hypervisor_id' in data):
         hypervisor_name = data['hypervisor_id']
+        # Get the hostname for guest.
         _, guest_name = runcmd(
                 'hostname',
                 system=get_system('guest'))
+        # Delete the hypervisor entry and always make sure it's new.
+        _, stdout = runcmd(
+            "hammer host list --search {}|sed '1,3d'|sed '$d'|cut -d '|' -f1"
+            .format(hypervisor_name))
+        for index, host_id in enumerate(stdout.strip().split('\n')):
+            runcmd("hammer host delete --id {}".format(host_id.strip()))
+        runcmd("systemctl restart virt-who")
         return hypervisor_name, guest_name.strip()
     else:
         virtwho_cleanup()
