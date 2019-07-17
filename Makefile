@@ -4,6 +4,7 @@ FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
+FOREMAN_VIRTWHO_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), virtwho)
 FOREMAN_ENDTOEND_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), endtoend)
 FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui})
 FOREMAN_TESTS_PATH=tests/foreman/
@@ -42,6 +43,7 @@ help:
 	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui            to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb       to test a Foreman deployment UI using xvfb-run"
+	@echo "  test-foreman-virtwho       to test a Foreman deployment Virtwho Configure plugin"
 	@echo "  test-foreman-upgrade       to run Foreman deployment post-upgrade tests"
 	@echo "  test-foreman-endtoend      to perform a generic end-to-end test"
 	@echo "  graph-entities             to graph entity relationships"
@@ -77,6 +79,7 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/virtwho
 
 test-robottelo:
 	$(info "Running robottelo framework unit tests...")
@@ -108,6 +111,9 @@ test-foreman-ui:
 
 test-foreman-ui-xvfb:
 	xvfb-run py.test $(PYTEST_OPTS) $(FOREMAN_UI_TESTS_PATH)
+
+test-foreman-virtwho:
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_VIRTWHO_TESTS_PATH)
 
 test-foreman-endtoend:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_ENDTOEND_TESTS_PATH)
@@ -191,7 +197,7 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
-        test-foreman-ui \
+        test-foreman-virtwho test-foreman-ui \
         test-foreman-endtoend graph-entities lint logs-join \
         logs-clean pyc-clean uuid-check uuid-fix token-prefix-editor \
         can-i-push? install-commit-hook gitflake8 clean-cache clean-all \
