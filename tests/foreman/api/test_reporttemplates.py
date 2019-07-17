@@ -7,7 +7,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: API
+:CaseComponent: Reporting
 
 :TestType: Functional
 
@@ -281,7 +281,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_delete_locked_report(self):
         """Try to delete a locked report template
 
-        :id: a4b577db-144e-4871-a42e-e93887464986
+        :id: a4b577db-154e-4871-a42e-e93887464986
 
         :setup: User with reporting access rights, some report template that is locked
 
@@ -290,6 +290,138 @@ class ComputeResourceTestCase(APITestCase):
             1. DELETE /api/report_templates/:id
 
         :expectedresults: Report is not deleted
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_applied_errata(self):
+        """Generate an Applied Errata report
+
+        :id: a4b577db-141e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. POST /api/report_templates/:id/generate
+
+        :expectedresults: A report is generated with all applied errata listed
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_nonblocking(self):
+        """Generate an Applied Errata report
+
+        :id: a4b577db-142e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. POST /api/report_templates/:id/schedule_report
+            2. GET /api/report_templates/:id/report_data/:job_id
+
+        :expectedresults: A report is generated asynchronously
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_email_compressed(self):
+        """Generate an Applied Errata report, get it by e-mail, compressed
+
+        :id: a4b577db-143e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. POST /api/report_templates/:id/schedule_report
+
+        :expectedresults: A report is generated asynchronously, the result
+                          is compressed and mailed to the specified address
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_email_uncompressed(self):
+        """Generate an Applied Errata report, get it by e-mail, uncompressed
+
+        :id: a4b577db-143f-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. POST /api/report_templates/:id/schedule_report
+
+        :expectedresults: A report is generated asynchronously, the result
+                          is not compressed and is mailed
+                          to the specified address
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_negative_bad_email(self):
+        """ Report can't be generated when incorrectly formed mail specified
+
+        :id: a4b577db-164e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. POST /api/report_templates/:id/schedule_report
+
+        :expectedresults: Error message about wrong e-mail address, no task is triggered
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_cleanup_task_running(self):
+        """ Report can't be generated when incorrectly formed mail specified
+
+        :id: a4b577db-145e-4871-a42e-e93887464986
+
+        :setup: Installed Satellite, user that can list running tasks
+
+        :steps:
+
+            1. List running tasks
+
+        :expectedresults: Report cleanup task is running
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_negative_nonauthor_of_report_cant_download_it(self):
+        """The resulting report should only be downloadable by
+           the user that generated it or admin. Check.
+
+        :id: a4b577db-146e-4871-a42e-e93887464986
+
+        :setup: Installed Satellite, user that can list running tasks
+
+        :steps:
+
+            1. POST /api/report_templates/:id/schedule_report
+            2. GET /api/report_templates/:id/report_data/:job_id (as a different non-admin user)
+
+        :expectedresults: Report can't be downloaded. Error.
 
         :CaseImportance: Medium
         """

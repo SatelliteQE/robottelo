@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
 :CaseComponent: Reporting
 
@@ -25,7 +25,7 @@ from robottelo.test import CLITestCase
 class ReportTemplateTestCase(CLITestCase):
     """Report Templates CLI tests."""
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_report_help_base(self):
         """Base level hammer help includes report-templates
@@ -43,7 +43,7 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_report_help_command(self):
         """Command level hammer help contains usage details
@@ -61,7 +61,7 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_report_help_subcommand(self):
         """Subcommand level hammer help contains usage details
@@ -94,7 +94,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :expectedresults: Report is created
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -112,7 +112,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :expectedresults: All report templates accessible by user are listed
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -130,10 +130,10 @@ class ReportTemplateTestCase(CLITestCase):
 
         :expectedresults: Report template data is shown
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_update_report(self):
         """Update report template
@@ -151,7 +151,7 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_delete_report(self):
         """Delete report template
@@ -184,10 +184,10 @@ class ReportTemplateTestCase(CLITestCase):
 
         :expectedresults: Report is generated for all hosts visible for user
 
-        :CaseImportance: High
+        :CaseImportance: Critical
         """
 
-    @tier1
+    @tier2
     @stubbed()
     def test_positive_generate_report_filter(self):
         """Generate Host Status report
@@ -256,7 +256,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :expectedresults: User input is assigned to the report template
 
-        :CaseImportance: Medium
+        :CaseImportance: High
         """
 
     @tier2
@@ -348,4 +348,136 @@ class ReportTemplateTestCase(CLITestCase):
         :expectedresults: Report is not deleted
 
         :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_applied_errata(self):
+        """Generate an Applied Errata report
+
+        :id: a4b677db-141e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. hammer report-template generate ...
+
+        :expectedresults: A report is generated with all applied errata listed
+
+        :CaseImportance: High
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_nonblocking_wait(self):
+        """Generate an Applied Errata report using schedule --wait
+
+        :id: a4b777db-143c-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. hammer report-template schedule --wait ...
+
+        :expectedresults: A report is generated asynchronously
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_nonblocking_download(self):
+        """Generate an Applied Errata report
+
+        :id: a4b777db-143d-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. hammer report-template schedule ...
+            2. hammer report-template report-data --job-id= ...
+
+        :expectedresults: A report is generated asynchronously
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_email_compressed(self):
+        """Generate an Applied Errata report, get it by e-mail, compressed
+
+        :id: a4b877db-143e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. hammer report-template schedule ...
+
+        :expectedresults: A report is generated asynchronously, the result
+                          is compressed and mailed to the specified address
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_generate_email_uncompressed(self):
+        """Generate an Applied Errata report, get it by e-mail, uncompressed
+
+        :id: a4b977db-143f-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. hammer report-template schedule ...
+
+        :expectedresults: A report is generated asynchronously, the result
+                          is not compressed and is mailed
+                          to the specified address
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_negative_bad_email(self):
+        """ Report can't be generated when incorrectly formed mail specified
+
+        :id: a4ba77db-144e-4871-a42e-e93887464986
+
+        :setup: User with reporting access rights, some host with applied errata
+
+        :steps:
+
+            1. hammer report-template schedule ...
+
+        :expectedresults: Error message about wrong e-mail address, no task is triggered
+
+        :CaseImportance: Medium
+        """
+
+    @tier2
+    @stubbed()
+    def test_negative_nonauthor_of_report_cant_download_it(self):
+        """The resulting report should only be downloadable by
+           the user that generated it or admin. Check.
+
+        :id: a4bc77db-146e-4871-a42e-e93887464986
+
+        :setup: Installed Satellite, user that can list running tasks
+
+        :steps:
+
+            1. hammer -u u1 -p p1 report-template schedule
+            2. hammer -u u2 -p p2 report-template report-data
+
+        :expectedresults: Report can't be downloaded. Error.
+
+        :CaseImportance: High
         """
