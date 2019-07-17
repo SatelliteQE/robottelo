@@ -17,11 +17,7 @@
 from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.decorators import stubbed, fixture, tier2
-
-from .utils import (
-    virtwho_cleanup,
-    deploy_configure_by_command,
-)
+from .utils import deploy_configure_by_command
 
 
 @fixture(scope='module')
