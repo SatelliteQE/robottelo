@@ -163,7 +163,7 @@ def test_positive_end_to_end_custom_cron(session):
         assert syncplan_values['details']['cron_expression'] == cron_expression
         assert syncplan_values['details']['recurring_logic'].isdigit()
         time = syncplan_values['details']['date_time'].rpartition(':')[0]
-        assert time == startdate.strftime("%Y/%m/%d %H:%M")
+        assert time == startdate.strftime("%b %-d, %Y %-I:%M")
         # Update sync plan with new description
         session.syncplan.update(
             plan_name,
