@@ -172,6 +172,7 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
 
 
 @skip_if_bug_open('bugzilla', 1728306)
+@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 @upgrade
 def test_positive_provision_using_quick_host_button(
@@ -208,6 +209,7 @@ def test_positive_provision_using_quick_host_button(
 
 
 @skip_if_bug_open('bugzilla', 1728306)
+@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_update_name(
         session, module_org, module_loc, module_host_group, discovered_host):
@@ -247,6 +249,7 @@ def test_positive_update_name(
 
 
 @skip_if_bug_open('bugzilla', 1665471)
+@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 @upgrade
 def test_positive_auto_provision_host_with_rule(
@@ -289,6 +292,7 @@ def test_positive_auto_provision_host_with_rule(
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
+@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_delete(session, discovered_host):
     """Delete the selected discovered host
@@ -307,6 +311,7 @@ def test_positive_delete(session, discovered_host):
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
+@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one

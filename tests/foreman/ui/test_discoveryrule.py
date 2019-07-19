@@ -22,7 +22,14 @@ from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import fixture, run_in_one_thread, tier2, tier3, upgrade
+from robottelo.decorators import (
+    fixture,
+    run_in_one_thread,
+    skip_if_bug_open,
+    tier2,
+    tier3,
+    upgrade
+)
 
 
 @fixture(scope='module')
@@ -217,6 +224,7 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
 
 
 @run_in_one_thread
+@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_list_host_based_on_rule_search_query(
         session, module_org, module_loc, module_discovery_env):

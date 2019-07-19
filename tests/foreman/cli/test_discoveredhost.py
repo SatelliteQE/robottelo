@@ -26,6 +26,7 @@ from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -216,6 +217,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
+    @skip_if_bug_open('bugzilla', 1731112)
     @tier3
     @upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
@@ -402,6 +404,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
+    @skip_if_bug_open('bugzilla', 1731112)
     @tier3
     @upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
