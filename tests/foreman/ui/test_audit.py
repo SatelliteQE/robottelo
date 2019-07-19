@@ -41,6 +41,7 @@ pytestmark = [run_in_one_thread]
 
 @tier2
 @upgrade
+@skip_if_bug_open('bugzilla', 1730360)
 def test_positive_create_event(session, module_org, module_loc):
     """When new host is created, corresponding audit entry appear in the application
 
@@ -59,29 +60,29 @@ def test_positive_create_event(session, module_org, module_loc):
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
         values = session.audit.search('type=host')
-        assert values['action_type'] == 'created'
-        assert values['resource_type'] == 'HOST'
-        assert values['resource_name'] == host.name
-        assert values['created_at']
-        assert values['affected_organization'] == module_org.name
-        assert values['affected_location'] == module_loc.name
+        assert values.get('action_type') == 'created'
+        assert values.get('resource_type') == 'HOST'
+        assert values.get('resource_name') == host.name
+        assert values.get('created_at')
+        assert values.get('affected_organization') == module_org.name
+        assert values.get('affected_location') == module_loc.name
         summary = {
             prop['column0']: prop['column1']
-            for prop in values['action_summary'] if prop['column1']
+            for prop in values.get('action_summary') if prop.get('column1')
         }
-        assert summary['Name'] == host.name
-        assert summary['Architecture'] == host.architecture.read().name
+        assert summary.get('Name') == host.name
+        assert summary.get('Architecture') == host.architecture.read().name
         os = host.operatingsystem.read()
-        assert summary['Operatingsystem'] == '{} {}'.format(os.name, os.major)
-        assert summary['Environment'] == host.environment.read().name
-        assert summary['Ptable'] == host.ptable.read().name
-        assert summary['Medium'] == host.medium.read().name
-        assert summary['Build'] == 'false'
-        assert summary['Owner type'] == 'User'
-        assert summary['Managed'] == 'true'
-        assert summary['Enabled'] == 'true'
-        assert summary['Organization'] == module_org.name
-        assert summary['Location'] == module_loc.name
+        assert summary.get('Operatingsystem') == '{} {}'.format(os.name, os.major)
+        assert summary.get('Environment') == host.environment.read().name
+        assert summary.get('Ptable') == host.ptable.read().name
+        assert summary.get('Medium') == host.medium.read().name
+        assert summary.get('Build') == 'false'
+        assert summary.get('Owner type') == 'User'
+        assert summary.get('Managed') == 'true'
+        assert summary.get('Enabled') == 'true'
+        assert summary.get('Organization') == module_org.name
+        assert summary.get('Location') == module_loc.name
 
 
 @tier2

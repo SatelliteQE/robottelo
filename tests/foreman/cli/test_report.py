@@ -6,9 +6,9 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Component
 
-:CaseComponent: Reporting
+:CaseComponent: SCAPPlugin
 
 :TestType: Functional
 

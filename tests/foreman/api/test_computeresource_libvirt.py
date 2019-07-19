@@ -55,6 +55,8 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resources are created with expected names
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -76,6 +78,8 @@ class ComputeResourceTestCase(APITestCase):
             descriptions
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -87,7 +91,7 @@ class ComputeResourceTestCase(APITestCase):
                 ).create()
                 self.assertEqual(compresource.description, description)
 
-    @tier1
+    @tier2
     def test_positive_create_libvirt_with_display_type(self):
         """Create a libvirt compute resources with different values of
         'display_type' parameter
@@ -97,7 +101,9 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resources are created with expected
             display_type value
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         for display_type in ('spice', 'vnc'):
             with self.subTest(display_type):
@@ -119,6 +125,8 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resources are created with expected providers
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         entity = entities.LibvirtComputeResource()
         entity.location = [self.loc]
@@ -134,6 +142,8 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: A compute resource is created with expected multiple
             locations assigned
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -160,6 +170,8 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: A compute resource is created with expected multiple
             organizations assigned
 
+        :CaseImportance: High
+
         :CaseLevel: Integration
         """
         orgs = [
@@ -184,6 +196,8 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resource is updated with expected names
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -196,7 +210,7 @@ class ComputeResourceTestCase(APITestCase):
                 compresource = compresource.update(['name'])
                 self.assertEqual(compresource.name, new_name)
 
-    @tier1
+    @tier2
     def test_positive_update_description(self):
         """Update a compute resource with different descriptions
 
@@ -205,7 +219,9 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resource is updated with expected
             descriptions
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
             description=gen_string('alpha'),
@@ -219,7 +235,7 @@ class ComputeResourceTestCase(APITestCase):
                 compresource = compresource.update(['description'])
                 self.assertEqual(compresource.description, new_description)
 
-    @tier1
+    @tier2
     def test_positive_update_libvirt_display_type(self):
         """Update a libvirt compute resource with different values of
         'display_type' parameter
@@ -229,7 +245,9 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resource is updated with expected
             display_type value
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
             display_type='VNC',
@@ -243,7 +261,7 @@ class ComputeResourceTestCase(APITestCase):
                 compresource = compresource.update(['display_type'])
                 self.assertEqual(compresource.display_type, display_type)
 
-    @tier1
+    @tier2
     def test_positive_update_url(self):
         """Update a compute resource's url field
 
@@ -251,7 +269,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resource is updated with expected url
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         new_url = 'qemu+tcp://localhost:16509/system'
 
@@ -271,6 +291,8 @@ class ComputeResourceTestCase(APITestCase):
         :id: 57e96c7c-da9e-4400-af80-c374cd6b3d4a
 
         :expectedresults: Compute resource is updated with expected location
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -292,6 +314,8 @@ class ComputeResourceTestCase(APITestCase):
         :id: cda9f501-2879-4cb0-a017-51ee795232f1
 
         :expectedresults: Compute resource is updated with expected locations
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -320,6 +344,8 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resource is updated with expected
             organization
 
+        :CaseImportance: High
+
         :CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
@@ -340,6 +366,8 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resource is updated with expected
             organizations
+
+        :CaseImportance: High
 
         :CaseLevel: Integration
         """
@@ -367,6 +395,8 @@ class ComputeResourceTestCase(APITestCase):
         :expectedresults: Compute resources is successfully deleted
 
         :CaseImportance: Critical
+
+        :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -377,7 +407,7 @@ class ComputeResourceTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             compresource.read()
 
-    @tier1
+    @tier2
     def test_negative_create_with_invalid_name(self):
         """Attempt to create compute resources with invalid names
 
@@ -385,7 +415,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resources are not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -397,7 +429,7 @@ class ComputeResourceTestCase(APITestCase):
                         url=self.current_libvirt_url,
                     ).create()
 
-    @tier1
+    @tier2
     def test_negative_create_with_same_name(self):
         """Attempt to create a compute resource with already existing name
 
@@ -405,7 +437,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resources is not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
@@ -422,7 +456,7 @@ class ComputeResourceTestCase(APITestCase):
                 url=self.current_libvirt_url,
             ).create()
 
-    @tier1
+    @tier2
     def test_negative_create_with_url(self):
         """Attempt to create compute resources with invalid url
 
@@ -430,7 +464,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resources are not created
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         for url in ('', gen_string('alpha')):
             with self.subTest(url):
@@ -441,7 +477,7 @@ class ComputeResourceTestCase(APITestCase):
                         url=url,
                     ).create()
 
-    @tier1
+    @tier2
     def test_negative_update_invalid_name(self):
         """Attempt to update compute resource with invalid names
 
@@ -449,7 +485,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resource is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         name = gen_string('alphanumeric')
         compresource = entities.LibvirtComputeResource(
@@ -465,7 +503,7 @@ class ComputeResourceTestCase(APITestCase):
                     compresource.update(['name'])
                 self.assertEqual(compresource.read().name, name)
 
-    @tier1
+    @tier2
     def test_negative_update_same_name(self):
         """Attempt to update a compute resource with already existing name
 
@@ -473,7 +511,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resources is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
@@ -492,7 +532,7 @@ class ComputeResourceTestCase(APITestCase):
             new_compresource.update(['name'])
         self.assertNotEqual(new_compresource.read().name, name)
 
-    @tier1
+    @tier2
     def test_negative_update_url(self):
         """Attempt to update a compute resource with invalid url
 
@@ -500,7 +540,9 @@ class ComputeResourceTestCase(APITestCase):
 
         :expectedresults: Compute resources is not updated
 
-        :CaseImportance: Critical
+        :CaseImportance: High
+
+        :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],

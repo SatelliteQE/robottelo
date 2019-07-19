@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
+:CaseLevel: Integration
 
 :CaseComponent: ComputeResources
 
@@ -29,7 +29,8 @@ from robottelo.decorators import (
     setting_is_set,
     skip_if_bug_open,
     skip_if_not_set,
-    tier2
+    tier2,
+    tier3
 )
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE, FOREMAN_PROVIDERS
@@ -73,7 +74,7 @@ def module_org():
 @tier2
 @parametrize('version', [True, False])
 def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_ca_cert, version):
-    """Perform end to end testing for compute resource RHV component.
+    """Perform end to end testing for compute resource RHEV.
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
 
@@ -81,7 +82,7 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
 
     :CaseLevel: Integration
 
-    :CaseImportance: High
+    :CaseImportance: Critical
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -124,6 +125,8 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
         version
 
     :CaseLevel: Integration
+
+    :CaseImportance: Critical
     """
     # Our RHEV testing uses custom cert which we specify manually.
     # That means we're not testing the ability to automatically fill a
@@ -281,7 +284,7 @@ def test_positive_resource_vm_power_management(
 
 
 @skip_if_bug_open('bugzilla', 1636067)
-@tier2
+@tier3
 @parametrize('version', [True, False])
 def test_positive_VM_import(session, module_ca_cert, module_org,
                             rhev_data, version):
@@ -292,6 +295,8 @@ def test_positive_VM_import(session, module_ca_cert, module_org,
     :expectedresults: VM is shown as Host in Foreman
 
     :CaseLevel: Integration
+
+    :CaseImportance: Medium
     """
     # create entities for hostgroup
     location = entities.Location().create()
@@ -352,7 +357,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org,
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
-@tier2
+@tier3
 @parametrize('version', [True, False])
 def test_positive_update_organization(session, rhev_data, module_loc, module_ca_cert, version):
     """Update a rhev Compute Resource organization
@@ -371,6 +376,8 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
         6. Add the new CR to organization that is created.
 
     :CaseAutomation: Automated
+
+    :CaseImportance: Medium
 
     :expectedresults: The rhev Compute Resource is updated
     """
@@ -541,7 +548,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
                 assert provided_value == expected_value
 
 
-@tier2
+@tier3
 def test_positive_associate_with_custom_profile_with_template(session, rhev_data, module_ca_cert):
     """Associate custom default (3-Large) compute profile to rhev compute
      resource, with template
@@ -561,6 +568,8 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
     :expectedresults: The Compute Resource created and opened successfully
 
     :BZ: 1452534
+
+    :CaseImportance: Medium
 
     :CaseAutomation: Automated
     """
