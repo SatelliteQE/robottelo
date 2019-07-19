@@ -3,6 +3,7 @@ import re
 import time
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.cli.host import Host
 
 
 class VirtWhoError(Exception):
@@ -20,6 +21,7 @@ def get_system(system_type):
             'hostname': settings.virtwho.guest,
             'username': settings.virtwho.guest_username,
             'password': settings.virtwho.guest_password,
+            'port': settings.virtwho.guest_port,
         }
     elif system_type == 'satellite':
         return{
@@ -34,23 +36,15 @@ def get_system(system_type):
         )
 
 
-def runcmd(cmd, system=None, timeout=None, port=22):
+def runcmd(cmd, system=None, timeout=None):
     """Return the retcode and stdout.
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
     :param int timeout: Time to wait for establish the connection.
-    :param int port: The server port to ssh connect tol
     """
     system = system or get_system('satellite')
-    hostname = system['hostname']
-    username = system['username']
-    password = system['password']
-    if ":" in hostname:
-        hostname, port = hostname.split(':')
-    result = ssh.command(
-            cmd, hostname=hostname, username=username,
-            password=password, timeout=timeout, port=int(port))
+    result = ssh.command(cmd, **system, timeout=timeout)
     return result.return_code, '\n'.join(result.stdout)
 
 
@@ -93,12 +87,9 @@ def virtwho_cleanup():
     4. clean all the configure files in /etc/virt-who.d/
     """
     runcmd("systemctl stop virt-who")
-    runcmd(
-        "ps -ef | grep virt-who -i | grep -v grep |"
-        "awk '{print $2}' | xargs -I {} kill -9 {}"
-    )
+    runcmd("pkill -9 virt-who")
     runcmd("rm -f /var/run/virt-who.pid")
-    runcmd("rm -rf /var/log/rhsm/*")
+    runcmd("rm -f /var/log/rhsm/rhsm.log")
     runcmd("rm -rf /etc/virt-who.d/*")
 
 
@@ -109,9 +100,11 @@ def get_virtwho_status():
     ret, stdout = runcmd('systemctl status virt-who')
     running_stauts = ['is running', 'Active: active (running)']
     stopped_status = ['is stopped', 'Active: inactive (dead)']
-    if ret == 0 and any(key in stdout for key in running_stauts):
+    if ret != 0:
+        return 'undefined'
+    if any(key in stdout for key in running_stauts):
         return 'running'
-    elif ret == 0 and any(key in stdout for key in stopped_status):
+    elif any(key in stdout for key in stopped_status):
         return 'stopped'
     else:
         return 'undefined'
@@ -162,24 +155,16 @@ def deploy_configure_by_command(command):
     register_system(get_system('guest'))
     ret, stdout = runcmd(command)
     status = get_virtwho_status()
-    # Waiting for the h/g mapping report sent to satellite.
-    time.sleep(10)
     data = get_rhsm_logfile()
-    if (status == 'running' and
-            data['error'] == 0 and 'hypervisor_id' in data):
-        hypervisor_name = data['hypervisor_id']
-        # Get the hostname for guest.
-        _, guest_name = runcmd(
-                'hostname',
-                system=get_system('guest'))
-        # Delete the hypervisor entry and always make sure it's new.
-        _, stdout = runcmd(
-            "hammer host list --search {}|sed '1,3d'|sed '$d'|cut -d '|' -f1"
-            .format(hypervisor_name))
-        for index, host_id in enumerate(stdout.strip().split('\n')):
-            runcmd("hammer host delete --id {}".format(host_id.strip()))
-        runcmd("systemctl restart virt-who")
-        return hypervisor_name, guest_name.strip()
-    else:
+    if (status != 'running' or data['error'] != 0 or 'hypervisor_id' not in data):
         virtwho_cleanup()
         raise VirtWhoError("Failed to deploy virtwho configure")
+    # Get the hostname for guest.
+    _, guest_name = runcmd('hostname', system=get_system('guest'))
+    # Delete the hypervisor entry and always make sure it's new.
+    hypervisor_name = data['hypervisor_id']
+    hosts = Host.list({'search': hypervisor_name})
+    for index, host in enumerate(hosts):
+        Host.delete({'id': host['id']})
+    runcmd("systemctl restart virt-who")
+    return hypervisor_name, guest_name.strip()

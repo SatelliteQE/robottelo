@@ -545,6 +545,8 @@ port_range=9091, 14999
 # hypervisor_config_file=
 # The guest ip or hostname in the hypervisor
 # guest=
+# The guest port for ssh connection, by default guest_port=22
+# guest_port=22
 # ssh username to access guest
 # guest_username=
 # ssh password to access guest
