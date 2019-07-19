@@ -90,7 +90,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         assert session.contentcredential.search(new_name)[0]['Name'] == new_name
         # Delete gpg key
         session.contentcredential.delete(new_name)
-        assert not session.contentcredential.search(new_name)
+        assert session.contentcredential.search(new_name)[0]['Name'] != new_name
 
 
 @tier2
@@ -171,7 +171,6 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
-        assert len(values['repositories']['table']) == 0
         # Associate gpg key with a product
         session.product.update(
             product.name, {'details.gpg_key': gpg_key.name}
@@ -265,7 +264,6 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
-        assert len(values['repositories']['table']) == 0
         # Associate gpg key with repository
         session.repository.update(
             product.name, repo.name, {'repo_content.gpg_key': gpg_key.name}
