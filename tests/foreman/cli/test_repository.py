@@ -2064,6 +2064,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['content-type'], u'ostree')
 
+    @skip_if_bug_open('bugzilla', 1716429)
     @tier1
     def test_negative_create_ostree_repo_with_checksum(self):
         """Create a ostree repository with checksum type
