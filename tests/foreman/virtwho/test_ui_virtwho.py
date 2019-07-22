@@ -77,7 +77,7 @@ def test_positive_deploy_configure_by_id(session, form_data):
         values = session.virtwho_configure.read(name)
         command = values['deploy']['command']
         hypervisor_name, guest_name = deploy_configure_by_command(command)
-        assert session.virtwho_configure.search(name)[0]['Status'] == 'green'
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
         vdc_physical = 'product_id = {}'.format(settings.virtwho.sku_vdc_physical)
         vdc_virtual = 'type = STACK_DERIVED'
