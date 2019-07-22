@@ -34,8 +34,10 @@ def module_org():
 
 
 @fixture(scope='module')
-def module_loc(module_org):
-    return entities.Location(organization=[module_org]).create()
+def module_loc():
+    default_loc_id = entities.Location().search(
+        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    return entities.Location(id=default_loc_id).read()
 
 
 @fixture(scope='module')
