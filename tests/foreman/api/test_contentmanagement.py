@@ -273,6 +273,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
+    @skip_if_bug_open('bugzilla', 1732066)
     @tier4
     def test_positive_checksum_sync(self):
         """Synchronize repository to capsule, update repository's checksum
