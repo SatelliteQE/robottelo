@@ -134,8 +134,8 @@ def module_org():
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = entities.SmartProxy().search(
-        query={'search': 'name={0}'.format(settings.server.hostname)})[0]
-    smart_proxy.location = [entities.Location(id=location.id)]
+        query={'search': 'name={0}'.format(settings.server.hostname)})[0].read()
+    smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])
     return location
 
@@ -158,10 +158,6 @@ def module_global_params():
 
 @pytest.fixture(scope='module')
 def module_host_template(module_org, module_loc):
-    proxy = entities.SmartProxy().search(
-        query={u'search': u'name={0}'.format(settings.server.hostname)})[0].read()
-    proxy.location.append(module_loc)
-    proxy.update(['location'])
     host_template = entities.Host(organization=module_org, location=module_loc)
     host_template.create_missing()
     host_template.name = None
