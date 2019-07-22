@@ -14,9 +14,7 @@ PYTEST_OPTS=-v --junit-xml=foreman-results.xml -m 'not stubbed'
 PYTEST_XDIST_NUMPROCESSES=auto
 PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n $(PYTEST_XDIST_NUMPROCESSES)
 ROBOTTELO_TESTS_PATH=tests/robottelo/
-TESTIMONY_TOKENS="bz, caseautomation, casecomponent, caseimportance, caselevel, caseposneg, customerscenario, expectedresults, id, requirement, setup, subtype1, steps, teardown, testtype, upstream"
-TESTIMONY_MINIMUM_TOKENS="id, requirement, caseautomation, caselevel, casecomponent, testtype, caseimportance, upstream"
-TESTIMONY_OPTIONS=--tokens=$(TESTIMONY_TOKENS) --minimum-tokens=$(TESTIMONY_MINIMUM_TOKENS)
+TESTIMONY_OPTIONS=--config testimony.yaml
 
 # Commands --------------------------------------------------------------------
 

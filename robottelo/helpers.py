@@ -628,8 +628,8 @@ def extract_capsule_satellite_installer_command(text):
     """Extract satellite installer command from capsule-certs-generate command
     output
     """
-    if bz_bug_is_open(1711177):
-        cmd_start_with = 'foreman-installer'
+    if bz_bug_is_open(1709761):
+        cmd_start_with = 'satellite-instaler'
     else:
         cmd_start_with = 'satellite-installer'
     cmd_lines = []
@@ -653,7 +653,7 @@ def extract_capsule_satellite_installer_command(text):
         while '  ' in cmd:
             cmd = cmd.replace('  ', ' ')
         if bz_bug_is_open(1709761):
-            cmd = cmd.replace('foreman-proxy-content', 'capsule', 1)
+            cmd = cmd.replace('satellite-instaler', 'satellite-installer')
         return cmd
     return None
 
