@@ -34,10 +34,8 @@ def module_org():
 
 
 @fixture(scope='module')
-def module_loc():
-    default_loc_id = entities.Location().search(
-        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    return entities.Location(id=default_loc_id).read()
+def module_loc(module_org):
+    return entities.Location(organization=[module_org]).create()
 
 
 @fixture(scope='module')
@@ -47,11 +45,13 @@ def content_view(module_org):
 
 
 @fixture(scope='module')
-def puppet_env(content_view, module_org):
-    return entities.Environment().search(
+def puppet_env(content_view, module_org, module_loc):
+    puppet_env = entities.Environment().search(
         query={'search': u'content_view="{0}" and organization_id={1}'.format(
             content_view.name, module_org.id)}
     )[0]
+    return entities.Environment(
+        id=puppet_env.id, location=[module_loc]).update(['location'])
 
 
 @fixture(scope='module')
