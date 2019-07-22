@@ -1971,7 +1971,7 @@ def test_positive_delete_version_with_ak(session):
         )
         # remove the content view version
         session.contentview.remove_version(cv.name, VERSION)
-        assert not session.contentview.search_version(cv.name, VERSION)
+        assert session.contentview.search_version(cv.name, VERSION)[0]['Version'] != VERSION
 
 
 @tier2
@@ -2078,7 +2078,7 @@ def test_positive_remove_filter(session, module_org):
         assert session.contentviewfilter.search(
             cv.name, filter_name)[0]['Name'] == filter_name
         session.contentviewfilter.delete(cv.name, filter_name)
-        assert not session.contentviewfilter.search(cv.name, filter_name)
+        assert session.contentviewfilter.search(cv.name, filter_name)[0]['Name'] != filter_name
 
 
 @tier2
@@ -3136,9 +3136,9 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
         assert 'Unable to delete content view' in str(context.value)
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
-        assert not session.contentview.search_version(cv_name, VERSION)
+        assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
         session.contentview.delete(cv_name)
-        assert not session.contentview.search(cv_name)
+        assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
 @skip_if_bug_open('bugzilla', 1625783)
@@ -3317,7 +3317,7 @@ def test_positive_mixed_content_end_to_end(session, module_org):
         assert 'Promoted to {}'.format(lce.name) in result['Status']
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
-        assert not session.contentview.search_version(cv_name, VERSION)
+        assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
 
 
 @skip_if_os('RHEL6')
@@ -3378,7 +3378,7 @@ def test_positive_rh_mixed_content_end_to_end(session):
         assert 'Promoted to {}'.format(lce.name) in result['Status']
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
-        assert not session.contentview.search_version(cv_name, VERSION)
+        assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
 
 
 @tier3
@@ -3617,9 +3617,9 @@ def test_positive_module_stream_end_to_end(session, module_org):
         assert '7 Module Streams' in result['Content']
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
-        assert not session.contentview.search_version(cv_name, VERSION)
+        assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
         session.contentview.delete(cv_name)
-        assert not session.contentview.search(cv_name)
+        assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
 @tier3
@@ -3743,7 +3743,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
         # assert that the user can delete a content view
         session.contentview.delete(cv_copy_name)
-        assert not session.contentview.search(cv_copy_name)
+        assert session.contentview.search(cv_copy_name)[0]['Name'] != cv_copy_name
         # check that cv tabs are accessible
         cv = session.contentview.read(cv_name)
         for tab_name in [
