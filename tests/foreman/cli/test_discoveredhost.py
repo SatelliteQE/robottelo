@@ -131,6 +131,7 @@ class DiscoveredTestCase(CLITestCase):
         })
         super(DiscoveredTestCase, cls).tearDownClass()
 
+    @skip_if_bug_open('bugzilla', 1731112)
     @tier3
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
