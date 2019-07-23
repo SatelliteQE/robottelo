@@ -67,6 +67,9 @@ ssh_key=
 # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
 # webdriver=chrome
 
+# Run browser for UI tests with semicolon delimeted options such as headless. Currently supported for only chrome.
+# browseroptions=
+
 # Binary location for selected wedriver (not needed if using saucelabs)
 # webdriver_binary=/usr/bin/firefox
 # webdriver_binary=/usr/bin/chromedriver

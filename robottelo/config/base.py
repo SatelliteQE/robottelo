@@ -1219,6 +1219,7 @@ class Settings(object):
         self.verbosity = None
         self.webdriver = None
         self.webdriver_binary = None
+        self.browseroptions = None
         self.webdriver_desired_capabilities = None
         self.command_executor = None
 
@@ -1354,6 +1355,8 @@ class Settings(object):
             'robottelo', 'saucelabs_key', None)
         self.webdriver_binary = self.reader.get(
             'robottelo', 'webdriver_binary', None)
+        self.browseroptions = self.reader.get(
+            'robottelo', 'browseroptions', None)
         self.webdriver_desired_capabilities = self.reader.get(
             'robottelo',
             'webdriver_desired_capabilities',
@@ -1481,6 +1484,7 @@ class Settings(object):
                 'webdriver': self.webdriver,
                 'webdriver_binary': self.webdriver_binary,
                 'command_executor': self.command_executor,
+                'browseroptions': self.browseroptions,
             },
             'webdriver_desired_capabilities': (
                 self.webdriver_desired_capabilities or {}),
