@@ -15,8 +15,6 @@
 
 :Upstream: No
 """
-from random import choice
-
 from fauxfactory import gen_integer
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
@@ -35,28 +33,16 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
     make_partition_table,
-    make_product,
     make_proxy,
-    make_repository,
-    make_smart_variable,
     make_subnet,
     publish_puppet_module,
 )
-from robottelo.cli.architecture import Architecture
 from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.operatingsys import OperatingSys
-from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
-from robottelo.cli.repository import Repository
-from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_PTABLE,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
 )
 from robottelo.datafactory import (
     invalid_id_list,
@@ -89,297 +75,56 @@ class HostGroupTestCase(CLITestCase):
         cls.env = Environment.list({
             'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
         cls.puppet_classes = [
-            Puppet.info({'name': mod['name'], 'environment': cls.env['name']})
+            Puppet.info({'name': mod['name'], 'puppet-environment': cls.env['name']})
             for mod in puppet_modules
         ]
+        cls.content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        cls.hostgroup = make_hostgroup({
+            'content-source-id': cls.content_source['id'],
+            'organization-ids': cls.org['id'],
+        })
 
-    @tier1
-    def test_positive_create_with_name(self):
-        """Successfully creates an HostGroup.
-
-        :id: f5f2056f-d090-4e0d-8fb9-d29255a47908
-
-        :expectedresults: HostGroup is created.
-
-        :CaseImportance: Critical
-        """
-        for name in valid_hostgroups_list():
-            with self.subTest(name):
-                hostgroup = make_hostgroup({'name': name})
-                self.assertEqual(hostgroup['name'], name)
-
-    @tier1
+    @tier2
     def test_negative_create_with_name(self):
         """Don't create an HostGroup with invalid data.
 
         :id: 853a6d43-129a-497b-94f0-08dc622862f8
 
         :expectedresults: HostGroup is not created.
-
-        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
                     HostGroup.create({'name': name})
 
-    @tier2
-    def test_positive_create_with_env(self):
-        """Check if hostgroup with environment can be created
-
-        :id: f1bfb333-90cf-4a9f-b183-cf77c1773247
-
-        :expectedresults: Hostgroup is created and has new environment assigned
-
-        :CaseLevel: Integration
-        """
-        environment = make_environment()
-        hostgroup = make_hostgroup({'environment-id': environment['id']})
-        self.assertEqual(environment['name'], hostgroup['puppet-environment'])
-
-    @tier2
-    def test_positive_create_with_loc(self):
-        """Check if hostgroup with location can be created
-
-        :id: 84ae02a4-ea7e-43ce-87bd-7bbde3766b14
-
-        :expectedresults: Hostgroup is created and has new location assigned
-
-        :CaseLevel: Integration
-        """
-        location = make_location()
-        hostgroup = make_hostgroup({'location-ids': location['id']})
-        self.assertIn(location['name'], hostgroup['locations'])
-
-    @tier2
-    def test_positive_create_with_os(self):
-        """Check if hostgroup with operating system can be created
-
-        :id: d12c5939-1aac-44f5-8aa3-a04a824f4e83
-
-        :expectedresults: Hostgroup is created and has operating system
-            assigned
-
-        :CaseLevel: Integration
-        """
-        os = make_os()
-        hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
-        self.assertEqual(hostgroup['operating-system']['operating-system'],
-                         os['title'])
-
-    @tier2
-    def test_positive_create_with_org(self):
-        """Check if hostgroup with organization can be created
-
-        :id: 780d4b93-f35a-4c5b-a645-4053aed4c37b
-
-        :expectedresults: Hostgroup is created and has new organization
-            assigned
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        hostgroup = make_hostgroup({'organization-ids': org['id']})
-        self.assertIn(org['name'], hostgroup['organizations'])
-
-    @tier2
-    def test_positive_create_with_orgs(self):
-        """Check if hostgroup with multiple organizations can be created
-
-        :id: 32be4630-0032-4f5f-89d4-44f8d05fe585
-
-        :expectedresults: Hostgroup is created and has both new organizations
-            assigned
-
-        :CaseLevel: Integration
-        """
-        orgs = [make_org() for _ in range(2)]
-        hostgroup = make_hostgroup({
-            'organization-ids': [org['id'] for org in orgs],
-        })
-        self.assertEqual(
-            set(org['name'] for org in orgs),
-            set(hostgroup['organizations'])
-        )
-
-    @tier2
-    def test_positive_create_with_puppet_ca_proxy(self):
-        """Check if hostgroup with puppet CA proxy server can be created
-
-        :id: f7ea1c94-8a0e-4500-98b3-0ecd63b3ce3c
-
-        :expectedresults: Hostgroup is created and has puppet CA proxy server
-            assigned
-
-        :CaseLevel: Integration
-        """
-        puppet_proxy = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
-        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
-
-    @tier2
-    def test_positive_create_with_puppet_proxy(self):
-        """Check if hostgroup with puppet proxy server can be created
-
-        :id: 3a922d9f-7466-4565-b279-c1481f63a4ce
-
-        :expectedresults: Hostgroup is created and has puppet proxy server
-            assigned
-
-        :CaseLevel: Integration
-        """
-        puppet_proxy = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
-        self.assertEqual(
-            puppet_proxy['name'],
-            hostgroup['puppet-master-proxy'],
-        )
-
-    @tier2
-    def test_positive_create_with_puppet_class_id(self):
-        """Check if hostgroup with puppet class id can be created
-
-        :id: 0a07856d-4432-4b72-a636-460ec12f1b65
-
-        :expectedresults: Hostgroup is created and has puppet class assigned
-
-        :CaseLevel: Integration
-        """
-        hostgroup = make_hostgroup({
-            'puppet-class-ids': self.puppet_classes[0]['id'],
-            'environment-id': self.env['id'],
-            'content-view-id': self.cv['id'],
-            'query-organization-id': self.org['id'],
-        })
-        self.assertIn(
-            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
-
-    @tier2
-    def test_positive_create_with_puppet_class_name(self):
-        """Check if hostgroup with puppet class name can be created
-
-        :id: 78545a14-742f-4db6-abce-49fbeccd836e
-
-        :expectedresults: Hostgroup is created and has puppet class assigned
-
-        :CaseLevel: Integration
-        """
-        hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
-            'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
-        })
-        self.assertIn(
-            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
-
-    @tier2
-    def test_positive_create_with_architecture(self):
-        """Check if hostgroup with architecture can be created
-
-        :id: 21c619f4-7339-4fb0-9e29-e12dae65f943
-
-        :expectedresults: Hostgroup should be created and has architecture
-            assigned
-
-        :BZ: 1354544
-
-        :CaseLevel: Integration
-        """
-        arch = 'x86_64'
-        hostgroup = make_hostgroup({'architecture': arch})
-        self.assertEqual(arch, hostgroup['operating-system']['architecture'])
-
-    @tier2
-    def test_positive_create_with_domain(self):
-        """Check if hostgroup with domain can be created
-
-        :id: c468fcac-9e42-4ee6-a431-abe29b6848ce
-
-        :expectedresults: Hostgroup should be created and has domain assigned
-
-        :CaseLevel: Integration
-        """
-        domain = make_domain()
-        hostgroup = make_hostgroup({'domain-id': domain['id']})
-        self.assertEqual(domain['name'], hostgroup['network']['domain'])
-
-    @tier2
-    def test_positive_create_with_lifecycle_environment(self):
-        """Check if hostgroup with lifecyle environment can be created
-
-        :id: 24bc3010-4e61-47d8-b8ae-0d66e1055aea
-
-        :expectedresults: Hostgroup should be created and has lifecycle env
-            assigned
-
-        :BZ: 1359694, 1313056
-
-        :CaseLevel: Integration
-        """
-        org = make_org()
-        lc_env = make_lifecycle_environment({'organization-id': org['id']})
-        hostgroup = make_hostgroup({
-            'lifecycle-environment': lc_env['name'],
-            'organization-ids': org['id'],
-            'query-organization-id': org['id'],
-        })
-        self.assertEqual(
-            lc_env['name'],
-            hostgroup['lifecycle-environment']['name'],
-        )
-
-    @tier2
-    def test_positive_create_with_orgs_and_lce(self):
-        """Check if hostgroup with multiple organizations can be created
-        if one of them is associated with lifecycle environment
-
-        :id: ca110a74-401d-48f9-9700-6c57f1c10f11
-
-        :expectedresults: Hostgroup is created, has both new organizations
-            assigned and has lifecycle env assigned
-
-        :CaseLevel: Integration
-        """
-        orgs = [make_org() for _ in range(2)]
-        lce = make_lifecycle_environment({'organization-id': orgs[0]['id']})
-        hostgroup = make_hostgroup({
-            'organization-ids': [org['id'] for org in orgs],
-            'lifecycle-environment-id': lce['id'],
-        })
-        self.assertEqual(
-            set(org['name'] for org in orgs),
-            set(hostgroup['organizations'])
-        )
-
-    @tier2
-    def test_positive_create_with_multiple_entities_name(self):
-        """Check if hostgroup with multiple options name can be created
+    @tier1
+    @upgrade
+    def test_positive_create_with_multiple_entities_and_delete(self):
+        """Check if hostgroup with multiple options can be created and deleted
 
         :id: a3ef4f0e-971d-4307-8d0a-35103dff6586
 
-        :expectedresults: Hostgroup should be created and has all defined
-            entities assigned
+        :expectedresults: Hostgroup should be created, has all defined
+            entities assigned and deleted
 
         :BZ: 1395254, 1313056
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         # Common entities
+        name = valid_hostgroups_list()[0]
         loc = make_location()
         org = make_org()
+        orgs = [org, self.org]
         env = make_environment({
             'location-ids': loc['id'],
             'organization-ids': org['id'],
         })
         lce = make_lifecycle_environment({'organization-id': org['id']})
-        proxy = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
         # Content View should be promoted to be used with LC Env
         cv = make_content_view({'organization-id': org['id']})
         ContentView.publish({'id': cv['id']})
@@ -420,13 +165,14 @@ class HostGroupTestCase(CLITestCase):
         # Note: in the current hammer version there is no content source name
         # option
         make_hostgroup_params = {
-            'organizations': org['name'],
+            'name': name,
+            'organization-ids': [org['id'] for org in orgs],
             'locations': loc['name'],
             'environment': env['name'],
             'lifecycle-environment': lce['name'],
-            'puppet-proxy': proxy['name'],
-            'puppet-ca-proxy': proxy['name'],
-            'content-source-id': proxy['id'],
+            'puppet-proxy': self.content_source['name'],
+            'puppet-ca-proxy': self.content_source['name'],
+            'content-source-id': self.content_source['id'],
             'content-view': cv['name'],
             'domain': domain['name'],
             'subnet': subnet['name'],
@@ -434,14 +180,19 @@ class HostGroupTestCase(CLITestCase):
             'partition-table': ptable['name'],
             'medium': media['name'],
             'operatingsystem':  os_full_name,
+            'puppet-classes': self.puppet_classes[0]['name'],
             'query-organization': org['name']
         }
         hostgroup = make_hostgroup(make_hostgroup_params)
-        self.assertIn(org['name'], hostgroup['organizations'])
+        self.assertEqual(hostgroup['name'], name)
+        self.assertEqual(
+            set(org['name'] for org in orgs),
+            set(hostgroup['organizations'])
+        )
         self.assertIn(loc['name'], hostgroup['locations'])
         self.assertEqual(env['name'], hostgroup['puppet-environment'])
-        self.assertEqual(proxy['name'], hostgroup['puppet-master-proxy'])
-        self.assertEqual(proxy['name'], hostgroup['puppet-ca-proxy'])
+        self.assertEqual(self.content_source['name'], hostgroup['puppet-master-proxy'])
+        self.assertEqual(self.content_source['name'], hostgroup['puppet-ca-proxy'])
         self.assertEqual(domain['name'], hostgroup['network']['domain'])
         self.assertEqual(subnet['name'], hostgroup['network']['subnet-ipv4'])
         self.assertEqual(
@@ -465,142 +216,13 @@ class HostGroupTestCase(CLITestCase):
             hostgroup['content-view']['name'])
         self.assertEqual(
             lce['name'], hostgroup['lifecycle-environment']['name'])
-        self.assertEqual(proxy['name'], hostgroup['content-source']['name'])
-
-    @tier2
-    @upgrade
-    def test_positive_create_with_multiple_entities_ids(self):
-        """Check if hostgroup with multiple options ids can be created
-
-        :id: 6277613b-0ece-4dee-b9d8-504f8299ac38
-
-        :expectedresults: Hostgroup should be created and has all defined
-            entities assigned
-
-        :BZ: 1395254, 1313056
-
-        :CaseLevel: Integration
-        """
-        # Common entities
-        loc = make_location()
-        org = make_org()
-        env = make_environment({
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-        lce = make_lifecycle_environment({'organization-id': org['id']})
-        proxy = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        # Content View should be promoted to be used with LC Env
-        cv = make_content_view({'organization-id': org['id']})
-        ContentView.publish({'id': cv['id']})
-        cv = ContentView.info({'id': cv['id']})
-        ContentView.version_promote({
-            'id': cv['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        # Network
-        domain = make_domain({
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-        subnet = make_subnet({
-            'domain-ids': domain['id'],
-            'organization-ids': org['id'],
-        })
-        # Operating System
-        arch = make_architecture()
-        ptable = make_partition_table({
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-        os = make_os({
-            'architecture-ids': arch['id'],
-            'partition-table-ids': ptable['id'],
-        })
-        media = make_medium({
-            'operatingsystem-ids': os['id'],
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-        make_hostgroup_params = {
-            'location-ids': loc['id'],
-            'environment-id': env['id'],
-            'lifecycle-environment-id': lce['id'],
-            'puppet-proxy-id': proxy['id'],
-            'puppet-ca-proxy-id': proxy['id'],
-            'content-source-id': proxy['id'],
-            'content-view-id': cv['id'],
-            'domain-id': domain['id'],
-            'subnet-id': subnet['id'],
-            'organization-ids': org['id'],
-            'architecture-id': arch['id'],
-            'partition-table-id': ptable['id'],
-            'medium-id': media['id'],
-            'operatingsystem-id': os['id'],
-        }
-        hostgroup = make_hostgroup(make_hostgroup_params)
-        self.assertEqual(cv['id'], hostgroup['content-view']['id'])
-        self.assertEqual(lce['id'], hostgroup['lifecycle-environment']['id'])
-        self.assertEqual(proxy['id'], hostgroup['content-source']['id'])
-        # get the json output format
-        hostgroup = HostGroup.info(
-            {'id': hostgroup['id']}, output_format='json')
-        self.assertIn(org['id'], hostgroup['organizations'][0]['id'])
-        self.assertIn(loc['id'], hostgroup['locations'][0]['id'])
-        self.assertEqual(
-            env['id'], hostgroup['puppet-environment']['id'])
-        self.assertEqual(
-            proxy['id'],
-            hostgroup['puppet-master-proxy']['id']
-        )
-        self.assertEqual(
-            proxy['id'],
-            hostgroup['puppet-ca-proxy']['id']
-        )
-        self.assertEqual(
-            domain['id'],
-            hostgroup['network']['domain']['id']
-        )
-        self.assertEqual(
-            subnet['id'],
-            hostgroup['network']['subnet-ipv4']['id'])
-        self.assertEqual(
-            arch['id'], hostgroup['operating-system']['architecture']['id'])
-        self.assertEqual(
-            ptable['id'], hostgroup['operating-system']['partition-table']['id'])
-        self.assertEqual(
-            media['id'],
-            hostgroup['operating-system']['medium']['id']
-        )
-        self.assertEqual(
-            os['id'], hostgroup['operating-system']['operating-system']['id'])
-
-    @tier2
-    def test_positive_create_with_content_source(self):
-        """Create a hostgroup with content source specified
-
-        :id: 49ba2e4e-7772-4e5f-ac49-33f3a4966110
-
-        :customerscenario: true
-
-        :CaseLevel: Integration
-
-        :BZ: 1260697, 1313056
-
-        :expectedresults: A hostgroup is created with expected content source
-            assigned
-        """
-        content_source = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        hostgroup = make_hostgroup({
-            'content-source-id': content_source['id'],
-            'organization-ids': self.org['id'],
-        })
-        self.assertEqual(
-            hostgroup['content-source']['name'], content_source['name'])
+        self.assertEqual(self.content_source['name'], hostgroup['content-source']['name'])
+        self.assertIn(
+            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
+        # delete hostgroup
+        HostGroup.delete({'id': hostgroup['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            HostGroup.info({'id': hostgroup['id']})
 
     @tier2
     def test_negative_create_with_content_source(self):
@@ -620,100 +242,10 @@ class HostGroupTestCase(CLITestCase):
                 'organization-ids': self.org['id'],
             })
 
-    @tier2
-    @upgrade
-    def test_positive_create_with_synced_content(self):
-        """Check if hostgroup with synced kickstart repository can be created
-
-        :id: 7c51ac72-359c-488a-8658-88b5a94d7e7a
-
-        :customerscenario: true
-
-        :expectedresults: Hostgroup should be created and has proper
-            installation content id present
-
-        :BZ: 1415707
-
-        :CaseLevel: Integration
-        """
-        # Check whether path to kickstart media is set
-        if settings.rhel6_os is None:
-            raise ValueError(
-                'Installation media path is not set in properties file')
-        # Common entities
-        org = make_org()
-        lce = make_lifecycle_environment({'organization-id': org['id']})
-        product = make_product({'organization-id': org['id']})
-        repo = make_repository({
-            u'url': settings.rhel6_os,
-            u'product-id': product['id'],
-            u'content-type': u'yum',
-        })
-        Repository.synchronize({'id': repo['id']})
-
-        cv = make_content_view({
-            'organization-id': org['id'],
-            'repository-ids': [repo['id']],
-        })
-        ContentView.publish({'id': cv['id']})
-        cv = ContentView.info({'id': cv['id']})
-        cvv = cv['versions'][0]
-        ContentView.version_promote({
-            'id': cvv['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-
-        # Get the Partition table ID
-        ptable = PartitionTable.info({'name': DEFAULT_PTABLE})
-
-        # Get the arch ID
-        arch = Architecture.list({
-            'search': 'name={0}'.format(DEFAULT_ARCHITECTURE)})[0]
-
-        # Get the OS ID
-        os = OperatingSys.list({
-            'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
-                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-        })[0]
-
-        # Update the OS with found arch and ptable
-        OperatingSys.update({
-            'id': os['id'],
-            'architectures': arch['name'],
-            'partition-tables': ptable['name'],
-        })
-        proxy = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-
-        # Search for proper installation repository id
-        synced_repo = Repository.list({
-            'content-view-version-id': cvv['id'],
-            'organization-id': org['id'],
-            'environment-id': lce['id'],
-        })[0]
-        hostgroup = make_hostgroup({
-            'lifecycle-environment-id': lce['id'],
-            'puppet-proxy-id': proxy['id'],
-            'puppet-ca-proxy-id': proxy['id'],
-            'content-source-id': proxy['id'],
-            'content-view-id': cv['id'],
-            'organization-ids': org['id'],
-            'architecture-id': arch['id'],
-            'partition-table-id': ptable['id'],
-            'operatingsystem-id': os['id'],
-            'kickstart-repository-id': synced_repo['id'],
-        })
-        hg = HostGroup.info({'id': hostgroup['id']}, output_format='json')
-        self.assertEqual(
-            hg['kickstart-repository']['id'],
-            synced_repo['id']
-        )
-
     @run_in_one_thread
     @tier2
-    def test_positive_update_content_source(self):
-        """Update hostgroup's content source
+    def test_positive_update_hostgroup(self):
+        """Update hostgroup's content source, name and puppet classes
 
         :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
 
@@ -722,27 +254,34 @@ class HostGroupTestCase(CLITestCase):
         :BZ: 1260697, 1313056
 
         :expectedresults: Hostgroup was successfully updated with new content
-            source
+            source, name and puppet classes
 
         :CaseLevel: Integration
         """
-        content_source = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
         hostgroup = make_hostgroup({
-            'content-source-id': content_source['id'],
+            'content-source-id': self.content_source['id'],
             'organization-ids': self.org['id'],
+            'environment-id': self.env['id'],
+            'content-view-id': self.cv['id'],
+            'query-organization-id': self.org['id'],
         })
         new_content_source = make_proxy()
         self.addCleanup(capsule_cleanup, new_content_source['id'])
         self.addCleanup(HostGroup.delete, {'id': hostgroup['id']})
+        self.assertEqual(len(hostgroup['puppetclasses']), 0)
+        new_name = valid_hostgroups_list()[0]
+        puppet_classes = [puppet['name'] for puppet in self.puppet_classes]
         HostGroup.update({
+            'new-name': new_name,
             'id': hostgroup['id'],
             'content-source-id': new_content_source['id'],
+            'puppet-classes': puppet_classes,
         })
         hostgroup = HostGroup.info({'id': hostgroup['id']})
+        self.assertEqual(hostgroup['name'], new_name)
         self.assertEqual(
             hostgroup['content-source']['name'], new_content_source['name'])
+        self.assertEqual(set(puppet_classes), set(hostgroup['puppetclasses']))
 
     @tier2
     def test_negative_update_content_source(self):
@@ -757,153 +296,31 @@ class HostGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        content_source = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        hostgroup = make_hostgroup({
-            'content-source-id': content_source['id'],
-            'organization-ids': self.org['id'],
-        })
         with self.assertRaises(CLIReturnCodeError):
             HostGroup.update({
-                'id': hostgroup['id'],
+                'id': self.hostgroup['id'],
                 'content-source-id': gen_integer(10000, 99999),
             })
-        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        hostgroup = HostGroup.info({'id': self.hostgroup['id']})
         self.assertEqual(
-            hostgroup['content-source']['name'], content_source['name'])
+            hostgroup['content-source']['name'], self.content_source['name'])
 
-    @tier1
-    def test_positive_update_name(self):
-        """Successfully update an HostGroup.
-
-        :id: a36e3cbe-83d9-44ce-b8f7-5fab2a2cadf9
-
-        :expectedresults: HostGroup is updated.
-
-        :CaseImportance: Critical
-        """
-        hostgroup = make_hostgroup()
-        for new_name in valid_hostgroups_list():
-            with self.subTest(new_name):
-                HostGroup.update({
-                    'id': hostgroup['id'],
-                    'new-name': new_name,
-                })
-                hostgroup = HostGroup.info({'id': hostgroup['id']})
-                self.assertEqual(hostgroup['name'], new_name)
-
-    @tier1
+    @tier2
     def test_negative_update_name(self):
         """Create HostGroup then fail to update its name
 
         :id: 42d208a4-f518-4ff2-9b7a-311adb460abd
 
         :expectedresults: HostGroup name is not updated
-
-        :CaseImportance: Critical
         """
-        hostgroup = make_hostgroup()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    HostGroup.update({
-                        'id': hostgroup['id'],
-                        'new-name': new_name,
-                    })
-                result = HostGroup.info({'id': hostgroup['id']})
-                self.assertEqual(hostgroup['name'], result['name'])
-
-    @tier2
-    def test_positive_update_puppet_class_by_id(self):
-        """Update hostgroup with puppet class by name by id
-
-        :id: 4b044719-431d-4d72-8974-330cc62fd020
-
-        :expectedresults: Puppet class is associated with hostgroup
-
-        :CaseLevel: Integration
-        """
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'content-view-id': self.cv['id'],
-            'query-organization-id': self.org['id'],
-        })
-        self.assertEqual(len(hostgroup['puppetclasses']), 0)
-        HostGroup.update({
-            'id': hostgroup['id'],
-            'puppet-class-ids': self.puppet_classes[0]['id'],
-        })
-        hostgroup = HostGroup.info({'id': hostgroup['id']})
-        self.assertIn(
-            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
-
-    @tier2
-    def test_positive_update_puppet_class_by_name(self):
-        """Update hostgroup with puppet class by name
-
-        :id: 4c37354f-ef2d-4d54-98ac-906bc611d292
-
-        :expectedresults: Puppet class is associated with hostgroup
-
-        :CaseLevel: Integration
-        """
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'content-view-id': self.cv['id'],
-            'query-organization-id': self.org['id'],
-        })
-        self.assertEqual(len(hostgroup['puppetclasses']), 0)
-        HostGroup.update({
-            'id': hostgroup['id'],
-            'puppet-classes': self.puppet_classes[0]['name'],
-        })
-        hostgroup = HostGroup.info({'id': hostgroup['id']})
-        self.assertIn(
-            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
-
-    @tier2
-    def test_positive_update_multiple_puppet_classes(self):
-        """Update hostgroup with multiple puppet classes by name
-
-        :id: 2e977aed-c0d4-478e-9c84-f07deac912cd
-
-        :expectedresults: All puppet classes are associated with hostgroup
-
-        :BZ: 1264163
-
-        :CaseLevel: Integration
-        """
-        puppet_classes = [puppet['name'] for puppet in self.puppet_classes]
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'content-view-id': self.cv['id'],
-            'query-organization-id': self.org['id'],
-        })
-        self.assertEqual(len(hostgroup['puppetclasses']), 0)
-        HostGroup.update({
-            'id': hostgroup['id'], 'puppet-classes': puppet_classes})
-        hostgroup = HostGroup.info({'id': hostgroup['id']})
-        self.assertEqual(set(puppet_classes), set(hostgroup['puppetclasses']))
-
-    @tier2
-    @upgrade
-    def test_positive_delete_by_id(self):
-        """Create HostGroup with valid values then delete it
-        by ID
-
-        :id: fe7dedd4-d7c3-4c70-b70d-c2deff357b76
-
-        :expectedresults: HostGroup is deleted
-
-        :CaseLevel: Integration
-        """
-        for name in valid_hostgroups_list():
-            with self.subTest(name):
-                hostgroup = make_hostgroup({'name': name})
-                HostGroup.delete({'id': hostgroup['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    HostGroup.info({'id': hostgroup['id']})
+        new_name = invalid_values_list()[0]
+        with self.assertRaises(CLIReturnCodeError):
+            HostGroup.update({
+                'id': self.hostgroup['id'],
+                'new-name': new_name,
+            })
+        result = HostGroup.info({'id': self.hostgroup['id']})
+        self.assertEqual(self.hostgroup['name'], result['name'])
 
     @tier2
     def test_negative_delete_by_id(self):
@@ -915,115 +332,6 @@ class HostGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        for entity_id in invalid_id_list():
-            with self.subTest(entity_id):
-                with self.assertRaises(CLIReturnCodeError):
-                    HostGroup.delete({'id': entity_id})
-
-    @tier2
-    def test_positive_list_scparams_by_id(self):
-        """List all overridden smart class parameters using hostgroup id
-
-        :id: 42a24060-2ed7-427e-8396-86d73bbe5f69
-
-        :expectedresults: Overridden sc-param from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
-            'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
-        })
-        # Override one of the sc-params from puppet class
-        sc_params_list = SmartClassParameter.list({
-            'environment': self.env['name'],
-            'search': u'puppetclass="{0}"'.format(
-                self.puppet_classes[0]['name'])
-        })
-        scp_id = choice(sc_params_list)['id']
-        SmartClassParameter.update({'id': scp_id, 'override': 1})
-        # Verify that affected sc-param is listed
-        hg_scparams = HostGroup.sc_params({'hostgroup-id': hostgroup['id']})
-        self.assertIn(scp_id, [scp['id'] for scp in hg_scparams])
-
-    @tier2
-    def test_positive_list_scparams_by_name(self):
-        """List all smart class parameters using hostgroup name
-
-        :id: 8e4fc561-2446-4a89-989b-e6814973aa56
-
-        :expectedresults: Overridden sc-param from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
-            'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
-        })
-        # Override one of the sc-params from puppet class
-        sc_params_list = SmartClassParameter.list({
-            'environment': self.env['name'],
-            'search': u'puppetclass="{0}"'.format(
-                self.puppet_classes[0]['name'])
-        })
-        scp_id = choice(sc_params_list)['id']
-        SmartClassParameter.update({'id': scp_id, 'override': 1})
-        # Verify that affected sc-param is listed
-        hg_scparams = HostGroup.sc_params({'hostgroup': hostgroup['name']})
-        self.assertIn(scp_id, [scp['id'] for scp in hg_scparams])
-
-    @tier2
-    def test_positive_list_smartvariables_by_id(self):
-        """List all smart variables using hostgroup id
-
-        :id: 1d614441-7ef9-4fdb-a8e7-2f1c1054bf2f
-
-        :expectedresults: Smart variable from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
-            'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
-        })
-        # Create smart variable
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_classes[0]['name']})
-        # Verify that affected sc-param is listed
-        hg_variables = HostGroup.smart_variables(
-            {'hostgroup-id': hostgroup['id']})
-        self.assertIn(smart_variable['id'], [sv['id'] for sv in hg_variables])
-
-    @tier2
-    def test_positive_list_smartvariables_by_name(self):
-        """List all smart variables using hostgroup name
-
-        :id: 2b0da695-57fa-4f91-b164-e1ff60076c26
-
-        :expectedresults: Smart variable from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_classes[0]['name'],
-            'environment': self.env['name'],
-            'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
-        })
-        # Create smart variable
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_classes[0]['name']})
-        # Verify that affected sc-param is listed
-        hg_variables = HostGroup.smart_variables(
-            {'hostgroup': hostgroup['name']})
-        self.assertIn(smart_variable['id'], [sv['id'] for sv in hg_variables])
+        entity_id = invalid_id_list()[0]
+        with self.assertRaises(CLIReturnCodeError):
+            HostGroup.delete({'id': entity_id})
