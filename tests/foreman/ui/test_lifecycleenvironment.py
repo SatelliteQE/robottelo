@@ -148,8 +148,12 @@ def test_positive_add_puppet_module(session, module_org):
         session.contentview.publish(cv.name)
         result = session.contentview.promote(cv.name, 'Version 1.0', lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
-        lce = session.lifecycleenvironment.read(lce.name)
-        assert lce['puppet_modules'][cv.name][0]['Name'] == puppet_module
+        lce = session.lifecycleenvironment.search_puppet_module(
+            lce.name,
+            puppet_module,
+            cv_name=cv.name
+        )
+        assert lce[0]['Name'] == puppet_module
 
 
 @skip_if_bug_open('bugzilla', 1432155)
