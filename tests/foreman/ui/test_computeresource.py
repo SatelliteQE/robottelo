@@ -71,6 +71,11 @@ def module_org():
     return entities.Organization().create()
 
 
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
 @tier2
 @parametrize('version', [True, False])
 def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_ca_cert, version):
@@ -286,7 +291,7 @@ def test_positive_resource_vm_power_management(
 @skip_if_bug_open('bugzilla', 1636067)
 @tier3
 @parametrize('version', [True, False])
-def test_positive_VM_import(session, module_ca_cert, module_org,
+def test_positive_VM_import(session, module_ca_cert, module_org, module_loc,
                             rhev_data, version):
     """Import an existing VM as a Host
 
@@ -299,20 +304,19 @@ def test_positive_VM_import(session, module_ca_cert, module_org,
     :CaseImportance: Medium
     """
     # create entities for hostgroup
-    location = entities.Location().create()
     default_loc_id = entities.Location().search(
         query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    entities.SmartProxy(id=1, location=[default_loc_id, location.id]).update()
+    entities.SmartProxy(id=1, location=[default_loc_id, module_loc.id]).update()
     domain = entities.Domain(organization=[module_org.id],
-                             location=[location]).create()
+                             location=[module_loc]).create()
     subnet = entities.Subnet(organization=[module_org.id],
-                             location=[location], domain=[domain]).create()
+                             location=[module_loc], domain=[domain]).create()
     architecture = entities.Architecture().create()
     ptable = entities.PartitionTable(organization=[module_org.id],
-                                     location=[location]).create()
+                                     location=[module_loc]).create()
     operatingsystem = entities.OperatingSystem(architecture=[architecture],
                                                ptable=[ptable]).create()
-    medium = entities.Media(organization=[module_org.id], location=[location],
+    medium = entities.Media(organization=[module_org.id], location=[module_loc],
                             operatingsystem=[operatingsystem]).create()
     le = entities.LifecycleEnvironment(name="Library",
                                        organization=module_org.id).search()[0].read().id
@@ -326,7 +330,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org,
         architecture=architecture,
         domain=domain,
         subnet=subnet,
-        location=[location.id],
+        location=[module_loc.id],
         medium=medium,
         operatingsystem=operatingsystem,
         organization=[module_org],
@@ -348,11 +352,11 @@ def test_positive_VM_import(session, module_ca_cert, module_org,
             'provider_content.api4': version,
             'provider_content.datacenter.value': rhev_data['datacenter'],
             'provider_content.certification_authorities': module_ca_cert,
-            'locations.resources.assigned': [location.name],
+            'locations.resources.assigned': [module_loc.name],
         })
-        session.hostgroup.update(hostgroup_name, {'deploy_on': name+" (RHV)"})
+        session.hostgroup.update(hostgroup_name, {'host_group.deploy': name+" (RHV)"})
         session.computeresource.vm_import(name, rhev_data['vm_name'],
-                                          hostgroup_name, location.name)
+                                          hostgroup_name, module_loc.name)
         assert session.host.search(rhev_data['vm_name']) is not None
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()
 
