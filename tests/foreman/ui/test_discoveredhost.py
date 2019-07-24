@@ -121,6 +121,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5,
         return bool(result.return_code)
 
 
+@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
@@ -146,6 +147,7 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
+@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @tier3
 @upgrade
@@ -366,6 +368,7 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
         assert set(host_names) == {value['Name'] for value in values}
 
 
+@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_reboot(session, provisioning_env):

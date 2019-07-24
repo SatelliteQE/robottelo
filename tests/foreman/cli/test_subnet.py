@@ -72,114 +72,82 @@ class SubnetTestCase(CLITestCase):
     """
 
     @tier1
-    def test_positive_create_with_name(self):
-        """Check if Subnet can be created with random names
-
-        :id: 99cda3eb-3912-461b-83bd-f906b78eeca0
-
-        :expectedresults: Subnet is created and has random name
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                subnet = make_subnet({'name': name})
-                self.assertEqual(subnet['name'], name)
-
-    @tier1
     @upgrade
-    def test_positive_create_with_address_pool(self):
-        """Create subnet with valid address pool
+    def test_positive_CRUD(self):
+        """Create, update and delete subnet
 
         :id: d74a52a7-df56-44ef-89a3-081c14e81e43
 
-        :expectedresults: Subnet is created and address pool is set
+        :expectedresults: Subnet is created, updated and deleted
 
         :CaseImportance: Critical
         """
-        for pool in valid_addr_pools():
-            with self.subTest(pool):
-                pool.sort()
-                mask = '255.255.255.0'
-                # generate pool range from network address
-                network = gen_ipaddr()
-                from_ip = re.sub(r'\d+$', str(pool[0]), network)
-                to_ip = re.sub(r'\d+$', str(pool[1]), network)
-                subnet = make_subnet({
-                    u'from': from_ip,
-                    u'mask': mask,
-                    u'network': network,
-                    u'to': to_ip,
-                })
-                self.assertEqual(subnet['start-of-ip-range'], from_ip)
-                self.assertEqual(subnet['end-of-ip-range'], to_ip)
-
-    @tier1
-    def test_positive_create_with_domain(self):
-        """Check if subnet with domain can be created
-
-        :id: 7ce7b139-d2b7-44f4-9c1a-1bd591f95334
-
-        :expectedresults: Subnet is created and has new domain assigned
-
-        :CaseImportance: Critical
-        """
-        domain = make_domain()
-        subnet = make_subnet({'domain-ids': domain['id']})
-        self.assertIn(domain['name'], subnet['domains'])
-
-    @tier1
-    def test_positive_create_with_domains(self):
-        """Check if subnet with different amount of domains can be
-        created in the system
-
-        :id: e81ddec5-38b0-4c42-b89b-5cf2af580d39
-
-        :expectedresults: Subnet is created and has new domains assigned
-        """
+        name = valid_data_list()[0]
+        pool = sorted(valid_addr_pools()[0])
+        mask = '255.255.255.0'
+        # generate pool range from network address
+        network = gen_ipaddr()
+        from_ip = re.sub(r'\d+$', str(pool[0]), network)
+        to_ip = re.sub(r'\d+$', str(pool[1]), network)
         domains_amount = random.randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
+        gateway = gen_ipaddr(ip3=True)
+        ipam_type = SUBNET_IPAM_TYPES['dhcp']
         subnet = make_subnet({
-            'domain-ids': [domain['id'] for domain in domains],
+            u'name': name,
+            u'from': from_ip,
+            u'mask': mask,
+            u'network': network,
+            u'to': to_ip,
+            u'domain-ids': [domain['id'] for domain in domains],
+            u'gateway': gateway,
+            u'ipam': ipam_type
         })
+        # Check if Subnet can be listed
+        subnets_ids = [subnet_['id'] for subnet_ in Subnet.list()]
+        self.assertIn(subnet['id'], subnets_ids)
+        self.assertEqual(subnet['name'], name)
+        self.assertEqual(subnet['start-of-ip-range'], from_ip)
+        self.assertEqual(subnet['end-of-ip-range'], to_ip)
         self.assertEqual(len(subnet['domains']), domains_amount)
         for domain in domains:
             self.assertIn(domain['name'], subnet['domains'])
-
-    @tier1
-    @upgrade
-    def test_positive_create_with_gateway(self):
-        """Check if subnet with gateway can be created
-
-        :id: 483c0d1d-c542-4be5-8c56-27b2a09db54a
-
-        :expectedresults: Subnet is created and has gateway assigned
-
-        :CaseImportance: Critical
-        """
-        gateway = gen_ipaddr(ip3=True)
-        subnet = make_subnet({'gateway': gateway})
         self.assertIn(gateway, subnet['gateway-addr'])
+        self.assertIn(ipam_type, subnet['ipam'])
 
-    @tier1
-    @upgrade
-    def test_positive_create_with_ipam(self):
-        """Check if subnet with different ipam types can be created
+        # update subnet
+        new_name = valid_data_list()[0]
+        pool = sorted(valid_addr_pools()[0])
+        # generate pool range from network address
+        new_network = gen_ipaddr()
+        new_mask = '255.255.192.0'
+        ip_from = re.sub(r'\d+$', str(pool[0]), new_network)
+        ip_to = re.sub(r'\d+$', str(pool[1]), new_network)
+        ipam_type = SUBNET_IPAM_TYPES['internal']
+        Subnet.update({
+            u'new-name': new_name,
+            u'from': ip_from,
+            u'id': subnet['id'],
+            u'to': ip_to,
+            u'mask': new_mask,
+            u'network': new_network,
+            u'ipam': ipam_type,
+            u'domain-ids': ""  # delete domains needed for subnet delete
+        })
+        subnet = Subnet.info({u'id': subnet['id']})
+        self.assertEqual(subnet['name'], new_name)
+        self.assertEqual(subnet['start-of-ip-range'], ip_from)
+        self.assertEqual(subnet['end-of-ip-range'], ip_to)
+        self.assertEqual(subnet['network-addr'], new_network)
+        self.assertEqual(subnet['network-mask'], new_mask)
+        self.assertIn(ipam_type, subnet['ipam'])
 
-        :id: ba4c66fd-50e6-441d-acc2-6ab39d8439d2
+        # delete subnet
+        Subnet.delete({'id': subnet['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Subnet.info({'id': subnet['id']})
 
-        :expectedresults: Subnet is created and correct ipam type is assigned
-
-        :CaseImportance: Critical
-        """
-        for ipam_type in (SUBNET_IPAM_TYPES['dhcp'],
-                          SUBNET_IPAM_TYPES['internal'],
-                          SUBNET_IPAM_TYPES['none']):
-            with self.subTest(ipam_type):
-                subnet = make_subnet({'ipam': ipam_type})
-                self.assertIn(ipam_type, subnet['ipam'])
-
-    @tier1
+    @tier2
     def test_negative_create_with_attributes(self):
         """Create subnet with invalid or missing required attributes
 
@@ -197,7 +165,7 @@ class SubnetTestCase(CLITestCase):
                 ):
                     make_subnet(options)
 
-    @tier1
+    @tier2
     @upgrade
     def test_negative_create_with_address_pool(self):
         """Create subnet with invalid address pool range
@@ -223,88 +191,7 @@ class SubnetTestCase(CLITestCase):
                     u'Could not create the subnet:'
                 )
 
-    @tier1
-    def test_positive_list(self):
-        """Check if Subnet can be listed
-
-        :id: 2ee376f7-9dd9-4b46-b414-801197d5455c
-
-        :expectedresults: Subnet is listed
-        """
-        # Make a new subnet
-        subnet = make_subnet()
-        # Fetch ids from subnets list
-        subnets_ids = [subnet_['id'] for subnet_ in Subnet.list()]
-        self.assertIn(subnet['id'], subnets_ids)
-
-    @tier1
-    def test_positive_update_name(self):
-        """Check if Subnet name can be updated
-
-        :id: 34533e6c-7081-4b13-99bd-bd57533e05c0
-
-        :expectedresults: Subnet name is updated
-
-        :CaseImportance: Medium
-        """
-        new_subnet = make_subnet()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                Subnet.update({'id': new_subnet['id'], 'new-name': new_name})
-                result = Subnet.info({'id': new_subnet['id']})
-                self.assertEqual(result['name'], new_name)
-
-    @tier1
-    def test_positive_update_network_mask(self):
-        """Check if Subnet network and mask can be updated
-
-        :id: 6a8d7750-71f1-4cd8-bf90-f2eac457c3b4
-
-        :expectedresults: Subnet network and mask are updated
-        """
-        network = gen_ipaddr()
-        mask = '255.255.255.0'
-        subnet = make_subnet({
-            u'mask': mask,
-            u'network': network,
-        })
-        new_network = gen_ipaddr()
-        new_mask = '255.255.192.0'
-        Subnet.update({
-            u'id': subnet['id'],
-            u'mask': new_mask,
-            u'network': new_network,
-        })
-        # check - subnet is updated
-        subnet = Subnet.info({u'id': subnet['id']})
-        self.assertEqual(subnet['network-addr'], new_network)
-        self.assertEqual(subnet['network-mask'], new_mask)
-
-    @tier1
-    def test_positive_update_address_pool(self):
-        """Check if Subnet address pool can be updated
-
-        :id: 18ced88f-d62e-4e15-8b7b-0a08c4ef239b
-
-        :expectedresults: Subnet address pool is updated
-        """
-        subnet = make_subnet({u'mask': '255.255.255.0'})
-        for pool in valid_addr_pools():
-            with self.subTest(pool):
-                pool.sort()
-                # generate pool range from network address
-                ip_from = re.sub(r'\d+$', str(pool[0]), subnet['network-addr'])
-                ip_to = re.sub(r'\d+$', str(pool[1]), subnet['network-addr'])
-                Subnet.update({
-                    u'from': ip_from,
-                    u'id': subnet['id'],
-                    u'to': ip_to,
-                })
-                subnet = Subnet.info({u'id': subnet['id']})
-                self.assertEqual(subnet['start-of-ip-range'], ip_from)
-                self.assertEqual(subnet['end-of-ip-range'], ip_to)
-
-    @tier1
+    @tier2
     def test_negative_update_attributes(self):
         """Update subnet with invalid or missing required attributes
 
@@ -328,7 +215,7 @@ class SubnetTestCase(CLITestCase):
                     for key in options.keys():
                         self.assertEqual(subnet[key], result[key])
 
-    @tier1
+    @tier2
     def test_negative_update_address_pool(self):
         """Update subnet with invalid address pool
 
@@ -354,24 +241,6 @@ class SubnetTestCase(CLITestCase):
                 result = Subnet.info({u'id': subnet['id']})
                 for key in ['start-of-ip-range', 'end-of-ip-range']:
                     self.assertEqual(result[key], subnet[key])
-
-    @tier1
-    @upgrade
-    def test_positive_delete_by_id(self):
-        """Check if Subnet can be deleted
-
-        :id: ad269df8-4bb2-46a5-9c82-010a80087408
-
-        :expectedresults: Subnet is deleted
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                subnet = make_subnet({'name': name})
-                Subnet.delete({'id': subnet['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Subnet.info({'id': subnet['id']})
 
 
 class ParameterizedSubnetTestCase(CLITestCase):
