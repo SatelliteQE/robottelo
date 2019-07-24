@@ -1,5 +1,6 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
 import re
+import json
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.cli.host import Host
@@ -7,6 +8,14 @@ from robottelo.cli.host import Host
 
 class VirtWhoError(Exception):
     """Exception raised for failed virtwho operations"""
+
+
+def _parse_entry(entry):
+    """Paser the the string and return json format"""
+    try:
+        return json.loads(entry)
+    except json.decoder.JSONDecodeError:
+        return None
 
 
 def get_system(system_type):
@@ -35,6 +44,28 @@ def get_system(system_type):
         )
 
 
+def get_guest_info():
+    """Return the guest_name, guest_uuid"""
+    hypervisor_type = settings.virtwho.hypervisor_type
+    _, guest_name = runcmd(
+        'hostname',
+        system=get_system('guest')
+    )
+    _, guest_uuid = runcmd(
+        'dmidecode -s system-uuid',
+        system=get_system('guest')
+    )
+    if (not guest_uuid or not guest_name):
+        raise VirtWhoError(
+            'Failed to get the guest info for {}'
+            .format(hypervisor_type)
+        )
+    # Different UUID for vcenter by dmidecode and vcenter MOB
+    if hypervisor_type == 'esx':
+        guest_uuid = guest_uuid.split('-')[-1]
+    return guest_name, guest_uuid
+
+
 def runcmd(cmd, system=None, timeout=None):
     """Return the retcode and stdout.
     :param str cmd: The command line will be executed in the target system.
@@ -44,7 +75,9 @@ def runcmd(cmd, system=None, timeout=None):
     """
     system = system or get_system('satellite')
     result = ssh.command(cmd, **system, timeout=timeout)
-    return result.return_code, '\n'.join(result.stdout)
+    ret = result.return_code
+    stdout = '\n'.join(result.stdout).strip()
+    return ret, stdout
 
 
 def register_system(system, activation_key=None, org='Default_Organization'):
@@ -115,31 +148,34 @@ def get_rhsm_logfile():
 
     The following keys will be included:
     :[error]: how many error message exist, the expected value is 0.
-    :[reporter_id]: it can be defined by virtwho configure.
-    :[interval_time]: it can be defined by virtwho configure.
-    :[hypervisor_id]: it can be defined by virtwho configure.
-    :[hypervisor_name]: get to know the hypervisor's hostname.
-    :[guest_id]: get to know the guest_id.
+    :[hypervisor_name]: the hypervisor display name in Content Hosts.
+    :[guest_name]: the guest display name in Content Hosts.
     """
-    ret, stdout = runcmd('cat /var/log/rhsm/rhsm.log')
     data = dict()
+    mapping = list()
+    entry = None
+    guest_name, guest_uuid = get_guest_info()
+    ret, stdout = runcmd('cat /var/log/rhsm/rhsm.log')
     data['error'] = len(re.findall(r'\[.*ERROR.*\]', stdout))
-    if "virtwho.main DEBUG" in stdout:
-        res = re.findall(r"reporter_id='(.*?)'", stdout)
-        if len(res) > 0:
-            data['reporter_id'] = res[0].strip()
-        res = re.findall(r"infinite loop with(.*?)seconds", stdout)
-        if len(res) > 0:
-            data['interval_time'] = int(res[0].strip())
-        res = re.findall(r'[^\s]*"hypervisorId": "(.*?)"', stdout)
-        if len(res) > 0:
-            data['hypervisor_id'] = res[0].strip()
-        res = re.findall(r'[^\s]*"name": "(.*?)"', stdout)
-        if len(res) > 0:
-            data['hypervisor_name'] = res[0].strip()
-        res = re.findall(r'[^\s]*guestId": "(.*?)"', stdout)
-        if len(res) > 0:
-            data['guest_id'] = res[0].strip()
+    data['guest_name'] = guest_name
+    for line in stdout.split('\n'):
+        if line:
+            if line[0].isdigit():
+                if entry:
+                    mapping.append(_parse_entry(entry))
+                entry = '{'
+                continue
+            if entry:
+                entry += line
+            else:
+                mapping.append(_parse_entry(entry))
+    mapping = [_ for _ in mapping if _ is not None]
+    # Always check the last json section to get the hypervisorId
+    for item in mapping[-1]['hypervisors']:
+        for guest in item['guestIds']:
+            if guest_uuid in guest['guestId']:
+                data['hypervisor_name'] = item['hypervisorId']['hypervisorId']
+                break
     return data
 
 
@@ -155,15 +191,14 @@ def deploy_configure_by_command(command):
     ret, stdout = runcmd(command)
     status = get_virtwho_status()
     data = get_rhsm_logfile()
-    if (status != 'running' or data['error'] != 0 or 'hypervisor_id' not in data):
+    if (status != 'running' or data['error'] != 0 or 'hypervisor_name' not in data):
         virtwho_cleanup()
         raise VirtWhoError("Failed to deploy virtwho configure")
-    # Get the hostname for guest.
-    _, guest_name = runcmd('hostname', system=get_system('guest'))
+    guest_name = data['guest_name']
+    hypervisor_name = data['hypervisor_name']
     # Delete the hypervisor entry and always make sure it's new.
-    hypervisor_name = data['hypervisor_id']
     hosts = Host.list({'search': hypervisor_name})
     for index, host in enumerate(hosts):
         Host.delete({'id': host['id']})
     runcmd("systemctl restart virt-who")
-    return hypervisor_name, guest_name.strip()
+    return hypervisor_name, guest_name
