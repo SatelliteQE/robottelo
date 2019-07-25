@@ -136,11 +136,13 @@ class OpenScapTestCase(CLITestCase):
         cls.puppet_env.location.append(loc)
         cls.puppet_env.organization.append(org)
         cls.puppet_env = cls.puppet_env.update(['location', 'organization'])
-        Proxy.import_classes({
-            u'environment': cls.puppet_env.name,
-            u'name': sat6_hostname,
-        })
-        Proxy.update({'id': cls.proxy_id, 'organizations': org.name, 'locations': DEFAULT_LOC})
+        smart_proxy = entities.SmartProxy().search(
+            query={'search': 'name={0}'.format(sat6_hostname)})
+        [0].read()
+        smart_proxy.organization.append(entities.Organization(id=org.id))
+        smart_proxy.location.append(entities.Location(id=loc.id))
+        smart_proxy.update(['location', 'organization'])
+        smart_proxy.import_puppetclasses(environment=cls.puppet_env.name)
         env = entities.LifecycleEnvironment(
             organization=org,
             name=gen_string('alpha')
