@@ -16,8 +16,11 @@
 """
 from fauxfactory import gen_string
 from robottelo.config import settings
-from robottelo.decorators import stubbed, fixture, tier2
-from .utils import deploy_configure_by_command
+from robottelo.decorators import fixture, tier2
+from .utils import (
+    deploy_configure_by_command,
+    deploy_configure_by_script,
+)
 
 
 @fixture(scope='module')
@@ -89,7 +92,6 @@ def test_positive_deploy_configure_by_id(session, form_data):
         assert not session.virtwho_configure.search(name)
 
 
-@stubbed()
 @tier2
 def test_positive_deploy_configure_by_script(session, form_data):
     """ Verify configure created and deployed with script.
@@ -113,3 +115,20 @@ def test_positive_deploy_configure_by_script(session, form_data):
 
     :CaseAutomation: notautomated
     """
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.virtwho_configure.create(form_data)
+        values = session.virtwho_configure.read(name)
+        script = values['deploy']['script']
+        hypervisor_name, guest_name = deploy_configure_by_script(script)
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
+        vdc_physical = 'product_id = {}'.format(settings.virtwho.sku_vdc_physical)
+        vdc_virtual = 'type = STACK_DERIVED'
+        session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
+        assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
+        session.contenthost.add_subscription(guest_name, vdc_virtual)
+        assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)

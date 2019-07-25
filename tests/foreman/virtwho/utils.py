@@ -142,63 +142,93 @@ def get_virtwho_status():
         return 'undefined'
 
 
-def get_rhsm_logfile():
-    """Return a dictionary by analysing rhsm.log, and then can know
-        the virt-who configure file is deployed as expected or not.
-
-    The following keys will be included:
-    :[error]: how many error message exist, the expected value is 0.
-    :[hypervisor_name]: the hypervisor display name in Content Hosts.
-    :[guest_name]: the guest display name in Content Hosts.
+def _get_hypervisor_mapping(logs):
+    """Analysing rhsm.log and get to know: what is the hypervisor_name
+    for the specific guest.
+    :param str logs: the output of rhsm.log.
+    :raises: VirtWhoError: If hypervisor_name is None.
+    :return: hypervisor_name and guest_name
     """
-    data = dict()
     mapping = list()
     entry = None
     guest_name, guest_uuid = get_guest_info()
-    ret, stdout = runcmd('cat /var/log/rhsm/rhsm.log')
-    data['error'] = len(re.findall(r'\[.*ERROR.*\]', stdout))
-    data['guest_name'] = guest_name
-    for line in stdout.split('\n'):
-        if line:
-            if line[0].isdigit():
-                if entry:
-                    mapping.append(_parse_entry(entry))
-                entry = '{'
-                continue
+    for line in logs.split('\n'):
+        if not line:
+            continue
+        if line[0].isdigit():
             if entry:
-                entry += line
-            else:
                 mapping.append(_parse_entry(entry))
+            entry = '{'
+            continue
+        if entry:
+            entry += line
+    else:
+        mapping.append(_parse_entry(entry))
     mapping = [_ for _ in mapping if _ is not None]
     # Always check the last json section to get the hypervisorId
     for item in mapping[-1]['hypervisors']:
         for guest in item['guestIds']:
             if guest_uuid in guest['guestId']:
-                data['hypervisor_name'] = item['hypervisorId']['hypervisorId']
+                hypervisor_name = item['hypervisorId']['hypervisorId']
                 break
-    return data
+    if hypervisor_name:
+        return hypervisor_name, guest_name
+    else:
+        raise VirtWhoError(
+            "Failed to get the hypervisor_name for guest {}"
+            .format(guest_name)
+        )
 
 
-def deploy_configure_by_command(command):
-    """Return the hypervisor_name and guest_name if deployed successfully.
-    :param str command: when created a configure file by UI, you can read
-        the deploy command line such as:
+def deploy_validation(debug=True):
+    """Checkout the deploy result
+    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False,
+        because there is no json data logged in rhsm.log.
+    :raises: VirtWhoError: If failed to start virt-who servcie.
+    """
+    status = get_virtwho_status()
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
+    error = len(re.findall(r'\[.*ERROR.*\]', logs))
+    if status != 'running' or error != 0:
+        raise VirtWhoError("Failed to start virt-who service")
+    if debug:
+        hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+        # Delete the hypervisor entry and always make sure it's new.
+        hosts = Host.list({'search': hypervisor_name})
+        for index, host in enumerate(hosts):
+            Host.delete({'id': host['id']})
+        runcmd("systemctl restart virt-who")
+        return hypervisor_name, guest_name
+
+
+def deploy_configure_by_command(command, debug=True):
+    """Deploy and run virt-who servcie by the hammer command.
+    :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :raises: VirtWhoError: If failed to deploy configure by this command.
+    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False.
     """
     virtwho_cleanup()
     register_system(get_system('guest'))
-    ret, stdout = runcmd(command)
-    status = get_virtwho_status()
-    data = get_rhsm_logfile()
-    if (status != 'running' or data['error'] != 0 or 'hypervisor_name' not in data):
-        virtwho_cleanup()
-        raise VirtWhoError("Failed to deploy virtwho configure")
-    guest_name = data['guest_name']
-    hypervisor_name = data['hypervisor_name']
-    # Delete the hypervisor entry and always make sure it's new.
-    hosts = Host.list({'search': hypervisor_name})
-    for index, host in enumerate(hosts):
-        Host.delete({'id': host['id']})
-    runcmd("systemctl restart virt-who")
-    return hypervisor_name, guest_name
+    runcmd(command)
+    return deploy_validation(debug)
+
+
+def deploy_configure_by_script(script_content, debug=True):
+    """Deploy and run virt-who servcie by the shell script.
+    :param str script_content: get the script by UI or API.
+    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False.
+    """
+    script_filename = "/tmp/deploy_script.sh"
+    virtwho_cleanup()
+    register_system(get_system('guest'))
+    script_content = (
+        script_content
+        .replace('&amp;', '&')
+        .replace('&gt;', '>')
+        .replace('&lt;', '<')
+    )
+    with open(script_filename, 'w') as fp:
+        fp.write(script_content)
+    ssh.upload_file(script_filename, script_filename)
+    runcmd('sh {}'.format(script_filename))
+    return deploy_validation(debug)
