@@ -113,7 +113,9 @@ def test_positive_deploy_configure_by_script(session, form_data):
         4. Virtual sku can be generated and attached
         5. Config can be deleted
 
-    :CaseAutomation: notautomated
+    :CaseLevel: Integration
+
+    :CaseImportance: High
     """
     name = gen_string('alpha')
     form_data['name'] = name
