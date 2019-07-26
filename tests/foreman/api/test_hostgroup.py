@@ -283,7 +283,7 @@ class HostGroupTestCase(APITestCase):
         :id: 528afd01-356a-4082-9e88-a5b2a715a792
 
         :expectedresults: A hostgroup is created with expected properties,
-            updated and deleeted
+            updated and deleted
 
         :CaseLevel: Integration
 
