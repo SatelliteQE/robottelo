@@ -48,7 +48,7 @@ class HostGroupTestCase(APITestCase):
 
     @upgrade
     @tier3
-    def test_verify_bugzilla_1107708(self):
+    def test_inherit_puppetclass(self):
         """Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
         'all_puppetclasses' field
@@ -276,103 +276,27 @@ class HostGroupTestCase(APITestCase):
         self.assertDictContainsSubset(hostgroup_cloned, hostgroup_origin)
         self.assertEqual(hostgroup_cloned, hostgroup_cloned)
 
-    @tier2
-    def test_positive_create_with_parent(self):
-        """Create a hostgroup with parent hostgroup specified
-
-        :id: 308d6921-0bf1-4fae-8bcf-7b312208e27c
-
-        :expectedresults: A hostgroup is created with expected parent hostgroup
-            assigned
-        """
-        parent_hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-            parent=parent_hostgroup,
-        ).create()
-        self.assertEqual(hostgroup.parent.read().name, parent_hostgroup.name)
-
-    @tier2
-    def test_positive_create_with_env(self):
-        """Create a hostgroup with environment specified
+    @tier1
+    def test_positive_create_with_properties(self):
+        """Create a hostgroup with properties
 
         :id: 528afd01-356a-4082-9e88-a5b2a715a792
 
-        :expectedresults: A hostgroup is created with expected environment
-            assigned
+        :expectedresults: A hostgroup is created with expected properties,
+            updated and deleeted
 
         :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         env = entities.Environment(
             location=[self.loc],
             organization=[self.org],
         ).create()
-        hostgroup = entities.HostGroup(
-            environment=env,
+        parent_hostgroup = entities.HostGroup(
             location=[self.loc],
             organization=[self.org],
         ).create()
-        self.assertEqual(hostgroup.environment.read().name, env.name)
-
-    @tier2
-    def test_positive_create_with_os(self):
-        """Create a hostgroup with operating system specified
-
-        :id: ca443d3f-2b99-4f0e-b92e-37c3e9fcc460
-
-        :expectedresults: A hostgroup is created with expected operating system
-            assigned
-
-        :CaseLevel: Integration
-        """
-        arch = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        os = entities.OperatingSystem(
-            architecture=[arch],
-            ptable=[ptable],
-        ).create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            operatingsystem=os,
-            organization=[self.org],
-            ptable=ptable,
-        ).create()
-        self.assertEqual(hostgroup.operatingsystem.read().name, os.name)
-
-    @tier2
-    def test_positive_create_with_arch(self):
-        """Create a hostgroup with architecture specified
-
-        :id: c2f50b94-fa80-49c9-8279-76cfe458bc74
-
-        :expectedresults: A hostgroup is created with expected architecture
-            assigned
-
-        :CaseLevel: Integration
-        """
-        arch = entities.Architecture().create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        self.assertEqual(hostgroup.architecture.read().name, arch.name)
-
-    @tier2
-    def test_positive_create_with_media(self):
-        """Create a hostgroup with media specified
-
-        :id: b0b93207-a8bc-4af7-8ccd-d0bbf46dc0b0
-
-        :expectedresults: A hostgroup is created with expected media assigned
-
-        :CaseLevel: Integration
-        """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
         os = entities.OperatingSystem(
@@ -384,104 +308,132 @@ class HostGroupTestCase(APITestCase):
             location=[self.loc],
             organization=[self.org],
         ).create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            medium=media,
-            operatingsystem=os,
-            organization=[self.org],
-            ptable=ptable,
-        ).create()
-        self.assertEqual(hostgroup.medium.read().name, media.name)
-
-    @tier2
-    def test_positive_create_with_ptable(self):
-        """Create a hostgroup with partition table specified
-
-        :id: f161fd59-fa38-4c4e-a641-489f754d5977
-
-        :expectedresults: A hostgroup is created with expected partition table
-            assigned
-
-        :CaseLevel: Integration
-        """
-        arch = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        os = entities.OperatingSystem(
-            architecture=[arch],
-            ptable=[ptable],
-        ).create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            operatingsystem=os,
-            organization=[self.org],
-            ptable=ptable,
-        ).create()
-        self.assertEqual(hostgroup.ptable.read().name, ptable.name)
-
-    @tier2
-    def test_positive_create_with_puppet_ca_proxy(self):
-        """Create a hostgroup with puppet CA proxy specified
-
-        :id: 5c715ee8-2fd6-42c6-aece-037733f67454
-
-        :expectedresults: A hostgroup is created with expected puppet CA proxy
-            assigned
-
-        :CaseLevel: Integration
-        """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
         })[0]
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-            puppet_ca_proxy=proxy,
-        ).create()
-        self.assertEqual(hostgroup.puppet_ca_proxy.read().name, proxy.name)
-
-    @tier2
-    def test_positive_create_with_subnet(self):
-        """Create a hostgroup with subnet specified
-
-        :id: affcaa2e-e22f-4601-97b2-4ca516f6ad2b
-
-        :expectedresults: A hostgroup is created with expected subnet assigned
-
-        :CaseLevel: Integration
-        """
         subnet = entities.Subnet(
             location=[self.loc],
             organization=[self.org],
         ).create()
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-            subnet=subnet,
-        ).create()
-        self.assertEqual(hostgroup.subnet.read().name, subnet.name)
-
-    @tier2
-    def test_positive_create_with_domain(self):
-        """Create a hostgroup with domain specified
-
-        :id: 4f4aee5d-1f43-45e6-ac60-0573083dbcee
-
-        :expectedresults: A hostgroup is created with expected domain assigned
-
-        :CaseLevel: Integration
-        """
         domain = entities.Domain(
             location=[self.loc],
             organization=[self.org],
         ).create()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.version[0], lce.id)
         hostgroup = entities.HostGroup(
+            architecture=arch,
+            content_source=proxy,
+            content_view=content_view,
             domain=domain,
+            environment=env,
+            lifecycle_environment=lce,
             location=[self.loc],
+            medium=media,
+            operatingsystem=os,
             organization=[self.org],
+            parent=parent_hostgroup,
+            ptable=ptable,
+            puppet_ca_proxy=proxy,
+            puppet_proxy=proxy,
+            subnet=subnet,
         ).create()
+        self.assertEqual(hostgroup.environment.read().name, env.name)
+        self.assertEqual(hostgroup.parent.read().name, parent_hostgroup.name)
+        self.assertEqual(hostgroup.architecture.read().name, arch.name)
+        self.assertEqual(hostgroup.operatingsystem.read().name, os.name)
+        self.assertEqual(hostgroup.medium.read().name, media.name)
+        self.assertEqual(hostgroup.ptable.read().name, ptable.name)
+        self.assertEqual(hostgroup.puppet_ca_proxy.read().name, proxy.name)
+        self.assertEqual(hostgroup.subnet.read().name, subnet.name)
         self.assertEqual(hostgroup.domain.read().name, domain.name)
+        self.assertEqual(hostgroup.puppet_proxy.read().name, proxy.name)
+        self.assertEqual(hostgroup.content_source.read().name, proxy.name)
+        self.assertEqual(hostgroup.content_view.read().name, content_view.name)
+        self.assertEqual(hostgroup.lifecycle_environment.read().name, lce.name)
+
+        # create new properties for update
+        new_org = entities.Organization().create()
+        new_loc = entities.Location(organization=[new_org]).create()
+        new_arch = entities.Architecture().create()
+        new_ptable = entities.PartitionTable().create()
+        new_parent = entities.HostGroup(
+            location=[new_loc],
+            organization=[new_org],
+        ).create()
+        new_env = entities.Environment(
+            location=[new_loc],
+            organization=[new_org],
+        ).create()
+        new_os = entities.OperatingSystem(
+            architecture=[new_arch],
+            ptable=[new_ptable],
+        ).create()
+        new_subnet = entities.Subnet(
+            location=[new_loc],
+            organization=[new_org],
+        ).create()
+        new_domain = entities.Domain(
+            location=[new_loc],
+            organization=[new_org],
+        ).create()
+        new_cv = entities.ContentView(organization=new_org).create()
+        new_cv.publish()
+        new_cv = new_cv.read()
+        new_lce = entities.LifecycleEnvironment(organization=new_org).create()
+        promote(new_cv.version[0], new_lce.id)
+        new_media = entities.Media(
+            operatingsystem=[os],
+            location=[new_loc],
+            organization=[new_org],
+        ).create()
+        # update itself
+        hostgroup.organization = [new_org]
+        hostgroup.location = [new_loc]
+        hostgroup.lifecycle_environment = new_lce
+        hostgroup.content_view = new_cv
+        hostgroup.domain = new_domain
+        hostgroup.architecture = new_arch
+        hostgroup.operatingsystem = new_os
+        hostgroup.environment = new_env
+        hostgroup.parent = new_parent
+        hostgroup.ptable = new_ptable
+        hostgroup.subnet = new_subnet
+        hostgroup.medium = new_media
+        hostgroup = hostgroup.update([
+            'parent',
+            'environment',
+            'operatingsystem',
+            'architecture',
+            'ptable',
+            'subnet',
+            'domain',
+            'content_view',
+            'lifecycle_environment',
+            'location',
+            'organization',
+            'medium'
+            ])
+        self.assertEqual(hostgroup.parent.read().name, new_parent.name)
+        self.assertEqual(hostgroup.environment.read().name, new_env.name)
+        self.assertEqual(hostgroup.operatingsystem.read().name, new_os.name)
+        self.assertEqual(hostgroup.architecture.read().name, new_arch.name)
+        self.assertEqual(hostgroup.ptable.read().name, new_ptable.name)
+        self.assertEqual(hostgroup.subnet.read().name, new_subnet.name)
+        self.assertEqual(hostgroup.domain.read().name, new_domain.name)
+        self.assertEqual(hostgroup.content_view.read().name, new_cv.name)
+        self.assertEqual(hostgroup.lifecycle_environment.read().name, new_lce.name)
+        self.assertEqual(hostgroup.location[0].read().name, new_loc.name)
+        self.assertEqual(hostgroup.organization[0].read().name, new_org.name)
+        self.assertEqual(hostgroup.medium.read().name, new_media.name)
+
+        # delete
+        hostgroup.delete()
+        with self.assertRaises(HTTPError):
+            hostgroup.read()
 
     @stubbed('Remove stub once proper infrastructure will be created')
     @tier2
@@ -508,92 +460,6 @@ class HostGroupTestCase(APITestCase):
             realm=realm,
         ).create()
         self.assertEqual(hostgroup.realm.read().name, realm.name)
-
-    @tier2
-    def test_positive_create_with_puppet_proxy(self):
-        """Create a hostgroup with puppet proxy specified
-
-        :id: 4f39f246-d12f-468c-a33b-66486c3806fe
-
-        :expectedresults: A hostgroup is created with expected puppet proxy
-            assigned
-
-        :CaseLevel: Integration
-        """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-            puppet_proxy=proxy,
-        ).create()
-        self.assertEqual(hostgroup.puppet_proxy.read().name, proxy.name)
-
-    @tier2
-    def test_positive_create_with_content_source(self):
-        """Create a hostgroup with content source specified
-
-        :id: 39a6273e-8301-449a-a9d3-e3b61cda1e81
-
-        :expectedresults: A hostgroup is created with expected content source
-            assigned
-
-        :CaseLevel: Integration
-        """
-        content_source = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        hostgroup = entities.HostGroup(
-            content_source=content_source,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        self.assertEqual(
-            hostgroup.content_source.read().name, content_source.name)
-
-    @tier2
-    def test_positive_create_with_cv(self):
-        """Create a hostgroup with content view specified
-
-        :id: 43dfd2e9-68fe-4682-9cac-61c622c11126
-
-        :expectedresults: A hostgroup is created with expected content view
-            assigned
-
-        :CaseLevel: Integration
-        """
-        content_view = entities.ContentView(organization=self.org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        promote(content_view.version[0], lce.id)
-        hostgroup = entities.HostGroup(
-            content_view=content_view,
-            lifecycle_environment=lce,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        self.assertEqual(hostgroup.content_view.read().name, content_view.name)
-
-    @tier2
-    def test_positive_create_with_lce(self):
-        """Create a hostgroup with lifecycle environment specified
-
-        :id: 92215990-0754-429a-8fa2-c47806ece8a6
-
-        :expectedresults: A hostgroup is created with expected lifecycle
-            environment assigned
-
-        :CaseLevel: Integration
-        """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        hostgroup = entities.HostGroup(
-            lifecycle_environment=lce,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        self.assertEqual(hostgroup.lifecycle_environment.read().name, lce.name)
 
     @tier2
     def test_positive_create_with_locs(self):
@@ -661,178 +527,6 @@ class HostGroupTestCase(APITestCase):
                 self.assertEqual(name, hostgroup.name)
 
     @tier2
-    @upgrade
-    def test_positive_update_parent(self):
-        """Update a hostgroup with a new parent hostgroup
-
-        :id: 6766d2e6-2305-49db-8db5-8417cf00b0a8
-
-        :expectedresults: A hostgroup is updated with expected parent hostgroup
-        """
-        parent = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-            parent=parent,
-        ).create()
-        new_parent = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup.parent = new_parent
-        hostgroup = hostgroup.update(['parent'])
-        self.assertEqual(hostgroup.parent.read().name, new_parent.name)
-
-    @tier2
-    def test_positive_update_env(self):
-        """Update a hostgroup with a new environment
-
-        :id: 24f3852d-a94a-4d85-ab7b-afe845832d94
-
-        :expectedresults: A hostgroup is updated with expected environment
-
-        :CaseLevel: Integration
-        """
-        env = entities.Environment(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup = entities.HostGroup(
-            environment=env,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_env = entities.Environment(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup.environment = new_env
-        hostgroup = hostgroup.update(['environment'])
-        self.assertEqual(hostgroup.environment.read().name, new_env.name)
-
-    @tier2
-    def test_positive_update_os(self):
-        """Update a hostgroup with a new operating system
-
-        :id: c52cdc4f-499b-4a5e-ab7b-a172db42b038
-
-        :expectedresults: A hostgroup is updated with expected operating system
-
-        :CaseLevel: Integration
-        """
-        arch = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        os = entities.OperatingSystem(
-            architecture=[arch],
-            ptable=[ptable],
-        ).create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            operatingsystem=os,
-            organization=[self.org],
-            ptable=ptable,
-        ).create()
-        new_os = entities.OperatingSystem(
-            architecture=[arch],
-            ptable=[ptable],
-        ).create()
-        hostgroup.operatingsystem = new_os
-        hostgroup = hostgroup.update(['operatingsystem'])
-        self.assertEqual(hostgroup.operatingsystem.read().name, new_os.name)
-
-    @tier2
-    def test_positive_update_arch(self):
-        """Update a hostgroup with a new architecture
-
-        :id: 57890ca6-dec7-43fe-ae4b-336cc2268d01
-
-        :expectedresults: A hostgroup is updated with expected architecture
-
-        :CaseLevel: Integration
-        """
-        hostgroup = entities.HostGroup(
-            architecture=entities.Architecture().create(),
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_arch = entities.Architecture().create()
-        hostgroup.architecture = new_arch
-        hostgroup = hostgroup.update(['architecture'])
-        self.assertEqual(hostgroup.architecture.read().name, new_arch.name)
-
-    @tier2
-    def test_positive_update_media(self):
-        """Update a hostgroup with a new media
-
-        :id: 9b6ffbb8-0518-4900-95fd-49fc1d90a4be
-
-        :expectedresults: A hostgroup is updated with expected media
-
-        :CaseLevel: Integration
-        """
-        arch = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        os = entities.OperatingSystem(
-            architecture=[arch],
-            ptable=[ptable],
-        ).create()
-        media = entities.Media(
-            operatingsystem=[os],
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            medium=media,
-            operatingsystem=os,
-            organization=[self.org],
-            ptable=ptable,
-        ).create()
-        new_media = entities.Media(
-            operatingsystem=[os],
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup.medium = new_media
-        hostgroup = hostgroup.update(['medium'])
-        self.assertEqual(hostgroup.medium.read().name, new_media.name)
-
-    @tier2
-    def test_positive_update_ptable(self):
-        """Update a hostgroup with a new partition table
-
-        :id: 95fccc76-33c6-45a3-842e-61917cce40fc
-
-        :expectedresults: A hostgroup is updated with expected partition table
-
-        :CaseLevel: Integration
-        """
-        arch = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        os = entities.OperatingSystem(
-            architecture=[arch],
-            ptable=[ptable],
-        ).create()
-        hostgroup = entities.HostGroup(
-            architecture=arch,
-            location=[self.loc],
-            operatingsystem=os,
-            organization=[self.org],
-            ptable=ptable,
-        ).create()
-        new_ptable = entities.PartitionTable().create()
-        os.ptable = [ptable, new_ptable]
-        os.update(['ptable'])
-        hostgroup.ptable = new_ptable
-        hostgroup = hostgroup.update(['ptable'])
-        self.assertEqual(hostgroup.ptable.read().name, new_ptable.name)
-
-    @tier2
     def test_positive_update_puppet_ca_proxy(self):
         """Update a hostgroup with a new puppet CA proxy
 
@@ -852,60 +546,6 @@ class HostGroupTestCase(APITestCase):
         hostgroup.puppet_ca_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_ca_proxy'])
         self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
-
-    @tier2
-    def test_positive_update_subnet(self):
-        """Update a hostgroup with a new subnet
-
-        :id: 2b539fd9-5fcf-4d74-9cd8-3b3997bac992
-
-        :expectedresults: A hostgroup is updated with expected subnet
-
-        :CaseLevel: Integration
-        """
-        subnet = entities.Subnet(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-            subnet=subnet,
-        ).create()
-        new_subnet = entities.Subnet(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup.subnet = new_subnet
-        hostgroup = hostgroup.update(['subnet'])
-        self.assertEqual(hostgroup.subnet.read().name, new_subnet.name)
-
-    @tier2
-    def test_positive_update_domain(self):
-        """Update a hostgroup with a new domain
-
-        :id: db7b79e9-a833-4d93-96e2-d9adc9f35c21
-
-        :expectedresults: A hostgroup is updated with expected domain
-
-        :CaseLevel: Integration
-        """
-        domain = entities.Domain(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup = entities.HostGroup(
-            domain=domain,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_domain = entities.Domain(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup.domain = new_domain
-        hostgroup = hostgroup.update(['domain'])
-        self.assertEqual(hostgroup.domain.read().name, new_domain.name)
 
     @stubbed('Remove stub once proper infrastructure will be created')
     @tier2
@@ -987,96 +627,6 @@ class HostGroupTestCase(APITestCase):
             hostgroup.content_source.read().name, new_content_source.name)
 
     @tier2
-    def test_positive_update_cv(self):
-        """Update a hostgroup with a new content view
-
-        :id: 5fa39bc9-c780-49c5-b580-b973e2d25226
-
-        :expectedresults: A hostgroup is updated with expected content view
-
-        :CaseLevel: Integration
-        """
-        content_view = entities.ContentView(organization=self.org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        promote(content_view.version[0], lce.id)
-        hostgroup = entities.HostGroup(
-            content_view=content_view,
-            lifecycle_environment=lce,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_cv = entities.ContentView(organization=self.org).create()
-        new_cv.publish()
-        new_cv = new_cv.read()
-        promote(new_cv.version[0], lce.id)
-        hostgroup.content_view = new_cv
-        hostgroup = hostgroup.update(['content_view'])
-        self.assertEqual(hostgroup.content_view.read().name, new_cv.name)
-
-    @tier2
-    def test_positive_update_lce(self):
-        """Update a hostgroup with a new lifecycle environment
-
-        :id: df89d8e3-bd36-4ad9-bde8-1872ae3dd918
-
-        :expectedresults: A hostgroup is updated with expected lifecycle
-            environment
-
-        :CaseLevel: Integration
-        """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        hostgroup = entities.HostGroup(
-            lifecycle_environment=lce,
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_lce = entities.LifecycleEnvironment(organization=self.org).create()
-        hostgroup.lifecycle_environment = new_lce
-        hostgroup = hostgroup.update(['lifecycle_environment'])
-        self.assertEqual(
-            hostgroup.lifecycle_environment.read().name, new_lce.name)
-
-    @tier2
-    def test_positive_update_loc(self):
-        """Update a hostgroup with a new location
-
-        :id: 62d88bb0-34d1-447f-ae69-b2122d8142b4
-
-        :expectedresults: A hostgroup is updated with expected location
-
-        :CaseLevel: Integration
-        """
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_loc = entities.Location(organization=[self.org]).create()
-        hostgroup.location = [new_loc]
-        hostgroup = hostgroup.update(['location'])
-        self.assertEqual(hostgroup.location[0].read().name, new_loc.name)
-
-    @tier2
-    def test_positive_update_org(self):
-        """Update a hostgroup with a new organization
-
-        :id: 8f83983b-398f-40e4-8917-47b3205137d7
-
-        :expectedresults: A hostgroup is updated with expected organization
-
-        :CaseLevel: Integration
-        """
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        new_org = entities.Organization().create()
-        hostgroup.organization = [new_org]
-        hostgroup = hostgroup.update(['organization'])
-        self.assertEqual(hostgroup.organization[0].read().name, new_org.name)
-
-    @tier2
     def test_positive_update_locs(self):
         """Update a hostgroup with new multiple locations
 
@@ -1125,24 +675,6 @@ class HostGroupTestCase(APITestCase):
             set(org.name for org in new_orgs),
             set(org.read().name for org in hostgroup.organization)
         )
-
-    @tier1
-    def test_positive_delete(self):
-        """Delete a hostgroup
-
-        :id: bef6841b-5077-4b84-842e-a286bfbb92d2
-
-        :expectedresults: A hostgroup is deleted
-
-        :CaseImportance: Critical
-        """
-        hostgroup = entities.HostGroup(
-            location=[self.loc],
-            organization=[self.org],
-        ).create()
-        hostgroup.delete()
-        with self.assertRaises(HTTPError):
-            hostgroup.read()
 
     @tier1
     def test_negative_create_with_name(self):
