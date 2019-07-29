@@ -83,6 +83,43 @@ class ServerFileDownloader(object):
 download_server_file = ServerFileDownloader()
 
 
+def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
+    """Downloads file from given fileurl to directory specified by local_path
+    with given file_name on host specified by hostname. Leave hostname as None
+    to download file on the localhost.If remote directory is not specified it
+    downloads file to /tmp/.
+    :param str file_url: The complete server file path from where the
+        file will be downloaded.
+    :param str local_path: Name of directory where file will be saved. If not
+    provided file will be saved in /tmp/ directory.
+    :param str file_name: Name of the file to be saved with. If not provided filename
+    from url will be used.
+    :param str hostname: Hostname of server where the file need to be downloaded.
+    :returns: Returns list containing complete file path and name of downloaded file.
+    """
+    if file_name is None:
+        _, file_name = os.path.split(file_url)
+    if local_path is None:
+        local_path = '/tmp/'
+
+    # download on localhost
+    if hostname is None:
+        with open('{}{}'.format(local_path, file_name), 'wb') as fileobj:
+            r = requests.get(file_url)
+            r.raise_for_status()
+            fileobj.write(r.content)
+            fileobj.close()
+        if not os.path.exists("{}{}".format(local_path, file_name)):
+            raise DownloadFileError('Unable to download {}'.format(file_name))
+    # download on any server.
+    else:
+        result = ssh.command('wget -O {}{} {}'.format(
+            local_path, file_name, file_url), hostname=hostname)
+        if result.return_code != 0:
+            raise DownloadFileError('Unable to download {}'.format(file_name))
+    return ['{}{}'.format(local_path, file_name), file_name]
+
+
 def get_server_software():
     """Figure out which product distribution is installed on the server.
 

@@ -14,17 +14,21 @@
 
 :Upstream: No
 """
+import os
 import pytest
 from nailgun import entities
-
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier1, upgrade
+from robottelo import ssh
 
 
 @fixture(scope='module')
 def oscap_content_path():
+    _, file_name = os.path.split(settings.oscap.content_path)
+    local_file = "/tmp/{}".format(file_name)
+    ssh.download_file(settings.oscap.content_path, local_file)
     return settings.oscap.content_path
 
 
@@ -64,9 +68,13 @@ def test_positive_end_to_end(session, oscap_content_path):
         assert org.name in oscap_values['organizations']['resources']['assigned']
         assert loc.name in oscap_values['locations']['resources']['assigned']
         session.oscapcontent.update(title, {'file_upload.title': new_title})
+        session.location.search('abc')  # workaround for issue SatelliteQE/airgun#382.
         assert session.oscapcontent.search(new_title)[0]['Title'] == new_title
+        session.location.search('abc')
         assert not session.oscapcontent.search(title)
+        session.location.search('abc')
         session.oscapcontent.delete(new_title)
+        session.location.search('abc')
         assert not session.oscapcontent.search(new_title)
 
 

@@ -15,8 +15,6 @@
 
 :Upstream: No
 """
-import os
-
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -36,7 +34,7 @@ from robottelo.decorators import (
     tier4,
     upgrade
 )
-from robottelo.helpers import get_data_file
+from robottelo.helpers import get_data_file, file_downloader
 from robottelo.test import CLITestCase
 
 
@@ -46,11 +44,9 @@ class TailoringFilesTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         super(TailoringFilesTestCase, cls).setUpClass()
-        _, cls.file_name = os.path.split(settings.oscap.tailoring_path)
-        ssh.upload_file(
-            local_file=settings.oscap.tailoring_path,
-            remote_file="/tmp/{0}".format(cls.file_name)
-        )
+        cls.tailoring_file_path = file_downloader(
+            file_url=settings.oscap.tailoring_path,
+            hostname=settings.server.hostname)[0]
 
     @tier1
     def test_positive_create(self):
@@ -70,7 +66,7 @@ class TailoringFilesTestCase(CLITestCase):
             with self.subTest(name):
                 tailoring_file = make_tailoringfile({
                     'name': name,
-                    'scap-file': '/tmp/{0}'.format(self.file_name)})
+                    'scap-file': self.tailoring_file_path})
                 self.assertEqual(tailoring_file['name'], name)
 
     @tier1
@@ -90,7 +86,7 @@ class TailoringFilesTestCase(CLITestCase):
         name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
         tailoring_file = make_tailoringfile({
             'name': name,
-            'scap-file': '/tmp/{0}'.format(self.file_name)})
+            'scap-file': self.tailoring_file_path})
         self.assertEqual(tailoring_file['name'], name)
 
     @tier1
@@ -114,7 +110,7 @@ class TailoringFilesTestCase(CLITestCase):
         name = gen_string('alphanumeric')
         make_tailoringfile({
             'name': name,
-            'scap-file': '/tmp/{0}'.format(self.file_name)})
+            'scap-file': self.tailoring_file_path})
         result = TailoringFiles.info({'name': name})
         self.assertEqual(result['name'], name)
 
@@ -138,7 +134,7 @@ class TailoringFilesTestCase(CLITestCase):
         name = gen_string('alphanumeric')
         make_tailoringfile({
             'name': name,
-            'scap-file': '/tmp/{0}'.format(self.file_name)})
+            'scap-file': self.tailoring_file_path})
         result = TailoringFiles.list()
         self.assertIn(
              name, [tailoringfile['name'] for tailoringfile in result])
@@ -187,7 +183,7 @@ class TailoringFilesTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_tailoringfile({
                         'name': name,
-                        'scap-file': '/tmp/{0}'.format(self.file_name)})
+                        'scap-file': self.tailoring_file_path})
 
     @stubbed()
     @tier2
@@ -229,7 +225,7 @@ class TailoringFilesTestCase(CLITestCase):
         file_path = '/tmp/{0}.xml'.format(name)
         tailoring_file = make_tailoringfile({
             'name': name,
-            'scap-file': '/tmp/{0}'.format(self.file_name)})
+            'scap-file': self.tailoring_file_path})
         self.assertEqual(tailoring_file['name'], name)
         result = TailoringFiles.download_tailoring_file({
             'name': name,
@@ -257,7 +253,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         tailoring_file = make_tailoringfile({
-            'scap-file': '/tmp/{0}'.format(self.file_name)})
+            'scap-file': self.tailoring_file_path})
         TailoringFiles.delete({'id': tailoring_file['id']})
         with self.assertRaises(CLIReturnCodeError):
             TailoringFiles.info({'id': tailoring_file['id']})
