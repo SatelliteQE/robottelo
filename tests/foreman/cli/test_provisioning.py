@@ -24,6 +24,7 @@ import time
 from nailgun import entities
 from fauxfactory import gen_string
 from robottelo.api.utils import (
+    call_entity_method_with_timeout,
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
@@ -36,8 +37,8 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.cli.factory import (
-    make_host,
+from robottelo.cli.host import (
+    Host,
 )
 from robottelo.decorators import (
     tier3,
@@ -210,7 +211,7 @@ def cv(user_credentials, org, rhel7, rhel7ks):
 
 @pytest.fixture(scope='session')
 def cvv(user_credentials, org, cv, lce):
-    cv.publish()
+    call_entity_method_with_timeout(cv.publish, timeout=1500)
     cv = cv.read()
     assert len(cv.version) == 1, "Single CV version expected"
     cv_version = cv.version[0].read()
@@ -462,10 +463,8 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
     LOGGER.info(">>> Operating system: [%s] %s %s.%s" % (os.id, os.name, os.major, os.minor))
     LOGGER.info(">>> Environment: [%s] %s" % (env.id, env.name))
     LOGGER.info(">>> Host group: [%s] %s" % (hg.id, hg.name))
-    host_ip = '192.168.11.104'   # FIXME Do not hardcode this one
     host_name = gen_string('alpha').lower()
     host_pass = gen_string('alpha')
-    LOGGER.info(">>> Host IP: %s" % host_ip)
     LOGGER.info(">>> Host name: %s" % host_name)
     LOGGER.info(">>> Host root password: %s" % host_pass)
     host_parameters = [{'name': 'remote_execution_connect_by_ip', 'value': True}]
@@ -479,7 +478,6 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
         'compute-resource-id': cr.id,   # FIXME This should be in host group
         'hostgroup-id': hg.id,
         'interface': host_bridging,
-        'ip': host_ip,
         'location-id': loc.id,
         'name': host_name,
         'organization-id': org.id,
@@ -487,7 +485,7 @@ def test_rhel_pxe_provisioning_on_libvirt(user_credentials, org, loc, domain, su
         'volume': 'pool_name=images, capacity=5G',
         'parameters': host_parameters_str,
     }
-    host = make_host(parameters)
+    host = Host.create(options=parameters)
     host = entities.Host(id=host['id']).read()
     _wait_for_build_done(host)
     _wait_for_ssh_ready(host, host_pass)
