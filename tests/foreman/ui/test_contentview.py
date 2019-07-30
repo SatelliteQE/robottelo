@@ -1642,7 +1642,6 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
         assert ENVIRONMENT not in cvv['Environments']
 
 
-@skip_if_bug_open('bugzilla', 1729153)
 @tier2
 def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
     """Remove promoted content view version from Library environment
@@ -1809,6 +1808,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
 
 
+@skip_if_bug_open('bugzilla', 1729153)
 @upgrade
 @tier2
 def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
