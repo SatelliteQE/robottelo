@@ -231,7 +231,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         )
         self.configure_rhel_repo(settings.__dict__[self.distro[:-1] + '_repo'])
         self.run('yum repolist')
-        self.run('yum -y install satellite-capsule', timeout=900)
+        self.run('yum -y install satellite-capsule', timeout=1200)
         result = self.run('rpm -q satellite-capsule')
         if result.return_code != 0:
             raise CapsuleVirtualMachineError(
@@ -279,7 +279,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             if '--scenario foreman-proxy-content' in installer_cmd:
                 installer_cmd = installer_cmd.replace(
                      '--scenario foreman-proxy-content', '--scenario capsule')
-        result = self.run(installer_cmd, timeout=1500)
+        result = self.run(installer_cmd, timeout=1800)
         if result.return_code != 0:
             # before exit download the capsule log file
             _, log_path = mkstemp(prefix='capsule_external-', suffix='.log')
