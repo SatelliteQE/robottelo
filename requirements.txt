@@ -2,7 +2,7 @@
 # Version updates managed by pyup.io
 
 cryptography==2.7
-fauxfactory==3.0.2
+fauxfactory==3.0.6
 idna==2.8
 Inflector==2.0.12
 import_string==0.1.0
