@@ -26,6 +26,7 @@ from robottelo.cli.factory import (
     make_usergroup,
     make_usergroup_external,
 )
+from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.task import Task
@@ -729,6 +730,13 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             if UserGroup.info({'id': dict['id']})['external-user-groups']:
                 UserGroup.delete({'id': dict['id']})
         super(ActiveDirectoryUserGroupTestCase, self).tearDown()
+
+    @classmethod
+    @skip_if_not_set('ldap')
+    def tearDownClass(cls):
+        """Delete the AD auth-source afterwards"""
+        LDAPAuthSource.delete({u'id': cls.auth[u'server'][u'id']})
+        super(ActiveDirectoryUserGroupTestCase, cls).tearDownClass()
 
     @tier2
     def test_positive_create(self):
