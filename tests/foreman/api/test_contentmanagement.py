@@ -611,6 +611,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(cvv_repo_path)
         )
 
+    @skip_if_bug_open('bugzilla', 1734312)
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
