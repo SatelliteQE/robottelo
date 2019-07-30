@@ -70,7 +70,7 @@ class ServerFileDownloader(object):
         """
         if not self.file_downloaded:  # pragma: no cover
             self.fd, self.file_path = mkstemp(suffix='.{}'.format(extention))
-            fileobj = os.fdopen(self.fd, 'w')
+            fileobj = os.fdopen(self.fd, 'wb')
             fileobj.write(requests.get(fileurl).content)
             fileobj.close()
             if os.path.exists(self.file_path):

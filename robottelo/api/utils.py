@@ -907,9 +907,11 @@ def update_provisioning_template(name=None, old=None, new=None):
             'per_page': 1000,
             'search': 'name="{}"'.format(name),
         })[0].read()
-    if old in temp:
+    if old in temp.template:
         temp.template = temp.template.replace(old, new, 1)
         update = temp.update(['template'])
         return new in update.template
+    elif new in temp.template:
+        return True
     else:
-        raise '{} does not exists in template {}'.format(old, name)
+        raise ValueError('{} does not exists in template {}'.format(old, name))

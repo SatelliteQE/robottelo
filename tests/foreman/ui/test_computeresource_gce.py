@@ -102,8 +102,9 @@ def test_positive_default_end_to_end_with_custom_profile(
             'provider_content.google_project_id': module_gce_settings['project_id'],
             'provider_content.client_email': module_gce_settings['client_email'],
             'provider_content.certificate_path': module_gce_settings['cert_path'],
+            'provider_content.zone.value': settings.gce.zone,
             'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
+            'locations.resources.assigned': [module_loc.name]
         })
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
