@@ -930,6 +930,13 @@ class FreeIPAUserGroupTestCase(CLITestCase):
                 UserGroup.delete({'id': dict['id']})
         super(FreeIPAUserGroupTestCase, self).tearDown()
 
+    @classmethod
+    @skip_if_not_set('ipa')
+    def tearDownClass(cls):
+        """Delete the IPA auth-source afterwards"""
+        LDAPAuthSource.delete({u'id': cls.auth[u'server'][u'id']})
+        super(FreeIPAUserGroupTestCase, cls).tearDownClass()
+
     @tier1
     def test_positive_create(self):
         """Create external user group using FreeIPA LDAP
