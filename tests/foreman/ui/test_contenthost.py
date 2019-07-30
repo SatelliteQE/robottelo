@@ -193,7 +193,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
-        chost = session.contenthost.read(vm.hostname)
+        chost = session.contenthost.read(vm.hostname, widget_names='details')
         assert chost['details']['description'] == new_description
         # Install package
         result = session.contenthost.execute_package_action(
@@ -435,7 +435,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
                 session.contenthost.search('')
             except NoSuchElementException:
                 session.browser.refresh()
-        chost = session.contenthost.read(vm.hostname)
+        chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
@@ -472,11 +472,11 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
     result = vm.run('subscription-manager refresh  && yum repolist')
     assert result.return_code == 0
     with session:
-        chost = session.contenthost.read(vm.hostname)
+        chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
         result = vm.run('subscription-manager refresh  && yum repolist')
         assert result.return_code == 0
-        chost = session.contenthost.read(vm.hostname)
+        chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
@@ -523,7 +523,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
     })[0].read()
     with session:
         # Get host current operating system value
-        os = session.contenthost.read(vm.hostname)['details']['os']
+        os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Change necessary setting to true
         set_ignore_facts_for_os(True)
         # Add cleanup function to roll back setting to default value
@@ -541,7 +541,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
             u'facts': facts,
         })
         session.contenthost.search('')
-        updated_os = session.contenthost.read(vm.hostname)['details']['os']
+        updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
         # Put it to false and re-run the process
@@ -551,7 +551,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
             u'facts': facts,
         })
         session.contenthost.search('')
-        updated_os = session.contenthost.read(vm.hostname)['details']['os']
+        updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Check that host OS was changed to new value
         assert os != updated_os
         assert updated_os == expected_os
@@ -610,13 +610,13 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
             session.organization.select(org.name)
             assert session.contenthost.search(
                 virt_who_hypervisor_host['name'])[0]['Subscription Status'] == 'yellow'
-            chost = session.contenthost.read(virt_who_hypervisor_host['name'])
+            chost = session.contenthost.read(virt_who_hypervisor_host['name'], widget_names='details')
             assert chost['details']['subscription_status'] == 'Unsubscribed hypervisor'
             session.contenthost.add_subscription(
                 virt_who_hypervisor_host['name'], VDC_SUBSCRIPTION_NAME)
             assert session.contenthost.search(
                 virt_who_hypervisor_host['name'])[0]['Subscription Status'] == 'green'
-            chost = session.contenthost.read(virt_who_hypervisor_host['name'])
+            chost = session.contenthost.read(virt_who_hypervisor_host['name'], widget_names='details')
             assert chost['details']['subscription_status'] == 'Fully entitled'
 
 
