@@ -1642,6 +1642,7 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
         assert ENVIRONMENT not in cvv['Environments']
 
 
+@skip_if_bug_open('bugzilla', 1729153)
 @tier2
 def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
     """Remove promoted content view version from Library environment
@@ -2078,7 +2079,7 @@ def test_positive_remove_filter(session, module_org):
         assert session.contentviewfilter.search(
             cv.name, filter_name)[0]['Name'] == filter_name
         session.contentviewfilter.delete(cv.name, filter_name)
-        assert session.contentviewfilter.search(cv.name, filter_name)[0]['Name'] != filter_name
+        assert not session.contentviewfilter.search(cv.name, filter_name)
 
 
 @tier2
