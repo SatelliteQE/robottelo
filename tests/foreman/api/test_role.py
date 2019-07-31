@@ -910,7 +910,9 @@ class CannedRoleTestCases(APITestCase):
             role=role.id
         ).create()
         cloned_role = entities.Role(id=role.id).clone(
-            data={'name': gen_string('alpha')})
+            data={'role': {'name': gen_string('alpha'),
+                           'location_ids': [],
+                           'organization_ids': []}})
         cloned_role_filter = entities.Role(
             id=cloned_role['id']).read().filters[0]
         cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
@@ -951,7 +953,9 @@ class CannedRoleTestCases(APITestCase):
             unlimited=True
         ).create()
         cloned_role = entities.Role(id=role.id).clone(
-            data={'name': gen_string('alpha')})
+            data={'role': {'name': gen_string('alpha'),
+                           'location_ids': [],
+                           'organization_ids': []}})
         cloned_role_filter = entities.Role(
             id=cloned_role['id']).read().filters[0]
         cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
