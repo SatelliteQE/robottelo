@@ -1124,6 +1124,7 @@ class VirtWhoSettings(FeatureSettings):
         self.hypervisor_password = None
         self.hypervisor_config_file = None
         self.guest = None
+        self.guest_port = None
         self.guest_username = None
         self.guest_password = None
         # SKU Information
@@ -1139,6 +1140,7 @@ class VirtWhoSettings(FeatureSettings):
         self.hypervisor_password = reader.get('virtwho', 'hypervisor_password')
         self.hypervisor_config_file = reader.get('virtwho', 'hypervisor_config_file')
         self.guest = reader.get('virtwho', 'guest')
+        self.guest_port = reader.get('virtwho', 'guest_port', 22, int)
         self.guest_username = reader.get('virtwho', 'guest_username')
         self.guest_password = reader.get('virtwho', 'guest_password')
         # SKU Information
