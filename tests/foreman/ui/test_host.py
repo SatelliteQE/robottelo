@@ -356,6 +356,31 @@ def module_libvirt_repository(os_path, module_libvirt_product):
 
 
 @pytest.fixture(scope='module')
+def module_libvirt_media(module_org, module_loc, os_path, module_libvirt_os):
+    media = entities.Media().search(
+        query={u'search': u'path="{0}"'.format(os_path)}
+    )
+    if len(media) > 0:
+        # Media with this path already exist, make sure it is correct
+        media = media[0].read()
+        media.organization.append(module_org)
+        media.location.append(module_loc)
+        media.operatingsystem.append(module_libvirt_os)
+        media.os_family = 'Redhat'
+        media = media.update(['organization', 'location', 'operatingsystem', 'os_family'])
+    else:
+        # Create new media
+        media = entities.Media(
+            organization=[module_org],
+            location=[module_loc],
+            operatingsystem=[module_libvirt_os],
+            path_=os_path,
+            os_family='Redhat',
+        ).create()
+    return media
+
+
+@pytest.fixture(scope='module')
 def module_libvirt_content_view(module_org, module_libvirt_repository, module_libvirt_lce):
     # Create, Publish and promote CV
     content_view = entities.ContentView(organization=module_org).create()
@@ -374,6 +399,7 @@ def module_libvirt_hostgroup(
         default_partition_table,
         default_architecture,
         module_libvirt_os,
+        module_libvirt_media,
         module_libvirt_environment,
         module_libvirt_subnet,
         module_proxy,
@@ -395,6 +421,7 @@ def module_libvirt_hostgroup(
         operatingsystem=module_libvirt_os,
         organization=[module_org],
         ptable=default_partition_table,
+        medium=module_libvirt_media,
     ).create()
 
 
@@ -1597,7 +1624,7 @@ def test_positive_provision_end_to_end(
             'host.deploy': module_libvirt_resource,
             'host.inherit_puppet_environment': False,
             'host.puppet_environment': puppet_env.name,
-            'provider_content.virtual_machine.memory': '1 GB',
+            'provider_content.virtual_machine.memory': '2 GB',
             'operating_system.root_password': root_pwd,
             'interfaces.interface.network_type': 'Physical (Bridge)',
             'interfaces.interface.network': settings.vlan_networking.bridge,
@@ -1608,7 +1635,7 @@ def test_positive_provision_end_to_end(
         wait_for(
             lambda: session.host.get_details(name)[
                 'properties']['properties_table']['Build'] != 'Pending installation',
-            timeout=900,
+            timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
             silent_failure=True,
