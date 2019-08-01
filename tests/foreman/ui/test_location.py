@@ -49,6 +49,25 @@ def test_positive_end_to_end(session):
     loc_child_name = gen_string('alpha')
     description = gen_string('alpha')
     updated_name = gen_string('alphanumeric')
+
+    # create entities
+    ip_addres = gen_ipaddr(ip3=True)
+    subnet = entities.Subnet(
+        network=ip_addres,
+        mask='255.255.255.0',
+    ).create()
+    subnet_name = '{0} ({1}/{2})'.format(
+        subnet.name, subnet.network, subnet.cidr)
+    domain = entities.Domain().create()
+    user = entities.User().create()
+    hostgroup = entities.HostGroup().create()
+    env = entities.Environment().create()
+    media = entities.Media(
+        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
+        os_family='Redhat',
+    ).create()
+    template = entities.ProvisioningTemplate().create()
+
     with session:
         session.location.create({
             'name': loc_child_name,
@@ -56,110 +75,79 @@ def test_positive_end_to_end(session):
             'description': description
         })
         location_name = "{}/{}".format(loc_parent.name, loc_child_name)
-        assert session.location.search(location_name)[0]['Name'] == location_name
-        loc_values = session.location.read(location_name, widget_names='primary')
+        loc_values = session.location.read(location_name)
         assert loc_values['primary']['parent_location'] == loc_parent.name
         assert loc_values['primary']['name'] == loc_child_name
         assert loc_values['primary']['description'] == description
-        session.location.update(location_name, {'primary.name': updated_name})
+
+        # assign entities
+        session.location.update(location_name, {
+            'primary.name': updated_name,
+            'subnets.resources.assigned': [subnet_name],
+            'domains.resources.assigned': [domain.name],
+            'users.resources.assigned': [user.login],
+            'host_groups.all_hostgroups': False,
+            'host_groups.resources.unassigned': [hostgroup.name],
+            'environments.resources.assigned': [env.name],
+            'media.resources.assigned': [media.name],
+            'provisioning_templates.all_templates': False,
+            'provisioning_templates.resources.unassigned': [template.name]
+        })
         location_name = "{}/{}".format(loc_parent.name, updated_name)
-        assert session.location.search(location_name)[0]['Name'] == location_name
+        loc_values = session.location.read(location_name)
+        assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
+        assert loc_values['domains']['resources']['assigned'][0] == domain.name
+        assert loc_values['users']['resources']['assigned'][0] == user.login
+        assert hostgroup.name in loc_values['host_groups']['resources']['unassigned']
+        assert loc_values[
+            'environments']['resources']['assigned'][0] == env.name
+        assert loc_values['media']['resources']['assigned'][0] == media.name
+        assert template.name in loc_values[
+            'provisioning_templates']['resources']['unassigned']
+
+        # unassign entities
+        session.location.update(location_name, {
+            'subnets.resources.unassigned': [subnet_name],
+            'domains.resources.unassigned': [domain.name],
+            'users.resources.unassigned': [user.login],
+            'host_groups.resources.assigned': [hostgroup.name],
+            'environments.resources.unassigned': [env.name],
+            'media.resources.unassigned': [media.name],
+            'provisioning_templates.resources.assigned': [template.name]
+        })
+        loc_values = session.location.read(location_name)
+        assert len(loc_values['subnets']['resources']['assigned']) == 0
+        assert subnet_name in loc_values['subnets']['resources']['unassigned']
+        assert len(loc_values['domains']['resources']['assigned']) == 0
+        assert domain.name in loc_values['domains']['resources']['unassigned']
+        assert len(loc_values['users']['resources']['assigned']) == 0
+        assert user.login in loc_values['users']['resources']['unassigned']
+        assert hostgroup.name in loc_values['host_groups']['resources']['assigned']
+        assert len(loc_values['environments']['resources']['assigned']) == 0
+        assert env.name in loc_values[
+            'environments']['resources']['unassigned']
+        assert len(loc_values['media']['resources']['assigned']) == 0
+        assert media.name in loc_values['media']['resources']['unassigned']
+        assert template.name in loc_values[
+            'provisioning_templates']['resources']['assigned']
+
+        # delete location
         session.location.delete(location_name)
         assert not session.location.search(location_name)
 
 
 @tier2
-def test_positive_update_subnet(session):
-    """Add/Remove subnet from/to location
-
-    :id: fe70ffba-e594-48d5-b2c5-be93e827cc60
-
-    :expectedresults: subnet is added and removed from the location
-
-    :CaseLevel: Integration
-    """
-    ip_addres = gen_ipaddr(ip3=True)
-    subnet = entities.Subnet(
-        network=ip_addres,
-        mask='255.255.255.0',
-    ).create()
-    loc = entities.Location().create()
-    with session:
-        subnet_name = '{0} ({1}/{2})'.format(
-            subnet.name, subnet.network, subnet.cidr)
-        session.location.update(
-            loc.name, {'subnets.resources.assigned': [subnet_name]})
-        loc_values = session.location.read(loc.name, widget_names='subnets')
-        assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
-        session.location.update(
-            loc.name, {'subnets.resources.unassigned': [subnet_name]})
-        loc_values = session.location.read(loc.name, widget_names='subnets')
-        assert len(loc_values['subnets']['resources']['assigned']) == 0
-        assert subnet_name in loc_values['subnets']['resources']['unassigned']
-
-
-@tier2
-def test_positive_update_domain(session):
-    """Add/Remove domain from/to a Location
-
-    :id: 4f50f5cb-64eb-4790-b4c5-62d67669f48f
-
-    :expectedresults: Domain is added and removed from the location
-
-    :CaseLevel: Integration
-    """
-    domain = entities.Domain().create()
-    loc = entities.Location().create()
-    with session:
-        session.location.update(
-            loc.name, {'domains.resources.assigned': [domain.name]})
-        loc_values = session.location.read(loc.name, widget_names='domains')
-        assert loc_values['domains']['resources']['assigned'][0] == domain.name
-        session.location.update(
-            loc.name, {'domains.resources.unassigned': [domain.name]})
-        loc_values = session.location.read(loc.name, widget_names='domains')
-        assert len(loc_values['domains']['resources']['assigned']) == 0
-        assert domain.name in loc_values['domains']['resources']['unassigned']
-
-
-@tier2
-def test_positive_update_user(session):
-    """Add new user and then remove it from location
-
-    :id: bf9b3fc2-6193-4edc-aaec-cd7b87f0804c
-
-    :expectedresults: User successfully added and then removed from
-        location resources
-
-    :CaseLevel: Integration
-    """
-    user = entities.User().create()
-    loc = entities.Location().create()
-    with session:
-        session.location.update(
-            loc.name, {'users.resources.assigned': [user.login]})
-        loc_values = session.location.read(loc.name, widget_names='users')
-        assert loc_values['users']['resources']['assigned'][0] == user.login
-        session.location.update(
-            loc.name, {'users.resources.unassigned': [user.login]})
-        loc_values = session.location.read(loc.name, widget_names='users')
-        assert len(loc_values['users']['resources']['assigned']) == 0
-        assert user.login in loc_values['users']['resources']['unassigned']
-
-
-@tier2
 def test_positive_update_with_all_users(session):
-    """Create location and add user to it. Check and uncheck 'all users'
-    setting. Verify that user is assigned to location and vice versa
-    location is assigned to user
+    """Create location and do not add user to it. Check and uncheck
+    'all users' setting. Verify that for both operation expected location
+    is assigned to user. Then add user to location and retry.
 
-    :id: 17f85968-4aa6-4e2e-82d9-b01bc17031e7
+    :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
 
-    :customerscenario: true
+    :expectedresults: Location entity is assigned to user after checkbox
+        was enabled and then disabled afterwards
 
-    :expectedresults: Location and user entities assigned to each other
-
-    :BZ: 1479736, 1479736
+    :BZ: 1321543, 1479736, 1479736
 
     :CaseLevel: Integration
     """
@@ -168,6 +156,12 @@ def test_positive_update_with_all_users(session):
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=loc.name)
+        session.location.update(loc.name, {'users.all_users': True})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['assigned']
+        session.location.update(loc.name, {'users.all_users': False})
+        user_values = session.user.read(user.login)
+        assert loc.name in user_values['locations']['resources']['unassigned']
         session.location.update(
             loc.name, {'users.resources.assigned': [user.login]})
         loc_values = session.location.read(loc.name)
@@ -180,65 +174,6 @@ def test_positive_update_with_all_users(session):
         session.location.update(loc.name, {'users.all_users': False})
         user_values = session.user.read(user.login)
         assert loc.name in user_values['locations']['resources']['unassigned']
-
-
-@tier2
-def test_positive_update_with_all_users_setting_only(session):
-    """Create location and do not add user to it. Check and uncheck
-    'all users' setting. Verify that for both operation expected location
-    is assigned to user
-
-    :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
-
-    :expectedresults: Location entity is assigned to user after checkbox
-        was enabled and then disabled afterwards
-
-    :BZ: 1321543
-
-    :CaseLevel: Integration
-    """
-    user = entities.User().create()
-    loc = entities.Location().create()
-    with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=loc.name)
-        session.location.update(loc.name, {'users.all_users': True})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['assigned']
-        session.location.update(loc.name, {'users.all_users': False})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['unassigned']
-
-
-@tier2
-def test_positive_update_hostgroup(session):
-    """Add/Remove host group from/to location.
-
-    :id: e998d20c-e201-4675-b45f-8768f59584da
-
-    :expectedresults: hostgroup is removed and then added to the location
-
-    :CaseLevel: Integration
-    """
-    hostgroup = entities.HostGroup().create()
-    loc = entities.Location().create()
-    with session:
-        session.location.update(
-            loc.name,
-            {'host_groups.all_hostgroups': False,
-             'host_groups.resources.unassigned': [hostgroup.name]}
-        )
-
-        loc_values = session.location.read(loc.name)
-        assert loc_values[
-            'host_groups']['resources']['unassigned'][0] == hostgroup.name
-        session.location.update(
-            loc.name, {'host_groups.resources.assigned': [hostgroup.name]})
-        new_loc_values = session.location.read(loc.name)
-        assert len(new_loc_values['host_groups']['resources']['assigned']) == \
-            len(loc_values['host_groups']['resources']['assigned']) + 1
-        assert hostgroup.name in new_loc_values[
-            'host_groups']['resources']['assigned']
 
 
 @tier2
@@ -259,32 +194,6 @@ def test_positive_add_org(session):
         loc_values = session.location.read(loc.name)
         assert loc_values[
             'organizations']['resources']['assigned'][0] == org.name
-
-
-@tier2
-def test_update_environment(session):
-    """Add/Remove environment from/to location
-
-    :id: bbca1af0-a31f-4096-bc6e-bb341ffed575
-
-    :expectedresults: environment is added and removed from the location
-
-    :CaseLevel: Integration
-    """
-    env = entities.Environment().create()
-    loc = entities.Location().create()
-    with session:
-        session.location.update(
-            loc.name, {'environments.resources.assigned': [env.name]})
-        loc_values = session.location.read(loc.name)
-        assert loc_values[
-            'environments']['resources']['assigned'][0] == env.name
-        session.location.update(
-            loc.name, {'environments.resources.unassigned': [env.name]})
-        loc_values = session.location.read(loc.name)
-        assert len(loc_values['environments']['resources']['assigned']) == 0
-        assert env.name in loc_values[
-            'environments']['resources']['unassigned']
 
 
 @skip_if_not_set('compute_resources')
@@ -320,62 +229,3 @@ def test_positive_update_compresource(session):
             loc_values['compute_resources']['resources']['assigned']) == 0
         assert resource_name in loc_values[
             'compute_resources']['resources']['unassigned']
-
-
-@tier2
-def test_positive_update_medium(session):
-    """Add/Remove medium from/to location
-
-    :id: 738c5ff1-ef09-466f-aaac-64f194cac78d
-
-    :expectedresults: medium is added and removed from the location
-
-    :CaseLevel: Integration
-    """
-    media = entities.Media(
-        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
-        os_family='Redhat',
-    ).create()
-    loc = entities.Location().create()
-    with session:
-        session.location.update(
-            loc.name, {'media.resources.assigned': [media.name]})
-        loc_values = session.location.read(loc.name)
-        assert loc_values['media']['resources']['assigned'][0] == media.name
-        session.location.update(
-            loc.name, {'media.resources.unassigned': [media.name]})
-        loc_values = session.location.read(loc.name)
-        assert len(loc_values['media']['resources']['assigned']) == 0
-        assert media.name in loc_values['media']['resources']['unassigned']
-
-
-@tier2
-def test_positive_update_template(session):
-    """Add/Remove template from/to location
-
-    :id: 8faf60d1-f4d6-4a58-a484-606a42957ce7
-
-    :expectedresults: config template is removed and then added to the location
-
-    :CaseLevel: Integration
-    """
-    template = entities.ProvisioningTemplate().create()
-    loc = entities.Location().create()
-    with session:
-        session.location.update(
-            loc.name,
-            {'provisioning_templates.all_templates': False,
-             'provisioning_templates.resources.unassigned': [template.name]}
-        )
-        loc_values = session.location.read(loc.name)
-        assert loc_values['provisioning_templates']['resources'][
-                   'unassigned'][0] == template.name
-        session.location.update(loc.name, {
-            'provisioning_templates.resources.assigned': [template.name]})
-        new_loc_values = session.location.read(loc.name)
-        assert len(new_loc_values[
-                       'provisioning_templates']['resources']['assigned']) == \
-            len(loc_values[
-                    'provisioning_templates']['resources']['assigned']) + 1
-        assert template.name in new_loc_values[
-            'provisioning_templates']['resources']['assigned']
