@@ -2032,72 +2032,110 @@ def make_compute_resource(options=None):
 
     Options::
 
-        --caching-enabled CACHING_ENABLED    enable caching, for VMware only
-                                             One of true/false, yes/no, 1/0.
-        --datacenter DATACENTER              for RHEV, VMware Datacenter
+        --caching-enabled CACHING_ENABLED           Enable caching, for VMware only
+                                                    One of true/false, yes/no, 1/0.
+        --datacenter DATACENTER                     For RHEV, VMware Datacenter
         --description DESCRIPTION
-        --display-type DISPLAY_TYPE          for Libvirt only
-                                             Possible value(s): 'VNC', 'SPICE'
-        --location-ids LOCATION_IDS          REPLACE locations with given ids
-                                             Comma separated list of values.
-                                             Values containing comma should be
-                                             quoted or escaped with backslash
-        --location-titles LOCATION_TITLES    Comma separated list of values.
-                                             Values containing comma should be
-                                             quoted or escaped with backslash
-        --locations LOCATION_NAMES           Comma separated list of values.
-                                             Values containing comma should be
-                                             quoted or escaped with backslash
+        --display-type DISPLAY_TYPE                 For Libvirt only
+                                                    Possible value(s): 'VNC', 'SPICE'
+        --domain DOMAIN                             For RHEL OpenStack Platform (v3) only
+        --location LOCATION_NAME                    Location name
+        --location-id LOCATION_ID
+        --location-ids LOCATION_IDS                 REPLACE locations with given ids
+                                                    Comma separated list of values. Values
+                                                    containing comma should be quoted or escaped
+                                                    with backslash.
+                                                    JSON is acceptable and preferred way for
+                                                    complex parameters
+        --location-title LOCATION_TITLE             Location title
+        --location-titles LOCATION_TITLES           Comma separated list of values. Values
+                                                    containing comma should be
+                                                    quoted or escaped with backslash.
+                                                    JSON is acceptable and preferred way for
+                                                    complex parameters
+        --locations LOCATION_NAMES                  Comma separated list of values. Values
+                                                    containing comma should be
+                                                    quoted or escaped with backslash.
+                                                    JSON is acceptable and preferred way for
+                                                    complex parameters
         --name NAME
-        --organization-ids ORGANIZATION_IDS  REPLACE organizations with given
-                                             ids.
-                                             Comma separated list of values.
-                                             Values containing comma should be
-                                             quoted or escaped with backslash
-        --organization-titles ORGANIZATION_TITLES   Comma separated list of
-                                                    values. Values containing
-                                                    comma should be quoted or
-                                                    escaped with backslash
-        --organizations ORGANIZATION_NAMES   Comma separated list of values.
-                                             Values containing comma should be
-                                             quoted or escaped with backslash
-        --password PASSWORD                  Password for RHEV, EC2, VMware,
-                                             OpenStack. Secret key for EC2
-        --provider PROVIDER                  Providers include Libvirt, Ovirt,
-                                             EC2, Vmware, Openstack, Rackspace,
-                                             GCE, Docker
-        --region REGION                      for EC2 only
-        --server SERVER                      for VMware
-        --set-console-password SET_CONSOLE_PASSWORD for Libvirt and VMware only
-                                                    One of true/false, yes/no,
-                                                    1/0.
-        --tenant TENANT                       for RHEL OpenStack Platform  only
-        --url URL                             URL for Docker, Libvirt, RHEV,
-                                              OpenStack and Rackspace
-        --user USER                           Username for RHEV, EC2, VMware,
-                                              OpenStack. Access Key for EC2.
-        --uuid UUID                           Deprecated, please use datacenter
-        -h, --help                            print help
+        --organization ORGANIZATION_NAME            Organization name
+        --organization-id ORGANIZATION_ID           Organization ID
+        --organization-ids ORGANIZATION_IDS         REPLACE organizations with given ids.
+                                                    Comma separated list of values. Values
+                                                    containing comma should be
+                                                    quoted or escaped with backslash.
+                                                    JSON is acceptable and preferred way for
+                                                    complex parameters
+        --organization-title ORGANIZATION_TITLE     Organization title
+        --organization-titles ORGANIZATION_TITLES   Comma separated list of values. Values
+                                                    containing comma should be
+                                                    quoted or escaped with backslash.
+                                                    JSON is acceptable and preferred way for
+                                                    complex parameters
+        --organizations ORGANIZATION_NAMES          Comma separated list of values. Values
+                                                    containing comma should be
+                                                    quoted or escaped with backslash.
+                                                    JSON is acceptable and preferred way for
+                                                    complex parameters
+        --ovirt-quota OVIRT_QUOTA                   For RHEV only, ID of quota to use
+        --password PASSWORD                         Password for RHEV, EC2, VMware, RHEL OpenStack
+                                                    Platform. Secret key for EC2
+        --project-domain-id PROJECT_DOMAIN_ID       For RHEL OpenStack Platform (v3) only
+        --project-domain-name PROJECT_DOMAIN_NAME   For RHEL OpenStack Platform (v3) only
+        --provider PROVIDER                         Providers include Libvirt, Ovirt, EC2, Vmware,
+                                                    Openstack, Rackspace, GCE
+        --public-key PUBLIC_KEY                     For RHEV only
+        --public-key-path PUBLIC_KEY_PATH           Path to a file that contains oVirt public key
+                                                    (For oVirt only)
+        --region REGION                             For EC2 only, use 'us-gov-west-1' for GovCloud
+                                                    region
+        --server SERVER                             For VMware
+        --set-console-password SET_CONSOLE_PASSWORD For Libvirt and VMware only
+                                                    One of true/false, yes/no, 1/0.
+        --tenant TENANT                             For RHEL OpenStack Platform only
+        --url URL                                   URL for Libvirt, RHEV, RHEL OpenStack Platform
+                                                    and Rackspace
+        --use-v4 USE_V4                             For RHEV only
+                                                    One of true/false, yes/no, 1/0.
+        --user USER                                 Username for RHEV, EC2, VMware, RHEL OpenStack
+                                                    Platform. Access Key for EC2.
+        --uuid UUID                                 Deprecated, please use datacenter
+        -h, --help                                  Print help
+
     """
     args = {
         u'caching-enabled': None,
         u'datacenter': None,
         u'description': None,
         u'display-type': None,
+        u'domain': None,
+        u'location': None,
+        u'location-id': None,
         u'location-ids': None,
+        u'location-title': None,
         u'location-titles': None,
         u'locations': None,
         u'name': gen_alphanumeric(8),
+        u'organization': None,
+        u'organization-id': None,
         u'organization-ids': None,
+        u'organization-title': None,
         u'organization-titles': None,
         u'organizations': None,
+        u'ovirt-quota': None,
         u'password': None,
+        u'project-domain-id': None,
+        u'project-domain-name': None,
         u'provider': None,
+        u'public-key': None,
+        u'public-key-path': None,
         u'region': None,
         u'server': None,
         u'set-console-password': None,
         u'tenant': None,
         u'url': None,
+        u'use-v4': None,
         u'user': None,
         u'uuid': None,
     }

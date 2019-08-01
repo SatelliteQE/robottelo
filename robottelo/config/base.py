@@ -807,6 +807,7 @@ class OSPSettings(FeatureSettings):
         self.username = None
         self.password = None
         self.tenant = None
+        self.project_domain_id = None
         self.vm_name = None
         self.security_group = None
         # Image Information
@@ -822,6 +823,7 @@ class OSPSettings(FeatureSettings):
         self.username = reader.get('osp', 'username')
         self.password = reader.get('osp', 'password')
         self.tenant = reader.get('osp', 'tenant')
+        self.project_domain_id = reader.get('osp', 'project_domain_id')
         self.security_group = reader.get('osp', 'security_group')
         self.vm_name = reader.get('osp', 'vm_name')
         # Image Information
