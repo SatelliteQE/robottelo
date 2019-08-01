@@ -2,6 +2,7 @@
 """Implements various decorators"""
 import logging
 from functools import partial, wraps
+import pickle
 
 import os
 import pytest
@@ -376,3 +377,63 @@ def skip_if_bug_open(bug_type, bug_id):
         )(func)
 
     return decorator
+
+
+def debug_caching(func):
+    """ Use this decorator to cache your local debug runs to cache fixtures.
+
+    To enable it for given decorator, put it after @pytest.fixture:
+
+        @pytest.fixture(scope='module')
+        @debug_caching
+        def module_org():
+            return entities.Organization().create()
+
+    You also need to set DEBUG_CACHING env variable to activate the caching
+    when starting pytest:
+
+        $ DEBUG_CACHING=1 pytest ...
+
+    How it works: when pytest creates fixture decorated with this decorator,
+    its return value is added to the dict (key is name of the fixture) and pickled
+    into /tmp/debug_caching_data.pickle file. When we attempt to run the fixture
+    function again (maybe on test rerun), we already have it in the cache so we
+    just load it and return it from the pickle cache which takes miliseconds.
+
+    This is meant for manual debugging, although adding it to any number of
+    fixtures should be harmless given we do not export that env variable in
+    our jenkins job. One possible caveat is if you create the cache with
+    fixtures from one file and you run more tests from different file where
+    fixtures are named same, it might collide. Just delete the file or unset
+    the variable and you should be fine.
+
+    :param func: function
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        import os
+        # If debug caching is not enabled, simply just run the wrapped function and return
+        if 'DEBUG_CACHING' not in os.environ:
+            LOGGER.debug('Debug caching not enabled, just running %s' % func.__name__)
+            return func(*args, **kwargs)
+
+        # If debug caching is enabled
+        try:
+            with open('/tmp/debug_caching_data.pickle', 'rb') as fp:
+                debug_caching_data = pickle.load(fp)
+        except FileNotFoundError:
+            debug_caching_data = {}
+
+        if func.__name__ in debug_caching_data:
+            LOGGER.debug('Returning object %s from debug cache' % func.__name__)
+            return debug_caching_data[func.__name__]
+        else:
+            LOGGER.debug('Running %s and saving to debug cache' % func.__name__)
+            result = func(*args, **kwargs)
+            debug_caching_data[func.__name__] = result
+            with open('/tmp/debug_caching_data.pickle', 'wb') as fp:
+                pickle.dump(debug_caching_data, fp)
+            return result
+
+    return wrapper
