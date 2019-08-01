@@ -847,3 +847,59 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseLevel: System
         """
+
+    @tier3
+    @upgrade
+    def test_positive_provision_pxe_host_with_parameters(self):
+        """Provision the pxe-based BIOS discovered host with host parameters from cli using
+        SYSLINUX loader
+
+        :id: 4b315fe1-2eba-4e59-bd0a-9d16ce319ce2
+
+        :bz: 1756042
+
+        :Setup:
+            1. Create a BIOS VM and set it to boot from a network
+
+        :steps:
+            1. Build a default PXE template
+            2. Configure HostGroup to be used for provisioning the discovered host
+               after discovery
+            3. PXE Boot the VM (from Network)
+            4. Wait for Host to be discovered by Satellite
+            5. Provision the discovered host with host parameters
+
+        :expectedresults:
+            1. Ensure host appeared in Discovered Hosts on satellite
+            2. Ensure the host is provisioned with correct and all the host parameters
+               given during provisioning
+            3. Ensure the discovered host is no more available to provision
+
+        :CaseImportance: High
+        """
+        param1_key, param1_value = gen_string('alpha'), gen_string('alphanumeric')
+        param2_key, param2_value = gen_string('alpha'), gen_string('alphanumeric')
+        host_params = [
+            '{}={}, {}={}'.format(param1_key, param1_value, param2_key, param2_value)]
+        if not self.configured_env:
+            self.__class__.configured_env = configure_env_for_provision(
+                org=self.org, loc=self.loc)
+        with LibvirtGuest() as pxe_host:
+            hostname = pxe_host.guest_name
+            discovered_host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(discovered_host)
+            DiscoveredHost.provision({
+                'name': discovered_host['name'],
+                'hostgroup': self.configured_env['hostgroup']['name'],
+                'root-password': gen_string('alphanumeric'),
+                'parameters': host_params
+            })
+            provisioned_host = Host.info({
+                'name': '{}.{}'.format(
+                    discovered_host['name'],
+                    self.configured_env['domain']['name'])
+            })
+            self.assertEqual(provisioned_host['parameters'][str(param1_key).lower()], param1_value)
+            self.assertEqual(provisioned_host['parameters'][str(param2_key).lower()], param2_value)
+            with self.assertRaises(CLIReturnCodeError):
+                DiscoveredHost.info({'id': discovered_host['id']})
