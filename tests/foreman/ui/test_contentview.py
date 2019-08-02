@@ -3967,3 +3967,307 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
         with raises(NavigationTriesExceeded) as context:
             session.contentview.search(cv.name)
         assert 'Navigation failed to reach [All]' in str(context.value)
+
+
+@tier2
+def test_positive_conservative_solve_dependencies(session, module_org):
+    """Performing solve dependencies on a package that is required by another
+    package.  Then performing solve dependencies on a root package with
+    its corresponding dependency.
+
+    :id: bffd50f3-77e4-492f-a0ac-09dfb95b1987
+
+    :setup:
+        1. Turn dependency solving to conservative.
+        2. Create and sync custom repo.
+        3. Create cv and add custom repo.
+        4. Create exclusion filter and exclude a package that is required
+            by another package (cockateel).
+        5. Publish CV
+        6. Check rpm package list for that version and make sure it's in the
+            list.
+        7. Create exclusion filter for a root package (duck) along with
+            package from above.
+        8. Republish and check rpm package list for new version and make
+            sure they are NOT in the list.
+
+    :expectedresults: In step 6, 'cockateel' should be in the list.
+        In step 8, 'duck' and 'cockateel' should NOT be in the list.
+
+    :CaseImportance: High
+    """
+    property_name = 'dependency_solving_algorithm'
+    param_value = 'conservative'
+    cv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package1_name = 'duck'
+    package2_name = 'cockateel'
+    arch = 'noarch'
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=FAKE_0_YUM_REPO
+    )
+    with session:
+        session.settings.update(
+            'name = {}'.format(property_name),
+            param_value
+        )
+        session.contentview.create({
+            'name': cv_name,
+            'solve_dependencies': True,
+        })
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        filter_name = gen_string('alpha')
+        session.contentviewfilter.create(cv_name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv_name, filter_name, package2_name, arch, ('All Versions'))
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        package = session.contentview.search_version_package(
+            cv_name, VERSION, 'name = "{}"'.format(package2_name))
+        assert len(package) == 1
+        assert package[0]['Name'] == package2_name
+        package = session.contentview.search_version_package(
+            cv_name, VERSION, 'name = "{}"'.format(package1_name))
+        assert package[0]['Name'] == package1_name
+        session.contentviewfilter.add_package_rule(
+            cv_name, filter_name, package1_name, arch, ('All Versions'))
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == 'Version 2.0'
+        for package_names in ['duck', 'cockateel']:
+            package = session.contentview.search_version_package(
+                cv_name, 'Version 2.0', 'name = "{}"'.format(package_names))
+            assert not package[0]['Name']
+
+
+@tier2
+def test_positive_conservative_dep_solving_with_multiversion_packages(session, module_org):
+    """Performing solve dependencies on a package with multiple versions that is required
+    by another package.
+
+    :id: f1fb2f2e-6d63-4705-b0cd-6697fed2b6e9
+
+    :setup:
+        1. Turn dependency solving to conservative.
+        2. Create and sync custom repo.
+        3. Create cv and add custom repo.
+        4. Create exclusion filter and exclude a package (walrus) that has multiple versions that
+            is required by another package.
+        5. Publish CV
+        6. Check rpm package list for that version
+        7. Repeat steps 4 - 7 but exclude higher version
+
+    :expectedresults: In step 6, the older version of the package should be filtered out while the
+        newest version is still in the list.  In step 7, the new version is filtered out while the
+        old version is still in the list.
+
+    :CaseImportance: High
+    """
+    property_name = 'dependency_solving_algorithm'
+    param_value = 'conservative'
+    cv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_name = 'walrus'
+    arch = 'noarch'
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=FAKE_0_YUM_REPO
+    )
+    with session:
+        session.settings.update(
+            'name = {}'.format(property_name),
+            param_value
+        )
+        session.contentview.create({
+            'name': cv_name,
+            'solve_dependencies': True,
+        })
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        filter_name = gen_string('alpha')
+        session.contentviewfilter.create(cv_name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv_name, filter_name, package_name, arch, ('All Versions'))
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        package = session.contentview.search_version_package(
+            cv_name, VERSION, 'name = "{}"'.format(package_name))
+        assert len(package) == 1
+        assert package[0]['Name'] == package_name
+        assert package[0]['Version'] == '5.21'
+        session.contentviewfilter.update_package_rule(
+            cv_name, filter_name, package_name,
+            {'Version': ('Equal To', '5.21')}
+        )
+        session.contentview.publish(cv_name)
+        package = session.contentview.search_version_package(
+            cv_name, 'Version 2.0', 'name = "{}"'.format(package_name))
+        assert len(package) == 1
+        assert package[0]['Name'] == package_name
+        assert package[0]['Version'] == '0.71'
+
+
+@tier2
+def test_positive_greedy_solve_dependencies(session, module_org):
+    """Performing solve dependencies on a package that is required by another
+    package.  Then performing solve dependencies on a root package with
+    its corresponding dependency.
+
+    :id: 2b588667-d262-409b-8500-a4fb9092ce2b
+
+    :setup:
+        1. Turn dependency solving to greedy.
+        2. Create and sync custom repo.
+        3. Create cv and add custom repo.
+        4. Create exclusion filter and exclude a package that is required
+            by another package (cockateel).
+        5. Publish CV
+        6. Check rpm package list for that version and make sure it's in the
+            list.
+        7. Create exclusion filter for a root package (duck) along with
+            package from above.
+        8. Republish and check rpm package list for new version and make
+            sure they are NOT in the list.
+
+    :expectedresults: In step 6, 'cockateel' should be in the list.
+        In step 8, 'duck' and 'cockateel' should NOT be in the list.
+
+    :CaseImportance: High
+    """
+    property_name = 'dependency_solving_algorithm'
+    greedy_param_value = 'greedy'
+    conserve_param_value = 'conservative'
+    cv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package1_name = 'duck'
+    package2_name = 'cockateel'
+    arch = 'noarch'
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=FAKE_0_YUM_REPO
+    )
+    with session:
+        session.settings.update(
+                'name = {}'.format(property_name),
+                greedy_param_value
+        )
+        session.contentview.create({
+            'name': cv_name,
+            'solve_dependencies': True,
+        })
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        filter_name = gen_string('alpha')
+        session.contentviewfilter.create(cv_name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv_name, filter_name, package2_name, arch, ('All Versions'))
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        package = session.contentview.search_version_package(
+            cv_name, VERSION, 'name = "{}"'.format(package2_name))
+        assert len(package) == 1
+        assert package[0]['Name'] == package2_name
+        package = session.contentview.search_version_package(
+            cv_name, VERSION, 'name = "{}"'.format(package1_name))
+        # Making sure 'duck' is not negatively impacted and it should still be in the list
+        assert package[0]['Name'] == package1_name
+        session.contentviewfilter.add_package_rule(
+            cv_name, filter_name, package1_name, arch, ('All Versions'))
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == 'Version 2.0'
+        for package_names in ['duck', 'cockateel']:
+            package = session.contentview.search_version_package(
+                cv_name, 'Version 2.0', 'name = "{}"'.format(package_names))
+            assert not package[0]['Name']
+        session.settings.update(
+            'name = {}'.format(property_name),
+            conserve_param_value
+        )
+
+
+@tier2
+def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_org):
+    """Performing solve dependencies on a package with multiple versions that is required
+    by another package.
+
+    :id: 30185a30-da86-4484-9cfe-66b731e93a0d
+
+    :setup:
+        1. Turn dependency solving to greedy.
+        2. Create and sync custom repo.
+        3. Create cv and add custom repo.
+        4. Create exclusion filter and exclude a package (walrus) that has multiple versions that
+            is required by another package.
+        5. Publish CV
+        6. Check rpm package list for that version
+        7. Repeat steps 4 - 7 but exclude higher version
+
+    :expectedresults: In step 6, the older version of the package should be filtered out while the
+        newest version is still in the list.  In step 7, both versions should be in the list.
+
+    :CaseImportance: High
+    """
+    property_name = 'dependency_solving_algorithm'
+    greedy_param_value = 'greedy'
+    conserve_param_value = 'conservative'
+    cv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_name = 'walrus'
+    arch = 'noarch'
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=FAKE_0_YUM_REPO
+    )
+    with session:
+        session.settings.update(
+            'name = {}'.format(property_name),
+            greedy_param_value
+        )
+        session.contentview.create({
+            'name': cv_name,
+            'solve_dependencies': True,
+        })
+        session.contentview.add_yum_repo(cv_name, repo_name)
+        filter_name = gen_string('alpha')
+        session.contentviewfilter.create(cv_name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['package'],
+            'inclusion_type': FILTER_TYPE['exclude'],
+        })
+        session.contentviewfilter.add_package_rule(
+            cv_name, filter_name, package_name, arch, ('All Versions'))
+        result = session.contentview.publish(cv_name)
+        assert result['Version'] == VERSION
+        package = session.contentview.search_version_package(
+            cv_name, VERSION, 'name = "{}"'.format(package_name))
+        assert package[0]['Name'] == package_name
+        assert package[0]['Version'] == '5.21'
+        session.contentviewfilter.update_package_rule(
+            cv_name, filter_name, package_name,
+            {'Version': ('Equal To', '5.21')}
+        )
+        session.contentview.publish(cv_name)
+        package = session.contentview.search_version_package(
+            cv_name, 'Version 2.0', 'name = "{}"'.format(package_name))
+        assert package[0]['Name'] == package_name
+        assert package[0]['Version'] == '0.71'
+        assert package[1]['Name'] == package_name
+        assert package[1]['Version'] == '5.21'
+        session.settings.update(
+            'name = {}'.format(property_name),
+            conserve_param_value
+        )
