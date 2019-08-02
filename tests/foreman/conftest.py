@@ -4,6 +4,7 @@ import datetime
 import logging
 
 import pytest
+import re
 try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
@@ -182,5 +183,17 @@ def pytest_collection_modifyitems(items, config):
 
 
 @pytest.fixture(autouse=True, scope="function")
-def record_test_timestamp_xml(record_property):
+def record_test_properties_xml(request, record_property):
     record_property("start_time", int(time() * 1000))
+
+    # record properties for all docstring tokens
+    docstring_tokens = {}
+    token_regex = ':([A-Za-z_-]+): ([0-9a-zA-Z-_\n]+)'
+    # parse the module tokens
+    docstring_tokens.update(dict(re.findall(token_regex, request.node.parent.parent.obj.__doc__)))
+    # parse the Class tokens
+    docstring_tokens.update(dict(re.findall(token_regex, request.node.parent.obj.__doc__)))
+    # parse the TestCase tokens
+    docstring_tokens.update(dict(re.findall(token_regex, request.function.__doc__)))
+    for k, v in docstring_tokens.items():
+        record_property(k, v.strip('\n'))
