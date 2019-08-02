@@ -300,7 +300,7 @@ REPOS = {
     'rhst7_64': {
         'id': 'rhel-7-server-satellite-tools-6.4-rpms',
         'name': (
-            'Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64 7Server'
+            'Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64'
         ),
         'version': '6.4',
         'reposet': REPOSET['rhst7_64'],
@@ -311,7 +311,7 @@ REPOS = {
     'rhst7_65': {
         'id': 'rhel-7-server-satellite-tools-6.5-rpms',
         'name': (
-            'Red Hat Satellite Tools 6.5 for RHEL 7 Server RPMs x86_64 7Server'
+            'Red Hat Satellite Tools 6.5 for RHEL 7 Server RPMs x86_64'
         ),
         'version': '6.5',
         'reposet': REPOSET['rhst7_65'],
