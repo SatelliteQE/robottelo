@@ -238,9 +238,8 @@ def _get_hypervisor_mapping(logs):
 
 def deploy_validation():
     """Checkout the deploy result
-    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False,
-        because there is no json data logged in rhsm.log.
     :raises: VirtWhoError: If failed to start virt-who servcie.
+    :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
@@ -260,7 +259,7 @@ def deploy_configure_by_command(command, debug=False):
     """Deploy and run virt-who servcie by the hammer command.
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False.
+    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     virtwho_cleanup()
     register_system(get_system('guest'))
@@ -277,7 +276,7 @@ def deploy_configure_by_command(command, debug=False):
 def deploy_configure_by_script(script_content, debug=False):
     """Deploy and run virt-who servcie by the shell script.
     :param str script_content: get the script by UI or API.
-    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False.
+    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     script_filename = "/tmp/deploy_script.sh"
     virtwho_cleanup()
@@ -295,7 +294,7 @@ def deploy_configure_by_script(script_content, debug=False):
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(
             "Failed to deploy configure by {}"
-            .format(command)
+            .format(script_filename)
         )
     if debug:
         return deploy_validation()
