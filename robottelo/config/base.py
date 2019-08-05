@@ -839,7 +839,7 @@ class OSPSettings(FeatureSettings):
             validation_errors.append(
                 'All [osp] hostname, username, password, tenant, '
                 'vm_name, image_name, image_os, image_arch, image_username, '
-                'image_name options must be provided.'
+                'security_group, project_domain_id options must be provided.'
             )
         return validation_errors
 
