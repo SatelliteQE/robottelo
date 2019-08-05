@@ -54,7 +54,7 @@ LOGGER = logging.getLogger('robottelo')
 @pytest.fixture(scope='session')
 def user_credentials():
     # Create a new user with admin permissions
-    login = gen_string('alphanumeric')
+    login = gen_string('alpha', 64)
     password = gen_string('alphanumeric')
     entities.User(
         admin=True, login=login, password=password
@@ -179,6 +179,7 @@ def rhel8ks(user_credentials, org):
     )
     repo = entities.Repository(user_credentials, id=repo_id)
     response = repo.sync(synchronous=False)
+    repo1_sync_task = response['id']
     # Now RHEL8 BaseOS KS which we will return at the end
     repo_id = enable_rhrepo_and_fetchid(
             basearch=REPOS['rhel8ksbaseos']['arch'],
@@ -190,9 +191,10 @@ def rhel8ks(user_credentials, org):
     )
     repo = entities.Repository(user_credentials, id=repo_id)
     response = repo.sync(synchronous=False)
+    repo2_sync_task = response['id']
     # Wait for sync to finish
-    entities.ForemanTask(id=response['id']).poll(timeout=1800)
-    entities.ForemanTask(id=response['id']).poll(timeout=100)
+    entities.ForemanTask(id=repo1_sync_task).poll(timeout=1800)
+    entities.ForemanTask(id=repo2_sync_task).poll(timeout=100)
     return repo
 
 
@@ -264,8 +266,10 @@ def arch(user_credentials):
 
 @pytest.fixture(scope='session')
 def os(user_credentials):
+    major, minor = REPOS['rhel7ks']['version'].split('.')
+    query = 'name=RedHat and major=%s and minor=%s' % (major, minor)
     return entities.OperatingSystem().search(
-        query={'search': 'name=RedHat and major=7 and minor=6'})[0].read()
+        query={'search': query})[0].read()
 
 
 @pytest.fixture(scope='session')
