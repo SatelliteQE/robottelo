@@ -47,7 +47,6 @@ from robottelo.constants import (
 from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
-    skip_if_bug_open,
     tier4,
     upgrade,
     bz_bug_is_open
@@ -137,8 +136,7 @@ class OpenScapTestCase(CLITestCase):
         cls.puppet_env.organization.append(org)
         cls.puppet_env = cls.puppet_env.update(['location', 'organization'])
         smart_proxy = entities.SmartProxy().search(
-            query={'search': 'name={0}'.format(sat6_hostname)})
-        [0].read()
+            query={'search': 'name={0}'.format(sat6_hostname)})[0].read()
         smart_proxy.organization.append(entities.Organization(id=org.id))
         smart_proxy.location.append(entities.Location(id=loc.id))
         smart_proxy.update(['location', 'organization'])
@@ -182,7 +180,6 @@ class OpenScapTestCase(CLITestCase):
             'env_name': env.name,
         }
 
-    @skip_if_bug_open('bugzilla', 1722475)
     @tier4
     @upgrade
     def test_positive_upload_to_satellite(self):
@@ -302,7 +299,6 @@ class OpenScapTestCase(CLITestCase):
                 self.assertIsNotNone(Arfreport.list({'search': 'host={0}'.format(host)}))
 
     @upgrade
-    @skip_if_bug_open('bugzilla', 1722475)
     @tier4
     def test_positive_push_updated_content(self):
         """Perform end to end oscap test, and push the updated scap content via puppet
@@ -432,7 +428,6 @@ class OpenScapTestCase(CLITestCase):
             self.assertIsNotNone(
                 Arfreport.list({'search': 'host={0}'.format(vm.hostname.lower())}))
 
-    @skip_if_bug_open('bugzilla', 1722475)
     @upgrade
     @tier4
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
@@ -552,7 +547,6 @@ class OpenScapTestCase(CLITestCase):
             self.assertIsNotNone(
                 Arfreport.list({'search': 'host={0}'.format(vm.hostname.lower())}))
 
-    @skip_if_bug_open('bugzilla', 1716307)
     @upgrade
     @tier4
     def test_positive_oscap_run_with_tailoring_file_with_ansible(self):

@@ -34,17 +34,18 @@ from robottelo.decorators import (
 from robottelo.test import CLITestCase
 
 
-@skip_if_not_set('osp')
 class OSPComputeResourceTestCase(CLITestCase):
     """OSPComputeResource CLI tests."""
 
     @classmethod
+    @skip_if_not_set('osp')
     def setUpClass(cls):
         super(OSPComputeResourceTestCase, cls).setUpClass()
         cls.current_osp_url = settings.osp.hostname
         cls.username = settings.osp.username
         cls.password = settings.osp.password
         cls.tenant = settings.osp.tenant
+        cls.domain_id = settings.osp.project_domain_id
 
     @tier1
     @skip_if_bug_open('bugzilla', 1579714)
@@ -65,9 +66,10 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'user': self.username,
                 u'password': self.password,
                 u'tenant': self.tenant,
-                u'url': self.current_osp_url
+                u'url': self.current_osp_url,
+                u'project-domain-id': self.domain_id
             })
-            self.assertEquals(compute_resource['name'], name)
+            self.assertEqual(compute_resource['name'], name)
 
     @tier3
     @skip_if_bug_open('bugzilla', 1579714)
@@ -88,9 +90,10 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'user': self.username,
                 u'password': self.password,
                 u'tenant': self.tenant,
-                u'url': self.current_osp_url
+                u'url': self.current_osp_url,
+                u'project-domain-id': self.domain_id
             })
-            self.assertEquals(compute_resource['name'], name)
+            self.assertEqual(compute_resource['name'], name)
             self.assertIsNotNone(compute_resource['id'])
 
     @tier3
@@ -110,7 +113,8 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'user': self.username,
                 u'password': self.password,
                 u'tenant': self.tenant,
-                u'url': self.current_osp_url
+                u'url': self.current_osp_url,
+                u'project-domain-id': self.domain_id
             })
             self.assertTrue(comp_res['name'])
             ComputeResource.delete({'name': comp_res['name']})
@@ -135,7 +139,8 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'user': self.username,
                 u'password': self.password,
                 u'tenant': self.tenant,
-                u'url': self.current_osp_url
+                u'url': self.current_osp_url,
+                u'project-domain-id': self.domain_id
             })
             self.assertTrue(comp_res['name'])
             ComputeResource.delete({'id': comp_res['id']})
@@ -153,13 +158,16 @@ class OSPComputeResourceTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
+        name = gen_string('alpha')
         with self.assertRaises(CLIReturnCodeError):
             ComputeResource.create({
+                u'name': name,
                 u'provider': 'Openstack',
                 u'user': self.username,
                 u'password': self.password,
                 u'tenant': self.tenant,
-                u'url': 'invalid url'
+                u'url': 'invalid url',
+                u'project-domain-id': self.domain_id
             })
 
     @tier3
@@ -186,9 +194,10 @@ class OSPComputeResourceTestCase(CLITestCase):
             u'user': self.username,
             u'password': self.password,
             u'tenant': self.tenant,
-            u'url': self.current_osp_url
+            u'url': self.current_osp_url,
+            u'project-domain-id': self.domain_id
         })
-        self.assertEquals(compute_resource['name'], name)
+        self.assertEqual(compute_resource['name'], name)
         with self.assertRaises(CLIFactoryError):
             make_compute_resource({
                 u'name': name,
@@ -196,7 +205,8 @@ class OSPComputeResourceTestCase(CLITestCase):
                 u'user': self.username,
                 u'password': self.password,
                 u'tenant': self.tenant,
-                u'url': self.current_osp_url
+                u'url': self.current_osp_url,
+                u'project-domain-id': self.domain_id
             })
 
     @tier3
@@ -221,7 +231,8 @@ class OSPComputeResourceTestCase(CLITestCase):
             u'user': self.username,
             u'password': self.password,
             u'tenant': self.tenant,
-            u'url': self.current_osp_url
+            u'url': self.current_osp_url,
+            u'project-domain-id': self.domain_id
         })
         self.assertTrue(comp_res['name'])
         ComputeResource.update({

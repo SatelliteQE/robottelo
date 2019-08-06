@@ -14,7 +14,6 @@
 :Upstream: No
 """
 from random import choice, randint, shuffle
-from time import sleep
 
 from fauxfactory import gen_string, gen_url
 from requests.exceptions import HTTPError
@@ -32,17 +31,15 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
-    run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
+    tier3,
     upgrade
 )
 from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
-
 
 DOCKER_PROVIDER = 'Docker'
 
@@ -720,7 +717,7 @@ class DockerContentViewTestCase(APITestCase):
         for i in range(1, randint(3, 6)):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
             promote(cvv, lce.id)
-            self.assertEqual(len(cvv.read().environment), i+1)
+            self.assertEqual(len(cvv.read().environment), i + 1)
 
     @tier2
     def test_positive_promote_with_docker_repo_composite(self):
@@ -822,15 +819,15 @@ class DockerContentViewTestCase(APITestCase):
         docker_upstream_name = 'hello-world'
         new_pattern = ("{}-<%= organization.label %>"
                        "/<%= repository.docker_upstream_name %>").format(
-                pattern_prefix)
+            pattern_prefix)
 
         repo = _create_repository(
-                entities.Product(organization=self.org).create(),
-                upstream_name=docker_upstream_name)
+            entities.Product(organization=self.org).create(),
+            upstream_name=docker_upstream_name)
         repo.sync()
         content_view = entities.ContentView(
-                composite=False,
-                organization=self.org,
+            composite=False,
+            organization=self.org,
         ).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
@@ -841,7 +838,7 @@ class DockerContentViewTestCase(APITestCase):
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
         repos = entities.Repository(organization=self.org).search(
-                query={'environment_id': lce.id})
+            query={'environment_id': lce.id})
 
         expected_pattern = "{}-{}/{}".format(pattern_prefix, self.org.label,
                                              docker_upstream_name).lower()
@@ -868,8 +865,8 @@ class DockerContentViewTestCase(APITestCase):
         repo = _create_repository(prod, upstream_name=docker_upstream_name)
         repo.sync()
         content_view = entities.ContentView(
-                composite=False,
-                organization=self.org,
+            composite=False,
+            organization=self.org,
         ).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
@@ -882,7 +879,7 @@ class DockerContentViewTestCase(APITestCase):
         prod.name = new_prod_name
         prod.update(['name'])
         repos = entities.Repository(organization=self.org).search(
-                query={'environment_id': lce.id})
+            query={'environment_id': lce.id})
 
         expected_pattern = "{}/{}".format(self.org.label, old_prod_name).lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
@@ -891,7 +888,7 @@ class DockerContentViewTestCase(APITestCase):
         cvv = content_view.read().version[-1]
         promote(cvv, lce.id)
         repos = entities.Repository(organization=self.org).search(
-                query={'environment_id': lce.id})
+            query={'environment_id': lce.id})
 
         expected_pattern = "{}/{}".format(self.org.label, new_prod_name).lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
@@ -913,12 +910,12 @@ class DockerContentViewTestCase(APITestCase):
         new_pattern = "<%= organization.label %>/<%= repository.name %>"
 
         repo = _create_repository(
-                entities.Product(organization=self.org).create(),
-                name=old_repo_name, upstream_name=docker_upstream_name)
+            entities.Product(organization=self.org).create(),
+            name=old_repo_name, upstream_name=docker_upstream_name)
         repo.sync()
         content_view = entities.ContentView(
-                composite=False,
-                organization=self.org,
+            composite=False,
+            organization=self.org,
         ).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
@@ -931,7 +928,7 @@ class DockerContentViewTestCase(APITestCase):
         repo.name = new_repo_name
         repo.update(['name'])
         repos = entities.Repository(organization=self.org).search(
-                query={'environment_id': lce.id})
+            query={'environment_id': lce.id})
 
         expected_pattern = "{}/{}".format(self.org.label, old_repo_name).lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
@@ -940,7 +937,7 @@ class DockerContentViewTestCase(APITestCase):
         cvv = content_view.read().version[-1]
         promote(cvv, lce.id)
         repos = entities.Repository(organization=self.org).search(
-                query={'environment_id': lce.id})
+            query={'environment_id': lce.id})
 
         expected_pattern = "{}/{}".format(self.org.label, new_repo_name).lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
@@ -969,8 +966,8 @@ class DockerContentViewTestCase(APITestCase):
             repo.sync()
             repos.append(repo)
         content_view = entities.ContentView(
-                composite=False,
-                organization=self.org,
+            composite=False,
+            organization=self.org,
         ).create()
         content_view.repository = repos
         content_view = content_view.update(['repository'])
@@ -997,12 +994,12 @@ class DockerContentViewTestCase(APITestCase):
         repos = []
         for docker_name in docker_upstream_names:
             repo = _create_repository(
-                    prod, upstream_name=docker_name)
+                prod, upstream_name=docker_name)
             repo.sync()
             repos.append(repo)
         content_view = entities.ContentView(
-                composite=False,
-                organization=self.org,
+            composite=False,
+            organization=self.org,
         ).create()
         content_view.repository = repos
         content_view = content_view.update(['repository'])
@@ -1149,387 +1146,6 @@ class DockerActivationKeyTestCase(APITestCase):
         self.assertIsNone(ak.update(['content_view']).content_view)
 
 
-class DockerComputeResourceTestCase(APITestCase):
-    """Tests specific to managing Docker-based Compute Resources.
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerComputeResourceTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-
-    @tier2
-    def test_positive_create_internal(self):
-        """Create a Docker-based Compute Resource in the Satellite 6
-        instance.
-
-        :id: 146dd836-83c7-4f9c-937e-791162ea106e
-
-        :expectedresults: Compute Resource can be created and listed.
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                compute_resource = entities.DockerComputeResource(
-                    name=name,
-                    url=settings.docker.get_unix_socket_url(),
-                ).create()
-                self.assertEqual(compute_resource.name, name)
-                self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
-                self.assertEqual(
-                    compute_resource.url,
-                    settings.docker.get_unix_socket_url()
-                )
-
-    @tier2
-    def test_positive_update_internal(self):
-        """Create a Docker-based Compute Resource in the Satellite 6
-        instance then edit its attributes.
-
-        :id: 5590621f-063c-4e32-80cb-ebe634dbadaa
-
-        :expectedresults: Compute Resource can be created, listed and its
-            attributes can be updated.
-        """
-        for url in (settings.docker.external_url,
-                    settings.docker.get_unix_socket_url()):
-            with self.subTest(url):
-                compute_resource = entities.DockerComputeResource(
-                    organization=[self.org],
-                    url=url,
-                ).create()
-                self.assertEqual(compute_resource.url, url)
-                compute_resource.url = gen_url()
-                self.assertEqual(
-                    compute_resource.url,
-                    compute_resource.update(['url']).url,
-                )
-
-    @skip_if_bug_open('bugzilla', 1466240)
-    @skip_if_bug_open('bugzilla', 1478966)
-    @tier2
-    def test_positive_list_containers(self):
-        """Create a Docker-based Compute Resource in the Satellite 6
-        instance then list its running containers.
-
-        :id: 96bfba71-03e5-4d80-bd27-fc5db8e00b50
-
-        :expectedresults: Compute Resource can be created and existing
-            instances can be listed.
-        """
-        # Instantiate and setup a docker host VM + compute resource
-        docker_image = settings.docker.docker_image
-        with VirtualMachine(
-            source_image=docker_image,
-            tag=u'docker'
-        ) as docker_host:
-            docker_host.create()
-            docker_host.install_katello_ca()
-            url = 'http://{0}:2375'.format(docker_host.ip_addr)
-            compute_resource = entities.DockerComputeResource(
-                organization=[self.org],
-                url=url,
-            ).create()
-            self.assertEqual(compute_resource.url, url)
-            self.assertEqual(len(entities.AbstractDockerContainer(
-                compute_resource=compute_resource).search()), 0)
-            container = entities.DockerHubContainer(
-                command='top',
-                compute_resource=compute_resource,
-                organization=[self.org],
-            ).create()
-            result = entities.AbstractDockerContainer(
-                compute_resource=compute_resource).search()
-            self.assertEqual(len(result), 1)
-            self.assertEqual(result[0].name, container.name)
-
-    @tier2
-    def test_positive_create_external(self):
-        """Create a Docker-based Compute Resource using an external
-        Docker-enabled system.
-
-        :id: 91ae6374-82de-424e-aa4c-e19209acd5b5
-
-        :expectedresults: Compute Resource can be created and listed.
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                compute_resource = entities.DockerComputeResource(
-                    name=name,
-                    url=settings.docker.external_url,
-                ).create()
-                self.assertEqual(compute_resource.name, name)
-                self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
-                self.assertEqual(
-                    compute_resource.url, settings.docker.external_url)
-
-    @tier1
-    def test_positive_delete(self):
-        """Create a Docker-based Compute Resource then delete it.
-
-        :id: f1f23c1e-6481-46b5-9485-787ae18d9ed5
-
-        :expectedresults: Compute Resource can be created, listed and deleted.
-
-        :CaseImportance: Critical
-        """
-        for url in (settings.docker.external_url,
-                    settings.docker.get_unix_socket_url()):
-            with self.subTest(url):
-                resource = entities.DockerComputeResource(url=url).create()
-                self.assertEqual(resource.url, url)
-                self.assertEqual(resource.provider, DOCKER_PROVIDER)
-                resource.delete()
-                with self.assertRaises(HTTPError):
-                    resource.read()
-
-
-class DockerContainerTestCase(APITestCase):
-    """Tests specific to using ``Containers`` in an external Docker
-    Compute Resource
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    @skip_if_bug_open('bugzilla', 1478966)
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerContainerTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-
-    def setUp(self):
-        """Instantiate and setup a docker host VM + compute resource"""
-        docker_image = settings.docker.docker_image
-        self.docker_host = VirtualMachine(
-            source_image=docker_image,
-            tag=u'docker'
-        )
-        self.addCleanup(vm_cleanup, self.docker_host)
-        self.docker_host.create()
-        self.docker_host.install_katello_ca()
-        self.compute_resource = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[self.org],
-            url='http://{0}:2375'.format(self.docker_host.ip_addr),
-        ).create()
-
-    @tier2
-    def test_positive_create_with_compresource(self):
-        """Create containers for docker compute resources
-
-        :id: c57c261c-39cf-4a71-93a4-e01e3ec368a7
-
-        :expectedresults: The docker container is created
-        """
-        container = entities.DockerHubContainer(
-            command='top',
-            compute_resource=self.compute_resource,
-            organization=[self.org],
-        ).create()
-        self.assertEqual(
-            container.compute_resource.read().name,
-            self.compute_resource.name,
-        )
-
-    @upgrade
-    @tier2
-    @skip_if_bug_open('bugzilla', 1282431)
-    @skip_if_bug_open('bugzilla', 1347658)
-    def test_positive_create_using_cv(self):
-        """Create docker container using custom content view, lifecycle
-        environment and docker repository for docker compute resource
-
-        :id: 69f29cc8-45e0-4b3a-b001-2842c45617e0
-
-        :expectedresults: The docker container is created
-        """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        repo = _create_repository(
-            entities.Product(organization=self.org).create(),
-            upstream_name='centos',
-        )
-        repo.sync()
-        content_view = entities.ContentView(organization=self.org).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
-        self.assertEqual(len(content_view.version), 1)
-        cvv = content_view.read().version[0].read()
-        promote(cvv, lce.id)
-
-        # publishing takes few seconds sometimes
-        retries = 10 if bz_bug_is_open(1452149) else 1
-        for i in range(retries):
-            try:
-                container = entities.DockerHubContainer(
-                    command='top',
-                    compute_resource=self.compute_resource,
-                    organization=[self.org],
-                    repository_name=repo.container_repository_name,
-                    tag='latest',
-                    tty='yes',
-                ).create()
-            except HTTPError:
-                if i == retries - 1:
-                    raise
-                else:
-                    sleep(2)
-                    pass
-        self.assertEqual(
-            container.compute_resource.read().name,
-            self.compute_resource.name
-        )
-        self.assertEqual(
-            container.repository_name,
-            repo.container_repository_name
-        )
-        self.assertEqual(container.tag, 'latest')
-
-    @tier2
-    def test_positive_power_on_off(self):
-        """Create containers for docker compute resource,
-        then power them on and finally power them off
-
-        :id: 6271afcf-698b-47e2-af80-1ce38c111742
-
-        :expectedresults: The docker container is created and the power status
-            is showing properly
-        """
-        container = entities.DockerHubContainer(
-            command='top',
-            compute_resource=self.compute_resource,
-            organization=[self.org],
-        ).create()
-        self.assertEqual(
-            container.compute_resource.read().url,
-            self.compute_resource.url,
-        )
-        self.assertTrue(container.power(
-            data={u'power_action': 'status'})['running'])
-        container.power(data={u'power_action': 'stop'})
-        self.assertFalse(container.power(
-            data={u'power_action': 'status'})['running'])
-
-    @tier2
-    @skip_if_bug_open('bugzilla', 1479291)
-    def test_positive_read_container_log(self):
-        """Create containers for docker compute resource and read their logs
-
-        :id: ffeb3c57-c7dc-4cee-a087-b52daedd4485
-
-        :expectedresults: The docker container is created and its log can be
-            read
-        """
-        container = entities.DockerHubContainer(
-            command='date',
-            compute_resource=self.compute_resource,
-            organization=[self.org],
-        ).create()
-        self.assertTrue(container.logs()['logs'])
-
-    @upgrade
-    @run_in_one_thread
-    @tier2
-    def test_positive_create_with_external_registry(self):
-        """Create a container pulling an image from a custom external
-        registry
-
-        :id: 04506604-637f-473b-a764-825c61067b1b
-
-        :expectedresults: The docker container is created and the image is
-            pulled from the external registry
-        """
-        repo_name = 'rhel'
-        registry = entities.Registry(
-            url=settings.docker.external_registry_1).create()
-        try:
-            container = entities.DockerRegistryContainer(
-                compute_resource=self.compute_resource,
-                organization=[self.org],
-                registry=registry,
-                repository_name=repo_name,
-            ).create()
-            self.assertEqual(container.registry.id, registry.id)
-            self.assertEqual(container.repository_name, repo_name)
-        finally:
-            registry.delete()
-
-    @tier1
-    def test_positive_delete(self):
-        """Delete containers using docker compute resource
-
-        :id: 12efdf50-9494-48c3-a181-01c495b48c19
-
-        :expectedresults: The docker containers are deleted
-
-        :CaseImportance: Critical
-        """
-        container = entities.DockerHubContainer(
-            command='top',
-            compute_resource=self.compute_resource,
-            organization=[self.org],
-        ).create()
-        container.delete()
-        with self.assertRaises(HTTPError):
-            container.read()
-
-
-@skip_if_bug_open('bugzilla', 1414821)
-class DockerUnixSocketContainerTestCase(APITestCase):
-    """Tests specific to using ``Containers`` in local unix-socket
-    Docker Compute Resource
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-        cls.compute_resource = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.org],
-            url=settings.docker.get_unix_socket_url(),
-        ).create()
-
-    @tier2
-    def test_positive_create_with_compresource(self):
-        """Create containers for docker compute resources
-
-        :id: 91a8a159-0f00-44b6-8ab7-dc8b1a5f1f37
-
-        :expectedresults: The docker container is created
-        """
-        container = entities.DockerHubContainer(
-            command='top',
-            compute_resource=self.compute_resource,
-            organization=[self.org],
-        ).create()
-        self.assertEqual(
-            container.compute_resource.read().name,
-            self.compute_resource.name,
-        )
-
-
-@run_in_one_thread
 class DockerRegistryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
@@ -1550,125 +1166,111 @@ class DockerRegistryTestCase(APITestCase):
         super(DockerRegistryTestCase, cls).setUpClass()
         cls.url = settings.docker.external_registry_1
 
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create an external docker registry
+    @tier3
+    def test_negative_create_with_name(self):
+        """Create an external docker registry with not supported api calls
 
-        :id: 8212ab15-8298-4a46-88ba-eaf71069e068
+        :id: f3542272-13db-4a49-bc27-d948f5d6df41
 
-        :expectedresults: External registry is created successfully
-
-        :CaseImportance: Critical
+        :expectedresults: External registry is not created successfully
         """
         for name in valid_data_list():
             with self.subTest(name):
                 description = gen_string('alphanumeric')
-                registry = entities.Registry(
-                    description=description,
-                    name=name,
-                    url=self.url,
-                ).create()
-                try:
-                    self.assertEqual(registry.name, name)
-                    self.assertEqual(registry.url, self.url)
-                    self.assertEqual(registry.description, description)
-                finally:
-                    registry.delete()
+                with self.assertRaises(HTTPError):
+                    entities.Registry(
+                        description=description,
+                        name=name,
+                        url=self.url,
+                    ).create()
 
-    @tier1
-    def test_positive_update_name(self):
-        """Create an external docker registry and update its name
 
-        :id: fdd9c76b-43a7-4ece-8975-3b08241134c8
+class DockerContainerTestCase(APITestCase):
+    """Tests specific to using ``Containers`` in an external Docker
+    Compute Resource
 
-        :expectedresults: the external registry is updated with the new name
+    :CaseComponent: ContainerManagement-Content
 
-        :CaseImportance: Critical
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
+    """
+
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        super(DockerContainerTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+
+    def test_negative_docker_host_setup_compresource(self):
+        """Setup a docker host VM + compute resource
+
+        :id: f3575972-13db-4a49-bc27-d1137172df41
+
+        :expectedresults: Docker as compute resource is not setup successfully
         """
-        registry = entities.Registry(
-            name=gen_string('alpha'), url=self.url).create()
-        try:
-            for new_name in valid_data_list():
-                with self.subTest(new_name):
-                    registry.name = new_name
-                    registry = registry.update()
-                    self.assertEqual(registry.name, new_name)
-        finally:
-            registry.delete()
-
-    @tier2
-    def test_positive_update_url(self):
-        """Create an external docker registry and update its URL
-
-        :id: a3701f92-0846-4d1b-b691-48cdc85c1341
-
-        :expectedresults: the external registry is updated with the new URL
-        """
-        new_url = settings.docker.external_registry_2
-        registry = entities.Registry(url=self.url).create()
-        try:
-            self.assertEqual(registry.url, self.url)
-            registry.url = new_url
-            registry = registry.update()
-            self.assertEqual(registry.url, new_url)
-        finally:
-            registry.delete()
-
-    @tier2
-    def test_positive_update_description(self):
-        """Create an external docker registry and update its description
-
-        :id: 7eb08208-8b45-444f-b365-2d6f6e417533
-
-        :expectedresults: the external registry is updated with the new
-            description
-        """
-        registry = entities.Registry(url=self.url).create()
-        try:
-            for new_desc in valid_data_list():
-                with self.subTest(new_desc):
-                    registry.description = new_desc
-                    registry = registry.update()
-                    self.assertEqual(registry.description, new_desc)
-        finally:
-            registry.delete()
-
-    @tier2
-    def test_positive_update_username(self):
-        """Create an external docker registry and update its username
-
-        :id: 7da17c30-4582-4e27-a080-e446e6eec176
-
-        :expectedresults: the external registry is updated with the new
-            username
-        """
-        username = gen_string('alpha')
-        new_username = gen_string('alpha')
-        registry = entities.Registry(
-            username=username,
-            password=gen_string('alpha'),
-            url=self.url,
-        ).create()
-        try:
-            self.assertEqual(registry.username, username)
-            registry.username = new_username
-            registry = registry.update()
-            self.assertEqual(registry.username, new_username)
-        finally:
-            registry.delete()
-
-    @upgrade
-    @tier1
-    def test_positive_delete(self):
-        """Create an external docker registry and then delete it
-
-        :id: 1a215237-91b5-4fcc-8c18-a9944068ac88
-
-        :expectedresults: The external registry is deleted successfully
-
-        :CaseImportance: Critical
-        """
-        registry = entities.Registry(url=self.url).create()
-        registry.delete()
+        docker_image = settings.docker.docker_image
+        self.docker_host = VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        )
+        self.addCleanup(vm_cleanup, self.docker_host)
+        self.docker_host.create()
+        self.docker_host.install_katello_ca()
         with self.assertRaises(HTTPError):
-            registry.read()
+            self.compute_resource = entities.DockerComputeResource(
+                name=gen_string('alpha'),
+                organization=[self.org],
+                url='http://{0}:2375'.format(self.docker_host.ip_addr),
+            ).create()
+
+
+class DockerComputeResourceTestCase(APITestCase):
+    """Tests specific to managing Docker-based Compute Resources.
+
+    :CaseComponent: ContainerManagement-Content
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
+    """
+
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        super(DockerComputeResourceTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+
+    @tier3
+    def test_negative_create_internal(self):
+        """Create a Docker-based Compute Resource in the Satellite 6
+        instance.
+
+        :id: fb9c2272-13db-4a49-bc27-d1137172df41
+
+        :expectedresults: Compute Resource is not created.
+        """
+        for name in valid_data_list():
+            with self.assertRaises(HTTPError):
+                entities.DockerComputeResource(
+                    name=name,
+                    url=settings.docker.get_unix_socket_url(),
+                ).create()
+
+    @tier3
+    def test_negative_create_external(self):
+        """Create a Docker-based Compute Resource using an external
+        Docker-enabled system.
+
+        :id: f3542272-13db-4a49-bc27-d1137144cf41
+
+        :expectedresults: Compute Resource is not created.
+        """
+        for name in valid_data_list():
+            with self.assertRaises(HTTPError):
+                entities.DockerComputeResource(
+                    name=name,
+                    url=settings.docker.external_url,
+                ).create()

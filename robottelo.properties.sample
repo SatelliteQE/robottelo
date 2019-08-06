@@ -471,6 +471,8 @@ port_range=9091, 14999
 # password=
 # tenant: Openstack tenant to be used
 # tenant=
+# project_domain_id: OpenStack project domain ID
+# project_domain_id=
 # security_group: Name of group for provisioning
 # security_group=
 # vm_name: Name of VM to power On/Off & delete
