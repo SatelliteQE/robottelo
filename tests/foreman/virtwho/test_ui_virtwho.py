@@ -153,6 +153,8 @@ def test_positive_debug_option(session, form_data):
         deploy_configure_by_command(config_command)
         assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == '1'
         session.virtwho_configure.edit(name, {'debug': False})
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['debug'] is False
         deploy_configure_by_command(config_command)
         assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == '0'
         session.virtwho_configure.delete(name)
@@ -191,6 +193,8 @@ def test_positive_interval_option(session, form_data):
         }
         for option, value in sorted(intervals.items(), key=lambda item: int(item[1])):
             session.virtwho_configure.edit(name, {'interval': option})
+            results = session.virtwho_configure.read(name)
+            assert results['overview']['interval'] == option
             deploy_configure_by_command(config_command)
             assert get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG) == value
         session.virtwho_configure.delete(name)
@@ -221,6 +225,8 @@ def test_positive_hypervisor_id_option(session, form_data):
         values = ['uuid', 'hwuuid', 'hostname']
         for value in values:
             session.virtwho_configure.edit(name, {'hypervisor_id': value})
+            results = session.virtwho_configure.read(name)
+            assert results['overview']['hypervisor_id'] == value
             deploy_configure_by_command(config_command)
             assert get_configure_option('hypervisor_id', config_file) == value
         session.virtwho_configure.delete(name)
@@ -264,12 +270,18 @@ def test_positive_filtering_option(session, form_data):
             blacklist['filtering_content.exclude_host_parents'] = regex
         # Update Whitelist and check the result
         session.virtwho_configure.edit(name, whitelist)
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['filter_hosts'] == regex
+        assert results['overview']['filter_host_parents'] == regex
         deploy_configure_by_command(config_command)
         assert regex == get_configure_option('filter_hosts', config_file)
         if hypervisor_type == 'esx':
             assert regex == get_configure_option('filter_host_parents', config_file)
         # Update Blacklist and check the result
         session.virtwho_configure.edit(name, blacklist)
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['exclude_hosts'] == regex
+        assert results['overview']['exclude_host_parents'] == regex
         deploy_configure_by_command(config_command)
         assert regex == get_configure_option('exclude_hosts', config_file)
         if hypervisor_type == 'esx':
@@ -303,6 +315,9 @@ def test_positive_proxy_option(session, form_data):
             'proxy': http_proxy,
             'no_proxy': no_proxy,
         })
+        results = session.virtwho_configure.read(name)
+        assert results['overview']['proxy'] == http_proxy
+        assert results['overview']['no_proxy'] == no_proxy
         deploy_configure_by_command(config_command)
         assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy

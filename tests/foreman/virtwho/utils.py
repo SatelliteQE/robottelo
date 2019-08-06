@@ -3,6 +3,7 @@ import re
 import json
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
 
@@ -157,13 +158,13 @@ def get_configure_id(name):
         raise VirtWhoError("No configure id found for {}".format(name))
 
 
-def get_configure_command(config_id, org=1):
+def get_configure_command(config_id, org=DEFAULT_ORG):
     """Return the deploy command line based on configure id.
     :param str config_id: the unique id of the configure file you have created.
-    :param int org: the satellite organization id.
+    :param str org: the satellite organization name.
     """
     return (
-        "hammer virt-who-config deploy --id {} --organization-id {}"
+        "hammer virt-who-config deploy --id {} --organization '{}'"
         .format(config_id, org)
     )
 
