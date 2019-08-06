@@ -96,6 +96,9 @@ class ScenarioSyncPlan(APITestCase):
         self.assertEqual(product.sync_plan.id, sync_plan.id)
         self.assertEqual(sync_plan.name, entity_data.get("sync_plan_name"))
         self.assertEqual(sync_plan.interval, entity_data.get("interval"))
+        if '-' in entity_data.get('sync_date'):
+            entity_data['sync_date'] = ''.join(
+                entity_data.get('sync_date').replace('-', '/').replace('UTC', '+0000'))
         self.assertEqual(sync_plan.sync_date, entity_data.get("sync_date"))
         # checking sync plan update on upgraded satellite
         sync_plan.interval = SYNC_INTERVAL['custom']

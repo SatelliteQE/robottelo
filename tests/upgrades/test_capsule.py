@@ -17,7 +17,7 @@
 from fabric.api import execute, run
 from nailgun import entities
 from robottelo.test import APITestCase, settings
-from robottelo.api.utils import promote
+from robottelo.api.utils import promote, call_entity_method_with_timeout
 from upgrade.helpers.tasks import wait_untill_capsule_sync
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
@@ -123,7 +123,8 @@ class Scenario_capsule_sync(APITestCase):
             query={'search': 'id={}'.format(self.org_id)})[0].label
         capsule = entities.SmartProxy().search(
             query={'search': 'name={}'.format(self.cap_host)})[0]
-        entities.Capsule(id=capsule.id).content_sync()
+        call_entity_method_with_timeout(
+            entities.Capsule(id=capsule.id).content_sync, timeout=3600)
         result = execute(
             lambda: run(
                 '[ -f /var/lib/pulp/published/yum/http/repos/'

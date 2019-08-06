@@ -94,10 +94,10 @@ def create_activation_key_for_client_registration(
         )[0]
     elif sat_state.lower() == 'post':
         product_name = 'scenarios_tools_product'
-        tools_repo_url = settings.sattools_repo[client_os]
+        tools_repo_url = settings.sattools_repo[client_os.lower()]
         if tools_repo_url is None:
             raise ValueError('The Tools Repo URL environment variable for '
-                             'OS {} is not provided!'.format(client_os))
+                             'OS {} is not provided!'.format(client_os.lower()))
         repo_name = '{}_repo'.format(product_name)
         tools_prod = entities.Product(
             organization=org.id
