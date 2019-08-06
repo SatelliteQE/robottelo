@@ -187,7 +187,7 @@ def get_configure_option(option, filename):
         /etc/virt-who.d/virt-who-config-{}.conf
     :raises: VirtWhoError: If no this option name in the file.
     """
-    cmd = "grep -v '^#' {} |grep ^{}".format(filename, option)
+    cmd = "grep -v '^#' {} | grep ^{}".format(filename, option)
     ret, stdout = runcmd(cmd)
     if ret == 0 and option in stdout:
         value = stdout.split('=')[1].strip()
@@ -249,8 +249,7 @@ def deploy_validation():
         raise VirtWhoError("Failed to start virt-who service")
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
     # Delete the hypervisor entry and always make sure it's new.
-    hosts = Host.list({'search': hypervisor_name})
-    for index, host in enumerate(hosts):
+    for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
     runcmd("systemctl restart virt-who")
     return hypervisor_name, guest_name
