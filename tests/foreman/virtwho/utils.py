@@ -3,7 +3,11 @@ import re
 import json
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
 from robottelo.cli.host import Host
+from robottelo.cli.virt_who_config import VirtWhoConfig
+
+VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
 
 
 class VirtWhoError(Exception):
@@ -142,6 +146,59 @@ def get_virtwho_status():
         return 'undefined'
 
 
+def get_configure_id(name):
+    """Return the configure id by hammer.
+    :param str name: the configure name you have created.
+    :raises: VirtWhoError: If failed to get the configure info by hammer.
+    """
+    config = VirtWhoConfig.info({'name': name})
+    if 'id' in config['general-information']:
+        return config['general-information']['id']
+    else:
+        raise VirtWhoError("No configure id found for {}".format(name))
+
+
+def get_configure_command(config_id, org=DEFAULT_ORG):
+    """Return the deploy command line based on configure id.
+    :param str config_id: the unique id of the configure file you have created.
+    :param str org: the satellite organization name.
+    """
+    return (
+        "hammer virt-who-config deploy --id {} --organization '{}'"
+        .format(config_id, org)
+    )
+
+
+def get_configure_file(config_id):
+    """Return the configure file full name in /etc/virt-who.d
+    :param str config_id: the unique id of the configure file you have created.
+    """
+    return (
+        "/etc/virt-who.d/virt-who-config-{}.conf"
+        .format(config_id)
+    )
+
+
+def get_configure_option(option, filename):
+    """Return the option's value for the specific file.
+    :param str option: the option name in the configure file
+    :param str filename: the configure file, it could be:
+        /etc/sysconfig/virt-who
+        /etc/virt-who.d/virt-who-config-{}.conf
+    :raises: VirtWhoError: If no this option name in the file.
+    """
+    cmd = "grep -v '^#' {} | grep ^{}".format(filename, option)
+    ret, stdout = runcmd(cmd)
+    if ret == 0 and option in stdout:
+        value = stdout.split('=')[1].strip()
+        return value
+    else:
+        raise VirtWhoError(
+            "option {} is not exist or not be enabled in {}"
+            .format(option, filename)
+        )
+
+
 def _get_hypervisor_mapping(logs):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
@@ -180,43 +237,46 @@ def _get_hypervisor_mapping(logs):
         )
 
 
-def deploy_validation(debug=True):
+def deploy_validation():
     """Checkout the deploy result
-    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False,
-        because there is no json data logged in rhsm.log.
     :raises: VirtWhoError: If failed to start virt-who servcie.
+    :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     error = len(re.findall(r'\[.*ERROR.*\]', logs))
     if status != 'running' or error != 0:
         raise VirtWhoError("Failed to start virt-who service")
-    if debug:
-        hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
-        # Delete the hypervisor entry and always make sure it's new.
-        hosts = Host.list({'search': hypervisor_name})
-        for index, host in enumerate(hosts):
-            Host.delete({'id': host['id']})
-        runcmd("systemctl restart virt-who")
-        return hypervisor_name, guest_name
+    hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+    # Delete the hypervisor entry and always make sure it's new.
+    for host in Host.list({'search': hypervisor_name}):
+        Host.delete({'id': host['id']})
+    runcmd("systemctl restart virt-who")
+    return hypervisor_name, guest_name
 
 
-def deploy_configure_by_command(command, debug=True):
+def deploy_configure_by_command(command, debug=False):
     """Deploy and run virt-who servcie by the hammer command.
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False.
+    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     virtwho_cleanup()
     register_system(get_system('guest'))
-    runcmd(command)
-    return deploy_validation(debug)
+    ret, stdout = runcmd(command)
+    if ret != 0 or 'Finished successfully' not in stdout:
+        raise VirtWhoError(
+            "Failed to deploy configure by {}"
+            .format(command)
+        )
+    if debug:
+        return deploy_validation()
 
 
-def deploy_configure_by_script(script_content, debug=True):
+def deploy_configure_by_script(script_content, debug=False):
     """Deploy and run virt-who servcie by the shell script.
     :param str script_content: get the script by UI or API.
-    :param bool debug: if VIRTWHO_DEBUG=0, this option should be False.
+    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     script_filename = "/tmp/deploy_script.sh"
     virtwho_cleanup()
@@ -230,5 +290,11 @@ def deploy_configure_by_script(script_content, debug=True):
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.upload_file(script_filename, script_filename)
-    runcmd('sh {}'.format(script_filename))
-    return deploy_validation(debug)
+    ret, stdout = runcmd('sh {}'.format(script_filename))
+    if ret != 0 or 'Finished successfully' not in stdout:
+        raise VirtWhoError(
+            "Failed to deploy configure by {}"
+            .format(script_filename)
+        )
+    if debug:
+        return deploy_validation()
