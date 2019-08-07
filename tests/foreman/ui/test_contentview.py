@@ -3251,6 +3251,7 @@ def test_positive_rh_ostree_end_to_end(session):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
+@skip_if_bug_open('bugzilla', 1625783)
 @skip_if_os('RHEL6')
 @upgrade
 @tier3
