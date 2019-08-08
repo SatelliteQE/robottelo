@@ -98,13 +98,18 @@ class Capsule(Base):
         return result
 
     @classmethod
-    def content_synchronize(cls, options):
+    def content_synchronize(cls, options, return_raw_response=None, timeout=3600):
         """Synchronize the content to the capsule."""
 
         cls.command_sub = 'content synchronize'
 
         result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+            cls._construct_command(options),
+            output_format='csv',
+            ignore_stderr=True,
+            return_raw_response=return_raw_response,
+            timeout=timeout
+        )
 
         return result
 
