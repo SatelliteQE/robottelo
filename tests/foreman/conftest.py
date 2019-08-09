@@ -8,7 +8,6 @@ try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
-from time import time
 from types import SimpleNamespace
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
@@ -20,7 +19,7 @@ def log(message, level="DEBUG"):
     """Pytest has a limitation to use logging.logger from conftest.py
     so we need to emulate the logger by stdouting the output
     """
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     full_message = "{date} - conftest - {level} - {message}\n".format(
         date=now.strftime("%Y-%m-%d %H:%M:%S"),
         level=level,
@@ -48,7 +47,8 @@ def pytest_report_header(config):
     if pytest.config.pluginmanager.hasplugin("junitxml"):
         junit = getattr(config, "_xml", None)
         if junit is not None:
-            junit.add_global_property("start_time", int(time() * 1000))
+            now = datetime.datetime.utcnow()
+            junit.add_global_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
             shared_function_enabled, scope, storage))
@@ -183,4 +183,5 @@ def pytest_collection_modifyitems(items, config):
 
 @pytest.fixture(autouse=True, scope="function")
 def record_test_timestamp_xml(record_property):
-    record_property("start_time", int(time() * 1000))
+    now = datetime.datetime.utcnow()
+    record_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
