@@ -213,7 +213,7 @@ class Scenario_yum_plugins_count(APITestCase):
                                              client_container_id,
                                              'subscription-manager identity',
                                              host=self.docker_vm)[self.docker_vm],
-            timeout=500,
+            timeout=800,
             delay=2,
             logger=self.logger
         )
