@@ -225,7 +225,7 @@ class Scenario_errata_count(APITestCase):
                                         client_container_id,
                                         'subscription-manager identity',
                                         host=self.docker_vm)[self.docker_vm],
-            timeout=100,
+            timeout=800,
             delay=2,
             logger=self.logger
         )
@@ -316,8 +316,8 @@ class Scenario_errata_count(APITestCase):
         # waiting for errata count to become 0, as profile uploading take some amount of time
         wait_for(
             lambda: self._errata_count(ak=activation_key) == 0,
-            timeout=200,
-            delay=10,
+            timeout=400,
+            delay=2,
             logger=self.logger
         )
         self.assertEqual(
@@ -497,7 +497,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase):
                                              client_container_id,
                                              'subscription-manager identity',
                                              host=self.docker_vm)[self.docker_vm],
-            timeout=500,
+            timeout=800,
             delay=2,
             logger=self.logger
         )
@@ -588,8 +588,8 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase):
         # waiting for errata count to become 0, as profile uploading take some amount of time
         wait_for(
             lambda: self._errata_count(ak=activation_key) == 0,
-            timeout=200,
-            delay=10,
+            timeout=400,
+            delay=2,
             logger=self.logger
         )
         self.assertEqual(self._errata_count(ak=activation_key), 0)
