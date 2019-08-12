@@ -909,6 +909,9 @@ def update_provisioning_template(name=None, old=None, new=None, org_id=None):
             'search': 'name="{}"'.format(name),
             'organization_id': org_id
         })[0].read()
-    temp.template = temp.template.replace(old, new)
-    update = temp.update(['template'])
-    return new in update.template
+    if old in temp:
+        temp.template = temp.template.replace(old, new, 1)
+        update = temp.update(['template'])
+        return new in update.template
+    else:
+        raise '{} does not exists in template {}'.format(old, name)
