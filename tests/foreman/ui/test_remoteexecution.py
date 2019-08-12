@@ -167,7 +167,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
 
 @upgrade
 @tier3
-def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org):
+def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, module_loc):
     """Run a job template against multiple hosts by ip
 
     :id: c4439ec0-bb80-47f6-bc31-fa7193bfbeeb
@@ -192,6 +192,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org):
         host_names = [client.hostname for client in vm_clients]
         for client in vm_clients:
             _setup_vm_client_host(client, module_org.label)
+            update_vm_host_location(client, location_id=module_loc.id)
         with session:
             hosts = session.host.search(
                 ' or '.join(['name="{0}"'.format(hostname) for hostname in host_names]))
@@ -239,8 +240,8 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
     job_time = 5 * 60
     hostname = module_vm_client_by_ip.hostname
     with session:
-        plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
         assert session.host.search(hostname)[0]['Name'] == hostname
+        plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
@@ -276,14 +277,14 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         wait_for(
             lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
                         'overview']['hosts_table'][0]['Status'] == 'running',
-            timeout=20,
+            timeout=30,
             delay=1,
         )
         # wait the job to change status to "success"
         wait_for(
             lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
                         'overview']['hosts_table'][0]['Status'] == 'success',
-            timeout=20,
+            timeout=30,
             delay=1,
         )
         job_status = session.jobinvocation.read('Run ls', hostname, 'overview')
