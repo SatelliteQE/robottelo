@@ -40,7 +40,8 @@ from robottelo.constants import (
     FAKE_2_ERRATA_ID,
     FAKE_6_YUM_REPO,
     VDC_SUBSCRIPTION_NAME,
-    VIRT_WHO_HYPERVISOR_TYPES
+    VIRT_WHO_HYPERVISOR_TYPES,
+    DEFAULT_SYSPURPOSE_ATTRIBUTES,
 )
 from robottelo.decorators import (
     bz_bug_is_open,
@@ -978,3 +979,139 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
             status='Upgrade Available',
             stream_version=stream_version
         )
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@tier3
+def test_syspurpose_attributes_empty(session, vm_module_streams):
+    """
+    Test if syspurpose attributes are displayed as empty
+    on a freshly provisioned and registered host.
+
+    :id: d8ccf04f-a4eb-4c11-8376-f70857f4ef54
+
+    :expectedresults: Syspurpose attrs are empty, and syspurpose status is set as 'Not specified'
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    with session:
+        details = session.contenthost.read(
+            vm_module_streams.hostname,
+            widget_names='details')['details']
+        syspurpose_status = details['system_purpose_status']
+        assert syspurpose_status.lower() == "not specified"
+        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+            assert details[spname] == ''
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@tier3
+def test_set_syspurpose_attributes_cli(session, vm_module_streams):
+    """
+    Test that UI shows syspurpose attributes set by the syspurpose tool on a registered host.
+
+    :id: d898a3b0-2941-4fed-a725-2b8e911bba77
+
+    :expectedresults: Syspurpose attributes set for the content host
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    with session:
+        # Set sypurpose attributes
+        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+            run_remote_command_on_content_host(
+                'syspurpose set-{0} "{1}"'.format(*spdata), vm_module_streams)
+
+        details = session.contenthost.read(
+            vm_module_streams.hostname, widget_names='details')['details']
+        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+            assert details[spname] == spdata[1]
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@tier3
+def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
+    """
+    Test that previously set syspurpose attributes are correctly set
+    as empty after using 'syspurpose unset-...' on the content host.
+
+    :id: f83ba174-20ab-4ef2-a9e2-d913d20a0b2d
+
+    :expectedresults: Syspurpose attributes are empty
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    # Set sypurpose attributes...
+    for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        run_remote_command_on_content_host(
+            'syspurpose set-{0} "{1}"'.format(*spdata), vm_module_streams)
+    for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        # ...and unset them.
+        run_remote_command_on_content_host(
+            'syspurpose unset-{0}'.format(*spdata), vm_module_streams)
+
+    with session:
+        details = session.contenthost.read(
+            vm_module_streams.hostname, widget_names='details')['details']
+        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+            assert details[spname] == ''
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@tier3
+def test_syspurpose_matched(session, vm_module_streams):
+    """
+    Test that syspurpose status is set as 'Matched' if auto-attach
+    is performed on the content host, and correct subscriptions are
+    available on the Satellite
+
+    :id: 6b1ca2f9-5bf2-414f-971e-6bb5add69789
+
+    :expectedresults: Syspurpose status is Matched
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    run_remote_command_on_content_host(
+        'syspurpose set-sla Premium', vm_module_streams)
+    run_remote_command_on_content_host(
+        "subscription-manager attach --auto", vm_module_streams)
+    with session:
+        details = session.contenthost.read(
+            vm_module_streams.hostname, widget_names='details')['details']
+        assert details['system_purpose_status'] == "Matched"
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@tier3
+def test_syspurpose_mismatched(session, vm_module_streams):
+    """
+    Test that syspurpose status is 'Mismatched' if a syspurpose attribute
+    is changed to a different value than the one contained in the currently
+    attached subscription.
+
+    :id: de71cfd7-eeb8-4a4c-b448-8c5aa5af7f06
+
+    :expectedresults: Syspurpose status is 'Mismatched'
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    run_remote_command_on_content_host(
+        'syspurpose set-sla Premium', vm_module_streams)
+    run_remote_command_on_content_host(
+        'subscription-manager attach --auto', vm_module_streams)
+    run_remote_command_on_content_host(
+        'syspurpose set-sla Standard', vm_module_streams)
+    with session:
+        details = session.contenthost.read(
+            vm_module_streams.hostname, widget_names='details')['details']
+        assert details['system_purpose_status'] == "Mismatched"

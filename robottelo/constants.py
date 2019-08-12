@@ -2317,3 +2317,24 @@ FOREMAN_TEMPLATE_IMPORT_URL = (
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
     'example_template.erb')
+
+DEFAULT_SYSPURPOSE_ATTRIBUTES = {
+    'service_level': (
+        'sla',
+        'Self-Support',
+        'Standard',
+        'Premium'
+        ),
+    'usage_type': (
+        'usage',
+        'Production',
+        'Development/Test',
+        'Disaster Recovery'
+        ),
+    'role': (
+        'role',
+        'Red Hat Enterprise Linux Server',
+        'Red Hat Enterprise Linux Workstation',
+        'Red Hat Enterprise Linux Compute Node'
+        ),
+}
