@@ -14,13 +14,15 @@
 
 :Upstream: No
 """
+import os
 from nailgun import entities
-
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import ANY_CONTEXT, OSCAP_PROFILE
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier1, tier2, upgrade
+from robottelo.helpers import file_downloader
+from robottelo import ssh
 
 
 @fixture(scope='module')
@@ -43,12 +45,16 @@ def module_host_group(module_loc, module_org):
 
 @fixture(scope='module')
 def oscap_content_path():
+    # download scap content from satellite
+    _, file_name = os.path.split(settings.oscap.content_path)
+    local_file = "/tmp/{}".format(file_name)
+    ssh.download_file(settings.oscap.content_path, local_file)
     return settings.oscap.content_path
 
 
 @fixture(scope='module')
 def oscap_tailoring_path():
-    return settings.oscap.tailoring_path
+    return file_downloader(settings.oscap.tailoring_path)[0]
 
 
 @tier2
@@ -105,7 +111,7 @@ def test_positive_check_dashboard(
         session.oscappolicy.create({
             'create_policy.name': name,
             'scap_content.scap_content_resource': oscap_content_title,
-            'scap_content.xccdf_profile': 'C2S for Red Hat Enterprise Linux 6',
+            'scap_content.xccdf_profile': OSCAP_PROFILE['security7'],
             'schedule.period': 'Weekly',
             'schedule.period_selection.weekday': 'Friday',
             'locations.resources.assigned': [module_loc.name],
@@ -140,8 +146,8 @@ def test_positive_end_to_end(
     description = gen_string('alpha')
     oscap_content_title = gen_string('alpha')
     tailoring_name = gen_string('alpha')
-    profile_type = 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)'
-    tailoring_type = 'Common Profile for General-Purpose Systems [CUSTOMIZED1]'
+    profile_type = OSCAP_PROFILE['security7']
+    tailoring_type = OSCAP_PROFILE['tailoring_rhel7']
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=ANY_CONTEXT['location'])
