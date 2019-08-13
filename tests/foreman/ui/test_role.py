@@ -134,7 +134,7 @@ def test_positive_assign_cloned_role(session):
             'roles.resources.assigned': [cloned_role_name],
         })
         assert session.user.search(user_name)[0]['Username'] == user_name
-        user = session.user.read(user_name)
+        user = session.user.read(user_name, widget_names='roles')
         assert user['roles']['resources']['assigned'] == [cloned_role_name]
 
 

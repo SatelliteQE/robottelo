@@ -163,7 +163,11 @@ def test_positive_end_to_end(session, repos_collection, vm):
     with session:
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
-        chost = session.contenthost.read(vm.hostname)
+        chost = session.contenthost.read(vm.hostname,
+                                         widget_names=['details',
+                                                       'provisioning_details',
+                                                       'subscriptions',
+                                                       'repository_sets'])
         # Ensure all content host fields/tabs have appropriate values
         assert chost['details']['name'] == vm.hostname
         assert (

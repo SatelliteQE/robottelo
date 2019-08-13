@@ -168,5 +168,5 @@ def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
             'provider_content.secret_key': module_ec2_settings['secret_key'],
             'provider_content.region.value': EC2_REGION_CA_CENTRAL_1
         })
-        cr_values = session.computeresource.read(cr_name)
+        cr_values = session.computeresource.read(cr_name, widget_names='name')
         assert cr_values['name'] == cr_name

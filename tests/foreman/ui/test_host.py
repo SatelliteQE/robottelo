@@ -583,7 +583,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
             {'environment': '*Inherit from host group*'})
         host_values = session.host.search(host.name)
         assert host_values[0]['Puppet Environment'] == env.name
-        values = session.host.read(host.name)
+        values = session.host.read(host.name, widget_names='host')
         assert values['host']['hostgroup'] == hostgroup.name
         assert values['host']['puppet_environment'] == env.name
 
@@ -638,7 +638,7 @@ def test_positive_create_host_with_parameters(session, module_global_params):
             global_parameters=[overridden_global_parameter],
         )
         assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.read(host_name)
+        values = session.host.read(host_name, widget_names='parameters')
         assert (_get_set_from_list_of_dict(values['parameters']['host_params'])
                 == _get_set_from_list_of_dict(expected_host_parameters))
         assert _get_set_from_list_of_dict(

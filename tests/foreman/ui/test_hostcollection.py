@@ -274,7 +274,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         })
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)
-        hc_values = session.hostcollection.read(hc_name)
+        hc_values = session.hostcollection.read(hc_name, widget_names=['details', 'hosts'])
         assert hc_values['details']['name'] == hc_name
         assert hc_values['details']['description'] == description
         assert hc_values['details']['content_hosts'] == '1'
@@ -392,7 +392,7 @@ def test_positive_add_host(session):
         session.hostcollection.create({'name': hc_name})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)
-        hc_values = session.hostcollection.read(hc_name)
+        hc_values = session.hostcollection.read(hc_name, widget_names='hosts')
         assert (
             hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
         )

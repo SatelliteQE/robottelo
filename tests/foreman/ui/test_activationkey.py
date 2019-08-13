@@ -95,7 +95,7 @@ def test_positive_end_to_end_crud(session, module_org):
         })
         assert session.activationkey.search(name)[0]['Name'] == name
         # Verify content view and LCE are assigned
-        ak_values = session.activationkey.read(name)
+        ak_values = session.activationkey.read(name, widget_names='details')
         assert ak_values['details']['name'] == name
         assert ak_values['details']['content_view'] == cv.name
         assert ak_values['details']['lce'][ENVIRONMENT][ENVIRONMENT]
@@ -134,12 +134,12 @@ def test_positive_end_to_end_register(session):
         repos_collection.setup_virtual_machine(vm)
         with session:
             session.organization.select(org.name)
-            chost = session.contenthost.read(vm.hostname)
+            chost = session.contenthost.read(vm.hostname, widget_names='details')
             assert (
                     chost['details']['registered_by'] == 'Activation Key {}'
                     .format(ak_name)
             )
-            ak_values = session.activationkey.read(ak_name)
+            ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
             assert len(ak_values['content_hosts']['table']) == 1
             assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
 
@@ -168,7 +168,7 @@ def test_positive_create_with_cv(session, module_org, cv_name):
             'content_view': cv_name,
         })
         assert session.activationkey.search(name)[0]['Name'] == name
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv_name
 
 
@@ -231,7 +231,7 @@ def test_positive_create_with_host_collection(session, module_org):
         })
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_host_collection(name, hc.name)
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='host_collections')
         assert ak[
             'host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
@@ -262,7 +262,7 @@ def test_positive_create_with_envs(session, module_org):
             'content_view': cv_name
         })
         assert session.activationkey.search(name)[0]['Name'] == name
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['lce'][env_name][env_name]
 
 
@@ -305,7 +305,7 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
         })
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
-        ak = session.activationkey.read(ak_name)
+        ak = session.activationkey.read(ak_name, widget_names='host_collections')
         assert ak[
             'host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
@@ -349,12 +349,12 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
         })
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
-        ak = session.activationkey.read(ak_name)
+        ak = session.activationkey.read(ak_name, widget_names='host_collections')
         assert ak[
             'host_collections']['resources']['assigned'][0]['Name'] == hc.name
         # remove Host Collection
         session.activationkey.remove_host_collection(ak_name, hc.name)
-        ak = session.activationkey.read(ak_name)
+        ak = session.activationkey.read(ak_name, widget_names='host_collections')
         assert not ak['host_collections']['resources']['assigned']
 
 
@@ -435,11 +435,11 @@ def test_positive_update_env(session, module_org):
             'lce': {ENVIRONMENT: True},
         })
         assert session.activationkey.search(name)[0]['Name'] == name
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['lce'][env_name][ENVIRONMENT]
         assert not ak['details']['lce'][env_name][env_name]
         session.activationkey.update(name, {'details.lce': {env_name: True}})
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert not ak['details']['lce'][env_name][ENVIRONMENT]
         assert ak['details']['lce'][env_name][env_name]
 
@@ -477,7 +477,7 @@ def test_positive_update_cv(session, module_org, cv2_name):
             'content_view': cv1_name,
         })
         assert session.activationkey.search(name)[0]['Name'] == name
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv1_name
         if bz_bug_is_open(1597639):
             assert session.activationkey.search(name)[0]['Name'] == name
@@ -485,7 +485,7 @@ def test_positive_update_cv(session, module_org, cv2_name):
             'lce': {env2_name: True},
             'content_view': cv2_name,
         }})
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv2_name
 
 
@@ -542,7 +542,7 @@ def test_positive_update_rh_product(session):
             'content_view': cv1_name,
         })
         assert session.activationkey.search(name)[0]['Name'] == name
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv1_name
         if bz_bug_is_open(1597639):
             assert session.activationkey.search(name)[0]['Name'] == name
@@ -550,7 +550,7 @@ def test_positive_update_rh_product(session):
             'lce': {env2_name: True},
             'content_view': cv2_name,
         }})
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv2_name
 
 
@@ -593,7 +593,7 @@ def test_positive_add_rh_product(session):
         })
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, DEFAULT_SUBSCRIPTION_NAME)
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='subscriptions')
         subs_name = ak[
             'subscriptions']['resources']['assigned'][0]['Repository Name']
         assert subs_name == DEFAULT_SUBSCRIPTION_NAME
@@ -626,7 +626,7 @@ def test_positive_add_custom_product(session, module_org):
         })
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='subscriptions')
         assigned_prod = ak[
             'subscriptions']['resources']['assigned'][0]['Repository Name']
         assert assigned_prod == product_name
@@ -692,7 +692,7 @@ def test_positive_add_rh_and_custom_products(session):
         assert session.activationkey.search(name)[0]['Name'] == name
         for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
             session.activationkey.add_subscription(name, subscription)
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='subscriptions')
         subscriptions = [
             subscription['Repository Name']
             for subscription in ak['subscriptions']['resources']['assigned']
@@ -749,7 +749,7 @@ def test_positive_fetch_product_content(session):
         session.organization.select(org.name)
         for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product.name):
             session.activationkey.add_subscription(ak.name, subscription)
-        ak = session.activationkey.read(ak.name)
+        ak = session.activationkey.read(ak.name, widget_names='repository_sets')
         reposets = [
             reposet['Repository Name']
             for reposet in ak['repository_sets']['table']
@@ -836,7 +836,7 @@ def test_positive_access_non_admin_user(session, test_name):
                 'content_view': cv.name
             })
             assert session.activationkey.read(
-                name)['details']['lce'][env_name][env_name]
+                name, widget_names='details')['details']['lce'][env_name][env_name]
 
     with Session(
             test_name, user=user_login, password=user_password) as session:
@@ -996,7 +996,7 @@ def test_positive_add_host(session, module_org):
         assert vm.subscribed
         with session:
             session.organization.select(module_org.name)
-            ak = session.activationkey.read(ak.name)
+            ak = session.activationkey.read(ak.name, widget_names='content_hosts')
             assert len(ak['content_hosts']['table']) == 1
             assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
 
@@ -1070,7 +1070,7 @@ def test_negative_usage_limit(session, module_org):
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(
             name, {'details.hosts_limit': hosts_limit})
-        ak = session.activationkey.read(name)
+        ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['hosts_limit'] == hosts_limit
     with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
         with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
@@ -1130,7 +1130,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
             assert (
                 session.activationkey.search(key_name)[0]['Name'] == key_name)
             session.activationkey.add_subscription(key_name, product_name)
-            ak = session.activationkey.read(key_name)
+            ak = session.activationkey.read(key_name, widget_names='subscriptions')
             subscriptions = [
                 subscription['Repository Name']
                 for subscription
@@ -1147,7 +1147,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
             assert vm.subscribed
             # Assert the content-host association with activation keys
             for key_name in [key_1_name, key_2_name]:
-                ak = session.activationkey.read(key_name)
+                ak = session.activationkey.read(key_name, widget_names='content_hosts')
                 assert len(ak['content_hosts']['table']) == 1
                 assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
 
@@ -1190,10 +1190,10 @@ def test_positive_host_associations(session):
         assert vm2.subscribed
         with session:
             session.organization.select(org.name)
-            ak1 = session.activationkey.read(ak1.name)
+            ak1 = session.activationkey.read(ak1.name, widget_names='content_hosts')
             assert len(ak1['content_hosts']['table']) == 1
             assert ak1['content_hosts']['table'][0]['Name'] == vm1.hostname
-            ak2 = session.activationkey.read(ak2.name)
+            ak2 = session.activationkey.read(ak2.name, widget_names='content_hosts')
             assert len(ak2['content_hosts']['table']) == 1
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
 
@@ -1264,7 +1264,7 @@ def test_positive_service_level_subscription_with_custom_product(session):
             result.stdout)
         with session:
             session.organization.select(org.name)
-            chost = session.contenthost.read(vm.hostname)
+            chost = session.contenthost.read(vm.hostname, widget_names='subscriptions')
             subscriptions = {
                 subs['Repository Name'] for subs
                 in chost['subscriptions']['resources']['assigned']
@@ -1308,7 +1308,7 @@ def test_positive_delete_manifest(session):
     with session:
         session.organization.select(org.name)
         # Verify subscription is assigned to activation key
-        ak = session.activationkey.read(activation_key.name)
+        ak = session.activationkey.read(activation_key.name, widget_names='subscriptions')
         assert (
             ak['subscriptions']['resources']['assigned'][0]['Repository Name']
             == DEFAULT_SUBSCRIPTION_NAME
@@ -1320,5 +1320,5 @@ def test_positive_delete_manifest(session):
         session.subscription.delete_manifest(ignore_error_messages='404 Not Found')
         assert not session.subscription.has_manifest
         # Verify subscription is not assigned to activation key anymore
-        ak = session.activationkey.read(activation_key.name)
+        ak = session.activationkey.read(activation_key.name, widget_names='subscriptions')
         assert not ak['subscriptions']['resources']['assigned']
