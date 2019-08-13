@@ -125,7 +125,7 @@ def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user,
             'primary.search': search,
             'primary.host_group': hg.name,
         })
-        dr_val = session.discoveryrule.read(name)
+        dr_val = session.discoveryrule.read(name, widget_names='primary')
         assert dr_val['primary']['name'] == name
         assert dr_val['primary']['host_group'] == hg.name
 
@@ -342,7 +342,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
             'organizations.resources.assigned': [module_org.name],
             'locations.resources.assigned': [module_loc.name],
         })
-        values = session.discoveryrule.read(rule_name)
+        values = session.discoveryrule.read(rule_name, widget_names=['primary',
+                                                                     'organizations',
+                                                                     'locations'])
         assert values['primary']['name'] == rule_name
         assert values['primary']['search'] == search
         assert values['primary']['host_group'] == hg_name
@@ -365,7 +367,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
         })
         rules = session.discoveryrule.read_all()
         assert rule_name not in [rule['Name'] for rule in rules]
-        values = session.discoveryrule.read(new_rule_name)
+        values = session.discoveryrule.read(new_rule_name, widget_names=['primary',
+                                                                         'organizations',
+                                                                         'locations'])
         assert values['primary']['name'] == new_rule_name
         assert values['primary']['search'] == new_search
         assert values['primary']['host_group'] == new_hg_name

@@ -57,7 +57,7 @@ def test_positive_end_to_end(session):
         })
         location_name = "{}/{}".format(loc_parent.name, loc_child_name)
         assert session.location.search(location_name)[0]['Name'] == location_name
-        loc_values = session.location.read(location_name)
+        loc_values = session.location.read(location_name, widget_names='primary')
         assert loc_values['primary']['parent_location'] == loc_parent.name
         assert loc_values['primary']['name'] == loc_child_name
         assert loc_values['primary']['description'] == description
@@ -89,11 +89,11 @@ def test_positive_update_subnet(session):
             subnet.name, subnet.network, subnet.cidr)
         session.location.update(
             loc.name, {'subnets.resources.assigned': [subnet_name]})
-        loc_values = session.location.read(loc.name)
+        loc_values = session.location.read(loc.name, widget_names='subnets')
         assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
         session.location.update(
             loc.name, {'subnets.resources.unassigned': [subnet_name]})
-        loc_values = session.location.read(loc.name)
+        loc_values = session.location.read(loc.name, widget_names='subnets')
         assert len(loc_values['subnets']['resources']['assigned']) == 0
         assert subnet_name in loc_values['subnets']['resources']['unassigned']
 
@@ -113,11 +113,11 @@ def test_positive_update_domain(session):
     with session:
         session.location.update(
             loc.name, {'domains.resources.assigned': [domain.name]})
-        loc_values = session.location.read(loc.name)
+        loc_values = session.location.read(loc.name, widget_names='domains')
         assert loc_values['domains']['resources']['assigned'][0] == domain.name
         session.location.update(
             loc.name, {'domains.resources.unassigned': [domain.name]})
-        loc_values = session.location.read(loc.name)
+        loc_values = session.location.read(loc.name, widget_names='domains')
         assert len(loc_values['domains']['resources']['assigned']) == 0
         assert domain.name in loc_values['domains']['resources']['unassigned']
 
@@ -138,11 +138,11 @@ def test_positive_update_user(session):
     with session:
         session.location.update(
             loc.name, {'users.resources.assigned': [user.login]})
-        loc_values = session.location.read(loc.name)
+        loc_values = session.location.read(loc.name, widget_names='users')
         assert loc_values['users']['resources']['assigned'][0] == user.login
         session.location.update(
             loc.name, {'users.resources.unassigned': [user.login]})
-        loc_values = session.location.read(loc.name)
+        loc_values = session.location.read(loc.name, widget_names='users')
         assert len(loc_values['users']['resources']['assigned']) == 0
         assert user.login in loc_values['users']['resources']['unassigned']
 

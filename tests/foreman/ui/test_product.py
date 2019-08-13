@@ -155,7 +155,7 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
             'description': product_description,
         }, sync_plan_values=sync_plan_values)
         assert session.product.search(product_name)[0]['Name'] == product_name
-        product_values = session.product.read(product_name)
+        product_values = session.product.read(product_name, widget_names='details')
         assert product_values['details']['name'] == product_name
         assert product_values['details']['sync_plan'] == plan_name
         # Delete product

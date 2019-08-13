@@ -207,7 +207,7 @@ def test_positive_clone(session):
                 'template.audit_comment': audit_comment,
             }
         )
-        pt = session.partitiontable.read(new_name)
+        pt = session.partitiontable.read(new_name, widget_names='template')
         assert pt['template']['name'] == new_name
         assert pt['template']['os_family_selection']['os_family'] == os_family
 
@@ -269,7 +269,7 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
             }
         )
         assert session.partitiontable.search(new_name)[0]['Name'] == new_name
-        updated_pt = session.partitiontable.read(new_name)
+        updated_pt = session.partitiontable.read(new_name, widget_names='template')
         assert updated_pt['template']['snippet'] is False
         assert updated_pt['template']['os_family_selection']['os_family'] == os_family
         session.partitiontable.delete(new_name)
