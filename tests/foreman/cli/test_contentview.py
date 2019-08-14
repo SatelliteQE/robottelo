@@ -3063,6 +3063,7 @@ class ContentViewTestCase(CLITestCase):
         }
         # Create a location and organization
         loc = make_location()
+        default_loc = Location.info({'name': DEFAULT_LOC})
         org = make_org()
         Org.add_location({'id': org['id'], 'location-id': loc['id']})
         # Create a non admin user, for the moment without any permissions
@@ -3071,7 +3072,7 @@ class ContentViewTestCase(CLITestCase):
             'default-organization-id': org['id'],
             'organization-ids': [org['id']],
             'default-location-id': loc['id'],
-            'location-ids': [loc['id']],
+            'location-ids': [loc['id'], default_loc['id']],
             'login': user_name,
             'password': user_password,
         })
@@ -3112,7 +3113,7 @@ class ContentViewTestCase(CLITestCase):
             Role.with_user(user_name, user_password).info(
                 {'id': role['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request',
+            'Access denied',
             context.exception.stderr
         )
         # Create a lifecycle environment
@@ -5394,8 +5395,9 @@ class ContentViewFileRepoTestCase(CLITestCase):
         })
         expected_repo = ContentView.version_info({
             u'content-view-id': cv['id'],
-            u'environment': env['name'],
-            u'version': 1
+            u'lifecycle-environment': env['name'],
+            u'version': 1,
+            u'organization-id': self.org['id']
         })['repositories'][0]['name']
 
         self.assertIn(repo['name'], expected_repo)
