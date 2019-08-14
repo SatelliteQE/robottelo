@@ -16,21 +16,15 @@
 :Upstream: No
 """
 import yaml
-from airgun.session import Session
 from nailgun import entities
-from pytest import raises
 from random import choice, uniform
-from requests import HTTPError
-
 from robottelo.api.utils import (
-    create_role_permissions,
     delete_puppet_class,
     publish_puppet_module,
 )
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, run_in_one_thread, tier2
-from robottelo.helpers import get_nailgun_config
+from robottelo.decorators import fixture, run_in_one_thread, tier2, skip_if_bug_open
 
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [
@@ -227,53 +221,6 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
 
 
 @tier2
-def test_positive_search_with_non_admin_user(test_name, sc_params_list):
-    """Search for specific smart class parameter using non admin user
-
-    :id: 79bd4071-1baa-44af-91dd-1e093445af29
-
-    :expectedresults: Specified smart class parameter can be found in the
-        system
-
-    :BZ: 1391556
-
-    :CaseLevel: Integration
-    """
-    sc_param = sc_params_list.pop()
-    username = gen_string('alpha')
-    password = gen_string('alpha')
-    required_user_permissions = {
-        'Puppetclass': [
-            'view_puppetclasses',
-        ],
-        'PuppetclassLookupKey': [
-            'view_external_parameters',
-            'create_external_parameters',
-            'edit_external_parameters',
-            'destroy_external_parameters',
-        ],
-    }
-    role = entities.Role().create()
-    create_role_permissions(role, required_user_permissions)
-    entities.User(
-        login=username,
-        password=password,
-        role=[role],
-        admin=False
-    ).create()
-    # assert that the user is not an admin one and cannot read the current
-    # role info (note: view_roles is not in the required permissions)
-    cfg = get_nailgun_config()
-    cfg.auth = (username, password)
-    with raises(HTTPError) as context:
-        entities.Role(cfg, id=role.id).read()
-    assert '403 Client Error: Forbidden' in str(context.value)
-    with Session(test_name, user=username, password=password) as session:
-        assert session.sc_parameter.search(
-            sc_param.parameter)[0]['Parameter'] == sc_param.parameter
-
-
-@tier2
 def test_positive_create_matcher_attribute_priority(
         session, sc_params_list, module_host, domain):
     """Matcher Value set on Attribute Priority for Host.
@@ -289,22 +236,25 @@ def test_positive_create_matcher_attribute_priority(
             Note - The fqdn/host should have this attribute.
         6.  Submit the change.
         7.  Go to YAML output of associated host.
+        8.  Resubmit the same form to check bz-1241249
 
     :expectedresults: The YAML output has the value only for fqdn matcher.
 
     :CaseLevel: Integration
 
+    :BZ: 1241249
+
     :CaseImportance: Critical
     """
     sc_param = sc_params_list.pop()
     override_value = gen_string('alphanumeric')
-    override_value2 = gen_string('alphanumeric')
+    override_value2 = "['<%= @host.domain %>', '<%= @host.mac %>']"
     with session:
         session.sc_parameter.update(
             sc_param.parameter,
             {
                 'parameter.override': True,
-                'parameter.default_value': gen_string('alpha'),
+                'parameter.default_value': gen_string('alphanumeric'),
                 'parameter.prioritize_attribute_order.order': '\n'.join(
                     ['fqdn', 'hostgroup', 'os', 'domain']),
                 'parameter.matchers': [
@@ -342,326 +292,18 @@ def test_positive_create_matcher_attribute_priority(
         )
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == override_value2
+        assert output_scp == [domain.name, module_host.mac]
 
-
-@tier2
-def test_positive_update_with_long_priority_list(session, sc_params_list):
-    """Smart class parameter priority order list can contain more than 255
-    character inside of it
-
-    :id: f5e7847a-1f4b-455d-aa73-6b02774b6168
-
-    :customerscenario: true
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set some default Value.
-        3.  Set long priority order list
-
-    :expectedresults: Smart class parameter is updated successfully and has
-        proper priority list
-
-    :BZ: 1458817
-
-    :CaseImportance: Medium
-
-    :CaseLevel: Integration
-    """
-    sc_param = sc_params_list.pop()
-    order_value = '\n'.join([gen_string('alpha').lower() for _ in range(60)])
-    assert len(order_value) > 255
-    with session:
+        # That update operation will change nothing, but submit the same form
         session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': gen_string('alpha'),
-                'parameter.prioritize_attribute_order.order': order_value,
-            }
-        )
-        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
-        assert sc_parameter_values[
-            'parameter']['prioritize_attribute_order']['order'] == order_value
-
-
-@tier2
-def test_positive_create_matcher_merge_override(
-        session, sc_params_list, module_host, domain):
-    """Merge the values of all the associated matchers.
-
-    :id: adf9823b-714d-490f-8dfa-f4f9cc888be1
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set some default Value.
-        3.  Create first matcher for attribute fqdn with valid details.
-        4.  Create second matcher for other attribute with valid details.
-            Note - The fqdn/host should have this attribute.
-        5.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        6.  Select 'Merge overrides' checkbox.
-        7.  Submit the change.
-        8.  Go to YAML output of associated host.
-
-    :expectedresults:
-
-        1.  The YAML output has the values merged from all the associated
-            matchers.
-        2.  The YAML output doesn't have the default value of parameter.
-        3.  Duplicate values in YAML output if any are displayed.
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Critical
-    """
-    sc_param = sc_params_list.pop()
-    override_value = '[80,90]'
-    override_value2 = '[90,100]'
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': '[20]',
-                'parameter.parameter_type': 'array',
-                'parameter.prioritize_attribute_order.merge_overrides': True,
-                'parameter.matchers': [
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'fqdn',
-                            'matcher_attribute_value': module_host.name
-                        },
-                        'Value': override_value
-                    },
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'domain',
-                            'matcher_attribute_value': domain.name
-                        },
-                        'Value': override_value2
-                    }
-                ]
-            }
-        )
-        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][0]['Value']['value'] == override_value
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][1]['Value']['value'] == override_value2
+            sc_param.parameter, {'parameter.override': True})
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [80, 90, 90, 100]
+        assert output_scp == [domain.name, module_host.mac]
 
 
 @tier2
-def test_negative_create_matcher_merge_override(
-        session, sc_params_list, module_host):
-    """Attempt to merge the values from non associated matchers.
-
-    :id: 46326bd6-e51f-48e7-87b2-6d65ad602af9
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set some default Value.
-        3.  Create first matcher for attribute fqdn with valid details.
-        4.  Create second matcher for other attribute with valid details.
-            Note - The fqdn/host should not have this attribute.
-        5.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should not have this attributes.
-        6.  Select 'Merge overrides' checkbox.
-        7.  Submit the change.
-        8.  Go to YAML output of associated host.
-
-    :expectedresults:
-
-        1.  The YAML output has the values only for fqdn.
-        2.  The YAML output doesn't have the values for attribute
-            which are not associated to host.
-        3.  The YAML output doesn't have the default value of parameter.
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Critical
-    """
-    sc_param = sc_params_list.pop()
-    override_value = '[80,90]'
-    override_value2 = '[90,100]'
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': '[20]',
-                'parameter.parameter_type': 'array',
-                'parameter.prioritize_attribute_order.merge_overrides': True,
-                'parameter.matchers': [
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'fqdn',
-                            'matcher_attribute_value': module_host.name
-                        },
-                        'Value': override_value
-                    },
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'os',
-                            'matcher_attribute_value': 'rhel2'
-                        },
-                        'Value': override_value2
-                    }
-                ]
-            }
-        )
-        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][0]['Value']['value'] == override_value
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][1]['Value']['value'] == override_value2
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [80, 90]
-
-
-@tier2
-def test_positive_create_matcher_merge_default(
-        session, sc_params_list, module_host, domain):
-    """Merge the values of all the associated matchers + default value.
-
-    :id: b79ce9fd-2497-4f6e-85cc-957077c4f097
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set some default Value.
-        3.  Create first matcher for attribute fqdn with valid details.
-        4.  Create second matcher for other attribute with valid details.
-            Note - The fqdn/host should have this attribute.
-        5.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        6.  Select 'Merge overrides' checkbox.
-        7.  Select 'Merge default' checkbox.
-        8.  Submit the change.
-        9.  Go to YAML output of associated host.
-
-    :expectedresults:
-
-        1.  The YAML output has the values merged from all
-            the associated matchers.
-        2.  The YAML output has the default value of parameter.
-        3.  Duplicate values in YAML output if any are displayed.
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Critical
-    """
-    sc_param = sc_params_list.pop()
-    override_value = '[80,90]'
-    override_value2 = '[90,100]'
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': '[example]',
-                'parameter.parameter_type': 'array',
-                'parameter.prioritize_attribute_order.merge_overrides': True,
-                'parameter.prioritize_attribute_order.merge_default': True,
-                'parameter.matchers': [
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'fqdn',
-                            'matcher_attribute_value': module_host.name
-                        },
-                        'Value': override_value
-                    },
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'domain',
-                            'matcher_attribute_value': domain.name
-                        },
-                        'Value': override_value2
-                    }
-                ]
-            }
-        )
-        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][0]['Value']['value'] == override_value
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][1]['Value']['value'] == override_value2
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == ['example', 80, 90, 90, 100]
-
-
-@tier2
-def test_negative_create_matcher_merge_default(
-        session, sc_params_list, module_host, domain):
-    """Empty default value is not shown in merged values.
-
-    :id: b9c46949-34ea-4edd-ac3f-53708bf7885d
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set empty default Value.
-        3.  Create first matcher for attribute fqdn with valid details.
-        4.  Create second matcher for other attribute with valid details.
-            Note - The fqdn/host should have this attribute.
-        5.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        6.  Select 'Merge overrides' checkbox.
-        7.  Select 'Merge default' checkbox.
-        8.  Submit the change.
-        9.  Go to YAML output of associated host.
-
-    :expectedresults:
-
-        1.  The YAML output has the values merged from all
-            the associated matchers.
-        2.  The YAML output doesn't have the empty default value of
-            parameter.
-        3.  Duplicate values in YAML output if any are displayed.
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Critical
-    """
-    sc_param = sc_params_list.pop()
-    override_value = '[80,90]'
-    override_value2 = '[90,100]'
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': '[]',
-                'parameter.parameter_type': 'array',
-                'parameter.prioritize_attribute_order.merge_overrides': True,
-                'parameter.prioritize_attribute_order.merge_default': True,
-                'parameter.matchers': [
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'fqdn',
-                            'matcher_attribute_value': module_host.name
-                        },
-                        'Value': override_value
-                    },
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'domain',
-                            'matcher_attribute_value': domain.name
-                        },
-                        'Value': override_value2
-                    }
-                ]
-            }
-        )
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [80, 90, 90, 100]
-
-
-@tier2
+@skip_if_bug_open("bugzilla", "1734022")
 def test_positive_create_matcher_avoid_duplicate(
         session, sc_params_list, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
@@ -729,175 +371,6 @@ def test_positive_create_matcher_avoid_duplicate(
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
         assert output_scp == [20, 80, 90, 100]
-
-
-@tier2
-def test_negative_create_matcher_avoid_duplicate(
-        session, sc_params_list, module_host, domain):
-    """Duplicates not removed as they were not really present.
-
-    :id: f7a34928-c3a3-4b85-907b-f95c26240652
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set some default Value of array type.
-        3.  Create first matcher for attribute fqdn with some value.
-        4.  Create second matcher for other attribute with other value than
-            fqdn matcher and default value.
-            Note - The fqdn/host should have this attribute.
-        5.  Select 'Merge overrides' checkbox.
-        6.  Select 'Merge default' checkbox.
-        7.  Select 'Avoid Duplicates' checkbox.
-        8.  Submit the change.
-        9.  Go to YAML output of associated host.
-
-    :expectedresults:
-
-        1.  The YAML output has the values merged from all matchers.
-        2.  The YAML output has the default value of parameter.
-        3.  No value removed as duplicate value.
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Critical
-    """
-    sc_param = sc_params_list.pop()
-    override_value = '[70,80]'
-    override_value2 = '[90,100]'
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': '[20]',
-                'parameter.parameter_type': 'array',
-                'parameter.prioritize_attribute_order.merge_overrides': True,
-                'parameter.prioritize_attribute_order.merge_default': True,
-                'parameter.prioritize_attribute_order.avoid_duplicates': True,
-                'parameter.matchers': [
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'fqdn',
-                            'matcher_attribute_value': module_host.name
-                        },
-                        'Value': override_value
-                    },
-                    {
-                        'Attribute type': {
-                            'matcher_attribute_type': 'domain',
-                            'matcher_attribute_value': domain.name
-                        },
-                        'Value': override_value2
-                    }
-                ]
-            }
-        )
-        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][0]['Value']['value'] == override_value
-        assert sc_parameter_values[
-            'parameter']['matchers']['table'][1]['Value']['value'] == override_value2
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [20, 70, 80, 90, 100]
-
-
-@tier2
-def test_positive_view_yaml_output_after_resubmit_array_type(
-        session, sc_params_list, module_host, domain):
-    """Validate yaml output for smart class parameter that opened few times
-    in a row. Such output should be the same in case you submit form
-    without any changes to the default value of the parameter
-
-    :id: 55242e56-58ed-4957-b118-8de3be7402e3
-
-    :customerscenario: true
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set array key type.
-        3.  Set default value to some host properties.
-        4.  Submit the change.
-        5.  Go to YAML output of associated host.
-        6.  Open smart class parameter for edit, but don't change any value
-        7.  Submit form
-        8.  Go to YAML output of associated host.
-
-    :expectedresults: The YAML output has same values before and after
-        second edit.
-
-    :BZ: 1241249
-
-    :CaseLevel: Integration
-    """
-    sc_param = sc_params_list.pop()
-    initial_value = "['<%= @host.domain %>', '<%= @host.mac %>']"
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': initial_value,
-                'parameter.parameter_type': 'array',
-            }
-        )
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [domain.name, module_host.mac]
-        # That update operation will change nothing, but submit the same form
-        session.sc_parameter.update(
-            sc_param.parameter, {'parameter.override': True})
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [domain.name, module_host.mac]
-
-
-@tier2
-def test_positive_view_yaml_output_after_resubmit_yaml_type(
-        session, sc_params_list, module_host, domain):
-    """Validate yaml output for smart class parameter that opened few times
-    in a row. Such output should be the same in case you submit form
-    without any changes to the default value of the parameter
-
-    :id: 7cdb0bf2-9732-4d40-941f-d3a3f3fa7612
-
-    :steps:
-        1.  Check the Override checkbox.
-        2.  Set yaml key type.
-        3.  Set default value to some host properties.
-        4.  Submit the change.
-        5.  Go to YAML output of associated host.
-        6.  Open smart class parameter for edit, but don't change any value
-        7.  Submit form
-        8.  Go to YAML output of associated host.
-
-    :expectedresults: The YAML output has same values before and after
-        second edit.
-
-    :BZ: 1241249
-
-    :CaseLevel: Integration
-    """
-    sc_param = sc_params_list.pop()
-    initial_value = '- <%= @host.domain %>'
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.default_value': initial_value,
-                'parameter.parameter_type': 'yaml',
-            }
-        )
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [domain.name]
-        # That update operation will change nothing, but submit the same form
-        session.sc_parameter.update(
-            sc_param.parameter, {'parameter.override': True})
-        output = yaml.load(session.host.read_yaml_output(module_host.name))
-        output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [domain.name]
 
 
 @tier2
@@ -1026,118 +499,8 @@ def test_positive_impact_parameter_delete_attribute(
 
 
 @tier2
-def test_positive_hide_default_value_in_attribute(session, sc_params_list, module_host):
-    """Hide the default value of parameter in attribute.
-
-    :id: a44d35df-877c-469b-b82c-e5f85e592e8d
-
-    :steps:
-
-        1.  Check the override checkbox for the parameter.
-        2.  Enter some valid default value.
-        3.  Hide the default Value.
-        4.  Submit the changes.
-        5.  Associate parameter on host/hostgroup.
-
-    :expectedresults:
-
-        1.  In host/hostgroup, the parameter value shown in hidden state.
-        2.  The button for unhiding the value is displayed and accessible.
-        3.  The button for overriding the value is displayed and
-            accessible.
-
-    :CaseLevel: Integration
-    """
-    sc_param = sc_params_list.pop()
-    param_default_value = gen_string('alpha')
-    param_new_value = gen_string('alpha')
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.parameter_type': 'string',
-                'parameter.default_value': param_default_value,
-                'parameter.hidden': True,
-            }
-        )
-        host_sc_parameter_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, sc_param.parameter)
-        assert host_sc_parameter_value['hidden'] is True
-        assert host_sc_parameter_value['overridden'] is False
-        assert host_sc_parameter_value['value'] == param_default_value
-        assert '***' in host_sc_parameter_value['hidden_value']
-        session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            sc_param.parameter,
-            dict(value=param_new_value, overridden=True, hidden=False)
-        )
-        host_sc_parameter_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, sc_param.parameter)
-        # the variable is defined as hidden and should be always hidden, even if we push un-hide
-        # button in host, the unhide button in host is only to show the value, but should not
-        # enforce the unhide rule.
-        assert host_sc_parameter_value['hidden'] is True
-        assert host_sc_parameter_value['overridden'] is True
-        assert host_sc_parameter_value['value'] == param_new_value
-
-
-@tier2
-def test_positive_unhide_default_value_in_attribute(session, sc_params_list, module_host):
-    """Unhide the default value of parameter in attribute.
-
-    :id: 76611ba0-e583-4c4b-b794-005a21240d26
-
-    :steps:
-
-        1.  Check the override checkbox for the parameter.
-        2.  Enter some valid default value.
-        3.  Hide the default Value.
-        4.  Submit the changes.
-        5.  Associate parameter on host/hostgroup.
-        6.  In host/hostgroup, Click Unhide button icon.
-
-    :expectedresults:
-
-        1.  In host/hostgroup, the parameter value shown in unhidden state.
-        2.  The button for hiding the value is displayed and accessible.
-        3.  The button for overriding the value is displayed and
-            accessible.
-        4.  In parameter, the default value is still hidden.
-
-    :CaseLevel: Integration
-    """
-    sc_param = sc_params_list.pop()
-    param_default_value = gen_string('alpha')
-    with session:
-        session.sc_parameter.update(
-            sc_param.parameter,
-            {
-                'parameter.override': True,
-                'parameter.parameter_type': 'string',
-                'parameter.default_value': param_default_value,
-                'parameter.hidden': True,
-            }
-        )
-        host_sc_parameter_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, sc_param.parameter)
-        assert host_sc_parameter_value['hidden'] is True
-        assert host_sc_parameter_value['overridden'] is False
-        assert host_sc_parameter_value['value'] == param_default_value
-        assert '***' in host_sc_parameter_value['hidden_value']
-        session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            sc_param.parameter,
-            dict(overridden=True, hidden=False)
-        )
-        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
-        assert sc_parameter_values['parameter']['key'] == sc_param.parameter
-        assert sc_parameter_values['parameter']['default_value']['hidden'] is True
-
-
-@tier2
-def test_positive_update_hidden_value_in_attribute(session, sc_params_list, module_host):
-    """Update the hidden default value of parameter in attribute.
+def test_positive_hidden_value_in_attribute(session, sc_params_list, module_host):
+    """Update the hidden default value of parameter in attribute. Then unhide.
 
     :id: c10c20bd-0284-4e5d-b789-fddd3b81b81b
 
@@ -1149,6 +512,7 @@ def test_positive_update_hidden_value_in_attribute(session, sc_params_list, modu
         4.  Submit the changes.
         5.  Associate parameter on host/hostgroup.
         6.  In host/hostgroup, update the parameter value.
+        7.  Unhide the variable.
 
     :expectedresults:
 
@@ -1156,6 +520,7 @@ def test_positive_update_hidden_value_in_attribute(session, sc_params_list, modu
         2.  The parameter Value displayed as hidden.
         3.  In parameter, new matcher created for fqdn/hostgroup.
         4.  And the value shown hidden.
+        5.  Parameter is successfully unhidden.
 
     :CaseLevel: Integration
 
@@ -1179,6 +544,7 @@ def test_positive_update_hidden_value_in_attribute(session, sc_params_list, modu
         assert host_sc_parameter_value['hidden'] is True
         assert host_sc_parameter_value['overridden'] is False
         assert host_sc_parameter_value['value'] == param_default_value
+        # Update
         session.host.set_puppet_class_parameter_value(
             module_host.name,
             sc_param.parameter,
@@ -1201,3 +567,12 @@ def test_positive_update_hidden_value_in_attribute(session, sc_params_list, modu
         ][0]
         assert host_matcher['Value']['value'] == host_override_value
         assert host_matcher['Value']['hidden'] is True
+        # Unhide
+        session.host.set_puppet_class_parameter_value(
+            module_host.name,
+            sc_param.parameter,
+            dict(overridden=True, hidden=False)
+        )
+        sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
+        assert sc_parameter_values['parameter']['key'] == sc_param.parameter
+        assert sc_parameter_values['parameter']['default_value']['hidden'] is True
