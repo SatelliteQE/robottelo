@@ -53,21 +53,23 @@ def test_positive_end_to_end(session, module_org, module_loc):
             'locations.resources.assigned': [module_loc.name],
             'organizations.resources.assigned': [module_org.name],
         })
-        assert session.puppetenvironment.search(name)[0]['Name'] == name
+        found_envs = session.puppetenvironment.search(name)
+        assert name in [env['Name'] for env in found_envs]
         env_values = session.puppetenvironment.read(name)
         assert env_values['environment']['name'] == name
         assert env_values['organizations']['resources']['assigned'][0] == module_org.name
         assert env_values['locations']['resources']['assigned'][0] == module_loc.name
         session.puppetenvironment.update(name, {'environment.name': new_name})
-        assert session.puppetenvironment.search(new_name)[0]['Name'] == new_name
+        found_envs = session.puppetenvironment.search(new_name)
+        assert new_name in [env['Name'] for env in found_envs]
         session.puppetenvironment.delete(new_name)
         assert not session.puppetenvironment.search(new_name)
 
 
 @tier2
-def test_positive_availability_for_host_in_multiple_orgs(session, module_loc):
-    """New environment that present in different organizations should be
-    visible for any created host in these organizations
+def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(session, module_loc):
+    """An environment that is present in different organizations should be
+    visible for any created host and hostgroup in those organizations
 
     :id: badcfdd8-48a2-4abf-bef0-d4ff5c0f4c87
 
@@ -117,48 +119,17 @@ def test_positive_availability_for_host_in_multiple_orgs(session, module_loc):
                 'interfaces.interface.primary': True,
             })
             host_name = u'{0}.{1}'.format(host.name, host.domain.name)
-            assert session.host.search(host_name)[0]['Name'] == host_name
-            values = session.host.get_details(host_name)
+            values = session.host.get_details(host_name, widget_names='properties')
             assert values['properties']['properties_table']['Puppet Environment'] == env_name
             assert values['properties']['properties_table']['Organization'] == org.name
 
-
-@tier2
-def test_positive_availability_for_hostgroup_in_multiple_orgs(session, module_loc):
-    """New environment that present in different organizations should be
-    visible for any created hostgroup in these organizations
-
-    :id: 07ff316e-16c2-493e-a987-73d59f8e81c7
-
-    :customerscenario: true
-
-    :expectedresults: Environment can be used for any new hostgroup and any
-        organization where it is present in
-
-    :BZ: 543178
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-    """
-    env_name = gen_string('alpha')
-    orgs_names = [entities.Organization().create().name for _ in range(2)]
-    with session:
-        session.puppetenvironment.create({
-            'environment.name': env_name,
-            'locations.resources.assigned': [module_loc.name],
-            'organizations.resources.assigned': orgs_names,
-        })
-        for org in orgs_names:
             host_group_name = gen_string('alpha')
-            session.organization.select(org_name=org)
-            assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
             session.hostgroup.create({
                 'host_group.name': host_group_name,
                 'host_group.puppet_environment': env_name,
             })
-            assert session.hostgroup.search(host_group_name)[0]['Name'] == host_group_name
-            hostgroup_values = session.hostgroup.read(host_group_name)
+            hostgroup_values = session.hostgroup.read(
+                    host_group_name, widget_names=['host_group', 'organizations'])
             assert hostgroup_values['host_group']['name'] == host_group_name
-            assert org in hostgroup_values['organizations']['resources']['assigned']
+            assert org.name in hostgroup_values['organizations']['resources']['assigned']
             assert hostgroup_values['host_group']['puppet_environment'] == env_name
