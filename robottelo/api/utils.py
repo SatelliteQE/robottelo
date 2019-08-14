@@ -893,13 +893,12 @@ def attach_custom_product_subscription(prod_name=None, host_name=None):
         data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})
 
 
-def update_provisioning_template(name=None, old=None, new=None, org_id=None):
+def update_provisioning_template(name=None, old=None, new=None):
     """ Update provisioning template content
 
     :param str name: template provisioning name
     :param str old: current content
     :param str new: replace content
-    :param int org_id: organization ID
 
     :return boolean: True/False
     """
@@ -907,7 +906,6 @@ def update_provisioning_template(name=None, old=None, new=None, org_id=None):
         query={
             'per_page': 1000,
             'search': 'name="{}"'.format(name),
-            'organization_id': org_id
         })[0].read()
     if old in temp:
         temp.template = temp.template.replace(old, new, 1)
