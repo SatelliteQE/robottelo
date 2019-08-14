@@ -124,8 +124,7 @@ def test_positive_end_to_end(session):
         assert syncplan_values['details']['description'] == new_description
         # Delete sync plan
         session.syncplan.delete(plan_name)
-        assert not session.syncplan.search(plan_name)
-
+        assert plan_name not in session.syncplan.search(plan_name)
 
 @tier2
 def test_positive_end_to_end_custom_cron(session):
@@ -171,7 +170,7 @@ def test_positive_end_to_end_custom_cron(session):
         assert not syncplan_values['details']['cron_expression']
         # Delete sync plan
         session.syncplan.delete(plan_name)
-        assert not session.syncplan.search(plan_name)
+        assert plan_name not in session.syncplan.search(plan_name)
 
 
 @tier2
@@ -207,7 +206,7 @@ def test_positive_search_scoped(session):
         ]:
             assert session.syncplan.search(
                 '{} = {}'.format(query_type, query_value))[0]['Name'] == name
-        assert not session.syncplan.search('enabled = false')
+        assert name not in session.syncplan.search('enabled = false')
 
 
 @tier3
@@ -257,7 +256,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(
             assert int(repo_values['content_counts'][repo_type]) > 0
         # Delete sync plan
         session.syncplan.delete(plan_name)
-        assert not session.syncplan.search(plan_name)
+        assert plan_name not in session.syncplan.search(plan_name)
 
 
 @tier3
@@ -310,4 +309,4 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
             assert int(repo_values['content_counts'][repo_type]) > 0
         # Delete sync plan
         session.syncplan.delete(plan_name)
-        assert not session.syncplan.search(plan_name)
+        assert plan_name not in session.syncplan.search(plan_name)
