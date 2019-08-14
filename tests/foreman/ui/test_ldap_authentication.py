@@ -232,7 +232,7 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name)
 
 @skip_if_not_set('ipa')
 @tier2
-def test_positive_create_with_idm_org_and_loc(session, ipa_data, ldap_auth_name):
+def test_positive_create_with_idm_org_and_loc(session, ipa_data):
     """Create LDAP auth_source for IDM with org and loc assigned.
 
     :id: bc70bcff-1241-4d8e-9713-da752d6c4798
@@ -247,6 +247,7 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data, ldap_auth_name)
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
+    ldap_auth_name = gen_string('alphanumeric')
     with session:
         session.ldapauthentication.create({
             'ldap_server.name': ldap_auth_name,
