@@ -891,3 +891,25 @@ def attach_custom_product_subscription(prod_name=None, host_name=None):
         query={'search': 'name={0}'.format(prod_name)})[0]
     entities.HostSubscription(host=host.id).add_subscriptions(
         data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})
+
+
+def update_provisioning_template(name=None, old=None, new=None):
+    """ Update provisioning template content
+
+    :param str name: template provisioning name
+    :param str old: current content
+    :param str new: replace content
+
+    :return boolean: True/False
+    """
+    temp = entities.ProvisioningTemplate().search(
+        query={
+            'per_page': 1000,
+            'search': 'name="{}"'.format(name),
+        })[0].read()
+    if old in temp:
+        temp.template = temp.template.replace(old, new, 1)
+        update = temp.update(['template'])
+        return new in update.template
+    else:
+        raise '{} does not exists in template {}'.format(old, name)
