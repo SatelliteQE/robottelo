@@ -188,7 +188,7 @@ ssh_key=
 # For tests that uses the images for content-host testcases.
 # [distro]
 # image_el6=rhel610
-# image_el7=rhel76
+# image_el7=rhel77
 # image_el8=rhel80
 # image_sles11=sles-11-4
 # image_sles12=sles-12-3
