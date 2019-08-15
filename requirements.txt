@@ -4,7 +4,7 @@
 cryptography==2.7
 fauxfactory==3.0.6
 idna==2.8
-Inflector==2.0.12
+Inflector==3.0.0
 import_string==0.1.0
 mock==3.0.5
 paramiko==2.5.0
