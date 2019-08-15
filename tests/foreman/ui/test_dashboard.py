@@ -39,6 +39,7 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
+    skip_if_bug_open,
     skip_if_not_set,
     tier2,
     tier3,
@@ -453,6 +454,7 @@ def test_positive_content_host_subscription_status(session):
             assert values['table'][0]['Content View'] == cv_name
 
 
+@skip_if_bug_open('bugzilla', '1741454')
 @tier2
 def test_positive_discovered_host(session):
     """Check if the Discovered Host widget is working in the Dashboard UI
