@@ -2537,6 +2537,7 @@ class KatelloAgentTestCase(CLITestCase):
             u'host-id': self.host['id'],
         })
 
+    @skip_if_bug_open('bugzilla', '1740790')
     @tier3
     def test_positive_apply_security_erratum(self):
         """Apply security erratum to a host
