@@ -126,6 +126,7 @@ def test_positive_end_to_end(session):
         session.syncplan.delete(plan_name)
         assert plan_name not in session.syncplan.search(plan_name)
 
+
 @tier2
 def test_positive_end_to_end_custom_cron(session):
     """Perform end to end scenario for sync plan component with custom cron
