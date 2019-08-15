@@ -62,7 +62,7 @@ from robottelo.products import (
 )
 from robottelo.vm import VirtualMachine
 from robottelo.api.utils import wait_for_tasks
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
@@ -246,7 +246,6 @@ def test_positive_end_to_end_bulk_update(session, vm):
     with session:
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
-
         # Update package using bulk action
         # use the Host Collection view to access Update Packages dialogue
         session.hostcollection.create({
@@ -256,14 +255,16 @@ def test_positive_end_to_end_bulk_update(session, vm):
             'description': description
         })
         session.hostcollection.associate_host(hc_name, vm.hostname)
+        # make a note of time for later CLI wait_for_tasks, and include
+        # 5 mins margin of safety.
+        timestamp = (datetime.utcnow() - timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M")
         # Update the package by name
-        timestamp = datetime.utcnow()
         session.hostcollection.manage_packages(
             hc_name, content_type='Package',
             packages=FAKE_1_CUSTOM_PACKAGE_NAME,
             action='update_all'
         )
-        # Wait for upload profile event (in case system system slow)
+        # Wait for upload profile event (in case Satellite system slow)
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
@@ -271,7 +272,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
-            search_rate=10, max_tries=10,
+            search_rate=30, max_tries=10,
         )
         # Ensure package updated to a later version
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
@@ -888,6 +889,80 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
             vm_module_streams
         )
 
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed',
+            stream_version=stream_version
+        )
+        assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
+        assert module_stream[0]['Stream'] == stream_version
+        assert module_stream[0]['Installed Profile'] == profile
+
+        # remove walrus module stream with flipper profile
+        run_remote_command_on_content_host(
+            'dnf module remove {}:{}/{} -y'.format(
+                module_name,
+                stream_version,
+                profile
+            ),
+            vm_module_streams
+        )
+        assert not session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            FAKE_2_CUSTOM_PACKAGE_NAME,
+            status='Installed',
+            stream_version=stream_version
+        )
+
+
+@tier3
+def test_module_status_update_without_force_upload_package_profile(session, vm, vm_module_streams):
+    """ Verify you do not have to run dnf upload-profile or restart rhsmcertd
+    to update the module stream status to Satellite and that the web UI will also be updated.
+
+    :id: 16675b57-71c2-4aee-950b-844aa32002d1
+
+    :expectedresults: module stream status should get updated in Satellite
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    with session:
+        # Ensure content host is searchable
+        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+        module_name = "walrus"
+        stream_version = "0.71"
+        profile = "flipper"
+        # reset walrus module streams
+        run_remote_command_on_content_host(
+            'dnf module reset {} -y'.format(module_name),
+            vm_module_streams
+        )
+        # make a note of time for later CLI wait_for_tasks, and include
+        # 5 mins margin of safety.
+        timestamp = (datetime.utcnow() - timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M")
+        # install walrus module stream with flipper profile
+        run_remote_command_on_content_host(
+            'dnf module install {}:{}/{} -y'.format(
+                module_name,
+                stream_version,
+                profile
+            ),
+            vm_module_streams
+        )
+        # Wait for upload profile event (in case Satellite system slow)
+        host = entities.Host().search(
+            query={'search': 'name={}'.format(vm.hostname)})
+        wait_for_tasks(
+            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+                         ' and resource_id = {}'
+                         ' and started_at >= "{}"'.format(
+                             host[0].id, timestamp),
+            search_rate=30, max_tries=10,
+        )
+        # Check web UI for the new module stream version
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
