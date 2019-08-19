@@ -243,7 +243,7 @@ REPOS = {
         'major_version': RHEL_7_MAJOR_VERSION,
         'distro_repository': True,
         'key': 'rhel',
-        'version': '7.6',
+        'version': '7.7',
     },
     'rhel6': {
         'id': 'rhel-6-server-rpms',
