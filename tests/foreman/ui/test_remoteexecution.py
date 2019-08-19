@@ -255,7 +255,7 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         )
         # Note that to create this host scheduled job we spent some time from that plan_time, as it
         # was calculated before creating the job
-        job_left_time = (plan_time - datetime.datetime.now()).total_seconds()
+        job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
         # assert that we have time left to wait, otherwise we have to use more job time,
         # the job_time must be significantly greater than job creation time.
         assert job_left_time > 0
@@ -267,17 +267,13 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
         # recalculate the job left time to be more accurate
-        job_left_time = (plan_time - datetime.datetime.now()).total_seconds()
+        job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
         # the last read time should not take more than 1/4 of the last left time
         assert job_left_time > 0
-        # sleep the rest the job left time
-        time.sleep(job_left_time)
-        # after this last sleep we should be at the exact plan_time
-        # wait the job to change status to "running"
         wait_for(
             lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
                         'overview']['hosts_table'][0]['Status'] == 'running',
-            timeout=30,
+            timeout=(job_left_time + 30),
             delay=1,
         )
         # wait the job to change status to "success"
