@@ -629,6 +629,7 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
+@skip_if_bug_open('bugzilla', 1743271)
 @tier2
 @upgrade
 def test_positive_upstream_with_credentials(session, module_prod):
