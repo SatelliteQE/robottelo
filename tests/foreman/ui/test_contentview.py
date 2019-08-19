@@ -1736,13 +1736,14 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
         cvv_content = session.contentview.read_version(cv['name'], VERSION)
         assert cvv_content['docker_repositories']['table'][0]['Name'] == repo_name
         cvv_table = session.contentview.search_version(cv['name'], VERSION)
-        assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv_table[0]['Environments']
+        assert all(item in cvv_table[0]['Environments'] for item in
+                   [ENVIRONMENT, dev_lce.name, qe_lce.name])
         # remove the content view version from Library
         session.contentview.remove_version(cv['name'], VERSION, False, [ENVIRONMENT])
         cvv_content = session.contentview.read_version(cv['name'], VERSION)
         assert cvv_content['docker_repositories']['table'][0]['Name'] == repo_name
         cvv_table = session.contentview.search_version(cv['name'], VERSION)
-        assert ' '.join((dev_lce.name, qe_lce.name)) == cvv_table[0]['Environments']
+        assert all(item in cvv_table[0]['Environments'] for item in [dev_lce.name, qe_lce.name])
 
 
 @tier2
