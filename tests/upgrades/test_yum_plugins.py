@@ -209,10 +209,10 @@ class Scenario_yum_plugins_count(APITestCase):
         rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=self.org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
         wait_for(
-            lambda: self.org.name in execute(docker_execute_command,
-                                             client_container_id,
-                                             'subscription-manager identity',
-                                             host=self.docker_vm)[self.docker_vm],
+            lambda: self.org.label in execute(docker_execute_command,
+                                              client_container_id,
+                                              'subscription-manager identity',
+                                              host=self.docker_vm)[self.docker_vm],
             timeout=800,
             delay=2,
             logger=self.logger
@@ -221,7 +221,7 @@ class Scenario_yum_plugins_count(APITestCase):
                          client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
-        self.assertIn(self.org.name, status)
+        self.assertIn(self.org.label, status)
 
         self._install_or_update_package(client_container_id, 'katello-agent')
         self._run_goferd(client_container_id)
