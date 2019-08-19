@@ -34,6 +34,7 @@ from robottelo.api.utils import (
     create_role_permissions,
     promote,
     publish_puppet_module,
+    update_provisioning_template
 )
 from robottelo.cli.factory import (
     make_content_view,
@@ -73,7 +74,9 @@ from robottelo.decorators import (
     skip_if_not_set,
     upgrade,
 )
+from robottelo.helpers import download_server_file
 from robottelo.ui.utils import create_fake_host
+from wrapanapi import GoogleCloudSystem
 
 
 def _get_set_from_list_of_dict(value):
@@ -85,6 +88,21 @@ def _get_set_from_list_of_dict(value):
         tuple(sorted(list(global_param.items()), key=lambda t: t[0]))
         for global_param in value
     }
+
+
+def skip_yum_update_during_provisioning(template=None, reverse=False):
+    """Hides the yum update command with echo text
+
+    :param str template: The template name where the yum update will be hidden
+    :param bool reverse: Reverses the echo text to yum update
+    :return: Boolean True on success else exception
+    """
+    old = 'yum -t -y update'
+    new = 'echo "Yum update skipped for faster automation testing"'
+    if not reverse:
+        return update_provisioning_template(name=template, old=old, new=new)
+    else:
+        return update_provisioning_template(name=template, old=new, new=old)
 
 
 @pytest.fixture
@@ -179,20 +197,21 @@ def default_architecture():
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_environment(module_org, module_loc):
+def module_environment(module_org, module_loc):
     # Create new puppet environment
     return entities.Environment(
         organization=[module_org], location=[module_loc]).create()
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_os(
+def module_os(
         default_architecture, default_partition_table, module_org, module_loc):
     # Get the OS ID
-    os = entities.OperatingSystem().search(query={
-        u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
-            RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)}
-    )[0].read()
+    os = entities.OperatingSystem().search(
+        query={u'search': u'name="RedHat" AND major="7"'}
+    ) or entities.OperatingSystem().search(
+        query={u'search': u'name="RedHat" AND major="6"'})
+    os = os[0].read()
     # Get the templates and update with OS, Org, Location
     templates = []
     for template_name in [
@@ -223,11 +242,11 @@ def module_libvirt_os(
 
 
 @pytest.fixture(scope='module')
-def os_path(module_libvirt_os):
+def os_path(module_os):
     # Check what OS was found to use correct media
-    if module_libvirt_os.major == str(RHEL_6_MAJOR_VERSION):
+    if module_os.major == str(RHEL_6_MAJOR_VERSION):
         os_distr_url = settings.rhel6_os
-    elif module_libvirt_os.major == str(RHEL_7_MAJOR_VERSION):
+    elif module_os.major == str(RHEL_7_MAJOR_VERSION):
         os_distr_url = settings.rhel7_os
     else:
         raise ValueError('Proposed RHEL version is not supported')
@@ -338,25 +357,25 @@ def module_libvirt_subnet(
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_lce(module_org):
+def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_product(module_org):
+def module_product(module_org):
     return entities.Product(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_repository(os_path, module_libvirt_product):
+def module_repository(os_path, module_product):
     repo = entities.Repository(
-        product=module_libvirt_product, url=os_path).create()
+        product=module_product, url=os_path).create()
     call_entity_method_with_timeout(entities.Repository(id=repo.id).sync, timeout=3600)
     return repo
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_media(module_org, module_loc, os_path, module_libvirt_os):
+def module_libvirt_media(module_org, module_loc, os_path, module_os):
     media = entities.Media().search(
         query={u'search': u'path="{0}"'.format(os_path)}
     )
@@ -365,7 +384,7 @@ def module_libvirt_media(module_org, module_loc, os_path, module_libvirt_os):
         media = media[0].read()
         media.organization.append(module_org)
         media.location.append(module_loc)
-        media.operatingsystem.append(module_libvirt_os)
+        media.operatingsystem.append(module_os)
         media.os_family = 'Redhat'
         media = media.update(['organization', 'location', 'operatingsystem', 'os_family'])
     else:
@@ -373,7 +392,7 @@ def module_libvirt_media(module_org, module_loc, os_path, module_libvirt_os):
         media = entities.Media(
             organization=[module_org],
             location=[module_loc],
-            operatingsystem=[module_libvirt_os],
+            operatingsystem=[module_os],
             path_=os_path,
             os_family='Redhat',
         ).create()
@@ -381,14 +400,14 @@ def module_libvirt_media(module_org, module_loc, os_path, module_libvirt_os):
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_content_view(module_org, module_libvirt_repository, module_libvirt_lce):
+def module_content_view(module_org, module_repository, module_lce):
     # Create, Publish and promote CV
     content_view = entities.ContentView(organization=module_org).create()
-    content_view.repository = [module_libvirt_repository]
+    content_view.repository = [module_repository]
     content_view = content_view.update(['repository'])
     call_entity_method_with_timeout(content_view.publish, timeout=3600)
     content_view = content_view.read()
-    promote(content_view.version[0], module_libvirt_lce.id)
+    promote(content_view.version[0], module_lce.id)
     return content_view
 
 
@@ -398,27 +417,27 @@ def module_libvirt_hostgroup(
         module_loc,
         default_partition_table,
         default_architecture,
-        module_libvirt_os,
+        module_os,
         module_libvirt_media,
-        module_libvirt_environment,
+        module_environment,
         module_libvirt_subnet,
         module_proxy,
         module_libvirt_domain,
-        module_libvirt_lce,
-        module_libvirt_content_view,
+        module_lce,
+        module_content_view,
 ):
     return entities.HostGroup(
         architecture=default_architecture,
         domain=module_libvirt_domain,
         subnet=module_libvirt_subnet,
-        lifecycle_environment=module_libvirt_lce,
-        content_view=module_libvirt_content_view,
+        lifecycle_environment=module_lce,
+        content_view=module_content_view,
         location=[module_loc],
-        environment=module_libvirt_environment,
+        environment=module_environment,
         puppet_proxy=module_proxy,
         puppet_ca_proxy=module_proxy,
         content_source=module_proxy,
-        operatingsystem=module_libvirt_os,
+        operatingsystem=module_os,
         organization=[module_org],
         ptable=default_partition_table,
         medium=module_libvirt_media,
@@ -1701,3 +1720,196 @@ def test_positive_delete_libvirt(
             'setting "Destroy associated VM on host delete".'.format(name)
         ) == message
         assert not session.host.search(name)
+
+
+@pytest.fixture
+def gce_client(download_cert):
+    return GoogleCloudSystem(
+        project=settings.gce.project_id,
+        zone=settings.gce.zone,
+        file_path=download_cert,
+        file_type='json')
+
+
+@pytest.fixture
+def gce_template(gce_client):
+    max_rhel7_template = max(
+        [img.name for img in gce_client.list_templates(
+            True) if str(img.name).startswith('rhel-7')])
+    return gce_client.get_template(max_rhel7_template, project='rhel-cloud').uuid
+
+
+@pytest.fixture
+def gce_domain(module_org, module_loc):
+    domain_name = '{}.c.{}.internal'.format(
+        settings.gce.zone, settings.gce.project_id)
+    domain = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})
+    if domain:
+        domain = domain[0]
+        domain.organization = [module_org]
+        domain.location = [module_loc]
+        domain.update(['organization', 'location'])
+    if not domain:
+        domain = entities.Domain(
+            name=domain_name,
+            location=[module_loc],
+            organization=[module_org],
+        ).create()
+    return domain
+
+
+@pytest.fixture
+def download_cert():
+    ssh.command('curl {0} -o {1}'.format(settings.gce.cert_url, settings.gce.cert_path))
+    if not ssh.command('[ -f {} ]'.format(settings.gce.cert_path)).return_code == 0:
+        raise FileNotFoundError("The GCE certificate {} is not found in satellite.".format(
+            settings.gce.cert_path))
+    return download_server_file('json', settings.gce.cert_url)
+
+
+@pytest.fixture
+def gce_resource_with_image(
+        gce_template,
+        download_cert,
+        default_architecture,
+        module_os,
+        module_loc,
+        module_org
+):
+    with Session('gce_tests') as session:
+        # Until the CLI and API support is added for GCE,
+        # creating GCE CR from UI
+        cr_name = gen_string('alpha')
+        vm_user = gen_string('alpha')
+        session.computeresource.create({
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['google'],
+            'provider_content.google_project_id': settings.gce.project_id,
+            'provider_content.client_email': settings.gce.client_email,
+            'provider_content.certificate_path': settings.gce.cert_path,
+            'provider_content.zone.value': settings.gce.zone,
+            'organizations.resources.assigned': [module_org.name],
+            'locations.resources.assigned': [module_loc.name],
+        })
+    gce_cr = entities.AbstractComputeResource().search(
+        query={'search': 'name={}'.format(cr_name)})[0]
+    entities.Image(
+        architecture=default_architecture, compute_resource=gce_cr, name='autogce_img',
+        operatingsystem=module_os, username=vm_user, uuid=gce_template
+    ).create()
+    return gce_cr
+
+
+@pytest.fixture
+def gce_hostgroup(
+        module_org,
+        module_loc,
+        default_partition_table,
+        default_architecture,
+        module_os,
+        module_environment,
+        module_proxy,
+        gce_domain,
+        gce_resource_with_image,
+        module_lce,
+        module_content_view,
+):
+    return entities.HostGroup(
+        architecture=default_architecture,
+        compute_resource=gce_resource_with_image,
+        domain=gce_domain,
+        lifecycle_environment=module_lce,
+        content_view=module_content_view,
+        location=[module_loc],
+        environment=module_environment,
+        puppet_proxy=module_proxy,
+        puppet_ca_proxy=module_proxy,
+        content_source=module_proxy,
+        operatingsystem=module_os,
+        organization=[module_org],
+        ptable=default_partition_table,
+    ).create()
+
+
+@tier4
+@skip_if_not_set('gce')
+def test_positive_gce_provision_end_to_end(
+        session,
+        module_org,
+        module_loc,
+        module_os,
+        gce_domain,
+        gce_hostgroup,
+        gce_client
+):
+    """Provision Host on GCE compute resource
+
+    :id: 8d1877bb-fbc2-4969-a13e-e95e4df4f4cd
+
+    :expectedresults: Host is provisioned successfully
+
+    :CaseLevel: System
+    """
+    name = gen_string('alpha').lower()
+    hostname = u'{0}.{1}'.format(name, gce_domain.name)
+    gceapi_vmname = hostname.replace('.', '-')
+    root_pwd = gen_string('alpha', 15)
+    with Session('gce_tests') as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        # Provision GCE Host
+        try:
+            skip_yum_update_during_provisioning(template='Kickstart default finish')
+            session.host.create({
+                'host.name': name,
+                'host.hostgroup': gce_hostgroup.name,
+                'provider_content.virtual_machine.machine_type': 'g1-small',
+                'provider_content.virtual_machine.external_ip': True,
+                'provider_content.virtual_machine.network': 'default',
+                'operating_system.operating_system': module_os.title,
+                'operating_system.image': 'autogce_img',
+                'operating_system.root_password': root_pwd
+            })
+            wait_for(
+                lambda: entities.Host().search(
+                    query={'search': 'name={}'.format(
+                        hostname)})[0].build_status_label != 'Pending installation',
+                timeout=600,
+                delay=15,
+                silent_failure=True,
+                handle_exception=True
+            )
+            # 1. Host Creation Assertions
+            # 1.1 UI based Assertions
+            host_info = session.host.get_details(hostname)
+            assert session.host.search(hostname)[0]['Name'] == hostname
+            assert host_info['properties']['properties_table']['Build'] == 'Installed'
+            # 1.2 GCE Backend Assertions
+            gceapi_vm = gce_client.get_vm(gceapi_vmname)
+            assert gceapi_vm.is_running
+            assert gceapi_vm
+            assert gceapi_vm.name == gceapi_vmname
+            assert gceapi_vm.zone == settings.gce.zone
+            assert gceapi_vm.ip == host_info['properties']['properties_table']['IP Address']
+            assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
+            assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
+            # 2. Host Deletion Assertions
+            message = session.host.delete(hostname)
+            # 2.1 UI based Assertions
+            assert (
+                       'Are you sure you want to delete host {}? This will delete the VM and '
+                       'its disks, and is irreversible. This behavior can be changed via '
+                       'global setting "Destroy associated VM on host delete".'.format(
+                           hostname)
+                   ) == message
+            assert not session.host.search(hostname)
+            # 2.2 GCE Backend Assertions
+            assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
+        except Exception as error:
+            gcehost = entities.Host().search(query={'search': 'name={}'.format(hostname)})
+            if gcehost:
+                gcehost[0].delete()
+            raise error
+        finally:
+            gce_client.disconnect()
+            skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
