@@ -1809,7 +1809,6 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
 
 
-@skip_if_bug_open('bugzilla', 1729153)
 @upgrade
 @tier2
 def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
@@ -1852,7 +1851,8 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
         assert lce['name'] not in cvv['Environments']
         session.contentview.delete(cv['name'])
         lce_values = session.lifecycleenvironment.read(lce['name'])
-        assert len(lce_values['content_views']['resources']) == 0
+        assert 'There are no Content Views that match the criteria.' in \
+               str(lce_values['content_views']['resources'])
 
 
 @tier2
