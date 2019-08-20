@@ -63,8 +63,8 @@ class VirtWhoConfigTestCase(CLITestCase):
         elif self.hypervisor_type == 'kubevirt':
             args[u'kubeconfig'] = self.hypervisor_config_file
         else:
-            args['hypervisor-username'] = self.hypervisor_username
-            args['hypervisor-password'] = self.hypervisor_password
+            args[u'hypervisor-username'] = self.hypervisor_username
+            args[u'hypervisor-password'] = self.hypervisor_password
         return args
 
     @tier1
