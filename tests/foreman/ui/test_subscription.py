@@ -62,10 +62,11 @@ def test_positive_end_to_end(session):
 
     :expectedresults:
         1. The manifest was uploaded successfully.
-        2. When attempting to delete the manifest the confirmation dialog contains informative
+        2. Manifest import is reflected at the dashboard
+        3. When attempting to delete the manifest the confirmation dialog contains informative
             message which warns user about downsides and consequences of manifest deletion.
-        3. When hitting cancel the manifest was not deleted.
-        4. When deleting and confirming deletion, the manifest was deleted successfully.
+        4. When hitting cancel the manifest was not deleted.
+        5. When deleting and confirming deletion, the manifest was deleted successfully.
 
     :BZ: 1266827
 
@@ -96,6 +97,18 @@ def test_positive_end_to_end(session):
         session.subscription.add_manifest(temporary_local_manifest_path,
                                           ignore_error_messages=['404 Not Found'])
         assert session.subscription.has_manifest
+        # dashboard check
+        subscription_values = session.dashboard.read('SubscriptionStatus')['subscriptions']
+        assert subscription_values[0][
+            'Subscription Status'] == 'Active Subscriptions'
+        assert int(subscription_values[0]['Count']) >= 1
+        assert subscription_values[1][
+            'Subscription Status'] == 'Subscriptions Expiring in 120 Days'
+        assert int(subscription_values[1]['Count']) == 0
+        assert subscription_values[2][
+            'Subscription Status'] == 'Recently Expired Subscriptions'
+        assert int(subscription_values[2]['Count']) == 0
+        # manifest delete testing
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
         assert session.subscription.has_manifest

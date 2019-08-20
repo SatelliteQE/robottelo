@@ -280,6 +280,12 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert hc_values['details']['content_hosts'] == '1'
         assert hc_values['details']['content_host_limit'] == '2'
         assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
+
+        # View host collection on dashboard
+        values = session.dashboard.read('HostCollections')
+        assert [hc_name, '1'] in [[coll['Name'], coll['Content Hosts']]
+                                  for coll in values['collections']]
+
         # Update host collection with new name
         session.hostcollection.update(hc_name, {'details.name': new_name})
         assert session.hostcollection.search(new_name)[0]['Name'] == new_name

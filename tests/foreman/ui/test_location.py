@@ -100,7 +100,7 @@ def test_positive_end_to_end(session):
         assert loc_values['users']['resources']['assigned'][0] == user.login
         assert hostgroup.name in loc_values['host_groups']['resources']['unassigned']
         assert loc_values[
-            'environments']['resources']['assigned'][0] == env.name
+           'environments']['resources']['assigned'][0] == env.name
         assert loc_values['media']['resources']['assigned'][0] == media.name
         assert template.name in loc_values[
             'provisioning_templates']['resources']['unassigned']

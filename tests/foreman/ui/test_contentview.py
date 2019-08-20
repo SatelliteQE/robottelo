@@ -1358,7 +1358,8 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
 
 @tier2
 def test_positive_promote_with_custom_content(session, module_org):
-    """Attempt to promote a content view containing custom content
+    """Attempt to promote a content view containing custom content,
+        check dashboard
 
     :id: 7c2fd8f0-c83f-4725-8953-9590112fae50
 
@@ -1367,6 +1368,8 @@ def test_positive_promote_with_custom_content(session, module_org):
     :expectedresults: Content view can be promoted
 
     :CaseLevel: Integration
+
+    :BZ: 1361793
 
     :CaseImportance: Critical
     """
@@ -1382,6 +1385,26 @@ def test_positive_promote_with_custom_content(session, module_org):
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
+        # dashboard
+        values = session.dashboard.read('ContentViews')
+        assert cv_name in values[
+            'content_views'][0]['Content View']
+        assert values['content_views'][0][
+            'Task'] == 'Promoted to {0}'.format(lce.name)
+        assert 'Success' in values['content_views'][0]['Status']
+        assert cv_name in values[
+            'content_views'][1]['Content View']
+        assert values['content_views'][1]['Task'] == 'Published new version'
+        assert 'Success' in values['content_views'][1]['Status']
+        values = session.dashboard.search('lifecycle_environment={}'.format(
+            lce.name))
+        assert cv_name in values['ContentViews'][
+            'content_views'][0]['Content View']
+        entities.LifecycleEnvironment(id=lce.id).delete()
+        values = session.dashboard.search('lifecycle_environment={}'.format(
+            lce.name))
+        assert cv_name in values['ContentViews'][
+            'content_views'][0]['Content View']
 
 
 @run_in_one_thread
