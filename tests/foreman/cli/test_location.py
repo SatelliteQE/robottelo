@@ -108,7 +108,8 @@ class LocationTestCase(CLITestCase):
         if self.template.template_kind is None:
             template_search = self.template.name
         else:
-            template_search = '{0} ({1})'.format(self.template.name, self.template.template_kind)
+            template_search = '{0} ({1})'.format(
+                self.template.name, entities.TemplateKind().search()[0].name)
         self.assertIn(template_search, loc['templates'])
         self.assertEqual(loc['users'][0], self.user.login)
 
