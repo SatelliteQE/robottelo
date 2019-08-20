@@ -647,7 +647,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
 
     :CaseImportance: High
 
-    :BZ: 1433481
+    :BZ: 1433481, 1743271
     """
     repo_name = gen_string('alpha')
     upstream_username = gen_string('alpha')
