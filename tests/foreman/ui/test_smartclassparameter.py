@@ -292,14 +292,14 @@ def test_positive_create_matcher_attribute_priority(
         )
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [domain.name, module_host.mac]
+        assert output_scp == str([domain.name, module_host.mac])
 
         # That update operation will change nothing, but submit the same form
         session.sc_parameter.update(
             sc_param.parameter, {'parameter.override': True})
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         output_scp = output['classes'][PM_NAME][sc_param.parameter]
-        assert output_scp == [domain.name, module_host.mac]
+        assert output_scp == str([domain.name, module_host.mac])
 
 
 @tier2
