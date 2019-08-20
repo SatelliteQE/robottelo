@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
-from robottelo.helpers import get_data_file, add_remote_execution_ssh_key, ProxyError
+from robottelo.helpers import file_downloader, add_remote_execution_ssh_key, ProxyError
 from robottelo.cli.arfreport import Arfreport
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
@@ -471,12 +471,9 @@ class OpenScapTestCase(CLITestCase):
             'rhel_repo': rhel7_repo,
         }
         tailoring_file_name = gen_string('alpha')
-        tailor_path = get_data_file(settings.oscap.tailoring_path)
-        file_name = tailor_path.split('/')[(len(tailor_path.split('/')) - 1)]
-        ssh.upload_file(
-            local_file=tailor_path,
-            remote_file="/tmp/{0}".format(file_name)
-        )
+        tailor_path = file_downloader(
+            file_url=settings.oscap.tailoring_path,
+            hostname=settings.server.hostname)[0]
         # Creates host_group for rhel7
         make_hostgroup({
             'content-source-id': self.proxy_id,
@@ -489,7 +486,7 @@ class OpenScapTestCase(CLITestCase):
 
         tailor_result = make_tailoringfile({
             'name': tailoring_file_name,
-            'scap-file': '/tmp/{0}'.format(file_name),
+            'scap-file': tailor_path,
             'organization': self.config_env['org_name']
         })
         result = TailoringFiles.info({'name': tailoring_file_name})
@@ -592,12 +589,9 @@ class OpenScapTestCase(CLITestCase):
             'rhel_repo': rhel7_repo,
         }
         tailoring_file_name = gen_string('alpha')
-        tailor_path = get_data_file(settings.oscap.tailoring_path)
-        file_name = tailor_path.split('/')[(len(tailor_path.split('/')) - 1)]
-        ssh.upload_file(
-            local_file=tailor_path,
-            remote_file="/tmp/{0}".format(file_name)
-        )
+        tailor_path = file_downloader(
+            file_url=settings.oscap.tailoring_path,
+            hostname=settings.server.hostname)[0]
         # Creates host_group for rhel7
         make_hostgroup({
             'content-source-id': self.proxy_id,
@@ -607,7 +601,7 @@ class OpenScapTestCase(CLITestCase):
 
         tailor_result = make_tailoringfile({
             'name': tailoring_file_name,
-            'scap-file': '/tmp/{0}'.format(file_name),
+            'scap-file': tailor_path,
             'organization': self.config_env['org_name']
         })
         result = TailoringFiles.info({'name': tailoring_file_name})
