@@ -269,16 +269,15 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = sc_param.read()
         self.assertEqual(sc_param.required, True)
         self.assertEqual(sc_param.default_value, True)
-        value = gen_string('alpha')
         entities.OverrideValue(
             smart_class_parameter=sc_param,
             match='domain=example.com',
-            value=value,
+            value=False,
         ).create()
         sc_param.update(['override', 'required'])
         sc_param = sc_param.read()
         self.assertEqual(sc_param.required, True)
-        self.assertEqual(sc_param.override_values[0]['value'], value)
+        self.assertEqual(sc_param.override_values[0]['value'], False)
 
     @tier1
     def test_negative_validate_matcher_value_required_check(self):
