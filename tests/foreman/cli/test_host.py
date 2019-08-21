@@ -56,8 +56,6 @@ from robottelo.cli.factory import (
 from robottelo.cli.host import Host, HostInterface
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.cli.medium import Medium
-from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
@@ -150,7 +148,7 @@ class HostCreateTestCase(CLITestCase):
             'search': u'content_view="{0}"'.format(cls.puppet_cv['name'])})[0]
         cls.puppet_class = Puppet.info({
             'name': puppet_modules[0]['name'],
-            'environment': cls.puppet_env['name'],
+            'puppet-environment': cls.puppet_env['name'],
         })
         # adding org to a puppet env
         Org.set_parameter({
@@ -171,37 +169,61 @@ class HostCreateTestCase(CLITestCase):
         })[0]
 
     @tier1
-    def test_positive_create_with_name(self):
-        """A host can be created with a random name
+    @upgrade
+    def test_positive_create_and_delete(self):
+        """A host can be created and deleted
 
-        :id: 2e8dd25d-47ed-4131-bba6-1ff024808d05
+        :id: 59fcbe50-9c6b-4c3c-87b3-272b4b584fb3
 
-        :expectedresults: A host is created and the name matches
+        :expectedresults: A host is created and deleted
+
+        :BZ: 1260697, 1313056, 1361309
 
         :CaseImportance: Critical
         """
-        for name in valid_hosts_list():
-            with self.subTest(name):
-                host = entities.Host()
-                host.create_missing()
-                result = make_host({
-                    u'architecture-id': host.architecture.id,
-                    u'domain-id': host.domain.id,
-                    u'environment-id': host.environment.id,
-                    u'location-id': host.location.id,
-                    u'mac': host.mac,
-                    u'medium-id': host.medium.id,
-                    u'name': name,
-                    u'operatingsystem-id': host.operatingsystem.id,
-                    u'organization-id': host.organization.id,
-                    u'partition-table-id': host.ptable.id,
-                    u'puppet-proxy-id': self.puppet_proxy['id'],
-                    u'root-password': host.root_pass,
-                })
-                self.assertEqual(
-                    '{0}.{1}'.format(name, host.domain.read().name),
-                    result['name'],
-                )
+        name = valid_hosts_list()[0]
+        host = entities.Host()
+        host.create_missing()
+        interface = (
+            "type=interface,mac={0},identifier=eth0,name={1},domain_id={2},"
+            "ip={3},primary=true,provision=true"
+        ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
+        new_host = make_host({
+            u'architecture-id': host.architecture.id,
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'domain-id': host.domain.id,
+            u'environment-id': host.environment.id,
+            u'interface': interface,
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+            u'location-id': host.location.id,
+            u'mac': host.mac,
+            u'medium-id': host.medium.id,
+            u'name': name,
+            u'operatingsystem-id': host.operatingsystem.id,
+            u'organization-id': host.organization.id,
+            u'partition-table-id': host.ptable.id,
+            u'root-password': host.root_pass,
+        })
+        self.assertEqual('{0}.{1}'.format(name, host.domain.read().name),
+                         new_host['name'])
+        self.assertEqual(new_host['organization'], host.organization.name)
+        self.assertEqual(
+            new_host['content-information']['content-view']['name'],
+            self.DEFAULT_CV['name'],
+        )
+        self.assertEqual(
+            new_host['content-information']['lifecycle-environment']['name'],
+            self.LIBRARY['name'],
+        )
+        host_interface = HostInterface.info({
+            u'host-id': new_host['id'],
+            u'id': new_host['network-interfaces'][0]['id']
+        })
+        self.assertEqual(host_interface['domain'], host.domain.read().name)
+
+        Host.delete({'id': new_host['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Host.info({'id': new_host['id']})
 
     @tier1
     def test_positive_add_interface_by_id(self):
@@ -237,139 +259,20 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(host_interface['domain'], domain['name'])
         self.assertEqual(host_interface['mac-address'], mac)
 
+    @run_in_one_thread
     @tier2
-    @upgrade
-    def test_positive_create_with_interface_by_id(self):
-        """A host with defined interface can be created. Use domain id as one
-        of the interface keys
+    def test_positive_create_and_update_with_content_source(self):
+        """Create a host with content source specified and update content
+            source
 
-        :id: 5455632c-ec87-4b45-ad88-cc8b4b1167c2
-
-        :expectedresults: A host is created and has proper name. Assigned
-            interface has correct domain name
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha').lower()
-        hostgroup = make_hostgroup({
-            'content-view-id': self.new_cv['id'],
-            'lifecycle-environment-id': self.new_lce['id'],
-            'organization-ids': self.new_org['id'],
-        })
-        host = entities.Host(
-            organization=entities.Organization(id=self.new_org['id']).read()
-            )
-        host.create_missing()
-        interface = (
-            "type=interface,mac={0},identifier=eth0,name={1},domain_id={2},"
-            "ip={3},primary=true,provision=true"
-        ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
-        result = make_host({
-            u'architecture-id': host.architecture.id,
-            u'hostgroup-id': hostgroup['id'],
-            u'location-id': host.location.id,
-            u'medium-id': host.medium.id,
-            u'name': name,
-            u'operatingsystem-id': host.operatingsystem.id,
-            u'organization-id': host.organization.id,
-            u'partition-table-id': host.ptable.id,
-            u'root-password': host.root_pass,
-            u'interface': interface,
-        })
-        self.assertEqual(
-            '{0}.{1}'.format(name, host.domain.read().name),
-            result['name'],
-        )
-        host_interface = HostInterface.info({
-            u'host-id': result['id'],
-            u'id': result['network-interfaces'][0]['id']
-        })
-        self.assertEqual(host_interface['domain'], host.domain.read().name)
-
-    @tier2
-    def test_positive_create_with_interface_by_name(self):
-        """A host with defined interface can be created. Use domain name as one
-        of the interface keys
-
-        :id: 6185f8d7-fdb5-4749-ad82-91ff471f91b8
-
-        :expectedresults: A host is created and has proper name. Assigned
-            interface has correct domain name
-
-        :BZ: 1384497
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alpha').lower()
-        hostgroup = make_hostgroup({
-            'content-view-id': self.new_cv['id'],
-            'lifecycle-environment-id': self.new_lce['id'],
-            'organization-ids': self.new_org['id'],
-        })
-        host = entities.Host(
-            organization=entities.Organization(id=self.new_org['id']).read()
-        )
-        host.create_missing()
-        interface = (
-            "type=interface,mac={0},identifier=eth0,name={1},domain={2},"
-            "ip={3},primary=true,provision=true"
-        ).format(host.mac, gen_string('alpha'), host.domain.name, gen_ipaddr())
-        result = make_host({
-            u'architecture-id': host.architecture.id,
-            u'hostgroup-id': hostgroup['id'],
-            u'location-id': host.location.id,
-            u'medium-id': host.medium.id,
-            u'name': name,
-            u'operatingsystem-id': host.operatingsystem.id,
-            u'organization-id': host.organization.id,
-            u'partition-table-id': host.ptable.id,
-            u'root-password': host.root_pass,
-            u'interface': interface,
-        })
-        self.assertEqual(
-            '{0}.{1}'.format(name, host.domain.read().name),
-            result['name'],
-        )
-        host_interface = HostInterface.info({
-            u'host-id': result['id'],
-            u'id': result['network-interfaces'][0]['id']
-        })
-        self.assertEqual(host_interface['domain'], host.domain.read().name)
-
-    @tier1
-    def test_positive_create_with_org_name(self):
-        """Check if host can be created with organization name
-
-        :id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
-
-        :expectedresults: Host is created using organization name
-
-        :CaseImportance: Critical
-        """
-        new_host = make_fake_host({
-            'content-view-id': self.DEFAULT_CV['id'],
-            'lifecycle-environment-id': self.LIBRARY['id'],
-            'organization': self.new_org['name'],
-        })
-        self.assertEqual(new_host['organization'], self.new_org['name'])
-
-    @skip_if_bug_open('bugzilla', 1483252)
-    @tier2
-    def test_positive_create_with_content_source(self):
-        """Create a host with content source specified
-
-        :id: 6068bd4d-18d8-47a2-99f4-3e0ee9208104
+        :id: 5712f4db-3610-447d-b1da-0fe461577d59
 
         :customerscenario: true
 
-        :BZ: 1260697, 1483252, 1313056
+        :BZ: 1260697, 1483252, 1313056, 1488465
 
         :expectedresults: A host is created with expected content source
-            assigned
+            assigned and then content source is successfully updated
 
         :CaseImportance: High
         """
@@ -384,6 +287,16 @@ class HostCreateTestCase(CLITestCase):
         })
         self.assertEqual(host['content-information']['content-source']['name'],
                          content_source['name'])
+        new_content_source = make_proxy()
+        self.addCleanup(capsule_cleanup, new_content_source['id'])
+        self.addCleanup(Host.delete, {'id': host['id']})
+        Host.update({
+            'id': host['id'],
+            'content-source-id': new_content_source['id'],
+        })
+        host = Host.info({'id': host['id']})
+        self.assertEqual(host['content-information']['content-source']['name'],
+                         new_content_source['name'])
 
     @tier2
     def test_negative_create_with_content_source(self):
@@ -405,44 +318,6 @@ class HostCreateTestCase(CLITestCase):
                 'organization': self.new_org['name'],
             })
 
-    @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1483252)
-    @skip_if_bug_open('bugzilla', 1488465)
-    @tier2
-    def test_positive_update_content_source(self):
-        """Update host's content source
-
-        :id: 2364dbb7-2ccd-46c0-baf1-5e179a157027
-
-        :customerscenario: true
-
-        :BZ: 1260697, 1483252, 1488465
-
-        :expectedresults: Content source was successfully updated
-
-        :CaseImportance: High
-        """
-        content_source = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        host = make_fake_host({
-            'content-source-id': content_source['id'],
-            'content-view-id': self.DEFAULT_CV['id'],
-            'lifecycle-environment-id': self.LIBRARY['id'],
-            'organization': self.new_org['name'],
-        })
-        new_content_source = make_proxy()
-        self.addCleanup(capsule_cleanup, new_content_source['id'])
-        self.addCleanup(Host.delete, {'id': host['id']})
-        Host.update({
-            'id': host['id'],
-            'content-source-id': new_content_source['id'],
-        })
-        host = Host.info({'id': host['id']})
-        self.assertEqual(host['content-information']['content-source']['name'],
-                         new_content_source['name'])
-
-    @skip_if_bug_open('bugzilla', 1483252)
     @tier2
     def test_negative_update_content_source(self):
         """Attempt to update host's content source with invalid value
@@ -475,59 +350,14 @@ class HostCreateTestCase(CLITestCase):
                          content_source['name'])
 
     @tier1
-    def test_positive_create_with_cv_default(self):
-        """Check if host can be created with default content view ('Default
-        Organization View')
+    def test_positive_create_with_lce_and_cv(self):
+        """Check if host can be created with new lifecycle and
+            new content view
 
-        :id: bb69a70e-17f9-4639-802d-90e6a4520afa
+        :id: c2075131-6b25-4af3-b1e9-a7a9190dd6f8
 
-        :expectedresults: Host is created, default content view is associated
-
-        :BZ: 1313056
-
-        :CaseImportance: Critical
-        """
-        new_host = make_fake_host({
-            'content-view-id': self.DEFAULT_CV['id'],
-            'lifecycle-environment-id': self.LIBRARY['id'],
-            'organization-id': self.new_org['id'],
-        })
-        self.assertEqual(
-            new_host['content-information']['content-view']['name'],
-            self.DEFAULT_CV['name'],
-        )
-
-    @tier1
-    def test_positive_create_with_lce_library(self):
-        """Check if host can be created with default lifecycle environment
-        ('Library')
-
-        :id: 0093be1c-3664-448e-87f5-758bab34958a
-
-        :expectedresults: Host is created, default lifecycle environment is
-            associated
-
-        :BZ: 1313056
-
-        :CaseImportance: Critical
-        """
-        new_host = make_fake_host({
-            'content-view-id': self.DEFAULT_CV['id'],
-            'lifecycle-environment-id': self.LIBRARY['id'],
-            'organization-id': self.new_org['id'],
-        })
-        self.assertEqual(
-            new_host['content-information']['lifecycle-environment']['name'],
-            self.LIBRARY['name'],
-        )
-
-    @tier1
-    def test_positive_create_with_lce(self):
-        """Check if host can be created with new lifecycle
-
-        :id: e102b034-0011-471d-ba21-5ef8d129a61f
-
-        :expectedresults: Host is created using new lifecycle
+        :expectedresults: Host is created using new lifecycle and
+            new content view
 
         :BZ: 1313056
 
@@ -542,48 +372,9 @@ class HostCreateTestCase(CLITestCase):
             new_host['content-information']['lifecycle-environment']['name'],
             self.new_lce['name'],
         )
-
-    @tier1
-    def test_positive_create_with_cv(self):
-        """Check if host can be created with new content view
-
-        :id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
-
-        :expectedresults: Host is created using new published, promoted cv
-
-        :BZ: 1313056
-
-        :CaseImportance: Critical
-        """
-        new_host = make_fake_host({
-            'content-view-id': self.promoted_cv['id'],
-            'lifecycle-environment-id': self.new_lce['id'],
-            'organization-id': self.new_org['id'],
-        })
         self.assertEqual(
             new_host['content-information']['content-view']['name'],
             self.promoted_cv['name'],
-        )
-
-    @tier1
-    def test_positive_create_with_puppet_class_id(self):
-        """Check if host can be created with puppet class id
-
-        :id: 6bb1bbdc-23fd-4493-9283-fbb70d72b2eb
-
-        :expectedresults: Host is created and has puppet class assigned
-
-        :CaseImportance: Critical
-        """
-        host = make_fake_host({
-            'puppet-class-ids': self.puppet_class['id'],
-            'environment-id': self.puppet_env['id'],
-            'organization-id': self.new_org['id'],
-        })
-        host_classes = Host.puppetclasses({'host-id': host['id']})
-        self.assertIn(
-            self.puppet_class['id'],
-            [puppet['id'] for puppet in host_classes]
         )
 
     @tier1
@@ -744,124 +535,14 @@ class HostCreateTestCase(CLITestCase):
             # host being already registered.
             self.assertEqual(result.return_code, 64)
 
-    @tier3
-    def test_positive_register_twice_with_uppercase_chars_in_hostname(self):
-        """Register twice a client host that contain upper case chars in
-        hostname.
-
-        :id: 59c20379-b878-46ce-ad3e-ed6969ea6a5f
-
-        :customerscenario: true
-
-        :steps:
-            1. Create a client host with upper case chars in hostname
-            2. register the host with command "subscription-manager register"
-            3. register the host a second time with command
-                "subscription-manager register --force"
-
-        :expectedresults: host registered the second time, without error
-
-        :BZ: 1361309
-
-        :CaseLevel: System
-        """
-        activation_key = make_activation_key({
-            'content-view-id': self.promoted_cv['id'],
-            'lifecycle-environment-id': self.new_lce['id'],
-            'organization-id': self.new_org['id'],
-        })
-        name = gen_string('alpha')
-        # make all the odd chars as upper case and the even one lower case
-        # to have a name like OpQrSTuVw
-        name_chars = list(name.lower())
-        for i in range(len(name_chars)):
-            if i % 2 == 0:
-                name_chars[i] = name_chars[i].upper()
-        target_image = ''.join(name_chars)
-        with VirtualMachine(
-                distro=DISTRO_RHEL7, target_image=target_image) as client:
-            self.assertIn(target_image, client.hostname)
-            result = client.run('hostname')
-            self.assertIn(target_image, '\n'.join(result.stdout))
-            client.install_katello_ca()
-            client.register_contenthost(
-                self.new_org['label'],
-                activation_key['name'],
-                force=False,
-            )
-            self.assertTrue(client.subscribed)
-            result = client.register_contenthost(
-                    self.new_org['label'],
-                    activation_key['name'],
-                    force=True,
-                )
-            self.assertFalse(result.stderr)
-            self.assertIn(
-                'The system has been registered with ID',
-                '\n'.join(result.stdout)
-            )
-
     @tier2
-    def test_positive_list_scparams_by_id(self):
-        """List all smart class parameters using host id
+    def test_positive_list_scparams_and_smartvariables(self):
+        """List all smart class parameters and smart variables using host id
 
-        :id: 596322f6-9fdc-441a-a36d-ae2f22132b38
+        :id: 61814875-5ccd-4c04-a06f-d36fe089d514
 
-        :expectedresults: Overridden sc-param from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        host = make_fake_host({
-            'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
-            'organization-id': self.new_org['id'],
-        })
-        # Override one of the sc-params from puppet class
-        sc_params_list = SmartClassParameter.list({
-            'environment': self.puppet_env['name'],
-            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
-        })
-        scp_id = choice(sc_params_list)['id']
-        SmartClassParameter.update({'id': scp_id, 'override': 1})
-        # Verify that affected sc-param is listed
-        host_scparams = Host.sc_params({'host': host['name']})
-        self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
-
-    @tier2
-    def test_positive_list_scparams_by_name(self):
-        """List all smart class parameters using host name
-
-        :id: 26e406ea-56f5-4813-bb93-e908c9015ee3
-
-        :expectedresults: Overridden sc-param from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        host = make_fake_host({
-            'puppet-classes': self.puppet_class['name'],
-            'environment': self.puppet_env['name'],
-            'organization-id': self.new_org['id'],
-        })
-        # Override one of the sc-params from puppet class
-        sc_params_list = SmartClassParameter.list({
-            'environment': self.puppet_env['name'],
-            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
-        })
-        scp_id = choice(sc_params_list)['id']
-        SmartClassParameter.update({'id': scp_id, 'override': 1})
-        # Verify that affected sc-param is listed
-        host_scparams = Host.sc_params({'host': host['name']})
-        self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
-
-    @tier2
-    def test_positive_list_smartvariables_by_id(self):
-        """List all smart variables using host id
-
-        :id: 22d85dea-0fc0-47c2-8f38-c6f6712dad7e
-
-        :expectedresults: Smart variable from puppet class is listed
+        :expectedresults: Overridden sc-param and smart variable from puppet
+            class are listed
 
         :CaseLevel: Integration
         """
@@ -879,29 +560,16 @@ class HostCreateTestCase(CLITestCase):
         self.assertIn(
             smart_variable['id'], [sv['id'] for sv in host_variables])
 
-    @tier2
-    def test_positive_list_smartvariables_by_name(self):
-        """List all smart variables using host name
-
-        :id: a254d3a6-cf7f-4847-acb6-9813d23369d4
-
-        :expectedresults: Smart variable from puppet class is listed
-
-        :CaseLevel: Integration
-        """
-        # Create hostgroup with associated puppet class
-        host = make_fake_host({
-            'puppet-classes': self.puppet_class['name'],
+        # Override one of the sc-params from puppet class
+        sc_params_list = SmartClassParameter.list({
             'environment': self.puppet_env['name'],
-            'organization-id': self.new_org['id'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
         })
-        # Create smart variable
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
         # Verify that affected sc-param is listed
-        host_variables = Host.smart_variables({'host': host['name']})
-        self.assertIn(
-            smart_variable['id'], [sv['id'] for sv in host_variables])
+        host_scparams = Host.sc_params({'host': host['name']})
+        self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
 
     @tier3
     def test_positive_list(self):
@@ -1072,7 +740,6 @@ class HostCreateTestCase(CLITestCase):
             hostgroup['content-view']['name'],
         )
 
-    @skip_if_bug_open('bugzilla', '1436162')
     @tier3
     def test_positive_create_inherit_nested_hostgroup(self):
         """Create two nested host groups with the same name, but different
@@ -1226,64 +893,6 @@ class HostCreateTestCase(CLITestCase):
         """
 
 
-class HostDeleteTestCase(CLITestCase):
-    """Tests for deleting the hosts via CLI."""
-
-    def setUp(self):
-        """Create a host to use in tests"""
-        super(HostDeleteTestCase, self).setUp()
-        # Use the default installation smart proxy
-        self.puppet_proxy = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        self.host = entities.Host()
-        self.host.create_missing()
-        self.host = make_host({
-            u'architecture-id': self.host.architecture.id,
-            u'domain-id': self.host.domain.id,
-            u'environment-id': self.host.environment.id,
-            # pylint:disable=no-member
-            u'location-id': self.host.location.id,
-            u'mac': self.host.mac,
-            u'medium-id': self.host.medium.id,
-            u'name': gen_string('alphanumeric'),
-            u'operatingsystem-id': self.host.operatingsystem.id,
-            # pylint:disable=no-member
-            u'organization-id': self.host.organization.id,
-            u'partition-table-id': self.host.ptable.id,
-            u'puppet-proxy-id': self.puppet_proxy['id'],
-            u'root-password': self.host.root_pass,
-        })
-
-    @tier1
-    def test_positive_delete_by_id(self):
-        """Create a host and then delete it by id.
-
-        :id: e687a685-ab8b-4c5f-97f9-e14d3ab52f29
-
-        :expectedresults: Host is deleted
-
-        :CaseImportance: Critical
-        """
-        Host.delete({'id': self.host['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            Host.info({'id': self.host['id']})
-
-    @tier1
-    def test_positive_delete_by_name(self):
-        """Create a host and then delete it by name.
-
-        :id: 93f7504d-9a63-491f-8fdb-ed8017aefab9
-
-        :expectedresults: Host is deleted
-
-        :CaseImportance: Critical
-        """
-        Host.delete({'name': self.host['name']})
-        with self.assertRaises(CLIReturnCodeError):
-            Host.info({'name': self.host['name']})
-
-
 class HostUpdateTestCase(CLITestCase):
     """Tests for updating the hosts."""
 
@@ -1312,351 +921,63 @@ class HostUpdateTestCase(CLITestCase):
             u'root-password': self.host_args.root_pass,
         })
 
-    @skip_if_bug_open('bugzilla', '1343392')
     @tier1
-    def test_positive_update_name_by_id(self):
-        """A host can be updated with a new random name. Use id to
-        access the host
+    def test_positive_update_parameters_by_name(self):
+        """A host can be updated with a new name, mac address, domain,
+            environment, architecture, operating system and medium. Use id
+            to access the host
 
-        :id: 058dbcbf-d543-483d-b755-be0602588464
+        :id: 3a4c0b5a-5d87-477a-b80a-9af0ec3b4b6f
 
-        :expectedresults: A host is updated and the name matches
+        :expectedresults: A host is updated and the name, mac address, domain,
+            environment, architecture, operating system and medium matches
+
+        :BZ: 1343392
 
         :CaseImportance: Critical
         """
-        for new_name in valid_hosts_list():
-            with self.subTest(new_name):
-                Host.update({
-                    'id': self.host['id'],
-                    'new-name': new_name,
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertEqual(
-                    u'{0}.{1}'.format(
-                        new_name, self.host['network']['domain']),
-                    self.host['name']
-                )
-
-    @skip_if_bug_open('bugzilla', '1343392')
-    @tier1
-    def test_positive_update_name_by_name(self):
-        """A host can be updated with a new random name. Use name to
-        access the host
-
-        :id: f95a5952-17bd-49da-b2a7-c79f0614f1c7
-
-        :expectedresults: A host is updated and the name matches
-
-        :CaseImportance: Critical
-        """
-        for new_name in valid_hosts_list():
-            with self.subTest(new_name):
-                Host.update({
-                    'name': self.host['name'],
-                    'new-name': new_name,
-                })
-                self.host = Host.info({
-                    'name': u'{0}.{1}'.format(
-                        new_name, self.host['network']['domain'])})
-                self.assertEqual(
-                    u'{0}.{1}'.format(
-                        new_name, self.host['network']['domain']),
-                    self.host['name'],
-                )
-
-    @tier1
-    def test_positive_update_mac_by_id(self):
-        """A host can be updated with a new random MAC address. Use id
-        to access the host
-
-        :id: 72ed9ae8-989a-46d1-8b7d-46f5db106e75
-
-        :expectedresults: A host is updated and the MAC address matches
-
-        :CaseImportance: Critical
-        """
+        new_name = valid_hosts_list()[0]
         new_mac = gen_mac(multicast=False)
-        Host.update({
-            'id': self.host['id'],
-            'mac': new_mac,
-        })
-        self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['network']['mac'], new_mac)
-
-    @tier1
-    def test_positive_update_mac_by_name(self):
-        """A host can be updated with a new random MAC address. Use name
-        to access the host
-
-        :id: a422788d-5473-4846-a86b-90d8f236285a
-
-        :expectedresults: A host is updated and the MAC address matches
-
-        :CaseImportance: Critical
-        """
-        new_mac = gen_mac(multicast=False)
-        Host.update({
-            'mac': new_mac,
-            'name': self.host['name'],
-        })
-        self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['network']['mac'], new_mac)
-
-    @tier2
-    def test_positive_update_domain_by_id(self):
-        """A host can be updated with a new domain. Use entities ids for
-        association
-
-        :id: 3aac0896-d16a-46ee-afe9-2d3ecea6ca9b
-
-        :expectedresults: A host is updated and the domain matches
-
-        :CaseLevel: Integration
-        """
         new_domain = make_domain({
-            'location-id': self.host_args.location.id,
-            'organization-id': self.host_args.organization.id,
+            'locations': self.host_args.location.name,
+            'organizations': self.host_args.organization.name,
         })
-        Host.update({
-            'domain-id': new_domain['id'],
-            'id': self.host['id'],
-        })
-        self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['network']['domain'], new_domain['name'])
-
-    @tier2
-    def test_positive_update_domain_by_name(self):
-        """A host can be updated with a new domain. Use entities names
-        for association
-
-        :id: 9b4fb1b9-a226-4b8a-bfaf-1121de7df5bc
-
-        :expectedresults: A host is updated and the domain matches
-
-        :CaseLevel: Integration
-        """
-        new_domain = make_domain({
-            'location': self.host_args.location.name,
-            'organization': self.host_args.organization.name,
-        })
-        Host.update({
-            'domain': new_domain['name'],
-            'name': self.host['name'],
-        })
-        self.host = Host.info({
-            'name': '{0}.{1}'.format(
-                self.host['name'].split('.')[0],
-                new_domain['name'],
-            )
-        })
-        self.assertEqual(self.host['network']['domain'], new_domain['name'])
-
-    @tier2
-    def test_positive_update_env_by_id(self):
-        """A host can be updated with a new environment. Use entities
-        ids for association
-
-        :id: 4e1d1e31-fa84-43e4-9e66-7fb953767ee5
-
-        :expectedresults: A host is updated and the environment matches
-
-        :CaseLevel: Integration
-        """
-        new_env = make_environment({
-            'location-ids': self.host_args.location.id,
-            'organization-ids': self.host_args.organization.id,
-        })
-        Host.update({
-            'environment-id': new_env['id'],
-            'id': self.host['id'],
-        })
-        self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['puppet-environment'], new_env['name'])
-
-    @tier2
-    def test_positive_update_env_by_name(self):
-        """A host can be updated with a new environment. Use entities
-        names for association
-
-        :id: f0ec469a-7550-4f05-b39c-e68b9267247d
-
-        :expectedresults: A host is updated and the environment matches
-
-        :CaseLevel: Integration
-        """
         new_env = make_environment({
             'locations': self.host_args.location.name,
             'organizations': self.host_args.organization.name,
         })
-        Host.update({
-            'environment': new_env['name'],
-            'name': self.host['name'],
-        })
-        self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['puppet-environment'], new_env['name'])
-
-    @tier2
-    def test_positive_update_arch_by_id(self):
-        """A host can be updated with a new architecture. Use entities
-        ids for association
-
-        :id: a4546fd6-997a-44e4-853a-eac235ea87b0
-
-        :expectedresults: A host is updated and the architecture matches
-
-        :CaseLevel: Integration
-        """
-        new_arch = make_architecture({
-            'location-id': self.host_args.location.id,
-            'organization-id': self.host_args.organization.id,
-        })
-        OperatingSys.add_architecture({
-            'architecture-id': new_arch['id'],
-            'id': self.host_args.operatingsystem.id,
-        })
-        Host.update({
-            'architecture-id': new_arch['id'],
-            'id': self.host['id'],
-        })
-        self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(
-            self.host['operating-system']['architecture'], new_arch['name'])
-
-    @tier2
-    def test_positive_update_arch_by_name(self):
-        """A host can be updated with a new architecture. Use entities
-        names for association
-
-        :id: 92da3782-47db-4701-aaab-3ea974043d20
-
-        :expectedresults: A host is updated and the architecture matches
-
-        :CaseLevel: Integration
-        """
-        new_arch = make_architecture({
-            'location': self.host_args.location.name,
-            'organization': self.host_args.organization.name,
-        })
-        OperatingSys.add_architecture({
-            'architecture': new_arch['name'],
-            'title': self.host_args.operatingsystem.title,
-        })
-        Host.update({
-            'architecture': new_arch['name'],
-            'name': self.host['name'],
-        })
-        self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(
-            self.host['operating-system']['architecture'], new_arch['name'])
-
-    @tier2
-    def test_positive_update_os_by_id(self):
-        """A host can be updated with a new operating system. Use
-        entities ids for association
-
-        :id: 9ea88634-9c14-4519-be6e-fb163897efb7
-
-        :expectedresults: A host is updated and the operating system matches
-
-        :CaseLevel: Integration
-        """
+        new_arch = make_architecture()
         new_os = make_os({
-            'architecture-ids': self.host_args.architecture.id,
+            'architectures': new_arch['name'],
             'partition-table-ids': self.host_args.ptable.id,
         })
-        Medium.add_operating_system({
-            'id': self.host_args.medium.id,
-            'operatingsystem-id': new_os['id'],
-        })
-        Host.update({
-            'id': self.host['id'],
-            'operatingsystem-id': new_os['id'],
-        })
-        self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(
-            self.host['operating-system']['operating-system'], new_os['title'])
-
-    @tier2
-    def test_positive_update_os_by_name(self):
-        """A host can be updated with a new operating system. Use
-        entities names for association
-
-        :id: bd48887f-3db3-47b0-8231-de58884efe57
-
-        :expectedresults: A host is updated and the operating system matches
-
-        :CaseLevel: Integration
-        """
-        new_os = make_os({
-            'architectures': self.host_args.architecture.name,
-            'partition-tables': self.host[
-                'operating-system']['partition-table'],
-        })
-        Medium.add_operating_system({
-            'name': self.host_args.medium.name,
-            'operatingsystem': new_os['title'],
-        })
-        Host.update({
-            'name': self.host['name'],
-            'operatingsystem': new_os['title'],
-        })
-        self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(
-            self.host['operating-system']['operating-system'], new_os['title'])
-
-    @tier2
-    def test_positive_update_medium_by_id(self):
-        """A host can be updated with a new medium. Use entities ids for
-        association
-
-        :id: 899f1eef-07a9-4227-848a-92e377a8d55c
-
-        :expectedresults: A host is updated and the medium matches
-
-        :CaseLevel: Integration
-        """
         new_medium = make_medium({
-            'location-id': self.host_args.location.id,
-            'organization-id': self.host_args.organization.id,
+            'locations': self.host_args.location.name,
+            'organizations': self.host_args.organization.name,
+            'operatingsystems': new_os['title'],
         })
-        Medium.add_operating_system({
-            'id': new_medium['id'],
-            'operatingsystem-id': self.host_args.operatingsystem.id,
-        })
-        new_medium = Medium.info({'id': new_medium['id']})
         Host.update({
-            'id': self.host['id'],
+            'architecture': new_arch['name'],
+            'domain': new_domain['name'],
+            'environment': new_env['name'],
+            'name': self.host['name'],
+            'mac': new_mac,
             'medium-id': new_medium['id'],
+            'new-name': new_name,
+            'operatingsystem': new_os['title'],
         })
         self.host = Host.info({'id': self.host['id']})
         self.assertEqual(
-            self.host['operating-system']['medium'], new_medium['name'])
-
-    @tier2
-    def test_positive_update_medium_by_name(self):
-        """A host can be updated with a new medium. Use entities names
-        for association
-
-        :id: f47edb02-d649-4ca8-94b2-0637ebdac2e8
-
-        :expectedresults: A host is updated and the medium matches
-
-        :CaseLevel: Integration
-        """
-        new_medium = make_medium({
-            'location': self.host_args.location.name,
-            'organization': self.host_args.organization.name,
-        })
-        Medium.add_operating_system({
-            'name': new_medium['name'],
-            'operatingsystem': self.host_args.operatingsystem.title,
-        })
-        new_medium = Medium.info({'name': new_medium['name']})
-        Host.update({
-            'medium': new_medium['name'],
-            'name': self.host['name'],
-        })
-        self.host = Host.info({'name': self.host['name']})
+            u'{0}.{1}'.format(new_name, self.host['network']['domain']),
+            self.host['name']
+        )
+        self.assertEqual(self.host['network']['mac'], new_mac)
+        self.assertEqual(self.host['network']['domain'], new_domain['name'])
+        self.assertEqual(self.host['puppet-environment'], new_env['name'])
+        self.assertEqual(
+            self.host['operating-system']['architecture'], new_arch['name'])
+        self.assertEqual(
+            self.host['operating-system']['operating-system'], new_os['title'])
         self.assertEqual(
             self.host['operating-system']['medium'], new_medium['name'])
 
@@ -1717,10 +1038,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        new_arch = make_architecture({
-            'location': self.host_args.location.name,
-            'organization': self.host_args.organization.name,
-        })
+        new_arch = make_architecture()
         with self.assertRaises(CLIReturnCodeError):
             Host.update({
                 'architecture': new_arch['name'],
@@ -1741,10 +1059,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        new_arch = make_architecture({
-            'location': self.host_args.location.name,
-            'organization': self.host_args.organization.name,
-        })
+        new_arch = make_architecture()
         new_os = make_os({
             'architectures': new_arch['name'],
             'partition-tables': self.host[
@@ -1793,66 +1108,20 @@ class HostParameterTestCase(CLITestCase):
         })
 
     @tier1
-    def test_positive_add_parameter_with_name(self):
-        """Add host parameter with different valid names.
+    def test_positive_parameter_crud(self):
+        """Add, update and remove host parameter with valid name.
 
-        :id: 67b1c496-8f33-4a34-aebb-7339bc33ce77
+        :id: 76034424-cf18-4ced-916b-ee9798c311bc
 
-        :expectedresults: Host parameter was successfully added with correct
-            name.
-
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                name = name.lower()
-                Host.set_parameter({
-                    'host-id': self.host['id'],
-                    'name': name,
-                    'value': gen_string('alphanumeric'),
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertIn(name, self.host['parameters'].keys())
-
-    @tier1
-    def test_positive_add_parameter_with_value(self):
-        """Add host parameter with different valid values.
-
-        :id: 1932b61d-8be4-4f58-9760-dc588cbca1d7
-
-        :expectedresults: Host parameter was successfully added with value.
-
+        :expectedresults: Host parameter was successfully added, updated and
+            removed.
 
         :CaseImportance: Critical
         """
-        for value in valid_data_list():
-            with self.subTest(value):
-                name = gen_string('alphanumeric').lower()
-                Host.set_parameter({
-                    'host-id': self.host['id'],
-                    'name': name,
-                    'value': value,
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertIn(name, self.host['parameters'].keys())
-                self.assertEqual(value, self.host['parameters'][name])
-
-    @tier1
-    def test_positive_add_parameter_by_host_name(self):
-        """Add host parameter by specifying host name.
-
-        :id: 32b09b07-39de-4706-ac5e-75a54255df17
-
-        :expectedresults: Host parameter was successfully added with correct
-            name and value.
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alphanumeric').lower()
-        value = gen_string('alphanumeric')
+        name = valid_data_list()[0].lower()
+        value = valid_data_list()[0]
         Host.set_parameter({
-            'host': self.host['name'],
+            'host-id': self.host['id'],
             'name': name,
             'value': value,
         })
@@ -1860,117 +1129,22 @@ class HostParameterTestCase(CLITestCase):
         self.assertIn(name, self.host['parameters'].keys())
         self.assertEqual(value, self.host['parameters'][name])
 
-    @tier1
-    def test_positive_update_parameter_by_host_id(self):
-        """Update existing host parameter by specifying host ID.
-
-        :id: 56c43ab4-7fb0-44f5-9d54-107d3c1011bf
-
-        :expectedresults: Host parameter was successfully updated with new
-            value.
-
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alphanumeric').lower()
-        old_value = gen_string('alphanumeric')
+        new_value = valid_data_list()[0]
         Host.set_parameter({
             'host-id': self.host['id'],
             'name': name,
-            'value': old_value,
+            'value': new_value,
         })
-        for new_value in valid_data_list():
-            with self.subTest(new_value):
-                Host.set_parameter({
-                    'host-id': self.host['id'],
-                    'name': name,
-                    'value': new_value,
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertIn(name, self.host['parameters'].keys())
-                self.assertEqual(new_value, self.host['parameters'][name])
+        self.host = Host.info({'id': self.host['id']})
+        self.assertIn(name, self.host['parameters'].keys())
+        self.assertEqual(new_value, self.host['parameters'][name])
 
-    @tier1
-    def test_positive_update_parameter_by_host_name(self):
-        """Update existing host parameter by specifying host name.
-
-        :id: 24bcc8a4-7787-4fa8-9bf8-dfc5e697684f
-
-        :expectedresults: Host parameter was successfully updated with new
-            value.
-
-
-        :CaseImportance: Critical
-        """
-        name = gen_string('alphanumeric').lower()
-        old_value = gen_string('alphanumeric')
-        Host.set_parameter({
-            'host': self.host['name'],
+        Host.delete_parameter({
+            'host-id': self.host['id'],
             'name': name,
-            'value': old_value,
         })
-        for new_value in valid_data_list():
-            with self.subTest(new_value):
-                Host.set_parameter({
-                    'host': self.host['name'],
-                    'name': name,
-                    'value': new_value,
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertIn(name, self.host['parameters'].keys())
-                self.assertEqual(new_value, self.host['parameters'][name])
-
-    @tier1
-    def test_positive_delete_parameter_by_host_id(self):
-        """Delete existing host parameter by specifying host ID.
-
-        :id: a52da845-0403-4b66-9e83-6065f7d4551d
-
-        :expectedresults: Host parameter was successfully deleted.
-
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                name = name.lower()
-                Host.set_parameter({
-                    'host-id': self.host['id'],
-                    'name': name,
-                    'value': gen_string('alphanumeric'),
-                })
-                Host.delete_parameter({
-                    'host-id': self.host['id'],
-                    'name': name,
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertNotIn(name, self.host['parameters'].keys())
-
-    @tier1
-    def test_posistive_delete_parameter_by_host_name(self):
-        """Delete existing host parameter by specifying host name.
-
-        :id: d28cbbba-d296-49c7-91f5-8fb63a80d82c
-
-        :expectedresults: Host parameter was successfully deleted.
-
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                name = name.lower()
-                Host.set_parameter({
-                    'host': self.host['name'],
-                    'name': name,
-                    'value': gen_string('alphanumeric'),
-                })
-                Host.delete_parameter({
-                    'host': self.host['name'],
-                    'name': name,
-                })
-                self.host = Host.info({'id': self.host['id']})
-                self.assertNotIn(name, self.host['parameters'].keys())
+        self.host = Host.info({'id': self.host['id']})
+        self.assertNotIn(name, self.host['parameters'].keys())
 
     @tier1
     def test_negative_add_parameter(self):
@@ -2656,32 +1830,13 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @upgrade
-    def test_positive_install_package_group(self):
-        """Install a package group to a host remotely
+    def test_positive_install_and_remove_package_group(self):
+        """Install and remove a package group to a host remotely
 
-        :id: 8c28c188-2903-44d1-ab1e-b74f6d6affcf
+        :id: ded20a89-cfd9-48d5-8829-739b1a4d4042
 
         :expectedresults: Package group was successfully installed
-
-
-        :CaseLevel: System
-        """
-        Host.package_group_install({
-            u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-            u'host-id': self.host['id'],
-        })
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_remove_package_group(self):
-        """Remove a package group from a host remotely
-
-        :id: c80dbeff-93b4-4cd4-8fae-6a4d1bfc94f0
-
-        :expectedresults: Package group was successfully removed
-
+            and removed
 
         :CaseLevel: System
         """
@@ -2690,6 +1845,9 @@ class KatelloAgentTestCase(CLITestCase):
             u'host-id': self.host['id'],
         }
         Host.package_group_install(hammer_args)
+        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+            result = self.client.run('rpm -q {0}'.format(package))
+            self.assertEqual(result.return_code, 0)
         Host.package_group_remove(hammer_args)
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             result = self.client.run('rpm -q {0}'.format(package))
@@ -3189,7 +2347,6 @@ class HostSubscriptionTestCase(CLITestCase):
         }, output_format='json')
         self.assertEqual(len(host_subscriptions), 0)
 
-    @skip_if_bug_open('bugzilla', '1199515')
     @tier3
     def test_positive_attach(self):
         """Attempt to attach a subscription to host
@@ -3221,7 +2378,6 @@ class HostSubscriptionTestCase(CLITestCase):
         with self.assertNotRaises(VirtualMachineError):
             self.client.install_katello_agent()
 
-    @skip_if_bug_open('bugzilla', '1199515')
     @tier3
     def test_positive_attach_with_lce(self):
         """Attempt to attach a subscription to host, registered by lce
