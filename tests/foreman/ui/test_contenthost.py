@@ -272,7 +272,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
-            search_rate=30, max_tries=10,
+            search_rate=15, max_tries=10,
         )
         # Ensure package updated to a later version
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
@@ -960,7 +960,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
-            search_rate=30, max_tries=10,
+            search_rate=15, max_tries=10,
         )
         # Check web UI for the new module stream version
         module_stream = session.contenthost.search_module_stream(
