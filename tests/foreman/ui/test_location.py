@@ -27,6 +27,7 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     skip_if_not_set,
+    skip_if_bug_open,
     tier2,
     upgrade,
 )
@@ -60,13 +61,11 @@ def test_positive_end_to_end(session):
         subnet.name, subnet.network, subnet.cidr)
     domain = entities.Domain().create()
     user = entities.User().create()
-    hostgroup = entities.HostGroup().create()
     env = entities.Environment().create()
     media = entities.Media(
         path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
         os_family='Redhat',
     ).create()
-    template = entities.ProvisioningTemplate().create()
 
     with session:
         session.location.create({
@@ -86,34 +85,25 @@ def test_positive_end_to_end(session):
             'subnets.resources.assigned': [subnet_name],
             'domains.resources.assigned': [domain.name],
             'users.resources.assigned': [user.login],
-            'host_groups.all_hostgroups': False,
-            'host_groups.resources.unassigned': [hostgroup.name],
             'environments.resources.assigned': [env.name],
             'media.resources.assigned': [media.name],
-            'provisioning_templates.all_templates': False,
-            'provisioning_templates.resources.unassigned': [template.name]
         })
         location_name = "{}/{}".format(loc_parent.name, updated_name)
         loc_values = session.location.read(location_name)
         assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
         assert loc_values['domains']['resources']['assigned'][0] == domain.name
         assert loc_values['users']['resources']['assigned'][0] == user.login
-        assert hostgroup.name in loc_values['host_groups']['resources']['unassigned']
         assert loc_values[
             'environments']['resources']['assigned'][0] == env.name
         assert loc_values['media']['resources']['assigned'][0] == media.name
-        assert template.name in loc_values[
-            'provisioning_templates']['resources']['unassigned']
 
         # unassign entities
         session.location.update(location_name, {
             'subnets.resources.unassigned': [subnet_name],
             'domains.resources.unassigned': [domain.name],
             'users.resources.unassigned': [user.login],
-            'host_groups.resources.assigned': [hostgroup.name],
             'environments.resources.unassigned': [env.name],
             'media.resources.unassigned': [media.name],
-            'provisioning_templates.resources.assigned': [template.name]
         })
         loc_values = session.location.read(location_name)
         assert len(loc_values['subnets']['resources']['assigned']) == 0
@@ -122,20 +112,18 @@ def test_positive_end_to_end(session):
         assert domain.name in loc_values['domains']['resources']['unassigned']
         assert len(loc_values['users']['resources']['assigned']) == 0
         assert user.login in loc_values['users']['resources']['unassigned']
-        assert hostgroup.name in loc_values['host_groups']['resources']['assigned']
         assert len(loc_values['environments']['resources']['assigned']) == 0
         assert env.name in loc_values[
             'environments']['resources']['unassigned']
         assert len(loc_values['media']['resources']['assigned']) == 0
         assert media.name in loc_values['media']['resources']['unassigned']
-        assert template.name in loc_values[
-            'provisioning_templates']['resources']['assigned']
 
         # delete location
         session.location.delete(location_name)
         assert not session.location.search(location_name)
 
 
+@skip_if_bug_open('bugzilla', '1321543')
 @tier2
 def test_positive_update_with_all_users(session):
     """Create location and do not add user to it. Check and uncheck
@@ -177,23 +165,43 @@ def test_positive_update_with_all_users(session):
 
 
 @tier2
-def test_positive_add_org(session):
-    """Add a organization by using the location name
+def test_positive_add_org_hostgroup_template(session):
+    """Add a organization, hostgroup, provisioning template by using
+       the location name
 
     :id: 27d56d64-6866-46b6-962d-1ac2a11ae136
 
-    :expectedresults: organization is added to location
+    :expectedresults: organization, hostgroup, provisioning template are
+        added to location
 
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
+    hostgroup = entities.HostGroup().create()
+    template = entities.ProvisioningTemplate().create()
     with session:
-        session.location.update(
-            loc.name, {'organizations.resources.assigned': [org.name]})
+        session.location.update(loc.name, {
+            'organizations.resources.assigned': [org.name],
+            'host_groups.all_hostgroups': False,
+            'host_groups.resources.unassigned': [hostgroup.name],
+            'provisioning_templates.all_templates': False,
+            'provisioning_templates.resources.unassigned': [template.name]
+        })
         loc_values = session.location.read(loc.name)
         assert loc_values[
             'organizations']['resources']['assigned'][0] == org.name
+        assert hostgroup.name in loc_values['host_groups']['resources']['unassigned']
+        assert template.name in loc_values[
+            'provisioning_templates']['resources']['unassigned']
+        session.location.update(loc.name, {
+            'host_groups.resources.assigned': [hostgroup.name],
+            'provisioning_templates.resources.assigned': [template.name]
+        })
+        loc_values = session.location.read(loc.name)
+        assert hostgroup.name in loc_values['host_groups']['resources']['assigned']
+        assert template.name in loc_values[
+            'provisioning_templates']['resources']['assigned']
 
 
 @skip_if_not_set('compute_resources')
