@@ -44,6 +44,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
+    fixture,
     run_in_one_thread,
     skip_if_not_set,
     stubbed,
@@ -61,6 +62,11 @@ from robottelo.test import APITestCase
 # How many times should that be done? A higher number means a more interesting
 # but longer test.
 REPEAT = 3
+
+
+@fixture
+def module_org():
+    return entities.Organization().create()
 
 
 class ContentViewTestCase(APITestCase):
