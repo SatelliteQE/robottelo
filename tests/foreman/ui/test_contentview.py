@@ -1851,8 +1851,7 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
         assert lce['name'] not in cvv['Environments']
         session.contentview.delete(cv['name'])
         lce_values = session.lifecycleenvironment.read(lce['name'])
-        assert 'There are no Content Views that match the criteria.' in \
-               str(lce_values['content_views']['resources'])
+        assert cv not in lce_values['content_views']['resources']
 
 
 @tier2
