@@ -893,6 +893,33 @@ def attach_custom_product_subscription(prod_name=None, host_name=None):
         data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})
 
 
+class templateupdate:
+    """Context Manager to unlock lock template for updating"""
+
+    def __init__(self, temp):
+        """Context manager that takes entities.ProvisioningTemplate's object
+
+        :param entities.ProvisioningTemplate temp: entities.ProvisioningTemplate's object
+        """
+        self.temp = temp
+        if not isinstance(self.temp, entities.ProvisioningTemplate):
+            raise TypeError(
+                'The template should be of type entities.ProvisioningTemplate, {} given'.format(
+                    type(temp)))
+
+    def __enter__(self):
+        """Unlocks template for update"""
+        if self.temp.locked:
+            self.temp.locked = False
+            self.temp.update(['locked'])
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Locks template after update"""
+        if not self.temp.locked:
+            self.temp.locked = True
+            self.temp.update(['locked'])
+
+
 def update_provisioning_template(name=None, old=None, new=None):
     """ Update provisioning template content
 
@@ -908,8 +935,9 @@ def update_provisioning_template(name=None, old=None, new=None):
             'search': 'name="{}"'.format(name),
         })[0].read()
     if old in temp.template:
-        temp.template = temp.template.replace(old, new, 1)
-        update = temp.update(['template'])
+        with templateupdate(temp):
+            temp.template = temp.template.replace(old, new, 1)
+            update = temp.update(['template'])
         return new in update.template
     elif new in temp.template:
         return True
