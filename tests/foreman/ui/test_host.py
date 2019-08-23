@@ -18,7 +18,7 @@
 import csv
 import copy
 import os
-
+import random
 import pytest
 import yaml
 
@@ -1740,6 +1740,11 @@ def gce_template(gce_client):
 
 
 @pytest.fixture
+def gce_cloudinit_template(gce_client):
+    return gce_client.get_template('customcinit', project=settings.gce.project_id).uuid
+
+
+@pytest.fixture
 def gce_domain(module_org, module_loc):
     domain_name = '{}.c.{}.internal'.format(
         settings.gce.zone, settings.gce.project_id)
@@ -1770,6 +1775,7 @@ def download_cert():
 @pytest.fixture
 def gce_resource_with_image(
         gce_template,
+        gce_cloudinit_template,
         download_cert,
         default_architecture,
         module_os,
@@ -1793,9 +1799,15 @@ def gce_resource_with_image(
         })
     gce_cr = entities.AbstractComputeResource().search(
         query={'search': 'name={}'.format(cr_name)})[0]
+    # Finish Image
     entities.Image(
         architecture=default_architecture, compute_resource=gce_cr, name='autogce_img',
         operatingsystem=module_os, username=vm_user, uuid=gce_template
+    ).create()
+    # Cloud-Init Image
+    entities.Image(
+        architecture=default_architecture, compute_resource=gce_cr, name='autogce_img_cinit',
+        operatingsystem=module_os, username=vm_user, uuid=gce_cloudinit_template, user_data=True
     ).create()
     return gce_cr
 
@@ -1913,3 +1925,80 @@ def test_positive_gce_provision_end_to_end(
         finally:
             gce_client.disconnect()
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
+
+
+@tier4
+@upgrade
+@skip_if_not_set('gce')
+def test_positive_gce_cloudinit_provision_end_to_end(
+        session,
+        module_org,
+        module_loc,
+        module_os,
+        gce_domain,
+        gce_hostgroup,
+        gce_client
+):
+    """Provision Host on GCE compute resource
+
+    :id: 6ee63ec6-2e8e-4ed6-ae48-e68b078233c6
+
+    :expectedresults: Host is provisioned successfully
+
+    :CaseLevel: System
+    """
+    name = gen_string('alpha').lower()
+    hostname = u'{0}.{1}'.format(name, gce_domain.name)
+    gceapi_vmname = hostname.replace('.', '-')
+    root_pwd = gen_string('alpha', random.choice([8, 15]))
+    with Session('gce_tests') as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        # Provision GCE Host
+        try:
+            skip_yum_update_during_provisioning(template='Kickstart default user data')
+            session.host.create({
+                'host.name': name,
+                'host.hostgroup': gce_hostgroup.name,
+                'provider_content.virtual_machine.machine_type': 'g1-small',
+                'provider_content.virtual_machine.external_ip': True,
+                'provider_content.virtual_machine.network': 'default',
+                'operating_system.operating_system': module_os.title,
+                'operating_system.image': 'autogce_img_cinit',
+                'operating_system.root_password': root_pwd
+            })
+            # 1. Host Creation Assertions
+            # 1.1 UI based Assertions
+            host_info = session.host.get_details(hostname)
+            assert session.host.search(hostname)[0]['Name'] == hostname
+            assert host_info['properties']['properties_table']['Build'] == 'Pending installation'
+            # 1.2 GCE Backend Assertions
+            gceapi_vm = gce_client.get_vm(gceapi_vmname)
+            assert gceapi_vm
+            assert gceapi_vm.is_running
+            assert gceapi_vm.name == gceapi_vmname
+            assert gceapi_vm.zone == settings.gce.zone
+            assert gceapi_vm.ip == host_info['properties']['properties_table']['IP Address']
+            assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
+            assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
+            # 2. Host Deletion Assertions
+            message = session.host.delete(hostname)
+            # 2.1 UI based Assertions
+            assert (
+                       'Are you sure you want to delete host {}? This will delete the VM and '
+                       'its disks, and is irreversible. This behavior can be changed via '
+                       'global setting "Destroy associated VM on host delete".'.format(
+                           hostname)
+                   ) == message
+            assert not session.host.search(hostname)
+            # 2.2 GCE Backend Assertions
+            assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
+        except Exception as error:
+            gcehost = entities.Host().search(query={'search': 'name={}'.format(hostname)})
+            if gcehost:
+                gcehost[0].delete()
+            raise error
+        finally:
+            gce_client.disconnect()
+            skip_yum_update_during_provisioning(
+                template='Kickstart default user data', reverse=True)
