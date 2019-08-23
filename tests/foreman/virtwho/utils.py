@@ -70,17 +70,21 @@ def get_guest_info():
     return guest_name, guest_uuid
 
 
-def runcmd(cmd, system=None, timeout=None):
+def runcmd(cmd, system=None, timeout=None, output_format='plain'):
     """Return the retcode and stdout.
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
     :param int timeout: Time to wait for establish the connection.
+    :param str output_format: plain|json|csv|list
     """
     system = system or get_system('satellite')
-    result = ssh.command(cmd, **system, timeout=timeout)
+    result = ssh.command(
+        cmd, **system, timeout=timeout,
+        output_format=output_format
+    )
     ret = result.return_code
-    stdout = '\n'.join(result.stdout).strip()
+    stdout = result.stdout.strip()
     return ret, stdout
 
 
@@ -261,8 +265,9 @@ def deploy_configure_by_command(command, debug=False):
         `hammer virt-who-config deploy --id 1 --organization-id 1`
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
-    virtwho_cleanup()
-    register_system(get_system('guest'))
+    if debug:
+        register_system(get_system('guest'))
+        virtwho_cleanup()
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(
@@ -279,14 +284,15 @@ def deploy_configure_by_script(script_content, debug=False):
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     script_filename = "/tmp/deploy_script.sh"
-    virtwho_cleanup()
-    register_system(get_system('guest'))
     script_content = (
         script_content
         .replace('&amp;', '&')
         .replace('&gt;', '>')
         .replace('&lt;', '<')
     )
+    if debug:
+        register_system(get_system('guest'))
+        virtwho_cleanup()
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.upload_file(script_filename, script_filename)
