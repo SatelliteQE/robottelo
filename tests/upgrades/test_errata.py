@@ -290,7 +290,7 @@ class Scenario_errata_count(APITestCase):
         installable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
-        product.sync()
+        call_entity_method_with_timeout(product.sync, timeout=1400)
         for repo in (tools_repo, rhel_repo):
             content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
