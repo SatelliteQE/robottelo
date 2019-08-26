@@ -798,6 +798,11 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     ]
 
     location_ids.append(loc.id)
+    Scapcontent.update({
+        'id': scap_policy['scap-content-id'],
+        'organization-ids': organization_ids,
+        'location-ids': location_ids
+    })
     Scappolicy.update({
         'id': scap_policy['id'],
         'organization-ids': organization_ids,
