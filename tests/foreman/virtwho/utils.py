@@ -255,7 +255,7 @@ def deploy_validation():
     # Delete the hypervisor entry and always make sure it's new.
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
-    runcmd("systemctl restart virt-who")
+    runcmd("systemctl restart virt-who; sleep 5")
     return hypervisor_name, guest_name
 
 
