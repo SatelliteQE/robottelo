@@ -323,25 +323,34 @@ def make_content_view(options=None):
 
         hammer content-view create [OPTIONS]
 
-    Options::
-
-        --component-ids COMPONENT_IDS List of component content view
-        version ids for composite views
-                                      Comma separated list of values.
-        --composite                   Create a composite content view
-        --description DESCRIPTION     Description for the content view
-        --label LABEL                 Content view label
-        --name NAME                   Name of the content view
-        --organization ORGANIZATION_NAME  Organization name to search by
-        --organization-id ORGANIZATION_ID Organization identifier
-        --organization-label ORGANIZATION_LABEL Organization label to
-        search by
-        --product PRODUCT_NAME          Product name to search by
-        --product-id PRODUCT_ID         product numeric identifier
-        --repositories REPOSITORY_NAMES Comma separated list of values.
-        --repository-ids REPOSITORY_IDS List of repository ids
-                                        Comma separated list of values.
-        -h, --help                    print help
+    Options:
+         --auto-publish AUTO_PUBLISH             Enable/Disable auto publish of
+                                                 composite view
+                                                 One of true/false, yes/no, 1/0.
+         --component-ids COMPONENT_IDS           List of component content view
+                                                 version ids for composite views
+                                                 Comma separated list of values.
+                                                 Values containing comma should be
+                                                 quoted or escaped with backslash.
+                                                 JSON is acceptable and preferred
+                                                 way for complex parameters
+         --description DESCRIPTION               Description for the content view
+         --id ID                                 Content view identifier
+         --name NAME                             Content view name to search by
+         --new-name NEW_NAME                     New name for the content view
+         --organization ORGANIZATION_NAME        Organization name to search by
+         --organization-id ORGANIZATION_ID       Organization ID to search by
+         --organization-label ORGANIZATION_LABEL Organization label to search by
+         --repository-ids REPOSITORY_IDS         List of repository ids
+                                                 Comma separated list of values.
+                                                 Values containing comma should be
+                                                 quoted or escaped with backslash.
+                                                 JSON is acceptable and preferred
+                                                 way for complex parameters
+         --solve-dependencies SOLVE_DEPENDENCIES Solve RPM dependencies by default on
+                                                 Content View publish, defaults to false
+                                                 One of true/false, yes/no, 1/0.
+         -h, --help                              Print help
 
     """
     return make_content_view_with_credentials(options)
