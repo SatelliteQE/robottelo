@@ -21,7 +21,7 @@ from nailgun import entities
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, upgrade, fixture, skip_if_bug_open
+from robottelo.decorators import tier2, upgrade, fixture, bz_bug_is_open
 
 PUPPET_MODULES = [
     {'author': 'robottelo', 'name': 'ui_test_variables'}]
@@ -185,13 +185,14 @@ def test_positive_create_matcher_attribute_priority_override_from_attribute(
 
 
 @tier2
-@skip_if_bug_open("bugzilla", "1734022")
 @upgrade
 def test_positive_create_matcher_prioritize_and_delete(session, puppet_class, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
     Delete smart variable.
 
     :id: 75fc514f-70dd-4cc1-8069-221e9edda89a
+
+    :bz: 1734022, 1745938
 
     :steps:
 
@@ -254,14 +255,15 @@ def test_positive_create_matcher_prioritize_and_delete(session, puppet_class, mo
         assert session.smartvariable.search(name)[0]['Variable'] == name
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         assert output['parameters'][name] == [20, 80, 90, 100]
-        host_values = session.host.read(module_host.name)
+        host_values = session.host.read(module_host.name, widget_names='parameters')
         smart_variable = next((
             item
             for item in host_values['parameters']['puppet_class_parameters']
             if item['Name'] == name
         ))
-        assert smart_variable['Puppet Class'] == puppet_class.name
-        assert smart_variable['Value']['value'] == [20, 80, 90, 100]
+        if not bz_bug_is_open(1745938):
+            assert smart_variable['Puppet Class'] == puppet_class.name
+            assert smart_variable['Value']['value'] == [20, 80, 90, 100]
         # Delete smart variable
         session.smartvariable.delete(name)
         assert not session.smartvariable.search(name)
