@@ -242,27 +242,6 @@ class ContentViewTestCase(CLITestCase):
         })
         self.assertEqual(cv['yum-repositories'][0]['id'], repo['id'])
 
-    @tier2
-    def test_positive_create_with_repo_name(self):
-        """Create content view providing repository name
-
-        :id: 80992a94-4c8e-4dbe-bc62-25af0bd2301d
-
-        :expectedresults: Content view is created and repository is associated
-            with CV
-
-        :CaseImportance: High
-
-        :BZ: 1213097
-        """
-        repo = make_repository({'product-id': self.product['id']})
-        cv = make_content_view({
-            'organization-id': self.org['id'],
-            'product': self.product['name'],
-            'repositories': [repo['name']],
-        })
-        self.assertEqual(cv['yum-repositories'][0]['name'], repo['name'])
-
     @tier1
     def test_positive_create_empty_and_verify_files(self):
         """Create an empty content view and make sure no files are created at
