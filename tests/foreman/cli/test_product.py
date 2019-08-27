@@ -26,6 +26,7 @@ from robottelo.cli.factory import (
     make_repository,
     make_sync_plan,
 )
+from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
@@ -140,6 +141,11 @@ class ProductTestCase(CLITestCase):
         })
         self.assertEqual(len(product['sync-plan-id']), 0)
         Product.delete({u'id': product['id']})
+        wait_for_tasks(
+            search_query='label = Actions::Katello::Product::Destroy'
+                         ' and resource_id = {}'.format(product['id']),
+            max_tries=10,
+        )
         with self.assertRaises(CLIReturnCodeError):
             Product.info({
                 u'id': product['id'],
