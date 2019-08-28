@@ -14,11 +14,11 @@
 
 :Upstream: No
 """
-from nailgun import entities
 from fauxfactory import gen_string
-from robottelo.test import APITestCase
+from nailgun import entities
 from robottelo.config import settings
 from robottelo.decorators import tier1
+from robottelo.test import APITestCase
 
 from .utils import (
     deploy_configure_by_command,
@@ -31,10 +31,9 @@ class VirtWhoConfigApiTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         super(VirtWhoConfigApiTestCase, cls).setUpClass()
-        org = entities.Organization().search(
+        cls.org = entities.Organization().search(
             query={'search': 'name="Default Organization"'}
         )[0]
-        cls.org = org.read()
         cls.satellite_url = settings.server.hostname
         cls.hypervisor_type = settings.virtwho.hypervisor_type
         cls.hypervisor_server = settings.virtwho.hypervisor_server
@@ -101,7 +100,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
                               'id': product_subscription.id,
                               'quantity': 1}]})
             result = entities.Host().search(
-                query={'search': '{0}'.format(hypervisor_name)})[0].read_json()
+                query={'search': '{0}'.format(hostname)})[0].read_json()
             self.assertEqual(
                 result['subscription_status_label'],
                 'Fully entitled')
