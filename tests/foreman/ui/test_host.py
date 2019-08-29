@@ -124,7 +124,7 @@ def scap_content():
     scap_profile_id = [
         profile['id']
         for profile in scap_info['scap-content-profiles']
-        if OSCAP_PROFILE['security6'] in profile['title']
+        if OSCAP_PROFILE['security7'] in profile['title']
     ][0]
     return scap_id, scap_profile_id
 
@@ -798,6 +798,11 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     ]
 
     location_ids.append(loc.id)
+    Scapcontent.update({
+        'id': scap_policy['scap-content-id'],
+        'organization-ids': organization_ids,
+        'location-ids': location_ids
+    })
     Scappolicy.update({
         'id': scap_policy['id'],
         'organization-ids': organization_ids,
