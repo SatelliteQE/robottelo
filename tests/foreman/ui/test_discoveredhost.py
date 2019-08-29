@@ -137,6 +137,8 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
 
     :expectedresults: Host should be successfully discovered
 
+    :BZ: 1731112
+
     :CaseImportance: Critical
     """
     with LibvirtGuest() as pxe_host:
@@ -162,6 +164,8 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
     :Steps: Boot a host/VM using modified discovery ISO.
 
     :expectedresults: Host should be successfully discovered
+
+    :BZ: 1731112
 
     :CaseImportance: Critical
     """
@@ -191,6 +195,8 @@ def test_positive_provision_using_quick_host_button(
 
     :expectedresults: Host should be quickly provisioned and entry from
         discovered host should be auto removed.
+
+    :BZ: 1728306, 1731112
 
     :CaseImportance: High
     """
@@ -223,6 +229,8 @@ def test_positive_update_name(
 
     :expectedresults: The hostname should be updated and host should be
         provisioned
+
+    :BZ: 1728306, 1731112
 
     :CaseImportance: High
     """
@@ -267,6 +275,8 @@ def test_positive_auto_provision_host_with_rule(
 
     :expectedresults: Host should reboot and provision
 
+    :BZ: 1665471, 1731112
+
     :CaseImportance: High
     """
     host_ip = gen_ipaddr()
@@ -305,6 +315,8 @@ def test_positive_delete(session, discovered_host):
 
     :expectedresults: Selected host should be removed successfully
 
+    :BZ: 1731112
+
     :CaseImportance: High
     """
     discovered_host_name = discovered_host['name']
@@ -324,9 +336,9 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
     :Setup: Host should already be discovered
 
     :expectedresults: Default Organization and Location should be successfully
-        changed for multiple hosts
+        changed for multiple hosts. Changes are also reflected in dashboard
 
-    :BZ: 1634728
+    :BZ: 1634728, 1731112, 1741454
 
     :CaseImportance: High
     """
@@ -366,6 +378,8 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
             'name = "{0}" or name = "{1}"'.format(*host_names)
         )
         assert set(host_names) == {value['Name'] for value in values}
+        values = session.dashboard.read('DiscoveredHosts')
+        assert len(values['hosts']) == 2
 
 
 @skip_if_bug_open('bugzilla', 1731112)
@@ -380,6 +394,8 @@ def test_positive_reboot(session, provisioning_env):
 
     :expectedresults: Discovered host without provision is going to shutdown after reboot command
         is passed.
+
+    :BZ: 1731112
 
     :CaseImportance: Medium
     """

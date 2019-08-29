@@ -362,6 +362,11 @@ def test_positive_sync_custom_repo_yum(session, module_org):
     with session:
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
+        sync_values = session.dashboard.read('SyncOverview')['syncs']
+        assert len(sync_values) == 1
+        assert sync_values[0]['Product'] == product.name
+        assert sync_values[0]['Status'] == 'Syncing Complete.'
+        assert 'ago' in sync_values[0]['Finished']
 
 
 @tier2

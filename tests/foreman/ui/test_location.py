@@ -94,7 +94,7 @@ def test_positive_end_to_end(session):
         assert loc_values['domains']['resources']['assigned'][0] == domain.name
         assert loc_values['users']['resources']['assigned'][0] == user.login
         assert loc_values[
-            'environments']['resources']['assigned'][0] == env.name
+           'environments']['resources']['assigned'][0] == env.name
         assert loc_values['media']['resources']['assigned'][0] == media.name
 
         # unassign entities

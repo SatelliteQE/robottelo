@@ -445,7 +445,7 @@ def module_libvirt_hostgroup(
 
 
 @tier4
-def test_positive_create(session, module_host_template):
+def test_positive_create(session, module_host_template, module_org):
     """Create a new Host
 
     :id: 4821444d-3c86-4f93-849b-60460e025ba0
@@ -457,6 +457,13 @@ def test_positive_create(session, module_host_template):
     with session:
         host_name = create_fake_host(session, module_host_template)
         assert session.host.search(host_name)[0]['Name'] == host_name
+        # check host presence on the dashboard
+        dashboard_values = session.dashboard.read('NewHosts')['hosts']
+        displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
+        os_name = u'{0} {1}'.format(
+            module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
+        assert os_name in displayed_host['Operating System']
+        assert displayed_host['Installed'] == '-'
 
 
 @tier4
