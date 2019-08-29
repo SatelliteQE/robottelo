@@ -270,6 +270,7 @@ REPOSET = {
     'rhsc6': 'Red Hat Satellite Capsule 6.2 (for RHEL 6 Server) (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.2 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) (RPMs)',
+    'rhst7_64': 'Red Hat Satellite Tools 6.4 (for RHEL 7 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
               ' Server'),
@@ -340,6 +341,17 @@ REPOS = {
         ),
         'version': '6.2',
         'reposet': REPOSET['rhst7'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhst',
+    },
+    'rhst7_64': {
+        'id': 'rhel-7-server-satellite-tools-6.4-rpms',
+        'name': (
+            'Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64'
+        ),
+        'version': '6.4',
+        'reposet': REPOSET['rhst7_64'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL7,
         'key': 'rhst',
