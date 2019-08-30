@@ -335,6 +335,11 @@ class VirtWhoConfigApiTestCase(APITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = entities.VirtWhoConfig(**args).create()
+        command = get_configure_command(vhd.id)
+        deploy_configure_by_command(command)
+        self.assertEqual(
+            get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG),
+            '*')
         proxy = 'test.rexample.com:3128'
         no_proxy = 'test.satellite.com'
         vhd.proxy = proxy
