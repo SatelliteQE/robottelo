@@ -17,7 +17,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 from .utils import (
@@ -67,7 +67,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
             args[u'hypervisor_password'] = self.hypervisor_password
         return args
 
-    @tier1
+    @tier2
     def test_positive_deploy_configure_by_id(self):
         """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -87,10 +87,10 @@ class VirtWhoConfigApiTestCase(APITestCase):
         command = get_configure_command(vhd.id)
         hypervisor_name, guest_name = deploy_configure_by_command(
             command, debug=True)
-        status = entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}
-        )[0].status
-        self.assertEqual(status, 'ok')
+        self.assertEqual(
+            entities.VirtWhoConfig().search(
+                query={'search': 'name={}'.format(name)})[0].status,
+            'ok')
         hosts = [
             (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
             (guest_name, 'type = STACK_DERIVED')]
@@ -112,7 +112,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
-    @tier1
+    @tier2
     def test_positive_deploy_configure_by_script(self):
         """ Verify "GET /foreman_virt_who_configure/api/
 
@@ -134,10 +134,10 @@ class VirtWhoConfigApiTestCase(APITestCase):
         script = vhd.deploy_script()
         hypervisor_name, guest_name = deploy_configure_by_script(
             script['virt_who_config_script'], debug=True)
-        status = entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}
-        )[0].status
-        self.assertEqual(status, 'ok')
+        self.assertEqual(
+            entities.VirtWhoConfig().search(
+                query={'search': 'name={}'.format(name)})[0].status,
+            'ok')
         hosts = [
             (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
             (guest_name, 'type = STACK_DERIVED')]
@@ -159,7 +159,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
-    @tier1
+    @tier2
     def test_positive_debug_option(self):
         """ Verify debug option by "PUT
 
@@ -190,7 +190,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
-    @tier1
+    @tier2
     def test_positive_interval_option(self):
         """ Verify interval option by "PUT
 
@@ -232,7 +232,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
-    @tier1
+    @tier2
     def test_positive_hypervisor_id_option(self):
         """ Verify hypervisor_id option by "PUT
 
@@ -267,7 +267,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
-    @tier1
+    @tier2
     def test_positive_filter_option(self):
         """ Verify filter option by "PUT
 
@@ -317,7 +317,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
-    @tier1
+    @tier2
     def test_positive_proxy_option(self):
         """ Verify http_proxy option by "PUT
 
