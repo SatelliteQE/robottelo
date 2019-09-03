@@ -5747,7 +5747,7 @@
                   "value": "ORGANIZATION_TITLE"
                 },
                 {
-                  "help": "Print help ec2: --interface: gce: --interface: libvirt: --interface: type                Possible values: bridge, network bridge              Name of interface according to type model               Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 openstack: --interface: ovirt: --interface: name                compute name, Eg. eth0 network             Select one of available networks for a cluster, must be an ID interface           interface type rackspace: --interface: vmware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware",
+                  "help": "Print help ec2: --interface: gce: --interface: libvirt: --interface: compute_type        Possible values: bridge, network compute_bridge      Name of interface according to type compute_model       Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 openstack: --interface: ovirt: --interface: compute_name        Compute name, e.g. eth0 compute_network     Select one of available networks for a cluster, must be an ID compute_interface   Interface type rackspace: --interface: vmware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -5917,7 +5917,7 @@
                   "value": "VOLUME"
                 },
                 {
-                  "help": "Print help ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: type                Possible values: bridge, network bridge              Name of interface according to type model               Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: name                compute name, Eg. eth0 network             Select one of available networks for a cluster, must be an ID interface           interface type --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
+                  "help": "Print help ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: compute_type        Possible values: bridge, network compute_bridge      Name of interface according to type compute_model       Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: compute_name        Compute name, e.g. eth0 compute_network     Select one of available networks for a cluster, must be an ID compute_interface   Interface type --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -6166,7 +6166,7 @@
                   "value": "VOLUME"
                 },
                 {
-                  "help": "Print help ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: type                Possible values: bridge, network bridge              Name of interface according to type model               Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: name                compute name, Eg. eth0 network             Select one of available networks for a cluster, must be an ID interface           interface type --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
+                  "help": "Print help ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: compute_type        Possible values: bridge, network compute_bridge      Name of interface according to type compute_model       Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: compute_name        Compute name, e.g. eth0 compute_network     Select one of available networks for a cluster, must be an ID compute_interface   Interface type --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -6251,7 +6251,7 @@
                   "value": "ORGANIZATION_TITLE"
                 },
                 {
-                  "help": "Print help ec2: --interface: gce: --interface: libvirt: --interface: type                Possible values: bridge, network bridge              Name of interface according to type model               Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 openstack: --interface: ovirt: --interface: name                compute name, Eg. eth0 network             Select one of available networks for a cluster, must be an ID interface           interface type rackspace: --interface: vmware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware",
+                  "help": "Print help ec2: --interface: gce: --interface: libvirt: --interface: compute_type        Possible values: bridge, network compute_bridge      Name of interface according to type compute_model       Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 openstack: --interface: ovirt: --interface: compute_name        Compute name, e.g. eth0 compute_network     Select one of available networks for a cluster, must be an ID compute_interface   Interface type rackspace: --interface: vmware: --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -9309,24 +9309,6 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
-              "help": "Product name to search by",
-              "name": "product",
-              "shortname": null,
-              "value": "PRODUCT_NAME"
-            },
-            {
-              "help": "Product numeric identifier",
-              "name": "product-id",
-              "shortname": null,
-              "value": "PRODUCT_ID"
-            },
-            {
-              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for complex parameters",
-              "name": "repositories",
-              "shortname": null,
-              "value": "REPOSITORY_NAMES"
-            },
-            {
               "help": "List of repository ids Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for complex parameters",
               "name": "repository-ids",
               "shortname": null,
@@ -11344,24 +11326,6 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
-              "help": "Product name to search by",
-              "name": "product",
-              "shortname": null,
-              "value": "PRODUCT_NAME"
-            },
-            {
-              "help": "Product numeric identifier",
-              "name": "product-id",
-              "shortname": null,
-              "value": "PRODUCT_ID"
-            },
-            {
-              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for complex parameters",
-              "name": "repositories",
-              "shortname": null,
-              "value": "REPOSITORY_NAMES"
-            },
-            {
               "help": "List of repository ids Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for complex parameters",
               "name": "repository-ids",
               "shortname": null,
@@ -12252,6 +12216,12 @@
           "name": "auto-provision",
           "options": [
             {
+              "help": "Auto provision all discovered hosts",
+              "name": "all",
+              "shortname": null,
+              "value": null
+            },
+            {
               "help": "",
               "name": "id",
               "shortname": null,
@@ -12863,7 +12833,7 @@
               "value": "PUPPETCLASS_IDS"
             },
             {
-              "help": "DHCP filename option (Grub2 or PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2 or PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'iPXE Embedded', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "PXE_LOADER"
@@ -12905,6 +12875,12 @@
           "description": "Reboot a host",
           "name": "reboot",
           "options": [
+            {
+              "help": "Reboot all discovered hosts",
+              "name": "all",
+              "shortname": null,
+              "value": null
+            },
             {
               "help": "",
               "name": "id",
@@ -17978,7 +17954,7 @@
               "value": "PURPOSE_USAGE"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'iPXE Embedded', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "PXE_LOADER"
@@ -18032,7 +18008,7 @@
               "value": "VOLUME"
             },
             {
-              "help": "Print help parameters accept format defined by its schema (bold are required): --installed-products-attributes  \"product_id=string\\,product_name=string\\,arch=string\\,version=string, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: type                Possible values: bridge, network bridge              Name of interface according to type model               Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: name                compute name, Eg. eth0 network             Select one of available networks for a cluster, must be an ID interface           interface type start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware start               Must be a 1 or 0, whether to start the machine or not --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
+              "help": "Print help parameters accept format defined by its schema (bold are required): --installed-products-attributes  \"product_id=string\\,product_name=string\\,arch=string\\,version=string, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: compute_type        Possible values: bridge, network compute_bridge      Name of interface according to type compute_model       Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: compute_name        Compute name, e.g. eth0 compute_network     Select one of available networks for a cluster, must be an ID compute_interface   Interface type start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware start               Must be a 1 or 0, whether to start the machine or not --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -19402,7 +19378,7 @@
               "value": "THIN"
             },
             {
-              "help": "Print help string string text Values: mismatched, matched, not_specified string string string string boolean Values: true, false string text string integer string string string integer string integer string Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string Values: true, false string string string datetime string job_invocation.id         string job_invocation.result     Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied            integer status.enabled            Values: true, false status.failed             integer status.failed_restarts    integer status.interesting        Values: true, false status.pending            integer status.restarted          integer status.skipped            integer string subnet.name               text string subnet6.name              text string string Values: valid, partial, invalid, unknown, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string text Values: mismatched, matched, not_specified user.firstname            string user.lastname             string user.login                string user.mail                 string string usergroup.name            string string",
+              "help": "Print help string string text Values: mismatched, matched, not_specified string string string string boolean Values: true, false string text string integer string string string integer string integer string Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string Values: true, false string string string datetime string job_invocation.id         string job_invocation.result     Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied            integer status.enabled            Values: true, false status.failed             integer status.failed_restarts    integer status.interesting        Values: true, false status.pending            integer status.restarted          integer status.skipped            integer string subnet.name               text string subnet6.name              text string string Values: valid, partial, invalid, unknown, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string text Values: mismatched, matched, not_specified user.firstname            string user.lastname             string user.login                string user.mail                 string string usergroup.name            string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -21139,10 +21115,46 @@
               "value": "NAME"
             },
             {
+              "help": "Location name",
+              "name": "new-location",
+              "shortname": null,
+              "value": "NEW_LOCATION_NAME"
+            },
+            {
+              "help": "",
+              "name": "new-location-id",
+              "shortname": null,
+              "value": "NEW_LOCATION_ID"
+            },
+            {
+              "help": "Location title",
+              "name": "new-location-title",
+              "shortname": null,
+              "value": "NEW_LOCATION_TITLE"
+            },
+            {
               "help": "",
               "name": "new-name",
               "shortname": null,
               "value": "NEW_NAME"
+            },
+            {
+              "help": "Organization name",
+              "name": "new-organization",
+              "shortname": null,
+              "value": "NEW_ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID",
+              "name": "new-organization-id",
+              "shortname": null,
+              "value": "NEW_ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization title",
+              "name": "new-organization-title",
+              "shortname": null,
+              "value": "NEW_ORGANIZATION_TITLE"
             },
             {
               "help": "ID of OpenSCAP Capsule",
@@ -21313,7 +21325,7 @@
               "value": "PURPOSE_USAGE"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'iPXE Embedded', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "PXE_LOADER"
@@ -21367,7 +21379,7 @@
               "value": "VOLUME"
             },
             {
-              "help": "Print help parameters accept format defined by its schema (bold are required): --installed-products-attributes  \"product_id=string\\,product_name=string\\,arch=string\\,version=string, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: type                Possible values: bridge, network bridge              Name of interface according to type model               Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: name                compute name, Eg. eth0 network             Select one of available networks for a cluster, must be an ID interface           interface type start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware start               Must be a 1 or 0, whether to start the machine or not --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
+              "help": "Print help parameters accept format defined by its schema (bold are required): --installed-products-attributes  \"product_id=string\\,product_name=string\\,arch=string\\,version=string, ... \" mac ip Possible values: interface, bmc, bond, bridge name subnet_id domain_id identifier true/false true/false, each managed hosts needs to have one primary interface. true/false true/false virtual=true: tag                 VLAN tag, this attribute has precedence over the subnet VLAN ID. Only for virtual interfaces. attached_to         Identifier of the interface to which this interface belongs, e.g. eth1. type=bond: mode                Possible values: balance-rr, active-backup, balance-xor, broadcast, 802.3ad, balance-tlb, balance-alb attached_devices    Identifiers of slave interfaces, e.g. [eth1,eth2] bond_options type=bmc: provider            always IPMI username password ec2: --volume: --interface: --compute-attributes: flavor_id image_id availability_zone security_group_ids managed_ip gce: --volume: --interface: --compute-attributes: machine_type image_id network external_ip libvirt: --volume: pool_name           One of available storage pools capacity            String value, eg. 10G format_type         Possible values: raw, qcow2 --interface: compute_type        Possible values: bridge, network compute_bridge      Name of interface according to type compute_model       Possible values: virtio, rtl8139, ne2k_pci, pcnet, e1000 start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cpus                Number of CPUs memory              String, amount of memory, value in bytes start               Boolean (expressed as 0 or 1), whether to start the machine or not openstack: --volume: --interface: --compute-attributes: flavor_ref image_ref tenant_id security_groups network ovirt: --volume: size_gb             Volume size in GB, integer value storage_domain      ID of storage domain bootable            Boolean, only one volume can be bootable --interface: compute_name        Compute name, e.g. eth0 compute_network     Select one of available networks for a cluster, must be an ID compute_interface   Interface type start               Boolean (expressed as 0 or 1), whether to start the machine or not --compute-attributes: cluster             ID of cluster to use template            Hardware profile to use cores               Integer value, number of cores memory              Amount of memory, integer value in bytes rackspace: --volume: --interface: --compute-attributes: flavor_id image_id vmware: --volume: name storage_pod         Storage Pod ID from VMware datastore           Datastore ID from VMware size_gb             Integer number, volume size in GB thin                true/false eager_zero          true/false mode                persistent/independent_persistent/independent_nonpersistent --interface: compute_type        Type of the network adapter, for example one of: VirtualVmxnet3, VirtualE1000 See documentation center for your version of vSphere to find more details about available adapter types: https://www.vmware.com/support/pubs/ compute_network     Network ID from VMware start               Must be a 1 or 0, whether to start the machine or not --compute-attributes: cpus                  CPU count corespersocket        Number of cores per socket (applicable to hardware versions < 10 only) memory_mb             Integer number, amount of memory in MB firmware              automatic/bios/efi cluster               Cluster ID from VMware resource_pool         Resource Pool ID from VMware path                  Path to folder guest_id              Guest OS ID form VMware scsi_controller_type  ID of the controller from VMware hardware_version      Hardware version ID from VMware add_cdrom             Must be a 1 or 0, Add a CD-ROM drive to the virtual machine cpuHotAddEnabled      Must be a 1 or 0, lets you add memory resources while the machine is on memoryHotAddEnabled   Must be a 1 or 0, lets you add CPU resources while the machine is on annotation            Annotation Notes",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -21785,7 +21797,7 @@
               "value": "THIN"
             },
             {
-              "help": "Print help string string text Values: mismatched, matched, not_specified string string string string boolean Values: true, false string text string integer string string string integer string integer string Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string Values: true, false string string string datetime string job_invocation.id         string job_invocation.result     Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied            integer status.enabled            Values: true, false status.failed             integer status.failed_restarts    integer status.interesting        Values: true, false status.pending            integer status.restarted          integer status.skipped            integer string subnet.name               text string subnet6.name              text string string Values: valid, partial, invalid, unknown, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string text Values: mismatched, matched, not_specified user.firstname            string user.lastname             string user.login                string user.mail                 string string usergroup.name            string string",
+              "help": "Print help string string text Values: mismatched, matched, not_specified string string string string boolean Values: true, false string text string integer string string string integer string integer string Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string integer string string Values: true, false string string string datetime string job_invocation.id         string job_invocation.result     Values: cancelled, failed, pending, success datetime datetime string integer string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: mismatched, matched, not_specified string integer datetime string string text Values: mismatched, matched, not_specified string Values: mismatched, matched, not_specified string status.applied            integer status.enabled            Values: true, false status.failed             integer status.failed_restarts    integer status.interesting        Values: true, false status.pending            integer status.restarted          integer status.skipped            integer string subnet.name               text string subnet6.name              text string string Values: valid, partial, invalid, unknown, unsubscribed_hypervisor string Values: reboot_needed, process_restart_needed, updated string text Values: mismatched, matched, not_specified user.firstname            string user.lastname             string user.login                string user.mail                 string string usergroup.name            string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -22965,7 +22977,7 @@
               "value": "PUPPET_PROXY_ID"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'iPXE Embedded', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "PXE_LOADER"
@@ -24043,7 +24055,7 @@
               "value": "PUPPET_PROXY_ID"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'iPXE Embedded', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "PXE_LOADER"
@@ -37132,16 +37144,16 @@
               "value": "DEFAULT"
             },
             {
-              "help": "Open empty template in an $EDITOR. Upload the result",
-              "name": "interactive",
-              "shortname": null,
-              "value": ", -i"
-            },
-            {
               "help": "Path to a file that contains the report template content",
               "name": "file",
               "shortname": null,
               "value": "LAYOUT"
+            },
+            {
+              "help": "Open empty template in an $EDITOR. Upload the result",
+              "name": "interactive",
+              "shortname": null,
+              "value": ", -i"
             },
             {
               "help": "Location name",
@@ -37764,12 +37776,6 @@
               "value": "DEFAULT"
             },
             {
-              "help": "Dump existing template and open it in an $EDITOR. Update with the result",
-              "name": "interactive",
-              "shortname": null,
-              "value": ", -i"
-            },
-            {
               "help": "Path to a file that contains the report template content",
               "name": "file",
               "shortname": null,
@@ -37780,6 +37786,12 @@
               "name": "id",
               "shortname": null,
               "value": "ID"
+            },
+            {
+              "help": "Dump existing template and open it in an $EDITOR. Update with the result",
+              "name": "interactive",
+              "shortname": null,
+              "value": ", -i"
             },
             {
               "help": "Location name",
@@ -47798,6 +47810,18 @@
               "value": "DEBUG"
             },
             {
+              "help": "Applicable only for esx provider type. Hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option Will NOT be reported. Wildcards and regular expressions Are supported, multiple records must be separated by comma. Put the value Into the double-quotes if it contains special characters like comma. All New line characters will be removed in resulting configuration file, white Spaces are removed from beginning and end.",
+              "name": "exclude-host-parents",
+              "shortname": null,
+              "value": "EXCLUDE_HOST_PARENTS"
+            },
+            {
+              "help": "Applicable only for esx provider type. Only hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option Will be reported. Wildcards and regular expressions are supported, multiple Records must be separated by comma. Put the value into the double-quotes if It contains special characters like comma. All new line characters will be Removed in resulting configuration file, white spaces are removed from Beginning and end.",
+              "name": "filter-host-parents",
+              "shortname": null,
+              "value": "FILTER_HOST_PARENTS"
+            },
+            {
               "help": "Hypervisor filtering mode Possible value(s): 'none', 'whitelist', 'blacklist'",
               "name": "filtering-mode",
               "shortname": null,
@@ -48094,7 +48118,6 @@
               "shortname": null,
               "value": ", -o FILE"
             },
-
             {
               "help": "Print help",
               "name": "help",
@@ -48253,6 +48276,18 @@
               "name": "debug",
               "shortname": null,
               "value": "DEBUG"
+            },
+            {
+              "help": "Applicable only for esx provider type. Hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option Will NOT be reported. Wildcards and regular expressions Are supported, multiple records must be separated by comma. Put the value Into the double-quotes if it contains special characters like comma. All New line characters will be removed in resulting configuration file, white Spaces are removed from beginning and end.",
+              "name": "exclude-host-parents",
+              "shortname": null,
+              "value": "EXCLUDE_HOST_PARENTS"
+            },
+            {
+              "help": "Applicable only for esx provider type. Only hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option Will be reported. Wildcards and regular expressions are supported, multiple Records must be separated by comma. Put the value into the double-quotes if It contains special characters like comma. All new line characters will be Removed in resulting configuration file, white spaces are removed from Beginning and end.",
+              "name": "filter-host-parents",
+              "shortname": null,
+              "value": "FILTER_HOST_PARENTS"
             },
             {
               "help": "Hypervisor filtering mode Possible value(s): 'none', 'whitelist', 'blacklist'",
