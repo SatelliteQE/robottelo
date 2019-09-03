@@ -187,16 +187,17 @@ def test_positive_task_status(session):
         })
         tasks = session.task.read_all()
         assert tasks['searchbox'] == 'state=stopped&result=warning'
-        assert (
-            tasks['table'][0]['Action'] ==
+        task_name = (
             "Synchronize repository '{}'; product '{}'; "
-            "organization '{}'".format(repo.name, product.name, org.name))
+            "organization '{}'".format(repo.name, product.name, org.name)
+        )
+        assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'
         session.dashboard.action({
             'LatestFailedTasks': {'name': 'Synchronize'}
         })
-        values = session.task.read('Synchronize')
+        values = session.task.read(task_name)
         assert values['task']['result'] == 'warning'
         assert (
             values['task']['errors'] ==
