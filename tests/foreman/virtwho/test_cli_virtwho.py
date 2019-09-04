@@ -100,7 +100,7 @@ class VirtWhoConfigTestCase(CLITestCase):
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
-                    if hypervisor_name in item['type']:
+                    if hypervisor_name.lower() in item['type']:
                         vdc_id = item['id']
                         break
             result = Host.subscription_attach({
@@ -144,7 +144,7 @@ class VirtWhoConfigTestCase(CLITestCase):
             vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
-                    if hypervisor_name in item['type']:
+                    if hypervisor_name.lower() in item['type']:
                         vdc_id = item['id']
                         break
             result = Host.subscription_attach({
