@@ -88,7 +88,6 @@ def test_positive_deploy_configure_by_id(session, form_data):
             settings.virtwho.sku_vdc_physical)
         vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
             settings.virtwho.sku_vdc_physical)
-        # vdc_virtual = 'type = STACK_DERIVED'
         session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
         assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
         session.contenthost.add_subscription(guest_name, vdc_virtual)
