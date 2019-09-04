@@ -163,8 +163,10 @@ def test_positive_end_to_end(session, repos_collection, vm):
         chost = session.contenthost.read(vm.hostname,
                                          widget_names=['details',
                                                        'provisioning_details',
-                                                       'subscriptions',
-                                                       'repository_sets'])
+                                                       'subscriptions'])
+        session.contenthost.update(vm.hostname, {'repository_sets.limit_to_lce': True})
+        ch_reposet = session.contenthost.read(vm.hostname, widget_names=['repository_sets'])
+        chost = {**chost, **ch_reposet}
         # Ensure all content host fields/tabs have appropriate values
         assert chost['details']['name'] == vm.hostname
         assert (
@@ -208,7 +210,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.contenthost.install_errata(vm.hostname, FAKE_2_ERRATA_ID)
+        result = session.errata.install(FAKE_2_ERRATA_ID, vm.hostname)
         assert result['result'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
