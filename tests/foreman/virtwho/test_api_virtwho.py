@@ -102,7 +102,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
             subscriptions = entities.Subscription().search(
                 query={'search': '{0}'.format(sku)})
             vdc_id = subscriptions[0].id
-            if sku == 'type=STACK_DERIVED':
+            if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
                     if hypervisor_name in item.type:
                         vdc_id = item.id
@@ -157,7 +157,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
             subscriptions = entities.Subscription().search(
                 query={'search': '{0}'.format(sku)})
             vdc_id = subscriptions[0].id
-            if sku == 'type=STACK_DERIVED':
+            if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
                     if hypervisor_name in item.type:
                         vdc_id = item.id
