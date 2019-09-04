@@ -133,8 +133,6 @@ def virtwho_cleanup():
     runcmd("rm -f /var/run/virt-who.pid")
     runcmd("rm -f /var/log/rhsm/rhsm.log")
     runcmd("rm -rf /etc/virt-who.d/*")
-    for host in Host.list():
-        Host.delete({'id': host['id']})
 
 
 def get_virtwho_status():
@@ -251,11 +249,14 @@ def deploy_validation():
     :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
-    _, logs = runcmd('sleep 5; cat /var/log/rhsm/rhsm.log')
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     error = len(re.findall(r'\[.*ERROR.*\]', logs))
     if status != 'running' or error != 0:
         raise VirtWhoError("Failed to start virt-who service")
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+    for host in Host.list({'search': hypervisor_name}):
+        Host.delete({'id': host['id']})
+    runcmd("systemctl restart virt-who; sleep 5")
     return hypervisor_name, guest_name
 
 

@@ -89,17 +89,23 @@ class VirtWhoConfigTestCase(CLITestCase):
         self.assertEquals(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
         hosts = [
-            (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
-            (guest_name, 'type=STACK_DERIVED')]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical))]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            vdc = Subscription.list({
+            subscriptions = Subscription.list({
                 'organization': DEFAULT_ORG,
                 'search': sku,
-            })[0]
+            })
+            vdc_id = subscriptions[0]['id']
+            if sku == 'type=STACK_DERIVED':
+                for item in subscriptions:
+                    if hypervisor_name in item['type']:
+                        vdc_id = item['id']
+                        break
             result = Host.subscription_attach({
                 'host-id': host['id'],
-                'subscription-id': vdc['id']
+                'subscription-id': vdc_id
             })
             self.assertTrue('attached to the host successfully' in '\n'.join(result))
         VirtWhoConfig.delete({'name': name})
@@ -127,17 +133,23 @@ class VirtWhoConfigTestCase(CLITestCase):
         self.assertEquals(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
         hosts = [
-            (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
-            (guest_name, 'type=STACK_DERIVED')]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical))]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            vdc = Subscription.list({
+            subscriptions = Subscription.list({
                 'organization': DEFAULT_ORG,
                 'search': sku,
-            })[0]
+            })
+            vdc_id = subscriptions[0]['id']
+            if sku == 'type=STACK_DERIVED':
+                for item in subscriptions:
+                    if hypervisor_name in item['type']:
+                        vdc_id = item['id']
+                        break
             result = Host.subscription_attach({
                 'host-id': host['id'],
-                'subscription-id': vdc['id']
+                'subscription-id': vdc_id
             })
             self.assertTrue('attached to the host successfully' in '\n'.join(result))
         VirtWhoConfig.delete({'name': name})
