@@ -104,8 +104,9 @@ class VirtWhoConfigApiTestCase(APITestCase):
             vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
-                    if hypervisor_name in item.type:
-                        vdc_id = item.id
+                    item = item.read_json()
+                    if hypervisor_name.lower() in item['hypervisor']['name']:
+                        vdc_id = item['id']
                         break
             entities.HostSubscription(host=host.id).add_subscriptions(
                 data={'subscriptions': [{
@@ -159,8 +160,9 @@ class VirtWhoConfigApiTestCase(APITestCase):
             vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 for item in subscriptions:
-                    if hypervisor_name in item.type:
-                        vdc_id = item.id
+                    item = item.read_json()
+                    if hypervisor_name.lower() in item['hypervisor']['name']:
+                        vdc_id = item['id']
                         break
             entities.HostSubscription(host=host.id).add_subscriptions(
                 data={'subscriptions': [{
