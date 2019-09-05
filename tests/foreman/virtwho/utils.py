@@ -67,6 +67,8 @@ def get_guest_info():
     # Different UUID for vcenter by dmidecode and vcenter MOB
     if hypervisor_type == 'esx':
         guest_uuid = guest_uuid.split('-')[-1]
+    if hypervisor_type == 'hyperv':
+        guest_uuid = guest_uuid.split('-')[-1].upper()
     return guest_name, guest_uuid
 
 
@@ -252,7 +254,6 @@ def deploy_validation():
     if status != 'running' or error != 0:
         raise VirtWhoError("Failed to start virt-who service")
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
-    # Delete the hypervisor entry and always make sure it's new.
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
     runcmd("systemctl restart virt-who; sleep 5")
@@ -265,9 +266,8 @@ def deploy_configure_by_command(command, debug=False):
         `hammer virt-who-config deploy --id 1 --organization-id 1`
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
-    if debug:
-        register_system(get_system('guest'))
-        virtwho_cleanup()
+    virtwho_cleanup()
+    register_system(get_system('guest'))
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(
@@ -290,9 +290,8 @@ def deploy_configure_by_script(script_content, debug=False):
         .replace('&gt;', '>')
         .replace('&lt;', '<')
     )
-    if debug:
-        register_system(get_system('guest'))
-        virtwho_cleanup()
+    virtwho_cleanup()
+    register_system(get_system('guest'))
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.upload_file(script_filename, script_filename)

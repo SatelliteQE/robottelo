@@ -92,16 +92,25 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 query={'search': 'name={}'.format(name)})[0].status,
             'ok')
         hosts = [
-            (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
-            (guest_name, 'type = STACK_DERIVED')]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(
+                self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
+                self.vdc_physical))]
         for hostname, sku in hosts:
             host = entities.Host().search(
                 query={'search': "{0}".format(hostname)})[0]
-            product_subscription = entities.Subscription().search(
-                query={'search': '{0}'.format(sku)})[0]
+            subscriptions = entities.Subscription().search(
+                query={'search': '{0}'.format(sku)})
+            vdc_id = subscriptions[0].id
+            if 'type=STACK_DERIVED' in sku:
+                for item in subscriptions:
+                    item = item.read_json()
+                    if hypervisor_name.lower() in item['hypervisor']['name']:
+                        vdc_id = item['id']
+                        break
             entities.HostSubscription(host=host.id).add_subscriptions(
                 data={'subscriptions': [{
-                              'id': product_subscription.id,
+                              'id': vdc_id,
                               'quantity': 1}]})
             result = entities.Host().search(
                 query={'search': '{0}'.format(hostname)})[0].read_json()
@@ -139,16 +148,25 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 query={'search': 'name={}'.format(name)})[0].status,
             'ok')
         hosts = [
-            (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
-            (guest_name, 'type = STACK_DERIVED')]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(
+                self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
+                self.vdc_physical))]
         for hostname, sku in hosts:
             host = entities.Host().search(
                 query={'search': "{0}".format(hostname)})[0]
-            product_subscription = entities.Subscription().search(
-                query={'search': '{0}'.format(sku)})[0]
+            subscriptions = entities.Subscription().search(
+                query={'search': '{0}'.format(sku)})
+            vdc_id = subscriptions[0].id
+            if 'type=STACK_DERIVED' in sku:
+                for item in subscriptions:
+                    item = item.read_json()
+                    if hypervisor_name.lower() in item['hypervisor']['name']:
+                        vdc_id = item['id']
+                        break
             entities.HostSubscription(host=host.id).add_subscriptions(
                 data={'subscriptions': [{
-                              'id': product_subscription.id,
+                              'id': vdc_id,
                               'quantity': 1}]})
             result = entities.Host().search(
                 query={'search': '{0}'.format(hostname)})[0].read_json()
@@ -340,7 +358,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(
             get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG),
             '*')
-        proxy = 'test.rexample.com:3128'
+        proxy = 'test.example.com:3128'
         no_proxy = 'test.satellite.com'
         vhd.proxy = proxy
         vhd.no_proxy = no_proxy
