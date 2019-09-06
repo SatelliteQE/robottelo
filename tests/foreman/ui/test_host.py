@@ -70,7 +70,6 @@ from robottelo.decorators import (
     tier3,
     tier4,
     skip_if,
-    skip_if_bug_open,
     skip_if_not_set,
     upgrade,
 )
@@ -444,19 +443,71 @@ def module_libvirt_hostgroup(
     ).create()
 
 
-@tier4
-def test_positive_create(session, module_host_template, module_org):
-    """Create a new Host
+@tier2
+def test_positive_end_to_end(session, module_host_template, module_org, module_global_params):
+    """Create a new Host with parameters, config group. Check host presence on
+        the dashboard. Update name with 'new' prefix and delete.
 
     :id: 4821444d-3c86-4f93-849b-60460e025ba0
 
-    :expectedresults: Host is created
+    :expectedresults: Host is created with parameters, config group. Updated
+        and deleted.
+
+    :BZ: 1419161
 
     :CaseLevel: System
     """
+    global_params = [
+        global_param.to_json_dict(
+            lambda attr, field: attr in ['name', 'value'])
+        for global_param in module_global_params
+    ]
+    host_parameters = []
+    for _ in range(2):
+        host_parameters.append(
+            dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
+        )
+    expected_host_parameters = copy.deepcopy(host_parameters)
+    # override the first global parameter
+    overridden_global_parameter = {
+        'name': global_params[0]['name'],
+        'value': gen_string('alpha')
+    }
+    expected_host_parameters.append(overridden_global_parameter)
+    expected_global_parameters = copy.deepcopy(global_params)
+    for global_param in expected_global_parameters:
+        # update with overridden expected value
+        if global_param['name'] == overridden_global_parameter['name']:
+            global_param['overridden'] = True
+        else:
+            global_param['overridden'] = False
+
+    config_group = entities.ConfigGroup().create()
+    new_name = 'new{0}'.format(gen_string("alpha").lower())
+    new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
     with session:
-        host_name = create_fake_host(session, module_host_template)
+        host_name = create_fake_host(
+            session,
+            module_host_template,
+            host_parameters=host_parameters,
+            global_parameters=[overridden_global_parameter],
+            extra_values={
+                'puppet_classes.config_groups.assigned': [config_group.name]
+            }
+        )
         assert session.host.search(host_name)[0]['Name'] == host_name
+        values = session.host.read(
+            host_name,
+            widget_names=['parameters', 'puppet_classes']
+        )
+        assert (_get_set_from_list_of_dict(values['parameters']['host_params'])
+                == _get_set_from_list_of_dict(expected_host_parameters))
+        assert _get_set_from_list_of_dict(
+            expected_global_parameters).issubset(
+            _get_set_from_list_of_dict(values['parameters']['global_params']))
+
+        assert len(values['puppet_classes']['config_groups']['assigned']) == 1
+        assert values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
         # check host presence on the dashboard
         dashboard_values = session.dashboard.read('NewHosts')['hosts']
         displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
@@ -464,6 +515,13 @@ def test_positive_create(session, module_host_template, module_org):
             module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
         assert os_name in displayed_host['Operating System']
         assert displayed_host['Installed'] == '-'
+        # update
+        session.host.update(host_name, {'host.name': new_name})
+        assert not session.host.search(host_name)
+        assert session.host.search(new_host_name)[0]['Name'] == new_host_name
+        # delete
+        session.host.delete(new_host_name)
+        assert not session.host.search(new_host_name)
 
 
 @tier4
@@ -547,23 +605,6 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['additional_information']['enabled'] is True
 
 
-@tier4
-def test_positive_delete(session, module_host_template):
-    """Delete a Host
-
-    :id: 13735af1-f1c7-466e-a969-80618a1d854d
-
-    :expectedresults: Host is delete
-
-    :CaseLevel: System
-    """
-    with session:
-        host_name = create_fake_host(session, module_host_template)
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        session.host.delete(host_name)
-        assert not session.host.search(host_name)
-
-
 @tier3
 def test_positive_inherit_puppet_env_from_host_group_when_action(session):
     """Host group puppet environment is inherited to already created
@@ -612,87 +653,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
         values = session.host.read(host.name, widget_names='host')
         assert values['host']['hostgroup'] == hostgroup.name
         assert values['host']['puppet_environment'] == env.name
-
-
-@tier4
-def test_positive_create_host_with_parameters(session, module_global_params):
-    """"Create new Host with parameters, override one global parameter and read
-    all parameters.
-
-    :id: d37be8de-77f0-46c1-a431-bbc4db0eb7f6
-
-    :expectedresults: Host is created and has expected parameters values
-
-    :CaseLevel: Integration
-    """
-    global_params = [
-        global_param.to_json_dict(
-            lambda attr, field: attr in ['name', 'value'])
-        for global_param in module_global_params
-    ]
-
-    host = entities.Host()
-    host.create_missing()
-    host_name = u'{0}.{1}'.format(host.name, host.domain.name)
-    host_parameters = []
-    for _ in range(2):
-        host_parameters.append(
-            dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
-        )
-    expected_host_parameters = copy.deepcopy(host_parameters)
-    # override the first global parameter
-    overridden_global_parameter = {
-                'name': global_params[0]['name'],
-                'value': gen_string('alpha')
-            }
-    expected_host_parameters.append(overridden_global_parameter)
-    expected_global_parameters = copy.deepcopy(global_params)
-    for global_param in expected_global_parameters:
-        # update with overridden expected value
-        if global_param['name'] == overridden_global_parameter['name']:
-            global_param['overridden'] = True
-        else:
-            global_param['overridden'] = False
-
-    with session:
-        session.organization.select(org_name=host.organization.name)
-        session.location.select(loc_name=host.location.name)
-        create_fake_host(
-            session,
-            host,
-            host_parameters=host_parameters,
-            global_parameters=[overridden_global_parameter],
-        )
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.read(host_name, widget_names='parameters')
-        assert (_get_set_from_list_of_dict(values['parameters']['host_params'])
-                == _get_set_from_list_of_dict(expected_host_parameters))
-        assert _get_set_from_list_of_dict(
-            expected_global_parameters).issubset(
-            _get_set_from_list_of_dict(values['parameters']['global_params']))
-
-
-@tier3
-def test_positive_create_with_config_group(session, module_host_template):
-    """Create new Host with config group assigned to it
-
-    :id: 8834011e-f920-43de-8f28-1f370b2b8d69
-
-    :expectedresults: Host is created and contains correct config group
-
-    :CaseLevel: System
-    """
-    config_group = entities.ConfigGroup().create()
-    with session:
-        host_name = create_fake_host(
-            session,
-            module_host_template,
-            extra_values={'puppet_classes.config_groups.assigned': [config_group.name]}
-        )
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.read(host_name, widget_names='puppet_classes')
-        assert len(values['puppet_classes']['config_groups']['assigned']) == 1
-        assert values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
 
 
 @tier3
@@ -1159,50 +1119,6 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
 
-@tier4
-def test_positive_update_name(session, module_host_template):
-    """Create a new Host and update its name to valid one
-
-    :id: f1c19599-f613-431d-bf09-62addec1e60b
-
-    :expectedresults: Host is updated successfully
-
-    :CaseLevel: Integration
-    """
-    new_name = gen_string('alpha').lower()
-    new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
-    with session:
-        host_name = create_fake_host(session, module_host_template)
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        session.host.update(host_name, {'host.name': new_name})
-        assert not session.host.search(host_name)
-        assert session.host.search(new_host_name)[0]['Name'] == new_host_name
-
-
-@tier4
-def test_positive_update_name_with_prefix(session, module_host_template):
-    """Create a new Host and update its name to valid one. Host should
-    contain word 'new' in its name
-
-    :id: b08cb5c9-bd2c-4dc7-97b1-d1f20d1373d7
-
-    :expectedresults: Host is updated successfully
-
-    :BZ: 1419161
-
-    :CaseLevel: Integration
-    """
-    new_name = 'new{0}'.format(gen_string("alpha").lower())
-    new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
-    with session:
-        host_name = create_fake_host(session, module_host_template)
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        session.host.update(host_name, {'host.name': new_name})
-        assert not session.host.search(host_name)
-        assert session.host.search(new_host_name)[0]['Name'] == new_host_name
-
-
-@skip_if_bug_open('bugzilla', 1725686)
 @tier2
 def test_positive_search_by_parameter(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it
@@ -1210,6 +1126,8 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
     :id: 8e61127c-d0a0-4a46-a3c6-22d3b2c5457c
 
     :expectedresults: Only one specific host is returned by search
+
+    :BZ: 1725686
 
     :CaseLevel: Integration
     """
@@ -1232,7 +1150,6 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
         assert values[0]['Name'] == param_host.name
 
 
-@skip_if_bug_open('bugzilla', 1725686)
 @tier4
 def test_positive_search_by_parameter_with_different_values(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it by its value
@@ -1240,6 +1157,8 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
     :id: c3a4551e-d759-4a9d-ba90-8db4cab3db2c
 
     :expectedresults: Only one specific host is returned by search
+
+    :BZ: 1725686
 
     :CaseLevel: Integration
     """
