@@ -2076,6 +2076,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         })
         self.assertEqual(len(applicable_packages), 0)
 
+    @skip_if_bug_open('bugzilla', '1740790')
     @tier3
     def test_positive_erratum_applicability(self):
         """Ensure erratum applicability is functioning properly
