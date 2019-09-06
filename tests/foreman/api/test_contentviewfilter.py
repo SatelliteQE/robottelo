@@ -23,11 +23,14 @@ from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo import ssh
+from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_REPODATA_PATH,
     CUSTOM_SWID_TAG_REPO,
-    DOCKER_REGISTRY_HUB
+    CUSTOM_MODULE_STREAM_REPO_2,
+    DOCKER_REGISTRY_HUB,
+    FAKE_0_MODULAR_ERRATA_ID,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import tier1, tier2
@@ -272,6 +275,35 @@ class ContentViewFilterTestCase(APITestCase):
         self.assertEqual(len(cvf.repository), 2)
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
+
+    @tier2
+    def test_positive_create_with_module_streams(self):
+        """Verify Include and Exclude Filters creation for modulemd (module streams)
+
+        :id: 4734dcca-ea5b-47d6-8f5f-239da0dc7629
+
+        :expectedresults: Content view filter created successfully for both
+            Include and Exclude Type
+
+        :CaseLevel: Integration
+        """
+        module_stream_repo = entities.Repository(
+            content_type='yum',
+            product=self.product.id,
+            url=CUSTOM_MODULE_STREAM_REPO_2,
+        ).create()
+        self.content_view.repository = [self.repo, module_stream_repo]
+        self.content_view.update(['repository'])
+        for inclusion in (True, False):
+            cvf = entities.ModuleStreamContentViewFilter(
+                content_view=self.content_view,
+                inclusion=inclusion,
+                repository=[self.repo, module_stream_repo],
+            ).create()
+            self.assertEqual(cvf.inclusion, inclusion)
+        self.assertEqual(self.content_view.id, cvf.content_view.id)
+        self.assertEqual(len(cvf.repository), 2)
+        self.assertEqual(cvf.type, 'modulemd')
 
     @tier2
     def test_positive_publish_with_content_view_filter_and_swid_tags(self):
@@ -764,3 +796,180 @@ class ContentViewFilterSearchTestCase(APITestCase):
             content_view=self.content_view
         ).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
+
+
+class ContentViewFilterRuleTestCase(APITestCase):
+    """Tests for content view filter rules."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Init single organization, product and repository for all tests"""
+        super(ContentViewFilterRuleTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
+        cls.repo = entities.Repository(
+                content_type='yum',
+                product=cls.product,
+                url=CUSTOM_MODULE_STREAM_REPO_2).create()
+        cls.repo.sync()
+
+    def setUp(self):
+        """Init content view with repo per each test"""
+        super(ContentViewFilterRuleTestCase, self).setUp()
+        self.content_view = entities.ContentView(
+            organization=self.org,
+        ).create()
+        self.content_view.repository = [self.repo]
+        self.content_view.update(['repository'])
+
+    @tier2
+    def test_positive_promote_module_stream_filter(self):
+        """Verify Module Stream, Errata Count after Promote, Publish for Content View
+        with Module Stream Exclude Filter
+
+        :id: 2f5d21b1-8cbc-4a77-b8a2-09aa466f56a3
+
+        :expectedresults: Content View should get published and promoted successfully
+            with correct Module Stream count.
+
+        :CaseLevel: Integration
+        """
+        # Exclude module stream filter
+        cv_filter = entities.ModuleStreamContentViewFilter(content_view=self.content_view,
+                                                           inclusion=False).create()
+        module_streams = entities.ModuleStream().search(
+            query=dict(search='name="{}"'.format('duck')))
+        entities.ContentViewFilterRule(content_view_filter=cv_filter,
+                                       module_stream=module_streams).create()
+        self.content_view.publish()
+        content_view = self.content_view.read()
+        content_view_version_info = content_view.version[0].read()
+        self.assertEqual(len(content_view.repository), 1)
+        self.assertEqual(len(content_view.version), 1)
+
+        #  the module stream and errata count based in filter after publish
+        self.assertEqual(content_view_version_info.module_stream_count, 4)
+        self.assertEqual(content_view_version_info.errata_counts['total'], 3)
+
+        # Promote Content View
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.version[0], lce.id)
+        content_view = content_view.read()
+        content_view_version_info = content_view.version[0].read()
+
+        # assert the module stream and errata count based in filter after promote
+        self.assertEqual(content_view_version_info.module_stream_count, 4)
+        self.assertEqual(content_view_version_info.errata_counts['total'], 3)
+
+    @tier2
+    def test_positive_include_exclude_module_stream_filter(self):
+        """Verify Include and Exclude Errata filter(modular errata) automatically force the copy
+           of the module streams associated to it.
+
+        :id: 20540722-b163-4ebb-b18d-351444ef0c86
+
+        :steps:
+            1. Create Include Errata filter with 'RHEA-2012:0059' has (duck and kangaroo streams)
+            2. Publish content view, Verify errata and stream count should be 1 and 2 respectively
+            3. Delete Filter (As we can not update the filter inclusion type)
+            4. Create Exclude Errata filter with 'RHEA-2012:0059' has (duck and kangaroo streams)
+            5. Publish content view, Verify errata and stream count should be 5 and 5 respectively
+                ( As we have total 6 Errata's and 7 Module Streams in assigned repo)
+
+        :expectedresults: Module Stream count changes automatically after including or
+            excluding modular errata
+
+        :CaseLevel: Integration
+        """
+        cv_filter = entities.ErratumContentViewFilter(
+            content_view=self.content_view, inclusion=True).create()
+        errata = entities.Errata().search(
+            query=dict(search='errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)))[0]
+        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+
+        self.content_view.publish()
+        content_view = self.content_view.read()
+        content_view_version_info = content_view.version[0].read()
+
+        # verify the module_stream_count and errata_count for Exclude Filter
+        self.assertEqual(content_view_version_info.module_stream_count, 2)
+        self.assertEqual(content_view_version_info.errata_counts['total'], 1)
+
+        # delete the previous content_view_filter
+        cv_filter.delete()
+        cv_filter = entities.ErratumContentViewFilter(
+            content_view=self.content_view, inclusion=False).create()
+        errata = entities.Errata().search(
+            query=dict(search='errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)))[0]
+        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+
+        content_view.publish()
+        content_view_version_info = content_view.read().version[1].read()
+
+        # verify the module_stream_count and errata_count for Include Filter
+        self.assertEqual(content_view_version_info.module_stream_count, 5)
+        self.assertEqual(content_view_version_info.errata_counts['total'], 5)
+
+    @tier2
+    def test_positive_multi_level_filters(self):
+        """Verify promotion of Content View and Verify count after applying
+        multi_filters (errata and module stream)
+
+        :id: aeaf2ac7-eda2-4f07-a1dd-fe6057934697
+
+        :expectedresults: Verify module stream and errata count should correct
+
+        :CaseLevel: Integration
+        """
+        # apply include errata filter
+        cv_filter = entities.ErratumContentViewFilter(
+            content_view=self.content_view, inclusion=True).create()
+        errata = entities.Errata().search(
+            query=dict(search='errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)))[0]
+        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+
+        # apply exclude module filter
+        cv_filter = entities.ModuleStreamContentViewFilter(content_view=self.content_view,
+                                                           inclusion=False).create()
+        module_streams = entities.ModuleStream().search(
+            query=dict(search='name="{}"'.format('duck')))
+        entities.ContentViewFilterRule(content_view_filter=cv_filter,
+                                       module_stream=module_streams).create()
+        self.content_view.publish()
+        content_view = self.content_view.read()
+        content_view_version_info = content_view.read().version[0].read()
+        # verify the module_stream_count and errata_count for Include Filter
+        self.assertEqual(content_view_version_info.module_stream_count, 1)
+        self.assertEqual(content_view_version_info.errata_counts['total'], 1)
+
+    @tier2
+    def test_positive_dependency_solving_module_stream_filter(self):
+        """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.
+        If dependency solving enabled then dependent module streams will be fetched
+        over even if the exclude filter has been applied.
+
+        e.g. duck module stream is dependent on kangaroo stream, hence even if add only
+        exclude filter on kangaroo it will get ignored as it is fetched because of duck
+        module stream. but if both duck and kangaroo module streams are in exclude filter
+        both will not get fetched.
+
+        :id: ea8a4d95-dc36-4102-b1a9-d53beaf14352
+
+        :expectedresults: Verify dependant/non dependant module streams are getting fetched.
+
+        :CaseLevel: Integration
+        """
+        self.content_view.solve_dependencies = True
+        content_view = self.content_view.update(['solve_dependencies'])
+        cv_filter = entities.ModuleStreamContentViewFilter(content_view=content_view,
+                                                           inclusion=False).create()
+        module_streams = entities.ModuleStream().search(
+            query=dict(search='name="{}" and version="{}'.format('kangaroo', '20180730223407')))
+        entities.ContentViewFilterRule(content_view_filter=cv_filter,
+                                       module_stream=module_streams).create()
+        self.content_view.publish()
+        content_view = content_view.read()
+        content_view_version_info = content_view.read().version[0].read()
+
+        # Total Module Stream Count = 7, Exclude filter rule get ignored.
+        self.assertEqual(content_view_version_info.module_stream_count, 7)
