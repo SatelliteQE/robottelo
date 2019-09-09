@@ -374,3 +374,34 @@ class VirtWhoConfigApiTestCase(APITestCase):
         vhd.delete()
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
+
+    @tier2
+    def test_positive_configure_organization_list(self):
+        """ Verify "GET /foreman_virt_who_configure/
+
+        api/v2/organizations/:organization_id/configs"
+
+        :id: 7434a875-e96a-40bd-9652-83d0805997a5
+
+        :expectedresults: Config can be searched in org list
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+        """
+        name = gen_string('alpha')
+        args = self._make_virtwho_configure()
+        args.update({'name': name})
+        vhd = entities.VirtWhoConfig(**args).create()
+        command = get_configure_command(vhd.id)
+        deploy_configure_by_command(command)
+        search_result = vhd.get_organization_configs()
+        assert_flag = None
+        for item in search_result['results']:
+            if item['name'] == name:
+                assert_flag = True
+                break
+        self.assertEqual(assert_flag, True)
+        vhd.delete()
+        self.assertEqual(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}), [])
