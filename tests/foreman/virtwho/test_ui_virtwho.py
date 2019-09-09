@@ -226,7 +226,9 @@ def test_positive_hypervisor_id_option(session, form_data):
         config_id = get_configure_id(name)
         config_command = get_configure_command(config_id)
         config_file = get_configure_file(config_id)
-        values = ['uuid', 'hwuuid', 'hostname']
+        values = ['uuid', 'hostname']
+        if form_data['hypervisor_type'] in ('esx', 'rhevm'):
+            values.append('hwuuid')
         for value in values:
             session.virtwho_configure.edit(name, {'hypervisor_id': value})
             results = session.virtwho_configure.read(name)
