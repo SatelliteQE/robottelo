@@ -2647,6 +2647,46 @@ def test_positive_add_errata_filter(session, module_org):
 
 
 @tier3
+def test_positive_add_module_stream_filter(session, module_org):
+    """add module stream filter in a content view
+
+    :id: 343c543e-5773-4ea4-aff4-27e0ed6be19e
+
+    :expectedresults: content views filter created and selected module stream
+        can be added for inclusion/exclusion
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    create_sync_custom_repo(module_org.id,
+                            repo_name=repo_name,
+                            repo_url=CUSTOM_MODULE_STREAM_REPO_2)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['modulemd'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        for module_stream in [('duck', '0'), ('walrus', '5.21')]:
+            session.contentviewfilter.add_module_stream(
+                cv.name,
+                filter_name,
+                'name = {} and stream = {}'.format(module_stream[0], module_stream[1])
+            )
+        cv.publish()
+        cvv = session.contentview.read_version(cv.name, VERSION)
+        assert len(cvv['module_streams']['table']) == 2
+        assert ({('duck', '0'), ('walrus', '5.21')} ==
+                {(value['Name'], value['Stream']) for value in cvv['module_streams']['table']})
+
+
+@tier3
 def test_positive_add_package_group_filter(session, module_org):
     """add package group to content views filter
 
