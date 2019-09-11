@@ -39,23 +39,8 @@ from upgrade_tests.helpers.scenarios import (
 from wait_for import wait_for
 
 
-class Scenario_errata_count(APITestCase):
-    """The test class contains pre and post upgrade scenarios to test if the
-    errata count for satellite client/content host.
-
-    Test Steps:
-
-        1. Before Satellite upgrade, Create a content host and register it with
-            satellite
-        2. Install packages and down-grade them to generate errata for a client
-        3. Store Errata count and details in file
-        4. Upgrade Satellite
-        5. Check if the Errata Count in Satellite after the upgrade.
-    """
-    @classmethod
-    def setUpClass(cls):
-        cls.docker_vm = settings.upgrade.docker_vm
-        cls.client_os = DISTRO_RHEL7
+class ScenarioErrataAbstract(object):
+    """ This is an Abstract Class whose methods are inherited by others errata scenarios"""
 
     def _run_goferd(self, client_container_id):
         """Start the goferd process."""
@@ -153,6 +138,22 @@ class Scenario_errata_count(APITestCase):
         call_entity_method_with_timeout(tools_repo.sync, timeout=3000)
         return tools_repo, rhel_repo
 
+    def _get_rh_rhel_tools_repos(self):
+        """ Get list of RHEL7 and tools repos
+
+        :return: nailgun.entities.Repository: repository
+        """
+
+        from_version = settings.upgrade.from_version
+        repo2_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
+
+        repo1_id = entities.Repository(organization=self.org). \
+            search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0].id
+        repo2_id = entities.Repository(organization=self.org). \
+            search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0].id
+
+        return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
+
     def _publish_content_view(self, org, repolist):
         """publish content view and return content view"""
         content_view = entities.ContentView(organization=org).create()
@@ -161,6 +162,25 @@ class Scenario_errata_count(APITestCase):
         content_view.publish()
         content_view = content_view.read()
         return content_view
+
+
+class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
+    """The test class contains pre and post upgrade scenarios to test if the
+    errata count for satellite client/content host.
+
+    Test Steps:
+
+        1. Before Satellite upgrade, Create a content host and register it with
+            satellite
+        2. Install packages and down-grade them to generate errata for a client
+        3. Store Errata count and details in file
+        4. Upgrade Satellite
+        5. Check if the Errata Count in Satellite after the upgrade.
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.docker_vm = settings.upgrade.docker_vm
+        cls.client_os = DISTRO_RHEL7
 
     @pre_upgrade
     def test_pre_scenario_generate_errata_for_client(self):
@@ -328,7 +348,8 @@ class Scenario_errata_count(APITestCase):
             self._check_package_installed(client_container_id, package)
 
 
-class Scenario_errata_count_with_previous_version_katello_agent(APITestCase):
+class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
+                                                                ScenarioErrataAbstract):
     """The test class contains pre and post upgrade scenarios to test erratas count
     and remotely install using n-1 'katello-agent' on content host.
 
@@ -352,89 +373,6 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase):
             query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0]
         cls.loc = entities.Location().search(
             query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
-
-    def _run_goferd(self, client_container_id):
-        """Start the goferd process."""
-        kwargs = {'async': True, 'host': self.docker_vm}
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'pkill -f gofer',
-            **kwargs
-        )
-        execute(
-            docker_execute_command,
-            client_container_id,
-            '/usr/bin/goferd -f',
-            **kwargs
-        )
-        status = execute(docker_execute_command, client_container_id, 'ps -ef',
-                         host=self.docker_vm)[self.docker_vm]
-        self.assertIn('goferd', status)
-
-    def _check_package_installed(self, client_container_id, package):
-        """Verify if package is installed on docker content host."""
-
-        kwargs = {'host': self.docker_vm}
-        installed_package = execute(
-            docker_execute_command,
-            client_container_id,
-            'rpm -q {}'.format(package),
-            **kwargs
-        )[self.docker_vm]
-        self.assertIn(package, installed_package)
-
-    def _install_or_update_package(self, client_container_id, package, update=False):
-        """Install/update the package on docker content host."""
-        kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command,
-                client_container_id,
-                'subscription-manager repos --enable=*;yum clean all',
-                **kwargs)[self.docker_vm]
-        if update:
-            command = 'yum update -y {}'.format(package)
-        else:
-            command = 'yum install -y {}'.format(package)
-
-        execute(docker_execute_command, client_container_id, command, **kwargs)[self.docker_vm]
-        self._check_package_installed(client_container_id, package)
-
-    def _errata_count(self, ak):
-        """ fetch the content host details.
-
-        :param: str ak: The activation key name
-        :return: int installable_errata_count : installable_errata count
-        """
-        host = entities.Host().search(query={
-            'search': 'activation_key={0}'.format(ak)})[0]
-        installable_errata_count = host.content_facet_attributes[
-            'errata_counts']['total']
-        return installable_errata_count
-
-    def _get_rh_rhel_tools_repos(self):
-        """ Get list of RHEL7 and tools repos
-
-        :return: nailgun.entities.Repository: repository
-        """
-
-        from_version = settings.upgrade.from_version
-        repo2_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
-
-        repo1_id = entities.Repository(organization=self.org). \
-            search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0].id
-        repo2_id = entities.Repository(organization=self.org). \
-            search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0].id
-
-        return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
-
-    def _publish_content_view(self, org, repolist):
-        """publish content view and return content view"""
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = repolist
-        content_view = content_view.update(['repository'])
-        call_entity_method_with_timeout(content_view.publish, timeout=3400)
-        content_view = content_view.read()
-        return content_view
 
     @pre_upgrade
     def test_pre_scenario_generate_errata_with_previous_version_katello_agent_client(self):
