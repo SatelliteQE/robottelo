@@ -520,7 +520,7 @@ CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
 CUSTOM_MODULE_STREAM_REPO_1 = (
-    u'https://dl.fedoraproject.org/pub/fedora/linux/updates/28/Modular/x86_64/'
+    u'https://dl.fedoraproject.org/pub/fedora/linux/updates/29/Modular/x86_64/'
 )
 CUSTOM_MODULE_STREAM_REPO_2 = (
     u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
