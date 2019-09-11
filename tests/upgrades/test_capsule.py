@@ -18,6 +18,7 @@ from fabric.api import execute, run
 from nailgun import entities
 from robottelo.test import APITestCase, settings
 from robottelo.api.utils import promote, call_entity_method_with_timeout
+from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_ORG
 from upgrade.helpers.tasks import wait_untill_capsule_sync
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
@@ -223,3 +224,71 @@ class Scenario_capsule_sync_2(APITestCase):
             host=self.cap_host
         )[self.cap_host]
         self.assertEqual('0', result)
+
+
+class Scenario_capsule_sync_3(APITestCase):
+    """The test class contains a post-upgrade scenario to test if puppet repo added to
+    satellite is synced to External capsule.
+
+    Test Steps:
+
+        1. Upgrade Satellite and Capsule.
+        2. Sync a puppet repo, Add to C.V. in satellite.
+        3. Run capsule sync and check if it's completed successfully.
+
+    BZ: 1746589
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
+        cls.org = entities.Organization().search(
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0]
+        cls.lc_env = entities.LifecycleEnvironment(organization=cls.org).search(
+            query={'search': 'name="{}"'.format('Dev')})[0]
+
+    @post_upgrade
+    def test_post_user_scenario_capsule_sync_3(self):
+        """ Post-upgrade scenario that creates and sync repository with
+        puppet modules, sync capsule with satellite and verifies it's status.
+
+        :id: postupgrade-7c597e9d-8db9-455e-bd19-acb5efa990a7
+
+        :steps:
+            1. Post Upgrade , Sync a puppet repo, Add to C.V. in Satellite.
+            2. Run Capsule sync.
+            3. Check Capsule sync status.
+
+        :expectedresults: Capsule sync should complete successfully with puppet repo content.
+
+        """
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+            product=product,
+            content_type='puppet',
+            url=CUSTOM_PUPPET_REPO,
+        ).create()
+        repo.sync()
+        module = repo.puppet_modules()
+        content_view = entities.ContentView(organization=self.org).create()
+        entities.ContentViewPuppetModule(
+            author=module['results'][0]['author'],
+            name=module['results'][0]['name'],
+            content_view=content_view,
+        ).create()
+        entities.ContentViewPuppetModule(
+            author=module['results'][1]['author'],
+            name=module['results'][1]['name'],
+            content_view=content_view,
+        ).create()
+        content_view.publish()
+        promote(content_view.read().version[0], self.lc_env.id)
+
+        # Run a Capsule sync
+        capsule = entities.SmartProxy().search(
+            query={'search': 'name={}'.format(self.cap_host)})[0]
+        call_entity_method_with_timeout(
+            entities.Capsule(id=capsule.id).content_sync,
+            timeout=1500)
+        sync_status = entities.Capsule(id=capsule.id).content_get_sync()
+        self.assertEqual(len(sync_status['active_sync_tasks']), 0)
+        self.assertEqual(len(sync_status['last_failed_sync_tasks']), 0)
