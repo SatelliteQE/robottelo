@@ -14,15 +14,19 @@
 
 :Upstream: No
 """
-from robottelo.decorators import tier1
-from robottelo.test import CLITestCase
+from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.host import Host
 from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_ORG
-from fauxfactory import gen_string
+from robottelo.decorators import (
+    tier2,
+    skip_if_bug_open
+)
+from robottelo.test import CLITestCase
+
 from .utils import (
     deploy_configure_by_command,
     deploy_configure_by_script,
@@ -67,7 +71,7 @@ class VirtWhoConfigTestCase(CLITestCase):
             args[u'hypervisor-password'] = self.hypervisor_password
         return args
 
-    @tier1
+    @tier2
     def test_positive_deploy_configure_by_id(self):
         """ Verify " hammer virt-who-config deploy"
 
@@ -83,10 +87,10 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        self.assertEquals(vhd['status'], 'No Report Yet')
+        self.assertEqual(vhd['status'], 'No Report Yet')
         command = get_configure_command(vhd['id'])
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
-        self.assertEquals(
+        self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
         hosts = [
             (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
@@ -111,7 +115,7 @@ class VirtWhoConfigTestCase(CLITestCase):
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_deploy_configure_by_script(self):
         """ Verify " hammer virt-who-config fetch"
 
@@ -127,10 +131,10 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        self.assertEquals(vhd['status'], 'No Report Yet')
+        self.assertEqual(vhd['status'], 'No Report Yet')
         script = VirtWhoConfig.fetch({'id': vhd['id']}, output_format='plain')
         hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
-        self.assertEquals(
+        self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
         hosts = [
             (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
@@ -155,7 +159,7 @@ class VirtWhoConfigTestCase(CLITestCase):
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_debug_option(self):
         """ Verify debug option by hammer virt-who-config update"
 
@@ -172,9 +176,9 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        self.assertEquals(vhd['name'], name)
+        self.assertEqual(vhd['name'], name)
         VirtWhoConfig.update({'id': vhd['id'], 'new-name': new_name})
-        self.assertEquals(
+        self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['name'],
             new_name)
         options = {'true': '1', 'false': '0', 'yes': '1', 'no': '0'}
@@ -182,12 +186,12 @@ class VirtWhoConfigTestCase(CLITestCase):
             VirtWhoConfig.update({'id': vhd['id'], 'debug': key})
             command = get_configure_command(vhd['id'])
             deploy_configure_by_command(command)
-            self.assertEquals(
+            self.assertEqual(
                 get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG), value)
         VirtWhoConfig.delete({'name': new_name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_interval_option(self):
         """ Verify interval option by hammer virt-who-config update"
 
@@ -217,12 +221,12 @@ class VirtWhoConfigTestCase(CLITestCase):
             VirtWhoConfig.update({'id': vhd['id'], 'interval': key})
             command = get_configure_command(vhd['id'])
             deploy_configure_by_command(command)
-            self.assertEquals(
+            self.assertEqual(
                 get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG), value)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_hypervisor_id_option(self):
         """ Verify hypervisor_id option by hammer virt-who-config update"
 
@@ -244,16 +248,17 @@ class VirtWhoConfigTestCase(CLITestCase):
         for value in values:
             VirtWhoConfig.update({'id': vhd['id'], 'hypervisor-id': value})
             result = VirtWhoConfig.info({'id': vhd['id']})
-            self.assertEquals(result['connection']['hypervisor-id'], value)
+            self.assertEqual(result['connection']['hypervisor-id'], value)
             config_file = get_configure_file(vhd['id'])
             command = get_configure_command(vhd['id'])
             deploy_configure_by_command(command)
-            self.assertEquals(
+            self.assertEqual(
                 get_configure_option('hypervisor_id', config_file), value)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @skip_if_bug_open('bugzilla', 1735670)
+    @tier2
     def test_positive_filter_option(self):
         """ Verify filter option by hammer virt-who-config update"
 
@@ -274,19 +279,40 @@ class VirtWhoConfigTestCase(CLITestCase):
             'id': vhd['id'],
             'filtering-mode': 'whitelist',
             'whitelist': regex,
+            'filter-host-parents': regex
         }
+        blacklist = {
+            'id': vhd['id'],
+            'filtering-mode': 'blacklist',
+            'blacklist': regex,
+            'exclude-host-parents': regex
+        }
+        # Update Whitelist and check the result
         VirtWhoConfig.update(whitelist)
         result = VirtWhoConfig.info({'id': vhd['id']})
-        self.assertEquals(result['connection']['filtering'], 'Whitelist')
-        self.assertEquals(result['connection']['filtered-hosts'], regex)
+        self.assertEqual(result['connection']['filtering'], 'Whitelist')
+        self.assertEqual(result['connection']['filtered-hosts'], regex)
+        self.assertEqual(result['connection']['filter-host-parents'], regex)
         config_file = get_configure_file(vhd['id'])
         command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
-        self.assertEquals(get_configure_option('filter_hosts', config_file), regex)
+        self.assertEqual(get_configure_option('filter_hosts', config_file), regex)
+        self.assertEqual(get_configure_option('filter_host_parents', config_file), regex)
+        # Update Blacklist and check the result
+        VirtWhoConfig.update(blacklist)
+        result = VirtWhoConfig.info({'id': vhd['id']})
+        self.assertEqual(result['connection']['filtering'], 'Blacklist')
+        self.assertEqual(result['connection']['excluded-hosts'], regex)
+        self.assertEqual(result['connection']['exclude-host-parents'], regex)
+        config_file = get_configure_file(vhd['id'])
+        command = get_configure_command(vhd['id'])
+        deploy_configure_by_command(command)
+        self.assertEqual(get_configure_option('exclude_hosts', config_file), regex)
+        self.assertEqual(get_configure_option('exclude_host_parents', config_file), regex)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_proxy_option(self):
         """ Verify http_proxy option by hammer virt-who-config update"
 
@@ -310,18 +336,18 @@ class VirtWhoConfigTestCase(CLITestCase):
             'no-proxy': no_proxy,
         })
         result = VirtWhoConfig.info({'id': vhd['id']})
-        self.assertEquals(result['connection']['http-proxy'], http_proxy)
-        self.assertEquals(result['connection']['ignore-proxy'], no_proxy)
+        self.assertEqual(result['connection']['http-proxy'], http_proxy)
+        self.assertEqual(result['connection']['ignore-proxy'], no_proxy)
         command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('http_proxy', VIRTWHO_SYSCONFIG), http_proxy)
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG), no_proxy)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_rhsm_option(self):
         """ Verify rhsm options in the configure file"
 
@@ -344,9 +370,9 @@ class VirtWhoConfigTestCase(CLITestCase):
         deploy_configure_by_command(command)
         rhsm_username = get_configure_option('rhsm_username', config_file)
         self.assertFalse(User.exists(search=('login', rhsm_username)))
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('rhsm_hostname', config_file), self.satellite_url)
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('rhsm_prefix', config_file), '/rhsm')
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))

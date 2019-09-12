@@ -365,4 +365,4 @@ def test_positive_virtwho_roles(session):
         for role_name, role_filters in roles.items():
             assert session.role.search(role_name)[0]['Name'] == role_name
             assigned_permissions = session.filter.read_permissions(role_name)
-            assert assigned_permissions == role_filters
+            assert sorted(assigned_permissions) == sorted(role_filters)

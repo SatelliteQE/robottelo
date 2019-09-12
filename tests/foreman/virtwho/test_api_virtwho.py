@@ -17,8 +17,12 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.decorators import tier2
+from robottelo.decorators import (
+    tier2,
+    skip_if_bug_open
+)
 from robottelo.test import APITestCase
+from time import sleep
 
 from .utils import (
     deploy_configure_by_command,
@@ -67,6 +71,26 @@ class VirtWhoConfigApiTestCase(APITestCase):
             args[u'hypervisor_password'] = self.hypervisor_password
         return args
 
+    def _try_to_get_guest_bonus(self, hypervisor_name, sku):
+        vdc_id = None
+        subscriptions = entities.Subscription().search(
+            query={'search': '{0}'.format(sku)})
+        for item in subscriptions:
+            item = item.read_json()
+            if hypervisor_name.lower() in item['hypervisor']['name']:
+                vdc_id = item['id']
+                break
+        return vdc_id
+
+    def _get_guest_bonus(self, hypervisor_name, sku):
+        vdc_id = self._try_to_get_guest_bonus(hypervisor_name, sku)
+        if vdc_id is None:
+            sleep(5)
+            # retry to get guest bonus
+            vdc_id = self._try_to_get_guest_bonus(hypervisor_name, sku)
+            self.assertIsNotNone(vdc_id)
+        return vdc_id
+
     @tier2
     def test_positive_deploy_configure_by_id(self):
         """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
@@ -97,17 +121,15 @@ class VirtWhoConfigApiTestCase(APITestCase):
             (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
                 self.vdc_physical))]
         for hostname, sku in hosts:
+            vdc_id = None
+            if 'type=NORMAL' in sku:
+                subscriptions = entities.Subscription().search(
+                    query={'search': '{0}'.format(sku)})
+                vdc_id = subscriptions[0].id
+            if 'type=STACK_DERIVED' in sku:
+                vdc_id = self._get_guest_bonus(hypervisor_name, sku)
             host = entities.Host().search(
                 query={'search': "{0}".format(hostname)})[0]
-            subscriptions = entities.Subscription().search(
-                query={'search': '{0}'.format(sku)})
-            vdc_id = subscriptions[0].id
-            if 'type=STACK_DERIVED' in sku:
-                for item in subscriptions:
-                    item = item.read_json()
-                    if hypervisor_name.lower() in item['hypervisor']['name']:
-                        vdc_id = item['id']
-                        break
             entities.HostSubscription(host=host.id).add_subscriptions(
                 data={'subscriptions': [{
                               'id': vdc_id,
@@ -153,21 +175,19 @@ class VirtWhoConfigApiTestCase(APITestCase):
             (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
                 self.vdc_physical))]
         for hostname, sku in hosts:
+            vdc_id = None
+            if 'type=NORMAL' in sku:
+                subscriptions = entities.Subscription().search(
+                    query={'search': '{0}'.format(sku)})
+                vdc_id = subscriptions[0].id
+            if 'type=STACK_DERIVED' in sku:
+                vdc_id = self._get_guest_bonus(hypervisor_name, sku)
             host = entities.Host().search(
                 query={'search': "{0}".format(hostname)})[0]
-            subscriptions = entities.Subscription().search(
-                query={'search': '{0}'.format(sku)})
-            vdc_id = subscriptions[0].id
-            if 'type=STACK_DERIVED' in sku:
-                for item in subscriptions:
-                    item = item.read_json()
-                    if hypervisor_name.lower() in item['hypervisor']['name']:
-                        vdc_id = item['id']
-                        break
             entities.HostSubscription(host=host.id).add_subscriptions(
                 data={'subscriptions': [{
-                              'id': vdc_id,
-                              'quantity': 1}]})
+                    'id': vdc_id,
+                    'quantity': 1}]})
             result = entities.Host().search(
                 query={'search': '{0}'.format(hostname)})[0].read_json()
             self.assertEqual(
@@ -285,6 +305,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
 
+    @skip_if_bug_open('bugzilla', 1735670)
     @tier2
     def test_positive_filter_option(self):
         """ Verify filter option by "PUT
@@ -305,15 +326,19 @@ class VirtWhoConfigApiTestCase(APITestCase):
         vhd = entities.VirtWhoConfig(**args).create()
         whitelist = {
             'filtering_mode': '1',
-            'whitelist': '.*redhat.com'
+            'whitelist': '.*redhat.com',
+            'filter_host_parents': '.*redhat.com'
         }
         blacklist = {
             'filtering_mode': '2',
-            'blacklist': '.*redhat.com'
+            'blacklist': '.*redhat.com',
+            'exclude_host_parents': '.*redhat.com'
         }
         # Update Whitelist and check the result
         vhd.filtering_mode = whitelist['filtering_mode']
         vhd.whitelist = whitelist['whitelist']
+        if self.hypervisor_type == 'esx':
+            vhd.filter_host_parents = whitelist['filter_host_parents']
         vhd.update(whitelist.keys())
         config_file = get_configure_file(vhd.id)
         command = get_configure_command(vhd.id)
@@ -321,9 +346,15 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(
             get_configure_option('filter_hosts', config_file),
             whitelist['whitelist'])
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(
+                get_configure_option('filter_host_parents', config_file),
+                whitelist['filter_host_parents'])
         # Update Blacklist and check the result
         vhd.filtering_mode = blacklist['filtering_mode']
         vhd.blacklist = blacklist['blacklist']
+        if self.hypervisor_type == 'esx':
+            vhd.exclude_host_parents = blacklist['exclude_host_parents']
         vhd.update(blacklist.keys())
         config_file = get_configure_file(vhd.id)
         command = get_configure_command(vhd.id)
@@ -331,6 +362,10 @@ class VirtWhoConfigApiTestCase(APITestCase):
         self.assertEqual(
             get_configure_option('exclude_hosts', config_file),
             blacklist['blacklist'])
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(
+                get_configure_option('exclude_host_parents', config_file),
+                blacklist['exclude_host_parents'])
         vhd.delete()
         self.assertEqual(entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(name)}), [])
