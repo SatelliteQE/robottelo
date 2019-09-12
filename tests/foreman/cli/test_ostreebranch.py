@@ -15,7 +15,7 @@
 
 :Upstream: No
 """
-
+import pytest
 import random
 
 from robottelo.cli.contentview import ContentView
@@ -29,12 +29,12 @@ from robottelo.cli.factory import (
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.constants import FEDORA27_OSTREE_REPO
-from robottelo.decorators import skip_if_bug_open, tier3, upgrade
+from robottelo.decorators import tier3, upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip(reason="BZ:1625783")
 @skip_if_os('RHEL6')
 class OstreeBranchTestCase(CLITestCase):
     """Test class for Ostree Branch CLI. """

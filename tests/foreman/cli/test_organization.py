@@ -43,7 +43,6 @@ from robottelo.datafactory import (
     valid_org_names_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier1,
@@ -247,20 +246,20 @@ class OrganizationTestCase(CLITestCase):
                       "Failed to add user by name")
         self.assertIn(admin_user['login'], org_info['users'],
                       "Failed to add admin user by name")
-        if not bz_bug_is_open(1395229):
-            Org.remove_user({
-                'name': self.org['name'],
-                'user': user['login'],
-            })
-            Org.remove_user({
-                'name': self.org['name'],
-                'user': admin_user['login'],
-            })
-            org_info = Org.info({'name': self.org['name']})
-            self.assertNotIn(user['login'], org_info['users'],
-                             "Failed to remove user by name")
-            self.assertNotIn(admin_user['login'], org_info['users'],
-                             "Failed to remove admin user by name")
+
+        Org.remove_user({
+            'name': self.org['name'],
+            'user': user['login'],
+        })
+        Org.remove_user({
+            'name': self.org['name'],
+            'user': admin_user['login'],
+        })
+        org_info = Org.info({'name': self.org['name']})
+        self.assertNotIn(user['login'], org_info['users'],
+                         "Failed to remove user by name")
+        self.assertNotIn(admin_user['login'], org_info['users'],
+                         "Failed to remove admin user by name")
 
         # add and remove user and admin user by id
         Org.add_user({
@@ -276,20 +275,20 @@ class OrganizationTestCase(CLITestCase):
                       "Failed to add user by id")
         self.assertIn(admin_user['login'], org_info['users'],
                       "Failed to add admin user by id")
-        if not bz_bug_is_open(1395229):
-            Org.remove_user({
-                'id': self.org['id'],
-                'user-id': user['id'],
-            })
-            Org.remove_user({
-                'id': self.org['id'],
-                'user-id': admin_user['id'],
-            })
-            org_info = Org.info({'id': self.org['id']})
-            self.assertNotIn(user['login'], org_info['users'],
-                             "Failed to remove user by id")
-            self.assertNotIn(admin_user['login'], org_info['users'],
-                             "Failed to remove admin user by id")
+
+        Org.remove_user({
+            'id': self.org['id'],
+            'user-id': user['id'],
+        })
+        Org.remove_user({
+            'id': self.org['id'],
+            'user-id': admin_user['id'],
+        })
+        org_info = Org.info({'id': self.org['id']})
+        self.assertNotIn(user['login'], org_info['users'],
+                         "Failed to remove user by id")
+        self.assertNotIn(admin_user['login'], org_info['users'],
+                         "Failed to remove admin user by id")
 
     @tier2
     def test_positive_add_and_remove_hostgroups(self):

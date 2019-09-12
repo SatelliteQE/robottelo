@@ -21,7 +21,6 @@ from fauxfactory import (
 )
 from os import chmod
 from robottelo import manifests, ssh
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -90,7 +89,7 @@ from robottelo.constants import (
     TEMPLATE_TYPES,
 )
 from robottelo.datafactory import valid_cron_expressions
-from robottelo.decorators import bz_bug_is_open, cacheable
+from robottelo.decorators import cacheable
 from robottelo.helpers import (
     update_dictionary, default_url_on_new_port, get_available_capsule_port
 )
@@ -884,8 +883,6 @@ def make_product_wait(options=None, wait_for=5):
     try:
         product = make_product(options)
     except CLIFactoryError as err:
-        if not bz_bug_is_open(1332650):
-            raise err
         sleep(wait_for)
         try:
             product = Product.info({
@@ -3799,29 +3796,18 @@ def setup_cdn_and_custom_repositories(
         if not cdn and not custom_repo_url:
             raise CLIFactoryError(u'Custom repository with url not supplied')
         if cdn:
-            if bz_bug_is_open(1655239):
-                rh_repo_id = enable_rhrepo_and_fetchid(
-                    repo.get('arch', DEFAULT_ARCHITECTURE),
-                    org_id,
-                    repo['product'],
-                    repo['repository'],
-                    repo['repository-set'],
-                    repo.get('releasever')
-                )
-                repo_info = Repository.info({'id': rh_repo_id})
-            else:
-                RepositorySet.enable({
-                    u'organization-id': org_id,
-                    u'product': repo['product'],
-                    u'name': repo['repository-set'],
-                    u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                    u'releasever': repo.get('releasever'),
-                })
-                repo_info = Repository.info({
-                    u'organization-id': org_id,
-                    u'name': repo['repository'],
-                    u'product': repo['product'],
-                })
+            RepositorySet.enable({
+                u'organization-id': org_id,
+                u'product': repo['product'],
+                u'name': repo['repository-set'],
+                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                u'releasever': repo.get('releasever'),
+            })
+            repo_info = Repository.info({
+                u'organization-id': org_id,
+                u'name': repo['repository'],
+                u'product': repo['product'],
+            })
         else:
             if custom_product is None:
                 custom_product = make_product_wait({

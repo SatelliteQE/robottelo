@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from wait_for import wait_for
 from nailgun import entities
 from fauxfactory import gen_alphanumeric, gen_string
@@ -75,8 +76,6 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -129,14 +128,16 @@ class RepositoryTestCase(CLITestCase):
         return repo_detail
 
     def _validated_image_tags_count(self, repo=None):
-        if bz_bug_is_open(1664631):
-            wait_for(
-                lambda: int(self._get_image_tags_count(repo=repo)
-                            ['content-counts']['container-image-tags']) > 0,
-                timeout=30,
-                delay=2,
-                logger=self.logger
-            )
+        # BEGIN BZ:1664631
+        # when BZ is closed the call for `wait_for` can be removed
+        wait_for(
+            lambda: int(self._get_image_tags_count(repo=repo)
+                        ['content-counts']['container-image-tags']) > 0,
+            timeout=30,
+            delay=2,
+            logger=self.logger
+        )
+        # END BZ:1664631
         return self._get_image_tags_count(repo=repo)
 
     @tier1
@@ -1186,9 +1187,8 @@ class RepositoryTestCase(CLITestCase):
                          'content not synced correctly')
         self.assertEqual(repo['content-counts']['errata'], '0',
                          'content not ignored correctly')
-        if not bz_bug_is_open(1335621):
-            self.assertEqual(repo['content-counts']['source-rpms'], '0',
-                             'content not ignored correctly')
+        self.assertEqual(repo['content-counts']['source-rpms'], '0',
+                         'content not ignored correctly')
         # drpm check requires a different method
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
@@ -1227,9 +1227,13 @@ class RepositoryTestCase(CLITestCase):
                          'content not ignored correctly')
         self.assertEqual(repo['content-counts']['errata'], '2',
                          'content not synced correctly')
-        if not bz_bug_is_open(1664549):
-            self.assertEqual(repo['content-counts']['source-rpms'], '3',
-                             'content not synced correctly')
+
+        # BEGIN BZ:1664549
+        # When BZ is closed this assertion can be un-commented.
+        # self.assertEqual(repo['content-counts']['source-rpms'], '3',
+        #                 'content not synced correctly')
+        # END BZ:1664549
+
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
             '/custom/{}/{}/drpms/ | grep .drpm'
@@ -1691,7 +1695,7 @@ class RepositoryTestCase(CLITestCase):
             CUSTOM_FILE_REPO_FILES_COUNT + 1
         )
 
-    @skip_if_bug_open('bugzilla', 1436209)
+    @pytest.mark.skip(reason="BZ:1436209")
     @tier2
     def test_negative_restricted_user_cv_add_repository(self):
         """Attempt to add a product repository to content view with a
@@ -1849,7 +1853,7 @@ class RepositoryTestCase(CLITestCase):
             {'organization-id': org['id']})
         self.assertEqual(len(repos), 0)
 
-    @skip_if_bug_open('bugzilla', 1378442)
+    @pytest.mark.skip(reason="BZ:1378442")
     @tier1
     def test_positive_upload_content_srpm(self):
         """Create repository and upload a SRPM content
@@ -1859,6 +1863,8 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: File successfully uploaded
 
         :CaseImportance: Critical
+
+        :BZ: 1378442
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(
@@ -2025,7 +2031,6 @@ class OstreeRepositoryTestCase(CLITestCase):
     """Ostree Repository CLI tests."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1439835)
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
@@ -2064,7 +2069,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['content-type'], u'ostree')
 
-    @skip_if_bug_open('bugzilla', 1716429)
+    @pytest.mark.skip(reason="BZ:1716429")
     @tier1
     def test_negative_create_ostree_repo_with_checksum(self):
         """Create a ostree repository with checksum type
@@ -2074,6 +2079,8 @@ class OstreeRepositoryTestCase(CLITestCase):
         :expectedresults: Validation error is raised
 
         :CaseImportance: Critical
+
+        :BZ: 1716429
         """
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
@@ -2114,7 +2121,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    @skip_if_bug_open('bugzilla', 1625783)
+    @pytest.mark.skip(reason="BZ:1625783")
     def test_positive_synchronize_ostree_repo(self):
         """Synchronize ostree repo
 
@@ -2123,6 +2130,8 @@ class OstreeRepositoryTestCase(CLITestCase):
         :expectedresults: Ostree repository is created and synced
 
         :CaseLevel: Integration
+
+        :BZ: 1625783
         """
         new_repo = self._make_repository({
             u'content-type': u'ostree',
@@ -2179,11 +2188,11 @@ class OstreeRepositoryTestCase(CLITestCase):
             Repository.info({u'id': new_repo['id']})
 
 
+@pytest.mark.skip(reason="BZ:1378442")
 class SRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
@@ -2292,11 +2301,11 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
 
+@pytest.mark.skip(reason="BZ:1378442")
 class DRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(DRPMRepositoryTestCase, cls).setUpClass()

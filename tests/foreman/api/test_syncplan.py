@@ -37,9 +37,7 @@ from robottelo.datafactory import (
 )
 from requests.exceptions import HTTPError
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier2,
     tier3,
@@ -519,7 +517,6 @@ class SyncPlanProductTestCase(APITestCase):
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1199150)
     def test_positive_remove_product(self):
         """Create a sync plan with two products and then remove one
         product from it.
@@ -530,6 +527,8 @@ class SyncPlanProductTestCase(APITestCase):
             removed from it.
 
         :CaseLevel: Integration
+
+        :BZ: 1199150
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         products = [
@@ -571,7 +570,6 @@ class SyncPlanProductTestCase(APITestCase):
         self.assertEqual(len(syncplan.read().product), 0)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1199150)
     def test_positive_repeatedly_add_remove(self):
         """Repeatedly add and remove a product from a sync plan.
 
@@ -581,6 +579,8 @@ class SyncPlanProductTestCase(APITestCase):
             additions and removals.
 
         :CaseLevel: Integration
+
+        :BZ: 1199150
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
@@ -756,7 +756,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             repo, ['erratum', 'package', 'package_group'])
 
     @tier4
-    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -766,6 +765,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595, 1695733
         """
         delay = 4 * 60  # delay for sync date in seconds
         product = entities.Product(organization=self.org).create()
@@ -776,11 +777,11 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Create and Associate sync plan with product
-        if bz_bug_is_open(1695733):
-            self.logger.info('Need to set seconds to zero because BZ#1695733')
-            sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-        else:
-            sync_date = datetime.utcnow() + timedelta(seconds=delay),
+        # BEGIN BZ:1695733
+        self.logger.info('Need to set seconds to zero because BZ:1695733')
+        # When BZ is closed the `replace(second=0)` can be removed
+        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+        # END BZ:1695733
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -809,7 +810,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     @tier4
     @upgrade
-    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -819,6 +819,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :expectedresults: Products are synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1695733
         """
         delay = 4 * 60  # delay for sync date in seconds
         products = [
@@ -835,11 +837,11 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo.id)
         # Create and Associate sync plan with products
-        if bz_bug_is_open(1695733):
-            self.logger.info('Need to set seconds to zero because BZ#1695733')
-            sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-        else:
-            sync_date = datetime.utcnow() + timedelta(seconds=delay),
+
+        self.logger.info('Need to set seconds to zero because BZ:1695733')
+        # sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -934,7 +936,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @run_in_one_thread
     @tier4
     @upgrade
-    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -965,11 +966,9 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             organization=org,
         ).search()[0]
         repo = entities.Repository(id=repo_id).read()
-        if bz_bug_is_open(1695733):
-            self.logger.info('Need to set seconds to zero because BZ#1695733')
-            sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-        else:
-            sync_date = datetime.utcnow() + timedelta(seconds=delay),
+        self.logger.info('Need to set seconds to zero because BZ:1695733')
+        # sync_date = datetime.utcnow() + timedelta(seconds=delay)
+        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
         sync_plan = entities.SyncPlan(
             organization=org,
             enabled=True,
@@ -1048,7 +1047,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
-    @skip_if_bug_open('bugzilla', '1396647')
     @tier3
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a weekly sync plan with a past datetime as a sync date,

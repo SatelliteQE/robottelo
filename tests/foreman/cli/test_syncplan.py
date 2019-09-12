@@ -41,7 +41,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier2,
     tier3,
@@ -509,7 +508,6 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier4
     @upgrade
-    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -519,6 +517,8 @@ class SyncPlanTestCase(CLITestCase):
         :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595
         """
         delay = 5 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
@@ -558,7 +558,6 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier4
     @upgrade
-    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -568,6 +567,8 @@ class SyncPlanTestCase(CLITestCase):
         :expectedresults: Products are synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595
         """
         delay = 6 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
@@ -688,7 +689,6 @@ class SyncPlanTestCase(CLITestCase):
     @run_in_one_thread
     @tier4
     @upgrade
-    @skip_if_bug_open('bugzilla', 1655595)
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -698,6 +698,8 @@ class SyncPlanTestCase(CLITestCase):
         :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595
         """
         delay = 5 * 60  # delay for sync date in seconds
         org = make_org()

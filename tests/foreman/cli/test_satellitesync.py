@@ -46,7 +46,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -1100,7 +1099,6 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(cvv.split('.')[0], str(major))
         self.assertEqual(cvv.split('.')[1], str(minor))
 
-    @skip_if_bug_open('bugzilla', 1657711)
     @tier3
     def test_negative_export_cv_with_puppet_repo(self):
         """Exporting CV version having non yum(puppet) repo throws error
@@ -1155,7 +1153,6 @@ class ContentViewSync(CLITestCase):
             "publish a new version and try the export again.\n".format(content_view['name'])
         )
 
-    @skip_if_bug_open('bugzilla', 1657711)
     @tier3
     def test_negative_export_cv_with_mixed_content_repos(self):
         """Exporting CV version having yum and non-yum(puppet) repos throws error

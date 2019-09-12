@@ -6,8 +6,6 @@ import logging.config
 import os
 import six
 
-from functools import partial
-
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
@@ -224,42 +222,6 @@ class ServerSettings(FeatureSettings):
         """
         return urljoin(
             self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
-
-
-class BugzillaSettings(FeatureSettings):
-    """Bugzilla server settings definitions."""
-    def __init__(self, *args, **kwargs):
-        super(BugzillaSettings, self).__init__(*args, **kwargs)
-        self.password = None
-        self.username = None
-        self.wontfix_lookup = None
-
-    def read(self, reader):
-        """Read and validate Bugzilla server settings."""
-        get_bz = partial(reader.get, 'bugzilla')
-        self.password = get_bz('bz_password', None)
-        self.username = get_bz('bz_username', None)
-        self.wontfix_lookup = reader.get(
-            'bugzilla', 'wontfix_lookup', True, bool)
-
-    def get_credentials(self):
-        """Return credentials for interacting with a Bugzilla API.
-
-        :return: A username-password dict.
-        :rtype: dict
-
-        """
-        return {'user': self.username, 'password': self.password}
-
-    def validate(self):
-        validation_errors = []
-        if self.username is None:
-            validation_errors.append(
-                '[bugzilla] bz_username must be provided.')
-        if self.password is None:
-            validation_errors.append(
-                '[bugzilla] bz_password must be provided.')
-        return validation_errors
 
 
 class CapsuleSettings(FeatureSettings):
@@ -1227,7 +1189,6 @@ class Settings(object):
         self.webdriver_desired_capabilities = None
         self.command_executor = None
 
-        self.bugzilla = BugzillaSettings()
         # Features
         self.capsule = CapsuleSettings()
         self.certs = CertsSettings()
@@ -1522,7 +1483,6 @@ class Settings(object):
     def _configure_third_party_logging(self):
         """Increase the level of third party packages logging."""
         loggers = (
-            'bugzilla',
             'easyprocess',
             'paramiko',
             'requests.packages.urllib3.connectionpool',

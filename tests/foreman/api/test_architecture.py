@@ -17,7 +17,7 @@
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2, upgrade
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import APITestCase
 
 
@@ -58,7 +58,6 @@ class ArchitectureTestCase(APITestCase):
                 self.assertEqual(name, arch.name)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1401519)
     def test_negative_create_with_invalid_name(self):
         """Create architecture providing an invalid initial name.
         set.
@@ -68,6 +67,8 @@ class ArchitectureTestCase(APITestCase):
         :expectedresults: Architecture is not created
 
         :CaseImportance: Medium
+
+        :BZ: 1401519
         """
         for name in invalid_names_list():
             with self.subTest(name):

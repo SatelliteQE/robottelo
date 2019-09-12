@@ -35,8 +35,6 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
     tier1,
     tier2,
     tier3
@@ -77,12 +75,8 @@ class DiscoveryRuleTestCase(CLITestCase):
         if not any(options.get(key) for key in [
             'organizations', 'organization-ids'
         ]):
-            if bz_bug_is_open(1523221):
-                options[u'organizations'] = self.org['name']
             options[u'organization-ids'] = self.org['id']
         if not any(options.get(key) for key in ['locations', 'locations-ids']):
-            if bz_bug_is_open(1523221):
-                options[u'locations'] = self.loc['name']
             options[u'location-ids'] = self.loc['id']
         if not any(options.get(key) for key in ['hostgroup', 'hostgroup-ids']):
             options[u'hostgroup-id'] = self.hostgroup['id']
@@ -153,7 +147,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         rule = self._make_discoveryrule({u'hostname': host_name})
         self.assertEqual(rule['hostname-template'], host_name)
 
-    @skip_if_bug_open('bugzilla', 1523221)
     @tier1
     def test_positive_create_with_org_loc_id(self):
         """Create discovery rule by associating org and location ids
@@ -283,12 +276,17 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseImportance: Medium
 
         :CaseLevel: Component
+
+        :BZ: 1378427
         """
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
                 bug_id = name.pop('bugzilla', None)
-                if bug_id is not None and bz_bug_is_open(bug_id):
-                    self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+                if bug_id is not None:
+                    self.logger.info(
+                        " Skip subtest due to BZ:{}".format(bug_id)
+                    )
+                    continue
                 with self.assertRaises(CLIFactoryError):
                     self._make_discoveryrule({u'hostname': name})
 

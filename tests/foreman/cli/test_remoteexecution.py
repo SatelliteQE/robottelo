@@ -35,7 +35,6 @@ from robottelo.constants import (
     FAKE_0_YUM_REPO
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -386,21 +385,22 @@ class TestRemoteExecution():
             'cron-line': '* * * * *',  # every minute
             'max-iteration': 2,  # just two runs
         })
-        if not bz_bug_is_open(1431190):
-            JobInvocation.get_output({
-                'id': invocation_command[u'id'],
-                'host': self.client.hostname
-            })
-            try:
-                assert invocation_command['status'] == u'queued'
-            except AssertionError:
-                result = 'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                        )
+
+        JobInvocation.get_output({
+            'id': invocation_command[u'id'],
+            'host': self.client.hostname
+        })
+        try:
+            assert invocation_command['status'] == u'queued'
+        except AssertionError:
+            result = 'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                     )
-                raise AssertionError(result)
+                )
+            raise AssertionError(result)
+
         sleep(150)
         rec_logic = RecurringLogic.info({
             'id': invocation_command['recurring-logic-id']})

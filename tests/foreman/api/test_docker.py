@@ -31,7 +31,6 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -240,7 +239,6 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(repo.docker_upstream_name, new_upstream_name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
@@ -529,7 +527,6 @@ class DockerContentViewTestCase(APITestCase):
         self.assertGreater(float(content_view.next_version), 1.0)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1217635)
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and
         publish it once.
@@ -540,6 +537,8 @@ class DockerContentViewTestCase(APITestCase):
             and the product is added to a content view which is then published
             only once and then added to a composite content view which is also
             published only once.
+
+        :BZ: 1217635
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())

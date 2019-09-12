@@ -32,8 +32,6 @@ from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
     run_in_one_thread,
     tier1,
     tier2,
@@ -247,7 +245,6 @@ class ContentViewFilterTestCase(CLITestCase):
         self.assertGreaterEqual(len(cv_filters), 1)
         self.assertIn(cvf_name, [cvf['name'] for cvf in cv_filters])
 
-    @skip_if_bug_open('bugzilla', 1356906)
     @tier1
     def test_positive_create_by_cv_name(self):
         """Create new content view filter and assign it to existing content
@@ -738,12 +735,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        content_view_filter = ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
@@ -752,19 +743,11 @@ class ContentViewFilterTestCase(CLITestCase):
                         'name': cvf_name,
                         'new-name': new_name,
                     })
-                if bz_bug_is_open(1328943):
-                    result = ContentView.filter.info({
+                with self.assertRaises(CLIReturnCodeError):
+                    ContentView.filter.info({
                         u'content-view-id': self.content_view['id'],
-                        u'id': content_view_filter['id'],
+                        u'name': new_name,
                     })
-                    self.assertEqual(
-                        result['name'], content_view_filter['name'])
-                else:
-                    with self.assertRaises(CLIReturnCodeError):
-                        ContentView.filter.info({
-                            u'content-view-id': self.content_view['id'],
-                            u'name': new_name,
-                        })
 
     @tier1
     def test_negative_update_with_same_name(self):
@@ -943,7 +926,6 @@ class ContentViewFilterTestCase(CLITestCase):
                 u'name': cvf_name,
             })
 
-    @skip_if_bug_open('bugzilla', 1388642)
     @tier1
     def test_positive_delete_by_org_name(self):
         """Create new content view filter and assign it to existing content

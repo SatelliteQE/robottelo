@@ -15,7 +15,7 @@
 
 :Upstream: No
 """
-
+import pytest
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 
@@ -27,7 +27,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     skip_if_not_set,
-    skip_if_bug_open,
     tier2,
     upgrade,
 )
@@ -123,7 +122,7 @@ def test_positive_end_to_end(session):
         assert not session.location.search(location_name)
 
 
-@skip_if_bug_open('bugzilla', '1321543')
+@pytest.mark.skip(reason="BZ:1321543")
 @tier2
 def test_positive_update_with_all_users(session):
     """Create location and do not add user to it. Check and uncheck

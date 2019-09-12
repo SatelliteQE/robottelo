@@ -28,14 +28,13 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
 class PartitionTableTestCase(APITestCase):
     """Tests for the ``ptables`` path."""
 
-    @skip_if_bug_open('bugzilla', 1229384)
     @tier1
     def test_positive_create_with_one_character_name(self):
         """Create Partition table with 1 character in name
@@ -143,7 +142,6 @@ class PartitionTableTestCase(APITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].id, ptable.id)
 
-    @skip_if_bug_open('bugzilla', 1375788)
     def test_positive_search_by_organization(self):
         """Create new partition table and try to find it using its name and
         organization it assigned to

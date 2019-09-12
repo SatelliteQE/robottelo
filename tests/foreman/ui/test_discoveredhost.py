@@ -21,7 +21,6 @@ from robottelo.api.utils import configure_provisioning, create_discovered_host
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier3,
     upgrade,
@@ -121,7 +120,6 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5,
         return bool(result.return_code)
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
@@ -149,7 +147,6 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @tier3
 @upgrade
@@ -177,8 +174,6 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_bug_open('bugzilla', 1728306)
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 @upgrade
 def test_positive_provision_using_quick_host_button(
@@ -216,8 +211,6 @@ def test_positive_provision_using_quick_host_button(
             'name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1728306)
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_update_name(
         session, module_org, module_loc, module_host_group, discovered_host):
@@ -258,8 +251,6 @@ def test_positive_update_name(
             'name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1665471)
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 @upgrade
 def test_positive_auto_provision_host_with_rule(
@@ -304,7 +295,6 @@ def test_positive_auto_provision_host_with_rule(
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_delete(session, discovered_host):
     """Delete the selected discovered host
@@ -325,7 +315,6 @@ def test_positive_delete(session, discovered_host):
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one
@@ -382,7 +371,6 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
         assert len(values['hosts']) == 2
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_reboot(session, provisioning_env):

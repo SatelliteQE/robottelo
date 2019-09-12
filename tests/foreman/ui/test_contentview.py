@@ -17,6 +17,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :Upstream: No
 """
+import pytest
 import datetime
 from random import randint
 
@@ -84,8 +85,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     tier2,
     tier3,
-    upgrade,
-    skip_if_bug_open,
+    upgrade
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import (
@@ -3165,7 +3165,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
         assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip(reason="BZ:1625783")
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_custom_ostree_end_to_end(session, module_org):
@@ -3187,6 +3187,8 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
     :CaseLevel: System
 
     :CaseImportance: High
+
+    :BZ: 1625783
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -3218,7 +3220,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip(reason="BZ:1625783")
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_rh_ostree_end_to_end(session):
@@ -3240,6 +3242,8 @@ def test_positive_rh_ostree_end_to_end(session):
     :CaseLevel: System
 
     :CaseImportance: Low
+
+    :BZ: 1625783
     """
     cv_name = gen_string('alpha')
     rh_repo = {
@@ -3274,7 +3278,7 @@ def test_positive_rh_ostree_end_to_end(session):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip(reason="BZ:1625783")
 @skip_if_os('RHEL6')
 @upgrade
 @tier3
@@ -3290,6 +3294,8 @@ def test_positive_mixed_content_end_to_end(session, module_org):
     :CaseLevel: System
 
     :CaseImportance: High
+
+    :BZ: 1625783
     """
     cv_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()

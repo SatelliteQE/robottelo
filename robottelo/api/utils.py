@@ -15,7 +15,6 @@ from robottelo.constants import (
     DEFAULT_PXE_TEMPLATE,
     DEFAULT_TEMPLATE,
     FAKE_1_YUM_REPO,
-    PERMISSIONS_WITH_BZ,
     REPO_TYPE,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
@@ -562,30 +561,6 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         'subnet': subnet.name,
         'os': os.title,
     }
-
-
-def get_role_by_bz(bz_id):
-    """Create and configure custom role entity for the testing of specific bugs
-     This function will read the dictionary of permissions and their associated
-     bugzilla id's from robottelo.constants "PERMISSIONS_WITH_BZ",
-     these permissions will create filter and a single role will be created
-     from all the filters.
-
-     :param bz_id: This is the bugzilla id that is specified in the
-        PERMISSIONS_WITH_BZ list, all the permissions associated with the bz_id
-        will be fetched and filters will be created
-     :return: A single role entity will be created from all the created filters
-     """
-    role = entities.Role().create()
-    for perms in PERMISSIONS_WITH_BZ.values():
-        perms_with_bz = [x for x in perms if bz_id in x.get('bz', [])]
-        if perms_with_bz:
-            permissions = [
-                entities.Permission(name=perm['name']).search()[0]
-                for perm in perms_with_bz
-                ]
-            entities.Filter(permission=permissions, role=role).create()
-    return role.read()
 
 
 def create_role_permissions(role, permissions_types_names, search=None):  # pragma: no cover

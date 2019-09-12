@@ -27,8 +27,6 @@ from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
     tier1,
     tier2,
     upgrade
@@ -113,10 +111,11 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for os_family in OPERATING_SYSTEMS:
+            # BEGIN BZ:1709683
+            if os_family == 'Debian':
+                continue
+            # END BZ:1709683
             with self.subTest(os_family):
-                if bz_bug_is_open(1709683):
-                    if os_family == 'Debian':
-                        continue
                 os = entities.OperatingSystem(family=os_family).create()
                 self.assertEqual(os.family, os_family)
 
@@ -136,8 +135,7 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(os.minor, minor_version)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1230902)
-    def test_verify_bugzilla_1230902(self):
+    def test_positive_read_minor_version_as_string(self):
         """Create an operating system with an integer minor version.
 
         :id: b45e0b94-62f7-45ff-a19e-83c7a0f51339
@@ -145,6 +143,8 @@ class OperatingSystemTestCase(APITestCase):
         :expectedresults: The minor version can be read back as a string.
 
         :CaseImportance: Critical
+
+        :BZ: 1230902
         """
         minor = int(gen_string('numeric', random.randint(1, 16)))
         operating_sys = entities.OperatingSystem(minor=minor).create()
@@ -323,7 +323,6 @@ class OperatingSystemTestCase(APITestCase):
             entities.OperatingSystem(family='NON_EXISTENT_OS').create()
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1328935)
     def test_negative_create_with_too_long_description(self):
         """Try to create operating system entity providing too long
         description value

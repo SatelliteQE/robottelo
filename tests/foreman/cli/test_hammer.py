@@ -19,7 +19,7 @@ import re
 
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import bz_bug_is_open, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 from six import StringIO
@@ -115,18 +115,16 @@ class HammerCommandsTestCase(CLITestCase):
                     subcommand['name']
                     for subcommand in expected['subcommands']
                 ])
-            # Below code is added as workaround for Bug 1666687
-            if bz_bug_is_open(1666687):
-                cmds = ['hammer report-template create', 'hammer report-template update']
-                if command in cmds:
-                    command_options.add('interactive')
-                if 'hammer virt-who-config fetch' in command:
-                    command_options.add('output')
-            # Below code is added as workaround for Bug 1655513 on Sat 6.4 release
-            # This will neglect null entry added for hammer ansible roles command
-            if bz_bug_is_open(1655513) and 'hammer ansible roles ' in command and 'help' in (
-                    command_options - expected_options):
-                expected_options.add("help")
+
+            # BEGIN BZ:1666687
+            # when BZ is closed this whole block can be removed.
+            cmds = ['hammer report-template create', 'hammer report-template update']
+            if command in cmds:
+                command_options.add('interactive')
+            if 'hammer virt-who-config fetch' in command:
+                command_options.add('output')
+            # END BZ:1666687
+
             added_options = tuple(command_options - expected_options)
             removed_options = tuple(expected_options - command_options)
             added_subcommands = tuple(

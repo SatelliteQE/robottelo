@@ -33,7 +33,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -54,7 +53,6 @@ class ConfigTemplateTestCase(APITestCase):
     """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1202564)
     def test_positive_build_pxe_default(self):
         """Call the "build_pxe_default" path.
 
@@ -65,6 +63,8 @@ class ConfigTemplateTestCase(APITestCase):
         :CaseLevel: Integration
 
         :CaseImportance: Critical
+
+        :BZ: 1202564
         """
         response = client.get(
             entities.ConfigTemplate().path('build_pxe_default'),
@@ -74,7 +74,6 @@ class ConfigTemplateTestCase(APITestCase):
         response.raise_for_status()
         self.assertIsInstance(response.json(), dict)
 
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_add_orgs(self):
         """Associate a config template with organizations.
@@ -84,6 +83,8 @@ class ConfigTemplateTestCase(APITestCase):
         :expectedresults: Config template is associated with organization
 
         :CaseImportance: Medium
+
+        :BZ: 1395229
         """
         orgs = [entities.Organization().create() for _ in range(2)]
 

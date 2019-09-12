@@ -31,7 +31,6 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import APITestCase
-from robozilla.decorators import skip_if_bug_open
 
 
 class RoleTestCase(APITestCase):
@@ -518,7 +517,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertNotEqual(self.filter_org.id, filtr.organization[0].id)
         self.assertNotEqual(self.filter_loc.id, filtr.location[0].id)
 
-    @skip_if_bug_open('bugzilla', 1637436)
     @tier1
     def test_positive_create_org_admin_from_clone(self):
         """Create Org Admin role which has access to most of the resources
@@ -532,6 +530,8 @@ class CannedRoleTestCases(APITestCase):
         :expectedresults: Org Admin role should be created successfully
 
         :CaseImportance: Critical
+
+        :BZ: 1637436
         """
         default_org_admin = entities.Role().search(
             query={'search': u'name="Organization admin"'})
@@ -876,7 +876,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertTrue(cloned_filter.unlimited)
         self.assertTrue(cloned_filter.override)
 
-    @skip_if_bug_open('bugzilla', 1488908)
     @tier2
     def test_positive_clone_role_without_taxonomies_non_overided_filter(self):
         """When taxonomies not assigned to cloned role, only unlimited but not
@@ -898,6 +897,8 @@ class CannedRoleTestCases(APITestCase):
             2. Override flag should be set to False
 
         :CaseLevel: Integration
+
+        :BZ: 1488908
         """
         role = entities.Role(
             name=gen_string('alpha'),
@@ -919,7 +920,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertTrue(cloned_filter.unlimited)
         self.assertFalse(cloned_filter.override)
 
-    @skip_if_bug_open('bugzilla', 1488908)
     @tier2
     def test_positive_clone_role_without_taxonomies_unlimited_filter(self):
         """When taxonomies not assigned to cloned role, Unlimited and override
@@ -940,6 +940,8 @@ class CannedRoleTestCases(APITestCase):
             2. Override flag should be set to False
 
         :CaseLevel: Integration
+
+        :BZ: 1488908
         """
         role = entities.Role(
             name=gen_string('alpha'),

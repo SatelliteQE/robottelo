@@ -25,7 +25,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, VMWARE_CONSTANTS
 from robottelo.decorators import (
     skip_if_not_set,
-    bz_bug_is_open,
     tier3,
 )
 from robottelo.helpers import ProvisioningCheckError, host_provisioning_check
@@ -65,13 +64,15 @@ class ComputeResourceHostTestCase(CLITestCase):
             cls.rhv_api.api.system_service().networks_service(
             ).list(search='name={0}'.format(bridge))[0].id
         )
-        if bz_bug_is_open(1685949):
-            dc = cls.rhv_api._data_centers_service.list(
-                search='name={0}'.format(cls.rhev_datacenter))[0]
-            dc = cls.rhv_api._data_centers_service.data_center_service(dc.id)
-            cls.quota = dc.quotas_service().list()[0].id
-        else:
-            cls.quota = 'Default'
+
+        # BEGIN BZ:1685949
+        dc = cls.rhv_api._data_centers_service.list(
+            search='name={0}'.format(cls.rhev_datacenter))[0]
+        dc = cls.rhv_api._data_centers_service.data_center_service(dc.id)
+        cls.quota = dc.quotas_service().list()[0].id
+        # When BZ is closed above part can be removed and below un-commented
+        # cls.quota = 'Default'
+        # END BZ:1685949
 
         # Vmware Settings
         cls.vmware_server = settings.vmware.vcenter

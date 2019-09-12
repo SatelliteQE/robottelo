@@ -30,7 +30,7 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import tier1, tier2
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -719,7 +719,6 @@ class ContentViewFilterSearchTestCase(APITestCase):
         cls.content_view = entities.ContentView().create()
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1242534)
     def test_positive_search_erratum(self):
         """Search for an erratum content view filter's rules.
 
@@ -728,6 +727,8 @@ class ContentViewFilterSearchTestCase(APITestCase):
         :expectedresults: The search completes with no errors.
 
         :CaseImportance: Critical
+
+        :BZ: 1242534
         """
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view

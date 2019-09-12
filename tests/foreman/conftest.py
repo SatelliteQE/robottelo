@@ -1,18 +1,30 @@
 # coding: utf-8
 """Configurations for py.test runner"""
 import datetime
+import inspect
+import json
 import logging
+import re
 
 import pytest
 try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
-from types import SimpleNamespace
+
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
-from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
-from robottelo.helpers import get_func_name
+
+
+BEGIN_BZ = re.compile(
+    # To match `# BEGIN BZ:12345`
+    r"\s*#\s*BEGIN\s*(?P<source>\D{2})\s*:\s*(?P<number>\d*)"
+)
+COMPONENT = re.compile(
+    # To match :CaseComponent: FooBar
+    r"\s*:CaseComponent:\s*(?P<component>\S*)",
+    re.IGNORECASE
+)
 
 
 def log(message, level="DEBUG"):
@@ -119,63 +131,95 @@ def log_test_execution(robottelo_logger, request):
     robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
-class NestedDict(SimpleNamespace):
-    def __init__(self, dict_data, **kwargs):
-        super().__init__(**kwargs)
-        for key, value in dict_data.items():
-            if isinstance(value, dict):
-                self.__setattr__(key, NestedDict(value))
-            else:
-                self.__setattr__(key, value)
+def generate_bz_collection(items, config, filename):
+    """Generates a dictionary with the usage of BZ blockers"""
 
+    bzcollect_data = {
+        'skip': [],
+        'deselect': [],
+        'workaround': [],
+        'skip_if': []
+    }
 
-def pytest_configure():
-    """return dict of name->object to be made globally available in
-    the pytest configure.  This hook is called at plugin registration
-    time.
-    Object is accessible only via dotted notation `item.key.nested_key`
+    for item in items:
+        filepath, lineno, testcase = item.location
+        # Take the module level :CaseComponent:
+        module_component = None
+        with open(item.module.__file__, 'r') as modulefile:
+            text = modulefile.read()
+            matches = COMPONENT.findall(text)
+            if matches:
+                module_component = matches[0]
+        # Then take from source of function if exists
+        source = inspect.getsource(item.function)
+        if ':CaseComponent:' in source:
+            matches = COMPONENT.findall(source)
+            if matches:
+                module_component = matches[0]
 
-    Exposes the list of all WONTFIX bugs and a mapping between decorated
-    functions and Bug IDS (populated by decorator).
-    """
-    log("Registering custom pytest_configure")
-    pytest.bugzilla = NestedDict({
-            'removal_ids': get_deselect_bug_ids(log=log),
-            'decorated_functions': []
-    })
+        for marker in item.iter_markers():
+            if marker.name in bzcollect_data.keys():
+                bzcollect_data[marker.name].append(
+                    {
+                        'reason': marker.kwargs.get('reason'),
+                        'filepath': filepath,
+                        'lineno': lineno,
+                        'testcase': testcase,
+                        'component': module_component
+                    }
+                )
 
-
-def _extract_setup_class_ids(item):
-    setup_class_method = getattr(item.parent.obj, 'setUpClass', None)
-    return getattr(setup_class_method, 'bugzilla_ids', [])
+        # Then take the BEGIN BZ: workaround marker if exists
+        if 'BEGIN BZ:' in source:
+            matches = BEGIN_BZ.findall(source)
+            for match in matches:
+                bzcollect_data['workaround'].append(
+                    {
+                        'reason': "{0}:{1}".format(*match),
+                        'filepath': filepath,
+                        'lineno': lineno,
+                        'testcase': testcase,
+                        'component': module_component
+                    }
+                )
+    print(json.dumps(bzcollect_data, indent=4))
+    with open(filename, 'w') as bzcollect_file:
+        json.dump(bzcollect_data, bzcollect_file, indent=4)
+        log("Generated file {} with BZ collect data".format(filename))
 
 
 def pytest_collection_modifyitems(items, config):
-    """ called after collection has been performed, may filter or re-order
+    """Called after collection has been performed, may filter or re-order
     the items in-place.
 
-    Deselecting all tests skipped due to WONTFIX BZ.
+    1. If `--bzcollect` is passed, then only collect BZ numbers.
+
+    2. Deselects all tests explicitly marked with
+       @pytest.mark.deselect(reason='BZ 123145 is closed wontfix...').
     """
-    if not settings.configured:
-        settings.configure()
-
-    if settings.bugzilla.wontfix_lookup is not True:
-        # if lookup is disable return all collection unmodified
-        log('BZ deselect is disabled in settings')
-        return items
-
     deselected_items = []
-    decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
-
     log("Collected %s test cases" % len(items))
 
+    # 1. If `--bzcollect` is passed, then only collect BZ numbers.
+    bzcollect = config.getvalue("bzcollect")
+    if bzcollect:
+        generate_bz_collection(items, config, filename=bzcollect)
+        # if `--bzcollect` do not run any test
+        config.hook.pytest_deselected(items=items)
+        items[:] = []
+        return
+
     for item in items:
-        name = get_func_name(item.function, test_item=item)
-        bug_ids = list(decorated_functions.get(name, []))
-        bug_ids.extend(_extract_setup_class_ids(item))
-        if any(bug_id in pytest.bugzilla.removal_ids for bug_id in bug_ids):
+        # 2. Deselect tests marked with @pytest.mark.deselect
+        deselect = item.get_closest_marker('deselect')
+        if deselect:
             deselected_items.append(item)
-            log("Deselected test %s" % name)
+            reason = deselect.kwargs.get('reason', deselect.args)
+            log(
+                "Deselected test '{name}' reason: {reason}".format(
+                    name=item.name, reason=reason
+                )
+            )
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
@@ -185,3 +229,35 @@ def pytest_collection_modifyitems(items, config):
 def record_test_timestamp_xml(record_property):
     now = datetime.datetime.utcnow()
     record_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
+
+
+def pytest_configure(config):
+    """Register custom markers to avoid warnings."""
+    markers = [
+        "stubbed: Tests that are not automates yet.",
+        "deselect(reason=None): Mark test to be removed from collection.",
+        "tier1: CRUD tests",
+        "tier2: Association tests",
+        "tier3: Systems integration tests",
+        "tier4: Long running tests",
+        "destructive: Destructive tests",
+        "upgrade: Upgrade tests",
+        "run_in_one_thread: Sequential tests",
+    ]
+    for marker in markers:
+        config.addinivalue_line("markers", marker)
+
+
+def pytest_addoption(parser):
+    """Adds custom options to pytest runner."""
+    parser.addoption(
+        "--bzcollect",
+        nargs='?',
+        default='bzcollect.json',
+        const='bzcollect.json',
+        help="Collect BZ information from test case markers and outputs JSON",
+    )
+    """Run `py.test path/to/tests --bzcollect file.json` and it will
+    generate a file containing data for `skip`, `deselect` and `workaround`
+    bugzilla markers.
+    """

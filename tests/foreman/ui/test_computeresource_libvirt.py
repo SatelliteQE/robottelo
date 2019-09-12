@@ -23,7 +23,7 @@ from pytest import skip
 
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import bz_bug_is_open,  fixture, setting_is_set, tier2
+from robottelo.decorators import fixture, setting_is_set, tier2
 
 
 if not setting_is_set('compute_resources'):
@@ -46,6 +46,8 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
     :CaseLevel: Integration
 
     :CaseImportance: High
+
+    :BZ: 1662164
     """
     cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')
@@ -54,8 +56,6 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
     new_org = entities.Organization().create()
     new_loc = entities.Location().create()
     display_type = choice(('VNC', 'SPICE'))
-    if bz_bug_is_open(1662164):
-        display_type = 'VNC'
     console_passwords = choice((True, False))
     with session:
         session.computeresource.create({

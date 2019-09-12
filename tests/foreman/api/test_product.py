@@ -18,6 +18,7 @@ http://<sat6>/apidoc/v2/products.html
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -29,7 +30,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
-    skip_if_bug_open,
     tier1,
     tier2,
     upgrade
@@ -247,7 +247,7 @@ class ProductTestCase(APITestCase):
         product = product.update()
         self.assertEqual(product.gpg_key.id, gpg_key_2.id)
 
-    @skip_if_bug_open('bugzilla', 1310422)
+    @pytest.mark.deselect(reason="BZ:1310422")
     @tier2
     def test_positive_update_organization(self):
         """Create a product and update its organization
@@ -257,6 +257,8 @@ class ProductTestCase(APITestCase):
         :expectedresults: The updated product points to a new organization
 
         :CaseLevel: Integration
+
+        :BZ: 1310422
         """
         product = entities.Product(organization=self.org).create()
         # Update the product and make it point to a new organization.

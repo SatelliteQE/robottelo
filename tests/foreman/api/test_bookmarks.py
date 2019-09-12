@@ -20,7 +20,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import BOOKMARK_ENTITIES
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 # Create a new list reference to prevent constant modification
@@ -34,11 +34,6 @@ class BookmarkTestCase(APITestCase):
     def setUpClass(cls):
         """Filter entities list if affected by BZ"""
         super(BookmarkTestCase, cls).setUpClass()
-        if bz_bug_is_open(1456833):
-            BOOKMARK_ENTITIES[:] = [
-                entity for entity in BOOKMARK_ENTITIES
-                if entity.get('controller') != 'common_parameters'
-            ]
 
     # CREATE TESTS
     @tier1
@@ -220,7 +215,6 @@ class BookmarkTestCase(APITestCase):
                     query={'search': u'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 1)
 
-    @skip_if_bug_open('bugzilla', 1302725)
     @tier1
     def test_negative_create_null_public(self):
         """Create a bookmark omitting the public parameter

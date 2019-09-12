@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 import tempfile
 
 from six.moves.urllib.parse import urljoin
@@ -61,7 +62,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -795,7 +795,7 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
-    @skip_if_bug_open('bugzilla', 1378442)
+    @pytest.mark.skip(reason="BZ:1378442")
     @tier1
     def test_positive_upload_contents_srpm(self):
         """Create a repository and upload SRPM contents.
@@ -805,6 +805,8 @@ class RepositoryTestCase(APITestCase):
         :expectedresults: The repository's contents include one SRPM.
 
         :CaseImportance: Critical
+
+        :BZ: 1378442
         """
         # Create a repository and upload source RPM content.
         repo = entities.Repository(product=self.product).create()
@@ -813,7 +815,6 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
-    @skip_if_bug_open('bugzilla', 1459845)
     @tier1
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
@@ -858,7 +859,7 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     repo.update(['name'])
 
-    @skip_if_bug_open('bugzilla', 1311113)
+    @pytest.mark.deselect(reason="BZ:1311113")
     @tier1
     def test_negative_update_label(self):
         """Attempt to update repository label to another one.
@@ -868,6 +869,8 @@ class RepositoryTestCase(APITestCase):
         :expectedresults: Repository is not updated and error is raised
 
         :CaseImportance: Critical
+
+        :BZ: 1311113
         """
         repo = entities.Repository(product=self.product).create()
         repo.label = gen_string('alpha')
@@ -1355,7 +1358,6 @@ class DockerRepositoryTestCase(APITestCase):
             repo.read().content_counts['docker_manifest'], 1)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1194476)
     def test_positive_update_name(self):
         """Update a repository's name.
 
@@ -1364,6 +1366,8 @@ class DockerRepositoryTestCase(APITestCase):
         :expectedresults: The repository's name is updated.
 
         :CaseImportance: Critical
+
+        :BZ: 1194476
         """
         repository = entities.Repository(
             content_type='docker'
@@ -1405,7 +1409,6 @@ class DockerRepositoryTestCase(APITestCase):
             repo.read().content_counts['docker_manifest'], 1)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1580510)
     def test_negative_synchronize_private_registry_wrong_password(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing wrong credentials the sync must fail with
@@ -1706,7 +1709,7 @@ class OstreeRepositoryTestCase(APITestCase):
             repo.read()
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1625783)
+    @pytest.mark.skip(reason="BZ:1625783")
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @upgrade
@@ -1718,6 +1721,8 @@ class OstreeRepositoryTestCase(APITestCase):
         :expectedresults: Synced repo should fetch the data successfully.
 
         :CaseLevel: Integration
+
+        :BZ: 1625783
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -1734,11 +1739,11 @@ class OstreeRepositoryTestCase(APITestCase):
             entities.Repository(id=repo_id).sync, timeout=1500)
 
 
+@pytest.mark.skip(reason="BZ:1378442")
 class SRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
@@ -1839,11 +1844,11 @@ class SRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
 
+@pytest.mark.skip(reason="BZ:1378442")
 class DRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(DRPMRepositoryTestCase, cls).setUpClass()

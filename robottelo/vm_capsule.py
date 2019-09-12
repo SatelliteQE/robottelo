@@ -11,7 +11,7 @@ from robottelo.constants import (
     DISTRO_RHEL7,
     SATELLITE_FIREWALL_SERVICE_NAME,
 )
-from robottelo.decorators import bz_bug_is_open, setting_is_set
+from robottelo.decorators import setting_is_set
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
 from robottelo.helpers import extract_capsule_satellite_installer_command
@@ -203,13 +203,13 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # exception has 'return_code=70(Error: host not found)'
                 if exp.return_code == 70:
                     super(CapsuleVirtualMachine, self).destroy()
-                if bz_bug_is_open('1622064'):
-                    logger.warn('Failed to cleanup the host: {0}\n{1}'.format(
-                        self.hostname, exp))
-                else:
-                    logger.error('Failed to cleanup the host: {0}\n{1}'.format(
-                        self.hostname, exp))
-                    raise
+
+                # BEGIN BZ:1622064
+                logger.warn('Failed to cleanup the host: {0}\n{1}'.format(
+                    self.hostname, exp))
+                # when BZ is closed the exception should `raise` here.
+                # END BZ:1622064
+
             try:
                 # try to delete the capsule if it was added already
                 Capsule.delete({'name': self._capsule_hostname})
@@ -275,10 +275,6 @@ class CapsuleVirtualMachine(VirtualMachine):
         installer_cmd = extract_capsule_satellite_installer_command(
                             certs_gen.stdout
                         )
-        if bz_bug_is_open(1458749):
-            if '--scenario foreman-proxy-content' in installer_cmd:
-                installer_cmd = installer_cmd.replace(
-                     '--scenario foreman-proxy-content', '--scenario capsule')
         result = self.run(installer_cmd, timeout=1800)
         if result.return_code != 0:
             # before exit download the capsule log file
@@ -295,16 +291,17 @@ class CapsuleVirtualMachine(VirtualMachine):
         # manually start pulp_celerybeat service if BZ1446930 is open
         result = self.run('systemctl status pulp_celerybeat.service')
         if 'inactive (dead)' in '\n'.join(result.stdout):
-            if bz_bug_is_open(1446930):
-                result = self.run('systemctl start pulp_celerybeat.service')
-                if result.return_code != 0:
-                    raise CapsuleVirtualMachineError(
-                        'Failed to start pulp_celerybeat service\n{}'.format(
-                            result.stderr)
-                    )
-            else:
+            # BEGIN BZ:1446930
+            result = self.run('systemctl start pulp_celerybeat.service')
+            if result.return_code != 0:
                 raise CapsuleVirtualMachineError(
-                    'pulp_celerybeat service not running')
+                    'Failed to start pulp_celerybeat service\n{}'.format(
+                        result.stderr)
+                )
+            # When BZ is fixed the above can be replaced with the below.
+            # raise CapsuleVirtualMachineError(
+            #     'pulp_celerybeat service not running')
+            # END BZ:1446930
 
     def create(self):
         super(CapsuleVirtualMachine, self).create()

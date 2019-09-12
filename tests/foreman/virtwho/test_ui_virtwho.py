@@ -18,7 +18,7 @@ from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.decorators import (
     fixture,
-    tier2
+    tier2,
 )
 
 from .utils import (
@@ -251,6 +251,8 @@ def test_positive_filtering_option(session, form_data):
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :BZ: 1735670
     """
     name = gen_string('alpha')
     form_data['name'] = name

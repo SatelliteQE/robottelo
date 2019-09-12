@@ -28,7 +28,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier2,
@@ -87,9 +86,12 @@ def test_positive_host_configuration_status(session):
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
-    if bz_bug_is_open(1631219):
-        criteria_list.pop()
-        search_strings_list.pop()
+
+    # BEGIN BZ:1631219
+    # when BZ is closed this block can be removed.
+    criteria_list.pop()
+    search_strings_list.pop()
+    # END BZ:1631219
 
     with session:
         session.organization.select(org_name=org.name)

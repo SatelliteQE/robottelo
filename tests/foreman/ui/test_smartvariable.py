@@ -21,7 +21,7 @@ from nailgun import entities
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, upgrade, fixture, bz_bug_is_open
+from robottelo.decorators import tier2, upgrade, fixture
 
 PUPPET_MODULES = [
     {'author': 'robottelo', 'name': 'ui_test_variables'}]
@@ -256,14 +256,18 @@ def test_positive_create_matcher_prioritize_and_delete(session, puppet_class, mo
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         assert output['parameters'][name] == [20, 80, 90, 100]
         host_values = session.host.read(module_host.name, widget_names='parameters')
-        smart_variable = next((
-            item
-            for item in host_values['parameters']['puppet_class_parameters']
-            if item['Name'] == name
-        ))
-        if not bz_bug_is_open(1745938):
-            assert smart_variable['Puppet Class'] == puppet_class.name
-            assert smart_variable['Value']['value'] == [20, 80, 90, 100]
+
+        # BEGIN BZ:1745938
+        # When BZ is closed this block can be un-commented
+        # smart_variable = next((
+        #     item
+        #     for item in host_values['parameters']['puppet_class_parameters']
+        #     if item['Name'] == name
+        # ))
+        # assert smart_variable['Puppet Class'] == puppet_class.name
+        # assert smart_variable['Value']['value'] == [20, 80, 90, 100]
+        # END BZ:1745938
+
         # Delete smart variable
         session.smartvariable.delete(name)
         assert not session.smartvariable.search(name)

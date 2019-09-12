@@ -18,7 +18,6 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
-from robottelo.decorators import bz_bug_is_open
 
 from urllib.parse import urljoin  # noqa
 
@@ -665,10 +664,7 @@ def extract_capsule_satellite_installer_command(text):
     """Extract satellite installer command from capsule-certs-generate command
     output
     """
-    if bz_bug_is_open(1709761):
-        cmd_start_with = 'satellite-instaler'
-    else:
-        cmd_start_with = 'satellite-installer'
+    cmd_start_with = 'satellite-installer'
     cmd_lines = []
     if text:
         if isinstance(text, (list, tuple)):
@@ -689,8 +685,6 @@ def extract_capsule_satellite_installer_command(text):
         # remove empty spaces
         while '  ' in cmd:
             cmd = cmd.replace('  ', ' ')
-        if bz_bug_is_open(1709761):
-            cmd = cmd.replace('satellite-instaler', 'satellite-installer')
         return cmd
     return None
 
