@@ -60,7 +60,7 @@ def vm_cleanup(vm):
     vm.destroy()
 
 
-def vm_cleanup(hostname=None, provisioning_server=None, distro=None):
+def cleanup_of_provisioned_server(hostname=None, provisioning_server=None, distro=None):
     """ Cleanup the VM from provisioning server
 
     :param str hostname: The content host hostname
