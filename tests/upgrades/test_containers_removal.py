@@ -20,6 +20,7 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.test import APITestCase, settings
 from robottelo.vm import VirtualMachine
+from robottelo.cleanup import cleanup_of_provisioned_server
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -46,20 +47,6 @@ class Scenario_containers_support_removal(APITestCase):
     @classmethod
     def setUpClass(cls):
         super(Scenario_containers_support_removal, cls).setUpClass()
-
-    def _vm_cleanup(self, hostname=None):
-        """ Cleanup the VM from provisioning server
-
-        :param str hostname: The content host hostname
-        """
-        if hostname:
-            vm = VirtualMachine(
-                hostname=hostname,
-                target_image=hostname,
-                provisioning_server=settings.clients.provisioning_server,
-                )
-            vm._created = True
-            vm.destroy()
 
     @pre_upgrade
     def test_pre_scenario_containers_support_removal(self):
@@ -148,7 +135,9 @@ class Scenario_containers_support_removal(APITestCase):
             }}
             create_dict(scenario_dict)
         except Exception as exp:
-            self._vm_cleanup(hostname=docker_host.hostname)
+            cleanup_of_provisioned_server(hostname=docker_host.hostname,
+                                          provisioning_server=settings.clients.
+                                          provisioning_server)
             raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_containers_support_removal)
@@ -207,7 +196,11 @@ class Scenario_containers_support_removal(APITestCase):
             self.assertTrue(any(external_container in line
                                 for line in running_containers.stdout))
         except Exception as exp:
-            self._vm_cleanup(hostname=docker_host_hostname)
+            cleanup_of_provisioned_server(hostname=docker_host_hostname,
+                                          provisioning_server=settings.clients.
+                                          provisioning_server)
             raise Exception(exp)
 
-        self._vm_cleanup(hostname=docker_host_hostname)
+        cleanup_of_provisioned_server(hostname=docker_host_hostname,
+                                      provisioning_server=settings.clients.
+                                      provisioning_server)
