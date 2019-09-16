@@ -196,8 +196,8 @@ class Scenario_custom_repo_check(APITestCase):
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
-        CommonUpgradeUtility(container_id=client_container_id, package=self.rpm1_name). \
-            install_or_update_package(update=True)
+        CommonUpgradeUtility(container_id=client_container_id).\
+            install_or_update_package(update=True, package=self.rpm1_name)
 
         scenario_dict = {self.__class__.__name__: {
             'content_view_name': content_view.name,
@@ -260,5 +260,5 @@ class Scenario_custom_repo_check(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-        CommonUpgradeUtility(container_id=client_container_id, package=self.rpm2_name). \
-            install_or_update_package(update=True)
+        CommonUpgradeUtility(container_id=client_container_id).\
+            install_or_update_package(update=True, package=self.rpm2_name)

@@ -131,7 +131,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-
+        upgrade_utility = CommonUpgradeUtility()
         environment = entities.LifecycleEnvironment(
             organization=org
         ).search(query={'search': 'name=Library'})[0]
@@ -145,7 +145,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
 
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
         repolist = [custom_yum_repo, tools_repo, rhel_repo]
-        content_view = CommonUpgradeUtility().publish_content_view(
+        content_view = upgrade_utility.publish_content_view(
             org=org, repolist=repolist)
         ak = entities.ActivationKey(
             content_view=content_view,
@@ -161,8 +161,9 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = list(rhel7_client.values())[0]
+        upgrade_utility.client_container_id = client_container_id
         client_container_name = [key for key in rhel7_client.keys()][0]
-        CommonUpgradeUtility().host_location_update(
+        upgrade_utility.host_location_update(
             client_container_name=client_container_name, loc=loc)
         wait_for(
             lambda: org.name in execute(docker_execute_command,
@@ -173,15 +174,12 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             delay=2,
             logger=self.logger
         )
-
-        CommonUpgradeUtility(container_id=client_container_id, package="katello-agent"). \
-            install_or_update_package(update=True)
-        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
-                      run_goferd())
+        upgrade_utility.client_container_id = client_container_id
+        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
+        self.assertIn("goferd", upgrade_utility.run_goferd())
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
-            CommonUpgradeUtility(container_id=client_container_id,
-                                 package=package).install_or_update_package(update=True)
+            upgrade_utility.install_or_update_package(update=True, package=package)
 
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
@@ -244,11 +242,9 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
         content_view.publish()
-
-        CommonUpgradeUtility(container_id=client_container_id, package="katello-agent"). \
-            install_or_update_package(update=True)
-        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
-                      run_goferd())
+        upgrade_utility = CommonUpgradeUtility(container_id=client_container_id)
+        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
+        self.assertIn("goferd", upgrade_utility.run_goferd())
         self.assertGreater(installable_errata_count, 1)
 
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
@@ -274,8 +270,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             0
         )
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
-            CommonUpgradeUtility(container_id=client_container_id,
-                                 package=package).install_or_update_package(update=True)
+            upgrade_utility.install_or_update_package(update=True, package=package)
 
 
 class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
@@ -340,7 +335,8 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
 
         repos = self._get_rh_rhel_tools_repos()
         repos.append(custom_yum_repo)
-        content_view = CommonUpgradeUtility().publish_content_view(
+        upgrade_utility = CommonUpgradeUtility()
+        content_view = upgrade_utility.publish_content_view(
             org=self.org, repolist=repos)
 
         custom_sub = entities.Subscription(organization=self.org).search(query={
@@ -360,6 +356,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=self.org.label)
         client_container_id = list(rhel7_client.values())[0]
+        upgrade_utility.client_container_id = client_container_id
 
         wait_for(
             lambda: self.org.label in execute(docker_execute_command,
@@ -382,13 +379,11 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
                 client_container_id,
                 'yum update -y',
                 host=self.docker_vm)[self.docker_vm]
-        CommonUpgradeUtility(container_id=client_container_id, package="katello-agent"). \
-            install_or_update_package(update=True)
-        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
-                      run_goferd())
+        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
+        self.assertIn("goferd", upgrade_utility.run_goferd())
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
-            self._install_or_update_package(client_container_id, package)
+            upgrade_utility.install_or_update_package(package=package)
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
 
@@ -439,6 +434,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
         activation_key = entity_data.get('activation_key')
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(activation_key)})[0]
+        upgrade_utility = CommonUpgradeUtility(container_id=client_container_id)
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         self.assertGreater(installable_errata_count, 1)
@@ -454,8 +450,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
             host.errata_apply(data={'errata_ids': [errata]})
 
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
-            CommonUpgradeUtility(container_id=client_container_id, package=package).\
-                install_or_update_package(update=True)
+            upgrade_utility.install_or_update_package(update=True, package=package)
 
         # waiting for errata count to become 0, as profile uploading take some amount of time
         wait_for(

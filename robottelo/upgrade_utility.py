@@ -2,17 +2,16 @@
 
 from wait_for import wait_for
 from fabric.api import execute, run
-from robottelo.vm import VirtualMachine
+from robottelo.vm import VirtualMachine, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.api.utils import call_entity_method_with_timeout, entities, settings
+from robottelo.api.utils import call_entity_method_with_timeout, entities
 
 
 class CommonUpgradeUtility(object):
     """ CommonUpgradeUtility class for upgrade test cases """
 
-    def __init__(self, container_id=None, package=None):
+    def __init__(self, container_id=None):
         self.client_container_id = container_id
-        self.package = package
 
     def run_goferd(self):
         """
@@ -33,11 +32,11 @@ class CommonUpgradeUtility(object):
             'goferd -f',
             **kwargs
         )
-        status = execute(docker_execute_command, self.client_container_id, 'ps -aux',
+        status = execute(docker_execute_command, self.client_container_id, 'ps -ef',
                          host=settings.upgrade.docker_vm)[settings.upgrade.docker_vm]
         return status
 
-    def check_package_installed(self):
+    def check_package_installed(self, package=None):
         """
         Verify if package is installed on docker content host."""
 
@@ -45,15 +44,16 @@ class CommonUpgradeUtility(object):
         installed_package = execute(
             docker_execute_command,
             self.client_container_id,
-            'yum list installed {}'.format(self.package),
+            'yum list installed {}'.format(package),
             **kwargs
         )[settings.upgrade.docker_vm]
         return installed_package
 
-    def install_or_update_package(self, update=False):
+    def install_or_update_package(self, update=False, package=None):
         """
         Install/update the package on docker content host.
         :param bool update:
+        :param str package:
         :return:
         """
         kwargs = {'host': settings.upgrade.docker_vm}
@@ -62,13 +62,13 @@ class CommonUpgradeUtility(object):
                 'subscription-manager repos --enable=*;yum clean all',
                 **kwargs)[settings.upgrade.docker_vm]
         if update:
-            command = 'yum update -y {}'.format(self.package)
+            command = 'yum update -y {}'.format(package)
         else:
-            command = 'yum install -y {}'.format(self.package)
+            command = 'yum install -y {}'.format(package)
 
         execute(docker_execute_command, self.client_container_id, command, **kwargs)[
             settings.upgrade.docker_vm]
-        self.assertIn(self.check_package_installed(), self.package)
+        self.assertIn(self.check_package_installed(), package)
 
     def create_repo(self, rpm_name, repo_path, post_upgrade=False, other_rpm=None):
         """ Creates a custom yum repository, that will be synced to satellite
