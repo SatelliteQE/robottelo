@@ -797,21 +797,50 @@ class RepositoryTestCase(APITestCase):
 
     @skip_if_bug_open('bugzilla', 1378442)
     @tier1
-    def test_positive_upload_contents_srpm(self):
-        """Create a repository and upload SRPM contents.
+    @upgrade
+    def test_positive_upload_delete_srpm(self):
+        """Create a repository and upload, delete SRPM contents.
 
         :id: e091a725-048f-44ca-90cc-c016c450ced9
 
-        :expectedresults: The repository's contents include one SRPM.
+        :expectedresults: The repository's contents include one SRPM and delete after that.
 
         :CaseImportance: Critical
         """
-        # Create a repository and upload source RPM content.
         repo = entities.Repository(product=self.product).create()
-        with open(get_data_file(SRPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
-        # Verify the repository's contents.
-        self.assertEqual(repo.read().content_counts['rpm'], 1)
+
+        # upload srpm
+        entities.ContentUpload(repository=repo).upload(filepath=get_data_file(SRPM_TO_UPLOAD),
+                                                       content_type='srpm')
+        self.assertEqual(repo.read().content_counts['srpm'], 1)
+        srpm_detail = entities.Srpms().search(query={'repository_id': repo.id})
+        self.assertEqual(len(srpm_detail), 1)
+
+        # Delete srpm
+        repo.remove_content(data={'ids': [srpm_detail[0].id], 'content_type': 'srpm'})
+        self.assertEqual(repo.read().content_counts['srpm'], 0)
+
+    @tier1
+    @upgrade
+    def test_positive_create_delete_srpm_repo(self):
+        """Create a repository, sync SRPM contents and remove repo
+
+        :id: e091a725-042f-43ca-99cc-c017c450ced9
+
+        :expectedresults: The repository's contents include SRPM and able to remove repo
+
+        :CaseImportance: Critical
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        self.assertEqual(repo.read().content_counts['srpm'], 3)
+        self.assertEqual(len(entities.Srpms().search(query={'repository_id': repo.id})), 3)
+        repo.delete()
+        with self.assertRaises(HTTPError):
+            repo.read()
 
     @skip_if_bug_open('bugzilla', 1459845)
     @tier1
@@ -1738,105 +1767,68 @@ class SRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
+        cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
 
     @tier2
-    def test_positive_sync(self):
-        """Synchronize repository with SRPMs
+    def test_positive_srpm_upload_publish_promote_cv(self):
+        """Upload SRPM to repository, add repository to content view
+        and publish, promote content view
 
         :id: f87391c6-c18a-4c4f-81db-decbba7f1856
 
-        :expectedresults: srpms can be listed in repository
+        :expectedresults: srpms can be listed in organization, content view, Lifecycle env
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
-        repo.sync()
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/ | grep .src.rpm'
-            .format(
-                self.org.label,
-                self.product.label,
-                repo.label,
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
-
-    @tier2
-    def test_positive_sync_publish_cv(self):
-        """Synchronize repository with SRPMs, add repository to content view
-        and publish content view
-
-        :id: a0868429-584c-4e36-b93f-c85e8e94a60b
-
-        :expectedresults: srpms can be listed in content view
-        """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
-        repo.sync()
+        repo = entities.Repository(product=self.product).create()
+        entities.ContentUpload(repository=repo).upload(filepath=get_data_file(SRPM_TO_UPLOAD),
+                                                       content_type='srpm')
         cv = entities.ContentView(organization=self.org).create()
         cv.repository = [repo]
         cv.update(['repository'])
         cv.publish()
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/ | grep .src.rpm'
-            .format(
-                self.org.label,
-                cv.label,
-                self.product.label,
-                repo.label,
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
+        self.assertEqual(cv.repository[0].read().content_counts['srpm'], 1)
+        self.assertEqual(len(entities.Srpms().search(query={'organization_id': self.org.id})), 1)
 
-    @tier2
-    @upgrade
-    def test_positive_sync_publish_promote_cv(self):
-        """Synchronize repository with SRPMs, add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 811b524f-2b19-4408-ad7f-d7251625e35c
-
-        :expectedresults: srpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
-        repo.sync()
-        cv = entities.ContentView(organization=self.org).create()
-        cv.repository = [repo]
-        cv.update(['repository'])
-        cv.publish()
         cv = cv.read()
-        promote(cv.version[0], lce.id)
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
-            ' | grep .src.rpm'
-            .format(
-                self.org.label,
-                lce.name,
-                cv.label,
-                self.product.label,
-                repo.label,
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
+        self.assertEqual(
+            entities.Srpms().search(query={'content_view_version_id': cv.version[0].id}),
+            1)
+
+        promote(cv.version[0], self.lce.id)
+        self.assertEqual(len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1)
+
+    @tier2
+    def test_positive_repo_sync_publish_promote_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view
+        and publish, promote content view
+
+        :id: f87381c6-c18a-4c4f-82db-decbaa7f1846
+
+        :expectedresults: srpms can be listed in organization, content view, Lifecycle env
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
+        self.assertEqual(cv.repository[0].read().content_counts['srpm'], 3)
+        self.assertEqual(len(entities.Srpms().search(query={'organization_id': self.org.id})), 3)
+
+        cv = cv.read()
+        self.assertEqual(
+            entities.Srpms().search(query={'content_view_version_id': cv.version[0].id}),
+            3)
+
+        promote(cv.version[0], self.lce.id)
+        self.assertEqual(len(entities.Srpms().search(query={'environment_id': self.lce.id})), 3)
 
 
 class DRPMRepositoryTestCase(APITestCase):
