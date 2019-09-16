@@ -132,7 +132,7 @@ ZOO_CUSTOM_GPG_KEY = "zoo_custom_gpgkey.txt"
 VALID_GPG_KEY_BETA_FILE = "valid_gpg_key_beta.txt"
 
 RPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.rpm"
-SRPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.src.rpm"
+SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
 ENVIRONMENT = "Library"
 
