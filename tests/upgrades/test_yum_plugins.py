@@ -134,7 +134,8 @@ class Scenario_yum_plugins_count(APITestCase):
         environment = entities.LifecycleEnvironment(organization=self.org
                                                     ).search(query={'search': 'name=Library'})[0]
         repos = self._get_rh_rhel_tools_repos()
-        content_view = CommonUpgradeUtility().publish_content_view(
+        upgrade_utility = CommonUpgradeUtility()
+        content_view = upgrade_utility.publish_content_view(
             org=self.org, repolist=repos)
         ak = entities.ActivationKey(content_view=content_view,
                                     organization=self.org.id,
@@ -157,10 +158,9 @@ class Scenario_yum_plugins_count(APITestCase):
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(self.org.label, status)
 
-        CommonUpgradeUtility(container_id=client_container_id).\
-            install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
-                      run_goferd())
+        upgrade_utility.client_container_id = client_container_id
+        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
+        self.assertIn("goferd", upgrade_utility.run_goferd())
 
         scenario_dict = {self.__class__.__name__: {
             'rhel_client': rhel7_client,
@@ -203,8 +203,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         attach_custom_product_subscription(prod_name=product.name,
                                            host_name=client_container_name)
-        CommonUpgradeUtility(container_id=client_container_id).\
-            install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
-                      run_goferd())
+        upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
+        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
+        self.assertIn("goferd", upgrade_utility.run_goferd())
         self._check_yum_plugins_count(client_container_id)

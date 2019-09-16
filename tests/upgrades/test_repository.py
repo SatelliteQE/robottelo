@@ -156,12 +156,12 @@ class Scenario_custom_repo_check(APITestCase):
         lce = entities.LifecycleEnvironment(organization=org).create()
 
         product = entities.Product(organization=org).create()
-
-        CommonUpgradeUtility().create_repo(rpm1, self.file_path)
+        upgrade_utility = CommonUpgradeUtility()
+        upgrade_utility.create_repo(rpm1, self.file_path)
         repo = entities.Repository(product=product.id, url=self.custom_repo).create()
         repo.sync()
 
-        content_view = CommonUpgradeUtility().publish_content_view(org=org, repo=repo)
+        content_view = upgrade_utility.publish_content_view(org=org, repo=repo)
         promote(content_view.version[0], lce.id)
 
         result = ssh.command(
@@ -189,15 +189,15 @@ class Scenario_custom_repo_check(APITestCase):
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
 
-        CommonUpgradeUtility().host_location_update(
+        upgrade_utility.host_location_update(
             client_container_name=client_container_name, loc=loc)
         status = execute(docker_execute_command,
                          client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
-        CommonUpgradeUtility(container_id=client_container_id).\
-            install_or_update_package(update=True, package=self.rpm1_name)
+        upgrade_utility.client_container_id = client_container_id
+        upgrade_utility.install_or_update_package(update=True, package=self.rpm1_name)
 
         scenario_dict = {self.__class__.__name__: {
             'content_view_name': content_view.name,
@@ -236,9 +236,10 @@ class Scenario_custom_repo_check(APITestCase):
         org_label = entity_data.get('org_label')
         prod_label = entity_data.get('prod_label')
         repo_name = entity_data.get('repo_name')
+        upgrade_utility = CommonUpgradeUtility()
 
-        CommonUpgradeUtility().create_repo(rpm2, self.file_path, post_upgrade=True,
-                                           other_rpm=rpm1)
+        upgrade_utility.create_repo(rpm2, self.file_path, post_upgrade=True,
+                                    other_rpm=rpm1)
         repo = entities.Repository(name=repo_name).search()[0]
         repo.sync()
 
@@ -259,6 +260,5 @@ class Scenario_custom_repo_check(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
-
-        CommonUpgradeUtility(container_id=client_container_id).\
-            install_or_update_package(update=True, package=self.rpm2_name)
+        upgrade_utility.client_container_id = client_container_id
+        upgrade_utility.install_or_update_package(update=True, package=self.rpm2_name)

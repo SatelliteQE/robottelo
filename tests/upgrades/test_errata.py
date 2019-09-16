@@ -242,7 +242,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
         content_view.publish()
-        upgrade_utility = CommonUpgradeUtility(container_id=client_container_id)
+        upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
         upgrade_utility.install_or_update_package(update=True, package="katello-agent")
         self.assertIn("goferd", upgrade_utility.run_goferd())
         self.assertGreater(installable_errata_count, 1)
@@ -434,7 +434,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
         activation_key = entity_data.get('activation_key')
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(activation_key)})[0]
-        upgrade_utility = CommonUpgradeUtility(container_id=client_container_id)
+        upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         self.assertGreater(installable_errata_count, 1)

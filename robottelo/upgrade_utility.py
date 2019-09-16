@@ -10,8 +10,8 @@ from robottelo.api.utils import call_entity_method_with_timeout, entities
 class CommonUpgradeUtility(object):
     """ CommonUpgradeUtility class for upgrade test cases """
 
-    def __init__(self, container_id=None):
-        self.client_container_id = container_id
+    def __init__(self, client_container_id=None):
+        self.client_container_id = client_container_id
 
     def run_goferd(self):
         """
@@ -38,7 +38,10 @@ class CommonUpgradeUtility(object):
 
     def check_package_installed(self, package=None):
         """
-        Verify if package is installed on docker content host."""
+        Verify if package is installed on docker content host.
+        :param: str package: pass the package name to check the status
+        :return: name of the installed package
+        """
 
         kwargs = {'host': settings.upgrade.docker_vm}
         installed_package = execute(
@@ -52,9 +55,8 @@ class CommonUpgradeUtility(object):
     def install_or_update_package(self, update=False, package=None):
         """
         Install/update the package on docker content host.
-        :param bool update:
-        :param str package:
-        :return:
+        :param: bool update:
+        :param: str package:
         """
         kwargs = {'host': settings.upgrade.docker_vm}
         execute(docker_execute_command,
@@ -73,12 +75,11 @@ class CommonUpgradeUtility(object):
     def create_repo(self, rpm_name, repo_path, post_upgrade=False, other_rpm=None):
         """ Creates a custom yum repository, that will be synced to satellite
         and later to capsule from satellite
-        :param str rpm_name : rpm name, required to create a repository.
-        :param str repo_path: Name of the repository path
-        :param bool post_upgrade: For Pre-upgrade, post_upgrade value will be False
-        :param str other_rpm: If we want to clean a specific rpm and update with
+        :param: str rpm_name : rpm name, required to create a repository.
+        :param: str repo_path: Name of the repository path
+        :param: bool post_upgrade: For Pre-upgrade, post_upgrade value will be False
+        :param: str other_rpm: If we want to clean a specific rpm and update with
         latest then we pass other rpm.
-        :return:
         """
         if post_upgrade:
             run('wget {0} -P {1}'.format(rpm_name, repo_path))
@@ -106,7 +107,6 @@ class CommonUpgradeUtility(object):
 
         :param: str client_container_name: The content host hostname
         :param: str loc: Location
-        :return:
         """
         if len(self.host_status(client_container_name=client_container_name)) == 0:
             wait_for(
@@ -123,9 +123,9 @@ class CommonUpgradeUtility(object):
     def publish_content_view(self, org=None, repolist=None):
         """
         publish content view and return content view
-        :param str org: Name of the organisation
-        :param str repolist: Name of the repolist
-        :return Return content view
+        :param: str org: Name of the organisation
+        :param: str repolist: Name of the repolist
+        :return: Return content view
         """
 
         content_view = entities.ContentView(organization=org).create()
@@ -139,9 +139,9 @@ class CommonUpgradeUtility(object):
                                       distro=None):
         """ Cleanup the VM from provisioning server
 
-        :param str hostname: The content host hostname
-        :param str provisioning_server: provision server name
-        :param str distro: distro type
+        :param: str hostname: The content host hostname
+        :param: str provisioning_server: provision server name
+        :param: str distro: distro type
         """
         if hostname:
             vm = VirtualMachine(
@@ -158,9 +158,8 @@ class CommonUpgradeUtility(object):
         This method is used to check the member existence in
         container otherwise raise an exception.
 
-        :param member
-        :param container
-        :return:
+        :param: member
+        :param: container
         """
         if member not in container:
             standardMsg = '{} not found in {}' .format(member, container)
