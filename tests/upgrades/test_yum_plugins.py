@@ -176,7 +176,7 @@ class Scenario_yum_plugins_count(APITestCase):
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(self.org.label, status)
 
-        CommonUpgradeUtility(container_id=client_container_id,package="katello-agent").\
+        CommonUpgradeUtility(container_id=client_container_id, package="katello-agent").\
             install_or_update_package(update=True)
         self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
                       run_goferd())
