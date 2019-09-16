@@ -86,15 +86,6 @@ class ScenarioErrataAbstract(object):
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
-    def _publish_content_view(self, org, repolist):
-        """publish content view and return content view"""
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = repolist
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
-        return content_view
-
 
 class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
     """The test class contains pre and post upgrade scenarios to test if the
@@ -154,7 +145,8 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
 
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
         repolist = [custom_yum_repo, tools_repo, rhel_repo]
-        content_view = self._publish_content_view(org=org, repolist=repolist)
+        content_view = CommonUpgradeUtility().publish_content_view(
+            org=org, repolist=repolist)
         ak = entities.ActivationKey(
             content_view=content_view,
             organization=org.id,
@@ -348,7 +340,8 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
 
         repos = self._get_rh_rhel_tools_repos()
         repos.append(custom_yum_repo)
-        content_view = self._publish_content_view(org=self.org, repolist=repos)
+        content_view = CommonUpgradeUtility().publish_content_view(
+            org=self.org, repolist=repos)
 
         custom_sub = entities.Subscription(organization=self.org).search(query={
             'search': 'name={}'.format(product.name)})[0]

@@ -131,15 +131,6 @@ class Scenario_custom_repo_check(APITestCase):
         _, cls.rpm1_name = os.path.split(rpm1)
         _, cls.rpm2_name = os.path.split(rpm2)
 
-    def _create_publish_content_view(self, org, repo):
-        """publish content view and return content view"""
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
-        return content_view
-
     @pre_upgrade
     def test_pre_scenario_custom_repo_check(self):
         """This is pre-upgrade scenario test to verify if we can create a
@@ -170,7 +161,7 @@ class Scenario_custom_repo_check(APITestCase):
         repo = entities.Repository(product=product.id, url=self.custom_repo).create()
         repo.sync()
 
-        content_view = self._create_publish_content_view(org=org, repo=repo)
+        content_view = CommonUpgradeUtility().publish_content_view(org=org, repo=repo)
         promote(content_view.version[0], lce.id)
 
         result = ssh.command(

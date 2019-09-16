@@ -5,6 +5,7 @@ from wait_for import wait_for
 from fabric.api import execute, run
 from robottelo.test import settings
 from upgrade.helpers.docker import docker_execute_command
+from robottelo.api.utils import call_entity_method_with_timeout
 
 
 class CommonUpgradeUtility(object):
@@ -17,7 +18,10 @@ class CommonUpgradeUtility(object):
         self.package = package
 
     def run_goferd(self):
-        """Start the goferd process."""
+        """
+        Start the goferd process.
+        :return: status of execution
+        """
 
         kwargs = {'async': True, 'host': settings.upgrade.docker_vm}
         execute(
@@ -37,7 +41,8 @@ class CommonUpgradeUtility(object):
         return status
 
     def check_package_installed(self):
-        """Verify if package is installed on docker content host."""
+        """
+        Verify if package is installed on docker content host."""
 
         kwargs = {'host': settings.upgrade.docker_vm}
         installed_package = execute(
@@ -52,6 +57,7 @@ class CommonUpgradeUtility(object):
         """
         Install/update the package on docker content host.
         :param bool update:
+        :return:
         """
         kwargs = {'host': settings.upgrade.docker_vm}
         execute(docker_execute_command,
@@ -75,6 +81,7 @@ class CommonUpgradeUtility(object):
         :param bool post_upgrade: For Pre-upgrade, post_upgrade value will be False
         :param str other_rpm: If we want to clean a specific rpm and update with
         latest then we pass other rpm.
+        :return:
         """
         if post_upgrade:
             run('wget {0} -P {1}'.format(rpm_name, repo_path))
@@ -102,6 +109,7 @@ class CommonUpgradeUtility(object):
 
         :param: str client_container_name: The content host hostname
         :param: str loc: Location
+        :return:
         """
         if len(self.host_status(client_container_name=client_container_name)) == 0:
             wait_for(
@@ -114,6 +122,21 @@ class CommonUpgradeUtility(object):
         host_loc = self.host_status(client_container_name=client_container_name)[0]
         host_loc.location = loc
         host_loc.update(['location'])
+
+    def publish_content_view(self, org=None, repolist=None):
+        """
+        publish content view and return content view
+        :param str org: Name of the organisation
+        :param str repolist: Name of the repolist
+        :return Return content view
+        """
+
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = repolist
+        content_view = content_view.update(['repository'])
+        call_entity_method_with_timeout(content_view.publish, timeout=3400)
+        content_view = content_view.read()
+        return content_view
 
     def assertIn(self, member, container):
         """

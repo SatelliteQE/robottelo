@@ -96,16 +96,6 @@ class Scenario_yum_plugins_count(APITestCase):
         call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
         return tools_repo
 
-    def _publish_content_view(self, org, repolist):
-        """publish content view and return content view"""
-
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = repolist
-        content_view = content_view.update(['repository'])
-        call_entity_method_with_timeout(content_view.publish, timeout=3400)
-        content_view = content_view.read()
-        return content_view
-
     def _get_rh_rhel_tools_repos(self):
         """ Get list of RHEL7 and tools repos
 
@@ -144,7 +134,8 @@ class Scenario_yum_plugins_count(APITestCase):
         environment = entities.LifecycleEnvironment(organization=self.org
                                                     ).search(query={'search': 'name=Library'})[0]
         repos = self._get_rh_rhel_tools_repos()
-        content_view = self._publish_content_view(org=self.org, repolist=repos)
+        content_view = CommonUpgradeUtility().publish_content_view(
+            org=self.org, repolist=repos)
         ak = entities.ActivationKey(content_view=content_view,
                                     organization=self.org.id,
                                     environment=environment).create()
