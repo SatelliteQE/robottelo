@@ -96,16 +96,6 @@ class Scenario_yum_plugins_count(APITestCase):
         call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
         return tools_repo
 
-    def _host_status(self, client_container_name=None):
-        """ fetch the content host details.
-
-        :param: str client_container_name: The content host hostname
-        :return: nailgun.entity.host: host
-        """
-        host = entities.Host().search(
-            query={'search': '{0}'.format(client_container_name)})
-        return host
-
     def _publish_content_view(self, org, repolist):
         """publish content view and return content view"""
 

@@ -1,5 +1,8 @@
 """Common Upgrade test utilities """
-from fabric.api import execute
+
+from nailgun import entities
+from wait_for import wait_for
+from fabric.api import execute, run
 from robottelo.test import settings
 from upgrade.helpers.docker import docker_execute_command
 
@@ -63,6 +66,54 @@ class CommonUpgradeUtility(object):
         execute(docker_execute_command, self.client_container_id, command, **kwargs)[
             settings.upgrade.docker_vm]
         self.assertIn(self.check_package_installed(), self.package)
+
+    def create_repo(self, rpm_name, repo_path, post_upgrade=False, other_rpm=None):
+        """ Creates a custom yum repository, that will be synced to satellite
+        and later to capsule from satellite
+        :param str rpm_name : rpm name, required to create a repository.
+        :param str repo_path: Name of the repository path
+        :param bool post_upgrade: For Pre-upgrade, post_upgrade value will be False
+        :param str other_rpm: If we want to clean a specific rpm and update with
+        latest then we pass other rpm.
+        """
+        if post_upgrade:
+            run('wget {0} -P {1}'.format(rpm_name, repo_path))
+            run('rm -rf {0}'.format(repo_path + other_rpm))
+            run('createrepo --update {0}'.format(repo_path))
+        else:
+            run('rm -rf {}'.format(repo_path))
+            run('mkdir {}'.format(repo_path))
+            run('wget {0} -P {1}'.format(rpm_name, repo_path))
+            # Renaming custom rpm to preRepoSync.rpm
+            run('createrepo --database {0}'.format(repo_path))
+
+    def host_status(self, client_container_name=None):
+        """ fetch the content host details.
+        :param: str client_container_name: The content host hostname
+        :return: nailgun.entity.host: host
+        """
+        host = entities.Host().search(
+            query={'search': '{0}'.format(client_container_name)})
+        return host
+
+    def host_location_update(self, client_container_name=None, loc=None):
+        """ Check the content host status (as package profile update task does take time to
+        upload) and update location.
+
+        :param: str client_container_name: The content host hostname
+        :param: str loc: Location
+        """
+        if len(self.host_status(client_container_name=client_container_name)) == 0:
+            wait_for(
+                lambda: len(self.host_status(client_container_name=client_container_name
+                                             )) > 0,
+                timeout=100,
+                delay=2,
+                logger=self.logger
+            )
+        host_loc = self.host_status(client_container_name=client_container_name)[0]
+        host_loc.location = loc
+        host_loc.update(['location'])
 
     def assertIn(self, member, container):
         """

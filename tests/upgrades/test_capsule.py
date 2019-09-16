@@ -18,6 +18,7 @@ from fabric.api import execute, run
 from nailgun import entities
 from robottelo.test import APITestCase, settings
 from robottelo.api.utils import promote, call_entity_method_with_timeout
+from robottelo.upgrade_utility import CommonUpgradeUtility
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_ORG
 from upgrade.helpers.tasks import wait_untill_capsule_sync
 from upgrade_tests import post_upgrade, pre_upgrade
@@ -56,16 +57,6 @@ class Scenario_capsule_sync(APITestCase):
         cls.repo_url = 'http://{0}{1}'.format(
             cls.sat_host, '/pub/preupgradeCapSync_repo/')
 
-    def create_repo(self):
-        """ Creates a custom yum repository, that will be synced to satellite
-        and later to capsule from satellite
-        """
-        run('rm -rf {}'.format(self.repo_path))
-        run('mkdir {}'.format(self.repo_path))
-        run('wget {0} -P {1}'.format(rpm1, self.repo_path))
-        # Renaming custom rpm to preRepoSync.rpm
-        run('createrepo --database {0}'.format(self.repo_path))
-
     @pre_upgrade
     def test_pre_user_scenario_capsule_sync(self):
         """Pre-upgrade scenario that creates and sync repository with
@@ -85,7 +76,7 @@ class Scenario_capsule_sync(APITestCase):
         ak_env = ak.environment.read()
         product = entities.Product(
             name=self.prod_name, organization=self.org_id).create()
-        self.create_repo()
+        CommonUpgradeUtility().create_repo(rpm1, self.repo_name)
         repo = entities.Repository(
             product=product.id, name=self.repo_name,
             url=self.repo_url).create()
@@ -165,16 +156,6 @@ class Scenario_capsule_sync_2(APITestCase):
         cls.repo_url = 'http://{0}{1}'.format(
             cls.sat_host, '/pub/postupgradeCapSync_repo/')
 
-    def create_repo(self):
-        """ Creates a custom yum repository, that will be synced to satellite
-        and later to capsule from satellite
-        """
-        run('rm -rf {}'.format(self.repo_path))
-        run('mkdir {}'.format(self.repo_path))
-        run('wget {0} -P {1}'.format(rpm2, self.repo_path))
-        # Renaming custom rpm to preRepoSync.rpm
-        run('createrepo --database {0}'.format(self.repo_path))
-
     @post_upgrade
     def test_post_user_scenario_capsule_sync_2(self):
         """Post-upgrade scenario that creates and sync repository with
@@ -200,7 +181,7 @@ class Scenario_capsule_sync_2(APITestCase):
         ak_env = ak.environment.read()
         product = entities.Product(
             name=self.prod_name, organization=self.org_id).create()
-        self.create_repo()
+        CommonUpgradeUtility().create_repo(rpm2, self.repo_name)
         repo = entities.Repository(
             product=product.id, name=self.repo_name,
             url=self.repo_url).create()

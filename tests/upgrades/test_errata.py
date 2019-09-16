@@ -44,15 +44,6 @@ class ScenarioErrataAbstract(object):
     """ This is an Abstract Class whose methods are inherited by others errata
     scenarios"""
 
-    def _host_status(self, client_container_name=None):
-        """ fetch the content host details.
-        :param: str client_container_name: The content host hostname
-        :return: nailgun.entity.host: host
-        """
-        host = entities.Host().search(
-            query={'search': '{0}'.format(client_container_name)})
-        return host
-
     def _errata_count(self, ak):
         """ fetch the content host details.
         :param: str ak: The activation key name
@@ -63,23 +54,6 @@ class ScenarioErrataAbstract(object):
         installable_errata_count = host.content_facet_attributes[
             'errata_counts']['total']
         return installable_errata_count
-
-    def _host_location_update(self, client_container_name=None, loc=None):
-        """ Check the content host status (as package profile update task does take time to
-        upload) and update location.
-        :param: str client_container_name: The content host hostname
-        :param: str loc: Location
-        """
-        if len(self._host_status(client_container_name=client_container_name)) == 0:
-            wait_for(
-                lambda: len(self._host_status(client_container_name=client_container_name)) > 0,
-                timeout=100,
-                delay=2,
-                logger=self.logger
-            )
-        host_loc = self._host_status(client_container_name=client_container_name)[0]
-        host_loc.location = loc
-        host_loc.update(['location'])
 
     def _create_custom_rhel_tools_repos(self, product):
         """Install packge on docker content host."""
@@ -196,7 +170,8 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = list(rhel7_client.values())[0]
         client_container_name = [key for key in rhel7_client.keys()][0]
-        self._host_location_update(client_container_name=client_container_name, loc=loc)
+        CommonUpgradeUtility().host_location_update(client_container_name
+                                                    =client_container_name, loc=loc)
         wait_for(
             lambda: org.name in execute(docker_execute_command,
                                         client_container_id,

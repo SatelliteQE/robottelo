@@ -16,7 +16,6 @@
 """
 import os
 from fabric.api import execute, run
-from wait_for import wait_for
 
 from nailgun import entities
 from robottelo import ssh
@@ -132,46 +131,6 @@ class Scenario_custom_repo_check(APITestCase):
         _, cls.rpm1_name = os.path.split(rpm1)
         _, cls.rpm2_name = os.path.split(rpm2)
 
-    def _create_repo(self, post_upgrade=False):
-        """ Creates a custom yum repository, that will be synced to satellite
-        """
-        if post_upgrade:
-            run('wget {0} -P {1}'.format(rpm2, self.file_path))
-            run('rm -rf {0}'.format(self.file_path + self.rpm1_name))
-            run('createrepo --update {0}'.format(self.file_path))
-        else:
-            run('mkdir /var/www/html/pub/custom_repo')
-            run('wget {0} -P {1}'.format(rpm1, self.file_path))
-            run('createrepo --database {0}'.format(self.file_path))
-
-    def _host_status(self, client_container_name=None):
-        """ fetch the content host details.
-
-        :param: str client_container_name: The content host hostname
-        :return: nailgun.entity.host: host
-        """
-        host = entities.Host().search(
-            query={'search': '{0}'.format(client_container_name)})
-        return host
-
-    def _host_location_update(self, client_container_name=None, loc=None):
-        """ Check the content host status (as package profile update task does take time to
-        upload) and update location.
-
-        :param: str client_container_name: The content host hostname
-        :param: str loc: Location
-        """
-        if len(self._host_status(client_container_name=client_container_name)) == 0:
-            wait_for(
-                lambda: len(self._host_status(client_container_name=client_container_name)) > 0,
-                timeout=100,
-                delay=2,
-                logger=self.logger
-            )
-        host_loc = self._host_status(client_container_name=client_container_name)[0]
-        host_loc.location = loc
-        host_loc.update(['location'])
-
     def _create_publish_content_view(self, org, repo):
         """publish content view and return content view"""
         content_view = entities.ContentView(organization=org).create()
@@ -207,7 +166,7 @@ class Scenario_custom_repo_check(APITestCase):
 
         product = entities.Product(organization=org).create()
 
-        self._create_repo()
+        CommonUpgradeUtility().create_repo(rpm1, self.file_path)
         repo = entities.Repository(product=product.id, url=self.custom_repo).create()
         repo.sync()
 
@@ -239,13 +198,13 @@ class Scenario_custom_repo_check(APITestCase):
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
 
-        self._host_location_update(client_container_name=client_container_name, loc=loc)
+        CommonUpgradeUtility().host_location_update(client_container_name
+                                                    =client_container_name, loc=loc)
         status = execute(docker_execute_command,
                          client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
-        # self._install_package(client_container_id, self.rpm1_name)
         CommonUpgradeUtility(container_id=client_container_id, package=self.rpm1_name). \
             install_or_update_package(update=True)
 
@@ -287,7 +246,8 @@ class Scenario_custom_repo_check(APITestCase):
         prod_label = entity_data.get('prod_label')
         repo_name = entity_data.get('repo_name')
 
-        self._create_repo(post_upgrade=True)
+        CommonUpgradeUtility().create_repo(rpm2, self.file_path, post_upgrade=True,
+                                           other_rpm=rpm1)
         repo = entities.Repository(name=repo_name).search()[0]
         repo.sync()
 

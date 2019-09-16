@@ -21,6 +21,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
+from robottelo.upgrade_utility import CommonUpgradeUtility
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -120,35 +121,6 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
     def setUpClass(cls):
         cls.docker_vm = settings.upgrade.docker_vm
 
-    def _host_status(self, client_container_name=None):
-        """ fetch the content host details.
-
-        :param: str client_container_name: The content host hostname
-        :return: nailgun.entity.host: host
-        """
-        host = entities.Host().search(
-            query={'search': '{0}'.format(client_container_name)})
-        return host
-
-    def _host_location_update(self, client_container_name=None, loc=None):
-        """ Check the content host status (as package profile update task does take time to
-        upload) and update location.
-
-        :param: str client_container_name: The content host hostname
-        :param: str loc: Location
-        """
-        if len(self._host_status(client_container_name=client_container_name)) == 0:
-            wait_for(
-                lambda: len(self._host_status(client_container_name=client_container_name)) > 0,
-                timeout=100,
-                delay=2,
-                logger=self.logger
-            )
-        host_loc = self._host_status(client_container_name=client_container_name)[0]
-        host_loc.location = loc
-        host_loc.update(['location'])
-        self.assertEqual(loc.name, host_loc.location.name)
-
     @pre_upgrade
     def test_pre_subscription_scenario_autoattach(self):
         """Create content host and register with Satellite
@@ -176,7 +148,8 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
             ak_name=act_key.name, distro='rhel7', org_label=org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
-        self._host_location_update(client_container_name=client_container_name, loc=loc)
+        CommonUpgradeUtility().host_location_update(client_container_name
+                                                    =client_container_name, loc=loc)
 
         wait_for(
             lambda: org.name in execute(docker_execute_command, client_container_id,
