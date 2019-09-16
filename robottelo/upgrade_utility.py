@@ -11,7 +11,7 @@ class CommonUpgradeUtility(object):
     """ CommonUpgradeUtility class for upgrade test cases """
 
     def __init__(self, client_container_id=None):
-        self.client_container_id = client_container_id
+        self.client_hostname = client_container_id
 
     def run_goferd(self):
         """
@@ -21,19 +21,19 @@ class CommonUpgradeUtility(object):
         kwargs = {'async': True, 'host': settings.upgrade.docker_vm}
         execute(
             docker_execute_command,
-            self.client_container_id,
+            self.client_hostname,
             'pkill -f gofer',
             **kwargs
         )
         execute(
             docker_execute_command,
-            self.client_container_id,
+            self.client_hostname,
             'goferd -f',
             **kwargs
         )
-        status = execute(docker_execute_command, self.client_container_id, 'ps -ef',
+        status = execute(docker_execute_command, self.client_hostname, 'ps -ef',
                          host=settings.upgrade.docker_vm)[settings.upgrade.docker_vm]
-        self.assertIn("goferd", status)
+        assert "goferd" in status
 
     def check_package_installed(self, package=None):
         """
@@ -45,7 +45,7 @@ class CommonUpgradeUtility(object):
         kwargs = {'host': settings.upgrade.docker_vm}
         installed_package = execute(
             docker_execute_command,
-            self.client_container_id,
+            self.client_hostname,
             'yum list installed {}'.format(package),
             **kwargs
         )[settings.upgrade.docker_vm]
@@ -59,7 +59,7 @@ class CommonUpgradeUtility(object):
         """
         kwargs = {'host': settings.upgrade.docker_vm}
         execute(docker_execute_command,
-                self.client_container_id,
+                self.client_hostname,
                 'subscription-manager repos --enable=*;yum clean all',
                 **kwargs)[settings.upgrade.docker_vm]
         if update:
@@ -67,11 +67,12 @@ class CommonUpgradeUtility(object):
         else:
             command = 'yum install -y {}'.format(package)
 
-        execute(docker_execute_command, self.client_container_id, command, **kwargs)[
+        execute(docker_execute_command, self.client_hostname, command, **kwargs)[
             settings.upgrade.docker_vm]
-        self.assertIn(self.check_package_installed(), package)
+        assert self.check_package_installed() in package
 
-    def create_repo(self, rpm_name, repo_path, post_upgrade=False, other_rpm=None):
+    @staticmethod
+    def create_repo(rpm_name, repo_path, post_upgrade=False, other_rpm=None):
         """ Creates a custom yum repository, that will be synced to satellite
         and later to capsule from satellite
         :param: str rpm_name : rpm name, required to create a repository.
@@ -91,7 +92,8 @@ class CommonUpgradeUtility(object):
             # Renaming custom rpm to preRepoSync.rpm
             run('createrepo --database {0}'.format(repo_path))
 
-    def host_status(self, client_container_name=None):
+    @classmethod
+    def host_status(cls, client_container_name=None):
         """ fetch the content host details.
         :param: str client_container_name: The content host hostname
         :return: nailgun.entity.host: host
@@ -119,7 +121,8 @@ class CommonUpgradeUtility(object):
         host_loc.location = loc
         host_loc.update(['location'])
 
-    def publish_content_view(self, org=None, repolist=None):
+    @staticmethod
+    def publish_content_view(org=None, repolist=None):
         """
         publish content view and return content view
         :param: str org: Name of the organisation
@@ -134,7 +137,8 @@ class CommonUpgradeUtility(object):
         content_view = content_view.read()
         return content_view
 
-    def cleanup_of_provisioned_server(self, hostname=None, provisioning_server=None,
+    @staticmethod
+    def cleanup_of_provisioned_server(hostname=None, provisioning_server=None,
                                       distro=None):
         """ Cleanup the VM from provisioning server
 
@@ -151,15 +155,3 @@ class CommonUpgradeUtility(object):
             )
             vm._created = True
             vm.destroy()
-
-    def assertIn(self, member, container):
-        """
-        This method is used to check the member existence in
-        container otherwise raise an exception.
-
-        :param: member
-        :param: container
-        """
-        if member not in container:
-            standardMsg = '{} not found in {}' .format(member, container)
-            raise Exception(standardMsg)
