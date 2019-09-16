@@ -16,7 +16,6 @@ class CommonUpgradeUtility(object):
     def run_goferd(self):
         """
         Start the goferd process.
-        :return: status of execution
         """
 
         kwargs = {'async': True, 'host': settings.upgrade.docker_vm}
@@ -34,7 +33,7 @@ class CommonUpgradeUtility(object):
         )
         status = execute(docker_execute_command, self.client_container_id, 'ps -ef',
                          host=settings.upgrade.docker_vm)[settings.upgrade.docker_vm]
-        return status
+        self.assertIn("goferd", status)
 
     def check_package_installed(self, package=None):
         """

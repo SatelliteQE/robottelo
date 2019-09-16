@@ -160,7 +160,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         upgrade_utility.client_container_id = client_container_id
         upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", upgrade_utility.run_goferd())
+        upgrade_utility.run_goferd()
 
         scenario_dict = {self.__class__.__name__: {
             'rhel_client': rhel7_client,
@@ -205,5 +205,5 @@ class Scenario_yum_plugins_count(APITestCase):
                                            host_name=client_container_name)
         upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
         upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", upgrade_utility.run_goferd())
+        upgrade_utility.run_goferd()
         self._check_yum_plugins_count(client_container_id)

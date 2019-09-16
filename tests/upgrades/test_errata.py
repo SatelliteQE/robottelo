@@ -176,7 +176,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         )
         upgrade_utility.client_container_id = client_container_id
         upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", upgrade_utility.run_goferd())
+        upgrade_utility.run_goferd()
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
             upgrade_utility.install_or_update_package(update=True, package=package)
@@ -244,7 +244,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         content_view.publish()
         upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
         upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", upgrade_utility.run_goferd())
+        upgrade_utility.run_goferd()
         self.assertGreater(installable_errata_count, 1)
 
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
@@ -380,7 +380,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
                 'yum update -y',
                 host=self.docker_vm)[self.docker_vm]
         upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        self.assertIn("goferd", upgrade_utility.run_goferd())
+        upgrade_utility.run_goferd()
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
             upgrade_utility.install_or_update_package(package=package)
