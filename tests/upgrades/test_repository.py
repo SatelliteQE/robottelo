@@ -23,6 +23,7 @@ from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo, promote
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
+from robottelo.upgrade_utility import CommonUpgradeUtility
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -131,21 +132,6 @@ class Scenario_custom_repo_check(APITestCase):
         _, cls.rpm1_name = os.path.split(rpm1)
         _, cls.rpm2_name = os.path.split(rpm2)
 
-    def _check_package_installed(self, client_container_id, package):
-        """Verify if package is installed on docker content host.
-
-        :param: str client_container_id: Container ID
-        :param: str package : Package name
-        """
-        kwargs = {'host': self.docker_vm}
-        installed_package = execute(
-            docker_execute_command,
-            client_container_id,
-            'rpm -qa|grep {}'.format(package),
-            **kwargs
-        )[self.docker_vm]
-        self.assertIn(package, installed_package)
-
     def _create_repo(self, post_upgrade=False):
         """ Creates a custom yum repository, that will be synced to satellite
         """
@@ -157,22 +143,6 @@ class Scenario_custom_repo_check(APITestCase):
             run('mkdir /var/www/html/pub/custom_repo')
             run('wget {0} -P {1}'.format(rpm1, self.file_path))
             run('createrepo --database {0}'.format(self.file_path))
-
-    def _install_package(self, client_container_id, package):
-        """Install the package on docker content host.
-
-        :param: str client_container_id: Container ID
-        :param: str package : package name
-        """
-        rpm_name = package.split('-')[0]
-        kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command,
-                client_container_id,
-                'subscription-manager repos;yum clean all',
-                **kwargs)[self.docker_vm]
-        command = 'yum install -y {}'.format(rpm_name)
-        execute(docker_execute_command, client_container_id, command, **kwargs)[self.docker_vm]
-        self._check_package_installed(client_container_id, rpm_name)
 
     def _host_status(self, client_container_name=None):
         """ fetch the content host details.
@@ -275,7 +245,9 @@ class Scenario_custom_repo_check(APITestCase):
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
-        self._install_package(client_container_id, self.rpm1_name)
+        # self._install_package(client_container_id, self.rpm1_name)
+        CommonUpgradeUtility(container_id=client_container_id, package=self.rpm1_name). \
+            install_or_update_package(update=True)
 
         scenario_dict = {self.__class__.__name__: {
             'content_view_name': content_view.name,
@@ -337,4 +309,5 @@ class Scenario_custom_repo_check(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-        self._install_package(client_container_id, self.rpm2_name)
+        CommonUpgradeUtility(container_id=client_container_id, package=self.rpm2_name). \
+            install_or_update_package(update=True)

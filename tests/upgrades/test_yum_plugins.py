@@ -30,6 +30,7 @@ from robottelo.constants import (
 )
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
+from robottelo.upgrade_utility import CommonUpgradeUtility
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -67,26 +68,6 @@ class Scenario_yum_plugins_count(APITestCase):
         cls.loc = entities.Location().search(
             query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
 
-    def _run_goferd(self, client_container_id):
-        """Start the goferd process."""
-
-        kwargs = {'async': True, 'host': self.docker_vm}
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'pkill -f gofer',
-            **kwargs
-        )
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'goferd -f',
-            **kwargs
-        )
-        status = execute(docker_execute_command, client_container_id, 'ps -aux',
-                         host=self.docker_vm)[self.docker_vm]
-        self.assertIn('goferd', status)
-
     def _check_yum_plugins_count(self, client_container_id):
         """Check yum loaded plugins counts """
 
@@ -100,34 +81,6 @@ class Scenario_yum_plugins_count(APITestCase):
             'yum repolist|grep "Loaded plugins"|wc -l',
             **kwargs)[self.docker_vm]
         self.assertEqual(int(plugins_count), 2)
-
-    def _check_package_installed(self, client_container_id, package):
-        """Verify if package is installed on docker content host."""
-
-        kwargs = {'host': self.docker_vm}
-        installed_package = execute(
-            docker_execute_command,
-            client_container_id,
-            'yum list installed {}'.format(package),
-            **kwargs
-        )[self.docker_vm]
-        self.assertIn(package, installed_package)
-
-    def _install_or_update_package(self, client_container_id, package, update=False):
-        """Install/update the package on docker content host."""
-
-        kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command,
-                client_container_id,
-                'subscription-manager repos --enable=*;yum clean all',
-                **kwargs)[self.docker_vm]
-        if update:
-            command = 'yum update -y {}'.format(package)
-        else:
-            command = 'yum install -y {}'.format(package)
-
-        execute(docker_execute_command, client_container_id, command, **kwargs)[self.docker_vm]
-        self._check_package_installed(client_container_id, package)
 
     def _create_custom_tools_repos(self, product):
         """Create custom tools repo and sync it"""
@@ -223,8 +176,10 @@ class Scenario_yum_plugins_count(APITestCase):
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(self.org.label, status)
 
-        self._install_or_update_package(client_container_id, 'katello-agent')
-        self._run_goferd(client_container_id)
+        CommonUpgradeUtility(container_id=client_container_id,package="katello-agent").\
+            install_or_update_package(update=True)
+        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
+                      run_goferd())
 
         scenario_dict = {self.__class__.__name__: {
             'rhel_client': rhel7_client,
@@ -267,6 +222,8 @@ class Scenario_yum_plugins_count(APITestCase):
 
         attach_custom_product_subscription(prod_name=product.name,
                                            host_name=client_container_name)
-        self._install_or_update_package(client_container_id, "katello-agent", update=True)
-        self._run_goferd(client_container_id)
+        CommonUpgradeUtility(container_id=client_container_id, package="katello-agent").\
+            install_or_update_package(update=True)
+        self.assertIn("goferd", CommonUpgradeUtility(container_id=client_container_id).
+                      run_goferd())
         self._check_yum_plugins_count(client_container_id)
