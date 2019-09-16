@@ -4,6 +4,7 @@ from nailgun import entities
 from wait_for import wait_for
 from fabric.api import execute, run
 from robottelo.test import settings
+from robottelo.vm import VirtualMachine
 from upgrade.helpers.docker import docker_execute_command
 from robottelo.api.utils import call_entity_method_with_timeout
 
@@ -135,6 +136,24 @@ class CommonUpgradeUtility(object):
         call_entity_method_with_timeout(content_view.publish, timeout=3400)
         content_view = content_view.read()
         return content_view
+
+    def cleanup_of_provisioned_server(self, hostname=None, provisioning_server=None,
+                                      distro=None):
+        """ Cleanup the VM from provisioning server
+
+        :param str hostname: The content host hostname
+        :param str provisioning_server: provision server name
+        :param str distro: distro type
+        """
+        if hostname:
+            vm = VirtualMachine(
+                hostname=hostname,
+                target_image=hostname,
+                provisioning_server=provisioning_server,
+                distro=distro,
+            )
+            vm._created = True
+            vm.destroy()
 
     def assertIn(self, member, container):
         """

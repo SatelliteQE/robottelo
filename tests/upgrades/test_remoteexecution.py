@@ -17,7 +17,7 @@
 from nailgun import entities
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.cleanup import cleanup_of_provisioned_server
+from robottelo.upgrade_utility import CommonUpgradeUtility
 from robottelo.vm import VirtualMachine
 from robottelo.test import APITestCase, settings
 from upgrade_tests import post_upgrade, pre_upgrade
@@ -112,9 +112,10 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
             create_dict(global_dict)
         except Exception as exp:
             if client._created:
-                cleanup_of_provisioned_server(hostname=client.hostname,
-                                              provisioning_server=self.libvirt_vm,
-                                              distro=DISTRO_RHEL7)
+                CommonUpgradeUtility().cleanup_of_provisioned_server(
+                    hostname=client.hostname,
+                    provisioning_server=self.libvirt_vm,
+                    distro=DISTRO_RHEL7)
             raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
@@ -135,9 +136,10 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
             'job_template_id': 89, 'inputs': {'command': "ls"},
             'targeting_type': 'static_query', 'search_query': "name = {0}".format(client_name)})
         self.assertEqual(job['output']['success_count'], 1)
-        cleanup_of_provisioned_server(hostname=client_name,
-                                      provisioning_server=self.libvirt_vm,
-                                      distro=DISTRO_RHEL7)
+        CommonUpgradeUtility().cleanup_of_provisioned_server(
+            hostname=client_name,
+            provisioning_server=self.libvirt_vm,
+            distro=DISTRO_RHEL7)
 
 
 class Scenario_remoteexecution_satellite(APITestCase):
@@ -226,9 +228,10 @@ class Scenario_remoteexecution_satellite(APITestCase):
             create_dict(global_dict)
         except Exception as exp:
             if client._created:
-                cleanup_of_provisioned_server(hostname=client.hostname,
-                                              provisioning_server=self.libvirt_vm,
-                                              distro=DISTRO_RHEL7)
+                CommonUpgradeUtility().cleanup_of_provisioned_server(
+                    hostname=client.hostname,
+                    provisioning_server=self.libvirt_vm,
+                    distro=DISTRO_RHEL7)
             raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
@@ -250,6 +253,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
             'targeting_type': 'static_query', 'search_query': "name = {0}".
             format(client_name)})
         self.assertEqual(job['output']['success_count'], 1)
-        cleanup_of_provisioned_server(hostname=client_name,
-                                      provisioning_server=self.libvirt_vm,
-                                      distro=DISTRO_RHEL7)
+        CommonUpgradeUtility().cleanup_of_provisioned_server(
+            hostname=client_name,
+            provisioning_server=self.libvirt_vm,
+            distro=DISTRO_RHEL7)
