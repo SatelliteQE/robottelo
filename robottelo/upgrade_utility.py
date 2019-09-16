@@ -9,10 +9,8 @@ from robottelo.api.utils import call_entity_method_with_timeout
 
 
 class CommonUpgradeUtility(object):
-    """
-    This class will be used by upgrade test cases to re-utilize all the defined module
-    in their test cases execution.
-    """
+    """ CommonUpgradeUtility class for upgrade test cases """
+
     def __init__(self, container_id=None, package=None):
         self.client_container_id = container_id
         self.package = package
