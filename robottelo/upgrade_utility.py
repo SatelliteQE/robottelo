@@ -1,12 +1,10 @@
 """Common Upgrade test utilities """
 
-from nailgun import entities
 from wait_for import wait_for
 from fabric.api import execute, run
-from robottelo.test import settings
 from robottelo.vm import VirtualMachine
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import call_entity_method_with_timeout, entities, settings
 
 
 class CommonUpgradeUtility(object):
