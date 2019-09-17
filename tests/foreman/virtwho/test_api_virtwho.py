@@ -17,12 +17,9 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.decorators import (
-    tier2,
-    skip_if_bug_open
-)
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
-from time import sleep
+from wait_for import wait_for
 
 from .utils import (
     deploy_configure_by_command,
@@ -72,23 +69,19 @@ class VirtWhoConfigApiTestCase(APITestCase):
         return args
 
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
-        vdc_id = None
         subscriptions = entities.Subscription().search(
             query={'search': '{0}'.format(sku)})
         for item in subscriptions:
             item = item.read_json()
             if hypervisor_name.lower() in item['hypervisor']['name']:
-                vdc_id = item['id']
-                break
-        return vdc_id
+                return item['id']
 
     def _get_guest_bonus(self, hypervisor_name, sku):
-        vdc_id = self._try_to_get_guest_bonus(hypervisor_name, sku)
-        if vdc_id is None:
-            sleep(5)
-            # retry to get guest bonus
-            vdc_id = self._try_to_get_guest_bonus(hypervisor_name, sku)
-            self.assertIsNotNone(vdc_id)
+        vdc_id, time = wait_for(self._try_to_get_guest_bonus,
+                                func_args=(hypervisor_name, sku),
+                                fail_condition=None,
+                                timeout=5,
+                                delay=1)
         return vdc_id
 
     @tier2
@@ -121,16 +114,19 @@ class VirtWhoConfigApiTestCase(APITestCase):
             (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
                 self.vdc_physical))]
         for hostname, sku in hosts:
-            vdc_id = None
             if 'type=NORMAL' in sku:
                 subscriptions = entities.Subscription().search(
                     query={'search': '{0}'.format(sku)})
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 vdc_id = self._get_guest_bonus(hypervisor_name, sku)
-            host = entities.Host().search(
-                query={'search': "{0}".format(hostname)})[0]
-            entities.HostSubscription(host=host.id).add_subscriptions(
+            host, time = wait_for(entities.Host().search,
+                                  func_args=(None, {
+                                      'search': "{0}".format(hostname)}),
+                                  fail_condition=[],
+                                  timeout=5,
+                                  delay=1)
+            entities.HostSubscription(host=host[0].id).add_subscriptions(
                 data={'subscriptions': [{
                               'id': vdc_id,
                               'quantity': 1}]})
@@ -140,8 +136,8 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 result['subscription_status_label'],
                 'Fully entitled')
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
     @tier2
     def test_positive_deploy_configure_by_script(self):
@@ -175,16 +171,19 @@ class VirtWhoConfigApiTestCase(APITestCase):
             (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
                 self.vdc_physical))]
         for hostname, sku in hosts:
-            vdc_id = None
             if 'type=NORMAL' in sku:
                 subscriptions = entities.Subscription().search(
                     query={'search': '{0}'.format(sku)})
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 vdc_id = self._get_guest_bonus(hypervisor_name, sku)
-            host = entities.Host().search(
-                query={'search': "{0}".format(hostname)})[0]
-            entities.HostSubscription(host=host.id).add_subscriptions(
+            host, time = wait_for(entities.Host().search,
+                                  func_args=(None, {
+                                      'search': "{0}".format(hostname)}),
+                                  fail_condition=[],
+                                  timeout=5,
+                                  delay=1)
+            entities.HostSubscription(host=host[0].id).add_subscriptions(
                 data={'subscriptions': [{
                     'id': vdc_id,
                     'quantity': 1}]})
@@ -194,8 +193,8 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 result['subscription_status_label'],
                 'Fully entitled')
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
     @tier2
     def test_positive_debug_option(self):
@@ -225,8 +224,8 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG),
                 value)
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
     @tier2
     def test_positive_interval_option(self):
@@ -267,8 +266,8 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG),
                 value)
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
     @tier2
     def test_positive_hypervisor_id_option(self):
@@ -302,10 +301,9 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 value
             )
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
-    @skip_if_bug_open('bugzilla', 1735670)
     @tier2
     def test_positive_filter_option(self):
         """ Verify filter option by "PUT
@@ -327,13 +325,14 @@ class VirtWhoConfigApiTestCase(APITestCase):
         whitelist = {
             'filtering_mode': '1',
             'whitelist': '.*redhat.com',
-            'filter_host_parents': '.*redhat.com'
         }
         blacklist = {
             'filtering_mode': '2',
             'blacklist': '.*redhat.com',
-            'exclude_host_parents': '.*redhat.com'
         }
+        if self.hypervisor_type == 'esx':
+            whitelist['filter_host_parents'] = '.*redhat.com'
+            blacklist['exclude_host_parents'] = '.*redhat.com'
         # Update Whitelist and check the result
         vhd.filtering_mode = whitelist['filtering_mode']
         vhd.whitelist = whitelist['whitelist']
@@ -367,8 +366,8 @@ class VirtWhoConfigApiTestCase(APITestCase):
                 get_configure_option('exclude_host_parents', config_file),
                 blacklist['exclude_host_parents'])
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
     @tier2
     def test_positive_proxy_option(self):
@@ -407,8 +406,8 @@ class VirtWhoConfigApiTestCase(APITestCase):
             get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG),
             no_proxy)
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))
 
     @tier2
     def test_positive_configure_organization_list(self):
@@ -431,12 +430,9 @@ class VirtWhoConfigApiTestCase(APITestCase):
         command = get_configure_command(vhd.id)
         deploy_configure_by_command(command)
         search_result = vhd.get_organization_configs()
-        assert_flag = None
-        for item in search_result['results']:
-            if item['name'] == name:
-                assert_flag = True
-                break
-        self.assertEqual(assert_flag, True)
+        self.assertTrue(
+            [item for item in search_result['results'] if item['name'] == name]
+        )
         vhd.delete()
-        self.assertEqual(entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(name)}), [])
+        self.assertFalse(entities.VirtWhoConfig().search(
+            query={'search': 'name={}'.format(name)}))

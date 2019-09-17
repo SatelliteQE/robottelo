@@ -21,10 +21,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.host import Host
 from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_ORG
-from robottelo.decorators import (
-    tier2,
-    skip_if_bug_open
-)
+from robottelo.decorators import tier2
 from robottelo.test import CLITestCase
 
 from .utils import (
@@ -257,7 +254,6 @@ class VirtWhoConfigTestCase(CLITestCase):
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @skip_if_bug_open('bugzilla', 1735670)
     @tier2
     def test_positive_filter_option(self):
         """ Verify filter option by hammer virt-who-config update"
@@ -279,36 +275,41 @@ class VirtWhoConfigTestCase(CLITestCase):
             'id': vhd['id'],
             'filtering-mode': 'whitelist',
             'whitelist': regex,
-            'filter-host-parents': regex
         }
         blacklist = {
             'id': vhd['id'],
             'filtering-mode': 'blacklist',
             'blacklist': regex,
-            'exclude-host-parents': regex
         }
+        if self.hypervisor_type == 'esx':
+            whitelist['filter-host-parents'] = regex
+            blacklist['exclude-host-parents'] = regex
         # Update Whitelist and check the result
         VirtWhoConfig.update(whitelist)
         result = VirtWhoConfig.info({'id': vhd['id']})
         self.assertEqual(result['connection']['filtering'], 'Whitelist')
         self.assertEqual(result['connection']['filtered-hosts'], regex)
-        self.assertEqual(result['connection']['filter-host-parents'], regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(result['connection']['filter-host-parents'], regex)
         config_file = get_configure_file(vhd['id'])
         command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
         self.assertEqual(get_configure_option('filter_hosts', config_file), regex)
-        self.assertEqual(get_configure_option('filter_host_parents', config_file), regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(get_configure_option('filter_host_parents', config_file), regex)
         # Update Blacklist and check the result
         VirtWhoConfig.update(blacklist)
         result = VirtWhoConfig.info({'id': vhd['id']})
         self.assertEqual(result['connection']['filtering'], 'Blacklist')
         self.assertEqual(result['connection']['excluded-hosts'], regex)
-        self.assertEqual(result['connection']['exclude-host-parents'], regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(result['connection']['exclude-host-parents'], regex)
         config_file = get_configure_file(vhd['id'])
         command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
         self.assertEqual(get_configure_option('exclude_hosts', config_file), regex)
-        self.assertEqual(get_configure_option('exclude_host_parents', config_file), regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(get_configure_option('exclude_host_parents', config_file), regex)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
@@ -328,7 +329,7 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        http_proxy = 'test.rexample.com:3128'
+        http_proxy = 'test.example.com:3128'
         no_proxy = 'test.satellite.com'
         VirtWhoConfig.update({
             'id': vhd['id'],
