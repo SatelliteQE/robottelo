@@ -164,7 +164,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         upgrade_utility.client_container_id = client_container_id
         client_container_name = [key for key in rhel7_client.keys()][0]
         upgrade_utility.host_location_update(
-            client_container_name=client_container_name, loc=loc)
+            client_container_name=client_container_name, logger_obj=self.logger, loc=loc)
         wait_for(
             lambda: org.name in execute(docker_execute_command,
                                         client_container_id,

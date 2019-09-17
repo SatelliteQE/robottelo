@@ -190,7 +190,7 @@ class Scenario_custom_repo_check(APITestCase):
         client_container_name = [key for key in rhel7_client.keys()][0]
 
         upgrade_utility.host_location_update(
-            client_container_name=client_container_name, loc=loc)
+            client_container_name=client_container_name, logger_obj=self.logger, loc=loc)
         status = execute(docker_execute_command,
                          client_container_id,
                          'subscription-manager identity',

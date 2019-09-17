@@ -18,7 +18,6 @@ from fabric.api import execute, run
 from nailgun import entities
 from robottelo.test import APITestCase, settings
 from robottelo.api.utils import promote, call_entity_method_with_timeout
-from robottelo.upgrade_utility import CommonUpgradeUtility
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_ORG
 from upgrade.helpers.tasks import wait_untill_capsule_sync
 from upgrade_tests import post_upgrade, pre_upgrade
@@ -28,6 +27,7 @@ from upgrade_tests.helpers.scenarios import (
     rpm1,
     rpm2
 )
+from robottelo.upgrade_utility import CommonUpgradeUtility
 
 
 class Scenario_capsule_sync(APITestCase):
@@ -76,7 +76,7 @@ class Scenario_capsule_sync(APITestCase):
         ak_env = ak.environment.read()
         product = entities.Product(
             name=self.prod_name, organization=self.org_id).create()
-        CommonUpgradeUtility.create_repo(rpm1, self.repo_name)
+        CommonUpgradeUtility.create_repo(rpm1, self.repo_path)
         repo = entities.Repository(
             product=product.id, name=self.repo_name,
             url=self.repo_url).create()
@@ -181,7 +181,7 @@ class Scenario_capsule_sync_2(APITestCase):
         ak_env = ak.environment.read()
         product = entities.Product(
             name=self.prod_name, organization=self.org_id).create()
-        CommonUpgradeUtility.create_repo(rpm2, self.repo_name)
+        CommonUpgradeUtility.create_repo(rpm2, self.repo_path)
         repo = entities.Repository(
             product=product.id, name=self.repo_name,
             url=self.repo_url).create()

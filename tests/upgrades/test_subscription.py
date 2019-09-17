@@ -149,7 +149,7 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
         CommonUpgradeUtility().host_location_update(
-            client_container_name=client_container_name, loc=loc)
+            client_container_name=client_container_name, logger_obj=self.logger, loc=loc)
 
         wait_for(
             lambda: org.name in execute(docker_execute_command, client_container_id,

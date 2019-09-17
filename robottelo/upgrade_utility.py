@@ -1,10 +1,11 @@
 """Common Upgrade test utilities """
 
-from wait_for import wait_for
 from fabric.api import execute, run
-from robottelo.vm import VirtualMachine, settings
+from nailgun import entities
+from robottelo.test import settings
+from robottelo.api.utils import call_entity_method_with_timeout
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.api.utils import call_entity_method_with_timeout, entities
+from wait_for import wait_for
 
 
 class CommonUpgradeUtility(object):
@@ -102,9 +103,10 @@ class CommonUpgradeUtility(object):
             query={'search': '{0}'.format(client_container_name)})
         return host
 
-    def host_location_update(self, client_container_name=None, loc=None):
-        """ Check the content host status (as package profile update task does take time to
-        upload) and update location.
+    def host_location_update(self, client_container_name=None,
+                             logger_obj=None, loc=None):
+        """ Check the content host status (as package profile update task does
+        take time to upload) and update location.
 
         :param: str client_container_name: The content host hostname
         :param: str loc: Location
@@ -115,7 +117,7 @@ class CommonUpgradeUtility(object):
                                              )) > 0,
                 timeout=100,
                 delay=2,
-                logger=self.logger
+                logger=logger_obj
             )
         host_loc = self.host_status(client_container_name=client_container_name)[0]
         host_loc.location = loc
@@ -136,22 +138,3 @@ class CommonUpgradeUtility(object):
         call_entity_method_with_timeout(content_view.publish, timeout=3400)
         content_view = content_view.read()
         return content_view
-
-    @staticmethod
-    def cleanup_of_provisioned_server(hostname=None, provisioning_server=None,
-                                      distro=None):
-        """ Cleanup the VM from provisioning server
-
-        :param: str hostname: The content host hostname
-        :param: str provisioning_server: provision server name
-        :param: str distro: distro type
-        """
-        if hostname:
-            vm = VirtualMachine(
-                hostname=hostname,
-                target_image=hostname,
-                provisioning_server=provisioning_server,
-                distro=distro,
-            )
-            vm._created = True
-            vm.destroy()
