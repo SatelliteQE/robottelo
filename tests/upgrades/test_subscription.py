@@ -21,7 +21,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import CommonUpgradeUtility
+from robottelo.upgrade_utility import host_location_update
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -148,8 +148,8 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
             ak_name=act_key.name, distro='rhel7', org_label=org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
-        CommonUpgradeUtility().host_location_update(
-            client_container_name=client_container_name, logger_obj=self.logger, loc=loc)
+        host_location_update(client_container_name=client_container_name,
+                             logger_obj=self.logger, loc=loc)
 
         wait_for(
             lambda: org.name in execute(docker_execute_command, client_container_id,

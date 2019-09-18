@@ -22,7 +22,12 @@ from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo, promote
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import CommonUpgradeUtility
+from robottelo.upgrade_utility import (
+    create_repo,
+    install_or_update_package,
+    host_location_update,
+    publish_content_view
+)
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -68,10 +73,11 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         org = entities.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = 'repo = Katello::Repository.find_by_id({0})'.format(custom_repo)
-        rake_username = '; repo.root.upstream_username = "{0}"'.format(self.upstream_username)
+        rake_username = '; repo.root.upstream_username = "{0}"'\
+            .format(self.upstream_username)
         rake_repo_save = '; repo.save!(validate: false)'
-        result = run("echo '{0}{1}{2}'|foreman-rake console".format(rake_repo, rake_username,
-                                                                    rake_repo_save))
+        result = run("echo '{0}{1}{2}'|foreman-rake console"
+                     .format(rake_repo, rake_username, rake_repo_save))
         self.assertIn('true', result)
 
         global_dict = {
@@ -98,7 +104,8 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']
         rake_repo = 'repo = Katello::RootRepository.find_by_id({0})'.format(repo_id)
         rake_username = '; repo.root.upstream_username'
-        result = run("echo '{0}{1}'|foreman-rake console".format(rake_repo, rake_username))
+        result = run("echo '{0}{1}'|foreman-rake console".
+                     format(rake_repo, rake_username))
         self.assertNotIn(self.upstream_username, result)
 
 
@@ -156,12 +163,11 @@ class Scenario_custom_repo_check(APITestCase):
         lce = entities.LifecycleEnvironment(organization=org).create()
 
         product = entities.Product(organization=org).create()
-        upgrade_utility = CommonUpgradeUtility()
-        upgrade_utility.create_repo(rpm1, self.file_path)
+        create_repo(rpm1, self.file_path)
         repo = entities.Repository(product=product.id, url=self.custom_repo).create()
         repo.sync()
 
-        content_view = upgrade_utility.publish_content_view(org=org, repo=repo)
+        content_view = publish_content_view(org=org, repolist=repo)
         promote(content_view.version[0], lce.id)
 
         result = ssh.command(
@@ -189,15 +195,15 @@ class Scenario_custom_repo_check(APITestCase):
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
 
-        upgrade_utility.host_location_update(
-            client_container_name=client_container_name, logger_obj=self.logger, loc=loc)
+        host_location_update(client_container_name=client_container_name,
+                             logger_obj=self.logger, loc=loc)
         status = execute(docker_execute_command,
                          client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
-        upgrade_utility.client_container_id = client_container_id
-        upgrade_utility.install_or_update_package(update=True, package=self.rpm1_name)
+        install_or_update_package(client_hostname=client_container_id,
+                                  package=self.rpm1_name)
 
         scenario_dict = {self.__class__.__name__: {
             'content_view_name': content_view.name,
@@ -236,10 +242,8 @@ class Scenario_custom_repo_check(APITestCase):
         org_label = entity_data.get('org_label')
         prod_label = entity_data.get('prod_label')
         repo_name = entity_data.get('repo_name')
-        upgrade_utility = CommonUpgradeUtility()
 
-        upgrade_utility.create_repo(rpm2, self.file_path, post_upgrade=True,
-                                    other_rpm=rpm1)
+        create_repo(rpm2, self.file_path, post_upgrade=True, other_rpm=rpm1)
         repo = entities.Repository(name=repo_name).search()[0]
         repo.sync()
 
@@ -260,5 +264,5 @@ class Scenario_custom_repo_check(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
-        upgrade_utility.client_container_id = client_container_id
-        upgrade_utility.install_or_update_package(update=True, package=self.rpm2_name)
+        install_or_update_package(client_hostname=client_container_id,
+                                  package=self.rpm2_name)

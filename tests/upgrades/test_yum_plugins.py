@@ -30,7 +30,11 @@ from robottelo.constants import (
 )
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import CommonUpgradeUtility
+from robottelo.upgrade_utility import (
+    install_or_update_package,
+    publish_content_view,
+    run_goferd
+)
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -131,12 +135,10 @@ class Scenario_yum_plugins_count(APITestCase):
             1. The content host is created.
             2. katello-agent install and goferd run.
         """
-        environment = entities.LifecycleEnvironment(organization=self.org
-                                                    ).search(query={'search': 'name=Library'})[0]
+        environment = entities.LifecycleEnvironment(organization=self.org)\
+            .search(query={'search': 'name=Library'})[0]
         repos = self._get_rh_rhel_tools_repos()
-        upgrade_utility = CommonUpgradeUtility()
-        content_view = upgrade_utility.publish_content_view(
-            org=self.org, repolist=repos)
+        content_view = publish_content_view(org=self.org, repolist=repos)
         ak = entities.ActivationKey(content_view=content_view,
                                     organization=self.org.id,
                                     environment=environment).create()
@@ -158,9 +160,9 @@ class Scenario_yum_plugins_count(APITestCase):
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(self.org.label, status)
 
-        upgrade_utility.client_container_id = client_container_id
-        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        upgrade_utility.run_goferd()
+        install_or_update_package(client_hostname=client_container_id,
+                                  package="katello-agent")
+        run_goferd(client_hostname=client_container_id)
 
         scenario_dict = {self.__class__.__name__: {
             'rhel_client': rhel7_client,
@@ -203,7 +205,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         attach_custom_product_subscription(prod_name=product.name,
                                            host_name=client_container_name)
-        upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
-        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        upgrade_utility.run_goferd()
+        install_or_update_package(client_hostname=client_container_id,
+                                  update=True, package="katello-agent")
+        run_goferd(client_hostname=client_container_id)
         self._check_yum_plugins_count(client_container_id)

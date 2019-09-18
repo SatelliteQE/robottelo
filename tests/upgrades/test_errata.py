@@ -30,7 +30,11 @@ from robottelo.constants import (
 )
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import CommonUpgradeUtility
+from robottelo.upgrade_utility import (
+    host_location_update,
+    install_or_update_package,
+    publish_content_view,
+    run_goferd)
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -126,12 +130,12 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         :expectedresults:
 
             1. The content host is created
-            2. errata count, erratum list will be generated to satellite client/content host
+            2. errata count, erratum list will be generated to satellite client/content
+            host
 
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-        upgrade_utility = CommonUpgradeUtility()
         environment = entities.LifecycleEnvironment(
             organization=org
         ).search(query={'search': 'name=Library'})[0]
@@ -145,8 +149,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
 
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
         repolist = [custom_yum_repo, tools_repo, rhel_repo]
-        content_view = upgrade_utility.publish_content_view(
-            org=org, repolist=repolist)
+        content_view = publish_content_view(org=org, repolist=repolist)
         ak = entities.ActivationKey(
             content_view=content_view,
             organization=org.id,
@@ -161,10 +164,9 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = list(rhel7_client.values())[0]
-        upgrade_utility.client_container_id = client_container_id
         client_container_name = [key for key in rhel7_client.keys()][0]
-        upgrade_utility.host_location_update(
-            client_container_name=client_container_name, logger_obj=self.logger, loc=loc)
+        host_location_update(client_container_name=client_container_name,
+                             logger_obj=self.logger, loc=loc)
         wait_for(
             lambda: org.name in execute(docker_execute_command,
                                         client_container_id,
@@ -174,12 +176,13 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             delay=2,
             logger=self.logger
         )
-        upgrade_utility.client_container_id = client_container_id
-        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        upgrade_utility.run_goferd()
+        install_or_update_package(client_hostname=client_container_id,
+                                  package="katello-agent")
+        run_goferd(client_hostname=client_container_id)
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
-            upgrade_utility.install_or_update_package(update=True, package=package)
+            install_or_update_package(client_hostname=client_container_id,
+                                      package=package)
 
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
@@ -215,7 +218,8 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             3. Update Katello-agent and Restart goferd
             4. Verifying the errata_ids
             5. Verifying installation errata passes successfully
-            6. Verifying that package installation passed successfully by remote docker exec
+            6. Verifying that package installation passed successfully by remote docker
+            exec
 
         :expectedresults:
             1. errata count, erratum list should same after satellite upgrade
@@ -242,9 +246,11 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
         content_view.publish()
-        upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
-        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        upgrade_utility.run_goferd()
+        install_or_update_package(client_hostname=client_container_id,
+                                  update=True,
+                                  package="katello-agent")
+
+        run_goferd(client_hostname=client_container_id)
         self.assertGreater(installable_errata_count, 1)
 
         erratum_list = entities.Errata(repository=custom_yum_repo).search(query={
@@ -258,7 +264,8 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             host.errata_apply(data={'errata_ids': [errata]})
             installable_errata_count -= 1
 
-        # waiting for errata count to become 0, as profile uploading take some amount of time
+        # waiting for errata count to become 0, as profile uploading take some
+        # amount of time
         wait_for(
             lambda: self._errata_count(ak=activation_key) == 0,
             timeout=400,
@@ -270,7 +277,8 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             0
         )
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
-            upgrade_utility.install_or_update_package(update=True, package=package)
+            install_or_update_package(client_hostname=client_container_id,
+                                      package=package)
 
 
 class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
@@ -335,10 +343,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
 
         repos = self._get_rh_rhel_tools_repos()
         repos.append(custom_yum_repo)
-        upgrade_utility = CommonUpgradeUtility()
-        content_view = upgrade_utility.publish_content_view(
-            org=self.org, repolist=repos)
-
+        content_view = publish_content_view(org=self.org, repolist=repos)
         custom_sub = entities.Subscription(organization=self.org).search(query={
             'search': 'name={}'.format(product.name)})[0]
         rh_sub = entities.Subscription(organization=1).search(
@@ -356,7 +361,6 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
         rhel7_client = dockerize(
             ak_name=ak.name, distro='rhel7', org_label=self.org.label)
         client_container_id = list(rhel7_client.values())[0]
-        upgrade_utility.client_container_id = client_container_id
 
         wait_for(
             lambda: self.org.label in execute(docker_execute_command,
@@ -379,11 +383,13 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
                 client_container_id,
                 'yum update -y',
                 host=self.docker_vm)[self.docker_vm]
-        upgrade_utility.install_or_update_package(update=True, package="katello-agent")
-        upgrade_utility.run_goferd()
+        install_or_update_package(client_hostname=client_container_id,
+                                  package="katello-agent")
+        run_goferd(client_hostname=client_container_id)
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
-            upgrade_utility.install_or_update_package(package=package)
+            install_or_update_package(client_hostname=client_container_id,
+                                      package=package)
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(ak.name)})[0]
 
@@ -407,8 +413,8 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
     @post_upgrade(
         depend_on=test_pre_scenario_generate_errata_with_previous_version_katello_agent_client)
     def test_post_scenario_generate_errata_with_previous_version_katello_agent_client(self):
-        """Post-upgrade scenario that installs the package on pre-upgraded client remotely and
-        then verifies if the package installed and errata counts.
+        """Post-upgrade scenario that installs the package on pre-upgraded client
+        remotely and then verifies if the package installed and errata counts.
 
         :id: postupgrade-b61f8f5a-44a3-4d3e-87bb-fc399e03ba6f
 
@@ -419,11 +425,13 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
             3. Restart goferd/Katello-agent running.
             4. Verifying the errata_ids.
             5. Verifying installation errata passes successfully.
-            6. Verifying that package installation passed successfully by remote docker exec.
+            6. Verifying that package installation passed successfully by remote docker
+             exec.
 
         :expectedresults:
             1. errata count, erratum list should same after satellite upgrade.
-            2. Installation of errata should be pass successfully and check errata counts is 0.
+            2. Installation of errata should be pass successfully and check errata counts
+             is 0.
          """
 
         entity_data = get_entity_data(self.__class__.__name__)
@@ -434,7 +442,6 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
         activation_key = entity_data.get('activation_key')
         host = entities.Host().search(query={
             'search': 'activation_key={0}'.format(activation_key)})[0]
-        upgrade_utility = CommonUpgradeUtility(client_container_id=client_container_id)
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         self.assertGreater(installable_errata_count, 1)
@@ -450,9 +457,11 @@ class Scenario_errata_count_with_previous_version_katello_agent(APITestCase,
             host.errata_apply(data={'errata_ids': [errata]})
 
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
-            upgrade_utility.install_or_update_package(update=True, package=package)
+            install_or_update_package(client_hostname=client_container_id,
+                                      package=package)
 
-        # waiting for errata count to become 0, as profile uploading take some amount of time
+        # waiting for errata count to become 0, as profile uploading take some
+        # amount of time
         wait_for(
             lambda: self._errata_count(ak=activation_key) == 0,
             timeout=400,
