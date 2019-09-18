@@ -80,7 +80,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         vdc_id, time = wait_for(self._try_to_get_guest_bonus,
                                 func_args=(hypervisor_name, sku),
                                 fail_condition=None,
-                                timeout=5,
+                                timeout=15,
                                 delay=1)
         return vdc_id
 

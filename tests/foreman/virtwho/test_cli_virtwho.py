@@ -284,6 +284,8 @@ class VirtWhoConfigTestCase(CLITestCase):
         if self.hypervisor_type == 'esx':
             whitelist['filter-host-parents'] = regex
             blacklist['exclude-host-parents'] = regex
+        config_file = get_configure_file(vhd['id'])
+        command = get_configure_command(vhd['id'])
         # Update Whitelist and check the result
         VirtWhoConfig.update(whitelist)
         result = VirtWhoConfig.info({'id': vhd['id']})
@@ -291,8 +293,6 @@ class VirtWhoConfigTestCase(CLITestCase):
         self.assertEqual(result['connection']['filtered-hosts'], regex)
         if self.hypervisor_type == 'esx':
             self.assertEqual(result['connection']['filter-host-parents'], regex)
-        config_file = get_configure_file(vhd['id'])
-        command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
         self.assertEqual(get_configure_option('filter_hosts', config_file), regex)
         if self.hypervisor_type == 'esx':
@@ -304,8 +304,6 @@ class VirtWhoConfigTestCase(CLITestCase):
         self.assertEqual(result['connection']['excluded-hosts'], regex)
         if self.hypervisor_type == 'esx':
             self.assertEqual(result['connection']['exclude-host-parents'], regex)
-        config_file = get_configure_file(vhd['id'])
-        command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
         self.assertEqual(get_configure_option('exclude_hosts', config_file), regex)
         if self.hypervisor_type == 'esx':
