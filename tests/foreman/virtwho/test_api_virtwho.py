@@ -429,7 +429,7 @@ class VirtWhoConfigApiTestCase(APITestCase):
         vhd = entities.VirtWhoConfig(**args).create()
         command = get_configure_command(vhd.id)
         deploy_configure_by_command(command)
-        search_result = vhd.get_organization_configs()
+        search_result = vhd.get_organization_configs(data={'per_page': 1000})
         self.assertTrue(
             [item for item in search_result['results'] if item['name'] == name]
         )
