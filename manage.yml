@@ -21,8 +21,6 @@ shell:
             - rt
             - robottelo
           submodules: true
-        robottelo.ui.locators:
-          as: locators
   banner:
     enabled: true
     message: Welcome to {project_name} Interactive shell
@@ -35,9 +33,5 @@ groups:
       short_help: Commands to interactively browse UI
       help_text: |
         Commands to interactively browse UI.
-
-click_commands:
-  - module: robottelo.commands.ui
-    group: ui
 
 inline_commands: []
