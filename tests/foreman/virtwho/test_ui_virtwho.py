@@ -18,8 +18,7 @@ from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.decorators import (
     fixture,
-    tier2,
-    skip_if_bug_open,
+    tier2
 )
 
 from .utils import (
@@ -239,7 +238,6 @@ def test_positive_hypervisor_id_option(session, form_data):
         assert not session.virtwho_configure.search(name)
 
 
-@skip_if_bug_open('bugzilla', 1735670)
 @tier2
 def test_positive_filtering_option(session, form_data):
     """ Verify Filtering dropdown options.
@@ -278,7 +276,8 @@ def test_positive_filtering_option(session, form_data):
         session.virtwho_configure.edit(name, whitelist)
         results = session.virtwho_configure.read(name)
         assert results['overview']['filter_hosts'] == regex
-        assert results['overview']['filter_host_parents'] == regex
+        if hypervisor_type == 'esx':
+            assert results['overview']['filter_host_parents'] == regex
         deploy_configure_by_command(config_command)
         assert regex == get_configure_option('filter_hosts', config_file)
         if hypervisor_type == 'esx':
@@ -287,7 +286,8 @@ def test_positive_filtering_option(session, form_data):
         session.virtwho_configure.edit(name, blacklist)
         results = session.virtwho_configure.read(name)
         assert results['overview']['exclude_hosts'] == regex
-        assert results['overview']['exclude_host_parents'] == regex
+        if hypervisor_type == 'esx':
+            assert results['overview']['exclude_host_parents'] == regex
         deploy_configure_by_command(config_command)
         assert regex == get_configure_option('exclude_hosts', config_file)
         if hypervisor_type == 'esx':
@@ -365,4 +365,4 @@ def test_positive_virtwho_roles(session):
         for role_name, role_filters in roles.items():
             assert session.role.search(role_name)[0]['Name'] == role_name
             assigned_permissions = session.filter.read_permissions(role_name)
-            assert assigned_permissions == role_filters
+            assert sorted(assigned_permissions) == sorted(role_filters)
