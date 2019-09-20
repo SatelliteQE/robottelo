@@ -106,16 +106,10 @@ def skip_yum_update_during_provisioning(template=None, reverse=False):
 
 @pytest.fixture
 def scap_content():
-    oscap_content_path = settings.oscap.content_path
-    _, file_name = os.path.split(oscap_content_path)
     title = 'rhel-content-{0}'.format(gen_string('alpha'))
-    ssh.upload_file(
-        local_file=oscap_content_path,
-        remote_file="/tmp/{0}".format(file_name)
-    )
     scap_info = make_scapcontent({
         'title': title,
-        'scap-file': '/tmp/{0}'.format(file_name)
+        'scap-file': '{0}'.format(settings.oscap.content_path)
     })
     scap_id = scap_info['id']
     scap_info = Scapcontent.info({'id': scap_id}, output_format='json')
