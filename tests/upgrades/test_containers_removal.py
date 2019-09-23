@@ -166,7 +166,7 @@ class Scenario_containers_support_removal(APITestCase):
         try:
             extract_log_command = "sed -n '/{delimiter}/,/{delimiter}/p' {path}".format(
                 delimiter="RemoveForemanDockerSupport",
-                path="/var/log/foreman-installer/satellite.log"
+                path="/var/log/foreman-installer/satellite*log"
             )
             docker_log = ssh.command(extract_log_command, output_format='plain')
             self.assertEqual(docker_log.return_code, 0)
