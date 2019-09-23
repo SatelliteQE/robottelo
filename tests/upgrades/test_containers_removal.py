@@ -18,9 +18,9 @@ from fauxfactory import gen_string
 
 from nailgun import entities
 from robottelo import ssh
+from robottelo.cleanup import cleanup_of_provisioned_server
 from robottelo.test import APITestCase, settings
 from robottelo.vm import VirtualMachine
-from robottelo.cleanup import cleanup_of_provisioned_server
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -71,7 +71,6 @@ class Scenario_containers_support_removal(APITestCase):
         repo_name = 'rhel'
         compute_resource_name = gen_string('alpha')
         registry_url = settings.docker.external_registry_1
-
         org = entities.Organization().create()
 
         docker_host = VirtualMachine(
@@ -135,9 +134,9 @@ class Scenario_containers_support_removal(APITestCase):
             }}
             create_dict(scenario_dict)
         except Exception as exp:
-            cleanup_of_provisioned_server(hostname=docker_host.hostname,
-                                          provisioning_server=settings.clients.
-                                          provisioning_server)
+            cleanup_of_provisioned_server(
+                hostname=docker_host.hostname,
+                provisioning_server=settings.clients.provisioning_server)
             raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_containers_support_removal)
@@ -164,7 +163,6 @@ class Scenario_containers_support_removal(APITestCase):
         docker_host_hostname = entity_data.get('docker_host')
         dockerhub_container = entity_data.get('dockerhub_container')
         external_container = entity_data.get('external_container')
-
         try:
             extract_log_command = "sed -n '/{delimiter}/,/{delimiter}/p' {path}".format(
                 delimiter="RemoveForemanDockerSupport",
@@ -196,11 +194,11 @@ class Scenario_containers_support_removal(APITestCase):
             self.assertTrue(any(external_container in line
                                 for line in running_containers.stdout))
         except Exception as exp:
-            cleanup_of_provisioned_server(hostname=docker_host_hostname,
-                                          provisioning_server=settings.clients.
-                                          provisioning_server)
+            cleanup_of_provisioned_server(
+                hostname=docker_host_hostname,
+                provisioning_server=settings.clients.provisioning_server)
             raise Exception(exp)
 
-        cleanup_of_provisioned_server(hostname=docker_host_hostname,
-                                      provisioning_server=settings.clients.
-                                      provisioning_server)
+        cleanup_of_provisioned_server(
+            hostname=docker_host_hostname,
+            provisioning_server=settings.clients.provisioning_server)

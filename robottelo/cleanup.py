@@ -8,7 +8,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.decorators import bz_bug_is_open
 from robottelo.vm import VirtualMachine
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -60,12 +59,13 @@ def vm_cleanup(vm):
     vm.destroy()
 
 
-def cleanup_of_provisioned_server(hostname=None, provisioning_server=None, distro=None):
+def cleanup_of_provisioned_server(hostname=None, provisioning_server=None,
+                                  distro=None):
     """ Cleanup the VM from provisioning server
 
-    :param str hostname: The content host hostname
-    :param str provisioning_server: provision server name
-    :param str distro: distro type
+    :param: str hostname: The content host hostname
+    :param: str provisioning_server: provision server name
+    :param: str distro: distro type
     """
     if hostname:
         vm = VirtualMachine(
@@ -73,6 +73,6 @@ def cleanup_of_provisioned_server(hostname=None, provisioning_server=None, distr
             target_image=hostname,
             provisioning_server=provisioning_server,
             distro=distro,
-            )
+        )
         vm._created = True
         vm.destroy()

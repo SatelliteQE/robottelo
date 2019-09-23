@@ -16,13 +16,18 @@
 """
 import os
 from fabric.api import execute, run
-from wait_for import wait_for
 
 from nailgun import entities
 from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo, promote
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
+from robottelo.upgrade_utility import (
+    create_repo,
+    install_or_update_package,
+    host_location_update,
+    publish_content_view
+)
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -68,10 +73,11 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         org = entities.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = 'repo = Katello::Repository.find_by_id({0})'.format(custom_repo)
-        rake_username = '; repo.root.upstream_username = "{0}"'.format(self.upstream_username)
+        rake_username = '; repo.root.upstream_username = "{0}"'\
+            .format(self.upstream_username)
         rake_repo_save = '; repo.save!(validate: false)'
-        result = run("echo '{0}{1}{2}'|foreman-rake console".format(rake_repo, rake_username,
-                                                                    rake_repo_save))
+        result = run("echo '{0}{1}{2}'|foreman-rake console"
+                     .format(rake_repo, rake_username, rake_repo_save))
         self.assertIn('true', result)
 
         global_dict = {
@@ -98,7 +104,8 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']
         rake_repo = 'repo = Katello::RootRepository.find_by_id({0})'.format(repo_id)
         rake_username = '; repo.root.upstream_username'
-        result = run("echo '{0}{1}'|foreman-rake console".format(rake_repo, rake_username))
+        result = run("echo '{0}{1}'|foreman-rake console".
+                     format(rake_repo, rake_username))
         self.assertNotIn(self.upstream_username, result)
 
 
@@ -131,86 +138,6 @@ class Scenario_custom_repo_check(APITestCase):
         _, cls.rpm1_name = os.path.split(rpm1)
         _, cls.rpm2_name = os.path.split(rpm2)
 
-    def _check_package_installed(self, client_container_id, package):
-        """Verify if package is installed on docker content host.
-
-        :param: str client_container_id: Container ID
-        :param: str package : Package name
-        """
-        kwargs = {'host': self.docker_vm}
-        installed_package = execute(
-            docker_execute_command,
-            client_container_id,
-            'rpm -qa|grep {}'.format(package),
-            **kwargs
-        )[self.docker_vm]
-        self.assertIn(package, installed_package)
-
-    def _create_repo(self, post_upgrade=False):
-        """ Creates a custom yum repository, that will be synced to satellite
-        """
-        if post_upgrade:
-            run('wget {0} -P {1}'.format(rpm2, self.file_path))
-            run('rm -rf {0}'.format(self.file_path + self.rpm1_name))
-            run('createrepo --update {0}'.format(self.file_path))
-        else:
-            run('mkdir /var/www/html/pub/custom_repo')
-            run('wget {0} -P {1}'.format(rpm1, self.file_path))
-            run('createrepo --database {0}'.format(self.file_path))
-
-    def _install_package(self, client_container_id, package):
-        """Install the package on docker content host.
-
-        :param: str client_container_id: Container ID
-        :param: str package : package name
-        """
-        rpm_name = package.split('-')[0]
-        kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command,
-                client_container_id,
-                'subscription-manager repos;yum clean all',
-                **kwargs)[self.docker_vm]
-        command = 'yum install -y {}'.format(rpm_name)
-        execute(docker_execute_command, client_container_id, command, **kwargs)[self.docker_vm]
-        self._check_package_installed(client_container_id, rpm_name)
-
-    def _host_status(self, client_container_name=None):
-        """ fetch the content host details.
-
-        :param: str client_container_name: The content host hostname
-        :return: nailgun.entity.host: host
-        """
-        host = entities.Host().search(
-            query={'search': '{0}'.format(client_container_name)})
-        return host
-
-    def _host_location_update(self, client_container_name=None, loc=None):
-        """ Check the content host status (as package profile update task does take time to
-        upload) and update location.
-
-        :param: str client_container_name: The content host hostname
-        :param: str loc: Location
-        """
-        if len(self._host_status(client_container_name=client_container_name)) == 0:
-            wait_for(
-                lambda: len(self._host_status(client_container_name=client_container_name)) > 0,
-                timeout=100,
-                delay=2,
-                logger=self.logger
-            )
-        host_loc = self._host_status(client_container_name=client_container_name)[0]
-        host_loc.location = loc
-        host_loc.update(['location'])
-
-    def _create_publish_content_view(self, org, repo):
-        """publish content view and return content view"""
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
-        return content_view
-
     @pre_upgrade
     def test_pre_scenario_custom_repo_check(self):
         """This is pre-upgrade scenario test to verify if we can create a
@@ -236,12 +163,11 @@ class Scenario_custom_repo_check(APITestCase):
         lce = entities.LifecycleEnvironment(organization=org).create()
 
         product = entities.Product(organization=org).create()
-
-        self._create_repo()
+        create_repo(rpm1, self.file_path)
         repo = entities.Repository(product=product.id, url=self.custom_repo).create()
         repo.sync()
 
-        content_view = self._create_publish_content_view(org=org, repo=repo)
+        content_view = publish_content_view(org=org, repolist=repo)
         promote(content_view.version[0], lce.id)
 
         result = ssh.command(
@@ -269,13 +195,15 @@ class Scenario_custom_repo_check(APITestCase):
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
 
-        self._host_location_update(client_container_name=client_container_name, loc=loc)
+        host_location_update(client_container_name=client_container_name,
+                             logger_obj=self.logger, loc=loc)
         status = execute(docker_execute_command,
                          client_container_id,
                          'subscription-manager identity',
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(org.name, status)
-        self._install_package(client_container_id, self.rpm1_name)
+        install_or_update_package(client_hostname=client_container_id,
+                                  package=self.rpm1_name)
 
         scenario_dict = {self.__class__.__name__: {
             'content_view_name': content_view.name,
@@ -315,7 +243,7 @@ class Scenario_custom_repo_check(APITestCase):
         prod_label = entity_data.get('prod_label')
         repo_name = entity_data.get('repo_name')
 
-        self._create_repo(post_upgrade=True)
+        create_repo(rpm2, self.file_path, post_upgrade=True, other_rpm=rpm1)
         repo = entities.Repository(name=repo_name).search()[0]
         repo.sync()
 
@@ -336,5 +264,5 @@ class Scenario_custom_repo_check(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
-
-        self._install_package(client_container_id, self.rpm2_name)
+        install_or_update_package(client_hostname=client_container_id,
+                                  package=self.rpm2_name)

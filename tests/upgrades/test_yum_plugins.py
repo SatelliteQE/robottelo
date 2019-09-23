@@ -30,6 +30,11 @@ from robottelo.constants import (
 )
 from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
+from robottelo.upgrade_utility import (
+    install_or_update_package,
+    publish_content_view,
+    run_goferd
+)
 from upgrade_tests import post_upgrade, pre_upgrade
 from upgrade_tests.helpers.scenarios import (
     create_dict,
@@ -67,26 +72,6 @@ class Scenario_yum_plugins_count(APITestCase):
         cls.loc = entities.Location().search(
             query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
 
-    def _run_goferd(self, client_container_id):
-        """Start the goferd process."""
-
-        kwargs = {'async': True, 'host': self.docker_vm}
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'pkill -f gofer',
-            **kwargs
-        )
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'goferd -f',
-            **kwargs
-        )
-        status = execute(docker_execute_command, client_container_id, 'ps -aux',
-                         host=self.docker_vm)[self.docker_vm]
-        self.assertIn('goferd', status)
-
     def _check_yum_plugins_count(self, client_container_id):
         """Check yum loaded plugins counts """
 
@@ -101,34 +86,6 @@ class Scenario_yum_plugins_count(APITestCase):
             **kwargs)[self.docker_vm]
         self.assertEqual(int(plugins_count), 2)
 
-    def _check_package_installed(self, client_container_id, package):
-        """Verify if package is installed on docker content host."""
-
-        kwargs = {'host': self.docker_vm}
-        installed_package = execute(
-            docker_execute_command,
-            client_container_id,
-            'yum list installed {}'.format(package),
-            **kwargs
-        )[self.docker_vm]
-        self.assertIn(package, installed_package)
-
-    def _install_or_update_package(self, client_container_id, package, update=False):
-        """Install/update the package on docker content host."""
-
-        kwargs = {'host': self.docker_vm}
-        execute(docker_execute_command,
-                client_container_id,
-                'subscription-manager repos --enable=*;yum clean all',
-                **kwargs)[self.docker_vm]
-        if update:
-            command = 'yum update -y {}'.format(package)
-        else:
-            command = 'yum install -y {}'.format(package)
-
-        execute(docker_execute_command, client_container_id, command, **kwargs)[self.docker_vm]
-        self._check_package_installed(client_container_id, package)
-
     def _create_custom_tools_repos(self, product):
         """Create custom tools repo and sync it"""
 
@@ -142,26 +99,6 @@ class Scenario_yum_plugins_count(APITestCase):
                                          ).create()
         call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
         return tools_repo
-
-    def _host_status(self, client_container_name=None):
-        """ fetch the content host details.
-
-        :param: str client_container_name: The content host hostname
-        :return: nailgun.entity.host: host
-        """
-        host = entities.Host().search(
-            query={'search': '{0}'.format(client_container_name)})
-        return host
-
-    def _publish_content_view(self, org, repolist):
-        """publish content view and return content view"""
-
-        content_view = entities.ContentView(organization=org).create()
-        content_view.repository = repolist
-        content_view = content_view.update(['repository'])
-        call_entity_method_with_timeout(content_view.publish, timeout=3400)
-        content_view = content_view.read()
-        return content_view
 
     def _get_rh_rhel_tools_repos(self):
         """ Get list of RHEL7 and tools repos
@@ -198,10 +135,10 @@ class Scenario_yum_plugins_count(APITestCase):
             1. The content host is created.
             2. katello-agent install and goferd run.
         """
-        environment = entities.LifecycleEnvironment(organization=self.org
-                                                    ).search(query={'search': 'name=Library'})[0]
+        environment = entities.LifecycleEnvironment(organization=self.org)\
+            .search(query={'search': 'name=Library'})[0]
         repos = self._get_rh_rhel_tools_repos()
-        content_view = self._publish_content_view(org=self.org, repolist=repos)
+        content_view = publish_content_view(org=self.org, repolist=repos)
         ak = entities.ActivationKey(content_view=content_view,
                                     organization=self.org.id,
                                     environment=environment).create()
@@ -223,8 +160,9 @@ class Scenario_yum_plugins_count(APITestCase):
                          host=self.docker_vm)[self.docker_vm]
         self.assertIn(self.org.label, status)
 
-        self._install_or_update_package(client_container_id, 'katello-agent')
-        self._run_goferd(client_container_id)
+        install_or_update_package(client_hostname=client_container_id,
+                                  package="katello-agent")
+        run_goferd(client_hostname=client_container_id)
 
         scenario_dict = {self.__class__.__name__: {
             'rhel_client': rhel7_client,
@@ -267,6 +205,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         attach_custom_product_subscription(prod_name=product.name,
                                            host_name=client_container_name)
-        self._install_or_update_package(client_container_id, "katello-agent", update=True)
-        self._run_goferd(client_container_id)
+        install_or_update_package(client_hostname=client_container_id,
+                                  update=True, package="katello-agent")
+        run_goferd(client_hostname=client_container_id)
         self._check_yum_plugins_count(client_container_id)
