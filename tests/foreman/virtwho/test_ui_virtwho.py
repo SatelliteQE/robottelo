@@ -368,6 +368,7 @@ def test_positive_virtwho_roles(session):
             assigned_permissions = session.filter.read_permissions(role_name)
             assert sorted(assigned_permissions) == sorted(role_filters)
 
+
 @tier2
 def test_positive_virtwho_configs_widget(session, form_data):
     """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
