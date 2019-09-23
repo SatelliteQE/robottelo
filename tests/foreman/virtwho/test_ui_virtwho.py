@@ -15,6 +15,7 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+from nailgun import entities
 from robottelo.config import settings
 from robottelo.decorators import (
     fixture,
@@ -366,3 +367,40 @@ def test_positive_virtwho_roles(session):
             assert session.role.search(role_name)[0]['Name'] == role_name
             assigned_permissions = session.filter.read_permissions(role_name)
             assert sorted(assigned_permissions) == sorted(role_filters)
+
+@tier2
+def test_positive_virtwho_configs_widget(session, form_data):
+    """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
+
+    :id: 6bed6d55-2bd5-4438-9f72-d48e78566789
+
+    :Steps:
+
+        1. Create a Virt-who Configuration
+        2. Navigate Monitor -> Dashboard
+        3. Review the Virt-who Configurations Status widget
+
+    :expectedresults: The widget is updated with all details.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Low
+    """
+    org = entities.Organization().create()
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.organization.select(org.name)
+        session.virtwho_configure.create(form_data)
+        expected_values = [
+            {'Configuration Status': 'No Reports', 'Count': '1'},
+            {'Configuration Status': 'No Change', 'Count': '0'},
+            {'Configuration Status': 'OK', 'Count': '0'},
+            {'Configuration Status': 'Total Configurations', 'Count': '1'}
+        ]
+        values = session.dashboard.read('VirtWhoConfigStatus')
+        assert values['config_status'] == expected_values
+        assert values['latest_config'] == 'No configuration found'
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
+    org.delete()
