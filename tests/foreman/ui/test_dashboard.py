@@ -14,17 +14,12 @@
 
 :Upstream: No
 """
-from fauxfactory import (
-    gen_integer,
-)
-
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
