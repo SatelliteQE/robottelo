@@ -15,7 +15,6 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 from robottelo.config import settings
 from robottelo.decorators import (
     fixture,
@@ -387,11 +386,12 @@ def test_positive_virtwho_configs_widget(session, form_data):
 
     :CaseImportance: Low
     """
-    org = entities.Organization().create()
+    org_name = gen_string('alpha')
     name = gen_string('alpha')
     form_data['name'] = name
     with session:
-        session.organization.select(org.name)
+        session.organization.create({'name': org_name})
+        session.organization.select(org_name)
         session.virtwho_configure.create(form_data)
         expected_values = [
             {'Configuration Status': 'No Reports', 'Count': '1'},
@@ -404,4 +404,5 @@ def test_positive_virtwho_configs_widget(session, form_data):
         assert values['latest_config'] == 'No configuration found'
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
-    org.delete()
+        session.organization.select("Default Organization")
+        session.organization.delete(org_name)
