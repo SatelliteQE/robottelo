@@ -14,17 +14,12 @@
 
 :Upstream: No
 """
-from fauxfactory import (
-    gen_integer,
-)
-
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
@@ -277,44 +272,3 @@ def test_positive_user_access_with_host_filter(test_name, module_loc):
             assert len(errata_values) == 1
             assert errata_values[0]['Type'] == 'security'
             assert FAKE_2_ERRATA_ID in errata_values[0]['Errata']
-
-
-@tier2
-def test_positive_virtwho_configs_widget(session):
-    """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
-
-    :id: 6bed6d55-2bd5-4438-9f72-d48e78566789
-
-    :Steps:
-
-        1. Create a Virt-who Configuration
-        2. Navigate Monitor -> Dashboard
-        3. Review the Virt-who Configurations Status widget
-
-    :expectedresults: The widget is updated with all details.
-
-    :CaseLevel: Integration
-    """
-    org = entities.Organization().create()
-    entities.VirtWhoConfig(
-        name="example_config{}".format(gen_integer()),
-        organization=org,
-        hypervisor_server=settings.clients.provisioning_server,
-        satellite_url=settings.server.hostname,
-        hypervisor_type='libvirt',
-        hypervisor_username='root',
-        hypervisor_id='hostname',
-        hypervisor_password='',
-    ).create()
-
-    with session:
-        session.organization.select(org_name=org.name)
-        expected_values = [
-            {'Configuration Status': 'No Reports', 'Count': '1'},
-            {'Configuration Status': 'No Change', 'Count': '0'},
-            {'Configuration Status': 'OK', 'Count': '0'},
-            {'Configuration Status': 'Total Configurations', 'Count': '1'}
-        ]
-        values = session.dashboard.read('VirtWhoConfigStatus')
-        assert values['config_status'] == expected_values
-        assert values['latest_config'] == 'No configuration found'
