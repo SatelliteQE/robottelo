@@ -402,6 +402,20 @@ def test_positive_virtwho_configs_widget(session, form_data):
         values = session.dashboard.read('VirtWhoConfigStatus')
         assert values['config_status'] == expected_values
         assert values['latest_config'] == 'No configuration found'
+        # Check the 'Status' changed after deployed the virt-who config
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, org_name)
+        deploy_configure_by_command(config_command)
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        expected_values = [
+            {'Configuration Status': 'No Reports', 'Count': '0'},
+            {'Configuration Status': 'No Change', 'Count': '0'},
+            {'Configuration Status': 'OK', 'Count': '1'},
+            {'Configuration Status': 'Total Configurations', 'Count': '1'}
+        ]
+        values = session.dashboard.read('VirtWhoConfigStatus')
+        assert values['config_status'] == expected_values
+        assert values['latest_config'] == 'No configuration found'
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
         session.organization.select("Default Organization")
