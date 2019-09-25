@@ -49,7 +49,7 @@ def oscap_content_path():
     _, file_name = os.path.split(settings.oscap.content_path)
     local_file = "/tmp/{}".format(file_name)
     ssh.download_file(settings.oscap.content_path, local_file)
-    return settings.oscap.content_path
+    return local_file
 
 
 @fixture(scope='module')
