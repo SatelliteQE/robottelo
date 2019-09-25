@@ -41,6 +41,7 @@ from robottelo.constants import (
     INVALID_URL,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
+    REPOSET,
     VALID_GPG_KEY_FILE,
     VALID_GPG_KEY_BETA_FILE,
 )
@@ -881,7 +882,7 @@ def test_positive_recommended_repos(session, module_org):
     with session:
         session.organization.select(module_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
-        assert rrepos_on
+        assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
-        assert rrepos_off
+        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)

@@ -229,6 +229,7 @@ REPOSET = {
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                ' Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
+    'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
 }
 
 REPOS = {
