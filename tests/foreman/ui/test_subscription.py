@@ -19,7 +19,7 @@ from tempfile import mkstemp
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import skip
+from pytest import raises, skip
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
@@ -45,6 +45,7 @@ from robottelo.decorators import (
 )
 from robottelo.products import RepositoryCollection, RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
+from widgetastic.browser import NoSuchElementException
 import time
 pytestmark = [run_in_one_thread]
 
@@ -147,7 +148,9 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
     ).create()
     with Session(test_name, user=user.login, password=user_password) as session:
         assert not session.subscription.search('')
-        assert not session.subscription.has_manifest
+        with raises(NoSuchElementException) as no_elem_err:
+            has_manifest = session.subscription.has_manifest or True
+            assert not has_manifest or no_elem_err.type is NoSuchElementException
 
 
 @tier2
