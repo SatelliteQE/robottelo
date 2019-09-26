@@ -7,7 +7,7 @@ idna==2.8
 Inflector==2.0.12
 import_string==0.1.0
 mock==3.0.5
-navmazing==1.1.5
+navmazing==1.1.6
 paramiko==2.5.0
 pytest==4.6.3
 pytest-services==1.3.1
