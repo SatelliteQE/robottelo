@@ -19,6 +19,7 @@ import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
+from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
@@ -1224,6 +1225,36 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         # environment and latest - 0
         self.assertEqual(len(content_view.version[0].read().environment), 1)
         self.assertEqual(len(content_view.version[-1].read().environment), 0)
+
+    @tier3
+    def test_positive_publish_multiple_repos(self):
+        """Attempt to publish a content view with multiple YUM repos.
+
+        :id: 5557a33b-7a6f-45f5-9fe4-23a704ed9e21
+
+        :expectedresults: Content view publish should not raise an exception.
+
+        :CaseLevel: Integration
+
+        :CaseComponent: Pulp
+
+        :CaseImportance: Medium
+
+        :BZ: 1651930
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        for _ in range(10):
+            repo = entities.Repository(product=product).create()
+            repo.sync()
+            content_view.repository.append(repo)
+            content_view = content_view.update(['repository'])
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.repository), 10)
+        with self.assertNotRaises(TaskFailedError):
+            content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
 
 
 class ContentViewUpdateTestCase(APITestCase):
