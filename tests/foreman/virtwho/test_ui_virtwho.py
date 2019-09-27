@@ -24,10 +24,12 @@ from robottelo.decorators import (
 from .utils import (
     deploy_configure_by_command,
     deploy_configure_by_script,
+    deploy_validation,
     get_configure_id,
     get_configure_file,
     get_configure_option,
     get_configure_command,
+    restart_virt_who_service,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -420,3 +422,36 @@ def test_positive_virtwho_configs_widget(session, form_data):
         assert not session.virtwho_configure.search(name)
         session.organization.select("Default Organization")
         session.organization.delete(org_name)
+
+
+@tier2
+def test_positive_delete_config_delete_user(session, form_data):
+    """Verify when a config is deleted the associated user is deleted.
+
+    :id: 9fdee7f2-833c-47e0-9d58-cd0c9fdd15fe
+
+    :steps:
+        1. Create a virt-who configuration and deploy it to a
+           virt-who server.
+        2. Delete the configuration on the Satellite.
+
+    :expectedresults:
+        1. Verify the virt-who server can no longer connect to the
+           Satellite.
+
+    """
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.virtwho_configure.create(form_data)
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id)
+        deploy_configure_by_command(config_command)
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
+        restart_virt_who_service()
+        try:
+            deploy_validation()
+        except Exception as e:
+            assert str(e) == 'Failed to start virt-who service'

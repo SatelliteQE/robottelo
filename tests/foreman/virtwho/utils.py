@@ -303,3 +303,13 @@ def deploy_configure_by_script(script_content, debug=False):
         )
     if debug:
         return deploy_validation()
+
+
+def restart_virt_who_service():
+    """
+    Do the following:
+    1. clean rhsm.log message, make sure there is no old message exist.
+    2. restart virt-who service via systemctl command
+    """
+    runcmd("rm -f /var/log/rhsm/rhsm.log")
+    runcmd("systemctl restart virt-who")
