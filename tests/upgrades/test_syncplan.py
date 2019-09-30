@@ -37,7 +37,6 @@ class ScenarioSyncPlan(APITestCase):
     3. Post upgrade, verify the sync plan exists and performs same as pre-upgrade.
 
     """
-    @skip_if_bug_open('bugzilla', 1646988)
     @pre_upgrade
     def test_pre_sync_plan_migration(self):
         """Pre-upgrade scenario that creates sync plan and assigns repo to sync plan
@@ -88,18 +87,15 @@ class ScenarioSyncPlan(APITestCase):
         :expectedresults: Post Upgrade, Sync plans exists and works as earlier.
 
          """
-        entity_data = get_entity_data(self.__class__.__name__)
-        org = entities.Organization(id=entity_data.get('org_id'))
-        product = entities.Product(id=entity_data.get("product_id")).read()
-        sync_plan = entities.SyncPlan(id=entity_data.get("sync_plan_id"),
+        beforeupgrade_data = get_entity_data(self.__class__.__name__)
+        org = entities.Organization(id=beforeupgrade_data.get('org_id'))
+        product = entities.Product(id=beforeupgrade_data.get("product_id")).read()
+        sync_plan = entities.SyncPlan(id=beforeupgrade_data.get("sync_plan_id"),
                                       organization=org).read()
         self.assertEqual(product.sync_plan.id, sync_plan.id)
-        self.assertEqual(sync_plan.name, entity_data.get("sync_plan_name"))
-        self.assertEqual(sync_plan.interval, entity_data.get("interval"))
-        if '-' in entity_data.get('sync_date'):
-            entity_data['sync_date'] = ''.join(
-                entity_data.get('sync_date').replace('-', '/').replace('UTC', '+0000'))
-        self.assertEqual(sync_plan.sync_date, entity_data.get("sync_date"))
+        self.assertEqual(sync_plan.name, beforeupgrade_data.get("sync_plan_name"))
+        self.assertEqual(sync_plan.interval, beforeupgrade_data.get("interval"))
+        self.assertEqual(sync_plan.sync_date, beforeupgrade_data.get("sync_date"))
         # checking sync plan update on upgraded satellite
         sync_plan.interval = SYNC_INTERVAL['custom']
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
