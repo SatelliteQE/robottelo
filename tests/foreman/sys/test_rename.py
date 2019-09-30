@@ -18,6 +18,8 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import (
@@ -48,7 +50,9 @@ class RenameHostTestCase(TestCase):
         cls.password = settings.server.admin_password
         cls.default_org_id = entities.Organization().search(
             query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
-        cls.org = entities.Organization(id=cls.default_org_id)
+        cls.org = entities.Organization().create()
+        with manifests.original_manifest() as manifest:
+            upload_manifest(cls.org.id, manifest.content)
         cls.product = entities.Product(organization=cls.org).create()
 
     @run_in_one_thread
