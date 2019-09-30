@@ -303,6 +303,7 @@ def test_positive_search_by_subscription_status(session, vm):
         result = session.contenthost.search('subscription_status != valid')
         assert vm.hostname not in {host['Name'] for host in result}
         # check dashboard
+        session.dashboard.action({'HostSubscription': {'type': 'Invalid'}})
         values = session.contenthost.read_all()
         assert values['searchbox'] == 'subscription_status = invalid'
         assert len(values['table']) == 0
