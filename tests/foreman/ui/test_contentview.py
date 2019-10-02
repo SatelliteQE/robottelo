@@ -3110,7 +3110,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product and Kickstart Repository for OS distribution content
     product = entities.Product(organization=org).create()
-    repo = entities.Repository(product=product, url=settings.rhel6_os).create()
+    repo = entities.Repository(product=product, url=settings.rhel7_os).create()
     # Repo sync procedure
     call_entity_method_with_timeout(repo.sync, timeout=3600)
     # Create, Publish and promote CV
