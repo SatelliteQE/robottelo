@@ -268,7 +268,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+            search_query='label = Actions::Katello::Host::UploadProfiles'
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
@@ -966,7 +966,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+            search_query='label = Actions::Katello::Host::UploadProfiles'
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
