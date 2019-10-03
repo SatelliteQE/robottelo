@@ -17,7 +17,9 @@
 """
 
 from fauxfactory import gen_alphanumeric, gen_string
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_gpg_key,
@@ -190,3 +192,62 @@ class ProductTestCase(CLITestCase):
                         u'name': product_name,
                         u'organization-id': self.org['id'],
                     })
+
+    @tier2
+    def test_product_list_with_default_settings(self):
+        """Listing product of an organization apart from default organization using hammer
+         does not return output if a defaults settings are applied on org.
+
+        :id: d5c5edac-b19c-4277-92fe-28d9b9fa43ef
+
+        :BZ: 1745575
+
+        :expectedresults: product/reporsitory list should work as expected.
+
+        """
+        default_product_name = gen_string('alpha')
+        non_default_product_name = gen_string('alpha')
+        default_org = make_org()
+        non_default_org = make_org()
+        default_product = make_product({
+            u'name': default_product_name,
+            u'organization-id': default_org['id'],
+        })
+        non_default_product = make_product({
+            u'name': non_default_product_name,
+            u'organization-id': non_default_org['id'],
+        })
+        for product in (default_product, non_default_product):
+            make_repository({
+                'product-id': product['id'],
+                'url': FAKE_0_YUM_REPO,
+            })
+            Product.synchronize({
+                'id': product['id'],
+            })
+            packages = Package.list({'product-id': product['id']})
+            self.assertEqual(len(packages), FAKE_0_YUM_REPO_PACKAGES_COUNT)
+
+        Defaults.add({
+            u'param-name': 'organization_id',
+            u'param-value': default_org['id'],
+        })
+        result = ssh.command('hammer defaults list')
+        self.assertTrue(default_org['id'] in "".join(result.stdout))
+        try:
+            # Verify --organization-id is not required to pass if defaults are set
+            result = ssh.command('hammer product list')
+            self.assertTrue(default_product_name in "".join(result.stdout))
+            result = ssh.command('hammer repository list')
+            self.assertTrue(default_product_name in "".join(result.stdout))
+
+            # verify that defaults setting should not affect other entities
+            product_list = Product.list({u'organization-id': non_default_org['id']})
+            self.assertEquals(non_default_product_name, product_list[0]['name'])
+            repository_list = Repository.list({u'organization-id': non_default_org['id']})
+            self.assertEquals(non_default_product_name, repository_list[0]['product'])
+
+        finally:
+            Defaults.delete({u'param-name': 'organization_id'})
+            result = ssh.command('hammer defaults list')
+            self.assertTrue(default_org['id'] not in "".join(result.stdout))
