@@ -519,6 +519,9 @@ CUSTOM_FILE_REPO = (
 CUSTOM_LOCAL_FOLDER = u'/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = u'/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
+
+CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
+
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )

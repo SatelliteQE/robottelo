@@ -28,6 +28,7 @@ from robottelo.api.utils import (
 )
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_KICKSTART_REPO,
     CUSTOM_PUPPET_REPO,
     DISTRO_RHEL7,
     ENVIRONMENT,
@@ -122,6 +123,51 @@ class ContentManagementTestCase(APITestCase):
         ).create()
         with self.assertNotRaises(TaskFailedError):
             repo.sync()
+
+    @tier4
+    def test_positive_sync_kickstart_repo(self):
+        """No encoding gzip errors on kickstart repositories
+        sync.
+
+        :id: dbdabc0e-583c-4186-981a-a02844f90412
+
+        :expectedresults: No encoding gzip errors present in /var/log/messages.
+
+        :CaseLevel: Integration
+
+        :steps:
+
+            1. Sync a kickstart repository.
+            2. After the repo is synced, change the download policy to
+                immediate.
+            3. Sync the repository again.
+            4. Assert that no errors related to encoding gzip are present in
+                /var/log/messages.
+            5. Assert that sync was executed properly.
+
+        :CaseComponent: Pulp
+
+        :BZ: 1687801
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            product=product,
+            url=CUSTOM_KICKSTART_REPO
+        ).create()
+        repo.sync()
+        repo.download_policy = 'immediate'
+        repo = repo.update(['download_policy'])
+        call_entity_method_with_timeout(repo.sync, timeout=600)
+        result = ssh.command(
+            'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
+        )
+        self.assertEqual(result.return_code, 1)
+        self.assertEqual(len(result.stdout), 0)
+        repo = repo.read()
+        self.assertGreater(repo.content_counts['package'], 0)
+        self.assertGreater(repo.content_counts['package_group'], 0)
+        self.assertGreater(repo.content_counts['rpm'], 0)
 
 
 @run_in_one_thread
