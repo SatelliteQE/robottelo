@@ -26,6 +26,7 @@ from selenium.common.exceptions import InvalidElementStateException
 from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 from nailgun import entities
+from productmd.common import parse_nvra
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import manifests
@@ -102,7 +103,6 @@ from robottelo.products import (
     YumRepository,
 )
 from robottelo.vm import VirtualMachine, VirtualMachineError
-
 
 VERSION = 'Version 1.0'
 
@@ -3591,8 +3591,10 @@ def test_positive_composite_child_inc_update(session):
             errata = version['errata']['table']
             assert len(errata) > 1
             assert (FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata})
-            packages = version['rpm_packages']['table']
-            assert len(packages) > 1
+            nvra1 = parse_nvra(FAKE_0_INC_UPD_NEW_PACKAGE)
+            packages = session.contentview.search_version_package(composite_cv.name,
+                                                                  expected_version,
+                                                                  nvra1['name'])
             packages_data = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
             assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
 
