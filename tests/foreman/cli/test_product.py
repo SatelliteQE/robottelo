@@ -207,7 +207,7 @@ class ProductTestCase(CLITestCase):
         """
         default_product_name = gen_string('alpha')
         non_default_product_name = gen_string('alpha')
-        default_org = make_org()
+        default_org = self.org
         non_default_org = make_org()
         default_product = make_product({
             u'name': default_product_name,
@@ -222,11 +222,10 @@ class ProductTestCase(CLITestCase):
                 'product-id': product['id'],
                 'url': FAKE_0_YUM_REPO,
             })
-            Product.synchronize({
+            result = Product.synchronize({
                 'id': product['id'],
             })
-            packages = Package.list({'product-id': product['id']})
-            self.assertEqual(len(packages), FAKE_0_YUM_REPO_PACKAGES_COUNT)
+            self.assertTrue('1 success, 0 fail' in "".join(result))
 
         Defaults.add({
             u'param-name': 'organization_id',
