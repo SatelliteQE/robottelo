@@ -42,13 +42,19 @@ def test_positive_end_to_end(session, module_loc, module_org):
     ).create()
     with session:
         session.computeprofile.create({'name': name})
-        assert session.computeprofile.search(name)[0]['Name'] == name
+
+        assert entities.ComputeProfile().search(query={'search': 'name={0}'.format(name)}), \
+            'Compute profile {0} expected to exist, but is not included in the search '\
+            'results'.format(name)
         compute_resource_list = session.computeprofile.list_resources(name)
-        assert (
-            '{} (Libvirt)'.format(compute_resource.name) in
-            [resource['Compute Resource'] for resource in compute_resource_list]
-        )
+        assert '{} (Libvirt)'.format(compute_resource.name) in [resource['Compute Resource'] for
+                                                                resource in compute_resource_list]
         session.computeprofile.rename(name, {'name': new_name})
-        assert session.computeprofile.search(new_name)[0]['Name'] == new_name
+        assert entities.ComputeProfile().search(query={'search': 'name={0}'.format(new_name)}), \
+            'Compute profile {0} expected to exist, but is not included in the search ' \
+            'results'.format(new_name)
         session.computeprofile.delete(new_name)
-        assert not session.computeprofile.search(new_name)
+        assert not entities.ComputeProfile().search(
+            query={'search': 'name={0}'.format(new_name)}),\
+            'Compute profile {0} expected to be deleted, but is included in the search ' \
+            'results'.format(new_name)
