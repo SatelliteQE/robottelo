@@ -37,8 +37,27 @@ def template_data():
     return read_data_file(OS_TEMPLATE_DATA_FILE)
 
 
+@fixture(scope='function', autouse=False)
+def clone_setup(module_org, module_loc):
+    name = gen_string('alpha')
+    content = gen_string('alpha')
+    os_list = [
+        entities.OperatingSystem().create().title for _ in range(2)
+    ]
+    return {
+        'pt': entities.ProvisioningTemplate(
+            name=name,
+            organization=[module_org],
+            location=[module_loc],
+            template=content,
+            snippet=False
+            ).create(),
+        'os_list': os_list
+    }
+
+
 @tier2
-def test_positive_clone(session):
+def test_positive_clone(session, clone_setup):
     """Assure ability to clone a provisioning template
 
     :id: 912f1619-4bb0-4e0f-88ce-88b5726fdbe0
@@ -51,31 +70,23 @@ def test_positive_clone(session):
 
     :CaseLevel: Integration
     """
-    name = gen_string('alpha')
     clone_name = gen_string('alpha')
-    content = gen_string('alpha')
-    os_list = [
-        entities.OperatingSystem().create().title for _ in range(2)
-    ]
     with session:
-        session.provisioningtemplate.create({
-            'template.name': name,
-            'template.template_editor.editor': content,
-            'type.template_type': 'Provisioning template'
-        })
-        assert session.provisioningtemplate.search(name)[0]['Name'] == name
         session.provisioningtemplate.clone(
-            name,
+            clone_setup['pt'].name,
             {
                 'template.name': clone_name,
-                'association.applicable_os.assigned': os_list
+                'association.applicable_os.assigned': clone_setup['os_list']
             }
         )
-        assert session.provisioningtemplate.search(
-            clone_name)[0]['Name'] == clone_name
-        template = session.provisioningtemplate.read(clone_name)
-        assert set(os_list) == set(
-            template['association']['applicable_os']['assigned'])
+        pt = entities.ProvisioningTemplate().search(
+            query={'search': 'name=={0}'.format(clone_name)}
+        )
+        assigned_oses = [os.read() for os in pt[0].read().operatingsystem]
+        assert pt, 'Template {0} expected to exist but is not included in the search'\
+                   'results'.format(clone_name)
+        assert set(clone_setup['os']) == set(
+            '{0} {1}'.format(os.name, os.major) for os in assigned_oses)
 
 
 @tier2
@@ -123,7 +134,10 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
             'organizations.resources.assigned': [module_org.name],
             'locations.resources.assigned': [module_loc.name],
         })
-        assert session.provisioningtemplate.search(name)[0]['Name'] == name
+        assert entities.ProvisioningTemplate().search(
+            query={'search': 'name=={0}'.format(name)}), \
+            'Provisioning template {0} expected to exist but is not included in the search'\
+            'results'.format(name)
         pt = session.provisioningtemplate.read(name)
         assert pt['template']['name'] == name
         assert pt['template']['default'] is True
@@ -145,9 +159,19 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
             name,
             {'template.name': new_name, 'type.snippet': True}
         )
-        assert session.provisioningtemplate.search(new_name)[0]['Name'] == new_name
-        updated_pt = session.provisioningtemplate.read(new_name)
-        assert updated_pt['type']['snippet'] is True
-        assert not updated_pt['type']['template_type']
+        updated_pt = entities.ProvisioningTemplate().search(
+            query={'search': 'name=={0}'.format(new_name)}
+        )
+        assert updated_pt, \
+            'Provisioning template {0} expected to exist but is not included in the search' \
+            'results'.format(new_name)
+        updated_pt = updated_pt[0].read()
+        assert updated_pt.snippet is True, \
+            'Snippet attribute not updated for Provisioning Template'
+        assert not updated_pt.template_kind, 'Snippet template should be None, but it is' \
+                                             '{0}'.format(updated_pt.template_kind)
         session.provisioningtemplate.delete(new_name)
-        assert not session.provisioningtemplate.search(new_name)
+        assert not entities.ProvisioningTemplate().search(
+            query={'search': 'name=={0}'.format(new_name)}), \
+            'Provisioning template {0} expected to be removed but is included in the search '\
+            'results'.format(new_name)
