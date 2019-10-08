@@ -924,26 +924,28 @@ class HostUpdateTestCase(CLITestCase):
     @tier1
     def test_positive_update_parameters_by_name(self):
         """A host can be updated with a new name, mac address, domain,
-            environment, architecture, operating system and medium. Use id
-            to access the host
+            location, environment, architecture, operating system and medium.
+            Use id to access the host
 
         :id: 3a4c0b5a-5d87-477a-b80a-9af0ec3b4b6f
 
         :expectedresults: A host is updated and the name, mac address, domain,
-            environment, architecture, operating system and medium matches
+            location, environment, architecture, operating system and medium
+            matches
 
-        :BZ: 1343392
+        :BZ: 1343392, 1679300
 
         :CaseImportance: Critical
         """
         new_name = valid_hosts_list()[0]
         new_mac = gen_mac(multicast=False)
+        new_loc = make_location()
         new_domain = make_domain({
-            'locations': self.host_args.location.name,
+            'locations': new_loc['name'],
             'organizations': self.host_args.organization.name,
         })
         new_env = make_environment({
-            'locations': self.host_args.location.name,
+            'locations': new_loc['name'],
             'organizations': self.host_args.organization.name,
         })
         new_arch = make_architecture()
@@ -952,7 +954,7 @@ class HostUpdateTestCase(CLITestCase):
             'partition-table-ids': self.host_args.ptable.id,
         })
         new_medium = make_medium({
-            'locations': self.host_args.location.name,
+            'locations': new_loc['name'],
             'organizations': self.host_args.organization.name,
             'operatingsystems': new_os['title'],
         })
@@ -965,12 +967,14 @@ class HostUpdateTestCase(CLITestCase):
             'medium-id': new_medium['id'],
             'new-name': new_name,
             'operatingsystem': new_os['title'],
+            'new-location-id': new_loc['id']
         })
         self.host = Host.info({'id': self.host['id']})
         self.assertEqual(
             u'{0}.{1}'.format(new_name, self.host['network']['domain']),
             self.host['name']
         )
+        self.assertEqual(self.host['location'], new_loc['name'])
         self.assertEqual(self.host['network']['mac'], new_mac)
         self.assertEqual(self.host['network']['domain'], new_domain['name'])
         self.assertEqual(self.host['puppet-environment'], new_env['name'])

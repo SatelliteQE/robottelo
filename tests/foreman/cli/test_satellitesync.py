@@ -397,10 +397,16 @@ class ContentViewSync(CLITestCase):
         cls.exporting_cv, cls.exporting_cvv_id = ContentViewSync._create_cv(
             cls.exporting_cv_name, cls.exporting_repo, cls.exporting_org)
 
+    def setUp(self):
+        """Create Directory for CV export"""
+        super().setUp()
+        self.export_dir = "{}/{}".format(self.export_base, gen_string('alpha'))
+        ssh.command('mkdir {}'.format(self.export_dir))
+
     def tearDown(self):
         """Deletes Directory created for CV export Test during setUp"""
         super(ContentViewSync, self).tearDown()
-        ssh.command('rm -rf {}/*'.format(self.export_base))
+        ssh.command('rm -rf {}'.format(self.export_dir))
 
     @tier3
     def test_positive_export_import_filtered_cvv(self):
@@ -453,11 +459,11 @@ class ContentViewSync(CLITestCase):
         exporting_cvv_id = exporting_cv['versions'][0]['id']
         exporting_cvv_version = exporting_cv['versions'][0]['version']
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': exporting_cvv_id
         })
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, exporting_cv_name, exporting_cvv_version)
+            self.export_dir, exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -503,12 +509,12 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: System
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
@@ -566,12 +572,12 @@ class ContentViewSync(CLITestCase):
         rhva_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhva_cv_name, rhva_repo, self.exporting_org)
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': exporting_cvv_id
         })
         exporting_cvv_version = rhva_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, rhva_cv_name, exporting_cvv_version)
+            self.export_dir, rhva_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -631,11 +637,11 @@ class ContentViewSync(CLITestCase):
         rhel_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhel_cv_name, rhel_repo, self.exporting_org)
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': exporting_cvv_id}, timeout=7200)
         exporting_cvv_version = rhel_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, rhel_cv_name, exporting_cvv_version)
+            self.export_dir, rhel_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -677,12 +683,12 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: Integration
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         result = ssh.command("tar -t -f {}".format(exported_tar))
@@ -691,9 +697,9 @@ class ContentViewSync(CLITestCase):
         self.assertIn(contents_tar, result.stdout)
         cvv_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(cvv_packages) > 0)
-        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
+        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
         exported_packages = ssh.command("tar -tf {0}/{1} | grep .rpm | wc -l".format(
-            self.export_base, contents_tar))
+            self.export_dir, contents_tar))
         self.assertEqual(len(cvv_packages), int(exported_packages.stdout[0]))
 
     @tier1
@@ -729,12 +735,12 @@ class ContentViewSync(CLITestCase):
             u'id': self.exporting_cv['id'],
         })['versions'][-1]['id']
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': promoted_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
@@ -772,12 +778,12 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: Integration
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         self.set_importing_org(
             self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
         ContentView.version_import({
@@ -815,12 +821,12 @@ class ContentViewSync(CLITestCase):
                 minor version'
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
@@ -861,12 +867,12 @@ class ContentViewSync(CLITestCase):
                 displayed
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         importing_org = make_org()
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_import({
@@ -901,12 +907,12 @@ class ContentViewSync(CLITestCase):
                 displayed
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         importing_org = make_org()
         make_content_view({
             'name': self.exporting_cv_name,
@@ -959,7 +965,7 @@ class ContentViewSync(CLITestCase):
             exporting_cv, repo, exporting_org)
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
-                'export-dir': '{}'.format(self.export_base),
+                'export-dir': '{}'.format(self.export_dir),
                 'id': exporting_cvv_id
             })
         self.assert_error_msg(
@@ -1002,7 +1008,7 @@ class ContentViewSync(CLITestCase):
             gen_string('alpha'), repo, exporting_org)
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
-                'export-dir': '{}'.format(self.export_base),
+                'export-dir': '{}'.format(self.export_dir),
                 'id': exporting_cvv_id
             })
         self.assert_error_msg(
@@ -1047,12 +1053,12 @@ class ContentViewSync(CLITestCase):
         exporting_cv, exporting_cvv_id = ContentViewSync._create_cv(
             exporting_cv_name, repo, self.exporting_org)
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': exporting_cvv_id
         })
         exporting_cvv_version = exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, exporting_cv_name, exporting_cvv_version)
+            self.export_dir, exporting_cv_name, exporting_cvv_version)
         self.set_importing_org(
             exporting_prod_name, exporting_repo_name, exporting_cv_name, mos='yes')
         with self.assertRaises(CLIReturnCodeError) as error:
@@ -1142,7 +1148,7 @@ class ContentViewSync(CLITestCase):
         ContentView.publish({u'id': content_view['id']})
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
-                'export-dir': '{}'.format(self.export_base),
+                'export-dir': '{}'.format(self.export_dir),
                 'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id']
             })
         self.assert_error_msg(
@@ -1207,7 +1213,7 @@ class ContentViewSync(CLITestCase):
         ContentView.publish({u'id': content_view['id']})
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
-                'export-dir': '{}'.format(self.export_base),
+                'export-dir': '{}'.format(self.export_dir),
                 'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id']
             })
         self.assert_error_msg(
@@ -1241,25 +1247,25 @@ class ContentViewSync(CLITestCase):
             2. The Imported CV version has major and minor updated in exported tar json
         """
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
             self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
         # Updating the json in exported tar
-        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
+        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
         extracted_directory_name = 'export-{0}-{1}'.format(
             self.exporting_cv_name, exporting_cvv_version)
-        json_path = '{0}/{1}/{1}.json'.format(self.export_base, extracted_directory_name)
+        json_path = '{0}/{1}/{1}.json'.format(self.export_dir, extracted_directory_name)
         new_major, new_minor = self._update_json(json_path)
-        custom_cvv_tar = '{0}/{1}.tar'.format(self.export_base, extracted_directory_name)
+        custom_cvv_tar = '{0}/{1}.tar'.format(self.export_dir, extracted_directory_name)
         ssh.command("tar -cvf {0} {1}/{2}".format(
-            custom_cvv_tar, self.export_base, extracted_directory_name))
+            custom_cvv_tar, self.export_dir, extracted_directory_name))
         # Importing the updated tar
         ContentView.version_import({
             'export-tar': custom_cvv_tar,
@@ -1311,19 +1317,19 @@ class ContentViewSync(CLITestCase):
             u'id': self.exporting_cv['id']
         })
         ContentView.version_export({
-            'export-dir': '{}'.format(self.export_base),
+            'export-dir': '{}'.format(self.export_dir),
             'id': self.exporting_cvv_id
         })
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         # Updating the json in exported tar
-        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_base))
+        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
         extracted_directory_name = 'export-{0}-{1}'.format(
             self.exporting_cv_name, exporting_cvv_version)
-        json_path_server = '{0}/{1}/{1}.json'.format(self.export_base, extracted_directory_name)
+        json_path_server = '{0}/{1}/{1}.json'.format(self.export_dir, extracted_directory_name)
         json_path_local = '/tmp/{}.json'.format(extracted_directory_name)
         ssh.download_file(json_path_server, json_path_local)
         with open(json_path_local) as metafile:

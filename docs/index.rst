@@ -153,6 +153,14 @@ even configuration to run the automation using `SauceLabs`_. For more
 information about what web browsers you can use, check Selenium's `WebDriver`_
 documentation.
 
+Running the UI Tests in headless mode
+---------------------------------------
+
+You can run browser for UI tests in headless mode by setting browser option in
+``robottelo.properties`` file. Currently it is supported only for chrome
+
+    browseroptions=headless
+
 Testing With Pytest
 ---------------------
 
