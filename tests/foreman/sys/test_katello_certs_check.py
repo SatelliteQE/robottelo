@@ -17,7 +17,7 @@
 
 """
 from robottelo.config import settings
-from robottelo.decorators import destructive, stubbed, tier1, upgrade
+from robottelo.decorators import destructive, stubbed, tier1, upgrade, skip_if_not_set
 from robottelo.ssh import get_connection, upload_file
 from robottelo.test import TestCase
 
@@ -26,9 +26,12 @@ import re
 
 
 class KatelloCertsCheckTestCase(TestCase):
-    """Implements ``katello-certs-check`` tests"""
+    """Implements ``katello-certs-check`` tests.
+    Depends on presence of custom certificates at path given
+    in robottello.properties file."""
 
     @classmethod
+    @skip_if_not_set('certs')
     def setUpClass(cls):
         """Get host name and credentials"""
         super(KatelloCertsCheckTestCase, cls).setUpClass()
@@ -85,7 +88,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :steps:
 
-            1. Generate custom certs
+            1. Use Jenkins provided custom certs
             2. Run katello-certs-check with the required valid arguments
                katello-certs-check -c CERT_FILE -k KEY_FILE -r REQ_FILE
                -b CA_BUNDLE_FILE
@@ -94,6 +97,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :expectedresults: Katello-certs-check should generate correct commands
          with options.
         """
+
         with get_connection() as connection:
             result = connection.run(
                 'katello-certs-check -c /tmp/{0} -k /tmp/{1} '
@@ -107,7 +111,6 @@ class KatelloCertsCheckTestCase(TestCase):
             self.validate_output(result)
 
     @destructive
-    @stubbed()
     def test_positive_update_katello_certs(self):
         """Update certificates on a currently running satellite instance
 
@@ -115,15 +118,47 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :steps:
 
-            1. Generate custom certs
-            2. Run katello-certs-check with the required valid arguments
+            1. Use Jenkins provided custom certs
+            2. Assert hammer ping reports running Satellite
             3. Update satellite with custom certs
-            4. Assert output is having correct capsule-certs-generate commands
+            4. Assert output does not report SSL certificate error
+            5. Assert all services are running
+
 
         :expectedresults: Katello-certs should be updated.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
         """
+        try:
+            with get_connection(timeout=600) as connection:
+                # Check for hammer ping SSL cert error
+                result = connection.run('hammer ping')
+                assert result.return_code == 0, 'Hammer Ping fail'
+                result = connection.run(
+                    'satellite-installer --scenario satellite '
+                    '--certs-server-cert /tmp/server.valid.crt '
+                    '--certs-server-key /tmp/server.key '
+                    '--certs-server-ca-cert /tmp/rootCA.pem '
+                    '--certs-update-server --certs-update-server-ca', timeout=500)
+                # assert no hammer ping SSL cert error
+                result = connection.run('hammer ping')
+                assert 'SSL certificate verification failed' not in result.stdout
+                assert 'ok' in result.stdout[1]
+                # assert all services are running
+                result = connection.run('foreman-maintain health check --label services-up -y')
+                assert result.return_code == 0, 'Not all services are running'
+        finally:
+            # revert to original certs
+            with get_connection(timeout=600) as connection:
+                result = connection.run(
+                    'satellite-installer --scenario satellite '
+                    '--certs-reset', timeout=500)
+                # Check for hammer ping SSL cert error
+                result = connection.run('hammer ping')
+                assert result.return_code == 0, 'Hammer Ping fail'
+                # assert all services are running
+                result = connection.run('foreman-maintain health check --label services-up -y')
+                assert result.return_code == 0, 'Not all services are running'
 
     @destructive
     @stubbed()
