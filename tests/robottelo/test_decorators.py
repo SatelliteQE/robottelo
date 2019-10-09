@@ -1102,59 +1102,6 @@ class SkipIfBugOpen(TestCase):
         self.assertEqual(foo(), 42)
 
 
-class RunInOneThreadIfBugOpen(TestCase):
-    """Tests for :func:`robottelo.decorators.run_in_one_thread_if_bug_open`."""
-    def test_raise_bug_type_error(self):
-        with self.assertRaises(decorators.BugTypeError):
-            @decorators.run_in_one_thread_if_bug_open('notvalid', 123456)
-            def foo():
-                pass
-
-    @mock.patch('robottelo.decorators.bz_bug_is_open')
-    def test_mark_one_thread_bugzilla_bug(self, bz_bug_is_open):
-        bz_bug_is_open.side_effect = [True]
-
-        @decorators.run_in_one_thread_if_bug_open('bugzilla', 123456)
-        def foo():
-            return 42
-
-        self.assertTrue(hasattr(foo, 'run_in_one_thread'))
-        self.assertEqual(foo(), 42)
-
-    @mock.patch('robottelo.decorators.bz_bug_is_open')
-    def test_not_mark_one_thread_bugzilla_bug(self, bz_bug_is_open):
-        bz_bug_is_open.side_effect = [False]
-
-        @decorators.run_in_one_thread_if_bug_open('bugzilla', 123456)
-        def foo():
-            return 42
-
-        self.assertFalse(hasattr(foo, 'run_in_one_thread'))
-        self.assertEqual(foo(), 42)
-
-    @mock.patch('robottelo.decorators.rm_bug_is_open')
-    def test_mark_one_thread_redmine_bug(self, rm_bug_is_open):
-        rm_bug_is_open.side_effect = [True]
-
-        @decorators.run_in_one_thread_if_bug_open('redmine', 123456)
-        def foo():
-            return 42
-
-        self.assertTrue(hasattr(foo, 'run_in_one_thread'))
-        self.assertEqual(foo(), 42)
-
-    @mock.patch('robottelo.decorators.rm_bug_is_open')
-    def test_not_mark_one_thread_redmine_bug(self, rm_bug_is_open):
-        rm_bug_is_open.side_effect = [False]
-
-        @decorators.run_in_one_thread_if_bug_open('redmine', 123456)
-        def foo():
-            return 42
-
-        self.assertFalse(hasattr(foo, 'run_in_one_thread'))
-        self.assertEqual(foo(), 42)
-
-
 class SkipIfNotSetTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.skip_if_not_set`."""
 

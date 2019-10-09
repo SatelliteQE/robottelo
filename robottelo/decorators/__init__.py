@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
-from functools import partial, wraps
+from functools import wraps, partial
 
 import os
 import pytest
@@ -294,6 +294,7 @@ class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
     should be run sequentially only if bug is open.
     """
 
+    '''
     _wrapper = run_in_one_thread
 
     def __call__(self, func):
@@ -323,6 +324,7 @@ class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
         )) or (self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id)):
             func = self._wrapper(func)
         return func
+    '''
 
 
 # Set the optional version and config pickers for robozilla decorators
@@ -332,11 +334,13 @@ def get_sat_version():
     return os.environ.get('BUGZILLA_SAT_VERSION') or get_host_sat_version()
 
 
+'''
 run_in_one_thread_if_bug_open = partial(
     run_in_one_thread_if_bug_open,
     sat_version_picker=get_sat_version,
     config_picker=config_picker
 )
+'''
 
 bz_bug_is_open = partial(
     bz_bug_is_open,
