@@ -4345,6 +4345,7 @@ class ContentViewTestCase(CLITestCase):
                 'product-id': docker_product['id'],
                 'url': DOCKER_REGISTRY_HUB,
             })
+            Repository.synchronize({'id': docker_repository['id']})
             content_view = make_content_view({'organization-id': org['id']})
             # Associate the yum repository to content view
             ContentView.add_repository({
