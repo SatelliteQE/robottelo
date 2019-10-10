@@ -15,6 +15,8 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+
+from airgun.session import Session
 from robottelo.config import settings
 from robottelo.decorators import (
     fixture,
@@ -455,3 +457,98 @@ def test_positive_delete_config_delete_user(session, form_data):
             deploy_validation()
         except Exception as e:
             assert str(e) == 'Failed to start virt-who service'
+
+
+@tier2
+def test_positive_virt_who_roles_permission(session, test_name, form_data):
+    """Verify the virt-who roles can TRULY work.
+
+    :id: 4bef3b31-89d2-4502-b971-2437b920a3ff
+
+    :expectedresults:
+        Permissions:
+        1. 'Virt-who Reporter': create_hosts, edit_hosts
+        2. 'Virt-who Viewer': view_virt_who_config
+        3. 'Virt-who Manager': view_virt_who_config, create_virt_who_config,
+        edit_virt_who_config, destroy_virt_who_config
+
+    """
+    username = gen_string('alpha')
+    password = gen_string('alpha')
+    with session:
+        # create a virt-who config plugin
+        virt_who_name = gen_string('alpha')
+        form_data['name'] = virt_who_name
+        session.virtwho_configure.create(form_data)
+        session.virtwho_configure.read(virt_who_name)
+        # create an user
+        session.user.create({
+            'user.login': username,
+            'user.mail': 'test@test.com',
+            'user.auth': 'INTERNAL',
+            'user.password': password,
+            'user.confirm': password,
+            'roles.resources.assigned': ['Virt-who Reporter'],
+        })
+        assert session.user.search(username)[0]['Username'] == username
+        user = session.user.read(username)
+        assert user['roles']['resources']['assigned'] == ['Virt-who Reporter']
+        # Virt-who Reporter
+        with Session(test_name, username, password) as newsession:
+            try:
+                newsession.virtwho_configure.read(virt_who_name)
+            except Exception:
+                pass
+            else:
+                raise ('Virt-who Reporter should not have the permission to read config')
+        # Virt-who Viewer
+        session.user.update(
+            username,
+            {'roles.resources.unassigned': ['Virt-who Reporter']}
+        )
+        session.user.update(
+            username,
+            {'roles.resources.assigned': ['Virt-who Viewer']}
+        )
+        user = session.user.read(username)
+        assert user['roles']['resources']['assigned'] == ['Virt-who Viewer']
+        with Session(test_name, username, password) as newsession:
+            newsession.virtwho_configure.read(virt_who_name)
+            try:
+                viewer_virt_who_name = gen_string('alpha')
+                form_data['name'] = viewer_virt_who_name
+                newsession.virtwho_configure.create(form_data)
+            except Exception:
+                pass
+            else:
+                raise ('Virt-who Viewer should not have the permission to creat config')
+        # Virt-who Manager
+        session.user.update(
+            username,
+            {'roles.resources.unassigned': ['Virt-who Viewer']}
+        )
+        session.user.update(
+            username,
+            {'roles.resources.assigned': ['Virt-who Manager']}
+        )
+        user = session.user.read(username)
+        assert user['roles']['resources']['assigned'] == ['Virt-who Manager']
+        with Session(test_name, username, password) as newsession:
+            # create_virt_who_config
+            new_virt_who_name = gen_string('alpha')
+            form_data['name'] = new_virt_who_name
+            newsession.virtwho_configure.create(form_data)
+            # view_virt_who_config
+            values = newsession.virtwho_configure.read(new_virt_who_name)
+            command = values['deploy']['command']
+            deploy_configure_by_command(command, debug=True)
+            assert newsession.virtwho_configure.search(new_virt_who_name)[0]['Status'] == 'ok'
+            # edit_virt_who_config
+            modify_name = gen_string('alpha')
+            newsession.virtwho_configure.edit(new_virt_who_name, {'name': modify_name})
+            newsession.virtwho_configure.search(modify_name)
+            # destroy_virt_who_config
+            newsession.virtwho_configure.delete(modify_name)
+            assert not newsession.virtwho_configure.search(modify_name)
+        session.user.delete(username)
+        assert not session.user.search(username)
