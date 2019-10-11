@@ -2171,9 +2171,11 @@ class HostSubscriptionTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @skip_if_bug_open('bugzilla', 1444886)
     def setUpClass(cls):
-        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        """Create Org, Lifecycle Environment, Content View, Activation key
+
+        :BZ: 1444886
+        """
         super(HostSubscriptionTestCase, cls).setUpClass()
         cls.org = make_org()
         cls.env = make_lifecycle_environment({
