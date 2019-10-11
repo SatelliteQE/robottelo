@@ -24,6 +24,7 @@ from robottelo.decorators import (
 )
 
 from .utils import (
+    create_etc_d_file,
     deploy_configure_by_command,
     deploy_configure_by_script,
     deploy_validation,
@@ -32,6 +33,7 @@ from .utils import (
     get_configure_option,
     get_configure_command,
     restart_virt_who_service,
+    virtwho_cleanup,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -455,53 +457,75 @@ def test_positive_delete_config_delete_user(session, form_data):
         restart_virt_who_service()
         try:
             deploy_validation()
-        except Exception as e:
-            assert str(e) == 'Failed to start virt-who service'
+        except Exception as Error:
+            assert str(Error) == 'Failed to start virt-who service'
 
 
 @tier2
-def test_positive_virt_who_roles_permission(session, test_name, form_data):
+def test_positive_virt_who_roles_permissions(session, test_name, form_data):
     """Verify the virt-who roles can TRULY work.
 
     :id: 4bef3b31-89d2-4502-b971-2437b920a3ff
 
     :expectedresults:
         Permissions:
-        1. 'Virt-who Reporter': create_hosts, edit_hosts
-        2. 'Virt-who Viewer': view_virt_who_config
-        3. 'Virt-who Manager': view_virt_who_config, create_virt_who_config,
-        edit_virt_who_config, destroy_virt_who_config
+        1. Virt-who Reporter Role granting minimal set of permissions for virt-who
+        to upload the report, it can be used if you configure virt-who manually
+        and want to use user that has locked down account.
+        2. Virt-who Viewer Role granting permissions to see all configurations
+        including their configuration scripts, which means viewers could still
+        deploy the virt-who instances for existing virt-who configurations.
+        3. Virt-who Manager Role granting all permissions to manage virt-who configurations,
+         user needs this role to create, delete or update configurations.
 
     """
     username = gen_string('alpha')
     password = gen_string('alpha')
     with session:
-        # create a virt-who config plugin
+        # Create a virt-who config plugin
         virt_who_name = gen_string('alpha')
         form_data['name'] = virt_who_name
         session.virtwho_configure.create(form_data)
         session.virtwho_configure.read(virt_who_name)
-        # create an user
+        # Create an user
         session.user.create({
             'user.login': username,
             'user.mail': 'test@test.com',
             'user.auth': 'INTERNAL',
             'user.password': password,
             'user.confirm': password,
-            'roles.resources.assigned': ['Virt-who Reporter'],
         })
+        # Create a virt-who config file manually
+        virtwho_cleanup()
+        create_etc_d_file(form_data, username, password)
+        restart_virt_who_service()
+        try:
+            deploy_validation(False)
+        except Exception as Error:
+            assert str(Error) == 'Failed to start virt-who service'
+        # Check the permissioin of Virt-who Reporter
+        session.user.update(
+            username,
+            {'roles.resources.assigned': ['Virt-who Reporter']}
+        )
         assert session.user.search(username)[0]['Username'] == username
         user = session.user.read(username)
         assert user['roles']['resources']['assigned'] == ['Virt-who Reporter']
-        # Virt-who Reporter
+        restart_virt_who_service()
+        try:
+            deploy_validation(False)
+        except Exception:
+            raise BaseException(
+                'Virt-who Reporter should have the permission to upload the report')
         with Session(test_name, username, password) as newsession:
             try:
                 newsession.virtwho_configure.read(virt_who_name)
             except Exception:
                 pass
             else:
-                raise ('Virt-who Reporter should not have the permission to read config')
-        # Virt-who Viewer
+                raise BaseException(
+                    'Virt-who Reporter should not have the permission to read config')
+        # Check the permissioin of Virt-who Viewer
         session.user.update(
             username,
             {'roles.resources.unassigned': ['Virt-who Reporter']}
@@ -521,8 +545,9 @@ def test_positive_virt_who_roles_permission(session, test_name, form_data):
             except Exception:
                 pass
             else:
-                raise ('Virt-who Viewer should not have the permission to creat config')
-        # Virt-who Manager
+                raise BaseException(
+                    'Virt-who Viewer should not have the permission to creat config')
+        # Check the permissioin of Virt-who Manager
         session.user.update(
             username,
             {'roles.resources.unassigned': ['Virt-who Viewer']}
@@ -550,5 +575,6 @@ def test_positive_virt_who_roles_permission(session, test_name, form_data):
             # destroy_virt_who_config
             newsession.virtwho_configure.delete(modify_name)
             assert not newsession.virtwho_configure.search(modify_name)
+        # Delete the created user
         session.user.delete(username)
         assert not session.user.search(username)

@@ -243,7 +243,7 @@ def _get_hypervisor_mapping(logs):
         )
 
 
-def deploy_validation():
+def deploy_validation(check=True):
     """Checkout the deploy result
     :raises: VirtWhoError: If failed to start virt-who servcie.
     :ruturn: hypervisor_name and guest_name
@@ -254,6 +254,8 @@ def deploy_validation():
     if status != 'running' or error != 0:
         raise VirtWhoError("Failed to start virt-who service")
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+    if check is False:
+        return hypervisor_name, guest_name
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
     runcmd("systemctl restart virt-who; sleep 5")
@@ -313,3 +315,41 @@ def restart_virt_who_service():
     """
     runcmd("rm -f /var/log/rhsm/rhsm.log")
     runcmd("systemctl restart virt-who")
+
+
+def create_etc_d_file(form_data, rhsm_username='admin', rhsm_password='admin', filename='virt-who-config.conf'):
+    filepath = '/etc/virt-who.d/{}'.format(filename)
+    type = form_data['hypervisor_type']
+    owner = 'Default_Organization'
+    env = 'Library'
+    server = form_data['hypervisor_content.server']
+    cf_file = '{0}\n'.format(filepath)
+    cf_title = '[{0}]\n'.format(filename)
+    cf_type = 'type={0}\n'.format(type)
+    cf_server = 'server={0}\n'.format(server)
+    cf_owner = 'owner={0}\n'.format(owner)
+    cf_env = 'env={0}\n'.format(env)
+    rhsm_hostname = get_system('satellite')['hostname']
+    cf_rhsm_hostname = 'rhsm_hostname={0}\n'.format(rhsm_hostname)
+    cf_rhsm_username = 'rhsm_username={0}\n'.format(rhsm_username)
+    cf_rhsm_password = 'rhsm_password={0}\n'.format(rhsm_password)
+    cf_rhsm_prefix = 'rhsm_prefix=/rhsm\n'
+    if type == "libvirt":
+        cf_username = 'username={}\n'.format(form_data['hypervisor_content.username'])
+        cmd = ('cat <<EOF > {0}''{1}''{2}''{3}''{4}''{5}''{6}''{7}''{8}''{9}''{10}''EOF').format(
+            cf_file, cf_title, cf_type, cf_server, cf_username, cf_owner, cf_env,
+            cf_rhsm_hostname, cf_rhsm_username, cf_rhsm_password, cf_rhsm_prefix)
+    elif type == "kubevirt":
+        cf_kube = 'kubeconfig={}\n'.format(form_data['hypervisor_content.kubeconfig'])
+        cmd = ('cat <<EOF > {0}''{1}''{2}''{3}''{4}''{5}''{6}''{7}''{8}''{9}''EOF').format(
+            cf_file, cf_title, cf_type, cf_kube, cf_owner, cf_env,
+            cf_rhsm_hostname, cf_rhsm_username, cf_rhsm_password, cf_rhsm_prefix)
+    else:
+        cf_username = 'username={}\n'.format(form_data['hypervisor_content.username'])
+        cf_password = 'password={}\n'.format(form_data['hypervisor_content.password'])
+        cmd = ('cat <<EOF > {0}''{1}''{2}''{3}''{4}''{5}''{6}''{7}''{8}''{9}''{10}''EOF').format(
+            cf_file, cf_title, cf_type, cf_server, cf_username, cf_password, cf_owner, cf_env,
+            cf_rhsm_hostname, cf_rhsm_username, cf_rhsm_password, cf_rhsm_prefix)
+    ret, output = runcmd(cmd)
+    if ret != 0:
+        raise Exception("Failed to create config file {0}".format(filename))
