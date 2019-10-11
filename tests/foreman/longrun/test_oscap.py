@@ -17,7 +17,6 @@
 from fauxfactory import gen_string
 
 from nailgun import entities
-from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
 from robottelo.helpers import file_downloader, add_remote_execution_ssh_key, ProxyError
 from robottelo.cli.arfreport import Arfreport
@@ -48,8 +47,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier4,
-    upgrade,
-    bz_bug_is_open
+    upgrade
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -651,9 +649,6 @@ class OpenScapTestCase(CLITestCase):
                 'organization': self.config_env['org_name'],
                 'ansible-role-ids': role_id
             })
-            # needed to work around BZ#1650103
-            if bz_bug_is_open(1650103):
-                ssh.command('''sed -i '/ProxyCommand/s/^/#/g' /etc/ssh/ssh_config''')
             job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
             wait_for_tasks("resource_type = JobInvocation and resource_id = {0} and "
                            "action ~ \"hosts job\"".format(job_id))

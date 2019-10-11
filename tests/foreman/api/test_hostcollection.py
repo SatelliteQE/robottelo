@@ -18,7 +18,6 @@ from nailgun import entities
 from random import choice
 from requests.exceptions import HTTPError
 from robottelo.decorators import (
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -157,7 +156,6 @@ class HostCollectionTestCase(APITestCase):
                 self.assertEqual(
                     host_collection.unlimited_hosts, unlimited)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_create_with_host(self):
         """Create a host collection that contains a host.
@@ -168,6 +166,8 @@ class HostCollectionTestCase(APITestCase):
             one host.
 
         :CaseImportance: Critical
+
+        :BZ: 1325989
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -175,7 +175,6 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.host), 1)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_create_with_hosts(self):
         """Create a host collection that contains hosts.
@@ -186,6 +185,8 @@ class HostCollectionTestCase(APITestCase):
             references two hosts.
 
         :CaseImportance: Critical
+
+        :BZ: 1325989
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -193,7 +194,6 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier2
     def test_positive_add_host(self):
         """Add a host to host collection.
@@ -203,6 +203,8 @@ class HostCollectionTestCase(APITestCase):
         :expectedresults: Host was added to the host collection.
 
         :CaseLevel: Integration
+
+        :BZ:1325989
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -211,7 +213,6 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), 1)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @upgrade
     @tier2
     def test_positive_add_hosts(self):
@@ -222,6 +223,8 @@ class HostCollectionTestCase(APITestCase):
         :expectedresults: Hosts were added to the host collection.
 
         :CaseLevel: Integration
+
+        :BZ: 1325989
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -230,7 +233,6 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_read_host_ids(self):
         """Read a host collection and look at the ``host_ids`` field.
@@ -241,6 +243,8 @@ class HostCollectionTestCase(APITestCase):
             when creating the host collection.
 
         :CaseImportance: Critical
+
+        :BZ:1325989
         """
         host_collection = entities.HostCollection(
             host=self.hosts,

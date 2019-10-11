@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.computeresource import ComputeResource
@@ -25,7 +26,6 @@ from robottelo.cli.factory import (
 from robottelo.config import settings
 from robottelo.decorators import (
     stubbed,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -48,7 +48,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         cls.datacenter = settings.rhev.datacenter
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_create_rhev_with_valid_name(self):
         """Create Compute Resource of type Rhev with valid name
 
@@ -57,6 +56,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is created
 
         :CaseImportance: Critical
+
+        :BZ: 1602835
         """
         ComputeResource.create({
             u'name': 'cr {0}'.format(gen_string(str_type='alpha')),
@@ -68,7 +69,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         })
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_rhev_info(self):
         """List the info of RHEV compute resource
 
@@ -77,6 +77,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :expectedresults: RHEV Compute resource Info is displayed
 
         :CaseImportance: Critical
+
+        :BZ: 1602835
         """
         name = gen_string('utf8')
         compute_resource = make_compute_resource({
@@ -90,7 +92,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         self.assertEquals(compute_resource['name'], name)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_delete_by_name(self):
         """Delete the RHEV compute resource by name
 
@@ -99,6 +100,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is deleted
 
         :CaseImportance: Critical
+
+        :BZ: 1602835
         """
         comp_res = make_compute_resource({
             u'provider': 'Ovirt',
@@ -113,7 +116,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         self.assertFalse(result)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_delete_by_id(self):
         """Delete the RHEV compute resource by id
 
@@ -122,6 +124,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is deleted
 
         :CaseImportance: Critical
+
+        :BZ: 1602835
         """
         comp_res = make_compute_resource({
             u'provider': 'Ovirt',
@@ -191,7 +195,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
     @tier1
     @upgrade
-    @skip_if_bug_open('bugzilla', 1602835)
     def test_positive_update_name(self):
         """RHEV compute resource positive update
 
@@ -205,6 +208,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute Resource is successfully updated
 
         :CaseImportance: Critical
+
+        :BZ: 1602835
         """
         new_name = gen_string('alpha')
         comp_res = make_compute_resource({
@@ -267,7 +272,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1278917)
+    @pytest.mark.skip_if_open("BZ:1278917")
     @stubbed()
     def test_positive_access_rhev_with_default_profile(self):
         """List Compute profile for RHEV compute resource
@@ -282,7 +287,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1278917)
+    @pytest.mark.skip_if_open("BZ:1278917")
     @stubbed()
     @upgrade
     def test_positive_access_rhev_with_custom_profile(self):
@@ -305,7 +310,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1278917)
+    @pytest.mark.skip_if_open("BZ:1278917")
     @stubbed()
     def test_positive_access_rhev_with_custom_profile_with_template(self):
         """Associate custom default (3-Large) compute profile to RHEV compute
@@ -328,7 +333,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1475443)
+    @pytest.mark.skip_if_open("BZ:1475443")
     @stubbed()
     def test_positive_retrieve_rhev_vm_list(self):
         """Retrieve the Virtual machine list from RHEV compute resource
@@ -348,7 +353,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1475443)
+    @pytest.mark.skip_if_open("BZ:1475443")
     @stubbed()
     def test_positive_rhev_vm_power_on_off(self):
         """The virtual machine in RHEV compute resource should be powered

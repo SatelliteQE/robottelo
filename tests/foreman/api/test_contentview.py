@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
@@ -44,7 +45,6 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -549,7 +549,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.component), cv_amount)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1581628)
+    @pytest.mark.skip_if_open("BZ:1581628")
     def test_positive_publish_with_long_name(self):
         """Publish a content view that has at least 255 characters in its name
 
@@ -1377,7 +1377,7 @@ class ContentViewUpdateTestCase(APITestCase):
                 cv = entities.ContentView(id=self.content_view.id).read()
                 self.assertNotEqual(cv.name, new_name)
 
-    @skip_if_bug_open('bugzilla', 1147100)
+    @pytest.mark.skip_if_open("BZ:1147100")
     @tier1
     def test_negative_update_label(self):
         """Try to update a content view label with any value
@@ -1388,6 +1388,8 @@ class ContentViewUpdateTestCase(APITestCase):
             modified
 
         :CaseImportance: Critical
+
+        :BZ: 1147100
         """
         with self.assertRaises(HTTPError):
             entities.ContentView(
@@ -1890,7 +1892,7 @@ class ContentViewRolesTestCase(APITestCase):
             entities.ContentView(id=content_view.id).read()
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 class OstreeContentViewTestCase(APITestCase):
     """Tests for ostree contents in content views."""
 
@@ -2033,7 +2035,7 @@ class OstreeContentViewTestCase(APITestCase):
             len(content_view.read().version[0].read().environment), 2)
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 class ContentViewRedHatOstreeContent(APITestCase):
     """Tests for publishing and promoting cv with RH ostree contents."""
 

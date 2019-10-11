@@ -24,7 +24,7 @@ from robottelo.api.utils import (
 )
 from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, run_in_one_thread, tier2, skip_if_bug_open
+from robottelo.decorators import fixture, run_in_one_thread, tier2
 
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [
@@ -303,7 +303,6 @@ def test_positive_create_matcher_attribute_priority(
 
 
 @tier2
-@skip_if_bug_open("bugzilla", "1734022")
 def test_positive_create_matcher_avoid_duplicate(
         session, sc_params_list, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
@@ -331,6 +330,8 @@ def test_positive_create_matcher_avoid_duplicate(
         3.  Duplicate values in YAML output are removed / not displayed.
 
     :CaseImportance: Critical
+
+    :BZ: 1734022
     """
     sc_param = sc_params_list.pop()
     override_value = '[80,90]'

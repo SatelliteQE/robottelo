@@ -23,15 +23,13 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_os, make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.decorators import (
-     skip_if_bug_open, tier1, tier2, upgrade)
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 
 class PartitionTableUpdateCreateTestCase(CLITestCase):
     """Partition Table CLI tests."""
 
-    @skip_if_bug_open('bugzilla', 1229384)
     @tier1
     def test_positive_create_with_one_character_name(self):
         """Create Partition table with 1 character in name

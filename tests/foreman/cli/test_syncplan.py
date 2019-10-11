@@ -517,6 +517,8 @@ class SyncPlanTestCase(CLITestCase):
         :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595
         """
         delay = 2 * 60  # delay for sync date in seconds
         product = make_product({'organization-id': self.org['id']})
@@ -565,6 +567,8 @@ class SyncPlanTestCase(CLITestCase):
         :expectedresults: Products are synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595
         """
         delay = 2 * 60  # delay for sync date in seconds
         products = [
@@ -694,6 +698,8 @@ class SyncPlanTestCase(CLITestCase):
         :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
+
+        :BZ: 1655595
         """
         delay = 2 * 60  # delay for sync date in seconds
         org = make_org()

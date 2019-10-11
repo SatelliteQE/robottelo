@@ -17,7 +17,6 @@ from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
-    skip_if_bug_open,
     stubbed,
     tier2,
     tier3,
@@ -97,7 +96,6 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @skip_if_bug_open('bugzilla', 1731112)
     @tier2
     def test_positive_upload_facts(self):
         """Upload fake facts to create a discovered host
@@ -116,6 +114,8 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
 
         :CaseLevel: Integration
+
+        :BZ: 1731112
         """
         for name in valid_data_list():
             with self.subTest(name):

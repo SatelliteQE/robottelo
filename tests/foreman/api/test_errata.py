@@ -16,6 +16,7 @@
 """
 
 # For ease of use hc refers to host-collection throughout this document
+import pytest
 
 from nailgun import entities
 from robottelo.cli.factory import (
@@ -48,10 +49,8 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
-    skip_if_bug_open,
     stubbed,
     tier3,
     upgrade
@@ -479,7 +478,7 @@ class ErrataTestCase(APITestCase):
         self.assertEqual(issued, sorted(issued))
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1682940)
+    @pytest.mark.skip_if_open("BZ:1682940")
     def test_positive_filter_by_envs(self):
         """Filter applicable errata for a content host by current and
         Library environments
@@ -498,6 +497,8 @@ class ErrataTestCase(APITestCase):
             current and Library environments.
 
         :CaseLevel: System
+
+        :BZ: 1682940
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -604,10 +605,7 @@ class ErrataTestCase(APITestCase):
             host = entities.Host().search(query={
                 'search': 'name={0}'.format(client.hostname)})[0].read()
             for errata in ('security', 'bugfix', 'enhancement'):
-                if bz_bug_is_open(1482502):
-                    self._validate_errata_counts(host, errata, None)
-                else:
-                    self._validate_errata_counts(host, errata, 0)
+                self._validate_errata_counts(host, errata, 0)
             client.run(
                 'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
             self._validate_errata_counts(host, 'security', 1)

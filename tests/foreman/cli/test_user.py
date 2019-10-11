@@ -21,6 +21,7 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 :Upstream: No
 """
+import pytest
 import random
 
 from fauxfactory import gen_string
@@ -37,8 +38,8 @@ from robottelo.datafactory import (
     valid_emails_list,
     valid_usernames_list,
 )
-from robottelo.decorators import (
-    stubbed, skip_if_bug_open, tier1, tier2, tier3, upgrade)
+from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
+from robottelo.helpers import is_open
 from robottelo.test import CLITestCase
 
 
@@ -352,7 +353,7 @@ class UserTestCase(CLITestCase):
                 ):
                     User.create(options)
 
-    @skip_if_bug_open('bugzilla', 1204686)
+    @pytest.mark.skip_if_open("BZ:1204686")
     @tier1
     def test_negative_create_with_empty_email(self):
         """Create User with empty Email Address
@@ -604,7 +605,6 @@ class UserTestCase(CLITestCase):
                     {result[0]['email'], result[0]['id'], result[0]['login']}
                 )
 
-    @skip_if_bug_open('bugzilla', 1204667)
     @tier1
     def test_positive_create_with_email_utf8_latin(self):
         """List User for utf-8,latin variations of Email Address
@@ -1016,7 +1016,6 @@ class UserWithCleanUpTestCase(CLITestCase):
                         'mail': email
                     })
 
-    @skip_if_bug_open('bugzilla', 1138553)
     @tier2
     def test_positive_add_role(self):
         """Add role to User for all variations of role names
@@ -1068,7 +1067,6 @@ class UserWithCleanUpTestCase(CLITestCase):
             User.info({'id': user['id']})['roles']
         )
 
-    @skip_if_bug_open('bugzilla', 1138553)
     @tier2
     @upgrade
     def test_positive_remove_role(self):

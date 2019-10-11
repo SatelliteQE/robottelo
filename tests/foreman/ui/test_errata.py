@@ -17,7 +17,6 @@
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.api.utils import promote
 from robottelo.constants import (
@@ -35,10 +34,8 @@ from robottelo.constants import (
     REAL_4_ERRATA_CVES,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     tier2,
     tier3,
     upgrade
@@ -213,7 +210,6 @@ def test_end_to_end(session, module_repos_col, vm):
         assert result['result'] == 'success'
 
 
-@skip_if_bug_open('bugzilla', 1659941)
 @tier2
 def test_positive_list(session, module_repos_col, module_lce):
     """View all errata in an Org
@@ -279,13 +275,6 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
         password=user_password,
     ).create()
     with Session(test_name, user=user.login, password=user_password) as session:
-        if bz_bug_is_open(1652938):
-            # The bug has a persistent effect when user has no access to dashboard and foreman
-            # access denied page is shown directly after login.
-            try:
-                session.errata.search('')
-            except NoSuchElementException:
-                session.errata.browser.refresh()
         assert (session.errata.search(RHVA_ERRATA_ID, applicable=False)[0]['Errata ID']
                 == RHVA_ERRATA_ID)
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)

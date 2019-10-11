@@ -32,6 +32,7 @@ Subcommands::
 
 :Upstream: No
 """
+import pytest
 import random
 
 from fauxfactory import gen_string, gen_url
@@ -42,7 +43,6 @@ from robottelo.cli.factory import make_location, make_compute_resource
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import (
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -266,7 +266,7 @@ class ComputeResourceTestCase(CLITestCase):
             self.assertIn(location['name'], comp_resource['locations'])
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1214312)
+    @pytest.mark.skip_if_open("BZ:1214312")
     def test_positive_create_with_console_password(self):
         """Create Compute Resource with different values of
         set-console-password parameter

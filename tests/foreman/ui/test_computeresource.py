@@ -27,7 +27,6 @@ from robottelo.decorators import (
     parametrize,
     run_in_one_thread,
     setting_is_set,
-    skip_if_bug_open,
     skip_if_not_set,
     tier2,
     tier3
@@ -288,7 +287,6 @@ def test_positive_resource_vm_power_management(
             name, rhev_data['vm_name']) is not status
 
 
-@skip_if_bug_open('bugzilla', 1636067)
 @tier3
 @parametrize('version', [True, False])
 def test_positive_VM_import(session, module_ca_cert, module_org, module_loc,
@@ -302,6 +300,8 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc,
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :BZ: 1636067
     """
     # create entities for hostgroup
     default_loc_id = entities.Location().search(

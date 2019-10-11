@@ -67,9 +67,7 @@ from robottelo.constants import (
     PRDS,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -97,7 +95,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         """Create Org, Lifecycle Environment, Content View, Activation key,
         Host, Host-Collection
 
-        @BZ: 1405428, 1418026, 1457977
+        :BZ: 1405428, 1418026, 1457977
         """
         super(HostCollectionErrataInstallTestCase, cls).setUpClass()
         cls.org = make_org()
@@ -183,7 +181,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
         return True if result.return_code == 0 else False
 
-    @skip_if_bug_open('bugzilla', 1457977)
     @tier3
     def test_positive_install_by_hc_id_and_org_id(self):
         """Using hc-id and org id to install an erratum in a hc
@@ -198,6 +195,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: Erratum is installed.
 
         :CaseLevel: System
+
+        :BZ: 1457977
         """
         install_task = HostCollection.erratum_install({
             'id': self.host_collection['id'],
@@ -208,7 +207,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @skip_if_bug_open('bugzilla', 1457977)
     @tier3
     def test_positive_install_by_hc_id_and_org_name(self):
         """Using hc-id and org name to install an erratum in a hc
@@ -223,6 +221,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: Erratum is installed.
 
         :CaseLevel: System
+
+        :BZ: 1457977
         """
         install_task = HostCollection.erratum_install({
             'id': self.host_collection['id'],
@@ -233,7 +233,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @skip_if_bug_open('bugzilla', 1457977)
     @tier3
     def test_positive_install_by_hc_id_and_org_label(self):
         """Use hc-id and org label to install an erratum in a hc
@@ -248,6 +247,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: Errata is installed.
 
         :CaseLevel: System
+
+        :BZ: 1457977
         """
         install_task = HostCollection.erratum_install({
             'id': self.host_collection['id'],
@@ -258,7 +259,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @skip_if_bug_open('bugzilla', 1457977)
     @tier3
     def test_positive_install_by_hc_name_and_org_id(self):
         """Use hc-name and org id to install an erratum in a hc
@@ -273,6 +273,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: Erratum is installed.
 
         :CaseLevel: System
+
+        :BZ: 1457977
         """
         install_task = HostCollection.erratum_install({
             'name': self.host_collection['name'],
@@ -283,7 +285,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @skip_if_bug_open('bugzilla', 1457977)
     @tier3
     def test_positive_install_by_hc_name_and_org_name(self):
         """Use hc name and org name to install an erratum in a hc
@@ -298,6 +299,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: Erratum is installed.
 
         :CaseLevel: System
+
+        :BZ: 1457977
         """
         install_task = HostCollection.erratum_install({
             'name': self.host_collection['name'],
@@ -308,7 +311,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @skip_if_bug_open('bugzilla', 1457977)
     @tier3
     def test_positive_install_by_hc_name_and_org_label(self):
         """Use hc-name and org label to install an erratum in a hc
@@ -323,6 +325,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: Erratum is installed.
 
         :CaseLevel: System
+
+        :BZ: 1457977
         """
         install_task = HostCollection.erratum_install({
             'name': self.host_collection['name'],
@@ -1302,7 +1306,6 @@ class ErrataTestCase(CLITestCase):
             set([])
         )
 
-    @skip_if_bug_open('bugzilla', 1400235)
     @tier3
     def test_negative_list_filter_by_product_name(self):
         """Attempt to Filter errata by product name
@@ -1764,21 +1767,20 @@ class ErrataTestCase(CLITestCase):
             context.exception.stderr
         )
         # try to get the erratum products list by organization id only
-        if not bz_bug_is_open('1403947'):
-            # ensure that all products erratum are accessible by admin user
-            admin_org_erratum_info_list = Erratum.list({
-                'organization-id': org['id']})
-            admin_org_errata_ids = [
-                errata['errata-id']
-                for errata in admin_org_erratum_info_list
-            ]
-            self.assertIn(
-                self.org_multi_product_small_errata_id, admin_org_errata_ids)
-            self.assertIn(
-                self.org_multi_product_big_errata_id, admin_org_errata_ids)
-            org_erratum_count = (self.org_multi_product_small_erratum_count +
-                                 self.org_multi_product_big_erratum_count)
-            self.assertEqual(len(admin_org_errata_ids), org_erratum_count)
+        # ensure that all products erratum are accessible by admin user
+        admin_org_erratum_info_list = Erratum.list({
+            'organization-id': org['id']})
+        admin_org_errata_ids = [
+            errata['errata-id']
+            for errata in admin_org_erratum_info_list
+        ]
+        self.assertIn(
+            self.org_multi_product_small_errata_id, admin_org_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, admin_org_errata_ids)
+        org_erratum_count = (self.org_multi_product_small_erratum_count +
+                             self.org_multi_product_big_erratum_count)
+        self.assertEqual(len(admin_org_errata_ids), org_erratum_count)
         # ensure that the created user see only the erratum product that was
         # assigned in permissions
         user_org_erratum_info_list = Erratum.with_user(

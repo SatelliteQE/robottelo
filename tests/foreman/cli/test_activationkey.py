@@ -47,7 +47,6 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -1050,7 +1049,6 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_activation_key['name'], name)
 
-    @skip_if_bug_open('bugzilla', 1336716)
     @tier2
     def test_positive_remove_host_collection_by_id(self):
         """Test that hosts associated to Activation Keys can be removed
@@ -1072,6 +1070,8 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Medium
 
         :CaseLevel: Integration
+
+        :BZ: 1336716
         """
         activation_key = self._make_activation_key()
         new_host_col = make_host_collection({
@@ -1093,7 +1093,6 @@ class ActivationKeyTestCase(CLITestCase):
         activation_key = ActivationKey.info({u'id': activation_key['id']})
         self.assertEqual(len(activation_key['host-collections']), 0)
 
-    @skip_if_bug_open('bugzilla', 1336716)
     @tier2
     def test_positive_remove_host_collection_by_name(self):
         """Test that hosts associated to Activation Keys can be removed
@@ -1113,6 +1112,8 @@ class ActivationKeyTestCase(CLITestCase):
             key
 
         :CaseLevel: Integration
+
+        :BZ: 1336716
         """
         for host_col in valid_data_list():
             with self.subTest(host_col):
@@ -1148,7 +1149,6 @@ class ActivationKeyTestCase(CLITestCase):
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @skip_if_bug_open('bugzilla', 1463685)
     @tier2
     def test_positive_add_subscription_by_id(self):
         """Test that subscription can be added to activation key
@@ -1166,6 +1166,8 @@ class ActivationKeyTestCase(CLITestCase):
         :BZ: 1463685
 
         :CaseLevel: Integration
+
+        :BZ: 1463685
         """
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)

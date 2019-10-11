@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from random import shuffle, randint
 
 from airgun.session import Session
@@ -49,7 +50,6 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     stubbed,
     tier2,
     upgrade
@@ -330,7 +330,6 @@ def test_positive_discover_repo_via_new_product(session, module_org):
             product_name, repo_name)[0]['Name']
 
 
-@skip_if_bug_open('bugzilla', 1676642)
 @stubbed
 @tier2
 @upgrade
@@ -635,7 +634,7 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
-@skip_if_bug_open('bugzilla', 1743271)
+@pytest.mark.skip_if_open("BZ:1743271")
 @tier2
 @upgrade
 def test_positive_upstream_with_credentials(session, module_prod):

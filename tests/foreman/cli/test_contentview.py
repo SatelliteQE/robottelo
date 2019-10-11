@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 import random
 import os
 
@@ -78,7 +79,6 @@ from robottelo.constants import (
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -406,7 +406,6 @@ class ContentViewTestCase(CLITestCase):
             ContentView.info({'id': cv['id']})
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1317057)
     def test_positive_delete_with_custom_repo_by_name_and_verify_files(self):
         """Delete content view containing custom repo and verify it was
         actually deleted from hard drive.
@@ -1182,7 +1181,6 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1359665)
     @tier3
     @upgrade
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
@@ -1264,7 +1262,6 @@ class ContentViewTestCase(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    @skip_if_bug_open('bugzilla', 1343006)
     @tier1
     def test_positive_add_custom_repo_by_name(self):
         """Associate custom content to a content view with name
@@ -1274,6 +1271,8 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: whether repos are added to cv.
 
         :CaseImportance: Critical
+
+        :BZ: 1343006
         """
         new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
@@ -1422,7 +1421,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1427260)
     def test_positive_remove_puppet_module_by_id(self):
         """Remove puppet module from Content View by id
 
@@ -2222,7 +2220,7 @@ class ContentViewTestCase(CLITestCase):
             len(module_streams), 44,
             'Module Streams are not associated with Content View')
 
-    @skip_if_bug_open('bugzilla', 1625783)
+    @pytest.mark.skip_if_open("BZ:1625783")
     @tier2
     def test_positive_republish_after_content_removed(self):
         """Attempt to re-publish content view after all associated content
@@ -2235,7 +2233,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: Content view re-published successfully and no error
             is raised
 
-        :BZ: 1323751
+        :BZ: 1323751, 1625783
 
         :CaseImportance: High
 
@@ -2758,7 +2756,6 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1359665)
     @tier3
     @upgrade
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(self):
@@ -4796,7 +4793,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 class OstreeContentViewTestCase(CLITestCase):
     """Tests for custom ostree contents in content views."""
 
@@ -4998,7 +4995,7 @@ class OstreeContentViewTestCase(CLITestCase):
         self.assertIn(environment, cv['lifecycle-environments'])
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 @run_in_one_thread
 class ContentViewRedHatOstreeContent(CLITestCase):
     """Tests for publishing and promoting cv with RH ostree contents."""
@@ -5231,7 +5228,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         self.assertGreater(int(new_repo['content-counts']['files']), 0)
         return new_repo
 
-    @skip_if_bug_open('bugzilla', 1610309)
+    @pytest.mark.skip_if_open("BZ:1610309")
     @tier3
     def test_positive_arbitrary_file_repo_addition(self):
         """Check a File Repository with Arbitrary File can be added to a
@@ -5254,6 +5251,8 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: Integration
 
         :CaseImportance: High
+
+        :BZ: 1610309
         """
         repo = self._make_file_repository_upload_contents()
         cv = make_content_view({u'organization-id': self.org['id']})
