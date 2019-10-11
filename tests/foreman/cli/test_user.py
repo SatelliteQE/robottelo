@@ -39,7 +39,6 @@ from robottelo.datafactory import (
     valid_usernames_list,
 )
 from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
-from robottelo.helpers import is_open
 from robottelo.test import CLITestCase
 
 

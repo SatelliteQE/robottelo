@@ -1,5 +1,6 @@
 """Tests for module ``robottelo.helpers``."""
 # (Too many public methods) pylint: disable=R0904
+import os
 import six
 import unittest2
 from robottelo.helpers import (
@@ -7,7 +8,14 @@ from robottelo.helpers import (
     escape_search,
     get_host_info,
     get_server_version,
-    Storage
+    Storage,
+    is_open,
+    _should_deselect
+)
+from robottelo.constants import (
+    CLOSED_STATUSES,
+    OPEN_STATUSES,
+    WONTFIX_RESOLUTIONS
 )
 
 if six.PY2:
@@ -133,3 +141,317 @@ class StorageTestCase(unittest2.TestCase):
         self.assertEqual(storage.key, 'value')
         self.assertEqual(storage.another_key, 'another value')
         self.assertEqual(storage.spare_argument, 'one more value')
+
+
+class BugzillaIssueHandlerTestCase(unittest2.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """Set SAT_VERSION to avoid ssh calls"""
+        os.environ['SAT_VERSION'] = '6.6'
+
+    @classmethod
+    def tearDownClass(cls):
+        """clean env vars"""
+        os.environ.pop('SAT_VERSION', None)
+
+    def test_bz_is_open_pre_processed(self):
+        """Assert a pre-processed BZ is considered open"""
+        data = {"is_open": True}
+        self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_not_open_pre_processed(self):
+        """Assert a pre-processed BZ is considered not open"""
+        data = {"is_open": False}
+        self.assertFalse(is_open("BZ:123456", data))
+
+    def test_bz_is_deselected_pre_processed(self):
+        """Assert a pre-processed BZ is considered deselected"""
+        data = {"is_deselected": True}
+        self.assertTrue(_should_deselect("BZ:123456", data))
+
+    def test_bz_is_not_deselected_pre_processed(self):
+        """Assert a pre-processed BZ is considered not deselected"""
+        data = {"is_deselected": False}
+        self.assertFalse(_should_deselect("BZ:123456", data))
+
+    def test_bz_is_open_by_status(self):
+        """Assert status in NEW, ASSIGNED, POST, MODIFIED is open"""
+        for status in OPEN_STATUSES:
+            with self.subTest(status=status):
+                data = {
+                    "id": 123456,
+                    "status": status,
+                    "resolution": "",
+                    "target_milestone": "Unspecified",
+                    "flags": []
+                }
+                self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_open_by_resolution(self):
+        """Assert a closed BZ in WONTFIX resolution is considered open"""
+        for resolution in WONTFIX_RESOLUTIONS:
+            with self.subTest(resolution=resolution):
+                data = {
+                    "id": 123456,
+                    "status": "CLOSED",
+                    "resolution": resolution,
+                    "target_milestone": "Unspecified",
+                    "flags": []
+                }
+                self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_open_if_server_version_is_lower(self):
+        """Assert bug is considered open if TM is set for a future version
+        and there are no clones backporting the solution to server version.
+        """
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "ERRATA",
+            "target_milestone": "7.0.1",
+            "flags": [],
+            "clones": []
+        }
+        self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_not_open_if_server_version_is_higher_or_equal_tm(self):
+        """Assert bug is considered not open if closed status and
+        TM is higher or matches the running server version.
+        """
+        for status in CLOSED_STATUSES:
+            with self.subTest(status=status):
+                data = {
+                    "id": 123456,
+                    "status": status,
+                    "resolution": "",
+                    "target_milestone": "6.6.1",
+                    "flags": [],
+                    "clones": []
+                }
+                self.assertFalse(is_open("BZ:123456", data))
+
+    def test_bz_is_open_if_server_version_is_lower_using_flags(self):
+        """Assert bug is considered open if flag version is set for a future
+        version and there are no clones backporting the solution.
+        """
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "ERRATA",
+            "target_milestone": "Unspecified",
+            "flags": [{"status": "+", "name": "sat-7.0.1"}],
+            "clones": []
+        }
+        self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_not_open_if_server_version_is_higher_or_equal_flags(self):
+        """Assert bug is considered not open if closed status and
+        min(flags) version is higher or matches the running server version.
+        """
+        for status in CLOSED_STATUSES:
+            with self.subTest(status=status):
+                data = {
+                    "id": 123456,
+                    "status": status,
+                    "resolution": "",
+                    "target_milestone": "Unspecified",
+                    "flags": [{"status": "+", "name": "sat-6.6.0"}],
+                    "clones": []
+                }
+                self.assertFalse(is_open("BZ:123456", data))
+
+    def test_bz_is_open_using_dupe_data_higher_version(self):
+        """Assert that if BZ has a dupe, the dupe data is considered.
+        The dupe is CLOSED/ERRATA but on a future version, no clones for
+        backport the solution."""
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "DUPLICATE",
+            "target_milestone": "Unspecified",
+            "flags": [],
+            "dupe_data": {
+                "id": 999999,
+                "status": "CLOSED",
+                "resolution": "ERRATA",
+                "target_milestone": "Unspecified",
+                "flags": [{"status": "+", "name": "sat-6.7.z"}]
+            }
+        }
+        self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_not_open_using_dupe_data_lower_version(self):
+        """Assert that if BZ has a dupe, the dupe data is considered.
+        The dupe is CLOSED/ERRATA in a previous version."""
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "DUPLICATE",
+            "target_milestone": "Unspecified",
+            "flags": [],
+            "dupe_data": {
+                "id": 999999,
+                "status": "CLOSED",
+                "resolution": "ERRATA",
+                "target_milestone": "Unspecified",
+                "flags": [{"status": "+", "name": "sat-6.3.z"}]
+            }
+        }
+        self.assertFalse(is_open("BZ:123456", data))
+
+    def test_bz_is_open_using_dupe_data_clones(self):
+        """Assert that if BZ has a dupe, the dupe data is considered.
+        The dupe is CLOSED/ERRATA but on a future version, and also has
+        a clone that is the backport for the current server version
+        and the clone backport is not yet applied."""
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "DUPLICATE",
+            "target_milestone": "Unspecified",
+            "flags": [],
+            "dupe_data": {
+                "id": 999999,
+                "status": "CLOSED",
+                "resolution": "ERRATA",
+                "target_milestone": "Unspecified",
+                "flags": [{"status": "+", "name": "sat-7.7.z"}],
+                "clones": [
+                    {
+                        "id": 999999,
+                        "status": "POST",
+                        "resolution": "",
+                        "target_milestone": "Unspecified",
+                        "flags": [{"status": "+", "name": "sat-6.6.z"}],
+                        "clones": []
+                    }
+                ]
+            }
+        }
+        self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_not_open_using_dupe_data_clones(self):
+        """Assert that if BZ has a dupe, the dupe data is considered.
+        The dupe is CLOSED/ERRATA but on a future version, and also has
+        a clone that is the backport for the current server version."""
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "DUPLICATE",
+            "target_milestone": "Unspecified",
+            "flags": [],
+            "dupe_data": {
+                "id": 999999,
+                "status": "CLOSED",
+                "resolution": "ERRATA",
+                "target_milestone": "Unspecified",
+                "flags": [{"status": "+", "name": "sat-7.7.z"}],
+                "clones": [
+                    {
+                        "id": 999999,
+                        "status": "CLOSED",
+                        "resolution": "ERRATA",
+                        "target_milestone": "Unspecified",
+                        "flags": [{"status": "+", "name": "sat-6.6.z"}],
+                        "clones": []
+                    }
+                ]
+            }
+        }
+        self.assertFalse(is_open("BZ:123456", data))
+
+    def test_bz_is_open_using_clones_data(self):
+        """Assert BZ is open if is CLOSED but there are open clones for lower
+        versions."""
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "ERRATA",
+            "target_milestone": "Unspecified",
+            "flags": [],
+            "clones": [
+                {
+                    "id": 888888,
+                    "status": "POST",
+                    "resolution": "",
+                    "target_milestone": "Unspecified",
+                    "flags": [{"status": "+", "name": "sat-6.5.z"}]
+                }
+            ]
+        }
+        self.assertTrue(is_open("BZ:123456", data))
+
+    def test_bz_is_not_open_using_clones_data(self):
+        """Assert BZ is open if is CLOSED and there are CLOSED clones for lower
+        versions."""
+        data = {
+            "id": 123456,
+            "status": "CLOSED",
+            "resolution": "ERRATA",
+            "target_milestone": "Unspecified",
+            "flags": [],
+            "clones": [
+                {
+                    "id": 888888,
+                    "status": "CLOSED",
+                    "resolution": "CURRENT_RELEASE",
+                    "target_milestone": "Unspecified",
+                    "flags": [{"status": "+", "name": "sat-6.5.z"}]
+                }
+            ]
+        }
+        self.assertFalse(is_open("BZ:123456", data))
+
+    def test_bz_should_deselect(self):
+        """Ensure a BZ in resolution WONTFIX,CANTIFX,DEFERRED is deselected"""
+        for resolution in WONTFIX_RESOLUTIONS:
+            with self.subTest(resolution=resolution):
+                data = {
+                    "id": 123456,
+                    "status": "CLOSED",
+                    "resolution": resolution,
+                    "target_milestone": "Unspecified",
+                    "flags": []
+                }
+                self.assertTrue(_should_deselect("BZ:123456", data))
+
+    def test_bz_should_not_deselect(self):
+        """Ensure a BZ is not deselected if not in WONTFIX_RESOLUTIONS."""
+        for status in OPEN_STATUSES:
+            with self.subTest(status=status):
+                data = {
+                    "id": 123456,
+                    "status": status,
+                    "resolution": "",
+                    "target_milestone": "Unspecified",
+                    "flags": []
+                }
+                self.assertFalse(_should_deselect("BZ:123456", data))
+
+        for status in CLOSED_STATUSES:
+            for resolution in ('ERRATA', 'CURRENT_RELEASE', 'WORKSFORME'):
+                with self.subTest(status=status, resolution=resolution):
+                    data = {
+                        "id": 123456,
+                        "status": status,
+                        "resolution": "",
+                        "target_milestone": "Unspecified",
+                        "flags": []
+                    }
+                    self.assertFalse(_should_deselect("BZ:123456", data))
+
+    def test_invalid_handler_for_is_open_raises_error(self):
+        """Assert is_open w/ invalid handlers raise AttributeError"""
+
+        for issue in ("XX:123456", "KK:89456", "123456", 999999):
+            with self.subTest(issue=issue):
+                with self.assertRaises(AttributeError):
+                    is_open(issue)
+
+    def test_invalid_handler_for_should_deselect_returns_None(self):
+        """Assert _should_deselect w/ invalid handlers returns None"""
+
+        for issue in ("XX:123456", "KK:89456", "123456", 999999):
+            with self.subTest(issue=issue):
+                self.assertIsNone(_should_deselect(issue))

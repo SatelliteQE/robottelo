@@ -34,36 +34,6 @@ Please note that ''stubbed'' is a decorator generator, and cannot be used as a
 "classic" Python decorator - it must be ''\@stubbed()'', not ''\@stubbed''
 (note the parenthesis).
 
-skip_if_bug_open
-----------------
-
-``skip_if_bug_open`` skips test based on bug tracker status. Currently Bugzilla
-and Redmine are supported. The decorator receives two parameters. The first
-indicates the tracker and must be one of 'bugzilla' or 'redmine'. The second
-parameter indicates the bug id on respective bug tracker. Example::
-
-    from robottelo.decorators import skip_if_bug_open
-
-    @skip_if_bug_open('bugzilla', 1297308)
-    def test_negative_add_puppet_content(self):
-        """Attempt to associate puppet repos within a custom content
-        view directly
-        """
-
-    @skip_if_bug_open('redmine', 23456789)
-    def test_positive_add_puppet_content(self):
-        """Attempt to associate puppet repos within a custom content
-        view directly
-        """
-
-Decorator communicates with bug tracker to know the status of respective bug
-id. If it is still open, test will be skipped. Once bz is fixed and moved to
-ON_QA or Verified state, test will automatically be run with next builds.
-
-This is useful to allow QE team automating test cases even before a bug is
-fixed or a feature is implemented, while test will not be considered a build
-fail until the issue has it state changed.
-
 skip_if_os
 ----------
 

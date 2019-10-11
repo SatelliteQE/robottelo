@@ -1,6 +1,7 @@
 """Module that gather several informations about host"""
 import functools
 import logging
+import os
 import re
 from robottelo.cli.base import CLIReturnCodeError
 
@@ -160,3 +161,9 @@ class SatVersionDependentValues(object):
             return self._versioned_values[sat_version][item]
         except KeyError:
             return self._common[item]
+
+
+def get_sat_version():
+    """Try to read sat_version from envvar SAT_VERSION
+    if not available fallback to ssh connection to get it."""
+    return os.environ.get('SAT_VERSION') or get_host_sat_version()

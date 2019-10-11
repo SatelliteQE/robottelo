@@ -6,8 +6,6 @@ import logging.config
 import os
 import six
 
-from functools import partial
-
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
@@ -137,6 +135,7 @@ class ServerSettings(FeatureSettings):
         self.ssh_key = None
         self.ssh_password = None
         self.ssh_username = None
+        self._version = None
 
     def read(self, reader):
         """Read and validate Satellite server settings."""
@@ -150,6 +149,16 @@ class ServerSettings(FeatureSettings):
         self.ssh_key = reader.get('server', 'ssh_key')
         self.ssh_password = reader.get('server', 'ssh_password')
         self.ssh_username = reader.get('server', 'ssh_username', 'root')
+        self._version = reader.get('server', 'version', None)
+
+    @property
+    def version(self):
+        # Version is lazily taken from config OR SAT_VERSION env var or SSH.
+        if self._version is None:
+            # import here to avoid circular import error
+            from robottelo.host_info import get_sat_version
+            self._version = get_sat_version()
+        return self._version
 
     def validate(self):
         validation_errors = []
@@ -230,36 +239,17 @@ class BugzillaSettings(FeatureSettings):
     """Bugzilla server settings definitions."""
     def __init__(self, *args, **kwargs):
         super(BugzillaSettings, self).__init__(*args, **kwargs)
-        self.password = None
-        self.username = None
-        self.wontfix_lookup = None
+        self.url = None
+        self.api_key = None
 
     def read(self, reader):
         """Read and validate Bugzilla server settings."""
-        get_bz = partial(reader.get, 'bugzilla')
-        self.password = get_bz('bz_password', None)
-        self.username = get_bz('bz_username', None)
-        self.wontfix_lookup = reader.get(
-            'bugzilla', 'wontfix_lookup', True, bool)
-
-    def get_credentials(self):
-        """Return credentials for interacting with a Bugzilla API.
-
-        :return: A username-password dict.
-        :rtype: dict
-
-        """
-        return {'user': self.username, 'password': self.password}
+        self.url = reader.get('bugzilla', 'url', 'https://bugzilla.redhat.com')
+        self.api_key = reader.get('bugzilla', 'api_key', None)
 
     def validate(self):
-        validation_errors = []
-        if self.username is None:
-            validation_errors.append(
-                '[bugzilla] bz_username must be provided.')
-        if self.password is None:
-            validation_errors.append(
-                '[bugzilla] bz_password must be provided.')
-        return validation_errors
+        """This section is lazily validated on .issue_handlers.bugzilla."""
+        return []
 
 
 class CapsuleSettings(FeatureSettings):
@@ -1522,7 +1512,6 @@ class Settings(object):
     def _configure_third_party_logging(self):
         """Increase the level of third party packages logging."""
         loggers = (
-            'bugzilla',
             'easyprocess',
             'paramiko',
             'requests.packages.urllib3.connectionpool',

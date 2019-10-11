@@ -25,6 +25,9 @@ ssh_key=
 # Admin password when accessing API and UI
 # admin_password=changeme
 
+# Version is taken from here OR SAT_VERSION envvar or SSH call
+# version=6.6
+
 # section for ssh client settings
 # [ssh_client]
 # Time to wait for the ssh command to finish, in seconds
@@ -131,17 +134,11 @@ ssh_key=
 
 # Bugzilla data to authenticate API calls
 # [bugzilla]
-# username used when accessing Bugzilla's API
-# bz_username=admin
+# url default value is set to 'https://bugzilla.redhat.com' even if not provided.
+# url=https://bugzilla.redhat.com
 
-# password used when accessing Bugzilla's API
-# bz_password=changeme
-
-# if wontfix_lookup is enabled all decorated BZs found with WONTFIX resolution
-# will be fetched from Bugzilla API and those tests deselected
-# you may want to set to false to save time when running local tests
-# default is true.
-# wontfix_lookup = false
+# Provide api_key to access Bugzilla REST API 
+# api_key=
 
 # For LDAP Authentication.
 # [ldap]
