@@ -477,7 +477,7 @@ def test_positive_virt_who_roles_permissions(session, test_name, form_data):
         including their configuration scripts, which means viewers could still
         deploy the virt-who instances for existing virt-who configurations.
         3. Virt-who Manager Role granting all permissions to manage virt-who configurations,
-         user needs this role to create, delete or update configurations.
+        user needs this role to create, delete or update configurations.
 
     """
     username = gen_string('alpha')

@@ -317,7 +317,10 @@ def restart_virt_who_service():
     runcmd("systemctl restart virt-who")
 
 
-def create_etc_d_file(form_data, rhsm_username='admin', rhsm_password='admin', filename='virt-who-config.conf'):
+def create_etc_d_file(form_data,
+                      rhsm_username='admin',
+                      rhsm_password='admin',
+                      filename='virt-who-config.conf'):
     filepath = '/etc/virt-who.d/{}'.format(filename)
     type = form_data['hypervisor_type']
     owner = 'Default_Organization'
