@@ -34,6 +34,7 @@ from .utils import (
     get_configure_command,
     restart_virt_who_service,
     virtwho_cleanup,
+    VirtWhoError,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -515,7 +516,7 @@ def test_positive_virt_who_roles_permissions(session, test_name, form_data):
         try:
             deploy_validation(False)
         except Exception:
-            raise BaseException(
+            raise VirtWhoError(
                 'Virt-who Reporter should have the permission to upload the report')
         with Session(test_name, username, password) as newsession:
             try:
@@ -523,7 +524,7 @@ def test_positive_virt_who_roles_permissions(session, test_name, form_data):
             except Exception:
                 pass
             else:
-                raise BaseException(
+                raise VirtWhoError(
                     'Virt-who Reporter should not have the permission to read config')
         # Check the permissioin of Virt-who Viewer
         session.user.update(
@@ -545,7 +546,7 @@ def test_positive_virt_who_roles_permissions(session, test_name, form_data):
             except Exception:
                 pass
             else:
-                raise BaseException(
+                raise VirtWhoError(
                     'Virt-who Viewer should not have the permission to creat config')
         # Check the permissioin of Virt-who Manager
         session.user.update(
