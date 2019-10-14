@@ -222,10 +222,6 @@ class ProductTestCase(CLITestCase):
                 'product-id': product['id'],
                 'url': FAKE_0_YUM_REPO,
             })
-            result = Product.synchronize({
-                'id': product['id'],
-            })
-            self.assertTrue('1 success, 0 fail' in "".join(result))
 
         Defaults.add({
             u'param-name': 'organization_id',
