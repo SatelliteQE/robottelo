@@ -21,6 +21,8 @@ http://<sat6>/apidoc/v2/products.html
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
@@ -367,3 +369,31 @@ class ProductTestCase(APITestCase):
         self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
         self.assertGreaterEqual(
             puppet_repo.read().content_counts['puppet_module'], 1)
+
+    @tier2
+    def test_positive_filter_product_list(self):
+        """ Filter products based on param 'custom/redhat_only'
+
+        :id: e61fb63a-4552-4915-b13d-23ab80138249
+
+        :expectedresults: Able to list the products based on defined filter.
+
+        :CaseLevel: Integration
+
+        :BZ: 1667129
+        """
+        product = entities.Product(organization=self.org.id).create()
+        # Manifest upload to create RH Product
+        with manifests.clone() as manifest:
+            upload_manifest(self.org.id, manifest.content)
+
+        custom_products = entities.Product(organization=self.org.id).search(query={'custom': True})
+        rh_products = entities.Product(organization=self.org.id).search(
+            query={'redhat_only': True})
+
+        self.assertEqual(len(custom_products), 1)
+        self.assertEqual(product.name, custom_products[0].name)
+        self.assertNotIn('Red Hat Beta', [prod.name for prod in custom_products])
+        self.assertGreater(len(rh_products), 1)
+        self.assertNotIn(product.name, [prod.name for prod in rh_products])
+        self.assertIn('Red Hat Beta', [prod.name for prod in rh_products])
