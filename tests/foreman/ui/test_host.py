@@ -1525,7 +1525,7 @@ def test_positive_bulk_delete_host(session, module_loc):
             operatingsystem=host_template.operatingsystem,
             ptable=host_template.ptable,
         ).create().name
-        for _ in range(2)
+        for _ in range(18)
     ]
     with session:
         session.organization.select(org_name=org.name)
