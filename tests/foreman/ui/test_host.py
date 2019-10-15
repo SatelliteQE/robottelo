@@ -1525,13 +1525,13 @@ def test_positive_bulk_delete_host(session, module_loc):
             operatingsystem=host_template.operatingsystem,
             ptable=host_template.ptable,
         ).create().name
-        for _ in range(18)
+        for _ in range(2)
     ]
     with session:
         session.organization.select(org_name=org.name)
         values = session.host.read_all()
         assert {host['Name'] for host in values['table']} == set(hosts_names)
-        session.host.apply_action('Delete Hosts', list(hosts_names))
+        session.host.delete_hosts(list(hosts_names))
         values = session.host.read_all()
         assert not values['table']
 
