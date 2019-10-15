@@ -228,3 +228,24 @@ class SubscriptionTestCase(CLITestCase):
             Subscription.refresh_manifest({
                 'organization-id': self.org['id'],
             })
+
+    @skip_if_bug_open('bugzilla', 1686916)
+    @tier2
+    def test_positive_subscription_list(self):
+        """Verify that subscription list contains start and end date
+
+        :id: 4861bcbc-785a-436d-98ce-14cfef7d6907
+
+        :expectedresults: subscription list contains the start and end date
+
+        :BZ: 1686916
+
+        :CaseImportance: Medium
+        """
+        self._upload_manifest(self.org['id'])
+        subscription_list = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False,
+        )
+        for column in ['start-date', 'end-date']:
+            self.assertTrue(column in subscription_list[0].keys())
