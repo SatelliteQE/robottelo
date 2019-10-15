@@ -14,12 +14,13 @@
 
 :Upstream: No
 """
-
+from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     fixture,
+    skip_if_bug_open,
     stubbed,
     tier2,
     tier3,
@@ -123,6 +124,31 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
             else:
                 result = session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
                 assert lce.name in result['Environments']
+
+
+@skip_if_bug_open('bugzilla', 1677282)
+@tier2
+def test_positive_httpd_proxy_url_update(session, set_original_property_value):
+    """Update the http_proxy_url should pass successfully.
+
+    :id: 593eb8e1-16dd-486b-a760-47b8fdf4dcb9
+
+    :expectedresults: http_proxy_url updated successfully.
+
+    :BZ: 1677282
+
+    :CaseImportance: Medium
+
+    """
+    property_name = 'http_proxy'
+    with session:
+        set_original_property_value(property_name)
+        param_value = gen_url()
+        session.settings.update(
+            'name = {}'.format(property_name),
+            param_value
+        )
+        assert session.settings.read(property_name)
 
 
 @tier2
