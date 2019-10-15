@@ -148,7 +148,8 @@ def test_positive_httpd_proxy_url_update(session, set_original_property_value):
             'name = {}'.format(property_name),
             param_value
         )
-        assert session.settings.read(property_name)
+        result = session.settings.read('name = {}'.format(property_name))
+        assert result['table'][0]['Value'] == param_value
 
 
 @tier2

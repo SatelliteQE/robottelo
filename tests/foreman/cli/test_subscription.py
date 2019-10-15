@@ -248,4 +248,4 @@ class SubscriptionTestCase(CLITestCase):
             per_page=False,
         )
         for column in ['start-date', 'end-date']:
-            self.assertTrue(column in subscription_list[0].keys())
+            self.assertIn(column, subscription_list[0].keys())
