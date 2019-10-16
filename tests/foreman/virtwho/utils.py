@@ -1,7 +1,6 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
 import re
 import json
-import configparser
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
