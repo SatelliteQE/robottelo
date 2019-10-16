@@ -272,6 +272,8 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             delay=2,
             logger=self.logger
         )
+        host = entities.Host().search(query={
+            'search': 'activation_key={0}'.format(activation_key)})[0]
         self.assertEqual(
             host.content_facet_attributes['errata_counts']['total'],
             0
