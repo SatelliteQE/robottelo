@@ -23,7 +23,7 @@ from robottelo.decorators import (
     tier1,
     tier3,
 )
-from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import get_nailgun_config, is_open
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -214,7 +214,7 @@ class EntityTestCase(APITestCase):
                 # partials cannot be compared for class identity and the class
                 # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
                 # comment it out above.
-                if entity_cls in BZ_1118015_ENTITIES:
+                if entity_cls in BZ_1118015_ENTITIES and is_open('BZ:1118015'):
                     continue  # pytest can't skip inside a subTest.
 
                 response = entity_cls().create_raw()

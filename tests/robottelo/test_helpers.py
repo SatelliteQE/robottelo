@@ -444,7 +444,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
     def test_invalid_handler_for_is_open_raises_error(self):
         """Assert is_open w/ invalid handlers raise AttributeError"""
 
-        for issue in ("XX:123456", "KK:89456", "123456", 999999):
+        for issue in ("BZ123456", "XX:123456", "KK:89456", "123456", 999999):
             with self.subTest(issue=issue):
                 with self.assertRaises(AttributeError):
                     is_open(issue)
@@ -452,6 +452,6 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
     def test_invalid_handler_for_should_deselect_returns_None(self):
         """Assert _should_deselect w/ invalid handlers returns None"""
 
-        for issue in ("XX:123456", "KK:89456", "123456", 999999):
+        for issue in ("BZ123456", "XX:123456", "KK:89456", "123456", 999999):
             with self.subTest(issue=issue):
                 self.assertIsNone(_should_deselect(issue))

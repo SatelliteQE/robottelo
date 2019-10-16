@@ -136,16 +136,12 @@ def pytest_collection_modifyitems(items, config):
 
     for item in items:
         # 1. Deselect tests marked with @pytest.mark.deselect
-        # WONTFIX BZs makes test to be dinamically marked as deselect.
+        # WONTFIX BZs makes test to be dynamically marked as deselect.
         deselect = item.get_closest_marker('deselect')
         if deselect:
             deselected_items.append(item)
             reason = deselect.kwargs.get('reason', deselect.args)
-            log(
-                "Deselected test '{name}' reason: {reason}".format(
-                    name=item.name, reason=reason
-                )
-            )
+            log(f"Deselected test '{item.name}' reason: {reason}")
             # Do nothing more with deselected tests
             continue
 
@@ -156,11 +152,9 @@ def pytest_collection_modifyitems(items, config):
             issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
             if is_open(issue):
                 log(
-                    'Skipping {} in {} due to {}'.format(
-                        item.function.__name__,
-                        item.function.__module__,
-                        issue
-                    )
+                    f'Skipping {item.function.__name__} '
+                    f'in {item.function.__module__} '
+                    f'due to {issue}'
                 )
                 item.add_marker(pytest.mark.skip(reason=issue))
 
@@ -177,13 +171,13 @@ def record_test_timestamp_xml(record_property):
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
-        "stubbed: Tests that are not automates yet.",
+        "stubbed: Tests that are not automated yet.",
         "deselect(reason=None): Mark test to be removed from collection.",
         "skip_if_open(issue): Skip test based on issue status.",
-        "tier1: CRUD tests",
-        "tier2: Association tests",
-        "tier3: Systems integration tests",
-        "tier4: Long running tests",
+        "tier1: Tier 1 tests",
+        "tier2: Tier 2 tests",
+        "tier3: Tier 3 tests",
+        "tier4: Tier 4 tests",
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
         "run_in_one_thread: Sequential tests",

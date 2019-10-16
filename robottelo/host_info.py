@@ -3,6 +3,7 @@ import functools
 import logging
 import os
 import re
+from packaging.version import Version
 from robottelo.cli.base import CLIReturnCodeError
 
 from robottelo import ssh
@@ -166,4 +167,4 @@ class SatVersionDependentValues(object):
 def get_sat_version():
     """Try to read sat_version from envvar SAT_VERSION
     if not available fallback to ssh connection to get it."""
-    return os.environ.get('SAT_VERSION') or get_host_sat_version()
+    return Version(os.environ.get('SAT_VERSION') or get_host_sat_version())

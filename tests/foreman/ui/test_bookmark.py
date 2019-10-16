@@ -24,7 +24,7 @@ from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
 from robottelo.decorators import fixture, tier2, upgrade
-from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import get_nailgun_config, is_open
 
 
 @fixture(scope='module')
@@ -47,7 +47,9 @@ def ui_entities(module_org, module_loc):
         # Skip the entities, which can't be tested ATM (not implemented in
         # airgun or have open BZs)
         skip = entity.get('skip_for_ui')
-        if skip:
+        if isinstance(skip, (tuple, list)):
+            skip = any([is_open(issue) for issue in skip])
+        if skip is True:
             continue
         ui_entities.append(entity)
         # Some pages require at least 1 existing entity for search bar to

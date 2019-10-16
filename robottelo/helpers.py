@@ -1,19 +1,22 @@
 # -*- encoding: utf-8 -*-
 """Several helper methods and functions."""
 import contextlib
+import inspect
+import json
 import logging
 import os
 import random
 import re
-import requests
-import inspect
-import json
-import pytest
-
 from collections import defaultdict
 from datetime import datetime
 from tempfile import mkstemp
+from urllib.parse import urljoin  # noqa
+
+import pytest
+import requests
 from nailgun.config import ServerConfig
+from packaging.version import Version
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -24,7 +27,6 @@ from robottelo.constants import (
     RHEL_7_MAJOR_VERSION,
 )
 from robottelo.issue_handlers import bugzilla
-from urllib.parse import urljoin  # noqa
 
 LOGGER = logging.getLogger(__name__)
 
@@ -766,7 +768,7 @@ def is_open(issue, data=None):
     """
     # Handlers can be extended to support different issue trackers.
     handlers = {'BZ': bugzilla.is_open_bz}
-    supported_handlers = tuple(handlers.keys())
+    supported_handlers = tuple(f"{handler}:" for handler in handlers.keys())
 
     if str(issue).startswith(supported_handlers):
         handler_code, _, _ = str(issue).partition(":")
@@ -774,7 +776,7 @@ def is_open(issue, data=None):
         raise AttributeError(
             "is_open argument must be a string starting with a handler code "
             "e.g: 'BZ:123456'"
-            "supported handlers are: {}".format(supported_handlers)
+            f"supported handlers are: {supported_handlers}"
 
         )
     return handlers[handler_code.strip()](issue.strip(), data)
@@ -784,7 +786,7 @@ def _should_deselect(issue, data=None):
     """Check if test should be deselected based on marked issue."""
     # Handlers can be extended to support different issue trackers.
     handlers = {'BZ': bugzilla.should_deselect_bz}
-    supported_handlers = tuple(handlers.keys())
+    supported_handlers = tuple(f"{handler}:" for handler in handlers.keys())
     if str(issue).startswith(supported_handlers):
         handler_code, _, _ = str(issue).partition(":")
         return handlers[handler_code.strip()](issue.strip(), data)
@@ -837,7 +839,10 @@ def generate_issue_collection(items, config):  # pragma: no cover
     cached_data = None
     if bz_cache:
         with open(bz_cache) as bz_cache_file:
-            cached_data = json.load(bz_cache_file)
+            cached_data = {
+                k: _handle_version(k, v)
+                for k, v in json.load(bz_cache_file).items()
+            }
 
     deselect_data = {}  # a local cache for deselected tests
 
@@ -921,8 +926,8 @@ def generate_issue_collection(items, config):  # pragma: no cover
     # --- if not using pre-existing cache write it ---
     if not bz_cache:
         collected_data['_meta'] = {
-            "sat_version": settings.server.version,
-            "sat_hostname": settings.server.hostname,
+            "version": settings.server.version,
+            "hostname": settings.server.hostname,
             "created": datetime.now().isoformat(),
             "pytest": {
                 "args": config.args,
@@ -930,9 +935,34 @@ def generate_issue_collection(items, config):  # pragma: no cover
             }
         }
         with open('bz_cache.json', 'w') as collect_file:
-            json.dump(collected_data, collect_file, indent=4)
-            LOGGER.debug(
-                "Generated file {} with BZ collect data".format(bz_cache)
+            json.dump(
+                collected_data, collect_file, indent=4, cls=VersionEncoder
             )
+            LOGGER.debug(f"Generated file {bz_cache} with BZ collect data")
 
     return collected_data
+
+
+class VersionEncoder(json.JSONEncoder):
+    """Transform Version instances to str"""
+    def default(self, z):
+        if isinstance(z, Version):
+            return str(z)
+        return super().default(z)
+
+
+def _handle_version(key, value):
+    """look for 'version' key and transform it in a Version instance"""
+    if key == 'version' and isinstance(value, str):
+        return Version(value)
+    if isinstance(value, dict):
+        return {
+            k: _handle_version(k, v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [
+            _handle_version(key, item)
+            for item in value
+        ]
+    return value

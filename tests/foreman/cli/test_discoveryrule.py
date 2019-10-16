@@ -96,7 +96,6 @@ class DiscoveryRuleTestCase(CLITestCase):
             {'name': gen_string('latin1')},
             {'name': gen_string('numeric')},
             {'name': gen_string('utf8')},
-            {'name': gen_string('html'), 'bugzilla': 1378427},
             {'name': '$#@!*'},
             {'name': '" "'},
             {'name': '-1'},
@@ -281,12 +280,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         """
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
-                bug_id = name.pop('bugzilla', None)
-                if bug_id is not None:
-                    self.logger.info(
-                        " Skip subtest due to BZ:{}".format(bug_id)
-                    )
-                    continue
                 with self.assertRaises(CLIFactoryError):
                     self._make_discoveryrule({u'hostname': name})
 

@@ -1,9 +1,10 @@
 import re
 import logging
 
-import httpx
+import requests
 import pytest
 
+from packaging.version import Version
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from robottelo.config import settings
@@ -17,15 +18,13 @@ from robottelo.constants import (
 LOGGER = logging.getLogger(__name__)
 
 # match any version as in `sat-6.2.x` or `sat-6.2.0` or `6.2.9`
-# The .version group being a `d.d` string that can be casted to float()
+# The .version group being a `d.d` string that can be casted to Version()
 VERSION_RE = re.compile(r'(?:sat-)*?(?P<version>\d\.\d)\.\w*')
 
 
 def is_open_bz(issue, data=None):
     """Check if specific BZ is open consulting a cached `data` dict or
     calling Bugzilla REST API.
-
-    https://hackmd.io/01mIqiG6TOKTrPpTk4jejg?view#Is-Bug-Open
 
     Arguments:
         issue {str} -- The BZ reference e.g: BZ:123456
@@ -50,7 +49,7 @@ def is_open_bz(issue, data=None):
     # BZ is CLOSED with a resolution in (ERRATA, CURRENT_RELEASE, ...)
     # server.version is higher or equal than BZ version
     # Consider fixed,  BZ is not open
-    if float(settings.server.version) >= extract_min_version(bz):
+    if settings.server.version >= extract_min_version(bz):
         return False
 
     # Not in OPEN_STATUSES
@@ -65,8 +64,6 @@ def should_deselect_bz(issue, data=None):
     """Check if test should be deselected based on marked issue.
 
     1. Resolution WONTFIX/CANTFIX/DEFERRED should deselect
-
-    https://hackmd.io/01mIqiG6TOKTrPpTk4jejg?view#Should-deselect-test-case
 
     Arguments:
         issue {str} -- The BZ reference e.g: BZ:123456
@@ -89,15 +86,13 @@ def follow_dupes_and_clones(bz):
     If has a dupe, consider dupe in place of BZ.
     If has clones, consider the clone with the minimum version.
 
-    https://hackmd.io/01mIqiG6TOKTrPpTk4jejg?view#Follow-dups-and-clones
-
     Arguments:
         bz {dict} -- A dict containing bz data.
     """
     if bz.get('dupe_data'):
         bz = bz['dupe_data']
 
-    max_version = max(float(settings.server.version), extract_min_version(bz))
+    max_version = max(settings.server.version, extract_min_version(bz))
     for clone in bz.get('clones', []):
         clone_version = extract_min_version(clone)
         if max_version >= clone_version:
@@ -112,7 +107,7 @@ def extract_min_version(bz):
     if bz.get('version') is None:
         tmversion = VERSION_RE.search(bz['target_milestone'])
         if tmversion:
-            bz["version"] = float(tmversion.group('version'))
+            bz["version"] = Version(tmversion.group('version'))
         else:
             flag_versions = [
                 VERSION_RE.search(flag['name'])
@@ -120,13 +115,13 @@ def extract_min_version(bz):
                 if flag['status'] == '+'
             ]
             versions = [
-                float(flag_version.group('version'))
+                Version(flag_version.group('version'))
                 for flag_version in flag_versions
                 if flag_version is not None
             ]
             if versions:
                 bz["version"] = min(versions)
-    return bz.get('version') or 0  # to allow comparisons
+    return bz.get('version') or Version('0')  # to allow comparisons
 
 
 def try_from_cache(issue, data=None):
@@ -213,7 +208,11 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
             ['BZ:{}'.format(number) in cached_data for number in bz_numbers]
         ):
             LOGGER.debug("There are BZs out of cache.")
-        return [item['data'] for _, item in cached_data.items()]
+        return [
+            item['data']
+            for _, item in cached_data.items()
+            if 'data' in item
+        ]
 
     # No cached data so Call Bugzilla API
     LOGGER.debug("Calling Bugzilla API for {}".format(set(bz_numbers)))
@@ -233,7 +232,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         "clone_ids",
         "depends_on",
     ]
-    # Following fields are dinamically calculated/loaded
+    # Following fields are dynamically calculated/loaded
     for field in ('is_open', 'clones', 'version'):
         assert field not in bz_fields
 
@@ -241,7 +240,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
     if not settings.bugzilla.api_key:
         raise ImproperlyConfigured("Config file is missing bugzilla api_key")
 
-    response = httpx.get(
+    response = requests.get(
         "{}/rest/bug".format(settings.bugzilla.url),
         params={
             "id": ",".join(set(bz_numbers)),
