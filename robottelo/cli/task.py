@@ -54,3 +54,16 @@ class Task(Base):
         """
         cls.command_sub = 'resume'
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def list_tasks(cls, options=None):
+        """List tasks
+
+        Usage:
+            hammer task list [OPTIONS]
+
+        Options:
+            --search SEARCH               List tasks matching search string
+        """
+        cls.command_sub = 'list'
+        return cls.execute(cls._construct_command(options), output_format='csv')

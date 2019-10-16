@@ -26,6 +26,7 @@ from robottelo.cli.factory import (
     make_job_template,
 )
 from robottelo.cli.host import Host
+from robottelo.cli.task import Task
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.constants import (
@@ -122,11 +123,14 @@ class TestRemoteExecution():
 
     @tier3
     def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup, fixture_org):
-        """Run default template on host connected by ip
+        """Run default template on host connected by ip and list task
 
         :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
 
         :expectedresults: Verify the job was successfully ran against the host
+            and task can be listed by name and ID
+
+        :BZ: 1647582
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -136,11 +140,13 @@ class TestRemoteExecution():
             'name': 'remote_execution_connect_by_ip',
             'value': 'True',
         })
+        command = "echo {0}".format(gen_string('alpha'))
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
-            'inputs': 'command="ls"',
+            'inputs': 'command={0}'.format(command),
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
+
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
@@ -151,6 +157,10 @@ class TestRemoteExecution():
                     )
                 )
             raise AssertionError(result)
+
+        task = Task.list_tasks({"search": command})[0]
+        search = Task.list_tasks({"search": 'id={0}'.format(task["id"])})
+        assert search[0]["action"] == task["action"]
 
     @tier3
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup, fixture_org):
