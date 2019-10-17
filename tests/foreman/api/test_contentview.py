@@ -19,6 +19,7 @@ import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
+from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
@@ -26,10 +27,12 @@ from robottelo import manifests
 from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_2,
     CUSTOM_REPODATA_PATH,
+    CUSTOM_RPM_SHA_512,
+    CUSTOM_RPM_SHA_512_FEED_COUNT,
     CUSTOM_SWID_TAG_REPO,
     DOCKER_REGISTRY_HUB,
-    FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
     FEDORA27_OSTREE_REPO,
     FILTER_ERRATA_TYPE,
     PERMISSIONS,
@@ -315,6 +318,49 @@ class ContentViewTestCase(APITestCase):
                 content_view=content_view,
             ).create()
         self.assertEqual(len(content_view.read().puppet_module), 1)
+
+    @tier2
+    def test_positive_add_sha512_rpm(self):
+        """Associate sha512 RPM content in a view
+
+        :id: 1f473b02-5e2b-41ff-a706-c0635abc2476
+
+        :expectedresults: Custom sha512 assigned and present in content view
+
+        :CaseLevel: Integration
+
+        :CaseComponent: Pulp
+
+        :CaseImportance: Medium
+
+        :BZ: 1639406
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        yum_sha512_repo = entities.Repository(product=product, url=CUSTOM_RPM_SHA_512).create()
+        yum_sha512_repo.sync()
+        repo_content = yum_sha512_repo.read()
+        # Assert that the repository content was properly synced
+        self.assertEqual(
+            repo_content.content_counts['rpm'], CUSTOM_RPM_SHA_512_FEED_COUNT['rpm']
+        )
+        self.assertEqual(
+            repo_content.content_counts['erratum'], CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
+        )
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = [yum_sha512_repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.repository), 1,)
+        self.assertEqual(len(content_view.version), 1)
+        content_view_version = content_view.version[0].read()
+        self.assertEqual(
+            content_view_version.package_count, CUSTOM_RPM_SHA_512_FEED_COUNT['rpm']
+        )
+        self.assertEqual(
+            content_view_version.errata_counts['total'], CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
+        )
 
     @tier2
     @stubbed()
@@ -1179,6 +1225,36 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         # environment and latest - 0
         self.assertEqual(len(content_view.version[0].read().environment), 1)
         self.assertEqual(len(content_view.version[-1].read().environment), 0)
+
+    @tier3
+    def test_positive_publish_multiple_repos(self):
+        """Attempt to publish a content view with multiple YUM repos.
+
+        :id: 5557a33b-7a6f-45f5-9fe4-23a704ed9e21
+
+        :expectedresults: Content view publish should not raise an exception.
+
+        :CaseLevel: Integration
+
+        :CaseComponent: Pulp
+
+        :CaseImportance: Medium
+
+        :BZ: 1651930
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        for _ in range(10):
+            repo = entities.Repository(product=product).create()
+            repo.sync()
+            content_view.repository.append(repo)
+            content_view = content_view.update(['repository'])
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.repository), 10)
+        with self.assertNotRaises(TaskFailedError):
+            content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
 
 
 class ContentViewUpdateTestCase(APITestCase):

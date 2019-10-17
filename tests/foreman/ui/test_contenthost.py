@@ -268,7 +268,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+            search_query='label = Actions::Katello::Host::UploadProfiles'
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
@@ -303,6 +303,7 @@ def test_positive_search_by_subscription_status(session, vm):
         result = session.contenthost.search('subscription_status != valid')
         assert vm.hostname not in {host['Name'] for host in result}
         # check dashboard
+        session.dashboard.action({'HostSubscription': {'type': 'Invalid'}})
         values = session.contenthost.read_all()
         assert values['searchbox'] == 'subscription_status = invalid'
         assert len(values['table']) == 0
@@ -965,7 +966,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+            search_query='label = Actions::Katello::Host::UploadProfiles'
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),

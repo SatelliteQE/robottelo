@@ -229,6 +229,7 @@ REPOSET = {
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
                ' Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
+    'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
 }
 
 REPOS = {
@@ -519,6 +520,11 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
+
+CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with-sha-512/'
+
+CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
+
 CUSTOM_MODULE_STREAM_REPO_1 = (
     u'https://dl.fedoraproject.org/pub/fedora/linux/updates/29/Modular/x86_64/'
 )

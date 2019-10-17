@@ -41,6 +41,7 @@ from robottelo.constants import (
     INVALID_URL,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
+    REPOSET,
     VALID_GPG_KEY_FILE,
     VALID_GPG_KEY_BETA_FILE,
 )
@@ -864,3 +865,24 @@ def test_positive_delete_random_docker_repo(session, module_org):
         # Check whether others repositories are not touched
         for product_name, repo_name in entities_list:
             assert session.repository.search(product_name, repo_name)[0]['Name'] == repo_name
+
+
+@tier2
+def test_positive_recommended_repos(session, module_org):
+    """list recommended repositories using
+     On/Off 'Recommended Repositories' toggle.
+
+    :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
+
+    :expectedresults: Shows repositories as per On/Off 'Recommended Repositories'.
+
+    :CaseLevel: Integration
+    """
+    manifests.upload_manifest_locked(module_org.id)
+    with session:
+        session.organization.select(module_org.name)
+        rrepos_on = session.redhatrepository.read(recommended_repo='on')
+        assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
+        rrepos_off = session.redhatrepository.read(recommended_repo='off')
+        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
+        assert len(rrepos_off) > len(rrepos_on)
