@@ -943,7 +943,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
     return collected_data
 
 
-class VersionEncoder(json.JSONEncoder):
+class VersionEncoder(json.JSONEncoder):  # pragma: no cover
     """Transform Version instances to str"""
     def default(self, z):
         if isinstance(z, Version):
@@ -951,7 +951,7 @@ class VersionEncoder(json.JSONEncoder):
         return super().default(z)
 
 
-def _handle_version(key, value):
+def _handle_version(key, value):  # pragma: no cover
     """look for 'version' key and transform it in a Version instance"""
     if key == 'version' and isinstance(value, str):
         return Version(value)

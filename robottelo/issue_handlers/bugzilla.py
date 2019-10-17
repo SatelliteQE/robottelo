@@ -3,6 +3,7 @@ import logging
 
 import requests
 import pytest
+from collections import defaultdict
 
 from packaging.version import Version
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -33,7 +34,8 @@ def is_open_bz(issue, data=None):
     bz = try_from_cache(issue, data)
     if bz.get("is_open") is not None:  # bug has been already processed
         return bz["is_open"]
-    bz = follow_dupes_and_clones(bz)
+
+    bz = follow_duplicates(bz)
 
     # BZ is explicitly in OPEN status
     if bz['status'] in OPEN_STATUSES:
@@ -72,7 +74,8 @@ def should_deselect_bz(issue, data=None):
     bz = try_from_cache(issue, data)
     if bz.get("is_deselected") is not None:  # bug has been already processed
         return bz["is_deselected"]
-    bz = follow_dupes_and_clones(bz)
+
+    bz = follow_duplicates(bz)
 
     return (
         bz['status'] in CLOSED_STATUSES
@@ -80,25 +83,10 @@ def should_deselect_bz(issue, data=None):
     )
 
 
-def follow_dupes_and_clones(bz):
-    """Check if BZ has duplicates and clones.
-
-    If has a dupe, consider dupe in place of BZ.
-    If has clones, consider the clone with the minimum version.
-
-    Arguments:
-        bz {dict} -- A dict containing bz data.
-    """
+def follow_duplicates(bz):
+    """Recursivelly load the duplicate data"""
     if bz.get('dupe_data'):
-        bz = bz['dupe_data']
-
-    max_version = max(settings.server.version, extract_min_version(bz))
-    for clone in bz.get('clones', []):
-        clone_version = extract_min_version(clone)
-        if max_version >= clone_version:
-            max_version = clone_version
-            bz = clone
-
+        bz = follow_duplicates(bz['dupe_data'])
     return bz
 
 
@@ -155,38 +143,63 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
         cached_data=cached_data
     )
     for data in bz_data:
-        clones = data['clone_ids']
-        if data['cf_clone_of']:
-            clones.append(data['cf_clone_of'])
+        # If BZ is CLOSED/DUPLICATE collect the duplicate
+        collect_dupes(data, collected_data, cached_data=cached_data)
 
-        if data["resolution"] == "DUPLICATE":
-            # Collect duplicates
-            data["dupe_data"] = get_single_bz(
-                data["dupe_of"],
-                cached_data=cached_data
-            )
-            # Store Duplicate also in the main collection for caching
-            dupe_key = "BZ:{}".format(data["dupe_of"])
-            if dupe_key not in collected_data:
-                collected_data[dupe_key]['data'] = data["dupe_data"]
-        elif clones:
-            # Collect clones
-            data["clones"] = get_data_bz(
-                [str(clone_num) for clone_num in clones],
-                cached_data=cached_data
-            )
-            for clone_data in data["clones"]:
-                # Store Clones also in the main collection for caching
-                clone_key = "BZ:{}".format(clone_data['id'])
-                if clone_key not in collected_data:
-                    collected_data[clone_key]['data'] = clone_data
+        # Collect clones to feed the nagger script for notifications
+        collect_clones(data, collected_data, cached_data=cached_data)
 
         bz_key = 'BZ:{}'.format(data['id'])
         data["is_open"] = is_open_bz(bz_key, data)
         collected_data[bz_key]['data'] = data
 
 
+def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
+    """Recursivelly find for duplicates"""
+    cached_data = cached_data or {}
+    if bz["resolution"] == "DUPLICATE":
+        # Collect duplicates
+        bz["dupe_data"] = get_single_bz(
+            bz["dupe_of"],
+            cached_data=cached_data
+        )
+        dupe_key = "BZ:{}".format(bz["dupe_of"])
+        # Store Duplicate also in the main collection for caching
+        if dupe_key not in collected_data:
+            collected_data[dupe_key]['data'] = bz["dupe_data"]
+            collected_data[dupe_key]['is_dupe'] = True
+            collect_dupes(bz["dupe_data"], collected_data, cached_data)
+
+
+def collect_clones(bz, collected_data, cached_data=None):  # pragma: no cover
+    """Recursivelly find for clones.
+    This handler does not process clones as part of skipping logic.
+    but the data is fetched here to feed nagger script later.
+    """
+    cached_data = cached_data or {}
+    clones = bz['clone_ids']
+    if bz['cf_clone_of']:
+        clones.append(bz['cf_clone_of'])
+
+    if clones:
+        bz["clones"] = get_data_bz(
+            [str(clone_num) for clone_num in clones],
+            cached_data=cached_data
+        )
+        for clone_data in bz["clones"]:
+            # Store Clones also in the main collection for caching
+            clone_key = "BZ:{}".format(clone_data['id'])
+            if clone_key not in collected_data:
+                collected_data[clone_key]['data'] = clone_data
+                collected_data[clone_key]['is_clone'] = True
+                collect_clones(clone_data, collected_data, cached_data)
+
+
 # --- API Calls ---
+
+# cannot use lru_cache in functions that has unhashable args
+CACHED_RESPONSES = defaultdict(dict)
+
 
 @retry(
     stop=stop_after_attempt(4),  # Retry 3 times before raising
@@ -202,6 +215,10 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
+    cached_by_call = CACHED_RESPONSES['get_data'].get(str(sorted(bz_numbers)))
+    if cached_by_call:
+        return cached_by_call
+
     if cached_data:
         LOGGER.debug("Using cached data for {}".format(set(bz_numbers)))
         if not all(
@@ -249,10 +266,19 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         },
     )
     response.raise_for_status()
-    return response.json()["bugs"]
+    data = response.json()["bugs"]
+    CACHED_RESPONSES['get_data'][str(sorted(bz_numbers))] = data
+    return data
 
 
 def get_single_bz(number, cached_data=None):  # pragma: no cover
     """Call BZ API to get a single BZ data and cache it"""
-    bz_data = get_data_bz([str(number)], cached_data)
+    cached_data = cached_data or {}
+    bz_data = CACHED_RESPONSES['get_single'].get(number)
+    if not bz_data:
+        try:
+            bz_data = cached_data[f"BZ:{number}"]['data']
+        except (KeyError, TypeError):
+            bz_data = get_data_bz([str(number)], cached_data)
+        CACHED_RESPONSES['get_single'][number] = bz_data
     return bz_data[0] if bz_data else {}

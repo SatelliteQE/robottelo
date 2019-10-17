@@ -300,11 +300,10 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
         }
         self.assertFalse(is_open("BZ:123456", data))
 
-    def test_bz_is_open_using_dupe_data_clones(self):
+    def test_bz_is_open_using_dupe_of_dupe_data_higher_version(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
-        The dupe is CLOSED/ERRATA but on a future version, and also has
-        a clone that is the backport for the current server version
-        and the clone backport is not yet applied."""
+        The dupe is CLOSED/ERRATA but on a future version, no clones for
+        backport the solution."""
         data = {
             "id": 123456,
             "status": "CLOSED",
@@ -314,27 +313,23 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
             "dupe_data": {
                 "id": 999999,
                 "status": "CLOSED",
-                "resolution": "ERRATA",
+                "resolution": "DUPLICATE",
                 "target_milestone": "Unspecified",
-                "flags": [{"status": "+", "name": "sat-7.7.z"}],
-                "clones": [
-                    {
-                        "id": 999999,
-                        "status": "POST",
-                        "resolution": "",
-                        "target_milestone": "Unspecified",
-                        "flags": [{"status": "+", "name": "sat-6.6.z"}],
-                        "clones": []
-                    }
-                ]
+                "flags": [{"status": "+", "name": "sat-6.7.z"}],
+                "dupe_data": {
+                    "id": 888888,
+                    "status": "CLOSED",
+                    "resolution": "ERRATA",
+                    "target_milestone": "Unspecified",
+                    "flags": [{"status": "+", "name": "sat-6.7.z"}]
+                }
             }
         }
         self.assertTrue(is_open("BZ:123456", data))
 
-    def test_bz_is_not_open_using_dupe_data_clones(self):
+    def test_bz_is_not_open_using_dupe_of_dupe_data_lower_version(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
-        The dupe is CLOSED/ERRATA but on a future version, and also has
-        a clone that is the backport for the current server version."""
+        The dupe is CLOSED/ERRATA in a previous version."""
         data = {
             "id": 123456,
             "status": "CLOSED",
@@ -344,62 +339,66 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
             "dupe_data": {
                 "id": 999999,
                 "status": "CLOSED",
-                "resolution": "ERRATA",
+                "resolution": "DUPLICATE",
                 "target_milestone": "Unspecified",
-                "flags": [{"status": "+", "name": "sat-7.7.z"}],
-                "clones": [
-                    {
-                        "id": 999999,
-                        "status": "CLOSED",
-                        "resolution": "ERRATA",
-                        "target_milestone": "Unspecified",
-                        "flags": [{"status": "+", "name": "sat-6.6.z"}],
-                        "clones": []
-                    }
-                ]
+                "flags": [{"status": "+", "name": "sat-6.3.z"}],
+                "dupe_data": {
+                    "id": 888888,
+                    "status": "CLOSED",
+                    "resolution": "ERRATA",
+                    "target_milestone": "Unspecified",
+                    "flags": [{"status": "+", "name": "sat-6.3.z"}]
+                }
             }
         }
         self.assertFalse(is_open("BZ:123456", data))
 
-    def test_bz_is_open_using_clones_data(self):
-        """Assert BZ is open if is CLOSED but there are open clones for lower
-        versions."""
+    def test_bz_is_open_using_dupe_of_dupe_data_by_status(self):
+        """Assert that if BZ has a dupe, the dupe data is considered.
+        The dupe is CLOSED/ERRATA but on a future version, no clones for
+        backport the solution."""
         data = {
             "id": 123456,
             "status": "CLOSED",
-            "resolution": "ERRATA",
+            "resolution": "DUPLICATE",
             "target_milestone": "Unspecified",
             "flags": [],
-            "clones": [
-                {
+            "dupe_data": {
+                "id": 999999,
+                "status": "CLOSED",
+                "resolution": "DUPLICATE",
+                "target_milestone": "Unspecified",
+                "dupe_data": {
                     "id": 888888,
-                    "status": "POST",
+                    "status": "NEW",
                     "resolution": "",
                     "target_milestone": "Unspecified",
-                    "flags": [{"status": "+", "name": "sat-6.5.z"}]
                 }
-            ]
+            }
         }
         self.assertTrue(is_open("BZ:123456", data))
 
-    def test_bz_is_not_open_using_clones_data(self):
-        """Assert BZ is open if is CLOSED and there are CLOSED clones for lower
-        versions."""
+    def test_bz_is_not_open_using_dupe_of_dupe_data_by_status(self):
+        """Assert that if BZ has a dupe, the dupe data is considered.
+        The dupe is CLOSED/ERRATA in a previous version."""
         data = {
             "id": 123456,
             "status": "CLOSED",
-            "resolution": "ERRATA",
+            "resolution": "DUPLICATE",
             "target_milestone": "Unspecified",
-            "flags": [],
-            "clones": [
-                {
-                    "id": 888888,
+            "dupe_data": {
+                "id": 999999,
+                "status": "CLOSED",
+                "resolution": "DUPLICATE",
+                "target_milestone": "Unspecified",
+                "dupe_data": {
+                    "id": 999999,
                     "status": "CLOSED",
-                    "resolution": "CURRENT_RELEASE",
+                    "resolution": "ERRATA",
                     "target_milestone": "Unspecified",
-                    "flags": [{"status": "+", "name": "sat-6.5.z"}]
+                    "flags": []
                 }
-            ]
+            }
         }
         self.assertFalse(is_open("BZ:123456", data))
 
@@ -413,6 +412,26 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "resolution": resolution,
                     "target_milestone": "Unspecified",
                     "flags": []
+                }
+                self.assertTrue(_should_deselect("BZ:123456", data))
+
+    def test_bz_should_deselect_if_dupe_is_wontfix(self):
+        """Ensure a BZ in resolution WONTFIX,CANTIFX,DEFERRED is deselected"""
+        for resolution in WONTFIX_RESOLUTIONS:
+            with self.subTest(resolution=resolution):
+                data = {
+                    "id": 123456,
+                    "status": "CLOSED",
+                    "resolution": 'DUPLICATE',
+                    "target_milestone": "Unspecified",
+                    "flags": [],
+                    "dupe_data": {
+                        "id": 999999,
+                        "status": "CLOSED",
+                        "resolution": resolution,
+                        "target_milestone": "Unspecified",
+                        "flags": []
+                    }
                 }
                 self.assertTrue(_should_deselect("BZ:123456", data))
 
