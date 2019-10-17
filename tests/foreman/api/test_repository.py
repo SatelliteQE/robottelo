@@ -32,24 +32,26 @@ from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_1,
     CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
+    DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
-    FAKE_7_PUPPET_REPO,
+    FAKE_1_PUPPET_REPO,
     FAKE_2_YUM_REPO,
     FAKE_5_YUM_REPO,
+    FAKE_7_PUPPET_REPO,
     FAKE_YUM_DRPM_REPO,
+    FAKE_YUM_SRPM_DUPLICATE_REPO,
     FAKE_YUM_SRPM_REPO,
     FEDORA26_OSTREE_REPO,
     FEDORA27_OSTREE_REPO,
     PRDS,
     REPOS,
     REPOSET,
+    REPO_TYPE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
-    DOWNLOAD_POLICIES,
-    REPO_TYPE,
-    FAKE_1_PUPPET_REPO)
+)
 from robottelo.datafactory import (
     invalid_http_credentials,
     invalid_names_list,
@@ -1942,6 +1944,78 @@ class DRPMRepositoryTestCase(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
+
+
+class SRPMRepositoryIgnoreContentTestCase(APITestCase):
+    """Test whether SRPM content can be ignored during sync.
+
+    In particular sync of duplicate SRPMs would fail when using the flag
+    ``ignorable_content``.
+
+    :CaseLevel: Integration
+
+    :CaseComponent: Pulp
+
+    :BZ: 1673215
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super().setUpClass()
+        cls.product = entities.Product().create()
+
+    @tier2
+    def test_positive_ignore_sprm_duplicate(self):
+        """Test whether SRPM duplicated content can be ignored.
+
+        :id: de03aaa1-1f95-4c28-9f53-362ceb113167
+
+        :expectedresults: SRPM content is ignored during sync.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_DUPLICATE_REPO,
+            ignorable_content=['srpm']
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertEqual(repo.content_counts['srpm'], 0)
+
+    @tier2
+    def test_positive_sync_srpm_duplicate(self):
+        """Test sync of SRPM duplicated repository.
+
+        :id: 83749adc-0561-44c9-8710-eec600704dde
+
+        :expectedresults: SRPM content is not ignored during the sync. No
+            exceptions to be raised.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_DUPLICATE_REPO,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertEqual(repo.content_counts['srpm'], 2)
+
+    @tier2
+    def test_positive_ignore_srpm_sync(self):
+        """Test whether SRPM content can be ignored during sync.
+
+        :id: a2aeb307-00b2-42fe-a682-4b09474f389f
+
+        :expectedresults: SRPM content is ignore during the sync.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+            ignorable_content=['srpm']
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertEqual(repo.content_counts['srpm'], 0)
+        self.assertEqual(repo.content_counts['erratum'], 2)
 
 
 class FileRepositoryTestCase(APITestCase):
