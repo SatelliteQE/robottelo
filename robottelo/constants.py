@@ -557,6 +557,7 @@ FAKE_YUM_DRPM_REPO = (
 FAKE_YUM_SRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
 )
+FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
 FAKE_YUM_MIXED_REPO = (
     u'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 )
