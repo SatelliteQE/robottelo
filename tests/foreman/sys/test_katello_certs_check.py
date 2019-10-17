@@ -16,15 +16,23 @@
 :Upstream: No
 
 """
-from robottelo.config import settings
-from robottelo.decorators import destructive, stubbed, tier1, upgrade, skip_if_not_set
-from robottelo.ssh import get_connection, upload_file
-from robottelo.test import TestCase
-
 import os
 import re
 
+from robottelo.config import settings
+from robottelo.ssh import get_connection, upload_file
+from robottelo.test import TestCase
+from robottelo.decorators import (
+    destructive,
+    run_in_one_thread,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    upgrade,
+    )
 
+
+@run_in_one_thread
 class KatelloCertsCheckTestCase(TestCase):
     """Implements ``katello-certs-check`` tests.
     Depends on presence of custom certificates at path given
