@@ -145,7 +145,7 @@ def get_virtwho_status():
     running_stauts = ['is running', 'Active: active (running)']
     stopped_status = ['is stopped', 'Active: inactive (dead)']
     if ret != 0:
-        return 'undefined'
+        return 'runcmderror'
     if error != 0:
         return 'logerror'
     if any(key in stdout for key in running_stauts):
@@ -253,10 +253,9 @@ def deploy_validation():
     :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
-    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    error = len(re.findall(r'\[.*ERROR.*\]', logs))
-    if status != 'running' or error != 0:
+    if status != 'running':
         raise VirtWhoError("Failed to start virt-who service")
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
@@ -309,7 +308,7 @@ def deploy_configure_by_script(script_content, debug=False):
         return deploy_validation()
 
 
-def restart_virt_who_service():
+def restart_virtwho_service():
     """
     Do the following:
     1. clean rhsm.log message, make sure there is no old message exist.
@@ -319,36 +318,53 @@ def restart_virt_who_service():
     runcmd("systemctl restart virt-who; sleep 5")
 
 
-def update_configure_option(option, value, config_id):
+def update_configure_option(option, value, config_file):
     """
-
     :param option:
     :param value:
     :param config_id:
     :return:
     """
-    filename = get_configure_file(config_id)
-    cmd = 'sed -i "s|^{0}.*|{1}={2}|g" {3}'.format(
-        option, option, value, filename)
+    cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(
+        option, value, config_file)
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError(
             "Failed to set option {0} value to {1}".format(option, value))
 
 
-def delete_configure_option(option, config_id):
-    filename = get_configure_file(config_id)
-    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{2}/d" {3}'.format(
-        option, filename, option, filename)
+def delete_configure_option(option, config_file):
+    """
+
+    :param option:
+    :param config_file:
+    :return:
+    """
+    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(
+        option, config_file)
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError("Failed to delete option {}".format(option))
 
 
-def add_configure_option(option, value, config_id):
-    filename = get_configure_file(config_id)
-    cmd = 'echo -e "\n{0}={1}" >> {2}'.format(option, value, filename)
-    ret, output = runcmd(cmd)
-    if ret != 0:
+def add_configure_option(option, value, config_file):
+    """
+
+    :param option:
+    :param value:
+    :param config_file:
+    :return:
+    """
+    try:
+        get_configure_option(option, config_file)
+    except Exception:
+        cmd = 'echo -e "\n{0}={1}" >> {2}'.format(option, value, config_file)
+        ret, output = runcmd(cmd)
+        if ret != 0:
+            raise VirtWhoError(
+                "Failed to add option {0}={1}".format(option, value))
+    else:
         raise VirtWhoError(
-            "Failed to add option {0}={1}".format(option, value))
+            "option {} is already exist in {}"
+            .format(option, config_file)
+        )

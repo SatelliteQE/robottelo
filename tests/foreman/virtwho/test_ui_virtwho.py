@@ -33,7 +33,7 @@ from .utils import (
     get_configure_option,
     get_configure_command,
     get_virtwho_status,
-    restart_virt_who_service,
+    restart_virtwho_service,
     update_configure_option,
     VirtWhoError,
     VIRTWHO_SYSCONFIG,
@@ -431,7 +431,7 @@ def test_positive_virtwho_configs_widget(session, form_data):
 
 
 @tier2
-def test_positive_delete_config_delete_user(session, form_data):
+def test_positive_delete_configure(session, form_data):
     """Verify when a config is deleted the associated user is deleted.
 
     :id: 9fdee7f2-833c-47e0-9d58-cd0c9fdd15fe
@@ -456,12 +456,12 @@ def test_positive_delete_config_delete_user(session, form_data):
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
-        restart_virt_who_service()
+        restart_virtwho_service()
         assert get_virtwho_status() == 'logerror'
 
 
 @tier2
-def test_positive_virt_who_reporter_permission(session, test_name, form_data):
+def test_positive_virtwho_reporter_role(session, test_name, form_data):
     """Verify the virt-who reporter role can TRULY work.
 
     :id: 4bef3b31-89d2-4502-b971-2437b920a3ff
@@ -473,6 +473,7 @@ def test_positive_virt_who_reporter_permission(session, test_name, form_data):
     """
     username = gen_string('alpha')
     password = gen_string('alpha')
+    config_name = gen_string('alpha')
     with session:
         # Create an user
         session.user.create({
@@ -483,19 +484,19 @@ def test_positive_virt_who_reporter_permission(session, test_name, form_data):
             'user.confirm': password,
         })
         # Create a virt-who config plugin
-        virt_who_name = gen_string('alpha')
-        form_data['name'] = virt_who_name
+        form_data['name'] = config_name
         session.virtwho_configure.create(form_data)
-        values = session.virtwho_configure.read(virt_who_name)
+        values = session.virtwho_configure.read(config_name)
         command = values['deploy']['command']
         deploy_configure_by_command(command, debug=True)
-        assert session.virtwho_configure.search(virt_who_name)[0]['Status'] == 'ok'
+        assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Update the virt-who config file
-        config_id = get_configure_id(virt_who_name)
-        update_configure_option('rhsm_username', username, config_id)
-        delete_configure_option('rhsm_encrypted_password', config_id)
-        add_configure_option('rhsm_password', password, config_id)
-        restart_virt_who_service()
+        config_id = get_configure_id(config_name)
+        config_file = get_configure_file(config_id)
+        update_configure_option('rhsm_username', username, config_file)
+        delete_configure_option('rhsm_encrypted_password', config_file)
+        add_configure_option('rhsm_password', password, config_file)
+        restart_virtwho_service()
         assert get_virtwho_status() == 'logerror'
         # Check the permissioin of Virt-who Reporter
         session.user.update(
@@ -505,11 +506,11 @@ def test_positive_virt_who_reporter_permission(session, test_name, form_data):
         assert session.user.search(username)[0]['Username'] == username
         user = session.user.read(username)
         assert user['roles']['resources']['assigned'] == ['Virt-who Reporter']
-        restart_virt_who_service()
+        restart_virtwho_service()
         assert get_virtwho_status() == 'running'
         with Session(test_name, username, password) as newsession:
             try:
-                newsession.virtwho_configure.read(virt_who_name)
+                newsession.virtwho_configure.read(config_name)
             except Exception:
                 pass
             else:
@@ -519,7 +520,7 @@ def test_positive_virt_who_reporter_permission(session, test_name, form_data):
         assert not session.user.search(username)
 
 
-def test_positive_virt_who_viewer_permission(session, test_name, form_data):
+def test_positive_virtwho_viewer_role(session, test_name, form_data):
     """Verify the virt-who viewer role can TRULY work.
 
     :id: 9cdd3bbe-cfb2-4297-92fb-110515f835b3
@@ -531,6 +532,7 @@ def test_positive_virt_who_viewer_permission(session, test_name, form_data):
     """
     username = gen_string('alpha')
     password = gen_string('alpha')
+    config_name = gen_string('alpha')
     with session:
         # Create an user
         session.user.create({
@@ -541,13 +543,12 @@ def test_positive_virt_who_viewer_permission(session, test_name, form_data):
             'user.confirm': password,
         })
         # Create a virt-who config plugin
-        virt_who_name = gen_string('alpha')
-        form_data['name'] = virt_who_name
+        form_data['name'] = config_name
         session.virtwho_configure.create(form_data)
-        values = session.virtwho_configure.read(virt_who_name)
+        values = session.virtwho_configure.read(config_name)
         command = values['deploy']['command']
-        deploy_configure_by_command(command, debug=True)
-        assert session.virtwho_configure.search(virt_who_name)[0]['Status'] == 'ok'
+        deploy_configure_by_command(command)
+        assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Check the permissioin of Virt-who Viewer
         session.user.update(
             username,
@@ -555,8 +556,16 @@ def test_positive_virt_who_viewer_permission(session, test_name, form_data):
         )
         user = session.user.read(username)
         assert user['roles']['resources']['assigned'] == ['Virt-who Viewer']
+        # Update the virt-who config file
+        config_id = get_configure_id(config_name)
+        config_file = get_configure_file(config_id)
+        update_configure_option('rhsm_username', username, config_file)
+        delete_configure_option('rhsm_encrypted_password', config_file)
+        add_configure_option('rhsm_password', password, config_file)
+        restart_virtwho_service()
+        assert get_virtwho_status() == 'running'
         with Session(test_name, username, password) as newsession:
-            newsession.virtwho_configure.read(virt_who_name)
+            newsession.virtwho_configure.read(config_name)
             try:
                 viewer_virt_who_name = gen_string('alpha')
                 form_data['name'] = viewer_virt_who_name
@@ -571,7 +580,7 @@ def test_positive_virt_who_viewer_permission(session, test_name, form_data):
         assert not session.user.search(username)
 
 
-def test_positive_virt_who_manager_permission(session, test_name, form_data):
+def test_positive_virtwho_manager_role(session, test_name, form_data):
     """Verify the virt-who manager role can TRULY work.
 
     :id: a4cda8d1-36ae-4925-9477-ceb5cef4af9a
@@ -582,6 +591,7 @@ def test_positive_virt_who_manager_permission(session, test_name, form_data):
     """
     username = gen_string('alpha')
     password = gen_string('alpha')
+    config_name = gen_string('alpha')
     with session:
         # Create an user
         session.user.create({
@@ -592,13 +602,12 @@ def test_positive_virt_who_manager_permission(session, test_name, form_data):
             'user.confirm': password,
         })
         # Create a virt-who config plugin
-        virt_who_name = gen_string('alpha')
-        form_data['name'] = virt_who_name
+        form_data['name'] = config_name
         session.virtwho_configure.create(form_data)
-        values = session.virtwho_configure.read(virt_who_name)
+        values = session.virtwho_configure.read(config_name)
         command = values['deploy']['command']
         deploy_configure_by_command(command, debug=True)
-        assert session.virtwho_configure.search(virt_who_name)[0]['Status'] == 'ok'
+        assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Check the permissioin of Virt-who Manager
         session.user.update(
             username,
@@ -614,7 +623,7 @@ def test_positive_virt_who_manager_permission(session, test_name, form_data):
             # view_virt_who_config
             values = newsession.virtwho_configure.read(new_virt_who_name)
             command = values['deploy']['command']
-            deploy_configure_by_command(command, debug=True)
+            deploy_configure_by_command(command)
             assert newsession.virtwho_configure.search(new_virt_who_name)[0]['Status'] == 'ok'
             # edit_virt_who_config
             modify_name = gen_string('alpha')
