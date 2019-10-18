@@ -15,6 +15,8 @@
 
 :Upstream: No
 """
+import pytest
+
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -67,7 +69,7 @@ class TailoringFilesTestCase(CLITestCase):
                 tailoring_file = make_tailoringfile({
                     'name': name,
                     'scap-file': self.tailoring_file_path})
-                self.assertEqual(tailoring_file['name'], name)
+                assert tailoring_file['name'] == name
 
     @tier1
     def test_positive_create_with_space(self):
@@ -87,7 +89,7 @@ class TailoringFilesTestCase(CLITestCase):
         tailoring_file = make_tailoringfile({
             'name': name,
             'scap-file': self.tailoring_file_path})
-        self.assertEqual(tailoring_file['name'], name)
+        assert tailoring_file['name'] == name
 
     @tier1
     def test_positive_get_info_of_tailoring_file(self):
@@ -112,7 +114,7 @@ class TailoringFilesTestCase(CLITestCase):
             'name': name,
             'scap-file': self.tailoring_file_path})
         result = TailoringFiles.info({'name': name})
-        self.assertEqual(result['name'], name)
+        assert result['name'] == name
 
     @tier1
     def test_positive_list_tailoring_file(self):
@@ -136,8 +138,7 @@ class TailoringFilesTestCase(CLITestCase):
             'name': name,
             'scap-file': self.tailoring_file_path})
         result = TailoringFiles.list()
-        self.assertIn(
-             name, [tailoringfile['name'] for tailoringfile in result])
+        assert name in [tailoringfile['name'] for tailoringfile in result]
 
     @tier1
     def test_negative_create_with_invalid_file(self):
@@ -158,7 +159,7 @@ class TailoringFilesTestCase(CLITestCase):
             remote_file='/tmp/{0}'.format(SNIPPET_DATA_FILE)
         )
         name = gen_string('alphanumeric')
-        with self.assertRaises(CLIFactoryError):
+        with pytest.raises(CLIFactoryError):
             make_tailoringfile({
                 'name': name,
                 'scap-file': '/tmp/{0}'.format(SNIPPET_DATA_FILE)
@@ -180,7 +181,7 @@ class TailoringFilesTestCase(CLITestCase):
         """
         for name in invalid_names_list():
             with self.subTest(name):
-                with self.assertRaises(CLIFactoryError):
+                with pytest.raises(CLIFactoryError):
                     make_tailoringfile({
                         'name': name,
                         'scap-file': self.tailoring_file_path})
@@ -226,15 +227,15 @@ class TailoringFilesTestCase(CLITestCase):
         tailoring_file = make_tailoringfile({
             'name': name,
             'scap-file': self.tailoring_file_path})
-        self.assertEqual(tailoring_file['name'], name)
+        assert tailoring_file['name'] == name
         result = TailoringFiles.download_tailoring_file({
             'name': name,
             'path': '/tmp/'
         })
-        self.assertIn(file_path, result[0])
+        assert file_path in result[0]
         result = ssh.command('find {0}'.format(file_path))
-        self.assertEqual(result.return_code, 0)
-        self.assertIn(file_path, result.stdout)
+        assert result.return_code == 0
+        assert file_path == result.stdout[0]
 
     @tier1
     @upgrade
@@ -255,7 +256,7 @@ class TailoringFilesTestCase(CLITestCase):
         tailoring_file = make_tailoringfile({
             'scap-file': self.tailoring_file_path})
         TailoringFiles.delete({'id': tailoring_file['id']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             TailoringFiles.info({'id': tailoring_file['id']})
 
     @stubbed()
