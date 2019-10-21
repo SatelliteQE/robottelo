@@ -364,11 +364,10 @@ class SyncPlanUpdateTestCase(APITestCase):
             if interval == SYNC_INTERVAL['custom']:
                 sync_plan.cron_expression = gen_choice(valid_cron_expressions())
             sync_plan = sync_plan.create()
-
-            valid_intervals = valid_sync_interval()
-            self.assertIn(interval, valid_intervals)
-            valid_intervals.remove(interval)
-            new_interval = gen_choice(valid_intervals)
+            # get another random interval and workaround issue #7231
+            new_interval = gen_choice(valid_sync_interval())
+            while new_interval == interval:
+                new_interval = gen_choice(valid_sync_interval())
             sync_plan.interval = new_interval
             if new_interval == SYNC_INTERVAL['custom']:
                 sync_plan.cron_expression = gen_choice(valid_cron_expressions())
