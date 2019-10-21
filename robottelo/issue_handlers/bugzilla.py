@@ -149,7 +149,7 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
         # Collect clones to feed the nagger script for notifications
         collect_clones(data, collected_data, cached_data=cached_data)
 
-        bz_key = 'BZ:{}'.format(data['id'])
+        bz_key = f"BZ:{data['id']}"
         data["is_open"] = is_open_bz(bz_key, data)
         collected_data[bz_key]['data'] = data
 
@@ -163,7 +163,7 @@ def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
             bz["dupe_of"],
             cached_data=cached_data
         )
-        dupe_key = "BZ:{}".format(bz["dupe_of"])
+        dupe_key = f"BZ:{bz['dupe_of']}"
         # Store Duplicate also in the main collection for caching
         if dupe_key not in collected_data:
             collected_data[dupe_key]['data'] = bz["dupe_data"]
@@ -188,7 +188,7 @@ def collect_clones(bz, collected_data, cached_data=None):  # pragma: no cover
         )
         for clone_data in bz["clones"]:
             # Store Clones also in the main collection for caching
-            clone_key = "BZ:{}".format(clone_data['id'])
+            clone_key = f"BZ:{clone_data['id']}"
             if clone_key not in collected_data:
                 collected_data[clone_key]['data'] = clone_data
                 collected_data[clone_key]['is_clone'] = True
@@ -220,10 +220,8 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         return cached_by_call
 
     if cached_data:
-        LOGGER.debug("Using cached data for {}".format(set(bz_numbers)))
-        if not all(
-            ['BZ:{}'.format(number) in cached_data for number in bz_numbers]
-        ):
+        LOGGER.debug(f"Using cached data for {set(bz_numbers)}")
+        if not all([f'BZ:{number}' in cached_data for number in bz_numbers]):
             LOGGER.debug("There are BZs out of cache.")
         return [
             item['data']
@@ -232,7 +230,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         ]
 
     # No cached data so Call Bugzilla API
-    LOGGER.debug("Calling Bugzilla API for {}".format(set(bz_numbers)))
+    LOGGER.debug(f"Calling Bugzilla API for {set(bz_numbers)}")
     bz_fields = [
         "id",
         "summary",
@@ -258,7 +256,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         raise ImproperlyConfigured("Config file is missing bugzilla api_key")
 
     response = requests.get(
-        "{}/rest/bug".format(settings.bugzilla.url),
+        f"{settings.bugzilla.url}/rest/bug",
         params={
             "id": ",".join(set(bz_numbers)),
             "api_key": settings.bugzilla.api_key,
@@ -279,6 +277,6 @@ def get_single_bz(number, cached_data=None):  # pragma: no cover
         try:
             bz_data = cached_data[f"BZ:{number}"]['data']
         except (KeyError, TypeError):
-            bz_data = get_data_bz([str(number)], cached_data)
+            bz_data = get_data_bz([str(number)], cached_data)[0]
         CACHED_RESPONSES['get_single'][number] = bz_data
-    return bz_data[0] if bz_data else {}
+    return bz_data or {}

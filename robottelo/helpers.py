@@ -900,7 +900,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
         if 'is_open(' in source:
             def add_workaround(matches, condition):
                 for match in matches:
-                    issue = "{0}:{1}".format(*match)
+                    issue = f"{match[0]}:{match[1]}"
                     collected_data[issue.strip()]['used_in'].append(
                         {
                             'filepath': filepath,
