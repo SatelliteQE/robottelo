@@ -145,7 +145,7 @@ def get_virtwho_status():
     running_stauts = ['is running', 'Active: active (running)']
     stopped_status = ['is stopped', 'Active: inactive (dead)']
     if ret != 0:
-        return 'runcmderror'
+        return 'undefined'
     if error != 0:
         return 'logerror'
     if any(key in stdout for key in running_stauts):

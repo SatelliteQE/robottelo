@@ -35,7 +35,6 @@ from .utils import (
     get_virtwho_status,
     restart_virtwho_service,
     update_configure_option,
-    VirtWhoError,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -488,7 +487,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         session.virtwho_configure.create(form_data)
         values = session.virtwho_configure.read(config_name)
         command = values['deploy']['command']
-        deploy_configure_by_command(command, debug=True)
+        deploy_configure_by_command(command)
         assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Update the virt-who config file
         config_id = get_configure_id(config_name)
@@ -509,13 +508,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         restart_virtwho_service()
         assert get_virtwho_status() == 'running'
         with Session(test_name, username, password) as newsession:
-            try:
-                newsession.virtwho_configure.read(config_name)
-            except Exception:
-                pass
-            else:
-                raise VirtWhoError(
-                    'Virt-who Reporter should not have the permission to read config')
+            assert not newsession.virtwho_configure.can_view()
         session.user.delete(username)
         assert not session.user.search(username)
 
@@ -563,18 +556,13 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
         delete_configure_option('rhsm_encrypted_password', config_file)
         add_configure_option('rhsm_password', password, config_file)
         restart_virtwho_service()
-        assert get_virtwho_status() == 'running'
+        assert get_virtwho_status() == 'logerror'
         with Session(test_name, username, password) as newsession:
+            assert newsession.virtwho_configure.can_view()
+            assert not newsession.virtwho_configure.can_create()
+            assert not newsession.virtwho_configure.can_edit(config_name)
+            assert not newsession.virtwho_configure.can_delete(config_name)
             newsession.virtwho_configure.read(config_name)
-            try:
-                viewer_virt_who_name = gen_string('alpha')
-                form_data['name'] = viewer_virt_who_name
-                newsession.virtwho_configure.create(form_data)
-            except Exception:
-                pass
-            else:
-                raise VirtWhoError(
-                    'Virt-who Viewer should not have the permission to creat config')
         # Delete the created user
         session.user.delete(username)
         assert not session.user.search(username)
@@ -606,7 +594,7 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
         session.virtwho_configure.create(form_data)
         values = session.virtwho_configure.read(config_name)
         command = values['deploy']['command']
-        deploy_configure_by_command(command, debug=True)
+        deploy_configure_by_command(command)
         assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Check the permissioin of Virt-who Manager
         session.user.update(
