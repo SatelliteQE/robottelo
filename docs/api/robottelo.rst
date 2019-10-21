@@ -57,3 +57,8 @@ Submodules:
 
 .. automodule:: robottelo.vm
 
+:mod: `robottelo.containers`
+------------------------------
+
+.. automodule:: robottelo.containers
+

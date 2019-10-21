@@ -58,6 +58,7 @@ from robottelo.products import (
     SatelliteToolsRepository,
 )
 from robottelo.vm import VirtualMachine
+from robottelo.containers import ContainerContext
 from robottelo.api.utils import wait_for_tasks
 from datetime import datetime, timedelta
 
@@ -1199,3 +1200,28 @@ def test_syspurpose_mismatched(session, vm_module_streams):
         details = session.contenthost.read(
             vm_module_streams.hostname, widget_names='details')['details']
         assert details['system_purpose_status'] == "Mismatched"
+
+
+@tier3
+def test_positive_create_container_register_host(session, module_org):
+    """Create container and register to satellite
+
+    :id: 39842da3-94b4-4348-b7d9-94282ae4aaf8
+
+    :setup:
+        1. Spin up container with unique name.
+        2. Install pre-built bootstrap RPM.
+        3. Register to Satellite
+        4. Search for content host to make sure it exists
+
+    :expectedresults:  Content host successfully registered and
+        seen on list.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    with ContainerContext() as chost:
+        chost.register(org=module_org.name)
+        with session:
+            assert session.contenthost.search(chost.name)[0]['Name'] == chost.name

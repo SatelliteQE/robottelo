@@ -2,6 +2,10 @@ sudo: false
 language: python
 python:
     - "3.6"
+services:
+    - docker
+before_install:
+    - docker pull alpine
 install:
     - pip install -U pip
     - pip install -r requirements.txt codecov flake8 sphinx tox-travis manage
