@@ -548,22 +548,6 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         composite_cv = composite_cv.update(['component'])
         self.assertEqual(len(composite_cv.component), cv_amount)
 
-    def _apply_package_filter(self, content_view, repo, package, inclusion=True):
-        cv_filter = entities.RPMContentViewFilter(
-            content_view=content_view,
-            inclusion=inclusion,
-            repository=[repo],
-        ).create()
-        cv_filter_rule = entities.ContentViewFilterRule(
-            content_view_filter=cv_filter,
-            name=package
-        ).create()
-        self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
-        content_view.publish()
-        content_view = content_view.read()
-        content_view_version_info = content_view.version[0].read()
-        return content_view_version_info
-
     @tier1
     @skip_if_bug_open('bugzilla', 1581628)
     def test_positive_publish_with_long_name(self):
