@@ -30,6 +30,7 @@ from robottelo.decorators import (
     tier3,
     upgrade
 )
+from robottelo.helpers import is_open
 from robottelo.test import APITestCase
 from robozilla.decorators import skip_if_bug_open
 
@@ -1456,14 +1457,16 @@ class CannedRoleTestCases(APITestCase):
             2. Create user and assign above Org Admin role to it
             3. Login with above Org Admin user
             4. Attempt to create new users
+            5. Attempt to create location
 
         :expectedresults:
 
             1. Org Admin should be able to create new users
             2. Only Org Admin role should be available to assign to its users
             3. Org Admin should be able to assign Org Admin role to its users
+            4. Org Admin should be able create locations
 
-        :BZ: 1538316
+        :BZ: 1538316, 1760701
 
         :CaseLevel: Integration
         """
@@ -1498,6 +1501,10 @@ class CannedRoleTestCases(APITestCase):
         ).create()
         self.assertEqual(user_login, user.login)
         self.assertEqual(org_admin.id, user.role[0].id)
+        if not is_open('BZ:1760701'):
+            name = gen_string('alphanumeric')
+            location = entities.Location(sc_user, name=name).create()
+            self.assertEqual(location.name, name)
 
     @tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self):
