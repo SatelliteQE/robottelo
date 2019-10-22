@@ -410,6 +410,22 @@ class ContentViewTestCase(APITestCase):
 class ContentViewCreateTestCase(APITestCase):
     """Create tests for content views."""
 
+    def _apply_pacakge_filters(self, content_view, repo, package, inclusion=True):
+        cv_filter = entities.RPMContentViewFilter(
+            content_view=content_view,
+            inclusion=inclusion,
+            repository=[repo],
+        ).create()
+        cv_filter_rule = entities.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            name=package
+        ).create()
+        self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
+        content_view.publish()
+        content_view = content_view.read()
+        content_view_version_info = content_view.version[0].read()
+        return content_view_version_info
+
     @tier1
     def test_positive_create_composite(self):
         """Create composite and non-composite content views.
@@ -506,6 +522,53 @@ class ContentViewCreateTestCase(APITestCase):
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.ContentView(name=name).create()
+
+    @tier2
+    def test_composite_content_view_with_same_repos(self):
+        """Create a Composite Content View with content view having same yum repos.
+        Add filters on the content views, package count for composite should not
+        be changed.
+
+        :id: 957f3758-ca1e-4a1f-8e7d-171750e0eb87
+
+        :expectedresults: package count for composite should not be changed in case of mismatch.
+
+        :bz: 1639390
+
+        :CaseImportance: Medium
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            content_type='yum',
+            product=product,
+            url=CUSTOM_MODULE_STREAM_REPO_2).create()
+        repo.sync()
+        content_view_1 = entities.ContentView(organization=org).create()
+        content_view_2 = entities.ContentView(organization=org).create()
+
+        # create content views with same repo and different filters
+        for content_view, package in [(content_view_1, 'camel'), (content_view_2, 'cow')]:
+            content_view.repository = [repo]
+            content_view.update(['repository'])
+            content_view__info = self._apply_pacakge_filters(content_view, repo,
+                                                             package, inclusion=False,)
+            assert content_view__info.package_count == 35
+
+        # create composite content view with these two published content views
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=org,
+        ).create()
+        content_view_1 = content_view_1.read()
+        content_view_2 = content_view_2.read()
+        for content_view_version in [content_view_1.version[-1], content_view_2.version[-1]]:
+            comp_content_view.component.append(content_view_version)
+            comp_content_view = comp_content_view.update(['component'])
+        comp_content_view.publish()
+        comp_content_view = comp_content_view.read()
+        comp_content_view_info = comp_content_view.version[0].read()
+        assert comp_content_view_info.package_count == 36
 
 
 class ContentViewPublishPromoteTestCase(APITestCase):
