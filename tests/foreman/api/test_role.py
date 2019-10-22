@@ -18,6 +18,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
@@ -1526,6 +1527,47 @@ class CannedRoleTestCases(APITestCase):
         sc = self.user_config(user)
         with self.assertNotRaises(HTTPError):
             entities.User(sc, id=test_user.id).read()
+
+    @pytest.mark.skip_if_open('BZ:1694199')
+    @tier2
+    def test_positive_create_nested_location(self):
+        """Org Admin can create nested locations
+
+        :id: 971bc909-96a5-4614-b254-04a51c708432
+
+        :bz: 1694199
+
+        :steps:
+            1. Create a regular user and associate it with existing location
+            2. Add org_admin rights to that user
+            3. Attempt to create a nested location
+
+        :expectedresults: after adding the needed permissions, user should be
+            able to create nested locations
+
+        :CaseLevel: Integration
+        """
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        org_admin = self.create_org_admin_role(
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        user.role = [org_admin]
+        user = user.update(['role'])
+        sc = ServerConfig(
+            auth=(user_login, user_pass),
+            url=self.sat_url,
+            verify=False
+        )
+        name = gen_string('alphanumeric')
+        location = entities.Location(sc, name=name,
+                                     parent=self.role_loc.id).create()
+        self.assertEqual(location.name, name)
 
     @tier2
     def test_negative_access_users_outside_org_admin_taxonomies(self):
