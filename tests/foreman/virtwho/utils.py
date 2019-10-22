@@ -320,10 +320,10 @@ def restart_virtwho_service():
 
 def update_configure_option(option, value, config_file):
     """
-    :param option:
-    :param value:
-    :param config_id:
-    :return:
+    Update option in virt-who config file
+    :param option: the option you want to update
+    :param value:  set the option to the value
+    :param config_file: path of virt-who config file
     """
     cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(
         option, value, config_file)
@@ -335,10 +335,9 @@ def update_configure_option(option, value, config_file):
 
 def delete_configure_option(option, config_file):
     """
-
-    :param option:
-    :param config_file:
-    :return:
+    Delete option in virt-who config file
+    :param option: the option you want to delete
+    :param config_file: path of virt-who config file
     """
     cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(
         option, config_file)
@@ -349,11 +348,10 @@ def delete_configure_option(option, config_file):
 
 def add_configure_option(option, value, config_file):
     """
-
-    :param option:
-    :param value:
-    :param config_file:
-    :return:
+    Add option to virt-who config file
+    :param option: the option you want to add
+    :param value:  the value of the option
+    :param config_file: path of virt-who config file
     """
     try:
         get_configure_option(option, config_file)
