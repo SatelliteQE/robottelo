@@ -22,7 +22,7 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from robottelo import ssh
-from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
+from robottelo.api.utils import apply_package_filter, enable_rhrepo_and_fetchid, promote
 from robottelo import manifests
 from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_2,
@@ -1281,7 +1281,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :id: 957f3758-ca1e-4a1f-8e7d-171750e0eb87
 
         :expectedresults: package count for composite content view should not be changed in
-        case of mismatch.
+            case of mismatch.
 
         :bz: 1639390
 
@@ -1301,8 +1301,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         for content_view, package in [(content_view_1, 'camel'), (content_view_2, 'cow')]:
             content_view.repository = [repo]
             content_view.update(['repository'])
-            content_view_info = self._apply_package_filter(content_view, repo,
-                                                           package, inclusion=False,)
+            content_view_info = apply_package_filter(content_view, repo,
+                                                     package, inclusion=False,)
             assert content_view_info.package_count == 35
 
         # create composite content view with these two published content views
