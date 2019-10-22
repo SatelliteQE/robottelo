@@ -34,7 +34,13 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import tier1, tier2, tier4, upgrade, skip_if_bug_open
+from robottelo.decorators import (
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    tier4,
+    upgrade,
+)
 from robottelo.test import CLITestCase
 
 
@@ -386,9 +392,10 @@ class OperatingSystemTestCase(CLITestCase):
 
         :BZ: 1649011
 
-        :expectedresults: os list should list operating systems when the default organization is set
+        :expectedresults: os list should list operating systems when the
+            default organization is set
         """
-        os = make_os()
+        make_os()
         os_list_before_default = OperatingSys.list()
         self.assertTrue(len(os_list_before_default) > 0)
         try:
@@ -405,5 +412,3 @@ class OperatingSystemTestCase(CLITestCase):
             Defaults.delete({u'param-name': 'organization_id'})
             result = ssh.command('hammer defaults list')
             self.assertTrue(DEFAULT_ORG not in "".join(result.stdout))
-
-
