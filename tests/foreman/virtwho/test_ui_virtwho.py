@@ -508,7 +508,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         restart_virtwho_service()
         assert get_virtwho_status() == 'running'
         with Session(test_name, username, password) as newsession:
-            assert not newsession.virtwho_configure.permissions()['can_view']
+            assert not newsession.virtwho_configure.check_create_permission()['can_view']
         session.user.delete(username)
         assert not session.user.search(username)
 
@@ -558,10 +558,12 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
         restart_virtwho_service()
         assert get_virtwho_status() == 'logerror'
         with Session(test_name, username, password) as newsession:
-            assert newsession.virtwho_configure.permissions()['can_view']
-            assert not newsession.virtwho_configure.permissions()['can_create']
-            assert not newsession.virtwho_configure.permissions_on(config_name)['can_delete']
-            assert not newsession.virtwho_configure.permissions_on(config_name)['can_edit']
+            create_permission = newsession.virtwho_configure.check_create_permission()
+            update_permission = newsession.virtwho_configure.check_update_permission(config_name)
+            assert create_permission['can_view']
+            assert not create_permission['can_create']
+            assert not update_permission['can_delete']
+            assert not update_permission['can_edit']
             newsession.virtwho_configure.read(config_name)
         # Delete the created user
         session.user.delete(username)
