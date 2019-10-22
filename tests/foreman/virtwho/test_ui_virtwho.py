@@ -478,7 +478,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         # Create an user
         session.user.create({
             'user.login': username,
-            'user.mail': valid_emails_list,
+            'user.mail': valid_emails_list()[0],
             'user.auth': 'INTERNAL',
             'user.password': password,
             'user.confirm': password,
@@ -531,7 +531,7 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
         # Create an user
         session.user.create({
             'user.login': username,
-            'user.mail': valid_emails_list,
+            'user.mail': valid_emails_list()[0],
             'user.auth': 'INTERNAL',
             'user.password': password,
             'user.confirm': password,
@@ -587,7 +587,7 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
         # Create an user
         session.user.create({
             'user.login': username,
-            'user.mail': valid_emails_list,
+            'user.mail': valid_emails_list()[0],
             'user.auth': 'INTERNAL',
             'user.password': password,
             'user.confirm': password,
