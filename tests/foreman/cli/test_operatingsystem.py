@@ -16,7 +16,9 @@
 :Upstream: No
 """
 from fauxfactory import gen_alphanumeric, gen_string
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.defaults import Defaults
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -26,12 +28,13 @@ from robottelo.cli.factory import (
     make_partition_table,
     make_template,
 )
+from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import (
     filtered_datapoint,
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.decorators import tier1, tier2, tier4, upgrade, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -373,3 +376,34 @@ class OperatingSystemTestCase(CLITestCase):
         os = OperatingSys.info({'id': os_id}, output_format='json')
         self.assertEqual(param_name, os['parameters'][0]['name'])
         self.assertEqual(param_value, os['parameters'][0]['value'])
+
+    @tier4
+    @skip_if_bug_open('bugzilla', 1649011)
+    def test_positive_os_list_with_default_organization_set(self):
+        """list operating systems when the default organization is set
+
+        :id: 2c1ba416-a5d5-4031-b154-54794569a85b
+
+        :BZ: 1649011
+
+        :expectedresults: os list should list operating systems when the default organization is set
+        """
+        os = make_os()
+        os_list_before_default = OperatingSys.list()
+        self.assertTrue(len(os_list_before_default) > 0)
+        try:
+            Defaults.add({
+                u'param-name': 'organization',
+                u'param-value': DEFAULT_ORG,
+            })
+            result = ssh.command('hammer defaults list')
+            self.assertTrue(DEFAULT_ORG not in "".join(result.stdout))
+            os_list_after_default = OperatingSys.list()
+            self.assertTrue(len(os_list_after_default) > 0)
+
+        finally:
+            Defaults.delete({u'param-name': 'organization_id'})
+            result = ssh.command('hammer defaults list')
+            self.assertTrue(DEFAULT_ORG not in "".join(result.stdout))
+
+
