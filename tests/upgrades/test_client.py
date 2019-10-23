@@ -45,7 +45,6 @@ def create_activation_key_for_client_registration(
 
     :return nailgun.entity.ActivationKey: Activation key
     """
-    client_os = client_os.upper()
     from_ver = settings.upgrade.from_version
     rhel_prod_name = 'scenarios_rhel{}_prod'.format(client_os[-1])
     rhel_repo_name = '{}_repo'.format(rhel_prod_name)
