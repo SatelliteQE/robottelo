@@ -1303,16 +1303,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         comp_content_view = comp_content_view.read()
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
-        result = ssh.command(
-            'ls -R /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/'
-                .format(
-                org.label,
-                comp_content_view.label,
-                product.label,
-                repo.label,
-            )
-        )
+        result = ssh.command('ls -R /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+                             '/1.0/custom/{}/{}/'.format(org.label,
+                                                         comp_content_view.label,
+                                                         product.label,
+                                                         repo.label,
+                                                         ))
         output = ' '.join(result.stdout)
         assert 'cow' in output
         assert 'camel' in output
