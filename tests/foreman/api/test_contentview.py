@@ -22,7 +22,7 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from robottelo import ssh
-from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
+from robottelo.api.utils import apply_package_filter, enable_rhrepo_and_fetchid, promote
 from robottelo import manifests
 from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_2,
@@ -1255,6 +1255,63 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         with self.assertNotRaises(TaskFailedError):
             content_view.publish()
         self.assertEqual(len(content_view.read().version), 1)
+
+    @tier2
+    def test_composite_content_view_with_same_repos(self):
+        """Create a Composite Content View with content views having same yum repo.
+        Add filter on the content views and check the package count for composite content view
+        should not be changed.
+
+        :id: 957f3758-ca1e-4a1f-8e7d-171750e0eb87
+
+        :expectedresults: package count for composite content view should not be changed in
+            case of mismatch.
+
+        :bz: 1639390
+
+        :CaseImportance: Medium
+        """
+        org = self.org
+        product = self.product
+        repo = entities.Repository(
+            content_type='yum',
+            product=product,
+            url=CUSTOM_MODULE_STREAM_REPO_2).create()
+        repo.sync()
+        content_view_1 = entities.ContentView(organization=org).create()
+        content_view_2 = entities.ContentView(organization=org).create()
+
+        # create content views with same repo and different filter
+        for content_view, package in [(content_view_1, 'camel'), (content_view_2, 'cow')]:
+            content_view.repository = [repo]
+            content_view.update(['repository'])
+            content_view_info = apply_package_filter(content_view, repo,
+                                                     package, inclusion=False,)
+            assert content_view_info.package_count == 35
+
+        # create composite content view with these two published content views
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=org,
+        ).create()
+        content_view_1 = content_view_1.read()
+        content_view_2 = content_view_2.read()
+        for content_view_version in [content_view_1.version[-1], content_view_2.version[-1]]:
+            comp_content_view.component.append(content_view_version)
+            comp_content_view = comp_content_view.update(['component'])
+        comp_content_view.publish()
+        comp_content_view = comp_content_view.read()
+        comp_content_view_info = comp_content_view.version[0].read()
+        assert comp_content_view_info.package_count == 36
+        result = ssh.command('ls -R /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+                             '/1.0/custom/{}/{}/'.format(org.label,
+                                                         comp_content_view.label,
+                                                         product.label,
+                                                         repo.label,
+                                                         ))
+        output = ' '.join(result.stdout)
+        assert 'cow' in output
+        assert 'camel' in output
 
 
 class ContentViewUpdateTestCase(APITestCase):

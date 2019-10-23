@@ -943,3 +943,29 @@ def update_provisioning_template(name=None, old=None, new=None):
         return True
     else:
         raise ValueError('{} does not exists in template {}'.format(old, name))
+
+
+def apply_package_filter(content_view, repo, package, inclusion=True):
+    """ Apply package filter on content view
+
+    :param content_view: entity content view
+    :param repo: entity repository
+    :param str package: package name to filter
+    :param boolean inclusion: True/False based on include or exclude filter
+
+    :return list : list of content view versions
+    """
+    cv_filter = entities.RPMContentViewFilter(
+        content_view=content_view,
+        inclusion=inclusion,
+        repository=[repo],
+    ).create()
+    cv_filter_rule = entities.ContentViewFilterRule(
+        content_view_filter=cv_filter,
+        name=package
+    ).create()
+    assert cv_filter.id == cv_filter_rule.content_view_filter.id
+    content_view.publish()
+    content_view = content_view.read()
+    content_view_version_info = content_view.version[0].read()
+    return content_view_version_info
