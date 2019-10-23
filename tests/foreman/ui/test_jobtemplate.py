@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -184,3 +185,37 @@ def test_positive_end_to_end(session, module_org, module_loc):
         for name in (template_new_name, template_clone_name):
             session.jobtemplate.delete(name)
             assert not session.jobtemplate.search(name)
+
+
+@pytest.mark.skip_if_open('BZ:1705866')
+@tier2
+def test_positive_clone_job_template_with_foreign_input_sets(session):
+    """Clone job template with foreign input sets
+
+    :id: 7f502750-b8a2-4223-8d3c-47be95781e34
+
+    :expectedresults: Job template can be cloned with foreign input sets and
+        new template contain foreign input sets from parent
+
+    :BZ: 1705866
+    """
+    child_name = gen_string('alpha')
+    parent_name = 'Install Group - Katello SSH Default'
+    with session:
+        parent = session.jobtemplate.read(
+            parent_name,
+            widget_names='job'
+        )['job']['foreign_input_sets']
+        session.jobtemplate.clone(
+            parent_name,
+            {'template.name': child_name}
+        )
+        child = session.jobtemplate.read(
+            child_name,
+            widget_names='job'
+        )['job']['foreign_input_sets']
+        assert len(parent) == len(child)
+        assert parent[0]['target_template'] == child[0]['target_template']
+        assert parent[0]['include_all'] == child[0]['include_all']
+        assert parent[0]['include'] == child[0]['include']
+        assert parent[0]['exclude'] == child[0]['exclude']
