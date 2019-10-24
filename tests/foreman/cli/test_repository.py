@@ -43,6 +43,7 @@ from robottelo.cli.filter import Filter
 from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
+from robottelo.cli.srpm import Srpm
 from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA27_OSTREE_REPO,
@@ -1849,14 +1850,13 @@ class RepositoryTestCase(CLITestCase):
             {'organization-id': org['id']})
         self.assertEqual(len(repos), 0)
 
-    @skip_if_bug_open('bugzilla', 1378442)
-    @tier1
-    def test_positive_upload_content_srpm(self):
-        """Create repository and upload a SRPM content
+    @tier2
+    def test_positive_upload_remove_srpm_content(self):
+        """Create repository, upload and remove an SRPM content
 
         :id: 706dc3e2-dacb-4fdd-8eef-5715ce498888
 
-        :expectedresults: File successfully uploaded
+        :expectedresults: SRPM successfully uploaded and removed
 
         :CaseImportance: Critical
         """
@@ -1865,16 +1865,78 @@ class RepositoryTestCase(CLITestCase):
             local_file=get_data_file(SRPM_TO_UPLOAD),
             remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
         )
+        # Upload SRPM
         result = Repository.upload_content({
             'name': new_repo['name'],
             'organization': new_repo['organization'],
             'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
             'product-id': new_repo['product']['id'],
+            'content-type': 'srpm',
         })
-        self.assertIn(
-            "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD),
-            result[0]['message'],
+        assert "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD) in result[0]['message']
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
+
+        # Remove uploaded SRPM
+        Repository.remove_content({
+            'id': new_repo['id'],
+            'ids': [Srpm.list({'repository-id': new_repo['id']})[0]['id']],
+            'content-type': 'srpm'
+        })
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 0
+
+    @tier2
+    def test_positive_srpm_list_end_to_end(self):
+        """Create repository,  upload, list and remove an SRPM content
+
+        :id: 98ad4228-f2e5-438a-9210-5ce6561769f2
+
+        :expectedresults:
+            1. SRPM should be listed repository wise.
+            2. SRPM should be listed product wise.
+            3. SRPM should be listed for specific and all Organizations.
+            4. SRPM should be listed LCE wise.
+            5. Able to see info of uploaded SRPM.
+
+        :CaseImportance: High
+        """
+        new_repo = self._make_repository({'name': gen_string('alpha', 15)})
+        ssh.upload_file(
+            local_file=get_data_file(SRPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
         )
+        # Upload SRPM
+        Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+            'content-type': 'srpm',
+        })
+        assert len(Srpm.list()) > 0
+        srpm_list = Srpm.list({'repository-id': new_repo['id']})
+        assert srpm_list[0]['filename'] == SRPM_TO_UPLOAD
+        assert len(srpm_list) == 1
+        assert Srpm.info({'id': srpm_list[0]['id']})[0]['filename'] == SRPM_TO_UPLOAD
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
+        assert len(Srpm.list({'organization': new_repo['organization'], 'product-id': new_repo[
+            'product']['id']})) == 1
+        assert len(Srpm.list({'organization': new_repo['organization']})) == 1
+        assert len(Srpm.list(
+            {'organization': new_repo['organization'], 'lifecycle-environment': 'Library'})) > 0
+        assert len(Srpm.list({
+            'content-view': 'Default Organization View',
+            'lifecycle-environment': 'Library',
+            'organization': new_repo['organization']})) > 0
+
+        # Remove uploaded SRPM
+        Repository.remove_content({
+            'id': new_repo['id'],
+            'ids': [Srpm.list()[0]['id']],
+            'content-type': 'srpm'
+        })
+        assert int(Repository.info(
+            {'id': new_repo['id']})['content-counts']['source-rpms']) == len(
+            Srpm.list({'repository-id': new_repo['id']}))
 
     @tier1
     def test_positive_create_get_update_delete_module_streams(self):
