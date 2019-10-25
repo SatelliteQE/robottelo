@@ -15,6 +15,8 @@
 
 :Upstream: No
 """
+import pytest
+
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -36,7 +38,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     destructive,
-    skip_if_bug_open,
     tier1,
     tier2,
     upgrade,
@@ -384,7 +385,7 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(param_value, os['parameters'][0]['value'])
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1649011)
+    @pytest.mark.skip_if_open("BZ:1649011")
     def test_positive_os_list_with_default_organization_set(self):
         """list operating systems when the default organization is set
 

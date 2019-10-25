@@ -14,13 +14,13 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     fixture,
-    skip_if_bug_open,
     stubbed,
     tier2,
     tier3,
@@ -126,7 +126,7 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
                 assert lce.name in result['Environments']
 
 
-@skip_if_bug_open('bugzilla', 1677282)
+@pytest.mark.skip_if_open("BZ:1677282")
 @tier2
 def test_positive_httpd_proxy_url_update(session, set_original_property_value):
     """Update the http_proxy_url should pass successfully.

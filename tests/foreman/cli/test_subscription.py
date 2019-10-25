@@ -229,7 +229,7 @@ class SubscriptionTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
 
-    @skip_if_bug_open('bugzilla', 1686916)
+    @pytest.mark.skip_if_open("BZ:1686916")
     @tier2
     def test_positive_subscription_list(self):
         """Verify that subscription list contains start and end date
