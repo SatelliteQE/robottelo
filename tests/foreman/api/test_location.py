@@ -247,7 +247,7 @@ class LocationTestCase(APITestCase):
         :expectedresults: Location updated successfully and has correct capsule
             assigned
 
-        :bz: 1398695
+        :BZ: 1398695
 
         :CaseLevel: Integration
 

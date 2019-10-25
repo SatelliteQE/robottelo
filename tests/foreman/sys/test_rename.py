@@ -74,7 +74,7 @@ class RenameHostTestCase(TestCase):
                 manifest, resync repos, republish CVs and re-register hosts
             7. Create new entities (run end-to-end test from robottelo)
 
-        :bz: 1469466
+        :BZ: 1469466
 
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
@@ -172,7 +172,7 @@ class RenameHostTestCase(TestCase):
 
         :id: 385fad60-3990-42e0-9436-4ebb71918125
 
-        :bz: 1485884
+        :BZ: 1485884
 
         :expectedresults: script terminates with a message, hostname
             is not changed
@@ -200,7 +200,7 @@ class RenameHostTestCase(TestCase):
 
         :id: ed4f7611-33c9-455f-8557-507cc59ede92
 
-        :bz: 1485884
+        :BZ: 1485884
 
         :expectedresults: script terminates with a message, hostname
             is not changed
@@ -226,7 +226,7 @@ class RenameHostTestCase(TestCase):
 
         :id: e6d84c5b-4bb1-4400-8022-d01cc9216936
 
-        :bz: 1485884
+        :BZ: 1485884
 
         :expectedresults: script terminates with a message, hostname
             is not changed

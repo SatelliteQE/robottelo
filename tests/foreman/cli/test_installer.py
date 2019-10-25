@@ -136,7 +136,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: All data is cleared from satellite instance
 
-        :bz: 1072780
+        :BZ: 1072780
 
         :CaseAutomation: notautomated
         """

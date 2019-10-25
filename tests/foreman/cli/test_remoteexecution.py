@@ -167,7 +167,7 @@ class TestRemoteExecution():
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
-        :bz: 1451675
+        :BZ: 1451675
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host

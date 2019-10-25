@@ -193,7 +193,7 @@ def test_positive_create_matcher_prioritize_and_delete(session, puppet_class, mo
 
     :id: 75fc514f-70dd-4cc1-8069-221e9edda89a
 
-    :bz: 1734022, 1745938
+    :BZ: 1734022, 1745938
 
     :steps:
 
