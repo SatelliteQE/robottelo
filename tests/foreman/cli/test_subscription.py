@@ -209,7 +209,7 @@ class SubscriptionTestCase(CLITestCase):
     @pytest.mark.skip_if_open("BZ:1226425")
     @tier2
     def test_negative_manifest_refresh(self):
-        """manifest refresh must fail with a cloned manifest
+        """Manifest refresh must fail with a cloned manifest
 
         :id: 7f40795f-7841-4063-8a43-de0325c92b1f
 

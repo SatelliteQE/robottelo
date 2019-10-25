@@ -779,9 +779,11 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         # Create and Associate sync plan with product
         if is_open('BZ:1695733'):
             self.logger.info('Need to set seconds to zero because BZ#1695733')
-            sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+            sync_date = datetime.utcnow().replace(
+                second=0
+            ) + timedelta(seconds=delay)
         else:
-            sync_date = datetime.utcnow() + timedelta(seconds=delay),
+            sync_date = datetime.utcnow() + timedelta(seconds=delay)
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -837,11 +839,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo.id)
         # Create and Associate sync plan with products
-
-        self.logger.info('Need to set seconds to zero because BZ:1695733')
-        # sync_date = datetime.utcnow() + timedelta(seconds=delay)
-        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-
+        if is_open('BZ:1695733'):
+            self.logger.info('Need to set seconds to zero because BZ#1695733')
+            sync_date = datetime.utcnow().replace(
+                second=0
+            ) + timedelta(seconds=delay)
+        else:
+            sync_date = datetime.utcnow() + timedelta(seconds=delay)
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,

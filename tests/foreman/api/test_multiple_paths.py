@@ -215,7 +215,11 @@ class EntityTestCase(APITestCase):
                 # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
                 # comment it out above.
                 if entity_cls in BZ_1118015_ENTITIES and is_open('BZ:1118015'):
-                    continue  # pytest can't skip inside a subTest.
+                    logger.info(
+                        'Pytest can skip inside a subTest, continuing the loop'
+                        ' due to BZ:1118015'
+                    )
+                    continue
 
                 response = entity_cls().create_raw()
                 self.assertEqual(http_client.CREATED, response.status_code)
@@ -231,6 +235,8 @@ class EntityTestCase(APITestCase):
         :id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
 
         :expectedresults: HTTP 401 is returned
+
+        :BZ: 1122257
 
         """
         exclude_list = (
