@@ -35,10 +35,10 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
+    destructive,
     skip_if_bug_open,
     tier1,
     tier2,
-    tier4,
     upgrade,
 )
 from robottelo.test import CLITestCase
@@ -383,7 +383,7 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(param_name, os['parameters'][0]['name'])
         self.assertEqual(param_value, os['parameters'][0]['value'])
 
-    @tier4
+    @destructive
     @skip_if_bug_open('bugzilla', 1649011)
     def test_positive_os_list_with_default_organization_set(self):
         """list operating systems when the default organization is set
@@ -404,11 +404,13 @@ class OperatingSystemTestCase(CLITestCase):
                 u'param-value': DEFAULT_ORG,
             })
             result = ssh.command('hammer defaults list')
-            self.assertTrue(DEFAULT_ORG not in "".join(result.stdout))
+            self.assertEqual(result.return_code, 0)
+            self.assertTrue(DEFAULT_ORG in "".join(result.stdout))
             os_list_after_default = OperatingSys.list()
             self.assertTrue(len(os_list_after_default) > 0)
 
         finally:
-            Defaults.delete({u'param-name': 'organization_id'})
+            Defaults.delete({u'param-name': 'organization'})
             result = ssh.command('hammer defaults list')
+            self.assertEqual(result.return_code, 0)
             self.assertTrue(DEFAULT_ORG not in "".join(result.stdout))
