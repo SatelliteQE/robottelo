@@ -9,7 +9,6 @@ from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
 from robottelo.constants import STRING_TYPES, DOMAIN
-from robottelo.decorators import bz_bug_is_open
 
 
 class InvalidArgumentError(Exception):
@@ -65,7 +64,7 @@ def parametrized(data):
 
 
 @filtered_datapoint
-def generate_strings_list(length=None, exclude_types=None, bug_id=None,
+def generate_strings_list(length=None, exclude_types=None,
                           min_length=3, max_length=30):
     """Generates a list of different input strings.
 
@@ -74,9 +73,6 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
         returned with string types of random length.
     :param exclude_types: Specify a list of data types to be removed from
         generated list. example: exclude_types=['html', 'cjk']
-    :param int bug_id: Specify any bug id that is associated to the datapoint
-        specified in remove_str.  This will be used only when remove_str is
-        populated.
     :param int min_length: Minimum length to be used in integer generator
     :param int max_length: Maximum length to be used in integer generator
     :returns: A list of various string types.
@@ -92,7 +88,7 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
 
     # Handle No bug_id, If some entity doesn't support a str_type.
     # Remove str_type from dictionary only if bug is open.
-    if exclude_types and (bug_id is None or bz_bug_is_open(bug_id)):
+    if exclude_types:
         for item in exclude_types:
             strings.pop(item, None)
 
@@ -294,9 +290,8 @@ def valid_docker_repository_names():
              gen_string('latin1', random.randint(1, 255)),
              gen_string('numeric', random.randint(1, 255)),
              gen_string('utf8', random.randint(1, 85)),
+             gen_string('html', random.randint(1, 85))
              ]
-    if not bz_bug_is_open(1483622):
-        names.append(gen_string('html', random.randint(1, 85)))
     return names
 
 

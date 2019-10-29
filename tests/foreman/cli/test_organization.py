@@ -43,7 +43,6 @@ from robottelo.datafactory import (
     valid_org_names_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier1,
@@ -93,7 +92,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 7938bcc4-7107-40b0-bb88-6288ebec0dcd
 
-        :bz: 1078866, 1647323
+        :BZ: 1078866, 1647323
 
         :expectedresults: no duplicated lines in usage message
 
@@ -176,13 +175,13 @@ class OrganizationTestCase(CLITestCase):
 
         :id: adb5310b-76c5-4aca-8220-fdf0fe605cb0
 
-        :bz:
+        :BZ:
             1. Add and remove subnet by name
             2. Add and remove subnet by id
 
         :expectedresults: Subnets are handled as expected
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :CaseLevel: Integration
         """
@@ -225,7 +224,7 @@ class OrganizationTestCase(CLITestCase):
             3. create and delete admin user by name
             4. create and delete admin user by id
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :CaseLevel: Integration
         """
@@ -247,20 +246,20 @@ class OrganizationTestCase(CLITestCase):
                       "Failed to add user by name")
         self.assertIn(admin_user['login'], org_info['users'],
                       "Failed to add admin user by name")
-        if not bz_bug_is_open(1395229):
-            Org.remove_user({
-                'name': self.org['name'],
-                'user': user['login'],
-            })
-            Org.remove_user({
-                'name': self.org['name'],
-                'user': admin_user['login'],
-            })
-            org_info = Org.info({'name': self.org['name']})
-            self.assertNotIn(user['login'], org_info['users'],
-                             "Failed to remove user by name")
-            self.assertNotIn(admin_user['login'], org_info['users'],
-                             "Failed to remove admin user by name")
+
+        Org.remove_user({
+            'name': self.org['name'],
+            'user': user['login'],
+        })
+        Org.remove_user({
+            'name': self.org['name'],
+            'user': admin_user['login'],
+        })
+        org_info = Org.info({'name': self.org['name']})
+        self.assertNotIn(user['login'], org_info['users'],
+                         "Failed to remove user by name")
+        self.assertNotIn(admin_user['login'], org_info['users'],
+                         "Failed to remove admin user by name")
 
         # add and remove user and admin user by id
         Org.add_user({
@@ -276,20 +275,20 @@ class OrganizationTestCase(CLITestCase):
                       "Failed to add user by id")
         self.assertIn(admin_user['login'], org_info['users'],
                       "Failed to add admin user by id")
-        if not bz_bug_is_open(1395229):
-            Org.remove_user({
-                'id': self.org['id'],
-                'user-id': user['id'],
-            })
-            Org.remove_user({
-                'id': self.org['id'],
-                'user-id': admin_user['id'],
-            })
-            org_info = Org.info({'id': self.org['id']})
-            self.assertNotIn(user['login'], org_info['users'],
-                             "Failed to remove user by id")
-            self.assertNotIn(admin_user['login'], org_info['users'],
-                             "Failed to remove admin user by id")
+
+        Org.remove_user({
+            'id': self.org['id'],
+            'user-id': user['id'],
+        })
+        Org.remove_user({
+            'id': self.org['id'],
+            'user-id': admin_user['id'],
+        })
+        org_info = Org.info({'id': self.org['id']})
+        self.assertNotIn(user['login'], org_info['users'],
+                         "Failed to remove user by id")
+        self.assertNotIn(admin_user['login'], org_info['users'],
+                         "Failed to remove admin user by id")
 
     @tier2
     def test_positive_add_and_remove_hostgroups(self):
@@ -299,7 +298,7 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: Hostgroups are handled as expected
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :steps:
             1. add and remove hostgroup by name
@@ -346,7 +345,7 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: Compute resource are handled as expected
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :steps:
             1. Add and remove compute resource by id
@@ -405,7 +404,7 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: Media are handled as expected
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :steps:
             1. add and remove medium by id
@@ -518,7 +517,7 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: Domains are handled correctly
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :steps:
             1. Add and remove domain by name

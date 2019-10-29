@@ -20,12 +20,10 @@ from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
     tier1,
     tier3,
 )
-from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import get_nailgun_config, is_open
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -202,6 +200,8 @@ class EntityTestCase(APITestCase):
             content-type
 
         :CaseImportance: Critical
+
+        :BZ: 1118015
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -214,9 +214,12 @@ class EntityTestCase(APITestCase):
                 # partials cannot be compared for class identity and the class
                 # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
                 # comment it out above.
-                if (entity_cls in BZ_1118015_ENTITIES and
-                        bz_bug_is_open(1118015)):
-                    self.skipTest('Bugzilla bug 1118015 is open.')
+                if entity_cls in BZ_1118015_ENTITIES and is_open('BZ:1118015'):
+                    logger.info(
+                        'Pytest can skip inside a subTest, continuing the loop'
+                        ' due to BZ:1118015'
+                    )
+                    continue
 
                 response = entity_cls().create_raw()
                 self.assertEqual(http_client.CREATED, response.status_code)
@@ -226,13 +229,14 @@ class EntityTestCase(APITestCase):
                 )
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1122257)
     def test_negative_post_unauthorized(self):
         """POST to an entity-dependent path without credentials.
 
         :id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
 
         :expectedresults: HTTP 401 is returned
+
+        :BZ: 1122257
 
         """
         exclude_list = (
@@ -292,12 +296,12 @@ class EntityIdTestCase(APITestCase):
             content-type
 
         :CaseImportance: Critical
+
+        :BZ: 1378009
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
-        if bz_bug_is_open(1378009):
-            exclude_list += (entities.HostGroup,)
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_put_status_code arg: %s', entity_cls)
@@ -381,12 +385,12 @@ class DoubleCheckTestCase(APITestCase):
         :expectedresults: The entity is updated with the given attributes.
 
         :CaseImportance: Medium
+
+        :BZ: 1378009
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
-        if bz_bug_is_open(1378009):
-            exclude_list += (entities.HostGroup, )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_put_and_get arg: %s', entity_cls)

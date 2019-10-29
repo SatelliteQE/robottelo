@@ -51,7 +51,7 @@ class PuppetModuleTestCase(CLITestCase):
 
         :expectedresults: Puppet-modules are retrieved for the given org
 
-        :bz: 1283173
+        :BZ: 1283173
 
         :CaseImportance: Critical
         """

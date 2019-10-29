@@ -19,7 +19,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.cli.factory import make_virt_who_config, virt_who_hypervisor_config
 from robottelo.config import settings
@@ -44,11 +43,9 @@ from robottelo.constants import (
     DEFAULT_SYSPURPOSE_ATTRIBUTES,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     fixture,
     run_in_one_thread,
     setting_is_set,
-    skip_if_bug_open,
     skip_if_not_set,
     tier3,
     upgrade,
@@ -218,8 +215,8 @@ def test_positive_end_to_end(session, repos_collection, vm):
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
         # Delete content host
         session.contenthost.delete(vm.hostname)
-        if not bz_bug_is_open(1662325):
-            assert not session.contenthost.search(vm.hostname)
+
+        assert not session.contenthost.search(vm.hostname)
 
 
 @upgrade
@@ -426,7 +423,6 @@ def test_positive_remove_package_group(session, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
-@skip_if_bug_open('bugzilla', 1662405)
 @tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
     """Search for host's errata by non-admin user with enough permissions
@@ -435,7 +431,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
 
     :customerscenario: true
 
-    :BZ: 1255515
+    :BZ: 1255515, 1662405, 1652938
 
     :expectedresults: User can access errata page and proper errata is
         listed
@@ -446,11 +442,6 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     with Session(
             test_name, user=module_viewer_user.login, password=module_viewer_user.password
     ) as session:
-        if bz_bug_is_open(1652938):
-            try:
-                session.contenthost.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 

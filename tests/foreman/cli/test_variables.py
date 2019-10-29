@@ -693,7 +693,7 @@ class SmartVariablesTestCase(CLITestCase):
             3. Set '--hidden-value' to true.
             4. After hiding, set '--hidden-value' to false.
 
-        :bz: 1371794
+        :BZ: 1371794
 
         :expectedresults: The 'hidden value' set to true for that variable.
             Default value is hidden

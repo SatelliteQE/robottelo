@@ -122,7 +122,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: d2187971-86b2-40c9-a93c-66f37691ae2b
 
-        :bz: 1337947
+        :BZ: 1337947
 
         :expectedresults:
             1. Environment is created and has parameters assigned

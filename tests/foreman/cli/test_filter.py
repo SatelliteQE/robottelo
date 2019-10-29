@@ -25,7 +25,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
-from robottelo.decorators import skip_if_bug_open, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -206,7 +206,6 @@ class FilterTestCase(CLITestCase):
         filter_ = Filter.info({'id': filter_['id']})
         self.assertEqual(filter_['role'], new_role['name'])
 
-    @skip_if_bug_open('bugzilla', 1401469)
     @tier1
     def test_positive_update_org_loc(self):
         """Create a filter and assign it to another organization and location.

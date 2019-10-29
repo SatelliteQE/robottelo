@@ -48,9 +48,7 @@ from robottelo.constants import (
     RPM_TO_UPLOAD,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier2,
     tier3,
@@ -60,6 +58,7 @@ from robottelo.helpers import (
     create_repo,
     form_repo_path,
     get_data_file,
+    is_open,
     md5_by_url,
 )
 from robottelo.host_info import get_repo_files, get_repomd_revision
@@ -75,7 +74,6 @@ class ContentManagementTestCase(APITestCase):
     interactions.
     """
 
-    @skip_if_bug_open('bugzilla', 1463811)
     @tier2
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
@@ -273,7 +271,6 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
-    @skip_if_bug_open('bugzilla', 1732066)
     @tier4
     def test_positive_checksum_sync(self):
         """Synchronize repository to capsule, update repository's checksum
@@ -284,7 +281,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :customerscenario: true
 
-        :BZ: 1288656, 1664288
+        :BZ: 1288656, 1664288, 1732066
 
         :expectedresults: checksum type is updated in repodata of corresponding
             repository on  capsule
@@ -406,7 +403,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :customerscenario: true
 
-        :BZ: 1394354
+        :BZ: 1394354, 1439691
 
         :expectedresults:
 
@@ -495,7 +492,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         # If BZ1439691 is open, need to sync repo once more, as repodata
         # will change on second attempt even with no changes in repo
-        if bz_bug_is_open(1439691):
+        if is_open('BZ:1439691'):
             repo.sync()
             repo = repo.read()
             cv.publish()
@@ -611,7 +608,6 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(cvv_repo_path)
         )
 
-    @skip_if_bug_open('bugzilla', 1734312)
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
@@ -621,7 +617,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :customerscenario: true
 
-        :BZ: 1303102, 1480358, 1303103
+        :BZ: 1303102, 1480358, 1303103, 1734312
 
         :expectedresults: ISOs are present on external capsule
 
@@ -1122,7 +1118,6 @@ class CapsuleContentManagementTestCase(APITestCase):
         broken_links = set(link for link in result.stdout if link)
         self.assertEqual(len(broken_links), 0)
 
-    @skip_if_bug_open('bugzilla', 1655243)
     @tier4
     def test_positive_sync_puppet_module_with_versions(self):
         """Ensure it's possible to sync multiple versions of the same puppet
@@ -1132,7 +1127,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :customerscenario: true
 
-        :BZ: 1365952
+        :BZ: 1365952, 1655243
 
         :Steps:
 

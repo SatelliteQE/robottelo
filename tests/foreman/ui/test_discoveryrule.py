@@ -25,7 +25,6 @@ from robottelo.api.utils import create_discovered_host
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     tier2,
     tier3,
     upgrade
@@ -224,7 +223,6 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org,
 
 
 @run_in_one_thread
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_list_host_based_on_rule_search_query(
         session, module_org, module_loc, module_discovery_env):
@@ -246,6 +244,8 @@ def test_positive_list_host_based_on_rule_search_query(
 
         1. After step 3, the rule's Discovered host should be listed.
         2. The rule's Associated Host should be listed.
+
+    :BZ: 1731112
     """
     ip_address = gen_ipaddr()
     cpu_count = gen_integer(2, 10)

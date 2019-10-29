@@ -14,13 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from pytest import raises
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2, upgrade
+from robottelo.decorators import skip_if_not_set, tier2, upgrade
 from robottelo.manifests import original_manifest, upload_manifest_locked
 
 
@@ -161,7 +162,7 @@ def test_positive_search_scoped(session):
             assert session.organization.search(query)[0]['Name'] == org_name
 
 
-@skip_if_bug_open('bugzilla', 1321543)
+@pytest.mark.skip_if_open("BZ:1321543")
 @tier2
 def test_positive_create_with_all_users(session):
     """Create organization and new user. Check 'all users' setting for

@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 import time
 from random import choice
 
@@ -94,7 +95,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -1715,7 +1715,7 @@ class KatelloAgentTestCase(CLITestCase):
             u'host-id': self.host['id'],
         })
 
-    @skip_if_bug_open('bugzilla', '1740790')
+    @pytest.mark.skip_if_open("BZ:1740790")
     @tier3
     def test_positive_apply_security_erratum(self):
         """Apply security erratum to a host
@@ -1727,7 +1727,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
 
-        :BZ: 1420671
+        :BZ: 1420671, 1740790
         """
         self.client.download_install_rpm(
             FAKE_1_YUM_REPO,
@@ -2080,7 +2080,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         })
         self.assertEqual(len(applicable_packages), 0)
 
-    @skip_if_bug_open('bugzilla', '1740790')
+    @pytest.mark.skip_if_open("BZ:1740790")
     @tier3
     def test_positive_erratum_applicability(self):
         """Ensure erratum applicability is functioning properly
@@ -2101,7 +2101,7 @@ class KatelloHostToolsTestCase(CLITestCase):
             1. after step 3: errata of package is in applicable errata list
             2. after step 5: errata of package is not in applicable errata list
 
-        :BZ: 1463809
+        :BZ: 1463809,1740790
 
         :CaseLevel: System
         """

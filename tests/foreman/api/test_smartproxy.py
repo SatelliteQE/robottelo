@@ -24,7 +24,6 @@ from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -86,7 +85,6 @@ class CapsuleTestCase(APITestCase):
                     self.assertEquals(proxy.name, name)
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -98,6 +96,7 @@ class CapsuleTestCase(APITestCase):
 
         :CaseLevel: Component
 
+        :BZ: 1398695
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -221,7 +220,6 @@ class CapsuleTestCase(APITestCase):
             proxy.refresh()
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier2
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
@@ -232,6 +230,7 @@ class CapsuleTestCase(APITestCase):
 
         :CaseLevel: Integration
 
+        :BZ: 1398695
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:

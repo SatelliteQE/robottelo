@@ -22,7 +22,6 @@ from robottelo import manifests
 from robottelo.constants import PRDS, REPOSET
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     upgrade,
 )
@@ -31,7 +30,6 @@ from robottelo.test import CLITestCase
 
 
 @run_in_one_thread
-@skip_if_bug_open('bugzilla', 1655239)
 class RepositorySetTestCase(CLITestCase):
     """Repository Set CLI tests."""
 

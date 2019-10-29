@@ -44,7 +44,6 @@ from robottelo.datafactory import (
     invalid_names_list
 )
 from robottelo.decorators import (
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -284,7 +283,6 @@ class OpenScapTestCase(CLITestCase):
                     'scap-file': settings.oscap.content_path})
                 assert scap_content['title'] == title
 
-    @skip_if_bug_open('bugzilla', 1474172)
     @tier1
     def test_negative_create_scap_content_with_same_title(self):
         """Create scap-content with same title
@@ -383,7 +381,6 @@ class OpenScapTestCase(CLITestCase):
                     'scap-file': settings.oscap.content_path})
                 assert scap_content['original-filename'] == name
 
-    @skip_if_bug_open('bugzilla', 1482395)
     @tier1
     def test_negative_create_scap_content_with_invalid_originalfile_name(self):
         """Create scap-content with invalid original file name
@@ -405,6 +402,8 @@ class OpenScapTestCase(CLITestCase):
         :expectedresults: The scap-content is not created.
 
         :CaseImportance: Critical
+
+        :BZ: 1482395
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -439,7 +438,6 @@ class OpenScapTestCase(CLITestCase):
                 with pytest.raises(CLIFactoryError):
                     make_scapcontent({'title': title})
 
-    @skip_if_bug_open('bugzilla', 1490302)
     @tier1
     def test_positive_update_scap_content_with_newtitle(self):
         """Update scap content title
@@ -460,6 +458,8 @@ class OpenScapTestCase(CLITestCase):
         :expectedresults: The scap-content is updated successfully.
 
         :CaseImportance: Critical
+
+        :BZ: 1490302
         """
         title = gen_string('alpha')
         new_title = gen_string('alpha')

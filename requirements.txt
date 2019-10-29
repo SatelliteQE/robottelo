@@ -24,14 +24,8 @@ widgetastic.core==0.33
 widgetastic.patternfly==0.0.38
 wrapanapi==3.2.0
 urllib3==1.25.3
-# python-bugzilla 2.0.0 changed a lot of function signatures
-# also it removed some functions use e.g: getbugsimple
-# to update it code changes is needed.
-python-bugzilla==1.2.2  # pyup: ignore
-
 PyYAML==5.1.2
-robozilla==0.2.6
-
+tenacity==5.1.1
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun

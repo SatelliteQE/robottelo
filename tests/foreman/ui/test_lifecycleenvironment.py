@@ -36,7 +36,6 @@ from robottelo.constants import (
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
-    skip_if_bug_open,
     tier2,
     tier3,
     upgrade,
@@ -156,7 +155,6 @@ def test_positive_add_puppet_module(session, module_org):
         assert lce[0]['Name'] == puppet_module
 
 
-@skip_if_bug_open('bugzilla', 1432155)
 @tier3
 def test_positive_search_lce_content_view_packages_by_full_name(
         session, module_org):
@@ -208,7 +206,6 @@ def test_positive_search_lce_content_view_packages_by_full_name(
                 assert result[0]['Name'] == package['name']
 
 
-@skip_if_bug_open('bugzilla', 1432155)
 @tier3
 def test_positive_search_lce_content_view_packages_by_name(
         session, module_org):

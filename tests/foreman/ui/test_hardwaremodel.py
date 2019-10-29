@@ -12,15 +12,16 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from pytest import raises
 
-from robottelo.decorators import skip_if_bug_open, tier2, upgrade
+from robottelo.decorators import tier2, upgrade
 from robottelo.ui.utils import create_fake_host
 
 
-@skip_if_bug_open('bugzilla', 1758260)
+@pytest.mark.skip_if_open("BZ:1758260")
 @tier2
 @upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
@@ -33,6 +34,8 @@ def test_positive_end_to_end(session, module_org, module_loc):
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :BZ:1758260
     """
     name = gen_string('alpha')
     model = gen_string('alphanumeric')

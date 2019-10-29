@@ -48,7 +48,6 @@ from robottelo.constants import (
 )
 from robottelo.config import settings
 from robottelo.decorators import (
-    bz_bug_is_open,
     setting_is_set,
     skip_if_not_set,
 )
@@ -354,17 +353,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             u'name': content_host_name,
             u'organization-id': org['id'],
         })
-        if bz_bug_is_open(1328202):
-            results = Host.with_user(
-                user['login'],
-                user['password']
-            ).list({'organization-id': org['id']})
-            # Content host registration converts the name to lowercase, make
-            # sure to use the same format while matching against the result
-            content_host_name = content_host_name.lower()
-            for result in results:
-                if result['name'] == content_host_name:
-                    content_host = result
+
         content_host = Host.with_user(
             user['login'],
             user['password']

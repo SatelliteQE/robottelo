@@ -37,7 +37,6 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     setting_is_set,
     skip_if_not_set,
 )
@@ -1045,8 +1044,6 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         #    …
         # }, u'status': u'ok'}
         services = response['services']
-        if bz_bug_is_open('1325995'):
-            services.pop('foreman_auth')
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),
             u'Not all services seem to be up and running!'

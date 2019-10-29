@@ -20,7 +20,7 @@ from airgun.session import Session
 from robottelo.config import settings
 from robottelo.decorators import (
     fixture,
-    tier2
+    tier2,
 )
 from robottelo.datafactory import valid_emails_list
 
@@ -259,6 +259,8 @@ def test_positive_filtering_option(session, form_data):
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :BZ: 1735670
     """
     name = gen_string('alpha')
     form_data['name'] = name

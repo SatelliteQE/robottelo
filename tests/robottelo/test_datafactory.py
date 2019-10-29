@@ -65,12 +65,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_org_names_list()), 7)
         self.assertEqual(len(valid_usernames_list()), 6)
         self.assertEqual(len((valid_cron_expressions())), 4)
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=True):
-            self.assertEqual(len(valid_docker_repository_names()), 6)
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=False):
-            self.assertEqual(len(valid_docker_repository_names()), 7)
+        self.assertEqual(len(valid_docker_repository_names()), 7)
 
     def test_filtered_datapoint_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
@@ -137,31 +132,29 @@ class TestReturnTypes(unittest2.TestCase):
         17. :meth:`robottelo.datafactory.valid_cron_expressions`
 
         """
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=False):
-            for item in itertools.chain(
-                    generate_strings_list(),
-                    invalid_emails_list(),
-                    invalid_interfaces_list(),
-                    invalid_names_list(),
-                    valid_data_list(),
-                    valid_docker_repository_names(),
-                    valid_emails_list(),
-                    valid_environments_list(),
-                    valid_hosts_list(),
-                    valid_hostgroups_list(),
-                    valid_interfaces_list(),
-                    valid_labels_list(),
-                    valid_names_list(),
-                    valid_org_names_list(),
-                    valid_cron_expressions(),
-                    valid_usernames_list()):
-                self.assertIsInstance(item, six.text_type)
-            for item in invalid_id_list():
-                if not (
-                        isinstance(item, (six.text_type, int)) or item is None
-                        ):
-                    self.fail('Unexpected data type')
+        for item in itertools.chain(
+                generate_strings_list(),
+                invalid_emails_list(),
+                invalid_interfaces_list(),
+                invalid_names_list(),
+                valid_data_list(),
+                valid_docker_repository_names(),
+                valid_emails_list(),
+                valid_environments_list(),
+                valid_hosts_list(),
+                valid_hostgroups_list(),
+                valid_interfaces_list(),
+                valid_labels_list(),
+                valid_names_list(),
+                valid_org_names_list(),
+                valid_cron_expressions(),
+                valid_usernames_list()):
+            self.assertIsInstance(item, six.text_type)
+        for item in invalid_id_list():
+            if not (
+                    isinstance(item, (six.text_type, int)) or item is None
+                    ):
+                self.fail('Unexpected data type')
 
 
 class InvalidValuesListTestCase(unittest2.TestCase):

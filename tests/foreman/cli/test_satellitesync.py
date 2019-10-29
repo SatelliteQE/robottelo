@@ -553,7 +553,7 @@ class ContentViewSync(CLITestCase):
             1. CV version redhat contents has been exported to directory
             2. All The exported redhat contents has been imported in org/satellite
 
-        :bz: 1655239
+        :BZ: 1655239
 
         :CaseAutomation: Automated
 
@@ -618,7 +618,7 @@ class ContentViewSync(CLITestCase):
             1. CV version redhat contents has been exported to directory
             2. All The exported redhat contents has been imported in org/satellite
 
-        :bz: 1655239
+        :BZ: 1655239
 
         :CaseAutomation: Automated
 

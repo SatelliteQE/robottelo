@@ -25,10 +25,13 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, VMWARE_CONSTANTS
 from robottelo.decorators import (
     skip_if_not_set,
-    bz_bug_is_open,
     tier3,
 )
-from robottelo.helpers import ProvisioningCheckError, host_provisioning_check
+from robottelo.helpers import (
+    ProvisioningCheckError,
+    host_provisioning_check,
+    is_open,
+)
 from robottelo.test import CLITestCase
 
 
@@ -65,7 +68,7 @@ class ComputeResourceHostTestCase(CLITestCase):
             cls.rhv_api.api.system_service().networks_service(
             ).list(search='name={0}'.format(bridge))[0].id
         )
-        if bz_bug_is_open(1685949):
+        if is_open('BZ:1685949'):
             dc = cls.rhv_api._data_centers_service.list(
                 search='name={0}'.format(cls.rhev_datacenter))[0]
             dc = cls.rhv_api._data_centers_service.data_center_service(dc.id)

@@ -28,13 +28,13 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier2,
     tier3,
     upgrade,
 )
+from robottelo.helpers import is_open
 from robottelo.products import (
     RepositoryCollection,
     SatelliteToolsRepository,
@@ -87,7 +87,7 @@ def test_positive_host_configuration_status(session):
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
-    if bz_bug_is_open(1631219):
+    if is_open('BZ:1631219'):
         criteria_list.pop()
         search_strings_list.pop()
 

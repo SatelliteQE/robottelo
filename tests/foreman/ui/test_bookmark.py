@@ -23,8 +23,8 @@ from pytest import raises
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.decorators import bz_bug_is_open, fixture, rm_bug_is_open, tier2, upgrade
-from robottelo.helpers import get_nailgun_config
+from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.helpers import get_nailgun_config, is_open
 
 
 @fixture(scope='module')
@@ -47,11 +47,8 @@ def ui_entities(module_org, module_loc):
         # Skip the entities, which can't be tested ATM (not implemented in
         # airgun or have open BZs)
         skip = entity.get('skip_for_ui')
-        if isinstance(skip, tuple):
-            bug_type, bug_id = skip
-            if (bug_type == 'bugzilla' and bz_bug_is_open(bug_id)
-                    or bug_type == 'redmine' and rm_bug_is_open(bug_id)):
-                skip = True
+        if isinstance(skip, (tuple, list)):
+            skip = any([is_open(issue) for issue in skip])
         if skip is True:
             continue
         ui_entities.append(entity)

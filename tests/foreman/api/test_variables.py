@@ -247,7 +247,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :expectedresults: The variable is updated with new puppet class.
 
-        :bz: 1375857
+        :BZ: 1375857
 
         :CaseImportance: Critical
         """

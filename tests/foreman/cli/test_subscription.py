@@ -15,6 +15,7 @@
 :Upstream: No
 """
 import csv
+import pytest
 
 from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
@@ -29,7 +30,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier2,
     tier3,
@@ -206,10 +206,10 @@ class SubscriptionTestCase(CLITestCase):
             'organization-id': self.org['id'],
         })
 
-    @skip_if_bug_open('bugzilla', 1226425)
+    @pytest.mark.skip_if_open("BZ:1226425")
     @tier2
     def test_negative_manifest_refresh(self):
-        """manifest refresh must fail with a cloned manifest
+        """Manifest refresh must fail with a cloned manifest
 
         :id: 7f40795f-7841-4063-8a43-de0325c92b1f
 
@@ -229,7 +229,7 @@ class SubscriptionTestCase(CLITestCase):
                 'organization-id': self.org['id'],
             })
 
-    @skip_if_bug_open('bugzilla', 1686916)
+    @pytest.mark.skip_if_open("BZ:1686916")
     @tier2
     def test_positive_subscription_list(self):
         """Verify that subscription list contains start and end date

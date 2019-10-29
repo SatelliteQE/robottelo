@@ -34,7 +34,6 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import APITestCase
-from robozilla.decorators import skip_if_bug_open
 
 
 class ParameterizedSubnetTestCase(APITestCase):
@@ -221,7 +220,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         )
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_positive_inherit_subnet_parmeters_in_host(self):
         """Host inherits parameters from subnet
@@ -244,10 +242,11 @@ class ParameterizedSubnetTestCase(APITestCase):
         :CaseLevel: System
 
         :CaseImportance: Medium
+
+        :BZ: 1470014
         """
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_subnet_parameters_override_from_host(self):
         """Subnet parameters values can be overridden from host
@@ -270,6 +269,8 @@ class ParameterizedSubnetTestCase(APITestCase):
         :CaseLevel: Integration
 
         :CaseImportance: Medium
+
+        :BZ: 1470014
         """
 
     @tier3
@@ -404,7 +405,6 @@ class ParameterizedSubnetTestCase(APITestCase):
                     sub_param.update(['name'])
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_update_subnet_parameter_host_impact(self):
         """Update in parameter name and value from subnet component updates
@@ -426,6 +426,8 @@ class ParameterizedSubnetTestCase(APITestCase):
                 updated name and value
 
         :CaseLevel: Integration
+
+        :BZ: 1470014
         """
 
     @tier1
@@ -451,7 +453,6 @@ class ParameterizedSubnetTestCase(APITestCase):
             sub_param.read()
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
         """Deleting parameter from subnet component deletes the parameter in
@@ -472,10 +473,11 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. The parameter should be deleted from host enc
 
         :CaseLevel: Integration
+
+        :BZ: 1470014
         """
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     @upgrade
     def test_positive_delete_subnet_overridden_parameter_host_impact(self):
@@ -499,6 +501,8 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. The parameter should not be deleted from host enc as well
 
         :CaseLevel: Integration
+
+        :BZ: 1470014
         """
 
     @tier1
@@ -540,7 +544,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         self.assertEqual(params_list[sub_param.name], sub_param.value)
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_positive_subnet_parameter_priority(self):
         """Higher priority hosts component parameter overrides subnet parameter
@@ -566,10 +569,11 @@ class ParameterizedSubnetTestCase(APITestCase):
         :CaseLevel: System
 
         :CaseImportance: Low
+
+        :BZ: 1470014
         """
 
     @stubbed()
-    @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_negative_component_overrides_subnet_parameter(self):
         """Lower priority hosts component parameter doesnt overrides subnet
@@ -595,4 +599,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         :CaseLevel: System
 
         :CaseImportance: Low
+
+        :BZ: 1470014
         """

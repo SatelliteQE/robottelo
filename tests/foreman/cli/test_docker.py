@@ -13,6 +13,7 @@
 
 :Upstream: No
 """
+import pytest
 from random import choice, randint
 
 from fauxfactory import gen_string, gen_url
@@ -51,7 +52,6 @@ from robottelo.datafactory import (
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -95,7 +95,6 @@ class DockerManifestTestCase(CLITestCase):
     """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1658274)
     def test_positive_read_docker_tags(self):
         """docker manifest displays tags information for a docker manifest
 
@@ -105,6 +104,8 @@ class DockerManifestTestCase(CLITestCase):
             manifest
 
         :CaseImportance: Medium
+
+        :BZ: 1658274
         """
         organization = make_org()
         product = make_product_wait({
@@ -572,7 +573,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -606,7 +606,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
@@ -1963,7 +1962,7 @@ class DockerClientTestCase(CLITestCase):
             ssh.command('rm -f /tmp/{0}.tar'.format(repo_name))
 
 
-@skip_if_bug_open('bugzilla', 1414821)
+@pytest.mark.skip_if_open("BZ:1414821")
 class DockerUnixSocketContainerTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with internal unix-socket
       Docker Compute Resource
