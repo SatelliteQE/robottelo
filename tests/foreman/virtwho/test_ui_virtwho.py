@@ -626,3 +626,68 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
         # Delete the created user
         session.user.delete(username)
         assert not session.user.search(username)
+
+
+def test_positive_overview_options_name(form_data, session):
+    """Verify the field name on virt-who config Overview Page.
+
+    :id: 68422042-648c-4652-a52b-5bf42462d2ae
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    name = gen_string('alpha')
+    form_data['name'] = name
+    hypervisor_type = form_data['hypervisor_type']
+    http_proxy = 'test.rexample.com:3128'
+    no_proxy = 'test.satellite.com'
+    regex = '.*redhat.com'
+    whitelist = {
+        'filtering': 'Whitelist',
+        'filtering_content.filter_hosts': regex}
+    blacklist = {
+        'filtering': 'Blacklist',
+        'filtering_content.exclude_hosts': regex}
+    if hypervisor_type == 'esx':
+        whitelist['filtering_content.filter_host_parents'] = regex
+        blacklist['filtering_content.exclude_host_parents'] = regex
+    with session:
+        session.virtwho_configure.create(form_data)
+        results = session.virtwho_configure.read(name)
+        fields = {
+            'status': 'Status',
+            'hypervisor_type': 'Hypervisor Type',
+            'hypervisor_server': 'Hypervisor Server',
+            'hypervisor_username': 'Hypervisor Username',
+            'interval': 'Interval',
+            'satellite_url': 'Satellite server FQDN',
+            'hypervisor_id': 'Hypervisor ID',
+            'filtering': 'Filtering',
+            'debug': 'Enable debugging output?'
+        }
+        for key, value in fields.items():
+            assert results['options'][key] == value
+        session.virtwho_configure.edit(
+            name, dict({'proxy': http_proxy,
+                        'no_proxy': no_proxy},
+                       **whitelist))
+        results = session.virtwho_configure.read(name)
+        fields['filter_hosts'] = 'Filter Hosts'
+        if hypervisor_type == 'esx':
+            fields['filter_host_parents'] = 'Filter Host Parents'
+        fields['proxy'] = 'HTTP Proxy'
+        fields['no_proxy'] = 'Ignore Proxy'
+        for key, value in fields.items():
+            assert results['options'][key] == value
+        session.virtwho_configure.edit(name, blacklist)
+        results = session.virtwho_configure.read(name)
+        del fields['filter_hosts']
+        if hypervisor_type == 'esx':
+            del fields['filter_host_parents']
+            fields['exclude_host_parents'] = 'Exclude Host Parents'
+        fields['exclude_hosts'] = 'Exclude Hosts'
+        for key, value in fields.items():
+            assert results['options'][key] == value
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
