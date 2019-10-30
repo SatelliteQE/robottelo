@@ -117,13 +117,27 @@ def session(test_name, module_user):
 
     Usage::
 
+    Case 1: In case if you want to land on dashboard page after login.
+
         def test_foo(session):
-            with session:
+            with session() as session:
                 # your ui test steps here
                 session.architecture.create({'name': 'bar'})
 
+
+    Case 2: In case if you want to land on entity page after login.
+    e.g. https://satllite_server/products
+
+        def test_foo(session):
+            with session('products') as session:
+                # your ui test steps here
+                session.product.create({'name': 'bar'})
+
     """
-    return Session(test_name, module_user.login, module_user.password)
+    def _relative_path(path=""):
+        return Session(test_name, module_user.login, module_user.password, relative_path=path)
+
+    return _relative_path
 
 
 @fixture()

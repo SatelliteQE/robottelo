@@ -49,7 +49,7 @@ def test_positive_end_to_end(session, module_org):
         organization=module_org
     ).create()
     sync_plan = entities.SyncPlan(organization=module_org).create()
-    with session:
+    with session() as session:
         # Create new product using different parameters
         session.product.create({
             'name': product_name,
@@ -105,7 +105,7 @@ def test_positive_create_in_different_orgs(session, product_name):
     :CaseLevel: Integration
     """
     orgs = [entities.Organization().create() for _ in range(2)]
-    with session:
+    with session('products') as session:
         for org in orgs:
             session.organization.select(org_name=org.name)
             session.product.create(
@@ -137,7 +137,7 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
     plan_name = gen_string('alpha')
     description = gen_string('alpha')
     cron_expression = gen_choice(valid_cron_expressions())
-    with session:
+    with session('products') as session:
         startdate = (
                 session.browser.get_client_datetime() + timedelta(minutes=10))
         sync_plan_values = {
