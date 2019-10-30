@@ -633,6 +633,8 @@ def test_positive_overview_label_name(form_data, session):
 
     :id: 68422042-648c-4652-a52b-5bf42462d2ae
 
+    :BZ: 1649928
+
     :CaseLevel: Integration
 
     :CaseImportance: Medium
@@ -640,8 +642,8 @@ def test_positive_overview_label_name(form_data, session):
     name = gen_string('alpha')
     form_data['name'] = name
     hypervisor_type = form_data['hypervisor_type']
-    http_proxy = 'test.rexample.com:3128'
-    no_proxy = 'test.satellite.com'
+    form_data['proxy'] = 'test.rexample.com:3128'
+    form_data['no_proxy'] = 'test.satellite.com'
     regex = '.*redhat.com'
     whitelist = {
         'filtering': 'Whitelist',
@@ -652,6 +654,7 @@ def test_positive_overview_label_name(form_data, session):
     if hypervisor_type == 'esx':
         whitelist['filtering_content.filter_host_parents'] = regex
         blacklist['filtering_content.exclude_host_parents'] = regex
+    form_data = dict(form_data, **whitelist)
     with session:
         session.virtwho_configure.create(form_data)
         results = session.virtwho_configure.read(name)
@@ -663,21 +666,17 @@ def test_positive_overview_label_name(form_data, session):
             'interval_label': 'Interval',
             'satellite_url_label': 'Satellite server FQDN',
             'hypervisor_id_label': 'Hypervisor ID',
+            'debug_label': 'Enable debugging output?',
             'filtering_label': 'Filtering',
-            'debug_label': 'Enable debugging output?'
+            'filter_hosts_label': 'Filter Hosts',
+            'proxy_label': 'HTTP Proxy',
+            'no_proxy_label': 'Ignore Proxy'
         }
-        for key, value in fields.items():
-            assert results['overview'][key] == value
-        session.virtwho_configure.edit(
-            name, dict({'proxy': http_proxy,
-                        'no_proxy': no_proxy},
-                       **whitelist))
-        results = session.virtwho_configure.read(name)
-        fields['filter_hosts_label'] = 'Filter Hosts'
         if hypervisor_type == 'esx':
             fields['filter_host_parents_label'] = 'Filter Host Parents'
-        fields['proxy_label'] = 'HTTP Proxy'
-        fields['no_proxy_label'] = 'Ignore Proxy'
+        for key, value in fields.items():
+            assert results['overview'][key] == value
+        results = session.virtwho_configure.read(name)
         for key, value in fields.items():
             assert results['overview'][key] == value
         session.virtwho_configure.edit(name, blacklist)
