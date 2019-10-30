@@ -215,6 +215,9 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
+    if not bz_numbers:
+        return []
+
     cached_by_call = CACHED_RESPONSES['get_data'].get(str(sorted(bz_numbers)))
     if cached_by_call:
         return cached_by_call
@@ -264,7 +267,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         },
     )
     response.raise_for_status()
-    data = response.json()["bugs"]
+    data = response.json().get('bugs')
     CACHED_RESPONSES['get_data'][str(sorted(bz_numbers))] = data
     return data
 
