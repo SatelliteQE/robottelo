@@ -43,7 +43,8 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    tier3
+    tier3,
+    skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
 
@@ -654,3 +655,41 @@ class ReportTemplateTestCase(CLITestCase):
                 'id': report_template['name'],
                 'job-id': schedule[0].split("Job ID: ", 1)[1],
             })
+
+    @skip_if_bug_open('bugzilla', 1750924)
+    @tier2
+    def test_positive_generate_with_name_and_org(self):
+        """Generate Host Status report, specifying template name and organization
+
+        :id: 5af03399-b918-468a-1306-1c76dda6f369
+
+        :setup: User with reporting access rights, some report template, some host
+
+        :steps:
+
+            0. use default report template called Host statuses
+            1. hammer report-template generate --name ... --organization ...
+
+        :expectedresults: Report successfully generated (in BZ, it results in
+            "ERF42-5227 [Foreman::Exception]: unknown parent permission for
+            api/v2/report_templates#generate")
+
+        :CaseImportance: Medium
+
+        :BZ: 1750924
+        """
+        host_name = gen_string('alpha')
+        host = make_fake_host({'name': host_name})
+
+        rt_host_statuses = ReportTemplate.info({
+            'name': 'Host statuses'
+        })
+        result = ReportTemplate.generate({
+            'name': rt_host_statuses['name'],
+            'organization': DEFAULT_ORG
+        })
+
+        self.assertIn(
+            host['name'],
+            [item.split(',')[0] for item in result]
+        )
