@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""Test class for ``katello-certs-check``
+"""Test class for ``katello-certs-check``.
 
 :Requirement: katello-certs-check
 
@@ -19,9 +19,13 @@
 import os
 import re
 
+from fauxfactory import gen_string
+from pathlib import Path
+
 from robottelo.config import settings
-from robottelo.ssh import get_connection, upload_file
+from robottelo.ssh import get_connection, upload_file, download_file
 from robottelo.test import TestCase
+from robottelo.helpers import is_open
 from robottelo.decorators import (
     destructive,
     run_in_one_thread,
@@ -35,13 +39,15 @@ from robottelo.decorators import (
 @run_in_one_thread
 class KatelloCertsCheckTestCase(TestCase):
     """Implements ``katello-certs-check`` tests.
+
     Depends on presence of custom certificates at path given
-    in robottello.properties file."""
+    in robottello.properties file.
+    """
 
     @classmethod
     @skip_if_not_set('certs')
     def setUpClass(cls):
-        """Get host name and credentials"""
+        """Get host name and credentials."""
         super(KatelloCertsCheckTestCase, cls).setUpClass()
         _, cls.ca_bundle_file_name = os.path.split(
             settings.certs.ca_bundle_file
@@ -67,6 +73,7 @@ class KatelloCertsCheckTestCase(TestCase):
         )
 
     def validate_output(self, result):
+        """Validate katello-certs-check output against a set."""
         expected_result = set(
             ['--server-cert', '--server-key', '--certs-update-server',
                 '--foreman-proxy-fqdn', '--certs-tar', '--server-ca-cert'])
@@ -90,7 +97,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
     @tier1
     def test_positive_validate_katello_certs_check_output(self):
-        """Validate that katello-certs-check generates correct output
+        """Validate that katello-certs-check generates correct output.
 
         :id: 4c9e4c6e-8d8e-4953-87a1-09cb55df3adf
 
@@ -105,7 +112,6 @@ class KatelloCertsCheckTestCase(TestCase):
         :expectedresults: Katello-certs-check should generate correct commands
          with options.
         """
-
         with get_connection() as connection:
             result = connection.run(
                 'katello-certs-check -c /tmp/{0} -k /tmp/{1} '
@@ -120,7 +126,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
     @destructive
     def test_positive_update_katello_certs(self):
-        """Update certificates on a currently running satellite instance
+        """Update certificates on a currently running satellite instance.
 
         :id: 0ddf6954-dc83-435e-b156-b567b877c2a5
 
@@ -171,7 +177,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @destructive
     @stubbed()
     def test_positive_update_capsule_certs_using_absolute_path(self):
-        """Update certificates on a currently running internal capsule
+        """Update certificates on a currently running internal capsule.
 
         :id: 72024757-be6f-49f0-8b88-c57c83f5e7e9
 
@@ -191,7 +197,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @upgrade
     def test_positive_update_capsule_certs_using_relative_path(self):
-        """Update certificates on a currently running internal capsule
+        """Update certificates on a currently running internal capsule.
 
         :id: 50df0b87-d2d3-42fb-86d5-988ebaaa9ba3
 
@@ -210,7 +216,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_negative_check_expiration_of_certificate(self):
-        """Check expiration of certificate
+        """Check expiration of certificate.
 
         :id: 0acce44f-ebe5-42e1-a74b-3d4d20b97946
 
@@ -227,7 +233,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_negative_check_ca_bundle(self):
-        """Check ca bundle file that contains invalid data
+        """Check ca bundle file that contains invalid data.
 
         :id: ca89e3b9-db15-413b-a395-eaa80bd30c9c
 
@@ -244,7 +250,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_negative_validate_certificate_subject(self):
-        """Validate certificate subject
+        """Validate certificate subject.
 
         :id: 4df45b22-d077-470e-a786-2be329cd68a7
 
@@ -262,7 +268,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_negative_check_private_key_match(self):
-        """Validate private key match with certificate
+        """Validate private key match with certificate.
 
         :id: 358edbb3-08b0-47d7-856b-ce0d5ea95979
 
@@ -279,7 +285,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_negative_check_expiration_of_ca_bundle(self):
-        """Validate expiration of ca bundle file
+        """Validate expiration of ca bundle file.
 
         :id: 09276306-41dd-49b9-953c-3ba74c74790d
 
@@ -296,7 +302,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_negative_check_for_non_ascii_characters(self):
-        """Validate non ascii character in certs
+        """Validate non ascii character in certs.
 
         :id: c6a5e60d-e6d6-420c-b153-c6edb4ad7c99
 
@@ -314,8 +320,7 @@ class KatelloCertsCheckTestCase(TestCase):
     @stubbed()
     @tier1
     def test_positive_validate_without_req_file_output(self):
-        """Check katello-certs-check without -r REQ_FILE generate
-         correct command
+        """Check katello-certs-check without -r REQ_FILE generates correct command.
 
         :id: b7d782eb-28ea-47e9-8661-1b5e5201c82f
 
@@ -332,3 +337,67 @@ class KatelloCertsCheckTestCase(TestCase):
 
         :CaseAutomation: notautomated
         """
+
+    @tier1
+    def test_positive_validate_capsule_certificate(self):
+        """Check that Capsules cert handles additional proxy names.
+
+        :id: 8b53fc3d-704f-44f4-899e-74654529bfcf
+
+        :steps:
+
+            1. Generate a Capsule certificate
+            2. Confirm proxy server's FQDN for DNS is present
+            3. Confirm that format of alternative names does not include []
+
+        :expectedresults: Capsule certs has valid DNS values
+
+        :BZ: 1747581
+
+        :CaseAutomation: automated
+        """
+        DNS_Check = False
+        tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
+        cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir)
+        # Use same path locally as on remote for storing files
+        Path(f'{tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
+        with get_connection(timeout=200) as connection:
+            result = connection.run(
+                'mkdir {0}'.format(tmp_dir))
+            assert result.return_code == 0, 'Create working directory failed.'
+            result = connection.run(
+                'capsule-certs-generate '
+                '--foreman-proxy-fqdn capsule.example.com '
+                '--certs-tar {0}/capsule_certs.tar '.format(tmp_dir), timeout=100)
+            # extract the cert from the tar file
+            result = connection.run('tar -xf {0}/capsule_certs.tar'
+                                    ' --directory {0}/ '.format(tmp_dir))
+            assert result.return_code == 0, 'Extraction to working directory failed.'
+            # Extract raw data from RPM to a file
+            result = connection.run(
+                'rpm2cpio {0}/ssl-build/capsule.example.com/'
+                'capsule.example.com-qpid-router-server*.rpm'
+                '>> {0}/ssl-build/capsule.example.com/cert-raw-data'
+                .format(tmp_dir))
+            # Extract the cert data from file cert-raw-data and write to cert-data
+            result = connection.run(
+                'openssl x509 -noout -text -in {0}/ssl-build/capsule.example.com/cert-raw-data'
+                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir))
+            # use same location on remote and local for cert_file
+            download_file(cert_file)
+            # search the file for the line with DNS
+            with open(cert_file, "r") as file:
+                for line in file:
+                    if re.search(r'\bDNS:', line):
+                        self.logger.info('Found the line with alternative names for DNS')
+                        match = re.search(r'capsule.example.com', line)
+                        assert match, "No proxy name found."
+                        if is_open('BZ:1747581'):
+                            DNS_Check = True
+                        else:
+                            match = re.search(r'\[]', line)
+                            assert not match, "Incorrect parsing of alternative proxy name."
+                            DNS_Check = True
+                        break
+                    # if no match for "DNS:" found, then raise error.
+            assert DNS_Check, "Cannot find Subject Alternative Name"
