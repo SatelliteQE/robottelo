@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from robottelo.cli.base import Base, CLIReturnCodeError
 from robottelo.cli.factory import (
@@ -44,7 +45,6 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
-    skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
 
@@ -656,8 +656,8 @@ class ReportTemplateTestCase(CLITestCase):
                 'job-id': schedule[0].split("Job ID: ", 1)[1],
             })
 
-    @skip_if_bug_open('bugzilla', 1750924)
     @tier2
+    @pytest.mark.skip_if_open('BZ:1750924')
     def test_positive_generate_with_name_and_org(self):
         """Generate Host Status report, specifying template name and organization
 
