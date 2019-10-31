@@ -323,7 +323,7 @@ def test_positive_proxy_option(session, form_data):
         session.virtwho_configure.create(form_data)
         config_id = get_configure_id(name)
         config_command = get_configure_command(config_id)
-        http_proxy = 'test.rexample.com:3128'
+        http_proxy = 'test.example.com:3128'
         no_proxy = 'test.satellite.com'
         session.virtwho_configure.edit(name, {
             'proxy': http_proxy,
@@ -642,7 +642,7 @@ def test_positive_overview_label_name(form_data, session):
     name = gen_string('alpha')
     form_data['name'] = name
     hypervisor_type = form_data['hypervisor_type']
-    form_data['proxy'] = 'test.rexample.com:3128'
+    form_data['proxy'] = 'test.example.com:3128'
     form_data['no_proxy'] = 'test.satellite.com'
     regex = '.*redhat.com'
     whitelist = {
@@ -657,7 +657,6 @@ def test_positive_overview_label_name(form_data, session):
     form_data = dict(form_data, **whitelist)
     with session:
         session.virtwho_configure.create(form_data)
-        results = session.virtwho_configure.read(name)
         fields = {
             'status_label': 'Status',
             'hypervisor_type_label': 'Hypervisor Type',
@@ -674,8 +673,6 @@ def test_positive_overview_label_name(form_data, session):
         }
         if hypervisor_type == 'esx':
             fields['filter_host_parents_label'] = 'Filter Host Parents'
-        for key, value in fields.items():
-            assert results['overview'][key] == value
         results = session.virtwho_configure.read(name)
         for key, value in fields.items():
             assert results['overview'][key] == value
