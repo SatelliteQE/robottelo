@@ -18,7 +18,6 @@ import csv
 import pytest
 
 from robottelo import manifests
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -205,29 +204,6 @@ class SubscriptionTestCase(CLITestCase):
         Subscription.delete_manifest({
             'organization-id': self.org['id'],
         })
-
-    @pytest.mark.skip_if_open("BZ:1226425")
-    @tier2
-    def test_negative_manifest_refresh(self):
-        """Manifest refresh must fail with a cloned manifest
-
-        :id: 7f40795f-7841-4063-8a43-de0325c92b1f
-
-        :expectedresults: the refresh command returns a non-zero return code
-
-        :BZ: 1226425
-
-        :CaseImportance: High
-        """
-        self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
-        with self.assertRaises(CLIReturnCodeError):
-            Subscription.refresh_manifest({
-                'organization-id': self.org['id'],
-            })
 
     @pytest.mark.skip_if_open("BZ:1686916")
     @tier2
