@@ -135,23 +135,33 @@ To configure Robottelo, create a file named ``robottelo.properties``. You can
 use the ``robottelo.properties.sample`` file as a starting point. Then, edit the
 configuration file so that at least the following attributes are set::
 
-    server.hostname=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
-    server.ssh.key_private=[PATH TO YOUR SSH KEY]
-    server.ssh.username=root
-    project=sat
-    locale=en_US
-    remote=0
-    smoke=0
+    [server]
+    hostname=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
+    ssh_key=[PATH TO YOUR SSH KEY]
 
-    [foreman]
-    admin.username=admin
-    admin.password=changeme
+    [bugzilla]
+    api_key=sdfsdg654g8df4gdf6g4df8g468dfg
 
 Note that you only need to configure the SSH key if you want to run CLI tests.
 There are other settings to configure what web browser to use for UI tests and
 even configuration to run the automation using `SauceLabs`_. For more
 information about what web browsers you can use, check Selenium's `WebDriver`_
 documentation.
+
+Using environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each of the sections in the ``robottelo.properties`` file can be mapped to an 
+environment variable prefixed with ``ROBOTTELO_`` so for example if you want
+to override the ``server.hostname`` without changing the properties file you can do::
+
+    $ export ROBOTTELO_SERVER_HOSTNAME=other.hostname.com
+
+The envars follows the format ``ROBOTTELO_{SECTION}_{VALUE}`` all uppercase, more examples::
+
+    $ export ROBOTTELO_SERVER_SSH_KEY=path/to/your/key
+    $ export ROBOTTELO_BUGZILLA_API_KEY=sdfsdg654g8df4gdf6g4df8g468dfg
+
 
 Running the UI Tests in headless mode
 ---------------------------------------
