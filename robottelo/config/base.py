@@ -68,6 +68,9 @@ class INIReader(object):
     def get(self, section, option, default=None, cast=None):
         """Read an option from a section of a INI file.
 
+        First try to lookup for the value as an environment variable having the
+        following format: ROBOTTELO_{SECTION}_{OPTION}.
+
         The default value will return if the look up option is not available.
         The value will be cast using a callable if specified otherwise a string
         will be returned.
@@ -78,10 +81,17 @@ class INIReader(object):
             defined.
         :param cast: If provided the value will be cast using the cast
             provided.
-
         """
+        # First try to read from environment variable.
+        # [bugzilla]
+        # api_key=123456
+        # can be expressed as:
+        # $ export ROBOTTELO_BUGZILLA_API_KEY=123456
+        value = os.environ.get(f'ROBOTTELO_{section.upper()}_{option.upper()}')
+
         try:
-            value = self.config_parser.get(section, option)
+            # If envvar does not exist then try from .properties file.
+            value = value or self.config_parser.get(section, option)
             if cast is not None:
                 if cast is bool:
                     value = self.cast_boolean(value)
