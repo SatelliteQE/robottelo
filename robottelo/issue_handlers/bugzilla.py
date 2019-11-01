@@ -9,7 +9,6 @@ from packaging.version import Version
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from robottelo.config import settings
-from robottelo.config.base import ImproperlyConfigured
 from robottelo.constants import (
     CLOSED_STATUSES,
     OPEN_STATUSES,
@@ -31,6 +30,7 @@ def is_open_bz(issue, data=None):
         issue {str} -- The BZ reference e.g: BZ:123456
         data {dict} -- Issue data indexed by <handler>:<number> or None
     """
+
     bz = try_from_cache(issue, data)
     if bz.get("is_open") is not None:  # bug has been already processed
         return bz["is_open"]
@@ -71,6 +71,7 @@ def should_deselect_bz(issue, data=None):
         issue {str} -- The BZ reference e.g: BZ:123456
         data {dict} -- Issue data indexed by <handler>:<number> or None
     """
+
     bz = try_from_cache(issue, data)
     if bz.get("is_deselected") is not None:  # bug has been already processed
         return bz["is_deselected"]
@@ -122,7 +123,7 @@ def try_from_cache(issue, data=None):
     try:
         # issue must be passed in `data` argument or already fetched in pytest
         return data or pytest.issue_data[issue]['data']
-    except KeyError:  # pragma: no cover
+    except (KeyError, AttributeError):  # pragma: no cover
         # If not then call BZ API again
         return get_single_bz(str(issue).partition(':')[-1])
 
@@ -232,6 +233,28 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
             if 'data' in item
         ]
 
+    # Ensure API key is set
+    if not settings.bugzilla.api_key:
+        LOGGER.warning(
+            "Config file is missing bugzilla api_key "
+            "so all tests with skip_if_open mark is skipped. "
+            "Provide api_key or a bz_cache.json."
+        )
+        # Provide default data for collected BZs
+        return [
+            {
+                "id": number,
+                "is_open": True,  # All marked is skipped
+                "is_deselected": False,  # nothing is deselected
+                "status": "",
+                "resolution": "",
+                "clone_ids": [],
+                "cf_clone_of": "",
+                "error": "missing bugzilla api_key"
+            }
+            for number in bz_numbers
+        ]
+
     # No cached data so Call Bugzilla API
     LOGGER.debug(f"Calling Bugzilla API for {set(bz_numbers)}")
     bz_fields = [
@@ -253,10 +276,6 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
     # Following fields are dynamically calculated/loaded
     for field in ('is_open', 'clones', 'version'):
         assert field not in bz_fields
-
-    # Ensure API key is set
-    if not settings.bugzilla.api_key:
-        raise ImproperlyConfigured("Config file is missing bugzilla api_key")
 
     response = requests.get(
         f"{settings.bugzilla.url}/rest/bug",

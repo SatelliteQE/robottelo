@@ -938,7 +938,10 @@ def generate_issue_collection(items, config):  # pragma: no cover
             json.dump(
                 collected_data, collect_file, indent=4, cls=VersionEncoder
             )
-            LOGGER.debug(f"Generated file {bz_cache} with BZ collect data")
+            LOGGER.debug(
+                f"Generated file {bz_cache or 'bz_cache.json'}"
+                " with BZ collect data"
+            )
 
     return collected_data
 
