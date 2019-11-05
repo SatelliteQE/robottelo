@@ -28,6 +28,9 @@ from robottelo.constants import (
     FAKE_3_ERRATA_ID,
     FAKE_3_YUM_REPO,
     FAKE_6_YUM_REPO,
+    FAKE_9_YUM_REPO,
+    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
+    FAKE_9_YUM_ERRATUM,
     PRDS,
     REAL_0_RH_PACKAGE,
     REAL_4_ERRATA_ID,
@@ -238,6 +241,30 @@ def test_positive_list(session, module_repos_col, module_lce):
         assert (session.errata.search(FAKE_3_ERRATA_ID, applicable=False)[0]['Errata ID']
                 == FAKE_3_ERRATA_ID)
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
+
+@tier2
+def test_positive_search_type(session):
+    """ Search for errata by type
+
+    :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
+
+    :Setup: Repo with security (and other) errata synced to satellite server
+
+    :Steps: Search for errata by type (ie type = security)
+
+    :BZ: 1653293
+
+    :CaseLevel: Integration
+    """
+
+    org = entities.Organization().create()
+    org_env = entities.LifecycleEnvironment(organization=org).create()
+    org_repos_col = RepositoryCollection(repositories=[YumRepository(FAKE_9_YUM_REPO)])
+    org_repos_col.setup_content(org.id, org_env.id)
+
+    with session:
+        errata = session.errata.search('type = security')
+        assert len(errata) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
 
 @tier2
