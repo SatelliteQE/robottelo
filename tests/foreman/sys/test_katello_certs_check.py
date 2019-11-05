@@ -23,6 +23,7 @@ from fauxfactory import gen_string
 from pathlib import Path
 
 from robottelo.config import settings
+from robottelo import ssh
 from robottelo.ssh import get_connection, upload_file, download_file
 from robottelo.test import TestCase
 from robottelo.helpers import is_open
@@ -338,6 +339,27 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
+
+class CapsuleCertsCheckTestCase(TestCase):
+    """Implements Capsule certs checks on Satellite Server.
+
+    Creates a temporary subdirectory and file under /var/tmp/
+    on both Satellite Server's base system and on local host.
+    """
+
+    @classmethod
+    @skip_if_not_set('certs')
+    def setUpClass(cls):
+        """Create working direcotry and file."""
+        super(CapsuleCertsCheckTestCase, cls).setUpClass()
+        cls.tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
+        cls.caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(cls.tmp_dir)
+        # Use same path locally as on remote for storing files
+        Path(f'{cls.tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
+        result = ssh.command(
+                'mkdir {0}'.format(cls.tmp_dir))
+        assert result.return_code == 0, 'Create working directory failed.'
+
     @tier1
     def test_positive_validate_capsule_certificate(self):
         """Check that Capsules cert handles additional proxy names.
@@ -357,36 +379,29 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: automated
         """
         DNS_Check = False
-        tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
-        cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir)
-        # Use same path locally as on remote for storing files
-        Path(f'{tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
         with get_connection(timeout=200) as connection:
-            result = connection.run(
-                'mkdir {0}'.format(tmp_dir))
-            assert result.return_code == 0, 'Create working directory failed.'
             result = connection.run(
                 'capsule-certs-generate '
                 '--foreman-proxy-fqdn capsule.example.com '
-                '--certs-tar {0}/capsule_certs.tar '.format(tmp_dir), timeout=100)
+                '--certs-tar {0}/capsule_certs.tar '.format(self.tmp_dir), timeout=100)
             # extract the cert from the tar file
             result = connection.run('tar -xf {0}/capsule_certs.tar'
-                                    ' --directory {0}/ '.format(tmp_dir))
+                                    ' --directory {0}/ '.format(self.tmp_dir))
             assert result.return_code == 0, 'Extraction to working directory failed.'
             # Extract raw data from RPM to a file
             result = connection.run(
                 'rpm2cpio {0}/ssl-build/capsule.example.com/'
                 'capsule.example.com-qpid-router-server*.rpm'
                 '>> {0}/ssl-build/capsule.example.com/cert-raw-data'
-                .format(tmp_dir))
+                .format(self.tmp_dir))
             # Extract the cert data from file cert-raw-data and write to cert-data
             result = connection.run(
                 'openssl x509 -noout -text -in {0}/ssl-build/capsule.example.com/cert-raw-data'
-                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir))
+                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(self.tmp_dir))
             # use same location on remote and local for cert_file
-            download_file(cert_file)
+            download_file(self.caps_cert_file)
             # search the file for the line with DNS
-            with open(cert_file, "r") as file:
+            with open(self.caps_cert_file, "r") as file:
                 for line in file:
                     if re.search(r'\bDNS:', line):
                         self.logger.info('Found the line with alternative names for DNS')
