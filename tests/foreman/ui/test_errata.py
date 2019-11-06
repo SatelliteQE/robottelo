@@ -30,7 +30,8 @@ from robottelo.constants import (
     FAKE_6_YUM_REPO,
     FAKE_9_YUM_REPO,
     FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
-    FAKE_9_YUM_ERRATUM,
+    FAKE_9_YUM_SECURITY_ERRATUM,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
     PRDS,
     REAL_0_RH_PACKAGE,
     REAL_4_ERRATA_ID,
@@ -151,6 +152,31 @@ def rhva_vm(module_rhva_repos_col):
         yield client
 
 
+@fixture(scope='module')
+def module_erratatype_repos_col(module_org, module_lce):
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
+            # force the host to consume an RH product with adding a cdn repo.
+            RHELAnsibleEngineRepository(cdn=True),
+            # add a repo with errata of different types (security, advisory, etc)
+            YumRepository(url=FAKE_9_YUM_REPO),
+        ]
+    )
+    repos_collection.setup_content(module_org.id, module_lce.id)
+    return repos_collection
+
+
+@fixture
+def erratatype_vm(module_erratatype_repos_col):
+    """Virtual machine client using module_erratatype_repos_col for subscription"""
+    with VirtualMachine(distro=module_erratatype_repos_col.distro) as client:
+        module_erratatype_repos_col.setup_virtual_machine(client)
+        yield client
+
+
 @fixture
 def errata_status_installable():
     """Fixture to allow restoring errata_status_installable setting after usage"""
@@ -241,30 +267,6 @@ def test_positive_list(session, module_repos_col, module_lce):
         assert (session.errata.search(FAKE_3_ERRATA_ID, applicable=False)[0]['Errata ID']
                 == FAKE_3_ERRATA_ID)
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
-
-@tier2
-def test_positive_search_type(session):
-    """ Search for errata by type
-
-    :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
-
-    :Setup: Repo with security (and other) errata synced to satellite server
-
-    :Steps: Search for errata by type (ie type = security)
-
-    :BZ: 1653293
-
-    :CaseLevel: Integration
-    """
-
-    org = entities.Organization().create()
-    org_env = entities.LifecycleEnvironment(organization=org).create()
-    org_repos_col = RepositoryCollection(repositories=[YumRepository(FAKE_9_YUM_REPO)])
-    org_repos_col.setup_content(org.id, org_env.id)
-
-    with session:
-        errata = session.errata.search('type = security')
-        assert len(errata) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
 
 @tier2
@@ -492,6 +494,35 @@ def test_positive_content_host_library(session, module_org, vm):
         content_host_erratum = session.contenthost.search_errata(
             host_name, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content')
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+
+
+@tier3
+def test_positive_content_host_search_type(session, erratatype_vm):
+    """ Search for errata on a content_host by type
+
+    :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
+
+    :Setup: Content Host with applicable security errata
+
+    :Steps: Search for errata on content host by type (ie 'type = security')
+
+    :BZ: 1653293
+
+    :CaseLevel: Integration
+    """
+
+    pkgs = " ".join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
+
+    with session:
+        ch_erratum = session.contenthost.search_errata(
+            erratatype_vm.hostname, "type = security", environment='Library Synced Content')
+
+        assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+
+        # check IDs just to be safe
+        errata_ids = sorted([e['Id'] for e in ch_erratum])
+        assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
 
 
 @tier3
