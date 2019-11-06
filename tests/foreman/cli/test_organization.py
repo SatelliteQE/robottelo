@@ -34,6 +34,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
+from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.datafactory import (
@@ -167,6 +168,25 @@ class OrganizationTestCase(CLITestCase):
         Org.delete({'id': org['id']})
         with self.assertRaises(CLIReturnCodeError):
             Org.info({'id': org['id']})
+
+    @tier2
+    def test_positive_create_with_system_admin_user(self):
+        """Create organization using user with system admin role
+
+        :id: 1482ab6e-18c7-4a62-81a2-cc969ac373fe
+
+        :expectedresults: organization is created
+
+        :BZ: 1644586
+        """
+        login = gen_string('alpha')
+        password = gen_string('alpha')
+        org_name = gen_string('alpha')
+        make_user({'login': login, 'password': password})
+        User.add_role({'login': login, 'role': 'System admin'})
+        Org.with_user(username=login, password=password).create({'name': org_name})
+        result = Org.info({'name': org_name})
+        self.assertEqual(result['name'], org_name)
 
     @tier2
     @upgrade
