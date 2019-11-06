@@ -17,7 +17,6 @@
 from datetime import (
     datetime,
     timedelta,
-    timezone
 )
 from fauxfactory import gen_string
 
@@ -38,7 +37,6 @@ from .utils import (
     get_configure_file,
     get_configure_option,
     get_configure_command,
-    get_rhsmlog_time,
     get_virtwho_status,
     restart_virtwho_service,
     update_configure_option,
