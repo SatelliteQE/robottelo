@@ -700,8 +700,7 @@ def test_positive_last_checkin_status(form_data, session):
 
     :id: 3931e10e-8adc-4ca4-8963-20572b2f99bf
 
-    :expectedresults:
-    the Last Checkin time on Content Hosts Page is UTC time
+    :expectedresults: The Last Checkin time on Content Hosts Page is UTC time
 
     :BZ: 1652323
 
