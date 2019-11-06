@@ -702,6 +702,11 @@ def test_positive_last_checkin_status(form_data, session):
 
     :id: 3931e10e-8adc-4ca4-8963-20572b2f99bf
 
+    :expectedresults:
+    the Last Checkin time on Content Hosts Page is different from POST time in virt-who log
+    if the POST time from rhsm log is 2019-11-05 03:27:17,
+    the Last Checkin time would be Nov 05, 08:27 AM
+
     :BZ: 1652323
 
     :CaseLevel: Integration
