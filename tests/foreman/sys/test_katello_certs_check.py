@@ -356,9 +356,15 @@ class CapsuleCertsCheckTestCase(TestCase):
         cls.caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(cls.tmp_dir)
         # Use same path locally as on remote for storing files
         Path(f'{cls.tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
-        result = ssh.command(
-                'mkdir {0}'.format(cls.tmp_dir))
-        assert result.return_code == 0, 'Create working directory failed.'
+        with get_connection(timeout=200) as connection:
+            result = ssh.command(
+                    'mkdir {0}'.format(cls.tmp_dir))
+            assert result.return_code == 0, 'Create working directory failed.'
+        # Generate a Capsule cert for capsule.example.com
+            result = connection.run(
+                    'capsule-certs-generate '
+                    '--foreman-proxy-fqdn capsule.example.com '
+                    '--certs-tar {0}/capsule_certs.tar '.format(cls.tmp_dir), timeout=100)
 
     @tier1
     def test_positive_validate_capsule_certificate(self):
@@ -380,10 +386,6 @@ class CapsuleCertsCheckTestCase(TestCase):
         """
         DNS_Check = False
         with get_connection(timeout=200) as connection:
-            result = connection.run(
-                'capsule-certs-generate '
-                '--foreman-proxy-fqdn capsule.example.com '
-                '--certs-tar {0}/capsule_certs.tar '.format(self.tmp_dir), timeout=100)
             # extract the cert from the tar file
             result = connection.run('tar -xf {0}/capsule_certs.tar'
                                     ' --directory {0}/ '.format(self.tmp_dir))
