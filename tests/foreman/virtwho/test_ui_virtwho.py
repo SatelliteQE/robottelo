@@ -14,6 +14,11 @@
 
 :Upstream: No
 """
+from datetime import (
+    datetime,
+    timedelta,
+    timezone
+)
 from fauxfactory import gen_string
 
 from airgun.session import Session
@@ -33,6 +38,7 @@ from .utils import (
     get_configure_file,
     get_configure_option,
     get_configure_command,
+    get_rhsmlog_time,
     get_virtwho_status,
     restart_virtwho_service,
     update_configure_option,
@@ -687,5 +693,36 @@ def test_positive_overview_label_name(form_data, session):
         fields['exclude_hosts_label'] = 'Exclude Hosts'
         for key, value in fields.items():
             assert results['overview'][key] == value
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
+
+
+def test_positive_last_checkin_status(form_data, session):
+    """Verify the Last Checkin status on Content Hosts Page.
+
+    :id: 3931e10e-8adc-4ca4-8963-20572b2f99bf
+
+    :BZ: 1652323
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.virtwho_configure.create(form_data)
+        values = session.virtwho_configure.read(name)
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        report_time = get_rhsmlog_time('Response: status=200, request="POST')
+        time_array = datetime.strptime(report_time, "%Y-%m-%d %H:%M:%S")
+        time_list = []
+        for min in range(0, 6):     # Give 5 mins to check the Checkin time
+            time = time_array.astimezone(timezone(timedelta(hours=13, minutes=min)))
+            time_list.append(time.strftime("%b %d, %I:%M %p"))
+        checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
+        assert any(key == checkin_time for key in time_list)
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
