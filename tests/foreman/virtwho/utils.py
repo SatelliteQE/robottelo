@@ -366,18 +366,3 @@ def add_configure_option(option, value, config_file):
             "option {} is already exist in {}"
             .format(option, config_file)
         )
-
-
-def get_rhsmlog_time(msg):
-    """
-    Get time from /var/log/rhsm/rhsm.log
-    Example from log file:
-    2019-11-06 01:27:51,657 [virtwho.main DEBUG] MainProcess(4166):MainThread
-    @executor.py:terminate:225 - virt-who is shutting down
-
-    :param msg: Messages you want to search in rhsm log file
-    :return: Time from excepted message, such as 2019-11-06 01:27:51
-    """
-    cmd = 'cat /var/log/rhsm/rhsm.log |grep \'{}\''.format(msg)
-    _, line = runcmd(cmd)
-    return line[0:19]

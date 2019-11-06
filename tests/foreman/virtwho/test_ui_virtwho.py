@@ -703,9 +703,7 @@ def test_positive_last_checkin_status(form_data, session):
     :id: 3931e10e-8adc-4ca4-8963-20572b2f99bf
 
     :expectedresults:
-    the Last Checkin time on Content Hosts Page is different from POST time in virt-who log
-    if the POST time from rhsm log is 2019-11-05 03:27:17,
-    the Last Checkin time would be Nov 05, 08:27 AM
+    the Last Checkin time on Content Hosts Page is UTC time
 
     :BZ: 1652323
 
@@ -720,12 +718,12 @@ def test_positive_last_checkin_status(form_data, session):
         values = session.virtwho_configure.read(name)
         command = values['deploy']['command']
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+        time_now = datetime.utcnow()
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-        report_time = get_rhsmlog_time('Response: status=200, request="POST')
-        time_array = datetime.strptime(report_time, "%Y-%m-%d %H:%M:%S")
+        # 10 mins margin to check the Last Checkin time
         time_list = []
-        for min in range(0, 6):     # Give 5 mins to check the Checkin time
-            time = time_array.astimezone(timezone(timedelta(hours=13, minutes=min)))
+        for min in range(-5, 5):
+            time = time_now + timedelta(minutes=min)
             time_list.append(time.strftime("%b %d, %I:%M %p"))
         checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
         assert any(key == checkin_time for key in time_list)
