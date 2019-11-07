@@ -14,12 +14,12 @@
 
 :Upstream: No
 """
+import pytest
 from tempfile import mkstemp
 
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import skip
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
@@ -49,7 +49,7 @@ import time
 pytestmark = [run_in_one_thread]
 
 if not setting_is_set('fake_manifest'):
-    skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
+    pytest.skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
 
 
 @tier2
@@ -188,6 +188,52 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
         assert (session.subscription.search(
             'name = "{0}"'.format(DEFAULT_SUBSCRIPTION_NAME))[0]['Name']
                 == DEFAULT_SUBSCRIPTION_NAME)
+
+
+@tier2
+def test_positive_access_manifest_as_another_admin_user(test_name):
+    """Other admin users should be able to access and manage a manifest
+    uploaded by a different admin.
+
+    :id: 02e319da-3b7a-4694-9164-475c2c71b9a8
+
+    :expectedresults: Other admin user should see/manage the manifest
+
+    :BZ: 1669241
+
+    :customerscenario: true
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    org = entities.Organization().create()
+    user1_password = gen_string('alphanumeric')
+    user1 = entities.User(
+        admin=True,
+        password=user1_password,
+        organization=[org],
+        default_organization=org,
+    ).create()
+    user2_password = gen_string('alphanumeric')
+    user2 = entities.User(
+        admin=True,
+        password=user2_password,
+        organization=[org],
+        default_organization=org,
+    ).create()
+    # use the first admin to upload a manifest
+    with Session(test_name, user=user1.login, password=user1_password) as session:
+        manifests.upload_manifest_locked(org.id)
+        assert session.subscription.has_manifest
+        # store subscriptions that have "Red Hat" in the name for later
+        rh_subs = session.subscription.search("Red Hat")
+    # try to view and delete the manifest with another admin
+    with Session(test_name, user=user2.login, password=user2_password) as session:
+        assert session.subscription.has_manifest
+        assert rh_subs == session.subscription.search("Red Hat")
+        session.subscription.delete_manifest(ignore_error_messages=['404 Not Found'])
+        assert not session.subscription.has_manifest
 
 
 @tier3
