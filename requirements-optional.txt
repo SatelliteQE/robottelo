@@ -9,8 +9,6 @@ tox
 # Voluntary (recommended!) tool for checking code quality.
 pylint
 
-# For reporting test results on SauceLabs
-sauceclient==1.0.0
 
 # For generating documentation.
 sphinx
