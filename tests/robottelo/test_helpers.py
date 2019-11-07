@@ -1,27 +1,29 @@
 """Tests for module ``robottelo.helpers``."""
 # (Too many public methods) pylint: disable=R0904
 import os
-import six
+
 import unittest2
-from robottelo.helpers import (
-    HostInfoError,
-    escape_search,
-    get_host_info,
-    get_server_version,
-    Storage,
-    is_open,
-    _should_deselect
-)
+
+from collections import defaultdict
+
 from robottelo.constants import (
     CLOSED_STATUSES,
     OPEN_STATUSES,
     WONTFIX_RESOLUTIONS
 )
+from robottelo.helpers import (
+    HostInfoError,
+    Storage,
+    _add_workaround,
+    _should_deselect,
+    escape_search,
+    get_host_info,
+    get_server_version,
+    is_open,
+    slugify_component
+)
 
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
+from unittest import mock
 
 
 class GetServerVersionTestCase(unittest2.TestCase):
@@ -89,10 +91,7 @@ class GetHostInfoTestCase(unittest2.TestCase):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
         with self.assertRaises(HostInfoError) as context:
             get_host_info()
-        if six.PY2:
-            message = context.exception.message
-        else:
-            message = str(context.exception)
+        message = str(context.exception)
         self.assertEqual(message, 'Not able to parse release string ""')
 
 
@@ -106,7 +105,7 @@ class FakeSSHResult(object):
 class EscapeSearchTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if escape search returns a unicode string"""
-        self.assertIsInstance(escape_search('search term'), six.text_type)
+        self.assertIsInstance(escape_search('search term'), str)
 
     def test_escapes_double_quotes(self):
         """Tests if escape search escapes double quotes"""
@@ -474,3 +473,39 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
         for issue in ("BZ123456", "XX:123456", "KK:89456", "123456", 999999):
             with self.subTest(issue=issue):
                 self.assertIsNone(_should_deselect(issue))
+
+
+def test_slugify_component():
+    """Assert slugify_component returns proper values"""
+    assert slugify_component('ContentViews') == 'contentviews'
+    assert slugify_component('File-Management') == 'file-management'
+    assert slugify_component('File-Management', False) == 'file_management'
+    assert slugify_component('File&Management') == 'filemanagement'
+    assert slugify_component('File and Management') == 'filemanagement'
+
+
+def test_add_workaround():
+    """Assert helper function adds corrent items to given data"""
+    data = defaultdict(lambda: {"data": {}, "used_in": []})
+    matches = [('BZ', '123456'), ('BZ', '789456')]
+
+    _add_workaround(
+        data,
+        matches,
+        'test',
+        foo='bar'
+    )
+
+    _add_workaround(
+        data,
+        matches,
+        'test',
+        validation=lambda *a, **k: False,  # Should not be added
+        zaz='traz'
+    )
+
+    for match in matches:
+        issue = f"{match[0]}:{match[1]}"
+        used_in = data[issue.strip()]['used_in']
+        assert {'usage': 'test', 'foo': 'bar'} in used_in
+        assert {'usage': 'test', 'zaz': 'traz'} not in used_in
