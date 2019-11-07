@@ -141,7 +141,7 @@ class ReportTemplateTestCase(APITestCase):
         input_name = gen_string('alpha').lower()
         input_value = gen_string('alpha').lower()
         template_name = gen_string('alpha').lower()
-        template = f'<%= "value=\\"" %><%= input(\'{input_name}\') %><%= "\\"" %>'
+        template = '<%= "value=\\"" %><%= input(\'{0}\') %><%= "\\"" %>'.format(input_name)
         entities.Host(name=host_name).create()
         rt = entities.ReportTemplate(name=template_name, template=template).create()
         entities.TemplateInput(name=input_name,
