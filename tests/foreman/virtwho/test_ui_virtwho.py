@@ -14,10 +14,7 @@
 
 :Upstream: No
 """
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import datetime
 from fauxfactory import gen_string
 
 from airgun.session import Session
@@ -712,17 +709,14 @@ def test_positive_last_checkin_status(form_data, session):
     form_data['name'] = name
     with session:
         session.virtwho_configure.create(form_data)
-        values = session.virtwho_configure.read(name)
+        values = session.virtwho_configure.read(name, widget_names='deploy.command')
         command = values['deploy']['command']
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
         time_now = datetime.utcnow()
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-        # 10 mins margin to check the Last Checkin time
-        time_list = []
-        for min in range(-5, 5):
-            time = time_now + timedelta(minutes=min)
-            time_list.append(time.strftime("%b %d, %I:%M %p"))
         checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
-        assert any(key == checkin_time for key in time_list)
+        # 10 mins margin to check the Last Checkin time
+        assert datetime.strptime(checkin_time, "%b %d, %I:%M %p").replace(
+            year=datetime.utcnow().year).timestamp() - time_now.timestamp() <= 300
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
