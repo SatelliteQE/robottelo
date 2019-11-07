@@ -306,8 +306,6 @@ It is possible to run UI tests on SauceLabs. To do this:
   in the configuration file with your Sauce OnDemand credentials.
 * If the machine where Satellite 6 is installed is on a VPN or behind a
   firewall make sure to have SauceConnect running.
-* Optional: install ``sauceclient`` python package if you want robottelo to
-  report test success or failure back to SauceLabs.
 
 Miscellany
 ==========
