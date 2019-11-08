@@ -355,7 +355,8 @@ class CapsuleCertsCheckTestCase(TestCase):
         cls.tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
         cls.caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(cls.tmp_dir)
         # Use same path locally as on remote for storing files
-        Path(f'{cls.tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
+        Path('{0}/ssl-build/capsule.example.com/'.format(cls.tmp_dir)).mkdir(
+            parents=True, exist_ok=True)
         with get_connection(timeout=200) as connection:
             result = ssh.command(
                     'mkdir {0}'.format(cls.tmp_dir))
