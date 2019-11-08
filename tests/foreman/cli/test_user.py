@@ -1098,7 +1098,7 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_last_login_for_new_user(self):
         """Create new user with admin role and check last login updated for that user
 
-        :id: 1482ab6e-18c7-4a62-81a2-cc969ac373fe
+        :id: 967282d3-92d0-42ce-9ef3-e542d2883408
 
         :expectedresults: last login should be updated for user after login using hammer
 
