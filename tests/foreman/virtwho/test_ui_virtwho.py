@@ -716,7 +716,7 @@ def test_positive_last_checkin_status(form_data, session):
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
         # 10 mins margin to check the Last Checkin time
-        assert datetime.strptime(checkin_time, "%b %d, %I:%M %p").replace(
-            year=datetime.utcnow().year).timestamp() - time_now.timestamp() <= 300
+        assert abs(datetime.strptime(checkin_time, "%b %d, %I:%M %p").replace(
+            year=datetime.utcnow().year).timestamp() - time_now.timestamp()) <= 300
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)
