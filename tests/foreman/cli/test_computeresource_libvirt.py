@@ -32,7 +32,6 @@ Subcommands::
 
 :Upstream: No
 """
-import pytest
 import random
 
 from fauxfactory import gen_string, gen_url
@@ -264,36 +263,6 @@ class ComputeResourceTestCase(CLITestCase):
         self.assertEqual(len(comp_resource['locations']), locations_amount)
         for location in locations:
             self.assertIn(location['name'], comp_resource['locations'])
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1214312")
-    def test_positive_create_with_console_password(self):
-        """Create Compute Resource with different values of
-        set-console-password parameter
-
-        :id: 4531b3e3-906b-4835-a6ab-3332dc9bd636
-
-        :expectedresults: Compute Resource is created and set-console-password
-            parameter is set
-
-        :BZ: 1214312
-
-        :CaseImportance: High
-
-        :CaseLevel: Component
-        """
-        for console_password in (u'True', u'Yes', 1, u'False', u'No', 0):
-            with self.subTest(console_password):
-                comp_resource = make_compute_resource({
-                    u'provider': FOREMAN_PROVIDERS['libvirt'],
-                    u'set-console-password': console_password,
-                    u'url': gen_url(),
-                })
-                result = ComputeResource.info({'id': comp_resource['id']})
-                if console_password in (u'True', u'Yes', 1):
-                    self.assertEqual(result['set-console-password'], u'true')
-                else:
-                    self.assertEqual(result['set-console-password'], u'false')
 
     # Negative create
 
