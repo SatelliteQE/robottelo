@@ -272,67 +272,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
 
     @tier2
-    @pytest.mark.skip_if_open("BZ:1278917")
-    @stubbed()
-    def test_positive_access_rhev_with_default_profile(self):
-        """List Compute profile for RHEV compute resource
-
-        :id: aa587312-6c37-40bb-99cb-5566139a690a
-
-        :CaseAutomation: notautomated
-
-        :BZ: 1278917
-
-        :expectedresults: Compute profiles are listed in RHEV compute resource
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1278917")
-    @stubbed()
-    @upgrade
-    def test_positive_access_rhev_with_custom_profile(self):
-        """Associate custom default (3-Large) compute profile
-         to RHEV compute resource
-
-        :id: a84fda33-962f-47bb-b5c7-5e726e417049
-
-        :steps:
-
-            1. Create a compute resource of type rhev.
-            2. Edit (3-Large) with valid configurations and submit.
-
-        :expectedresults: The Compute Resource created and compute profile
-         is associated successfully.
-
-        :BZ: 1278917
-
-        :CaseAutomation: notautomated
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1278917")
-    @stubbed()
-    def test_positive_access_rhev_with_custom_profile_with_template(self):
-        """Associate custom default (3-Large) compute profile to RHEV compute
-         resource with template
-
-        :id: 6b55fd23-0a32-4415-aef4-80f53b902f30
-
-        :steps:
-
-            1. Create a compute resource of type rhev.
-            2. Provide it with the valid hostname, username and password.
-            3. Edit (3-Large) with valid configuration and template.
-
-        :expectedresults: The Compute Resource created and compute profile
-            is associated successfully.
-
-        :BZ: 1278917
-
-        :CaseAutomation: notautomated
-        """
-
-    @tier2
     @pytest.mark.skip_if_open("BZ:1475443")
     @stubbed()
     def test_positive_retrieve_rhev_vm_list(self):
