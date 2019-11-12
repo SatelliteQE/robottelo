@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+from datetime import datetime
 from fauxfactory import gen_string
 
 from airgun.session import Session
@@ -516,6 +517,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         assert not session.user.search(username)
 
 
+@tier2
 def test_positive_virtwho_viewer_role(session, test_name, form_data):
     """Verify the virt-who viewer role can TRULY work.
 
@@ -573,6 +575,7 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
         assert not session.user.search(username)
 
 
+@tier2
 def test_positive_virtwho_manager_role(session, test_name, form_data):
     """Verify the virt-who manager role can TRULY work.
 
@@ -630,6 +633,7 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
         assert not session.user.search(username)
 
 
+@tier2
 def test_positive_overview_label_name(form_data, session):
     """Verify the label name on virt-who config Overview Page.
 
@@ -687,5 +691,36 @@ def test_positive_overview_label_name(form_data, session):
         fields['exclude_hosts_label'] = 'Exclude Hosts'
         for key, value in fields.items():
             assert results['overview'][key] == value
+        session.virtwho_configure.delete(name)
+        assert not session.virtwho_configure.search(name)
+
+
+@tier2
+def test_positive_last_checkin_status(form_data, session):
+    """Verify the Last Checkin status on Content Hosts Page.
+
+    :id: 3931e10e-8adc-4ca4-8963-20572b2f99bf
+
+    :expectedresults: The Last Checkin time on Content Hosts Page is UTC time
+
+    :BZ: 1652323
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    name = gen_string('alpha')
+    form_data['name'] = name
+    with session:
+        session.virtwho_configure.create(form_data)
+        values = session.virtwho_configure.read(name, widget_names='deploy.command')
+        command = values['deploy']['command']
+        hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+        time_now = datetime.utcnow()
+        assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
+        # 10 mins margin to check the Last Checkin time
+        assert abs(datetime.strptime(checkin_time, "%b %d, %I:%M %p").replace(
+            year=datetime.utcnow().year).timestamp() - time_now.timestamp()) <= 300
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)

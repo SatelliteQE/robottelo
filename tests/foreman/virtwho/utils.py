@@ -259,7 +259,7 @@ def deploy_validation():
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
-    runcmd("systemctl restart virt-who; sleep 5")
+    restart_virtwho_service()
     return hypervisor_name, guest_name
 
 
