@@ -880,6 +880,49 @@ def test_negative_delete_primary_interface(session, module_host_template):
         assert 'Interface Delete button is disabled' in str(context.value)
 
 
+@tier2
+def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_loc):
+    """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
+    and view_organization permissions
+
+    :BZ: 1642076
+
+    :id: 19a07026-0550-11ea-bfdc-98fa9b6ecd5a
+
+    :expectedresults: user with only view_hosts, edit_hosts and view_organization permissions
+        is able to read content hosts and hosts
+
+    :CaseLevel: System
+    """
+    user_password = gen_string('alpha')
+    role = entities.Role(organization=[module_org]).create()
+    create_role_permissions(
+        role,
+        {
+            'Organization': ['view_organizations'],
+            'Host': ['view_hosts'],
+        }
+    )
+    user = entities.User(
+        role=[role],
+        admin=False,
+        password=user_password,
+        organization=[module_org],
+        location=[module_loc],
+        default_organization=module_org,
+        default_location=module_loc,
+    ).create()
+    created_host = entities.Host(
+        location=module_loc,
+        organization=module_org,
+    ).create()
+    with Session(test_name, user=user.login, password=user_password) as session:
+        host = session.host.get_details(created_host.name, widget_names='breadcrumb')
+        assert host['breadcrumb'] == created_host.name
+        content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
+        assert content_host['breadcrumb'] == created_host.name
+
+
 @tier3
 def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_loc):
     """Remove a host parameter as a non-admin user with enough permissions
