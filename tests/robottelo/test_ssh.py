@@ -234,7 +234,7 @@ class SSHTestCase(TestCase):
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
-    def test_execute_command_plain_output(self, settings):
+    def test_execute_command_base_output(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
@@ -245,7 +245,7 @@ class SSHTestCase(TestCase):
 
         with ssh.get_connection() as connection:  # pylint:disable=W0212
             ret = ssh.execute_command(
-                'ls -la', connection, output_format='plain')
+                'ls -la', connection, output_format='base')
             self.assertEqual(ret.stdout, u'ls -la')
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
@@ -264,7 +264,7 @@ class SSHTestCase(TestCase):
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
-    def test_command_plain_output(self, settings):
+    def test_command_base_output(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
@@ -273,7 +273,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
 
-        ret = ssh.command('ls -la', output_format='plain')
+        ret = ssh.command('ls -la', output_format='base')
         self.assertEqual(ret.stdout, u'ls -la')
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 

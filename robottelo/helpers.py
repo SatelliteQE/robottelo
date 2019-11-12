@@ -350,7 +350,7 @@ def add_remote_execution_ssh_key(hostname, key_path=None,
     # get satellite box ssh-key or defaults to foreman-proxy
     key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     # This connection defaults to settings.server
-    server_key = ssh.command(cmd='cat %s' % key_path, output_format='plain',
+    server_key = ssh.command(cmd='cat %s' % key_path, output_format='base',
                              hostname=proxy_hostname).stdout
     # Sometimes stdout contains extra empty string. Skipping it
     if isinstance(server_key, list):

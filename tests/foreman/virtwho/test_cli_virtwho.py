@@ -21,7 +21,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.host import Host
 from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_ORG
-from robottelo.decorators import tier2
+from robottelo.decorators import tier2, skip_if_not_set
 from robottelo.test import CLITestCase
 
 from .utils import (
@@ -37,6 +37,7 @@ from .utils import (
 class VirtWhoConfigTestCase(CLITestCase):
 
     @classmethod
+    @skip_if_not_set('virtwho')
     def setUpClass(cls):
         super(VirtWhoConfigTestCase, cls).setUpClass()
         cls.satellite_url = settings.server.hostname
@@ -129,7 +130,7 @@ class VirtWhoConfigTestCase(CLITestCase):
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
         self.assertEqual(vhd['status'], 'No Report Yet')
-        script = VirtWhoConfig.fetch({'id': vhd['id']}, output_format='plain')
+        script = VirtWhoConfig.fetch({'id': vhd['id']}, output_format='base')
         hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
         self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')

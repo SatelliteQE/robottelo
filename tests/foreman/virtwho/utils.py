@@ -72,13 +72,13 @@ def get_guest_info():
     return guest_name, guest_uuid
 
 
-def runcmd(cmd, system=None, timeout=None, output_format='plain'):
+def runcmd(cmd, system=None, timeout=None, output_format='base'):
     """Return the retcode and stdout.
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
     :param int timeout: Time to wait for establish the connection.
-    :param str output_format: plain|json|csv|list
+    :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
     result = ssh.command(
