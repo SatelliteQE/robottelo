@@ -517,6 +517,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         assert not session.user.search(username)
 
 
+@tier2
 def test_positive_virtwho_viewer_role(session, test_name, form_data):
     """Verify the virt-who viewer role can TRULY work.
 
@@ -574,6 +575,7 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
         assert not session.user.search(username)
 
 
+@tier2
 def test_positive_virtwho_manager_role(session, test_name, form_data):
     """Verify the virt-who manager role can TRULY work.
 
@@ -631,6 +633,7 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
         assert not session.user.search(username)
 
 
+@tier2
 def test_positive_overview_label_name(form_data, session):
     """Verify the label name on virt-who config Overview Page.
 
@@ -692,6 +695,7 @@ def test_positive_overview_label_name(form_data, session):
         assert not session.virtwho_configure.search(name)
 
 
+@tier2
 def test_positive_last_checkin_status(form_data, session):
     """Verify the Last Checkin status on Content Hosts Page.
 
