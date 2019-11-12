@@ -2673,11 +2673,11 @@ def test_positive_add_module_stream_filter(session, module_org):
             'content_type': FILTER_CONTENT_TYPE['modulemd'],
             'inclusion_type': FILTER_TYPE['include'],
         })
-        for module_stream in [('duck', '0'), ('walrus', '5.21')]:
+        for ms_name, ms_version in [('duck', '0'), ('walrus', '5.21')]:
             session.contentviewfilter.add_module_stream(
                 cv.name,
                 filter_name,
-                'name = {} and stream = {}'.format(module_stream[0], module_stream[1])
+                'name = {} and stream = {}'.format(ms_name, ms_version)
             )
         cv.publish()
         cvv = session.contentview.read_version(cv.name, VERSION)
