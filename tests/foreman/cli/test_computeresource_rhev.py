@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.computeresource import ComputeResource
@@ -269,49 +268,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :CaseAutomation: notautomated
 
         :expectedresults: The image should not be added to the CR
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1475443")
-    @stubbed()
-    def test_positive_retrieve_rhev_vm_list(self):
-        """Retrieve the Virtual machine list from RHEV compute resource
-
-        :id: bac05ac9-1175-4139-b3c3-828ae82a3421
-
-        :steps:
-
-            1. Select the created compute resource.
-            2. List the available VM's on the RHEV compute resource
-
-        :CaseAutomation: notautomated
-
-        :BZ: 1475443
-
-        :expectedresults: The Virtual machines should be listed
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1475443")
-    @stubbed()
-    def test_positive_rhev_vm_power_on_off(self):
-        """The virtual machine in RHEV compute resource should be powered
-         on and off.
-
-        :id: e66c9347-c607-4607-bb80-1210869c8fac
-
-        :steps:
-
-            1. Select the created compute resource.
-            2. List the available VM's on the RHEV compute resource
-            3. Try to turn on and off a VM from the list
-
-        :CaseAutomation: notautomated
-
-        :BZ: 1475443
-
-        :expectedresults: The Virtual machines should be turned ON and OFF
-            successfully
         """
 
     @stubbed()
