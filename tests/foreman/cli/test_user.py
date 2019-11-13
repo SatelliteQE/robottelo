@@ -1109,27 +1109,27 @@ class UserWithCleanUpTestCase(CLITestCase):
         login = gen_string('alpha')
         password = gen_string('alpha')
         org_name = gen_string('alpha')
+
         make_user({'login': login, 'password': password})
         User.add_role({'login': login, 'role': 'System admin'})
-        result_before_login = User.list()
+        result_before_login = User.list({
+            u'search': u'login = {0}'.format(login),
+        })
+
         # this is because satellite uses the UTC timezone
         before_login_time = datetime.datetime.utcnow()
+        assert result_before_login[0]['login'] == login
+        assert result_before_login[0]['last-login'] == ""
 
-        # checking user last login is empty after just creation
-        for user in result_before_login:
-            if user['login'] == login:
-                assert user['last-login'] == ""
-                break
         Org.with_user(username=login, password=password).create({'name': org_name})
-        result_after_login = User.list()
+        result_after_login = User.list({
+            u'search': u'login = {0}'.format(login),
+        })
 
         # checking user last login should not be empty
-        for user in result_after_login:
-            if user['login'] == login:
-                assert user['last-login'] != ""
-                after_login_time = datetime.datetime.strptime(user['last-login'],
-                                                              "%Y/%m/%d %H:%M:%S")
-                break
+        assert result_after_login[0]['last-login'] != ""
+        after_login_time = datetime.datetime.strptime(result_after_login[0]['last-login'],
+                                                      "%Y/%m/%d %H:%M:%S")
         assert after_login_time > before_login_time
 
     @stubbed()
