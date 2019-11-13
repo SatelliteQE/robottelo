@@ -56,6 +56,7 @@ def form_data():
         form['hypervisor_content.username'] = (
             settings.virtwho.hypervisor_username)
     elif hypervisor_type == 'kubevirt':
+        del form['hypervisor_content.server']
         form['hypervisor_content.kubeconfig'] = (
             settings.virtwho.hypervisor_config_file)
     else:
@@ -677,9 +678,14 @@ def test_positive_overview_label_name(form_data, session):
             'proxy_label': 'HTTP Proxy',
             'no_proxy_label': 'Ignore Proxy'
         }
+        if hypervisor_type == 'kubevirt':
+            del fields['hypervisor_username_label']
+            del fields['hypervisor_server_label']
+            fields['kubeconfig_path_label'] = 'Kubeconfig Path'
         if hypervisor_type == 'esx':
             fields['filter_host_parents_label'] = 'Filter Host Parents'
         results = session.virtwho_configure.read(name)
+        print(results['overview'])
         for key, value in fields.items():
             assert results['overview'][key] == value
         session.virtwho_configure.edit(name, blacklist)
