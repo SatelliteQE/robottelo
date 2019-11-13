@@ -39,7 +39,6 @@ FOREMAN_PROVIDERS = {
     'openstack': 'RHEL OpenStack Platform',
     'rackspace': 'Rackspace',
     'google': 'Google',
-    'docker': 'Docker',
 }
 
 EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'
@@ -1256,20 +1255,6 @@ PERMISSIONS_UI = {
         'edit_discovery_rules',
         'execute_discovery_rules',
         'destroy_discovery_rules',
-    ],
-    'Docker/Container': [
-        'view_containers',
-        'commit_containers',
-        'create_containers',
-        'destroy_containers',
-    ],
-    'Docker/ImageSearch': [
-        'search_repository_image_search',
-    ],
-    'Docker/Registry': [
-        'view_registries',
-        'create_registries',
-        'destroy_registries',
     ],
     'Domain': [
         'view_domains',
