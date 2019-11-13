@@ -685,7 +685,6 @@ def test_positive_overview_label_name(form_data, session):
         if hypervisor_type == 'esx':
             fields['filter_host_parents_label'] = 'Filter Host Parents'
         results = session.virtwho_configure.read(name)
-        print(results['overview'])
         for key, value in fields.items():
             assert results['overview'][key] == value
         session.virtwho_configure.edit(name, blacklist)
