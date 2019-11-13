@@ -385,10 +385,7 @@ class DockerSettings(FeatureSettings):
     def __init__(self, *args, **kwargs):
         super(DockerSettings, self).__init__(*args, **kwargs)
         self.docker_image = None
-        self.external_url = None
         self.external_registry_1 = None
-        self.external_registry_2 = None
-        self.unix_socket = None
         self.private_registry_url = None
         self.private_registry_name = None
         self.private_registry_username = None
@@ -397,11 +394,7 @@ class DockerSettings(FeatureSettings):
     def read(self, reader):
         """Read docker settings."""
         self.docker_image = reader.get('docker', 'docker_image')
-        self.unix_socket = reader.get(
-            'docker', 'unix_socket', False, bool)
-        self.external_url = reader.get('docker', 'external_url')
         self.external_registry_1 = reader.get('docker', 'external_registry_1')
-        self.external_registry_2 = reader.get('docker', 'external_registry_2')
         self.private_registry_url = reader.get(
             'docker', 'private_registry_url')
         self.private_registry_name = reader.get(
@@ -417,28 +410,10 @@ class DockerSettings(FeatureSettings):
         if not self.docker_image:
             validation_errors.append(
                 '[docker] docker_image option must be provided or enabled.')
-        if not all((self.external_registry_1, self.external_registry_2)):
+        if not self.external_registry_1:
             validation_errors.append(
-                'Both [docker] external_registry_1 and external_registry_2 '
-                'options must be provided.')
+                '[docker] external_registry_1 option must be provided.')
         return validation_errors
-
-    def get_unix_socket_url(self):
-        """Use the unix socket connection to the local docker daemon. Make sure
-        that your Satellite server's docker is configured to allow foreman user
-        accessing it. This can be done by::
-
-            $ groupadd docker
-            $ usermod -aG docker foreman
-            # Add -G docker to the options for the docker daemon
-            $ systemctl restart docker
-            $ katello-service restart
-
-        """
-        return (
-            'unix:///var/run/docker.sock'
-            if self.unix_socket else None
-        )
 
 
 class EC2Settings(FeatureSettings):
@@ -1428,10 +1403,6 @@ class Settings(object):
         ``robottelo.entity_mixins.Entity`` for more information on the effects
         of this.
         * Set a default value for ``nailgun.entities.GPGKey.content``.
-        * Set the default value for
-          ``nailgun.entities.DockerComputeResource.url``
-        if either ``docker.internal_url`` or ``docker.external_url`` is set in
-        the configuration file.
         """
         entity_mixins.CREATE_MISSING = True
         entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
@@ -1450,23 +1421,6 @@ class Settings(object):
                 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
             )
         entities.GPGKey.__init__ = patched_gpgkey_init
-
-        # NailGun provides a default value for ComputeResource.url. We override
-        # that value if `docker.internal_url` or `docker.external_url` is set.
-        docker_url = None
-        # Try getting internal url
-        docker_url = self.docker.get_unix_socket_url()
-        # Try getting external url
-        if docker_url is None:
-            docker_url = self.docker.external_url
-        if docker_url is not None:
-            dockercr_init = entities.DockerComputeResource.__init__
-
-            def patched_dockercr_init(self, server_config=None, **kwargs):
-                """Set a default value on the ``docker_url`` field."""
-                dockercr_init(self, server_config, **kwargs)
-                self._fields['url'].default = docker_url
-            entities.DockerComputeResource.__init__ = patched_dockercr_init
 
     def _configure_airgun(self):
         """Pass required settings to AirGun"""

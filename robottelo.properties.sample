@@ -190,29 +190,13 @@ ssh_key=
 
 # For tests that uses the docker feature
 # [docker]
-# If you have docker deamon running on the server and it is published under a
-# unix socket. This will be used by tests that test local docker daemon.
-# unix_socket=true
 # Name of the libvirt image containing the OS with docker instance set up
 # Each test involving external docker instance will instantiate a new VM
 # requires [clients] section.
 # docker_image=rhel7-docker-base
-#
-# External docker URL in the format http[s]://<server>:<port>. The
-# {server_hostname} variable can be used and will be replaced by
-# server.hostname value.
-# An external docker is a docker daemon accessed using http, for testing
-# purposes accessing localhost via http will be the same as accessing an
-# external instance. Make sure that the target daemon can be accessed via http,
-# in other words, the daemon is initialized with `--host tcp://0.0.0.0:<port>`.
-# This will be used by tests that test external docker daemon.
-# external_url=http://localhost:2375
-# These will be used by tests that exercise external docker registries. Second
-# one will be used by tests that validate updating from one docker registry url
-# to another
-# External docker registries urls in the format http[s]://<server>[:<port>].
+# This will be used by tests that exercise external docker registries.
+# External docker registry url in the format http[s]://<server>[:<port>].
 # external_registry_1=
-# external_registry_2=
 # For testing the support for private registry repos 
 # private_registry_url='https://registry.hub.docker.com'
 # private_registry_name=username/imagename

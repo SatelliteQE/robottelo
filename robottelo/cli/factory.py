@@ -31,7 +31,6 @@ from robottelo.cli.contentview import (
     ContentViewFilterRule,
 )
 from robottelo.cli.discoveryrule import DiscoveryRule
-from robottelo.cli.docker import DockerContainer, DockerRegistry
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.filter import Filter
@@ -235,88 +234,6 @@ def make_architecture(options=None):
     }
 
     return create_object(Architecture, args, options)
-
-
-def make_container(options=None):
-    """Creates a docker container
-
-    Usage::
-
-        hammer docker container create [OPTIONS]
-
-    Options::
-
-        --attach-stderr ATTACH_STDERR             One of true/false, yes/no,
-                                                  1/0.
-        --attach-stdin ATTACH_STDIN               One of true/false, yes/no,
-                                                  1/0.
-        --attach-stdout ATTACH_STDOUT             One of true/false, yes/no,
-                                                  1/0.
-        --capsule CAPSULE_NAME                    Name to search by
-        --capsule-id CAPSULE_ID                   Id of the capsule
-        --command COMMAND
-        --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
-        --compute-resource-id COMPUTE_RESOURCE_ID
-        --cpu-sets CPU_SETS
-        --cpu-shares CPU_SHARES
-        --entrypoint ENTRYPOINT
-        --location-ids LOCATION_IDS               REPLACE locations with given
-        ids. Comma separated list of values.
-        --locations LOCATION_NAMES                Comma separated list of
-                                                  values.
-        --memory MEMORY
-        --name NAME
-        --organization-ids ORGANIZATION_IDS       REPLACE organizations with
-                                                  given ids.  Comma separated
-                                                  list of values.
-        --organizations ORGANIZATION_NAMES        Comma separated list of
-                                                  values.
-        --registry-id REGISTRY_ID                 Registry this container will
-                                                  have to use to get the image
-        --repository-name REPOSITORY_NAME         Name of the repository to use
-                                                  to create the container. e.g:
-                                                  centos
-        --tag TAG                                 Tag to use to create the
-                                                  container. e.g: latest
-        --tty TTY                                 One of true/false, yes/no,
-                                                  1/0.
-
-    """
-    # Compute resource ID is a required field.
-    if (not options or (
-            u'compute-resource' not in options and
-            u'compute-resource-id' not in options
-    )):
-        raise CLIFactoryError(
-            'Please provide at least compute-resource or compute-resource-id '
-            'options.'
-        )
-
-    args = {
-        u'attach-stderr': None,
-        u'attach-stdin': None,
-        u'attach-stdout': None,
-        u'capsule': None,
-        u'capsule-id': None,
-        u'command': 'top',
-        u'compute-resource': None,
-        u'compute-resource-id': None,
-        u'cpu-sets': None,
-        u'cpu-shares': None,
-        u'entrypoint': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'memory': None,
-        u'name': gen_string('alphanumeric'),
-        u'organization-ids': None,
-        u'organizations': None,
-        u'registry-id': None,
-        u'repository-name': 'busybox',
-        u'tag': 'latest',
-        u'tty': None,
-    }
-
-    return create_object(DockerContainer, args, options)
 
 
 @cacheable
@@ -933,33 +850,6 @@ def make_proxy(options=None):
                 'Failed to create ssh tunnel: {0}'.format(err))
     args['url'] = options['url']
     return create_object(Proxy, args, options)
-
-
-def make_registry(options=None):
-    """Creates a docker registry
-
-        Usage::
-
-            hammer docker registry create [OPTIONS]
-
-        Options::
-
-            --description DESCRIPTION
-            --name NAME
-            --password PASSWORD
-            --url URL
-            --username USERNAME
-
-    """
-    args = {
-        u'description': None,
-        u'name': gen_string('alphanumeric'),
-        u'password': None,
-        u'url': settings.docker.external_registry_1,
-        u'username': None,
-    }
-
-    return create_object(DockerRegistry, args, options)
 
 
 @cacheable

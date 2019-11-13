@@ -31,12 +31,11 @@ logger = logging.getLogger(__name__)
 
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,
-    entities.ContentView, entities.DockerComputeResource, entities.Environment,
-    entities.GPGKey, entities.Host, entities.HostCollection,
-    entities.HostGroup, entities.LibvirtComputeResource,
-    entities.LifecycleEnvironment, entities.OperatingSystem,
-    entities.Organization, entities.Product, entities.Repository,
-    entities.Role, entities.Subnet, entities.User,
+    entities.ContentView, entities.Environment, entities.GPGKey,
+    entities.Host, entities.HostCollection, entities.HostGroup,
+    entities.LibvirtComputeResource, entities.LifecycleEnvironment,
+    entities.OperatingSystem, entities.Organization, entities.Product,
+    entities.Repository, entities.Role, entities.Subnet, entities.User,
 )
 
 
