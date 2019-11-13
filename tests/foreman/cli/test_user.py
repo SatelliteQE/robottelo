@@ -1093,7 +1093,7 @@ class UserWithCleanUpTestCase(CLITestCase):
                 user = User.info({'id': user['id']})
                 self.assertNotIn(role_name, user['roles'])
 
-    @pytest.mark.skip_if_open("BZ:1765052")
+    @pytest.mark.skip_if_open("BZ:1763816")
     @tier2
     def test_positive_last_login_for_new_user(self):
         """Create new user with admin role and check last login updated for that user
