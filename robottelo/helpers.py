@@ -186,16 +186,20 @@ def get_host_info(hostname=None):
     )
 
 
-def get_nailgun_config():
+def get_nailgun_config(user=None):
     """Return a NailGun configuration file constructed from default values.
 
-    :return: A ``nailgun.config.ServerConfig`` object, populated with values
-        from ``robottelo.config.settings``.
+    :param user: The ```nailgun.entities.User``` object of an user with additional passwd
+        property/attribute
+
+    :return: ``nailgun.config.ServerConfig`` object, populated from user parameter object else
+        with values from ``robottelo.config.settings``
 
     """
+    creds = (user.login, user.passwd) if user else settings.server.get_credentials()
     return ServerConfig(
         settings.server.get_url(),
-        settings.server.get_credentials(),
+        creds,
         verify=False,
     )
 
