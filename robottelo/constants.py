@@ -722,6 +722,7 @@ PERMISSIONS = {
         'view_statistics',
         'view_rh_search',
         'view_tasks',
+        'view_statuses',
     ],
     'AnsibleRole': [
         'view_ansible_roles',
