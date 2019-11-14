@@ -797,7 +797,6 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
-    @pytest.mark.skip_if_open("BZ:1378442")
     @tier1
     @upgrade
     def test_positive_upload_delete_srpm(self):
@@ -1770,7 +1769,6 @@ class OstreeRepositoryTestCase(APITestCase):
             entities.Repository(id=repo_id).sync, timeout=1500)
 
 
-@pytest.mark.skip_if_open("BZ:1378442")
 class SRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
@@ -1799,15 +1797,17 @@ class SRPMRepositoryTestCase(APITestCase):
         cv.update(['repository'])
         cv.publish()
         self.assertEqual(cv.repository[0].read().content_counts['srpm'], 1)
-        self.assertEqual(len(entities.Srpms().search(query={'organization_id': self.org.id})), 1)
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'organization_id': self.org.id})), 1)
 
         cv = cv.read()
         self.assertEqual(
-            entities.Srpms().search(query={'content_view_version_id': cv.version[0].id}),
+            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})),
             1)
 
         promote(cv.version[0], self.lce.id)
-        self.assertEqual(len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1)
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1)
 
     @tier2
     def test_positive_repo_sync_publish_promote_cv(self):
@@ -1828,18 +1828,19 @@ class SRPMRepositoryTestCase(APITestCase):
         cv.update(['repository'])
         cv.publish()
         self.assertEqual(cv.repository[0].read().content_counts['srpm'], 3)
-        self.assertEqual(len(entities.Srpms().search(query={'organization_id': self.org.id})), 3)
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'organization_id': self.org.id})), 3)
 
         cv = cv.read()
-        self.assertEqual(
-            entities.Srpms().search(query={'content_view_version_id': cv.version[0].id}),
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})),
             3)
 
         promote(cv.version[0], self.lce.id)
         self.assertEqual(len(entities.Srpms().search(query={'environment_id': self.lce.id})), 3)
 
 
-@pytest.mark.skip_if_open("BZ:1378442")
+@pytest.mark.skip_if_open("BZ:1682951")
 class DRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
