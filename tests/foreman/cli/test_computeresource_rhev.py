@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.computeresource import ComputeResource
@@ -269,110 +268,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :CaseAutomation: notautomated
 
         :expectedresults: The image should not be added to the CR
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1278917")
-    @stubbed()
-    def test_positive_access_rhev_with_default_profile(self):
-        """List Compute profile for RHEV compute resource
-
-        :id: aa587312-6c37-40bb-99cb-5566139a690a
-
-        :CaseAutomation: notautomated
-
-        :BZ: 1278917
-
-        :expectedresults: Compute profiles are listed in RHEV compute resource
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1278917")
-    @stubbed()
-    @upgrade
-    def test_positive_access_rhev_with_custom_profile(self):
-        """Associate custom default (3-Large) compute profile
-         to RHEV compute resource
-
-        :id: a84fda33-962f-47bb-b5c7-5e726e417049
-
-        :steps:
-
-            1. Create a compute resource of type rhev.
-            2. Edit (3-Large) with valid configurations and submit.
-
-        :expectedresults: The Compute Resource created and compute profile
-         is associated successfully.
-
-        :BZ: 1278917
-
-        :CaseAutomation: notautomated
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1278917")
-    @stubbed()
-    def test_positive_access_rhev_with_custom_profile_with_template(self):
-        """Associate custom default (3-Large) compute profile to RHEV compute
-         resource with template
-
-        :id: 6b55fd23-0a32-4415-aef4-80f53b902f30
-
-        :steps:
-
-            1. Create a compute resource of type rhev.
-            2. Provide it with the valid hostname, username and password.
-            3. Edit (3-Large) with valid configuration and template.
-
-        :expectedresults: The Compute Resource created and compute profile
-            is associated successfully.
-
-        :BZ: 1278917
-
-        :CaseAutomation: notautomated
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1475443")
-    @stubbed()
-    def test_positive_retrieve_rhev_vm_list(self):
-        """Retrieve the Virtual machine list from RHEV compute resource
-
-        :id: bac05ac9-1175-4139-b3c3-828ae82a3421
-
-        :steps:
-
-            1. Select the created compute resource.
-            2. List the available VM's on the RHEV compute resource
-
-        :CaseAutomation: notautomated
-
-        :BZ: 1475443
-
-        :expectedresults: The Virtual machines should be listed
-        """
-
-    @tier2
-    @pytest.mark.skip_if_open("BZ:1475443")
-    @stubbed()
-    def test_positive_rhev_vm_power_on_off(self):
-        """The virtual machine in RHEV compute resource should be powered
-         on and off.
-
-        :id: e66c9347-c607-4607-bb80-1210869c8fac
-
-        :steps:
-
-            1. Select the created compute resource.
-            2. List the available VM's on the RHEV compute resource
-            3. Try to turn on and off a VM from the list
-
-        :CaseAutomation: notautomated
-
-        :BZ: 1475443
-
-        :expectedresults: The Virtual machines should be turned ON and OFF
-            successfully
         """
 
     @stubbed()
