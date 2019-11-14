@@ -944,3 +944,53 @@ def apply_package_filter(content_view, repo, package, inclusion=True):
     content_view = content_view.read()
     content_view_version_info = content_view.version[0].read()
     return content_view_version_info
+
+
+def create_org_admin_role(orgs, locs, name=None):
+    """Helper function to create org admin role for particular
+    organizations and locations by cloning 'Organization admin' role.
+
+    :param list orgs: The list of organizations for which the org admin is
+        being created
+    :param list locs: The list of locations for which the org admin is
+        being created
+    :param str name: The name of cloned Org Admin role, autogenerates if None provided
+    :return dict: The object of ```nailgun.Role``` of Org Admin role.
+    """
+    name = gen_string('alpha') if not name else name
+    default_org_admin = entities.Role().search(
+        query={'search': u'name="Organization admin"'})
+    org_admin = entities.Role(id=default_org_admin[0].id).clone(
+        data={
+            'role': {
+                'name': name,
+                'organization_ids': orgs or [],
+                'location_ids': locs or []
+            }
+        }
+    )
+    return entities.Role(id=org_admin['id']).read()
+
+
+def create_org_admin_user(orgs, locs):
+    """Helper function to create an Org Admin user by assigning org admin role and assign
+    taxonomies to Role and User
+
+    The taxonomies for role and user will be assigned based on parameters of this function
+
+    :return User: Returns the ```nailgun.entities.User``` object with passwd attr
+    """
+    # Create Org Admin Role
+    org_admin = create_org_admin_role(orgs=orgs, locs=locs)
+    # Create Org Admin User
+    user_login = gen_string('alpha')
+    user_passwd = gen_string('alphanumeric')
+    user = entities.User(
+        login=user_login,
+        password=user_passwd,
+        organization=orgs,
+        location=locs,
+        role=[org_admin.id]
+    ).create()
+    user.passwd = user_passwd
+    return user
