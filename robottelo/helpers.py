@@ -699,15 +699,12 @@ def extract_capsule_satellite_installer_command(text):
 def extract_ui_token(input):
     """Extracts and returns the CSRF protection token from a given
     HTML string"""
-    token = re.search(
-        r"authenticity_token\" value=\"[^\"]+",
-        input
-    )
+    token = re.search('"token":"(.*?)"', input)
     if token is None:
         raise IndexError("the given string does not contain any authenticity"
                          "token references")
     else:
-        return(token[0].split('value="')[-1])
+        return(token[1])
 
 
 def get_web_session():
