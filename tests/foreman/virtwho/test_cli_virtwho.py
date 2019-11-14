@@ -30,6 +30,8 @@ from .utils import (
     get_configure_file,
     get_configure_option,
     get_configure_command,
+    hypervisor_json_create,
+    hypervisor_json_post,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -375,3 +377,22 @@ class VirtWhoConfigTestCase(CLITestCase):
             get_configure_option('rhsm_prefix', config_file), '/rhsm')
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
+
+    @tier2
+    def test_positive_post_hypervisors(self):
+        """ Post large json file to /rhsm/hypervisors"
+
+        :id: e344c9d2-3538-4432-9a74-b025e9ef852d
+
+        :expectedresults:
+            json file can be posted normally and the task is success
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1637042
+        """
+        filename = "/tmp/test.json"
+        hypervisor_json_create(filename, hypervisors=100, guests=10)
+        hypervisor_json_post(filename)
