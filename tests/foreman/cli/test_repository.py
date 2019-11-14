@@ -2244,7 +2244,6 @@ class OstreeRepositoryTestCase(CLITestCase):
             Repository.info({u'id': new_repo['id']})
 
 
-@pytest.mark.skip_if_open("BZ:1378442")
 class SRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
@@ -2357,7 +2356,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
 
-@pytest.mark.skip_if_open("BZ:1378442")
+@pytest.mark.skip_if_open("BZ:1682951")
 class DRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
