@@ -1167,6 +1167,7 @@ PERMISSIONS_UI = {
         'view_statistics',
         'view_rh_search',
         'view_tasks',
+        'view_statuses',
     ],
     'Activation Keys': [
         'view_activation_keys',
