@@ -14,7 +14,10 @@
 
 :Upstream: No
 """
+import re
+import requests
 from fauxfactory import gen_string
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.cli.subscription import Subscription
@@ -31,7 +34,6 @@ from .utils import (
     get_configure_option,
     get_configure_command,
     hypervisor_json_create,
-    hypervisor_json_post,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -42,6 +44,8 @@ class VirtWhoConfigTestCase(CLITestCase):
     def setUpClass(cls):
         super(VirtWhoConfigTestCase, cls).setUpClass()
         cls.satellite_url = settings.server.hostname
+        cls.satellite_username = settings.server.admin_username
+        cls.satellite_password = settings.server.admin_password
         cls.hypervisor_type = settings.virtwho.hypervisor_type
         cls.hypervisor_server = settings.virtwho.hypervisor_server
         cls.hypervisor_username = settings.virtwho.hypervisor_username
@@ -385,14 +389,25 @@ class VirtWhoConfigTestCase(CLITestCase):
         :id: e344c9d2-3538-4432-9a74-b025e9ef852d
 
         :expectedresults:
-            json file can be posted normally and the task is success
+            hypervisor/guest json can be posted and the task is success status
 
         :CaseLevel: Integration
 
         :CaseImportance: Medium
 
-        :BZ: 1637042
+        :BZ: 1637042, 1769680
         """
-        filename = "/tmp/test.json"
-        hypervisor_json_create(filename, hypervisors=100, guests=10)
-        hypervisor_json_post(filename)
+        data = hypervisor_json_create(hypervisors=100, guests=10)
+        owner = "owner=Default_Organization&env=Library"
+        url = 'https://{0}/rhsm/hypervisors?{1}'.format(self.satellite_url, owner)
+        auth = (self.satellite_username, self.satellite_password)
+        result = requests.post(url, auth=auth, verify=False, json=data)
+        if result.status_code != 200:
+            if "foreman_tasks_sync_task_timeout" in result.text:
+                task_id = re.findall('waiting for task (.*?) to finish', result.text)[-1]
+                wait_for_tasks(
+                    search_query='id = {}'.format(task_id),
+                    max_tries=10,
+                )
+            else:
+                self.assertTrue(result.status_code == 200)

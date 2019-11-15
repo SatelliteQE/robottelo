@@ -7,7 +7,6 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
-from robottelo.api.utils import wait_for_tasks
 
 VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
 
@@ -370,14 +369,13 @@ def add_configure_option(option, value, config_file):
         )
 
 
-def hypervisor_json_create(json_file, hypervisors, guests):
+def hypervisor_json_create(hypervisors, guests):
     """
-    Create a hypervisor/guesting mapping json file
-    :param json_file: the json file full name
+    Create a hypervisor/guesting json data
     :param hypervisors: how many hypervisors will be created
     :param guests: how many guests will be created
     """
-    json_data = {}
+    mapping = {}
     for i in range(hypervisors):
         guest_list = []
         for c in range(guests):
@@ -389,34 +387,5 @@ def hypervisor_json_create(json_file, hypervisors, guests):
                     "virtWhoType": "esx"
                 }
             })
-        json_data[str(uuid.uuid4()).replace("-", ".")] = guest_list
-    with open(json_file, 'w') as fn:
-        json.dump(json_data, fn)
-    ssh.upload_file(json_file, json_file)
-
-
-def hypervisor_json_post(json_file):
-    """
-    Post the json file to rhsm/hypervisors
-    :param json_file: json file full name
-    """
-    server = settings.server.hostname
-    username = settings.server.admin_username
-    password = settings.server.admin_password
-    ret, output = runcmd((
-        "curl -X POST -s -k -u {0}:{1} -d @'{2}' "
-        "-H 'content-type:application/json' "
-        "-w 'status:%{{http_code}}' "
-        "'https://{3}/rhsm/hypervisors?owner=Default_Organization&env=Library'"
-        ).format(username, password, json_file, server))
-    if 'status:200' not in output:
-        if "foreman_tasks_sync_task_timeout" in output:
-            task_id = re.findall('waiting for task (.*?) to finish', output)[-1]
-            wait_for_tasks(
-                search_query='id = {}'.format(task_id),
-                max_tries=10,
-            )
-        else:
-            raise VirtWhoError(
-                "Failed to post json file: {}".format(output)
-            )
+        mapping[str(uuid.uuid4()).replace("-", ".")] = guest_list
+    return mapping
