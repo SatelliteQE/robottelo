@@ -491,6 +491,44 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
+@tier3
+def test_positive_host_re_registion_with_host_rename(session, module_org, repos_collection, vm):
+    """Ensure that content host should get re-registered after change in the hostname
+
+    :id: c11f4e69-6ef5-45ab-aff5-00cf2d87f209
+
+    :customerscenario: true
+
+    :steps:
+        1. Prepare an activation key with content view and repository
+        2. Register the host to activation key
+        3. Install the package from repository
+        4. Unregister the content host
+        5. Change the hostname of content host
+        6. Re-register the same content host again
+
+    :expectedresults: Re-registration should work as expected even after change in hostname
+
+    :BZ: 1762793
+
+    :CaseLevel: System
+    """
+    vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    result = vm.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    assert result.return_code == 0
+    vm.run('subscription-manager unregister')
+    updated_hostname = '{}.{}'.format(gen_string('alpha'), vm.hostname).lower()
+    vm.run('hostnamectl set-hostname {}'.format(updated_hostname))
+    assert result.return_code == 0
+    vm.run('subscription-manager register --org="{}" --activationkey="{}"'.format(
+        module_org.name,
+        repos_collection.setup_content_data['activation_key']['name']
+    ))
+    assert result.return_code == 0
+    with session:
+        assert session.contenthost.search(updated_hostname)[0]['Name'] == updated_hostname
+
+
 @run_in_one_thread
 @tier3
 @upgrade
