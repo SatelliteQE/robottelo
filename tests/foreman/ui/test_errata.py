@@ -540,7 +540,7 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
         2. Create a User with 'Viewer' Permission.
         3. Go to Content Hosts -> Select content host -> Errata Tab -> Select Errata_Id.
 
-    :expectedresults: The errata details apge should be disaplyed for User.
+    :expectedresults: The errata details page should be displayed for User.
 
     :BZ: 1655130
 
