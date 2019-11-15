@@ -14,12 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.constants import (
+    DEFAULT_LOC,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
@@ -523,6 +525,49 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         # check IDs just to be safe
         errata_ids = sorted([e['Id'] for e in ch_erratum])
         assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
+
+
+@pytest.mark.skip_if_open("BZ:1655130")
+@tier3
+def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
+    """ Read for errata details on a content_host by user with only viewer permission
+
+    :id: 236de56f-8035-4072-b0fa-03abbf3fc692
+
+    :Steps:
+
+        1. Content Host with applicable security errata.
+        2. Create a User with 'Viewer' Permission.
+        3. Go to Content Hosts -> Select content host -> Errata Tab -> Select Errata_Id.
+
+    :expectedresults: The errata details page should be displayed for User.
+
+    :BZ: 1655130
+
+    :CaseLevel: Integration
+    """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    viewer_role = entities.Role().search(
+        query={'search': u'name="Viewer"'})
+    default_loc_id = entities.Location().search(
+         query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    default_loc = entities.Location(id=default_loc_id).read()
+
+    entities.User(role=viewer_role, login=login, password=password,
+                  default_location=default_loc, organization=[module_org]).create()
+
+    pkgs = " ".join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
+
+    with Session(test_name, login, password) as session:
+        session.organization.select(org_name=module_org.name)
+        erratum_details = session.contenthost.read_errata_details(
+            erratatype_vm.hostname,
+            errata_id=CUSTOM_REPO_ERRATA_ID
+        )
+        assert erratum_details['advisory'] == CUSTOM_REPO_ERRATA_ID
+        assert erratum_details['type'] == 'security'
 
 
 @tier3
