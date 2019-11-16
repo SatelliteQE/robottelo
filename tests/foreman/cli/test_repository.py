@@ -361,11 +361,13 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: immediate download policy is updated to on_demand
 
         :CaseImportance: Critical
+
+        :BZ: 1732056
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
-            u'download-policy': 'immediate'
         })
+        self.assertEqual(new_repo['download-policy'], 'immediate')
         Repository.update({
             u'id': new_repo['id'],
             u'download-policy': 'on_demand'
