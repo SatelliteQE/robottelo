@@ -1,6 +1,7 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
 import re
 import json
+import uuid
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
@@ -366,3 +367,25 @@ def add_configure_option(option, value, config_file):
             "option {} is already exist in {}"
             .format(option, config_file)
         )
+
+
+def hypervisor_json_create(hypervisors, guests):
+    """
+    Create a hypervisor/guesting json data
+    :param hypervisors: how many hypervisors will be created
+    :param guests: how many guests will be created
+    """
+    mapping = {}
+    for i in range(hypervisors):
+        guest_list = []
+        for c in range(guests):
+            guest_list.append({
+                "guestId": str(uuid.uuid4()),
+                "state": 1,
+                "attributes": {
+                    "active": 1,
+                    "virtWhoType": "esx"
+                }
+            })
+        mapping[str(uuid.uuid4()).replace("-", ".")] = guest_list
+    return mapping
