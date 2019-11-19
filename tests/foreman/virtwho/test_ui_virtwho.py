@@ -721,7 +721,7 @@ def test_positive_last_checkin_status(form_data, session):
         values = session.virtwho_configure.read(name, widget_names='deploy.command')
         command = values['deploy']['command']
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
-        time_now = datetime.utcnow()
+        time_now = session.browser.get_client_datetime()
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
         # 10 mins margin to check the Last Checkin time
