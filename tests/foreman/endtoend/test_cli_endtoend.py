@@ -50,6 +50,9 @@ from robottelo.config import settings
 from robottelo.decorators import (
     setting_is_set,
     skip_if_not_set,
+    tier1,
+    tier4,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -65,6 +68,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         super(EndToEndTestCase, cls).setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
+    @tier1
+    @upgrade
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -75,6 +80,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         result = Org.info({u'name': DEFAULT_ORG})
         self.assertEqual(result['name'], DEFAULT_ORG)
 
+    @tier1
+    @upgrade
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
@@ -85,6 +92,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         result = Location.info({u'name': DEFAULT_LOC})
         self.assertEqual(result['name'], DEFAULT_LOC)
 
+    @tier1
+    @upgrade
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
@@ -97,6 +106,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         self.assertEqual(result['admin'], 'yes')
 
     @skip_if_not_set('compute_resources')
+    @tier4
+    @upgrade
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 
