@@ -34,7 +34,11 @@ from robottelo.decorators import (
     tier3,
     upgrade
 )
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+
+from fauxfactory import gen_string
+from nailgun import entities
 
 
 @run_in_one_thread
@@ -225,3 +229,49 @@ class SubscriptionTestCase(CLITestCase):
         )
         for column in ['start-date', 'end-date']:
             self.assertIn(column, subscription_list[0].keys())
+
+    @pytest.mark.skip_if_open("BZ:1669241")
+    @tier2
+    def test_positive_delete_manifest_as_another_user(self):
+        """Verify that uploaded manifest if visible and deletable
+            by a different user than the one who uploaded it
+
+        :id: 4861bcbc-785a-436d-98cf-13cfef7d6907
+
+        :expectedresults: manifest is refreshed
+
+        :BZ: 1669241
+
+        :CaseImportance: Medium
+        """
+        org = entities.Organization().create()
+        user1_password = gen_string('alphanumeric')
+        user1 = entities.User(
+            admin=True,
+            password=user1_password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        user2_password = gen_string('alphanumeric')
+        user2 = entities.User(
+            admin=True,
+            password=user2_password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        # use the first admin to upload a manifest
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        Subscription.with_user(
+                   username=user1.login,
+                   password=user1_password
+             ).upload({
+                   u'file': manifest.filename,
+                   u'organization-id': org.id,
+             })
+        # try to search and delete the manifest with another admin
+        Subscription.with_user(
+                   username=user2.login,
+                   password=user2_password
+             ).delete_manifest({'organization-id': org.id})
+        self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
