@@ -18,7 +18,7 @@ six==1.13.0
 testimony==2.1.0
 unittest2==1.1.0
 PyNaCl==1.2.1
-wait-for==1.0.13
+wait-for==1.1.1
 widgetastic.core==0.33
 widgetastic.patternfly==0.0.38
 wrapanapi==3.2.0
