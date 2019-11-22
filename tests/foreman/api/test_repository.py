@@ -229,12 +229,14 @@ class RepositoryTestCase(APITestCase):
         :expectedresults: immediate download policy is updated to on_demand
 
         :CaseImportance: Critical
+
+        :BZ: 1732056
         """
         repo = entities.Repository(
             product=self.product,
             content_type='yum',
-            download_policy='immediate'
         ).create()
+        self.assertEqual(repo.download_policy, 'immediate')
         repo.download_policy = 'on_demand'
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'on_demand')
