@@ -20,6 +20,7 @@ from nailgun import entities
 from pytest import raises
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
+    run_in_one_thread,
     fixture,
     stubbed,
     tier2,
@@ -65,6 +66,14 @@ def set_original_property_value():
         after_test_setting_param = entities.Setting().search(
             query={'search': 'name="{0}"'.format(key)})[0]
         after_test_setting_param.value = value
+
+
+def setting_cleanup(setting_name=None, setting_value=None):
+    """Put necessary value for a specified setting"""
+    setting_entity = entities.Setting().search(
+        query={'search': 'name={}'.format(setting_name)})[0]
+    setting_entity.value = setting_value
+    setting_entity.update({'value'})
 
 
 def add_content_views_to_composite(composite_cv, org, repo):
@@ -173,6 +182,40 @@ def test_negative_validate_error_message(session, set_original_property_value):
                         param_value
                     )
                 assert is_valid_error_message(str(context.value))
+
+
+@run_in_one_thread
+@tier2
+def test_positive_selectors(session):
+    """"Testing input for selectors: dropdown, text area, input box
+
+    :id: 529ddd3a-1271-4043-9006-eac436b08b11
+
+    :expectedresults: Successfully add value to different selectors
+
+    :CaseImportance: High
+    """
+    uuid_input = "[ {} ]".format(gen_string("alpha"))
+    random_input = gen_string('alpha')
+    uuid_duplicate_prop = ('host_dmi_uuid_duplicates', uuid_input)
+    reg_host_prop = ('register_hostname_fact', random_input)
+    dep_solve_prop = ('content_view_solve_dependencies', 'Yes')
+
+    with session:
+        for setting_attr, value in [uuid_duplicate_prop, dep_solve_prop, reg_host_prop]:
+            # Stores original values for each type of selectors
+            original_val = entities.Setting().search(
+                query={'search': 'name={}'.format(setting_attr)})[0]
+            # Update to new value and resets value to back to old state
+            try:
+                session.settings.update(
+                    'name = {}'.format(setting_attr),
+                    value
+                )
+                result = session.settings.read('name = {}'.format(setting_attr))
+                assert result['table'][0]['Value'] == value
+            finally:
+                setting_cleanup(setting_attr, str(original_val.default))
 
 
 @stubbed()
