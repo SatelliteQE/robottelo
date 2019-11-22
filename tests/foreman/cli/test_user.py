@@ -21,12 +21,14 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 :Upstream: No
 """
+import datetime
 import pytest
 import random
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_org, make_role, make_user
+from robottelo.cli.org import Org
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
@@ -1090,6 +1092,45 @@ class UserWithCleanUpTestCase(CLITestCase):
                 User.remove_role(user_credentials)
                 user = User.info({'id': user['id']})
                 self.assertNotIn(role_name, user['roles'])
+
+    @pytest.mark.skip_if_open("BZ:1763816")
+    @tier2
+    def test_positive_last_login_for_new_user(self):
+        """Create new user with admin role and check last login updated for that user
+
+        :id: 967282d3-92d0-42ce-9ef3-e542d2883408
+
+        :expectedresults: last login should be updated for user after login using hammer
+
+        :BZ: 1763816
+
+        :CaseLevel: Integration
+        """
+        login = gen_string('alpha')
+        password = gen_string('alpha')
+        org_name = gen_string('alpha')
+
+        make_user({'login': login, 'password': password})
+        User.add_role({'login': login, 'role': 'System admin'})
+        result_before_login = User.list({
+            u'search': u'login = {0}'.format(login),
+        })
+
+        # this is because satellite uses the UTC timezone
+        before_login_time = datetime.datetime.utcnow()
+        assert result_before_login[0]['login'] == login
+        assert result_before_login[0]['last-login'] == ""
+
+        Org.with_user(username=login, password=password).create({'name': org_name})
+        result_after_login = User.list({
+            u'search': u'login = {0}'.format(login),
+        })
+
+        # checking user last login should not be empty
+        assert result_after_login[0]['last-login'] != ""
+        after_login_time = datetime.datetime.strptime(result_after_login[0]['last-login'],
+                                                      "%Y/%m/%d %H:%M:%S")
+        assert after_login_time > before_login_time
 
     @stubbed()
     @tier2
