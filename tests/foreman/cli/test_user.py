@@ -1102,7 +1102,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :expectedresults: last login should be updated for user after login using hammer
 
-        :BZ: 1765052
+        :BZ: 1763816
 
         :CaseLevel: Integration
         """
