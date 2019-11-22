@@ -1231,18 +1231,15 @@ class RepositoryTestCase(CLITestCase):
         if not is_open('BZ:1664549'):
             self.assertEqual(repo['content-counts']['source-rpms'], '3',
                              'content not synced correctly')
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/drpms/ | grep .drpm'
-            .format(
-                self.org['label'],
-                self.product['label'],
-                repo['label'],
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 4,
-                                'content not synced correctly')
+
+        if not is_open('BZ:1682951'):
+            result = ssh.command(
+                'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+                '/custom/{}/{}/drpms/ | grep .drpm'
+                .format(self.org['label'], self.product['label'], repo['label']))
+            self.assertEqual(result.return_code, 0)
+            self.assertGreaterEqual(len(result.stdout), 4,
+                                    'content not synced correctly')
 
     @tier1
     def test_positive_update_url(self):
@@ -1424,10 +1421,16 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: A repository is not created and error is raised.
 
         :CaseImportance: Critical
+
+        :BZ: 1732056
         """
         for checksum_type in 'sha1', 'sha256':
             with self.assertRaises(CLIFactoryError):
-                self._make_repository({u'content-type': u'yum', u'checksum-type': checksum_type})
+                self._make_repository({
+                    u'content-type': u'yum',
+                    u'checksum-type': checksum_type,
+                    u'download-policy': 'on_demand'
+                    })
 
     @tier1
     def test_positive_delete_by_id(self):
