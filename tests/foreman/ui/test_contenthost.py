@@ -516,14 +516,14 @@ def test_positive_host_re_registion_with_host_rename(session, module_org, repos_
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     result = vm.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     assert result.return_code == 0
-    vm.run('subscription-manager unregister')
+    vm.unregister()
     updated_hostname = '{}.{}'.format(gen_string('alpha'), vm.hostname).lower()
     vm.run('hostnamectl set-hostname {}'.format(updated_hostname))
     assert result.return_code == 0
-    vm.run('subscription-manager register --org="{}" --activationkey="{}"'.format(
+    vm.register_contenthost(
         module_org.name,
-        repos_collection.setup_content_data['activation_key']['name']
-    ))
+        activation_key=repos_collection.setup_content_data['activation_key']['name']
+    )
     assert result.return_code == 0
     with session:
         assert session.contenthost.search(updated_hostname)[0]['Name'] == updated_hostname
