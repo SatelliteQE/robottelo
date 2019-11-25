@@ -294,7 +294,7 @@ class ContentViewFilterTestCase(APITestCase):
             product=self.product.id,
             url=CUSTOM_MODULE_STREAM_REPO_2,
         ).create()
-        self.content_view.repository = [self.repo, module_stream_repo]
+        self.content_view.repository += [module_stream_repo]
         self.content_view.update(['repository'])
         for inclusion in (True, False):
             cvf = entities.ModuleStreamContentViewFilter(
@@ -303,8 +303,8 @@ class ContentViewFilterTestCase(APITestCase):
                 repository=[self.repo, module_stream_repo],
             ).create()
             self.assertEqual(cvf.inclusion, inclusion)
+            self.assertEqual(len(cvf.repository), 2)
         self.assertEqual(self.content_view.id, cvf.content_view.id)
-        self.assertEqual(len(cvf.repository), 2)
         self.assertEqual(cvf.type, 'modulemd')
 
     @tier2
@@ -837,12 +837,14 @@ class ContentViewFilterRuleTestCase(APITestCase):
         :CaseLevel: Integration
         """
         # Exclude module stream filter
-        cv_filter = entities.ModuleStreamContentViewFilter(content_view=self.content_view,
-                                                           inclusion=False).create()
+        cv_filter = entities.ModuleStreamContentViewFilter(
+            content_view=self.content_view,
+            inclusion=False).create()
         module_streams = entities.ModuleStream().search(
-            query=dict(search='name="{}"'.format('duck')))
-        entities.ContentViewFilterRule(content_view_filter=cv_filter,
-                                       module_stream=module_streams).create()
+            query={'search': 'name="{}"'.format('duck')})
+        entities.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            module_stream=module_streams).create()
         self.content_view.publish()
         content_view = self.content_view.read()
         content_view_version_info = content_view.version[0].read()
@@ -871,12 +873,11 @@ class ContentViewFilterRuleTestCase(APITestCase):
         :id: 20540722-b163-4ebb-b18d-351444ef0c86
 
         :steps:
-            1. Create Include Errata filter with 'RHEA-2012:0059' has (duck and kangaroo streams)
-            2. Publish content view, Verify errata and stream count should be 1 and 2 respectively
+            1. Create Include Errata filter
+            2. Publish content view, Verify errata and stream count.
             3. Delete Filter (As we can not update the filter inclusion type)
-            4. Create Exclude Errata filter with 'RHEA-2012:0059' has (duck and kangaroo streams)
-            5. Publish content view, Verify errata and stream count should be 5 and 5 respectively
-                ( As we have total 6 Errata's and 7 Module Streams in assigned repo)
+            4. Create Exclude Errata filter
+            5. Publish content view, Verify errata and stream count
 
         :expectedresults: Module Stream count changes automatically after including or
             excluding modular errata
@@ -886,7 +887,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view, inclusion=True).create()
         errata = entities.Errata().search(
-            query=dict(search='errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)))[0]
+            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)})[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         self.content_view.publish()
@@ -902,7 +903,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view, inclusion=False).create()
         errata = entities.Errata().search(
-            query=dict(search='errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)))[0]
+            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)})[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         content_view.publish()
@@ -931,12 +932,14 @@ class ContentViewFilterRuleTestCase(APITestCase):
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         # apply exclude module filter
-        cv_filter = entities.ModuleStreamContentViewFilter(content_view=self.content_view,
-                                                           inclusion=False).create()
+        cv_filter = entities.ModuleStreamContentViewFilter(
+            content_view=self.content_view,
+            inclusion=False).create()
         module_streams = entities.ModuleStream().search(
             query=dict(search='name="{}"'.format('duck')))
-        entities.ContentViewFilterRule(content_view_filter=cv_filter,
-                                       module_stream=module_streams).create()
+        entities.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            module_stream=module_streams).create()
         self.content_view.publish()
         content_view = self.content_view.read()
         content_view_version_info = content_view.read().version[0].read()
@@ -950,7 +953,6 @@ class ContentViewFilterRuleTestCase(APITestCase):
         """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.
         If dependency solving enabled then dependent module streams will be fetched
         over even if the exclude filter has been applied.
-
         e.g. duck module stream is dependent on kangaroo stream, hence even if add only
         exclude filter on kangaroo it will get ignored as it is fetched because of duck
         module stream. but if both duck and kangaroo module streams are in exclude filter
@@ -964,12 +966,14 @@ class ContentViewFilterRuleTestCase(APITestCase):
         """
         self.content_view.solve_dependencies = True
         content_view = self.content_view.update(['solve_dependencies'])
-        cv_filter = entities.ModuleStreamContentViewFilter(content_view=content_view,
-                                                           inclusion=False).create()
+        cv_filter = entities.ModuleStreamContentViewFilter(
+            content_view=content_view,
+            inclusion=False).create()
         module_streams = entities.ModuleStream().search(
             query=dict(search='name="{}" and version="{}'.format('kangaroo', '20180730223407')))
-        entities.ContentViewFilterRule(content_view_filter=cv_filter,
-                                       module_stream=module_streams).create()
+        entities.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            module_stream=module_streams).create()
         self.content_view.publish()
         content_view = content_view.read()
         content_view_version_info = content_view.read().version[0].read()

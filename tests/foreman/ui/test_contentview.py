@@ -2661,9 +2661,10 @@ def test_positive_add_module_stream_filter(session, module_org):
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    create_sync_custom_repo(module_org.id,
-                            repo_name=repo_name,
-                            repo_url=CUSTOM_MODULE_STREAM_REPO_2)
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=CUSTOM_MODULE_STREAM_REPO_2)
     repo = entities.Repository(name=repo_name).search(
         query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
