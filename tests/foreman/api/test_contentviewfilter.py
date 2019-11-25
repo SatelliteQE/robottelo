@@ -18,7 +18,6 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :Upstream: No
 """
-import pytest
 
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
@@ -947,7 +946,6 @@ class ContentViewFilterRuleTestCase(APITestCase):
         assert content_view_version_info.module_stream_count == 1
         assert content_view_version_info.errata_counts['total'] == 1
 
-    @pytest.mark.skip_if_open("BZ:1771453")
     @tier2
     def test_positive_dependency_solving_module_stream_filter(self):
         """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.
