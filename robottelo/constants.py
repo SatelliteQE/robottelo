@@ -482,7 +482,8 @@ FILTER_CONTENT_TYPE = {
     'package': "Package",
     'package group': "Package Group",
     'erratum by id': "Erratum - by ID",
-    'erratum by date and type': "Erratum - Date and Type"
+    'erratum by date and type': "Erratum - Date and Type",
+    'modulemd': "Module Stream"
 }
 
 FILTER_TYPE = {
