@@ -304,8 +304,8 @@ class ContentViewFilterTestCase(APITestCase):
             ).create()
             self.assertEqual(cvf.inclusion, inclusion)
             self.assertEqual(len(cvf.repository), 2)
-        self.assertEqual(self.content_view.id, cvf.content_view.id)
-        self.assertEqual(cvf.type, 'modulemd')
+        assert self.content_view.id == cvf.content_view.id
+        assert cvf.type == 'modulemd'
 
     @tier2
     def test_positive_publish_with_content_view_filter_and_swid_tags(self):
@@ -848,12 +848,12 @@ class ContentViewFilterRuleTestCase(APITestCase):
         self.content_view.publish()
         content_view = self.content_view.read()
         content_view_version_info = content_view.version[0].read()
-        self.assertEqual(len(content_view.repository), 1)
-        self.assertEqual(len(content_view.version), 1)
+        assert len(content_view.repository) == 1
+        assert len(content_view.version) == 1
 
         #  the module stream and errata count based in filter after publish
-        self.assertEqual(content_view_version_info.module_stream_count, 4)
-        self.assertEqual(content_view_version_info.errata_counts['total'], 3)
+        assert content_view_version_info.module_stream_count == 4
+        assert content_view_version_info.errata_counts['total'] == 3
 
         # Promote Content View
         lce = entities.LifecycleEnvironment(organization=self.org).create()
@@ -862,8 +862,8 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view_version_info = content_view.version[0].read()
 
         # assert the module stream and errata count based in filter after promote
-        self.assertEqual(content_view_version_info.module_stream_count, 4)
-        self.assertEqual(content_view_version_info.errata_counts['total'], 3)
+        assert content_view_version_info.module_stream_count == 4
+        assert content_view_version_info.errata_counts['total'] == 3
 
     @tier2
     def test_positive_include_exclude_module_stream_filter(self):
@@ -895,8 +895,8 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view_version_info = content_view.version[0].read()
 
         # verify the module_stream_count and errata_count for Exclude Filter
-        self.assertEqual(content_view_version_info.module_stream_count, 2)
-        self.assertEqual(content_view_version_info.errata_counts['total'], 1)
+        assert content_view_version_info.module_stream_count == 2
+        assert content_view_version_info.errata_counts['total'] == 1
 
         # delete the previous content_view_filter
         cv_filter.delete()
@@ -910,8 +910,8 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view_version_info = content_view.read().version[1].read()
 
         # verify the module_stream_count and errata_count for Include Filter
-        self.assertEqual(content_view_version_info.module_stream_count, 5)
-        self.assertEqual(content_view_version_info.errata_counts['total'], 5)
+        assert content_view_version_info.module_stream_count == 5
+        assert content_view_version_info.errata_counts['total'] == 5
 
     @tier2
     def test_positive_multi_level_filters(self):
@@ -928,7 +928,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view, inclusion=True).create()
         errata = entities.Errata().search(
-            query=dict(search='errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)))[0]
+            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)})[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         # apply exclude module filter
@@ -936,7 +936,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=self.content_view,
             inclusion=False).create()
         module_streams = entities.ModuleStream().search(
-            query=dict(search='name="{}"'.format('duck')))
+            query={'search': 'name="{}"'.format('duck')})
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter,
             module_stream=module_streams).create()
@@ -944,8 +944,8 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view = self.content_view.read()
         content_view_version_info = content_view.read().version[0].read()
         # verify the module_stream_count and errata_count for Include Filter
-        self.assertEqual(content_view_version_info.module_stream_count, 1)
-        self.assertEqual(content_view_version_info.errata_counts['total'], 1)
+        assert content_view_version_info.module_stream_count == 1
+        assert content_view_version_info.errata_counts['total'] == 1
 
     @pytest.mark.skip_if_open("BZ:1771453")
     @tier2
@@ -970,7 +970,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=content_view,
             inclusion=False).create()
         module_streams = entities.ModuleStream().search(
-            query=dict(search='name="{}" and version="{}'.format('kangaroo', '20180730223407')))
+            query={'search': 'name="{}" and version="{}'.format('kangaroo', '20180730223407')})
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter,
             module_stream=module_streams).create()
@@ -979,4 +979,4 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view_version_info = content_view.read().version[0].read()
 
         # Total Module Stream Count = 7, Exclude filter rule get ignored.
-        self.assertEqual(content_view_version_info.module_stream_count, 7)
+        assert content_view_version_info.module_stream_count == 7
