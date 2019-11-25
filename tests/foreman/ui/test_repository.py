@@ -55,6 +55,7 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.helpers import read_data_file
+from robottelo.host_info import get_sat_version
 from robottelo.products import SatelliteToolsRepository
 
 
@@ -867,21 +868,31 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @tier2
+@pytest.mark.skip_if_open("BZ:1776108")
 def test_positive_recommended_repos(session, module_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
     :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
 
-    :expectedresults: Shows repositories as per On/Off 'Recommended Repositories'.
+    :expectedresults:
+
+           1. Shows repositories as per On/Off 'Recommended Repositories'.
+           2. Check last Satellite version Capsule/Tools repos do not exist.
 
     :CaseLevel: Integration
+
+    :BZ: 1776108
     """
     manifests.upload_manifest_locked(module_org.id)
     with session:
         session.organization.select(module_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
+        last_sat_version = '{}.{}'.format(get_sat_version().release[0],
+                                          get_sat_version().release[1] - 1)
+        assert 0 == len([repo['name'] for repo in rrepos_on if last_sat_version in repo[
+            'name']]), 'Last Satellite version Capsule/Tools repos are exist'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)
