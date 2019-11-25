@@ -18,7 +18,6 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :Upstream: No
 """
-import pytest
 
 from nailgun import entities
 from nailgun.config import ServerConfig
@@ -143,7 +142,6 @@ class SubscriptionsTestCase(APITestCase):
         self.assertEqual(
             len(entities.Subscription(organization=orgs[1]).search()), 0)
 
-    @pytest.mark.skip_if_open("BZ:1669241")
     @tier2
     def test_positive_delete_manifest_as_another_user(self):
         """Verify that uploaded manifest if visible and deletable

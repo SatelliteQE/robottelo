@@ -230,7 +230,6 @@ class SubscriptionTestCase(CLITestCase):
         for column in ['start-date', 'end-date']:
             self.assertIn(column, subscription_list[0].keys())
 
-    @pytest.mark.skip_if_open("BZ:1669241")
     @tier2
     def test_positive_delete_manifest_as_another_user(self):
         """Verify that uploaded manifest if visible and deletable
