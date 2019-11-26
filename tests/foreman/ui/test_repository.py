@@ -889,10 +889,11 @@ def test_positive_recommended_repos(session, module_org):
         session.organization.select(module_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
-        last_sat_version = '{}.{}'.format(get_sat_version().release[0],
-                                          get_sat_version().release[1] - 1)
-        assert 0 == len([repo['name'] for repo in rrepos_on if last_sat_version in repo[
-            'name']]), 'Last Satellite version Capsule/Tools repos are exist'
+        sat_version = get_sat_version().public
+        cap_tool_repos = [repo['name'] for repo in rrepos_on if 'Tools' in repo['name'] or
+                                                                'Capsule' in repo['name']]
+        cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
+        assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)
