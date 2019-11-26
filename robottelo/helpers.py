@@ -754,6 +754,22 @@ def host_provisioning_check(ip_addr):
                 result.stdout))
 
 
+def slugify_component(string, keep_hyphens=True):
+    """Make component name a slug
+
+    Arguments:
+        string {str} -- Component name e.g: ActivationKeys
+        keep_hyphens {bool} -- Keep hyphens or replace with underscores
+
+    Returns:
+        str -- component slug e.g: activationkeys
+    """
+    string = string.replace(" and ", "&")
+    if not keep_hyphens:
+        string = string.replace('-', '_')
+    return re.sub("[^-_a-zA-Z0-9]", "", string.lower())
+
+
 # --- Issue based Pytest markers ---
 
 def is_open(issue, data=None):
@@ -791,6 +807,16 @@ def _should_deselect(issue, data=None):
     if str(issue).startswith(supported_handlers):
         handler_code, _, _ = str(issue).partition(":")
         return handlers[handler_code.strip()](issue.strip(), data)
+
+
+def _add_workaround(
+    data, matches, usage, validation=(lambda *a, **k: True), **kwargs
+):
+    """Adds entry for workaround usage."""
+    for match in matches:
+        issue = f"{match[0]}:{match[1]}"
+        if validation(data, issue, usage, **kwargs):
+            data[issue.strip()]['used_in'].append({'usage': usage, **kwargs})
 
 
 def generate_issue_collection(items, config):  # pragma: no cover
@@ -863,23 +889,46 @@ def generate_issue_collection(items, config):  # pragma: no cover
         re.IGNORECASE
     )
 
+    IMPORTANCE = re.compile(
+        # To match :CaseImportance: Critical
+        r"\s*:CaseImportance:\s*(?P<importance>\S*)",
+        re.IGNORECASE
+    )
+
+    BZ = re.compile(
+        # To match :BZ: 123456, 456789
+        r"\s*:BZ:\s*(?P<bz>.*\S*)",
+        re.IGNORECASE
+    )
+
+    test_modules = set()
+
     # --- Build the issue marked usage collection ---
     for item in items:
-        filepath, lineno, testcase = item.location
-        # Take the module level :CaseComponent:
-        module_component = None
-        with open(item.module.__file__, 'r') as modulefile:
-            text = modulefile.read()
-            matches = COMPONENT.findall(text)
-            if matches:
-                module_component = matches[0]
-        # Then take from source of function if exists
-        source = inspect.getsource(item.function)
-        if ':CaseComponent:' in source:
-            matches = COMPONENT.findall(source)
-            if matches:
-                module_component = matches[0]
+        component = None
+        bzs = None
+        importance = None
 
+        # register test module as processed
+        test_modules.add(item.module)
+
+        # Find matches from docstrings top-down from: module, class, function.
+        mod_cls_fun = (item.module, getattr(item, 'cls', None), item.function)
+        for docstring in map(inspect.getdoc, mod_cls_fun):
+            if not docstring:
+                continue
+            component_matches = COMPONENT.findall(docstring)
+            if component_matches:
+                component = component_matches[-1]
+            bz_matches = BZ.findall(docstring)
+            if bz_matches:
+                bzs = bz_matches[-1]
+            importance_matches = IMPORTANCE.findall(docstring)
+            if importance_matches:
+                importance = importance_matches[-1]
+
+        filepath, lineno, testcase = item.location
+        component_mark = slugify_component(component, False)
         for marker in item.iter_markers():
             if marker.name in valid_markers:
                 issue = marker.kwargs.get('reason') or marker.args[0]
@@ -889,30 +938,88 @@ def generate_issue_collection(items, config):  # pragma: no cover
                         'filepath': filepath,
                         'lineno': lineno,
                         'testcase': testcase,
-                        'component': module_component,
+                        'component': component,
+                        'importance': importance,
+                        'component_mark': component_mark,
                         'usage': marker.name
                     }
                 )
 
                 # Store issue key to lookup in the deselection process
                 deselect_data[item.location] = issue_key
+                # Add issue as a marker to enable filtering e.g: "-m BZ_123456"
+                item.add_marker(
+                    getattr(pytest.mark, issue_key.replace(':', '_'))
+                )
 
         # Then take the workarounds using `is_open` helper.
+        source = inspect.getsource(item.function)
         if 'is_open(' in source:
-            def add_workaround(matches, condition):
-                for match in matches:
-                    issue = f"{match[0]}:{match[1]}"
-                    collected_data[issue.strip()]['used_in'].append(
-                        {
-                            'filepath': filepath,
-                            'lineno': lineno,
-                            'testcase': testcase,
-                            'component': module_component,
-                            'usage': condition
-                        }
-                    )
-            add_workaround(IS_OPEN.findall(source), 'is_open')
-            add_workaround(NOT_IS_OPEN.findall(source), 'not is_open')
+            kwargs = {
+                'filepath': filepath,
+                'lineno': lineno,
+                'testcase': testcase,
+                'component': component,
+                'importance': importance,
+                'component_mark': component_mark
+            }
+            _add_workaround(
+                collected_data,
+                IS_OPEN.findall(source),
+                'is_open',
+                **kwargs
+            )
+            _add_workaround(
+                collected_data,
+                NOT_IS_OPEN.findall(source),
+                'not is_open',
+                **kwargs
+            )
+
+        # Add component as a marker to anable filtering e.g: "-m contentviews"
+        item.add_marker(getattr(pytest.mark, component_mark))
+
+        # Add BZs from tokens as a marker to enable filter e.g: "-m BZ_123456"
+        if bzs:
+            for bz in bzs.split(','):
+                item.add_marker(getattr(pytest.mark, f'BZ_{bz.strip()}'))
+
+        # Add importance as a token
+        if importance:
+            item.add_marker(getattr(pytest.mark, importance.lower().strip()))
+
+    # Take uses of `is_open` from outside of test cases e.g: SetUp methods
+    for test_module in test_modules:
+        module_source = inspect.getsource(test_module)
+        component_matches = COMPONENT.findall(module_source)
+        module_component = None
+        if component_matches:
+            module_component = component_matches[0]
+        if 'is_open(' in module_source:
+            kwargs = {
+                'filepath': test_module.__file__,
+                'lineno': 1,
+                'testcase': test_module.__name__,
+                'component': module_component,
+            }
+
+            def validation(data, issue, usage, **kwargs):
+                return issue not in data
+
+            _add_workaround(
+                collected_data,
+                IS_OPEN.findall(module_source),
+                'is_open',
+                validation=validation,
+                **kwargs
+            )
+            _add_workaround(
+                collected_data,
+                NOT_IS_OPEN.findall(module_source),
+                'not is_open',
+                validation=validation,
+                **kwargs
+            )
 
     # --- Collect BUGZILLA data ---
     bugzilla.collect_data_bz(collected_data, cached_data)
