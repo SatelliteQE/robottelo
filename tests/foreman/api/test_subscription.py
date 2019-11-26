@@ -147,7 +147,7 @@ class SubscriptionsTestCase(APITestCase):
         """Verify that uploaded manifest if visible and deletable
             by a different user than the one who uploaded it
 
-        :id: 4861bcbc-785a-436d-98cf-13cfef7d6907
+        :id: 4861bdbc-785a-436d-98cf-13cfef7d6907
 
         :expectedresults: manifest is refreshed
 
