@@ -142,7 +142,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
     with session:
         session.jobtemplate.create({
             'template.name': job_template_name,
-            'template.template_editor.rendering_options': 'Input',
+            'template.template_editor.rendering_options': 'Editor',
             'template.template_editor.editor': '<%= input("command") %>',
             'job.provider_type': 'SSH',
             'inputs': [{
