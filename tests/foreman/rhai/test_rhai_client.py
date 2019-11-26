@@ -54,7 +54,7 @@ class RHAIClientTestCase(TestCase):
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
         for subs in entities.Subscription(organization=org).search():
-            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+            if subs.name == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to

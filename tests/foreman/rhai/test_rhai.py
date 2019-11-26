@@ -64,7 +64,7 @@ def activation_key(module_org):
 @fixture(scope="module")
 def attach_subscription(module_org, activation_key):
     for subs in entities.Subscription(organization=module_org).search():
-        if subs.read_json()["product_name"] == DEFAULT_SUBSCRIPTION_NAME:
+        if subs.name == DEFAULT_SUBSCRIPTION_NAME:
             # "quantity" must be 1, not subscription["quantity"]. Greater
             # values produce this error: "RuntimeError: Error: Only pools
             # with multi-entitlement product subscriptions can be added to
