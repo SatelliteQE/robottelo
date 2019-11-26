@@ -107,10 +107,12 @@ def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip
                 'job_category': 'Commands',
                 'job_template': 'Run Command - SSH Default',
                 'template_content.command': 'ls',
+                'advanced_options.execution_order': 'Randomized',
                 'schedule': 'Execute now',
             }
         )
         assert job_status['overview']['job_status'] == 'Success'
+        assert job_status['overview']['execution_order'] == 'Execution order: randomized'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
 
@@ -140,7 +142,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
     with session:
         session.jobtemplate.create({
             'template.name': job_template_name,
-            'template.template_editor.rendering_options': 'Input',
+            'template.template_editor.rendering_options': 'Editor',
             'template.template_editor.editor': '<%= input("command") %>',
             'job.provider_type': 'SSH',
             'inputs': [{
