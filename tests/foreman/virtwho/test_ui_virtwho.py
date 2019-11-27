@@ -41,7 +41,7 @@ from .utils import (
 )
 
 
-@fixture(scope='module')
+@fixture()
 def form_data():
     hypervisor_type = settings.virtwho.hypervisor_type
     hypervisor_server = settings.virtwho.hypervisor_server
