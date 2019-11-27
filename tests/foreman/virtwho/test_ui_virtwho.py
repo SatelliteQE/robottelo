@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+from copy import deepcopy
 from datetime import datetime
 from fauxfactory import gen_string
 
@@ -647,6 +648,7 @@ def test_positive_overview_label_name(form_data, session):
     :CaseImportance: Medium
     """
     name = gen_string('alpha')
+    form_data = deepcopy(form_data)
     form_data['name'] = name
     hypervisor_type = form_data['hypervisor_type']
     form_data['proxy'] = 'test.example.com:3128'
