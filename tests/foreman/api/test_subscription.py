@@ -18,14 +18,22 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :Upstream: No
 """
+
 from nailgun import entities
+from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import upload_manifest
 from robottelo import manifests
+from robottelo.cli.subscription import Subscription
 from robottelo.decorators import (
     run_in_one_thread, skip_if_not_set, tier1, tier2
 )
-from robottelo.test import APITestCase
+from robottelo.test import (
+    APITestCase,
+    settings,
+)
+
+from fauxfactory import gen_string
 
 
 @run_in_one_thread
@@ -133,3 +141,52 @@ class SubscriptionsTestCase(APITestCase):
                 upload_manifest(orgs[1].id, manifest.content)
         self.assertEqual(
             len(entities.Subscription(organization=orgs[1]).search()), 0)
+
+    @tier2
+    def test_positive_delete_manifest_as_another_user(self):
+        """Verify that uploaded manifest if visible and deletable
+            by a different user than the one who uploaded it
+
+        :id: 4861bdbc-785a-436d-98cf-13cfef7d6907
+
+        :expectedresults: manifest is refreshed
+
+        :BZ: 1669241
+
+        :CaseImportance: Medium
+        """
+        org = entities.Organization().create()
+        user1_password = gen_string('alphanumeric')
+        user1 = entities.User(
+            admin=True,
+            password=user1_password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        sc1 = ServerConfig(
+            auth=(user1.login, user1_password),
+            url='https://{}'.format(settings.server.hostname),
+            verify=False
+        )
+        user2_password = gen_string('alphanumeric')
+        user2 = entities.User(
+            admin=True,
+            password=user2_password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        sc2 = ServerConfig(
+            auth=(user2.login, user2_password),
+            url='https://{}'.format(settings.server.hostname),
+            verify=False
+        )
+        # use the first admin to upload a manifest
+        with manifests.clone() as manifest:
+            entities.Subscription(sc1, organization=org).upload(
+                data={'organization_id': org.id},
+                files={'content': manifest.content},
+            )
+        # try to search and delete the manifest with another admin
+        entities.Subscription(sc2, organization=org).delete_manifest(
+            data={'organization_id': org.id})
+        self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
