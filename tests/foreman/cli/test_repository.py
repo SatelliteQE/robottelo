@@ -1923,9 +1923,10 @@ class RepositoryTestCase(CLITestCase):
         assert len(srpm_list) == 1
         assert Srpm.info({'id': srpm_list[0]['id']})[0]['filename'] == SRPM_TO_UPLOAD
         assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
-        assert len(Srpm.list({'organization': new_repo['organization'], 'product-id': new_repo[
-            'product']['id']})) == 1
-        assert len(Srpm.list({'organization': new_repo['organization']})) == 1
+        if not is_open('BZ:1778055'):
+            assert len(Srpm.list({'organization': new_repo['organization'], 'product-id': new_repo[
+                'product']['id']})) > 0
+        assert len(Srpm.list({'organization': new_repo['organization']})) > 0
         assert len(Srpm.list(
             {'organization': new_repo['organization'], 'lifecycle-environment': 'Library'})) > 0
         assert len(Srpm.list({
@@ -2274,7 +2275,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         Repository.synchronize({'id': repo['id']})
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/ | grep .src.rpm'
+            '/custom/{}/{}/Packages/t/ | grep .src.rpm'
             .format(
                 self.org['label'],
                 self.product['label'],
@@ -2306,7 +2307,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         ContentView.publish({'id': cv['id']})
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/ | grep .src.rpm'
+            '/1.0/custom/{}/{}/Packages/t/ | grep .src.rpm'
             .format(
                 self.org['label'],
                 cv['label'],
@@ -2347,7 +2348,7 @@ class SRPMRepositoryTestCase(CLITestCase):
             'to-lifecycle-environment-id': lce['id'],
         })
         result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/Packages/t'
             ' | grep .src.rpm'
             .format(
                 self.org['label'],
