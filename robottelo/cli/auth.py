@@ -41,3 +41,23 @@ class Auth(Base):
         cls.command_sub = 'status'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+
+class AuthLogin(Base):
+    """Auth Login for Foreman CLI"""
+
+    command_base = 'auth login'
+
+    @classmethod
+    def basic(cls, options=None):
+        """Provide username and password"""
+        cls.command_sub = 'basic'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def oauth(cls, options=None):
+        """Supports for both with/without 2fa"""
+        cls.command_sub = 'oauth'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
