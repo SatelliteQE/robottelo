@@ -17,7 +17,7 @@
 """
 from fauxfactory import gen_string
 from robottelo import ssh
-from robottelo.cli.auth import Auth
+from robottelo.cli.auth import Auth, AuthLogin
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_user
 from robottelo.cli.org import Org
@@ -111,7 +111,7 @@ class HammerAuthTestCase(CLITestCase):
             Settings.set({'name': 'idle_timeout', 'value': 1})
             result = configure_sessions()
             self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-            Auth.login({
+            AuthLogin.basic({
                 'username': self.uname_admin,
                 'password': self.password
             })
@@ -156,7 +156,7 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        Auth.login({'username': self.uname_admin, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_admin, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
@@ -194,7 +194,7 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        Auth.login({'username': self.uname_admin, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_admin, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
@@ -230,7 +230,7 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        Auth.login({'username': self.uname_admin, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_admin, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
@@ -239,7 +239,7 @@ class HammerAuthTestCase(CLITestCase):
         # list organizations without supplying credentials
         with self.assertNotRaises(CLIReturnCodeError):
             Org.with_user().list()
-        Auth.login({'username': self.uname_viewer, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_viewer, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_viewer),
@@ -266,7 +266,7 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        Auth.login({'username': self.uname_admin, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_admin, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
@@ -305,7 +305,7 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        Auth.login({'username': self.uname_admin, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_admin, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
@@ -315,7 +315,7 @@ class HammerAuthTestCase(CLITestCase):
             Org.with_user().list()
         # using invalid password
         with self.assertRaises(CLIReturnCodeError):
-            Auth.login({
+            AuthLogin.basic({
                 'username': self.uname_viewer,
                 'password': gen_string('alpha')})
         # checking the session status again
@@ -354,7 +354,7 @@ class HammerAuthTestCase(CLITestCase):
             Settings.set({'name': 'idle_timeout', 'value': 1})
             result = configure_sessions(add_default_creds=True)
             self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-            Auth.login({
+            AuthLogin.basic({
                 'username': self.uname_admin,
                 'password': self.password
             })
@@ -409,7 +409,7 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        Auth.login({'username': self.uname_viewer, 'password': self.password})
+        AuthLogin.basic({'username': self.uname_viewer, 'password': self.password})
         result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_viewer),
