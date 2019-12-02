@@ -241,19 +241,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
             "Provide api_key or a bz_cache.json."
         )
         # Provide default data for collected BZs
-        return [
-            {
-                "id": number,
-                "is_open": True,  # All marked is skipped
-                "is_deselected": False,  # nothing is deselected
-                "status": "",
-                "resolution": "",
-                "clone_ids": [],
-                "cf_clone_of": "",
-                "error": "missing bugzilla api_key"
-            }
-            for number in bz_numbers
-        ]
+        return [get_default_bz(number) for number in bz_numbers]
 
     # No cached data so Call Bugzilla API
     LOGGER.debug(f"Calling Bugzilla API for {set(bz_numbers)}")
@@ -299,6 +287,21 @@ def get_single_bz(number, cached_data=None):  # pragma: no cover
         try:
             bz_data = cached_data[f"BZ:{number}"]['data']
         except (KeyError, TypeError):
-            bz_data = get_data_bz([str(number)], cached_data)[0]
+            bz_data = get_data_bz([str(number)], cached_data)
+            bz_data = bz_data and bz_data[0]
         CACHED_RESPONSES['get_single'][number] = bz_data
-    return bz_data or {}
+    return bz_data or get_default_bz(number)
+
+
+def get_default_bz(number):  # pragma: no cover
+    """This is the default BZ data when it is not possible to reach BZ api"""
+    return {
+        "id": number,
+        "is_open": True,  # All marked is skipped
+        "is_deselected": False,  # nothing is deselected
+        "status": "",
+        "resolution": "",
+        "clone_ids": [],
+        "cf_clone_of": "",
+        "error": "missing bugzilla api_key"
+    }
