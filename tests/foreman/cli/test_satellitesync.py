@@ -409,7 +409,7 @@ class ContentViewSync(CLITestCase):
         ssh.command('rm -rf {}'.format(self.export_dir))
 
     def assert_exported_cvv_exists(self, content_view_name, content_view_version):
-        """Verfiy an exported tar exists
+        """Verify an exported tar exists
 
         :return: The path to the tar (if it exists).
         """
@@ -418,12 +418,6 @@ class ContentViewSync(CLITestCase):
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         return exported_tar
-
-    def assert_import_export_packages_match(self, importing_cvv_id, exporting_cvv_id):
-        imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
-        exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
-        self.assertTrue(len(imported_packages) > 0)
-        self.assertEqual(len(exported_packages), len(imported_packages))
 
     @tier3
     def test_positive_export_import_filtered_cvv(self):
@@ -1178,7 +1172,7 @@ class ContentViewSync(CLITestCase):
 
     @tier3
     def test_postive_export_cv_with_mixed_content_repos(self):
-        """Exporting CV version having yum and non-yum(puppet) repos throws error
+        """Exporting CV version having yum and non-yum(puppet) is successful
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
