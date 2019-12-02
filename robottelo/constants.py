@@ -187,7 +187,7 @@ PRDS = {
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
     'rhsc': 'Red Hat Satellite Capsule',
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
-    'rhscl': 'Red Hat Software Collections for RHEL Server',
+    'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
 }
 
