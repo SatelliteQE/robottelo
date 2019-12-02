@@ -430,6 +430,8 @@ class BruteForceLogin(CLITestCase):
          :expectedresults: failed_login_attempts_limit works as expected
 
          :CaseAutomation: automated
+
+         :BZ: 1778599
          """
         result = ssh.command(
             'hammer -u {0} -p {1} user list'
