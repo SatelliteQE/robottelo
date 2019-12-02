@@ -407,6 +407,7 @@ class BruteForceLogin(CLITestCase):
             u'name': u'failed_login_attempts_limit',
             u'value': cls.host_value})
 
+    @pytest.mark.skip_if_open("BZ:1778599")
     @tier3
     def test_positive_failed_login_attempts_limit(self):
         """automate brute force protection limit configurable function
