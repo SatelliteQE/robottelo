@@ -408,6 +408,17 @@ class ContentViewSync(CLITestCase):
         super(ContentViewSync, self).tearDown()
         ssh.command('rm -rf {}'.format(self.export_dir))
 
+    def assert_exported_cvv_exists(self, content_view_name, content_view_version):
+        """Verify an exported tar exists
+
+        :return: The path to the tar (if it exists).
+        """
+        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+            self.export_dir, content_view_name, content_view_version)
+        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        self.assertEqual(result.return_code, 0)
+        return exported_tar
+
     @tier3
     def test_positive_export_import_filtered_cvv(self):
         """CV Version with filtered contents only can be exported and imported.
@@ -1160,8 +1171,8 @@ class ContentViewSync(CLITestCase):
         )
 
     @tier3
-    def test_negative_export_cv_with_mixed_content_repos(self):
-        """Exporting CV version having yum and non-yum(puppet) repos throws error
+    def test_postive_export_cv_with_mixed_content_repos(self):
+        """Exporting CV version having yum and non-yum(puppet) is successful
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
@@ -1170,13 +1181,14 @@ class ContentViewSync(CLITestCase):
             1. Create product with yum and non-yum(puppet) repos
             2. Sync the repositories
             3. Create CV with above product and publish
-            4. Attempt to export CV version contents to a directory
+            4. Export CV version contents to a directory
 
         :expectedresults:
 
-            1. Export fails with error 'The Repository '#name' is a non-yum repository.
-            Only Yum is supported at this time. Please remove the repository from the
-            Content View, republish and try the export again'.
+            1. Export will succeed, however the export wont contain non-yum repo.
+            No warning is printed (see BZ 1775383)
+
+        :BZ: 1726457
 
         """
         module = {'name': 'versioned', 'version': '3.3.3'}
@@ -1211,18 +1223,12 @@ class ContentViewSync(CLITestCase):
             'repository-id': yum_repo['id']
         })
         ContentView.publish({u'id': content_view['id']})
-        with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_export({
-                'export-dir': '{}'.format(self.export_dir),
-                'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id']
-            })
-        self.assert_error_msg(
-            error,
-            "Could not export the content view:\n  "
-            "Error: The Content View '{}' contains Puppet modules, "
-            "this is not supported at this time. Please remove the modules, "
-            "publish a new version and try the export again.\n".format(content_view['name'])
-        )
+        export_cvv_info = ContentView.info({u'id': content_view['id']})['versions'][0]
+        ContentView.version_export({
+            'export-dir': '{}'.format(self.export_dir),
+            'id': export_cvv_info['id']
+        })
+        self.assert_exported_cvv_exists(content_view['name'], export_cvv_info['version'])
 
     @tier2
     def test_positive_import_cv_with_customized_major_minor(self):
