@@ -230,10 +230,23 @@ def parse_info(output):
 
                 value = match.group(1)
 
-                if isinstance(contents[sub_prop], dict):
+                # adding list to 1 level, for example:
+                # {'template': ['template1', 'template2']}
+                if isinstance(contents[sub_prop], dict) and not contents[sub_prop]:
                     contents[sub_prop] = []
-
-                contents[sub_prop].append(value)
+                    contents[sub_prop].append(value)
+                elif isinstance(contents[sub_prop], list):
+                    contents[sub_prop].append(value)
+                else:
+                    # adding list to 2 level, for example:
+                    # {'subscription-information':
+                    #      {'registered-by-activation-keys': ['ak1', 'ak2']}
+                    #  }
+                    last_key = list(contents[sub_prop].keys())[-1]
+                    if not contents[sub_prop][last_key]:
+                        contents[sub_prop][last_key] = [value]
+                    else:
+                        contents[sub_prop][last_key].append(value)
             else:
                 # some properties have many numbered values
                 # Example:
