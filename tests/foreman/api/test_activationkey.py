@@ -148,25 +148,6 @@ class ActivationKeyTestCase(APITestCase):
                         max_hosts=max_host, unlimited_hosts=False).create()
 
     @tier3
-    def test_negative_create_with_no_host_limit_set_max(self):
-        """Create activation key with unlimited hosts and set max hosts of
-        varied values.
-
-        :id: 71b9b000-b978-4a95-b6f8-83c09ed39c01
-
-        :expectedresults: Activation key is not created
-
-        :CaseImportance: Low
-
-        :BZ: 1156555
-        """
-        for max_host in _bad_max_hosts():
-            with self.subTest(max_host):
-                with self.assertRaises(HTTPError):
-                    entities.ActivationKey(
-                        max_hosts=max_host, unlimited_hosts=True).create()
-
-    @tier3
     def test_negative_create_with_invalid_name(self):
         """Create activation key providing an invalid name.
 
