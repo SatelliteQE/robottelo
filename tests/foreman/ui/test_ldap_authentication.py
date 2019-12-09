@@ -832,6 +832,10 @@ def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
                 ldapsession.user.search('')
             expected_user = "{} {}".format(ipa_data['ipa_otp_username'], ipa_data['ipa_otp_username'])
             assert ldapsession.task.read_all()['current_user'] == expected_user
+            users = entities.User().search(query={
+                'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])
+            })
+            assert users[0].login == ipa_data['ipa_otp_username']
     finally:
         ldap_tear_down()
 
