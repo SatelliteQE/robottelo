@@ -169,6 +169,15 @@ def generate_otp(secret):
     return time_otp.now()
 
 
+def ldap_tear_down():
+    ldap = entities.AuthSourceLDAP().search()
+    for ldap_auth in range(len(ldap)):
+        users = entities.User(auth_source=ldap[ldap_auth]).search()
+        for user in range(len(users)):
+            users[user].delete()
+        ldap[ldap_auth].delete()
+
+
 @tier2
 def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
     """Perform end to end testing for LDAP authentication component with AD
@@ -796,6 +805,7 @@ def test_positive_login_ad_user_basic_roles(
         assert ldapsession.architecture.search(name)[0]['Name'] == name
 
 
+@upgrade
 @tier2
 def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
     """Login with password with time based OTP
@@ -809,18 +819,21 @@ def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
     :expectedresults: Log in to foreman UI successfully
 
     """
-    password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_ipa_user_passwd'],
-        generate_otp(ipa_data['time_based_secret']))
-    with Session(
-            test_name,
-            ipa_data['ipa_otp_username'],
-            password_with_otp
-    ) as ldapsession:
-        with raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
-        expected_user = "{} {}".format(ipa_data['ipa_otp_username'], ipa_data['ipa_otp_username'])
-        assert ldapsession.task.read_all()['current_user'] == expected_user
+    try:
+        password_with_otp = "{0}{1}".format(
+            ipa_data['ldap_ipa_user_passwd'],
+            generate_otp(ipa_data['time_based_secret']))
+        with Session(
+                test_name,
+                ipa_data['ipa_otp_username'],
+                password_with_otp
+        ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.user.search('')
+            expected_user = "{} {}".format(ipa_data['ipa_otp_username'], ipa_data['ipa_otp_username'])
+            assert ldapsession.task.read_all()['current_user'] == expected_user
+    finally:
+        ldap_tear_down()
 
 
 @tier2
@@ -836,13 +849,16 @@ def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth
     :expectedresults: Log in to foreman UI should be failed
 
     """
-    password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_ipa_user_passwd'],
-        gen_string(str_type='numeric', length=6))
-    with Session(
-            test_name,
-            ipa_data['ipa_otp_username'],
-            password_with_otp
-    ) as ldapsession:
-        with raises(NavigationTriesExceeded):
-            assert ldapsession.user.search('')
+    try:
+        password_with_otp = "{0}{1}".format(
+            ipa_data['ldap_ipa_user_passwd'],
+            gen_string(str_type='numeric', length=6))
+        with Session(
+                test_name,
+                ipa_data['ipa_otp_username'],
+                password_with_otp
+        ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                assert ldapsession.user.search('')
+    finally:
+        ldap_tear_down()
