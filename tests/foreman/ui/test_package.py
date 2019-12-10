@@ -233,18 +233,23 @@ def test_positive_rh_repo_search_and_check_file_list(
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'name = {0}'.format('facter'),
+            'name = {0}'.format('puppet-agent'),
             repository=module_rh_repo.name,
-        )[0]['RPM'].startswith('facter')
+        )[0]['RPM'].startswith('puppet-agent')
         assert session.package.search(
             'name = {0}'.format('katello-host-tools'),
             repository=module_rh_repo.name
         )[0]['RPM'].startswith('katello-host-tools')
         package_details = session.package.read(
-            'katello-agent', repository=module_rh_repo.name)
+            'tracer-common', repository=module_rh_repo.name)
         assert {
-            '/usr/lib/gofer/plugins/katelloplugin.py',
-            '/usr/lib/yum-plugins',
-            '/usr/lib/yum-plugins/package_upload.py',
-            '/usr/sbin/katello-package-upload',
+            '/etc/bash_completion.d/tracer',
+            '/usr/share/locale/cs/LC_MESSAGES/tracer.mo',
+            '/usr/share/tracer',
+            '/usr/share/tracer/__init__.py',
+            '/usr/share/tracer/__init__.pyc',
+            '/usr/share/tracer/__init__.pyo',
+            '/usr/share/tracer/applications.xml',
+            '/usr/share/tracer/README.md',
+            '/usr/share/tracer/rules.xml',
         }.issubset(set(package_details['files']['package_files']))
