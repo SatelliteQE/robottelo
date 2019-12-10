@@ -18,6 +18,7 @@ from fauxfactory import (
     gen_mac,
     gen_netmask,
     gen_string,
+    gen_url,
 )
 from os import chmod
 from robottelo import manifests, ssh
@@ -38,6 +39,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.http_proxy import HttpProxy
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
 from robottelo.cli.ldapauthsource import LDAPAuthSource
@@ -4316,3 +4318,72 @@ def virt_who_hypervisor_config(
         'lifecycle_environment_id': lce['id'],
         'virt_who_hypervisor_host': virt_who_hypervisor_host,
     }
+
+
+@cacheable
+def make_http_proxy(options=None):
+    """
+    Usage:
+     http-proxy create [OPTIONS]
+
+    Options:
+     --location LOCATION_NAME                  Location name
+     --location-id LOCATION_ID
+     --location-ids LOCATION_IDS               REPLACE locations with given ids
+                                               Comma separated list of values. Values containing
+                                               comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --location-title LOCATION_TITLE           Location title
+     --location-titles LOCATION_TITLES         Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --locations LOCATION_NAMES                Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --name NAME                               The HTTP Proxy name
+     --organization ORGANIZATION_NAME          Organization name
+     --organization-id ORGANIZATION_ID         Organization ID
+     --organization-ids ORGANIZATION_IDS       REPLACE organizations with given ids.
+                                               Comma separated list of values. Values containing
+                                               comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --organization-title ORGANIZATION_TITLE   Organization title
+     --organization-titles ORGANIZATION_TITLES Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --organizations ORGANIZATION_NAMES        Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --password PASSWORD                       Password used to authenticate with the HTTP Proxy
+     --url URL                                 URL of the HTTP Proxy
+     --username USERNAME                       Username used to authenticate with the HTTP Proxy
+     -h, --help                                Print help
+    """
+    # Assigning default values for attributes
+    args = {
+        'location': None,
+        'location-id': None,
+        'location-title': None,
+        'locations': None,
+        'location-ids': None,
+        'location-titles': None,
+        'name': gen_string('alpha', 15),
+        'organization': None,
+        'organization-id': None,
+        'organization-title': None,
+        'organizations': None,
+        'organization-ids': None,
+        'organization-titles': None,
+        'password': None,
+        'url': '{}:{}'.format(
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)),
+        'username': None,
+    }
+
+    return create_object(HttpProxy, args, options)
