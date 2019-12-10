@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+import re
+
 from random import choice
 
 from fauxfactory import gen_string, gen_alphanumeric
@@ -43,7 +45,7 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
-from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -1555,3 +1557,53 @@ class ActivationKeyTestCase(CLITestCase):
         }, output_format='csv')
         self.assertEqual(len(subscriptions), 1)
         self.assertEqual(subscriptions[0]['id'], subscription_id)
+
+    @skip_if_not_set('clients')
+    @tier3
+    def test_positive_subscription_quantity_attached(self):
+        """ Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
+
+        see https://bugzilla.redhat.com/show_bug.cgi?id=1633094
+
+        :id: 6aee3be3-9b23-4de5-a942-897d6c811ba3
+
+        :steps:
+            1. Create activation key
+            2. add subscriptions to activation key
+            3. Attach a content host to the activation key.
+            4. Verify 'ATTACHED' & 'QUANTITY' columns of 'hammer activation-key subscriptions'
+
+        :BZ: 1633094
+
+        """
+        org = make_org()
+        result = setup_org_for_a_rh_repo({
+            u'product': PRDS['rhel'],
+            u'repository-set': REPOSET['rhst7'],
+            u'repository': REPOS['rhst7']['name'],
+            u'organization-id': org['id'],
+        }, force_use_cdn=True)
+        ak = ActivationKey.info({'id': result[u'activationkey-id']})
+        setup_org_for_a_custom_repo({
+            u'url': FAKE_0_YUM_REPO,
+            u'organization-id': org['id'],
+            u'activationkey-id': result['activationkey-id'],
+            u'content-view-id': result['content-view-id'],
+            u'lifecycle-environment-id': result['lifecycle-environment-id'],
+        })
+        subs = Subscription.list({'organization-id': org['id']}, per_page=False)
+        subs_lookup = {s['id']: s for s in subs}
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(org['label'], activation_key=ak['name'])
+            self.assertTrue(vm.subscribed)
+
+            ak_subs = ActivationKey.subscriptions(
+                {'activation-key': ak['name'], 'organization-id': org['id']}, output_format='json')
+            self.assertEqual(len(ak_subs), 2)  # one for #rh product, one for custom product
+            for ak_sub in ak_subs:
+                self.assertIn(ak_sub['id'], subs_lookup)
+                self.assertEqual(ak_sub['quantity'], '1')
+                amount = subs_lookup[ak_sub['id']]['quantity']
+                regex = re.compile('1 out of {}'.format(amount))
+                self.assertRegex(ak_sub['attached'], regex)
