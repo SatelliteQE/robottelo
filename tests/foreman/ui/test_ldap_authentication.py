@@ -830,12 +830,13 @@ def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.user.search('')
-            expected_user = "{} {}".format(ipa_data['ipa_otp_username'], ipa_data['ipa_otp_username'])
+            expected_user = "{} {}".format(ipa_data['ipa_otp_username'],
+                                           ipa_data['ipa_otp_username'])
             assert ldapsession.task.read_all()['current_user'] == expected_user
-            users = entities.User().search(query={
-                'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])
-            })
-            assert users[0].login == ipa_data['ipa_otp_username']
+        users = entities.User().search(query={
+            'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])
+        })
+        assert users[0].login == ipa_data['ipa_otp_username']
     finally:
         ldap_tear_down()
 
@@ -862,7 +863,8 @@ def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth
                 ipa_data['ipa_otp_username'],
                 password_with_otp
         ) as ldapsession:
-            with raises(NavigationTriesExceeded):
-                assert ldapsession.user.search('')
+            with raises(NavigationTriesExceeded) as error:
+                ldapsession.user.search('')
+            assert error.typename == "NavigationTriesExceeded"
     finally:
         ldap_tear_down()
