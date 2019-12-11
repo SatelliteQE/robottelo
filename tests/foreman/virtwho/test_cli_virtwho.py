@@ -14,21 +14,26 @@
 
 :Upstream: No
 """
-from robottelo.decorators import tier1
-from robottelo.test import CLITestCase
+import re
+import requests
+from fauxfactory import gen_string
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.host import Host
 from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_ORG
-from fauxfactory import gen_string
+from robottelo.decorators import tier2, skip_if_not_set
+from robottelo.test import CLITestCase
+
 from .utils import (
     deploy_configure_by_command,
     deploy_configure_by_script,
     get_configure_file,
     get_configure_option,
     get_configure_command,
+    hypervisor_json_create,
     VIRTWHO_SYSCONFIG,
 )
 
@@ -36,9 +41,12 @@ from .utils import (
 class VirtWhoConfigTestCase(CLITestCase):
 
     @classmethod
+    @skip_if_not_set('virtwho')
     def setUpClass(cls):
         super(VirtWhoConfigTestCase, cls).setUpClass()
         cls.satellite_url = settings.server.hostname
+        cls.satellite_username = settings.server.admin_username
+        cls.satellite_password = settings.server.admin_password
         cls.hypervisor_type = settings.virtwho.hypervisor_type
         cls.hypervisor_server = settings.virtwho.hypervisor_server
         cls.hypervisor_username = settings.virtwho.hypervisor_username
@@ -67,7 +75,7 @@ class VirtWhoConfigTestCase(CLITestCase):
             args[u'hypervisor-password'] = self.hypervisor_password
         return args
 
-    @tier1
+    @tier2
     def test_positive_deploy_configure_by_id(self):
         """ Verify " hammer virt-who-config deploy"
 
@@ -83,29 +91,35 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        self.assertEquals(vhd['status'], 'No Report Yet')
+        self.assertEqual(vhd['status'], 'No Report Yet')
         command = get_configure_command(vhd['id'])
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
-        self.assertEquals(
+        self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
         hosts = [
-            (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
-            (guest_name, 'type=STACK_DERIVED')]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical))]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            vdc = Subscription.list({
+            subscriptions = Subscription.list({
                 'organization': DEFAULT_ORG,
                 'search': sku,
-            })[0]
+            })
+            vdc_id = subscriptions[0]['id']
+            if 'type=STACK_DERIVED' in sku:
+                for item in subscriptions:
+                    if hypervisor_name.lower() in item['type']:
+                        vdc_id = item['id']
+                        break
             result = Host.subscription_attach({
                 'host-id': host['id'],
-                'subscription-id': vdc['id']
+                'subscription-id': vdc_id
             })
             self.assertTrue('attached to the host successfully' in '\n'.join(result))
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_deploy_configure_by_script(self):
         """ Verify " hammer virt-who-config fetch"
 
@@ -121,29 +135,35 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        self.assertEquals(vhd['status'], 'No Report Yet')
-        script = VirtWhoConfig.fetch({'id': vhd['id']}, output_format='plain')
+        self.assertEqual(vhd['status'], 'No Report Yet')
+        script = VirtWhoConfig.fetch({'id': vhd['id']}, output_format='base')
         hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
-        self.assertEquals(
+        self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
         hosts = [
-            (hypervisor_name, 'product_id={}'.format(self.vdc_physical)),
-            (guest_name, 'type=STACK_DERIVED')]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical))]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
-            vdc = Subscription.list({
+            subscriptions = Subscription.list({
                 'organization': DEFAULT_ORG,
                 'search': sku,
-            })[0]
+            })
+            vdc_id = subscriptions[0]['id']
+            if 'type=STACK_DERIVED' in sku:
+                for item in subscriptions:
+                    if hypervisor_name.lower() in item['type']:
+                        vdc_id = item['id']
+                        break
             result = Host.subscription_attach({
                 'host-id': host['id'],
-                'subscription-id': vdc['id']
+                'subscription-id': vdc_id
             })
             self.assertTrue('attached to the host successfully' in '\n'.join(result))
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_debug_option(self):
         """ Verify debug option by hammer virt-who-config update"
 
@@ -160,9 +180,9 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        self.assertEquals(vhd['name'], name)
+        self.assertEqual(vhd['name'], name)
         VirtWhoConfig.update({'id': vhd['id'], 'new-name': new_name})
-        self.assertEquals(
+        self.assertEqual(
             VirtWhoConfig.info({'id': vhd['id']})['general-information']['name'],
             new_name)
         options = {'true': '1', 'false': '0', 'yes': '1', 'no': '0'}
@@ -170,12 +190,12 @@ class VirtWhoConfigTestCase(CLITestCase):
             VirtWhoConfig.update({'id': vhd['id'], 'debug': key})
             command = get_configure_command(vhd['id'])
             deploy_configure_by_command(command)
-            self.assertEquals(
+            self.assertEqual(
                 get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG), value)
         VirtWhoConfig.delete({'name': new_name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_interval_option(self):
         """ Verify interval option by hammer virt-who-config update"
 
@@ -205,12 +225,12 @@ class VirtWhoConfigTestCase(CLITestCase):
             VirtWhoConfig.update({'id': vhd['id'], 'interval': key})
             command = get_configure_command(vhd['id'])
             deploy_configure_by_command(command)
-            self.assertEquals(
+            self.assertEqual(
                 get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG), value)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_hypervisor_id_option(self):
         """ Verify hypervisor_id option by hammer virt-who-config update"
 
@@ -232,16 +252,16 @@ class VirtWhoConfigTestCase(CLITestCase):
         for value in values:
             VirtWhoConfig.update({'id': vhd['id'], 'hypervisor-id': value})
             result = VirtWhoConfig.info({'id': vhd['id']})
-            self.assertEquals(result['connection']['hypervisor-id'], value)
+            self.assertEqual(result['connection']['hypervisor-id'], value)
             config_file = get_configure_file(vhd['id'])
             command = get_configure_command(vhd['id'])
             deploy_configure_by_command(command)
-            self.assertEquals(
+            self.assertEqual(
                 get_configure_option('hypervisor_id', config_file), value)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_filter_option(self):
         """ Verify filter option by hammer virt-who-config update"
 
@@ -263,18 +283,42 @@ class VirtWhoConfigTestCase(CLITestCase):
             'filtering-mode': 'whitelist',
             'whitelist': regex,
         }
-        VirtWhoConfig.update(whitelist)
-        result = VirtWhoConfig.info({'id': vhd['id']})
-        self.assertEquals(result['connection']['filtering'], 'Whitelist')
-        self.assertEquals(result['connection']['filtered-hosts'], regex)
+        blacklist = {
+            'id': vhd['id'],
+            'filtering-mode': 'blacklist',
+            'blacklist': regex,
+        }
+        if self.hypervisor_type == 'esx':
+            whitelist['filter-host-parents'] = regex
+            blacklist['exclude-host-parents'] = regex
         config_file = get_configure_file(vhd['id'])
         command = get_configure_command(vhd['id'])
+        # Update Whitelist and check the result
+        VirtWhoConfig.update(whitelist)
+        result = VirtWhoConfig.info({'id': vhd['id']})
+        self.assertEqual(result['connection']['filtering'], 'Whitelist')
+        self.assertEqual(result['connection']['filtered-hosts'], regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(result['connection']['filter-host-parents'], regex)
         deploy_configure_by_command(command)
-        self.assertEquals(get_configure_option('filter_hosts', config_file), regex)
+        self.assertEqual(get_configure_option('filter_hosts', config_file), regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(get_configure_option('filter_host_parents', config_file), regex)
+        # Update Blacklist and check the result
+        VirtWhoConfig.update(blacklist)
+        result = VirtWhoConfig.info({'id': vhd['id']})
+        self.assertEqual(result['connection']['filtering'], 'Blacklist')
+        self.assertEqual(result['connection']['excluded-hosts'], regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(result['connection']['exclude-host-parents'], regex)
+        deploy_configure_by_command(command)
+        self.assertEqual(get_configure_option('exclude_hosts', config_file), regex)
+        if self.hypervisor_type == 'esx':
+            self.assertEqual(get_configure_option('exclude_host_parents', config_file), regex)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_proxy_option(self):
         """ Verify http_proxy option by hammer virt-who-config update"
 
@@ -290,7 +334,7 @@ class VirtWhoConfigTestCase(CLITestCase):
         args = self._make_virtwho_configure()
         args.update({'name': name})
         vhd = VirtWhoConfig.create(args)['general-information']
-        http_proxy = 'test.rexample.com:3128'
+        http_proxy = 'test.example.com:3128'
         no_proxy = 'test.satellite.com'
         VirtWhoConfig.update({
             'id': vhd['id'],
@@ -298,18 +342,18 @@ class VirtWhoConfigTestCase(CLITestCase):
             'no-proxy': no_proxy,
         })
         result = VirtWhoConfig.info({'id': vhd['id']})
-        self.assertEquals(result['connection']['http-proxy'], http_proxy)
-        self.assertEquals(result['connection']['ignore-proxy'], no_proxy)
+        self.assertEqual(result['connection']['http-proxy'], http_proxy)
+        self.assertEqual(result['connection']['ignore-proxy'], no_proxy)
         command = get_configure_command(vhd['id'])
         deploy_configure_by_command(command)
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('http_proxy', VIRTWHO_SYSCONFIG), http_proxy)
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG), no_proxy)
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
 
-    @tier1
+    @tier2
     def test_positive_rhsm_option(self):
         """ Verify rhsm options in the configure file"
 
@@ -332,9 +376,39 @@ class VirtWhoConfigTestCase(CLITestCase):
         deploy_configure_by_command(command)
         rhsm_username = get_configure_option('rhsm_username', config_file)
         self.assertFalse(User.exists(search=('login', rhsm_username)))
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('rhsm_hostname', config_file), self.satellite_url)
-        self.assertEquals(
+        self.assertEqual(
             get_configure_option('rhsm_prefix', config_file), '/rhsm')
         VirtWhoConfig.delete({'name': name})
         self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
+
+    @tier2
+    def test_positive_post_hypervisors(self):
+        """ Post large json file to /rhsm/hypervisors"
+
+        :id: e344c9d2-3538-4432-9a74-b025e9ef852d
+
+        :expectedresults:
+            hypervisor/guest json can be posted and the task is success status
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1637042, 1769680
+        """
+        data = hypervisor_json_create(hypervisors=100, guests=10)
+        owner = "owner=Default_Organization&env=Library"
+        url = 'https://{0}/rhsm/hypervisors?{1}'.format(self.satellite_url, owner)
+        auth = (self.satellite_username, self.satellite_password)
+        result = requests.post(url, auth=auth, verify=False, json=data)
+        if result.status_code != 200:
+            if "foreman_tasks_sync_task_timeout" in result.text:
+                task_id = re.findall('waiting for task (.*?) to finish', result.text)[-1]
+                wait_for_tasks(
+                    search_query='id = {}'.format(task_id),
+                    max_tries=10,
+                )
+            else:
+                self.assertTrue(result.status_code == 200)

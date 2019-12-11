@@ -1,14 +1,22 @@
 # -*- encoding: utf-8 -*-
 """Several helper methods and functions."""
 import contextlib
+import inspect
+import json
 import logging
 import os
 import random
 import re
-import requests
-
+from collections import defaultdict
+from datetime import datetime
 from tempfile import mkstemp
+from urllib.parse import urljoin  # noqa
+
+import pytest
+import requests
 from nailgun.config import ServerConfig
+from packaging.version import Version
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -18,9 +26,7 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
-from robottelo.decorators import bz_bug_is_open
-
-from urllib.parse import urljoin  # noqa
+from robottelo.issue_handlers import bugzilla
 
 LOGGER = logging.getLogger(__name__)
 
@@ -180,16 +186,20 @@ def get_host_info(hostname=None):
     )
 
 
-def get_nailgun_config():
+def get_nailgun_config(user=None):
     """Return a NailGun configuration file constructed from default values.
 
-    :return: A ``nailgun.config.ServerConfig`` object, populated with values
-        from ``robottelo.config.settings``.
+    :param user: The ```nailgun.entities.User``` object of an user with additional passwd
+        property/attribute
+
+    :return: ``nailgun.config.ServerConfig`` object, populated from user parameter object else
+        with values from ``robottelo.config.settings``
 
     """
+    creds = (user.login, user.passwd) if user else settings.server.get_credentials()
     return ServerConfig(
         settings.server.get_url(),
-        settings.server.get_credentials(),
+        creds,
         verify=False,
     )
 
@@ -344,7 +354,7 @@ def add_remote_execution_ssh_key(hostname, key_path=None,
     # get satellite box ssh-key or defaults to foreman-proxy
     key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     # This connection defaults to settings.server
-    server_key = ssh.command(cmd='cat %s' % key_path, output_format='plain',
+    server_key = ssh.command(cmd='cat %s' % key_path, output_format='base',
                              hostname=proxy_hostname).stdout
     # Sometimes stdout contains extra empty string. Skipping it
     if isinstance(server_key, list):
@@ -665,10 +675,7 @@ def extract_capsule_satellite_installer_command(text):
     """Extract satellite installer command from capsule-certs-generate command
     output
     """
-    if bz_bug_is_open(1709761):
-        cmd_start_with = 'satellite-instaler'
-    else:
-        cmd_start_with = 'satellite-installer'
+    cmd_start_with = 'satellite-installer'
     cmd_lines = []
     if text:
         if isinstance(text, (list, tuple)):
@@ -689,8 +696,6 @@ def extract_capsule_satellite_installer_command(text):
         # remove empty spaces
         while '  ' in cmd:
             cmd = cmd.replace('  ', ' ')
-        if bz_bug_is_open(1709761):
-            cmd = cmd.replace('satellite-instaler', 'satellite-installer')
         return cmd
     return None
 
@@ -698,15 +703,12 @@ def extract_capsule_satellite_installer_command(text):
 def extract_ui_token(input):
     """Extracts and returns the CSRF protection token from a given
     HTML string"""
-    token = re.search(
-        r"authenticity_token\" value=\"[^\"]+",
-        input
-    )
+    token = re.search('"token":"(.*?)"', input)
     if token is None:
         raise IndexError("the given string does not contain any authenticity"
                          "token references")
     else:
-        return(token[0].split('value="')[-1])
+        return(token[1])
 
 
 def get_web_session():
@@ -750,3 +752,328 @@ def host_provisioning_check(ip_addr):
         raise ProvisioningCheckError(
             'Failed to ping virtual machine Error:{0}'.format(
                 result.stdout))
+
+
+def slugify_component(string, keep_hyphens=True):
+    """Make component name a slug
+
+    Arguments:
+        string {str} -- Component name e.g: ActivationKeys
+        keep_hyphens {bool} -- Keep hyphens or replace with underscores
+
+    Returns:
+        str -- component slug e.g: activationkeys
+    """
+    string = string.replace(" and ", "&")
+    if not keep_hyphens:
+        string = string.replace('-', '_')
+    return re.sub("[^-_a-zA-Z0-9]", "", string.lower())
+
+
+# --- Issue based Pytest markers ---
+
+def is_open(issue, data=None):
+    """Check if specific issue is open.
+
+    Issue must be prefixed by its handler e.g:
+
+    Bugzilla: BZ:123456
+
+    Arguments:
+        issue {str} -- A string containing handler + number e.g: BZ:123465
+        data {dict} -- Issue data indexed by <handler>:<number> or None
+    """
+    # Handlers can be extended to support different issue trackers.
+    handlers = {'BZ': bugzilla.is_open_bz}
+    supported_handlers = tuple(f"{handler}:" for handler in handlers.keys())
+
+    if str(issue).startswith(supported_handlers):
+        handler_code, _, _ = str(issue).partition(":")
+    else:  # EAFP
+        raise AttributeError(
+            "is_open argument must be a string starting with a handler code "
+            "e.g: 'BZ:123456'"
+            f"supported handlers are: {supported_handlers}"
+
+        )
+    return handlers[handler_code.strip()](issue.strip(), data)
+
+
+def _should_deselect(issue, data=None):
+    """Check if test should be deselected based on marked issue."""
+    # Handlers can be extended to support different issue trackers.
+    handlers = {'BZ': bugzilla.should_deselect_bz}
+    supported_handlers = tuple(f"{handler}:" for handler in handlers.keys())
+    if str(issue).startswith(supported_handlers):
+        handler_code, _, _ = str(issue).partition(":")
+        return handlers[handler_code.strip()](issue.strip(), data)
+
+
+def _add_workaround(
+    data, matches, usage, validation=(lambda *a, **k: True), **kwargs
+):
+    """Adds entry for workaround usage."""
+    for match in matches:
+        issue = f"{match[0]}:{match[1]}"
+        if validation(data, issue, usage, **kwargs):
+            data[issue.strip()]['used_in'].append({'usage': usage, **kwargs})
+
+
+def generate_issue_collection(items, config):  # pragma: no cover
+    """Generates a dictionary with the usage of Issue blockers
+
+    Arguments:
+        items {list} - List of pytest test case objects.
+        config {dict} - Pytest config object.
+
+    Returns:
+        [List of dicts] - Dicts indexed by "<handler>:<issue>"
+
+        Example of return data:
+
+        {
+            "XX:1625783" {
+                "data": {
+                    # data taken from REST api,
+                    "status": ...,
+                    "resolution": ...,
+                    ...
+                    # Calculated data
+                    "is_open": bool,
+                    "is_deselected": bool,
+                    "clones": [list],
+                    "dupe_data": {dict}
+                },
+                "used_in" [
+                    {
+                        "filepath": "tests/foreman/ui/test_sync.py",
+                        "lineno": 124,
+                        "testcase": "test_positive_sync_custom_ostree_repo",
+                        "component": "Repositories",
+                        "usage": "skip_if_open"
+                    },
+                    ...
+                ]
+            },
+            ...
+        }
+    """
+
+    valid_markers = ["skip_if_open", "skip", "deselect"]
+    collected_data = defaultdict(lambda: {"data": {}, "used_in": []})
+
+    bz_cache = config.getvalue('bz_cache')  # use existing json cache?
+    cached_data = None
+    if bz_cache:
+        with open(bz_cache) as bz_cache_file:
+            cached_data = {
+                k: _handle_version(k, v)
+                for k, v in json.load(bz_cache_file).items()
+            }
+
+    deselect_data = {}  # a local cache for deselected tests
+
+    IS_OPEN = re.compile(
+        # To match `if is_open('BZ:123456'):`
+        r"\s*if\sis_open\(\S(?P<src>\D{2})\s*:\s*(?P<num>\d*)\S\)\d*"
+    )
+
+    NOT_IS_OPEN = re.compile(
+        # To match `if not is_open('BZ:123456'):`
+        r"\s*if\snot\sis_open\(\S(?P<src>\D{2})\s*:\s*(?P<num>\d*)\S\)\d*"
+    )
+
+    COMPONENT = re.compile(
+        # To match :CaseComponent: FooBar
+        r"\s*:CaseComponent:\s*(?P<component>\S*)",
+        re.IGNORECASE
+    )
+
+    IMPORTANCE = re.compile(
+        # To match :CaseImportance: Critical
+        r"\s*:CaseImportance:\s*(?P<importance>\S*)",
+        re.IGNORECASE
+    )
+
+    BZ = re.compile(
+        # To match :BZ: 123456, 456789
+        r"\s*:BZ:\s*(?P<bz>.*\S*)",
+        re.IGNORECASE
+    )
+
+    test_modules = set()
+
+    # --- Build the issue marked usage collection ---
+    for item in items:
+        component = None
+        bzs = None
+        importance = None
+
+        # register test module as processed
+        test_modules.add(item.module)
+
+        # Find matches from docstrings top-down from: module, class, function.
+        mod_cls_fun = (item.module, getattr(item, 'cls', None), item.function)
+        for docstring in map(inspect.getdoc, mod_cls_fun):
+            if not docstring:
+                continue
+            component_matches = COMPONENT.findall(docstring)
+            if component_matches:
+                component = component_matches[-1]
+            bz_matches = BZ.findall(docstring)
+            if bz_matches:
+                bzs = bz_matches[-1]
+            importance_matches = IMPORTANCE.findall(docstring)
+            if importance_matches:
+                importance = importance_matches[-1]
+
+        filepath, lineno, testcase = item.location
+        component_mark = slugify_component(component, False)
+        for marker in item.iter_markers():
+            if marker.name in valid_markers:
+                issue = marker.kwargs.get('reason') or marker.args[0]
+                issue_key = issue.strip()
+                collected_data[issue_key]['used_in'].append(
+                    {
+                        'filepath': filepath,
+                        'lineno': lineno,
+                        'testcase': testcase,
+                        'component': component,
+                        'importance': importance,
+                        'component_mark': component_mark,
+                        'usage': marker.name
+                    }
+                )
+
+                # Store issue key to lookup in the deselection process
+                deselect_data[item.location] = issue_key
+                # Add issue as a marker to enable filtering e.g: "-m BZ_123456"
+                item.add_marker(
+                    getattr(pytest.mark, issue_key.replace(':', '_'))
+                )
+
+        # Then take the workarounds using `is_open` helper.
+        source = inspect.getsource(item.function)
+        if 'is_open(' in source:
+            kwargs = {
+                'filepath': filepath,
+                'lineno': lineno,
+                'testcase': testcase,
+                'component': component,
+                'importance': importance,
+                'component_mark': component_mark
+            }
+            _add_workaround(
+                collected_data,
+                IS_OPEN.findall(source),
+                'is_open',
+                **kwargs
+            )
+            _add_workaround(
+                collected_data,
+                NOT_IS_OPEN.findall(source),
+                'not is_open',
+                **kwargs
+            )
+
+        # Add component as a marker to anable filtering e.g: "-m contentviews"
+        item.add_marker(getattr(pytest.mark, component_mark))
+
+        # Add BZs from tokens as a marker to enable filter e.g: "-m BZ_123456"
+        if bzs:
+            for bz in bzs.split(','):
+                item.add_marker(getattr(pytest.mark, f'BZ_{bz.strip()}'))
+
+        # Add importance as a token
+        if importance:
+            item.add_marker(getattr(pytest.mark, importance.lower().strip()))
+
+    # Take uses of `is_open` from outside of test cases e.g: SetUp methods
+    for test_module in test_modules:
+        module_source = inspect.getsource(test_module)
+        component_matches = COMPONENT.findall(module_source)
+        module_component = None
+        if component_matches:
+            module_component = component_matches[0]
+        if 'is_open(' in module_source:
+            kwargs = {
+                'filepath': test_module.__file__,
+                'lineno': 1,
+                'testcase': test_module.__name__,
+                'component': module_component,
+            }
+
+            def validation(data, issue, usage, **kwargs):
+                return issue not in data
+
+            _add_workaround(
+                collected_data,
+                IS_OPEN.findall(module_source),
+                'is_open',
+                validation=validation,
+                **kwargs
+            )
+            _add_workaround(
+                collected_data,
+                NOT_IS_OPEN.findall(module_source),
+                'not is_open',
+                validation=validation,
+                **kwargs
+            )
+
+    # --- Collect BUGZILLA data ---
+    bugzilla.collect_data_bz(collected_data, cached_data)
+
+    # --- add deselect markers dinamically ---
+    for item in items:
+        issue = deselect_data.get(item.location)
+        if issue and _should_deselect(issue, collected_data[issue]['data']):
+            collected_data[issue]['data']['is_deselected'] = True
+            item.add_marker(pytest.mark.deselect(reason=issue))
+
+    # --- if not using pre-existing cache write it ---
+    if not bz_cache:
+        collected_data['_meta'] = {
+            "version": settings.server.version,
+            "hostname": settings.server.hostname,
+            "created": datetime.now().isoformat(),
+            "pytest": {
+                "args": config.args,
+                "pwd": str(config.invocation_dir)
+            }
+        }
+        with open('bz_cache.json', 'w') as collect_file:
+            json.dump(
+                collected_data, collect_file, indent=4, cls=VersionEncoder
+            )
+            LOGGER.debug(
+                f"Generated file {bz_cache or 'bz_cache.json'}"
+                " with BZ collect data"
+            )
+
+    return collected_data
+
+
+class VersionEncoder(json.JSONEncoder):  # pragma: no cover
+    """Transform Version instances to str"""
+    def default(self, z):
+        if isinstance(z, Version):
+            return str(z)
+        return super().default(z)
+
+
+def _handle_version(key, value):  # pragma: no cover
+    """look for 'version' key and transform it in a Version instance"""
+    if key == 'version' and isinstance(value, str):
+        return Version(value)
+    if isinstance(value, dict):
+        return {
+            k: _handle_version(k, v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [
+            _handle_version(key, item)
+            for item in value
+        ]
+    return value

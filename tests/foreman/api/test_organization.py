@@ -264,7 +264,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 7eb1aca7-fd7b-404f-ab18-21be5052a11f
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :expectedresults: Hostgroup is added to organization and then removed
 
@@ -288,7 +288,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :expectedresults: Smart proxy is successfully added to organization
 
-        :bz: 1395229
+        :BZ: 1395229
 
         :CaseLevel: Integration
         """

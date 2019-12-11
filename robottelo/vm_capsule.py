@@ -11,10 +11,13 @@ from robottelo.constants import (
     DISTRO_RHEL7,
     SATELLITE_FIREWALL_SERVICE_NAME,
 )
-from robottelo.decorators import bz_bug_is_open, setting_is_set
+from robottelo.decorators import setting_is_set
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
-from robottelo.helpers import extract_capsule_satellite_installer_command
+from robottelo.helpers import (
+    extract_capsule_satellite_installer_command,
+    is_open
+)
 from robottelo.ssh import download_file, upload_file
 from robottelo.vm import VirtualMachine
 from tempfile import mkstemp
@@ -203,7 +206,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # exception has 'return_code=70(Error: host not found)'
                 if exp.return_code == 70:
                     super(CapsuleVirtualMachine, self).destroy()
-                if bz_bug_is_open('1622064'):
+                if is_open('BZ:1622064'):
                     logger.warn('Failed to cleanup the host: {0}\n{1}'.format(
                         self.hostname, exp))
                 else:
@@ -275,10 +278,6 @@ class CapsuleVirtualMachine(VirtualMachine):
         installer_cmd = extract_capsule_satellite_installer_command(
                             certs_gen.stdout
                         )
-        if bz_bug_is_open(1458749):
-            if '--scenario foreman-proxy-content' in installer_cmd:
-                installer_cmd = installer_cmd.replace(
-                     '--scenario foreman-proxy-content', '--scenario capsule')
         result = self.run(installer_cmd, timeout=1800)
         if result.return_code != 0:
             # before exit download the capsule log file
@@ -295,7 +294,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         # manually start pulp_celerybeat service if BZ1446930 is open
         result = self.run('systemctl status pulp_celerybeat.service')
         if 'inactive (dead)' in '\n'.join(result.stdout):
-            if bz_bug_is_open(1446930):
+            if is_open('BZ:1446930'):
                 result = self.run('systemctl start pulp_celerybeat.service')
                 if result.return_code != 0:
                     raise CapsuleVirtualMachineError(

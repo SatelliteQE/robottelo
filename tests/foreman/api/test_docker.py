@@ -20,26 +20,19 @@ from requests.exceptions import HTTPError
 from nailgun import entities
 
 from robottelo.api.utils import promote
-from robottelo.cleanup import vm_cleanup
-from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
     generate_strings_list,
     invalid_docker_upstream_names,
-    valid_data_list,
     valid_docker_repository_names,
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    skip_if_bug_open,
-    skip_if_not_set,
     tier1,
     tier2,
-    tier3,
     upgrade
 )
 from robottelo.test import APITestCase
-from robottelo.vm import VirtualMachine
 
 DOCKER_PROVIDER = 'Docker'
 
@@ -240,7 +233,6 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(repo.docker_upstream_name, new_upstream_name)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
@@ -529,7 +521,6 @@ class DockerContentViewTestCase(APITestCase):
         self.assertGreater(float(content_view.next_version), 1.0)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1217635)
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and
         publish it once.
@@ -540,6 +531,8 @@ class DockerContentViewTestCase(APITestCase):
             and the product is added to a content view which is then published
             only once and then added to a composite content view which is also
             published only once.
+
+        :BZ: 1217635
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -1144,133 +1137,3 @@ class DockerActivationKeyTestCase(APITestCase):
         self.assertEqual(ak.content_view.id, comp_content_view.id)
         ak.content_view = None
         self.assertIsNone(ak.update(['content_view']).content_view)
-
-
-class DockerRegistryTestCase(APITestCase):
-    """Tests specific to performing CRUD methods against ``Registries``
-    repositories.
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Skip the tests if docker section is not set in properties file and
-        set external docker registry url which can be re-used in tests.
-        """
-        super(DockerRegistryTestCase, cls).setUpClass()
-        cls.url = settings.docker.external_registry_1
-
-    @tier3
-    def test_negative_create_with_name(self):
-        """Create an external docker registry with not supported api calls
-
-        :id: f3542272-13db-4a49-bc27-d948f5d6df41
-
-        :expectedresults: External registry is not created successfully
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                description = gen_string('alphanumeric')
-                with self.assertRaises(HTTPError):
-                    entities.Registry(
-                        description=description,
-                        name=name,
-                        url=self.url,
-                    ).create()
-
-
-class DockerContainerTestCase(APITestCase):
-    """Tests specific to using ``Containers`` in an external Docker
-    Compute Resource
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerContainerTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-
-    def test_negative_docker_host_setup_compresource(self):
-        """Setup a docker host VM + compute resource
-
-        :id: f3575972-13db-4a49-bc27-d1137172df41
-
-        :expectedresults: Docker as compute resource is not setup successfully
-        """
-        docker_image = settings.docker.docker_image
-        self.docker_host = VirtualMachine(
-            source_image=docker_image,
-            tag=u'docker'
-        )
-        self.addCleanup(vm_cleanup, self.docker_host)
-        self.docker_host.create()
-        self.docker_host.install_katello_ca()
-        with self.assertRaises(HTTPError):
-            self.compute_resource = entities.DockerComputeResource(
-                name=gen_string('alpha'),
-                organization=[self.org],
-                url='http://{0}:2375'.format(self.docker_host.ip_addr),
-            ).create()
-
-
-class DockerComputeResourceTestCase(APITestCase):
-    """Tests specific to managing Docker-based Compute Resources.
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerComputeResourceTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-
-    @tier3
-    def test_negative_create_internal(self):
-        """Create a Docker-based Compute Resource in the Satellite 6
-        instance.
-
-        :id: fb9c2272-13db-4a49-bc27-d1137172df41
-
-        :expectedresults: Compute Resource is not created.
-        """
-        for name in valid_data_list():
-            with self.assertRaises(HTTPError):
-                entities.DockerComputeResource(
-                    name=name,
-                    url=settings.docker.get_unix_socket_url(),
-                ).create()
-
-    @tier3
-    def test_negative_create_external(self):
-        """Create a Docker-based Compute Resource using an external
-        Docker-enabled system.
-
-        :id: f3542272-13db-4a49-bc27-d1137144cf41
-
-        :expectedresults: Compute Resource is not created.
-        """
-        for name in valid_data_list():
-            with self.assertRaises(HTTPError):
-                entities.DockerComputeResource(
-                    name=name,
-                    url=settings.docker.external_url,
-                ).create()

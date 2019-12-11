@@ -35,7 +35,6 @@ from robottelo.datafactory import (
     valid_interfaces_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     stubbed,
     tier1,
     tier2,
@@ -136,8 +135,6 @@ class HostTestCase(APITestCase):
         """
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
-                if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
-                    continue  # instead of skip for compatibility with py.test
                 with self.assertRaises(HTTPError) as context:
                     entities.Host(owner_type=owner_type).create()
                 self.assertEqual(context.exception.response.status_code, 422)
@@ -154,6 +151,8 @@ class HostTestCase(APITestCase):
             requested.
 
         :CaseImportance: Critical
+
+        :BZ: 1210001
         """
         owners = {
             'User': entities.User(
@@ -164,8 +163,6 @@ class HostTestCase(APITestCase):
             organization=self.org, location=self.loc).create()
         for owner_type in owners:
             with self.subTest(owner_type):
-                if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
-                    continue  # instead of skip for compatibility with py.test
                 host.owner_type = owner_type
                 host.owner = owners[owner_type]
                 host = host.update(['owner_type', 'owner'])

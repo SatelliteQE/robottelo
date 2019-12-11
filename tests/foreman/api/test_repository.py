@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 import tempfile
 
 from six.moves.urllib.parse import urljoin
@@ -32,24 +33,26 @@ from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_1,
     CUSTOM_MODULE_STREAM_REPO_2,
     DOCKER_REGISTRY_HUB,
+    DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
-    FAKE_7_PUPPET_REPO,
+    FAKE_1_PUPPET_REPO,
     FAKE_2_YUM_REPO,
     FAKE_5_YUM_REPO,
+    FAKE_7_PUPPET_REPO,
     FAKE_YUM_DRPM_REPO,
+    FAKE_YUM_SRPM_DUPLICATE_REPO,
     FAKE_YUM_SRPM_REPO,
     FEDORA26_OSTREE_REPO,
     FEDORA27_OSTREE_REPO,
     PRDS,
     REPOS,
     REPOSET,
+    REPO_TYPE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
-    DOWNLOAD_POLICIES,
-    REPO_TYPE,
-    FAKE_1_PUPPET_REPO)
+)
 from robottelo.datafactory import (
     invalid_http_credentials,
     invalid_names_list,
@@ -61,7 +64,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -227,12 +229,14 @@ class RepositoryTestCase(APITestCase):
         :expectedresults: immediate download policy is updated to on_demand
 
         :CaseImportance: Critical
+
+        :BZ: 1732056
         """
         repo = entities.Repository(
             product=self.product,
             content_type='yum',
-            download_policy='immediate'
         ).create()
+        self.assertEqual(repo.download_policy, 'immediate')
         repo.download_policy = 'on_demand'
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'on_demand')
@@ -795,25 +799,54 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
-    @skip_if_bug_open('bugzilla', 1378442)
     @tier1
-    def test_positive_upload_contents_srpm(self):
-        """Create a repository and upload SRPM contents.
+    @upgrade
+    def test_positive_upload_delete_srpm(self):
+        """Create a repository and upload, delete SRPM contents.
 
         :id: e091a725-048f-44ca-90cc-c016c450ced9
 
-        :expectedresults: The repository's contents include one SRPM.
+        :expectedresults: The repository's contents include one SRPM and delete after that.
+
+        :CaseImportance: Critical
+
+        :BZ: 1378442
+        """
+        repo = entities.Repository(product=self.product).create()
+
+        # upload srpm
+        entities.ContentUpload(repository=repo).upload(filepath=get_data_file(SRPM_TO_UPLOAD),
+                                                       content_type='srpm')
+        self.assertEqual(repo.read().content_counts['srpm'], 1)
+        srpm_detail = entities.Srpms().search(query={'repository_id': repo.id})
+        self.assertEqual(len(srpm_detail), 1)
+
+        # Delete srpm
+        repo.remove_content(data={'ids': [srpm_detail[0].id], 'content_type': 'srpm'})
+        self.assertEqual(repo.read().content_counts['srpm'], 0)
+
+    @tier1
+    @upgrade
+    def test_positive_create_delete_srpm_repo(self):
+        """Create a repository, sync SRPM contents and remove repo
+
+        :id: e091a725-042f-43ca-99cc-c017c450ced9
+
+        :expectedresults: The repository's contents include SRPM and able to remove repo
 
         :CaseImportance: Critical
         """
-        # Create a repository and upload source RPM content.
-        repo = entities.Repository(product=self.product).create()
-        with open(get_data_file(SRPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
-        # Verify the repository's contents.
-        self.assertEqual(repo.read().content_counts['rpm'], 1)
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        self.assertEqual(repo.read().content_counts['srpm'], 3)
+        self.assertEqual(len(entities.Srpms().search(query={'repository_id': repo.id})), 3)
+        repo.delete()
+        with self.assertRaises(HTTPError):
+            repo.read()
 
-    @skip_if_bug_open('bugzilla', 1459845)
     @tier1
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
@@ -858,7 +891,7 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     repo.update(['name'])
 
-    @skip_if_bug_open('bugzilla', 1311113)
+    @pytest.mark.skip_if_open("BZ:1311113")
     @tier1
     def test_negative_update_label(self):
         """Attempt to update repository label to another one.
@@ -868,6 +901,8 @@ class RepositoryTestCase(APITestCase):
         :expectedresults: Repository is not updated and error is raised
 
         :CaseImportance: Critical
+
+        :BZ: 1311113
         """
         repo = entities.Repository(product=self.product).create()
         repo.label = gen_string('alpha')
@@ -1355,7 +1390,6 @@ class DockerRepositoryTestCase(APITestCase):
             repo.read().content_counts['docker_manifest'], 1)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1194476)
     def test_positive_update_name(self):
         """Update a repository's name.
 
@@ -1364,6 +1398,8 @@ class DockerRepositoryTestCase(APITestCase):
         :expectedresults: The repository's name is updated.
 
         :CaseImportance: Critical
+
+        :BZ: 1194476
         """
         repository = entities.Repository(
             content_type='docker'
@@ -1405,7 +1441,6 @@ class DockerRepositoryTestCase(APITestCase):
             repo.read().content_counts['docker_manifest'], 1)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1580510)
     def test_negative_synchronize_private_registry_wrong_password(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing wrong credentials the sync must fail with
@@ -1706,7 +1741,7 @@ class OstreeRepositoryTestCase(APITestCase):
             repo.read()
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1625783)
+    @pytest.mark.skip_if_open("BZ:1625783")
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @upgrade
@@ -1718,6 +1753,8 @@ class OstreeRepositoryTestCase(APITestCase):
         :expectedresults: Synced repo should fetch the data successfully.
 
         :CaseLevel: Integration
+
+        :BZ: 1625783
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -1738,112 +1775,80 @@ class SRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
+        cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
 
+    @upgrade
     @tier2
-    def test_positive_sync(self):
-        """Synchronize repository with SRPMs
+    def test_positive_srpm_upload_publish_promote_cv(self):
+        """Upload SRPM to repository, add repository to content view
+        and publish, promote content view
 
         :id: f87391c6-c18a-4c4f-81db-decbba7f1856
 
-        :expectedresults: srpms can be listed in repository
+        :expectedresults: srpms can be listed in organization, content view, Lifecycle env
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
-        repo.sync()
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/ | grep .src.rpm'
-            .format(
-                self.org.label,
-                self.product.label,
-                repo.label,
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
-
-    @tier2
-    def test_positive_sync_publish_cv(self):
-        """Synchronize repository with SRPMs, add repository to content view
-        and publish content view
-
-        :id: a0868429-584c-4e36-b93f-c85e8e94a60b
-
-        :expectedresults: srpms can be listed in content view
-        """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
-        repo.sync()
+        repo = entities.Repository(product=self.product).create()
+        entities.ContentUpload(repository=repo).upload(filepath=get_data_file(SRPM_TO_UPLOAD),
+                                                       content_type='srpm')
         cv = entities.ContentView(organization=self.org).create()
         cv.repository = [repo]
         cv.update(['repository'])
         cv.publish()
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/ | grep .src.rpm'
-            .format(
-                self.org.label,
-                cv.label,
-                self.product.label,
-                repo.label,
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
+        self.assertEqual(cv.repository[0].read().content_counts['srpm'], 1)
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'organization_id': self.org.id})), 1)
 
-    @tier2
-    @upgrade
-    def test_positive_sync_publish_promote_cv(self):
-        """Synchronize repository with SRPMs, add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 811b524f-2b19-4408-ad7f-d7251625e35c
-
-        :expectedresults: srpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
-        repo.sync()
-        cv = entities.ContentView(organization=self.org).create()
-        cv.repository = [repo]
-        cv.update(['repository'])
-        cv.publish()
         cv = cv.read()
-        promote(cv.version[0], lce.id)
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
-            ' | grep .src.rpm'
-            .format(
-                self.org.label,
-                lce.name,
-                cv.label,
-                self.product.label,
-                repo.label,
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
+        self.assertEqual(
+            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})),
+            1)
+
+        promote(cv.version[0], self.lce.id)
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1)
+
+    @upgrade
+    @tier2
+    def test_positive_repo_sync_publish_promote_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view
+        and publish, promote content view
+
+        :id: f87381c6-c18a-4c4f-82db-decbaa7f1846
+
+        :expectedresults: srpms can be listed in organization, content view, Lifecycle env
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
+        self.assertEqual(cv.repository[0].read().content_counts['srpm'], 3)
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'organization_id': self.org.id})), 3)
+
+        cv = cv.read()
+        self.assertGreaterEqual(
+            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})),
+            3)
+
+        promote(cv.version[0], self.lce.id)
+        self.assertEqual(len(entities.Srpms().search(query={'environment_id': self.lce.id})), 3)
 
 
+@pytest.mark.skip_if_open("BZ:1682951")
 class DRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(DRPMRepositoryTestCase, cls).setUpClass()
@@ -1942,6 +1947,78 @@ class DRPMRepositoryTestCase(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
+
+
+class SRPMRepositoryIgnoreContentTestCase(APITestCase):
+    """Test whether SRPM content can be ignored during sync.
+
+    In particular sync of duplicate SRPMs would fail when using the flag
+    ``ignorable_content``.
+
+    :CaseLevel: Integration
+
+    :CaseComponent: Pulp
+
+    :BZ: 1673215
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super().setUpClass()
+        cls.product = entities.Product().create()
+
+    @tier2
+    def test_positive_ignore_sprm_duplicate(self):
+        """Test whether SRPM duplicated content can be ignored.
+
+        :id: de03aaa1-1f95-4c28-9f53-362ceb113167
+
+        :expectedresults: SRPM content is ignored during sync.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_DUPLICATE_REPO,
+            ignorable_content=['srpm']
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertEqual(repo.content_counts['srpm'], 0)
+
+    @tier2
+    def test_positive_sync_srpm_duplicate(self):
+        """Test sync of SRPM duplicated repository.
+
+        :id: 83749adc-0561-44c9-8710-eec600704dde
+
+        :expectedresults: SRPM content is not ignored during the sync. No
+            exceptions to be raised.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_DUPLICATE_REPO,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertEqual(repo.content_counts['srpm'], 2)
+
+    @tier2
+    def test_positive_ignore_srpm_sync(self):
+        """Test whether SRPM content can be ignored during sync.
+
+        :id: a2aeb307-00b2-42fe-a682-4b09474f389f
+
+        :expectedresults: SRPM content is ignore during the sync.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+            ignorable_content=['srpm']
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        self.assertEqual(repo.content_counts['srpm'], 0)
+        self.assertEqual(repo.content_counts['erratum'], 2)
 
 
 class FileRepositoryTestCase(APITestCase):

@@ -3,24 +3,15 @@
 import logging
 
 from nailgun import entities
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import Proxy
-from robottelo.decorators import bz_bug_is_open
-
+from robottelo.vm import VirtualMachine
 
 LOGGER = logging.getLogger(__name__)
 
 
 def capsule_cleanup(proxy_id=None):
     """Deletes the capsule with the given id"""
-    if bz_bug_is_open(1398695):
-        try:
-            Proxy.delete({'id': proxy_id})
-        except CLIReturnCodeError as err:
-            if err.return_code != 70:
-                raise err
-    else:
-        Proxy.delete({'id': proxy_id})
+    Proxy.delete({'id': proxy_id})
 
 
 def realm_cleanup(realm_id=None):
@@ -57,3 +48,22 @@ def vm_cleanup(vm):
     :param robottelo.vm.VirtualMachine vm: virtual machine to destroy
     """
     vm.destroy()
+
+
+def cleanup_of_provisioned_server(hostname=None, provisioning_server=None,
+                                  distro=None):
+    """ Cleanup the VM from provisioning server
+
+    :param: str hostname: The content host hostname
+    :param: str provisioning_server: provision server name
+    :param: str distro: distro type
+    """
+    if hostname:
+        vm = VirtualMachine(
+            hostname=hostname,
+            target_image=hostname,
+            provisioning_server=provisioning_server,
+            distro=distro,
+        )
+        vm._created = True
+        vm.destroy()

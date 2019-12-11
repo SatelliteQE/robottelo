@@ -17,10 +17,13 @@
 import json
 import re
 
+from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import bz_bug_is_open, tier1, upgrade
-from robottelo.helpers import read_data_file
+from robottelo.cli.defaults import Defaults
+from robottelo.cli.factory import make_org, make_product
+from robottelo.decorators import tier1, upgrade
+from robottelo.helpers import is_open, read_data_file
 from robottelo.test import CLITestCase
 from six import StringIO
 
@@ -115,18 +118,12 @@ class HammerCommandsTestCase(CLITestCase):
                     subcommand['name']
                     for subcommand in expected['subcommands']
                 ])
-            # Below code is added as workaround for Bug 1666687
-            if bz_bug_is_open(1666687):
+            if is_open('BZ:1666687'):
                 cmds = ['hammer report-template create', 'hammer report-template update']
                 if command in cmds:
                     command_options.add('interactive')
                 if 'hammer virt-who-config fetch' in command:
                     command_options.add('output')
-            # Below code is added as workaround for Bug 1655513 on Sat 6.4 release
-            # This will neglect null entry added for hammer ansible roles command
-            if bz_bug_is_open(1655513) and 'hammer ansible roles ' in command and 'help' in (
-                    command_options - expected_options):
-                expected_options.add("help")
             added_options = tuple(command_options - expected_options)
             removed_options = tuple(expected_options - command_options)
             added_subcommands = tuple(
@@ -166,3 +163,51 @@ class HammerCommandsTestCase(CLITestCase):
             self.fail(
                 '\n' + _format_commands_diff(self.differences)
             )
+
+
+class HammerTestCase(CLITestCase):
+    """Tests related to hammer sub options. """
+    @tier1
+    @upgrade
+    def test_positive_disable_hammer_defaults(self):
+        """Verify hammer disable defaults command.
+
+        :id: d0b65f36-b91f-4f2f-aaf8-8afda3e23708
+
+        :steps:
+            1. Add hammer defaults as organization-id.
+            2. Verify hammer product list successful.
+            3. Run hammer --no-use-defaults product list.
+
+        :expectedresults: Hammer --no-use-defaults product list should fail.
+
+        :CaseImportance: Critical
+
+        :BZ: 1640644
+        """
+        default_org = make_org()
+        default_product_name = gen_string('alpha')
+        make_product({
+            u'name': default_product_name,
+            u'organization-id': default_org['id']
+        })
+        try:
+            Defaults.add({
+                u'param-name': 'organization_id',
+                u'param-value': default_org['id'],
+            })
+            # Verify --organization-id is not required to pass if defaults are set
+            result = ssh.command('hammer product list')
+            self.assertEqual(result.return_code, 0)
+            # Verify product list fail without using defaults
+            result = ssh.command('hammer --no-use-defaults product list')
+            self.assertNotEqual(result.return_code, 0)
+            self.assertFalse(default_product_name in "".join(result.stdout))
+            # Verify --organization-id is not required to pass if defaults are set
+            result = ssh.command('hammer --use-defaults product list')
+            self.assertEqual(result.return_code, 0)
+            self.assertTrue(default_product_name in "".join(result.stdout))
+        finally:
+            Defaults.delete({u'param-name': 'organization_id'})
+            result = ssh.command('hammer defaults list')
+            self.assertTrue(default_org['id'] not in "".join(result.stdout))

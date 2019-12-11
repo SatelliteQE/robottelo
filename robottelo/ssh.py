@@ -375,7 +375,7 @@ def execute_command(cmd, connection, output_format=None, timeout=None,
 
     :param cmd: a command to be executed via ssh
     :param connection: SSH Paramiko client connection
-    :param output_format: plain|json|csv|list valid only for hammer commands
+    :param output_format: base|json|csv|list valid only for hammer commands
     :param timeout: Time to wait for the ssh command to finish.
     :param connection_timeout: Time to wait for establishing the connection.
     :return: SSHCommandResult
@@ -424,8 +424,8 @@ def execute_command(cmd, connection, output_format=None, timeout=None,
         # Convert to unicode string and remove all color codes characters
         stderr = regex.sub('', decode_to_utf8(stderr))
         logger.info('<<< stderr\n%s', stderr)
-    # we don't want a list as output of 'plain' just pure text
-    if stdout and output_format not in ('json', 'plain'):
+    # Skip converting to list if 'plain', or the hammer options 'json' or 'base' are passed
+    if stdout and output_format not in ('json', 'base', 'plain'):
         # Mostly only for hammer commands
         # for output we don't really want to see all of Rails traffic
         # information, so strip it out.

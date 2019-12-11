@@ -37,9 +37,11 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     setting_is_set,
     skip_if_not_set,
+    tier1,
+    tier4,
+    upgrade
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
@@ -912,6 +914,8 @@ class AvailableURLsTestCase(TestCase):
         """Define commonly-used variables."""
         self.path = '{0}/api/v2'.format(settings.server.get_url())
 
+    @tier1
+    @upgrade
     def test_positive_get_status_code(self):
         """GET ``api/v2`` and examine the response.
 
@@ -929,6 +933,8 @@ class AvailableURLsTestCase(TestCase):
         self.assertEqual(response.status_code, http_client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
+    @tier1
+    @upgrade
     def test_positive_get_links(self):
         """GET ``api/v2`` and check the links returned.
 
@@ -985,6 +991,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         super(EndToEndTestCase, cls).setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
+    @tier1
+    @upgrade
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -999,6 +1007,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_ORG)
 
+    @tier1
+    @upgrade
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
@@ -1013,6 +1023,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
+    @tier1
+    @upgrade
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
@@ -1025,6 +1037,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].login, 'admin')
 
+    @tier1
+    @upgrade
     def test_positive_ping(self):
         """Check if all services are running
 
@@ -1045,14 +1059,14 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         #    …
         # }, u'status': u'ok'}
         services = response['services']
-        if bz_bug_is_open('1325995'):
-            services.pop('foreman_auth')
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),
             u'Not all services seem to be up and running!'
         )
 
     @skip_if_not_set('compute_resources')
+    @tier4
+    @upgrade
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 

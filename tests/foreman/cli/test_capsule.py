@@ -24,7 +24,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -72,7 +71,6 @@ class CapsuleTestCase(CLITestCase):
             })
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_create_with_name(self):
         """Proxy creation with the home proxy
@@ -83,6 +81,7 @@ class CapsuleTestCase(CLITestCase):
 
         :CaseLevel: Component
 
+        :BZ: 1398695
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -90,7 +89,6 @@ class CapsuleTestCase(CLITestCase):
                 self.assertEquals(proxy['name'], name)
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_delete_by_id(self):
         """Proxy deletion with the home proxy
@@ -101,6 +99,7 @@ class CapsuleTestCase(CLITestCase):
 
         :CaseLevel: Component
 
+        :BZ: 1398695
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -110,7 +109,6 @@ class CapsuleTestCase(CLITestCase):
                     Proxy.info({u'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_update_name(self):
         """Proxy name update with the home proxy
@@ -121,6 +119,7 @@ class CapsuleTestCase(CLITestCase):
 
         :CaseLevel: Component
 
+        :BZ: 1398695
         """
         proxy = self._make_proxy({u'name': gen_alphanumeric()})
         for new_name in valid_data_list():

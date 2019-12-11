@@ -14,6 +14,7 @@
 :Upstream: No
 """
 import json
+
 from random import choice
 
 from fauxfactory import gen_boolean, gen_integer, gen_string
@@ -26,7 +27,6 @@ from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier2,
     upgrade
@@ -707,7 +707,6 @@ class SmartClassParametersTestCase(APITestCase):
         )
         self.assertEqual(sc_param.read().avoid_duplicates, False)
 
-    @skip_if_bug_open('bugzilla', 1374253)
     @tier2
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
@@ -728,6 +727,8 @@ class SmartClassParametersTestCase(APITestCase):
                parameter.
 
         :CaseImportance: Medium
+
+        :BZ: 1374253
 
         """
         sc_param = self.sc_params_list.pop()

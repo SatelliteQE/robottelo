@@ -14,13 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.api.utils import promote
 from robottelo.constants import (
+    DEFAULT_LOC,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
@@ -29,16 +30,18 @@ from robottelo.constants import (
     FAKE_3_ERRATA_ID,
     FAKE_3_YUM_REPO,
     FAKE_6_YUM_REPO,
+    FAKE_9_YUM_REPO,
+    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
+    FAKE_9_YUM_SECURITY_ERRATUM,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
     PRDS,
     REAL_0_RH_PACKAGE,
     REAL_4_ERRATA_ID,
     REAL_4_ERRATA_CVES,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     tier2,
     tier3,
     upgrade
@@ -151,6 +154,31 @@ def rhva_vm(module_rhva_repos_col):
         yield client
 
 
+@fixture(scope='module')
+def module_erratatype_repos_col(module_org, module_lce):
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
+            # force the host to consume an RH product with adding a cdn repo.
+            RHELAnsibleEngineRepository(cdn=True),
+            # add a repo with errata of different types (security, advisory, etc)
+            YumRepository(url=FAKE_9_YUM_REPO),
+        ]
+    )
+    repos_collection.setup_content(module_org.id, module_lce.id)
+    return repos_collection
+
+
+@fixture
+def erratatype_vm(module_erratatype_repos_col):
+    """Virtual machine client using module_erratatype_repos_col for subscription"""
+    with VirtualMachine(distro=module_erratatype_repos_col.distro) as client:
+        module_erratatype_repos_col.setup_virtual_machine(client)
+        yield client
+
+
 @fixture
 def errata_status_installable():
     """Fixture to allow restoring errata_status_installable setting after usage"""
@@ -213,7 +241,6 @@ def test_end_to_end(session, module_repos_col, vm):
         assert result['result'] == 'success'
 
 
-@skip_if_bug_open('bugzilla', 1659941)
 @tier2
 def test_positive_list(session, module_repos_col, module_lce):
     """View all errata in an Org
@@ -279,13 +306,6 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
         password=user_password,
     ).create()
     with Session(test_name, user=user.login, password=user_password) as session:
-        if bz_bug_is_open(1652938):
-            # The bug has a persistent effect when user has no access to dashboard and foreman
-            # access denied page is shown directly after login.
-            try:
-                session.errata.search('')
-            except NoSuchElementException:
-                session.errata.browser.refresh()
         assert (session.errata.search(RHVA_ERRATA_ID, applicable=False)[0]['Errata ID']
                 == RHVA_ERRATA_ID)
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
@@ -476,6 +496,78 @@ def test_positive_content_host_library(session, module_org, vm):
         content_host_erratum = session.contenthost.search_errata(
             host_name, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content')
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+
+
+@tier3
+def test_positive_content_host_search_type(session, erratatype_vm):
+    """ Search for errata on a content_host by type
+
+    :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
+
+    :Setup: Content Host with applicable security errata
+
+    :Steps: Search for errata on content host by type (ie 'type = security')
+
+    :BZ: 1653293
+
+    :CaseLevel: Integration
+    """
+
+    pkgs = " ".join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
+
+    with session:
+        ch_erratum = session.contenthost.search_errata(
+            erratatype_vm.hostname, "type = security", environment='Library Synced Content')
+
+        assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+
+        # check IDs just to be safe
+        errata_ids = sorted([e['Id'] for e in ch_erratum])
+        assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
+
+
+@pytest.mark.skip_if_open("BZ:1655130")
+@tier3
+def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
+    """ Read for errata details on a content_host by user with only viewer permission
+
+    :id: 236de56f-8035-4072-b0fa-03abbf3fc692
+
+    :Steps:
+
+        1. Content Host with applicable security errata.
+        2. Create a User with 'Viewer' Permission.
+        3. Go to Content Hosts -> Select content host -> Errata Tab -> Select Errata_Id.
+
+    :expectedresults: The errata details page should be displayed for User.
+
+    :BZ: 1655130
+
+    :CaseLevel: Integration
+    """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    viewer_role = entities.Role().search(
+        query={'search': u'name="Viewer"'})
+    default_loc_id = entities.Location().search(
+         query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    default_loc = entities.Location(id=default_loc_id).read()
+
+    entities.User(role=viewer_role, login=login, password=password,
+                  default_location=default_loc, organization=[module_org]).create()
+
+    pkgs = " ".join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
+
+    with Session(test_name, login, password) as session:
+        session.organization.select(org_name=module_org.name)
+        erratum_details = session.contenthost.read_errata_details(
+            erratatype_vm.hostname,
+            errata_id=CUSTOM_REPO_ERRATA_ID
+        )
+        assert erratum_details['advisory'] == CUSTOM_REPO_ERRATA_ID
+        assert erratum_details['type'] == 'security'
 
 
 @tier3

@@ -12,6 +12,8 @@
 
 :Upstream: No
 """
+
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -20,7 +22,6 @@ from robottelo.constants import ANY_CONTEXT, ENVIRONMENT
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     tier2,
     upgrade,
 )
@@ -41,7 +42,7 @@ pytestmark = [run_in_one_thread]
 
 @tier2
 @upgrade
-@skip_if_bug_open('bugzilla', 1730360)
+@pytest.mark.skip_if_open("BZ:1730360")
 def test_positive_create_event(session, module_org, module_loc):
     """When new host is created, corresponding audit entry appear in the application
 
@@ -54,6 +55,8 @@ def test_positive_create_event(session, module_org, module_loc):
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :BZ: 1730360
     """
     host = entities.Host(organization=module_org, location=module_loc).create()
     with session:
@@ -206,8 +209,8 @@ def test_positive_add_event(session, module_org):
             ENVIRONMENT, cv.name, cv.name)
 
 
-@skip_if_bug_open('bugzilla', 1701118)
-@skip_if_bug_open('bugzilla', 1701132)
+@pytest.mark.skip_if_open("BZ:1701118")
+@pytest.mark.skip_if_open("BZ:1701132")
 @tier2
 def test_positive_create_role_filter(session, module_org):
     """Update a role with new filter and check that corresponding event

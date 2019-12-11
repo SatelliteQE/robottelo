@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from random import shuffle, randint
 
 from airgun.session import Session
@@ -41,6 +42,7 @@ from robottelo.constants import (
     INVALID_URL,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
+    REPOSET,
     VALID_GPG_KEY_FILE,
     VALID_GPG_KEY_BETA_FILE,
 )
@@ -48,12 +50,12 @@ from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     fixture,
     run_in_one_thread,
-    skip_if_bug_open,
     stubbed,
     tier2,
     upgrade
 )
 from robottelo.helpers import read_data_file
+from robottelo.host_info import get_sat_version
 from robottelo.products import SatelliteToolsRepository
 
 
@@ -329,7 +331,6 @@ def test_positive_discover_repo_via_new_product(session, module_org):
             product_name, repo_name)[0]['Name']
 
 
-@skip_if_bug_open('bugzilla', 1676642)
 @stubbed
 @tier2
 @upgrade
@@ -634,7 +635,7 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
-@skip_if_bug_open('bugzilla', 1743271)
+@pytest.mark.skip_if_open("BZ:1743271")
 @tier2
 @upgrade
 def test_positive_upstream_with_credentials(session, module_prod):
@@ -864,3 +865,35 @@ def test_positive_delete_random_docker_repo(session, module_org):
         # Check whether others repositories are not touched
         for product_name, repo_name in entities_list:
             assert session.repository.search(product_name, repo_name)[0]['Name'] == repo_name
+
+
+@tier2
+@pytest.mark.skip_if_open("BZ:1776108")
+def test_positive_recommended_repos(session, module_org):
+    """list recommended repositories using
+     On/Off 'Recommended Repositories' toggle.
+
+    :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
+
+    :expectedresults:
+
+           1. Shows repositories as per On/Off 'Recommended Repositories'.
+           2. Check last Satellite version Capsule/Tools repos do not exist.
+
+    :CaseLevel: Integration
+
+    :BZ: 1776108
+    """
+    manifests.upload_manifest_locked(module_org.id)
+    with session:
+        session.organization.select(module_org.name)
+        rrepos_on = session.redhatrepository.read(recommended_repo='on')
+        assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
+        sat_version = get_sat_version().public
+        cap_tool_repos = [repo['name'] for repo in rrepos_on if 'Tools' in repo['name'] or
+                                                                'Capsule' in repo['name']]
+        cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
+        assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
+        rrepos_off = session.redhatrepository.read(recommended_repo='off')
+        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
+        assert len(rrepos_off) > len(rrepos_on)

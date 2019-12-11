@@ -26,7 +26,7 @@ from robottelo.constants import (
     GCE_MACHINE_TYPE_DEFAULT,
     GCE_NETWORK_DEFAULT
 )
-from robottelo.decorators import bz_bug_is_open, fixture, setting_is_set, tier2, upgrade
+from robottelo.decorators import fixture, setting_is_set, tier2, upgrade
 
 
 if not setting_is_set('gce'):
@@ -151,8 +151,9 @@ def test_positive_default_end_to_end_with_custom_profile(
         assert (cr_profile_values['provider_content']['machine_type']
                 == GCE_MACHINE_TYPE_DEFAULT)
         assert cr_profile_values['provider_content']['network'] == GCE_NETWORK_DEFAULT
-        if not bz_bug_is_open(1721871):
-            assert cr_profile_values['provider_content']['external_ip'] == GCE_EXTERNAL_IP_DEFAULT
+
+        assert cr_profile_values['provider_content']['external_ip'] == GCE_EXTERNAL_IP_DEFAULT
+
         assert cr_profile_values['provider_content']['default_disk_size'] == '15'
 
         # Compute Resource Delete and Assertion

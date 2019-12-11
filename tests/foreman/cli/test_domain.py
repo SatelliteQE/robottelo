@@ -24,7 +24,6 @@ from robottelo.datafactory import (
     filtered_datapoint, invalid_id_list
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     tier1,
     tier2,
     upgrade,
@@ -53,8 +52,6 @@ def invalid_create_params():
     params = [
         {u'name': gen_string(str_type='utf8', length=256)},
     ]
-    if not bz_bug_is_open(1398392):
-        params.append({u'dns-id': '-1'})
     return params
 
 
@@ -80,8 +77,6 @@ def invalid_update_params():
         {u'name': ''},
         {u'name': gen_string(str_type='utf8', length=256)},
     ]
-    if not bz_bug_is_open(1398392):
-        params.append({u'dns-id': '-1'})
     return params
 
 

@@ -70,7 +70,7 @@ class LocationTestCase(CLITestCase):
 
         :id: e1844d9d-ec4a-44b3-9743-e932cc70020d
 
-        :bz: 1233612, 1234287
+        :BZ: 1233612, 1234287
 
         :expectedresults: Location created successfully and has expected and
             correct attributes. Attributes can be updated and the location
@@ -190,7 +190,7 @@ class LocationTestCase(CLITestCase):
 
         :expectedresults: Capsule is added to the org
 
-        :bz: 1398695
+        :BZ: 1398695
 
         :CaseLevel: Integration
         """

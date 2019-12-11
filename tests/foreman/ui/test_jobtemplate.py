@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -40,6 +41,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     :CaseImportance: High
     """
     template_name = gen_string('alpha')
+    template_description = gen_string('alpha')
     template_new_name = gen_string('alpha')
     template_clone_name = gen_string('alpha')
     job_category = gen_string('alpha')
@@ -88,8 +90,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.jobtemplate.create({
             'template.name': template_name,
             'template.default': False,
-            'template.template_editor.rendering_options': 'Input',
+            'template.template_editor.rendering_options': 'Editor',
             'template.template_editor.editor': template_editor_value,
+            'template.description': template_description,
             'job.job_category': job_category,
             'job.description_format': description_format,
             'job.provider_type': 'SSH',
@@ -100,13 +103,14 @@ def test_positive_end_to_end(session, module_org, module_loc):
             'job.overridable': False,
             'job.foreign_input_sets': job_foreign_input_sets,
             'type.snippet': True,
-            'organizations.resources.assigned': [module_org.name],
+            'organizations.resources.assigned': [module_org.name, "Default Organization"],
             'locations.resources.assigned': [module_loc.name],
         })
-        template = session.jobtemplate.read(template_name, editor_view_option='Input')
+        template = session.jobtemplate.read(template_name, editor_view_option='Editor')
         assert template['template']['name'] == template_name
         assert template['template']['default'] is False
         assert template['template']['template_editor']['editor'] == template_editor_value
+        assert template['template']['description'] == template_description
         assert template['job']['job_category'] == job_category
         assert template['job']['description_format'] == description_format
         assert template['job']['provider_type'] == 'SSH'
@@ -157,6 +161,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 == job_foreign_input_sets[1]['include_all'])
         assert (template['job']['foreign_input_sets'][1]['include']
                 == job_foreign_input_sets[1]['include'])
+        session.organization.select(org_name="Default Organization")
         template_values = session.jobtemplate.read(
             template_name,
             editor_view_option='Preview',
@@ -168,7 +173,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
             template_name,
             {
                 'template.name': template_new_name,
-                'template.template_editor.rendering_options': 'Input',
+                'template.template_editor.rendering_options': 'Editor',
                 'template.template_editor.editor': '<%= foreman_url("built") %>'
             }
         )
@@ -184,3 +189,37 @@ def test_positive_end_to_end(session, module_org, module_loc):
         for name in (template_new_name, template_clone_name):
             session.jobtemplate.delete(name)
             assert not session.jobtemplate.search(name)
+
+
+@pytest.mark.skip_if_open('BZ:1705866')
+@tier2
+def test_positive_clone_job_template_with_foreign_input_sets(session):
+    """Clone job template with foreign input sets
+
+    :id: 7f502750-b8a2-4223-8d3c-47be95781e34
+
+    :expectedresults: Job template can be cloned with foreign input sets and
+        new template contain foreign input sets from parent
+
+    :BZ: 1705866
+    """
+    child_name = gen_string('alpha')
+    parent_name = 'Install Group - Katello SSH Default'
+    with session:
+        parent = session.jobtemplate.read(
+            parent_name,
+            widget_names='job'
+        )['job']['foreign_input_sets']
+        session.jobtemplate.clone(
+            parent_name,
+            {'template.name': child_name}
+        )
+        child = session.jobtemplate.read(
+            child_name,
+            widget_names='job'
+        )['job']['foreign_input_sets']
+        assert len(parent) == len(child)
+        assert parent[0]['target_template'] == child[0]['target_template']
+        assert parent[0]['include_all'] == child[0]['include_all']
+        assert parent[0]['include'] == child[0]['include']
+        assert parent[0]['exclude'] == child[0]['exclude']

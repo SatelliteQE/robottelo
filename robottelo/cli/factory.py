@@ -18,10 +18,10 @@ from fauxfactory import (
     gen_mac,
     gen_netmask,
     gen_string,
+    gen_url,
 )
 from os import chmod
 from robottelo import manifests, ssh
-from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -32,7 +32,6 @@ from robottelo.cli.contentview import (
     ContentViewFilterRule,
 )
 from robottelo.cli.discoveryrule import DiscoveryRule
-from robottelo.cli.docker import DockerContainer, DockerRegistry
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.filter import Filter
@@ -40,6 +39,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.http_proxy import HttpProxy
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
 from robottelo.cli.ldapauthsource import LDAPAuthSource
@@ -53,6 +53,7 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import CapsuleTunnelError, Proxy
 from robottelo.cli.realm import Realm
+from robottelo.cli.report_template import ReportTemplate
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
@@ -63,6 +64,7 @@ from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.template import Template
+from robottelo.cli.template_input import TemplateInput
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.smart_variable import SmartVariable
@@ -90,9 +92,11 @@ from robottelo.constants import (
     TEMPLATE_TYPES,
 )
 from robottelo.datafactory import valid_cron_expressions
-from robottelo.decorators import bz_bug_is_open, cacheable
+from robottelo.decorators import cacheable
 from robottelo.helpers import (
-    update_dictionary, default_url_on_new_port, get_available_capsule_port
+    update_dictionary,
+    default_url_on_new_port,
+    get_available_capsule_port,
 )
 from robottelo.ssh import download_file, upload_file
 from tempfile import mkstemp
@@ -232,88 +236,6 @@ def make_architecture(options=None):
     }
 
     return create_object(Architecture, args, options)
-
-
-def make_container(options=None):
-    """Creates a docker container
-
-    Usage::
-
-        hammer docker container create [OPTIONS]
-
-    Options::
-
-        --attach-stderr ATTACH_STDERR             One of true/false, yes/no,
-                                                  1/0.
-        --attach-stdin ATTACH_STDIN               One of true/false, yes/no,
-                                                  1/0.
-        --attach-stdout ATTACH_STDOUT             One of true/false, yes/no,
-                                                  1/0.
-        --capsule CAPSULE_NAME                    Name to search by
-        --capsule-id CAPSULE_ID                   Id of the capsule
-        --command COMMAND
-        --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
-        --compute-resource-id COMPUTE_RESOURCE_ID
-        --cpu-sets CPU_SETS
-        --cpu-shares CPU_SHARES
-        --entrypoint ENTRYPOINT
-        --location-ids LOCATION_IDS               REPLACE locations with given
-        ids. Comma separated list of values.
-        --locations LOCATION_NAMES                Comma separated list of
-                                                  values.
-        --memory MEMORY
-        --name NAME
-        --organization-ids ORGANIZATION_IDS       REPLACE organizations with
-                                                  given ids.  Comma separated
-                                                  list of values.
-        --organizations ORGANIZATION_NAMES        Comma separated list of
-                                                  values.
-        --registry-id REGISTRY_ID                 Registry this container will
-                                                  have to use to get the image
-        --repository-name REPOSITORY_NAME         Name of the repository to use
-                                                  to create the container. e.g:
-                                                  centos
-        --tag TAG                                 Tag to use to create the
-                                                  container. e.g: latest
-        --tty TTY                                 One of true/false, yes/no,
-                                                  1/0.
-
-    """
-    # Compute resource ID is a required field.
-    if (not options or (
-            u'compute-resource' not in options and
-            u'compute-resource-id' not in options
-    )):
-        raise CLIFactoryError(
-            'Please provide at least compute-resource or compute-resource-id '
-            'options.'
-        )
-
-    args = {
-        u'attach-stderr': None,
-        u'attach-stdin': None,
-        u'attach-stdout': None,
-        u'capsule': None,
-        u'capsule-id': None,
-        u'command': 'top',
-        u'compute-resource': None,
-        u'compute-resource-id': None,
-        u'cpu-sets': None,
-        u'cpu-shares': None,
-        u'entrypoint': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'memory': None,
-        u'name': gen_string('alphanumeric'),
-        u'organization-ids': None,
-        u'organizations': None,
-        u'registry-id': None,
-        u'repository-name': 'busybox',
-        u'tag': 'latest',
-        u'tty': None,
-    }
-
-    return create_object(DockerContainer, args, options)
 
 
 @cacheable
@@ -884,8 +806,6 @@ def make_product_wait(options=None, wait_for=5):
     try:
         product = make_product(options)
     except CLIFactoryError as err:
-        if not bz_bug_is_open(1332650):
-            raise err
         sleep(wait_for)
         try:
             product = Product.info({
@@ -932,33 +852,6 @@ def make_proxy(options=None):
                 'Failed to create ssh tunnel: {0}'.format(err))
     args['url'] = options['url']
     return create_object(Proxy, args, options)
-
-
-def make_registry(options=None):
-    """Creates a docker registry
-
-        Usage::
-
-            hammer docker registry create [OPTIONS]
-
-        Options::
-
-            --description DESCRIPTION
-            --name NAME
-            --password PASSWORD
-            --url URL
-            --username USERNAME
-
-    """
-    args = {
-        u'description': None,
-        u'name': gen_string('alphanumeric'),
-        u'password': None,
-        u'url': settings.docker.external_registry_1,
-        u'username': None,
-    }
-
-    return create_object(DockerRegistry, args, options)
 
 
 @cacheable
@@ -2321,6 +2214,101 @@ def make_realm(options=None):
 
 
 @cacheable
+def make_report_template(options=None):
+    """
+    Usage::
+
+        hammer report-template create [OPTIONS]
+
+    Options::
+
+        --audit-comment AUDIT_COMMENT
+        --default DEFAULT           Whether or not the template is added
+                                    automatically to new organizations
+                                    and Locations
+                                    One of true/false, yes/no, 1/0.
+        --file LAYOUT               Path to a file that contains
+                                    the report template content
+        --interactive, -i           Open empty template in an $EDITOR.
+                                    Upload the result
+        --location LOCATION_NAME    Location name
+        --location-id LOCATION_ID
+        --location-ids LOCATION_IDS REPLACE locations with given ids
+                                    Comma separated list of values. Values
+                                    containing comma should be quoted
+                                    or escaped with backslash.
+                                    JSON is acceptable and preferred way
+                                    for complex parameters
+        --location-title LOCATION_TITLE     Location title
+        --location-titles LOCATION_TITLES   Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --locations LOCATION_NAMES          Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --locked LOCKED     Whether or not the template is locked for editing
+                            One of true/false, yes/no, 1/0.
+        --name NAME
+        --organization ORGANIZATION_NAME    Organization name
+        --organization-id ORGANIZATION_ID   Organization ID
+        --organization-ids ORGANIZATION_IDS REPLACE organizations
+                                            with given ids.
+                                            Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --organization-title ORGANIZATION_TITLE   Organization title
+        --organization-titles ORGANIZATION_TITLES Comma separated
+                                                  list of values. Values
+                                                  containing comma should be
+                                                  quoted or escaped
+                                                  with backslash.
+                                                  JSON is acceptable and
+                                                  preferred way
+                                                  for complex parameters
+        --organizations ORGANIZATION_NAMES  Comma separated list of values.
+                                            Values containing comma should be
+                                            quoted or escaped with backslash.
+                                            JSON is acceptable and preferred
+                                            way for complex parameters
+        --snippet SNIPPET                   One of true/false, yes/no, 1/0.
+        -h, --help                          Print help
+    """
+    if options is not None and 'content' in options.keys():
+        content = options.pop('content')
+    else:
+        content = gen_alphanumeric()
+
+    args = {
+        u'audit-comment': None,
+        u'default': None,
+        u'file': content,
+        u'interactive': None,
+        u'location': None,
+        u'location-id': None,
+        u'location-ids': None,
+        u'location-title': None,
+        u'location-titles': None,
+        u'locations': None,
+        u'locked': None,
+        u'name': gen_alphanumeric(10),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-ids': None,
+        u'organization-title': None,
+        u'organization-titles': None,
+        u'organizations': None,
+        u'snippet': None,
+    }
+    return create_object(ReportTemplate, args, options)
+
+
+@cacheable
 def make_os(options=None):
     """
     Usage::
@@ -2832,6 +2820,123 @@ def make_template(options=None):
     # End - Special handling for template factory
 
     return create_object(Template, args, options)
+
+
+@cacheable
+def make_template_input(options=None):
+    """
+    Usage::
+
+        hammer template-input create [OPTIONS]
+
+    Options::
+
+        --advanced ADVANCED                Input is advanced
+                                           One of true/false, yes/no, 1/0.
+        --description DESCRIPTION          Input description
+        --fact-name FACT_NAME          Fact name, used when input type is fact
+        --input-type INPUT_TYPE        Input type
+                                       Possible value(s): 'user', 'fact',
+                                       'variable', 'puppet_parameter'
+        --location LOCATION_NAME           Location name
+        --location-id LOCATION_ID
+        --location-title LOCATION_TITLE    Location title
+        --name NAME                        Input name
+        --options OPTIONS              Selectable values for user inputs
+                                       Comma separated list of values.
+                                       Values containing comma should be quoted
+                                       or escaped with backslash.
+                                       JSON is acceptable and preferred way
+                                       for complex parameters.
+        --organization ORGANIZATION_NAME              Organization name
+        --organization-id ORGANIZATION_ID             Organization ID
+        --organization-title ORGANIZATION_TITLE       Organization title
+        --puppet-class-name PUPPET_CLASS_NAME         Puppet class name,
+                                                      used when input type is
+                                                      puppet_parameter
+        --puppet-parameter-name PUPPET_PARAMETER_NAME Puppet parameter name,
+                                                      used when input type is
+                                                      puppet_parameter
+        --required REQUIRED            Input is required
+                                       One of true/false, yes/no, 1/0.
+        --resource-type RESOURCE_TYPE  For values of type search, this is
+                                       the resource the value searches in
+                                       Possible value(s): 'AnsibleRole',
+                                       'AnsibleVariable', 'Architecture',
+                                       'Audit', 'AuthSource', 'Bookmark',
+                                       'ComputeProfile', 'ComputeResource',
+                                       'ConfigGroup', 'ConfigReport',
+                                       'DiscoveryRule', 'Domain',
+                                       'Environment', 'ExternalUsergroup',
+                                       'FactValue', 'Filter',
+                                       'ForemanOpenscap::ArfReport',
+                                       'ForemanOpenscap::Policy',
+                                       'ForemanOpenscap::ScapContent',
+                                       'ForemanOpenscap::TailoringFile',
+                                       'ForemanTasks::RecurringLogic',
+                                       'ForemanTasks::Task',
+                                       'ForemanVirtWhoConfigure::Config',
+                                       'Host', 'HostClass', 'Hostgroup',
+                                       'HttpProxy', 'Image', 'JobInvocation',
+                                       'JobTemplate', 'Katello::ActivationKey',
+                                       'Katello::ContentView',
+                                       'Katello::GpgKey',
+                                       'Katello::HostCollection',
+                                       'Katello::KTEnvironment',
+                                       'Katello::Product',
+                                       'Katello::Subscription',
+                                       'Katello::SyncPlan', 'KeyPair',
+                                       'Location', 'MailNotification',
+                                       'Medium', 'Model', 'Operatingsystem',
+                                       'Organization', 'Parameter',
+                                       'PersonalAccessToken',
+                                       'ProvisioningTemplate', 'Ptable',
+                                       'Puppetclass', 'PuppetclassLookupKey',
+                                       'Realm', 'RemoteExecutionFeature',
+                                       'Report', 'ReportTemplate', 'Role',
+                                       'Setting', 'SmartProxy', 'SshKey',
+                                       'Subnet', 'Template',
+                                       'TemplateInvocation', 'Trend', 'User',
+                                       'Usergroup', 'VariableLookupKey'
+        --template-id TEMPLATE_ID
+        --value-type VALUE_TYPE         Value type, defaults to plain
+                                        Possible value(s):
+                                        'plain', 'search', 'date'
+        --variable-name VARIABLE_NAME   Variable name, used when
+                                        input type is variable
+        -h, --help                      Print help
+    """
+    if(
+            not options or
+            not options.get('input-type') or
+            not options.get('template-id')
+    ):
+        raise CLIFactoryError(
+            'Please provide valid template-id and input-type'
+        )
+
+    args = {
+        u'advanced': None,
+        u'description': None,
+        u'fact-name': None,
+        u'input-type': None,
+        u'location': None,
+        u'location-id': None,
+        u'location-title': None,
+        u'name': gen_alphanumeric(6),
+        u'options': None,
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-title': None,
+        u'puppet-class-name': None,
+        u'puppet-parameter-name': None,
+        u'required': None,
+        u'resource-type': None,
+        u'template-id': None,
+        u'value-type': None,
+        u'variable-name': None,
+    }
+    return create_object(TemplateInput, args, options)
 
 
 @cacheable
@@ -3799,29 +3904,18 @@ def setup_cdn_and_custom_repositories(
         if not cdn and not custom_repo_url:
             raise CLIFactoryError(u'Custom repository with url not supplied')
         if cdn:
-            if bz_bug_is_open(1655239):
-                rh_repo_id = enable_rhrepo_and_fetchid(
-                    repo.get('arch', DEFAULT_ARCHITECTURE),
-                    org_id,
-                    repo['product'],
-                    repo['repository'],
-                    repo['repository-set'],
-                    repo.get('releasever')
-                )
-                repo_info = Repository.info({'id': rh_repo_id})
-            else:
-                RepositorySet.enable({
-                    u'organization-id': org_id,
-                    u'product': repo['product'],
-                    u'name': repo['repository-set'],
-                    u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                    u'releasever': repo.get('releasever'),
-                })
-                repo_info = Repository.info({
-                    u'organization-id': org_id,
-                    u'name': repo['repository'],
-                    u'product': repo['product'],
-                })
+            RepositorySet.enable({
+                u'organization-id': org_id,
+                u'product': repo['product'],
+                u'name': repo['repository-set'],
+                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                u'releasever': repo.get('releasever'),
+            })
+            repo_info = Repository.info({
+                u'organization-id': org_id,
+                u'name': repo['repository'],
+                u'product': repo['product'],
+            })
         else:
             if custom_product is None:
                 custom_product = make_product_wait({
@@ -4224,3 +4318,72 @@ def virt_who_hypervisor_config(
         'lifecycle_environment_id': lce['id'],
         'virt_who_hypervisor_host': virt_who_hypervisor_host,
     }
+
+
+@cacheable
+def make_http_proxy(options=None):
+    """
+    Usage:
+     http-proxy create [OPTIONS]
+
+    Options:
+     --location LOCATION_NAME                  Location name
+     --location-id LOCATION_ID
+     --location-ids LOCATION_IDS               REPLACE locations with given ids
+                                               Comma separated list of values. Values containing
+                                               comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --location-title LOCATION_TITLE           Location title
+     --location-titles LOCATION_TITLES         Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --locations LOCATION_NAMES                Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --name NAME                               The HTTP Proxy name
+     --organization ORGANIZATION_NAME          Organization name
+     --organization-id ORGANIZATION_ID         Organization ID
+     --organization-ids ORGANIZATION_IDS       REPLACE organizations with given ids.
+                                               Comma separated list of values. Values containing
+                                               comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --organization-title ORGANIZATION_TITLE   Organization title
+     --organization-titles ORGANIZATION_TITLES Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --organizations ORGANIZATION_NAMES        Comma separated list of values. Values containing
+                                                comma should be quoted or escaped with backslash.
+                                               JSON is acceptable and preferred way for complex
+                                               parameters
+     --password PASSWORD                       Password used to authenticate with the HTTP Proxy
+     --url URL                                 URL of the HTTP Proxy
+     --username USERNAME                       Username used to authenticate with the HTTP Proxy
+     -h, --help                                Print help
+    """
+    # Assigning default values for attributes
+    args = {
+        'location': None,
+        'location-id': None,
+        'location-title': None,
+        'locations': None,
+        'location-ids': None,
+        'location-titles': None,
+        'name': gen_string('alpha', 15),
+        'organization': None,
+        'organization-id': None,
+        'organization-title': None,
+        'organizations': None,
+        'organization-ids': None,
+        'organization-titles': None,
+        'password': None,
+        'url': '{}:{}'.format(
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)),
+        'username': None,
+    }
+
+    return create_object(HttpProxy, args, options)

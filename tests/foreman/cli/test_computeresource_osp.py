@@ -24,7 +24,6 @@ from robottelo.cli.factory import (
 )
 from robottelo.config import settings
 from robottelo.decorators import (
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -48,7 +47,6 @@ class OSPComputeResourceTestCase(CLITestCase):
         cls.domain_id = settings.osp.project_domain_id
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_create_osp_with_valid_name(self):
         """Create Compute Resource of type Openstack with valid name
 
@@ -57,6 +55,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is created
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         name = gen_string('alpha')
         with self.assertNotRaises(CLIReturnCodeError):
@@ -72,7 +72,6 @@ class OSPComputeResourceTestCase(CLITestCase):
             self.assertEqual(compute_resource['name'], name)
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_osp_info(self):
         """List the info of Openstack compute resource
 
@@ -81,6 +80,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: OSP Compute resource Info is displayed
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         name = gen_string('alpha')
         with self.assertNotRaises(CLIReturnCodeError):
@@ -97,7 +98,6 @@ class OSPComputeResourceTestCase(CLITestCase):
             self.assertIsNotNone(compute_resource['id'])
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_delete_by_name(self):
         """Delete the Openstack compute resource by name
 
@@ -106,6 +106,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is deleted
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         with self.assertNotRaises(CLIReturnCodeError):
             comp_res = make_compute_resource({
@@ -122,7 +124,6 @@ class OSPComputeResourceTestCase(CLITestCase):
             self.assertFalse(result)
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1579714)
     @upgrade
     def test_positive_delete_by_id(self):
         """Delete the Openstack compute resource by id
@@ -132,6 +133,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is deleted
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         with self.assertNotRaises(CLIReturnCodeError):
             comp_res = make_compute_resource({
@@ -148,7 +151,6 @@ class OSPComputeResourceTestCase(CLITestCase):
             self.assertFalse(result)
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1579714)
     def test_negative_create_osp_with_url(self):
         """Attempt to create Openstack compute resource with invalid URL
 
@@ -157,6 +159,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is not created
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         name = gen_string('alpha')
         with self.assertRaises(CLIReturnCodeError):
@@ -171,7 +175,6 @@ class OSPComputeResourceTestCase(CLITestCase):
             })
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1579714)
     def test_negative_create_with_same_name(self):
         """Attempt to create Openstack compute resource with the same name as
         an existing one
@@ -186,6 +189,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute resource is not created
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         name = gen_string('alpha')
         compute_resource = make_compute_resource({
@@ -210,7 +215,6 @@ class OSPComputeResourceTestCase(CLITestCase):
             })
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1579714)
     def test_positive_update_name(self):
         """Update Openstack compute resource name
 
@@ -224,6 +228,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         :expectedresults: Compute Resource name is successfully updated
 
         :CaseImportance: Critical
+
+        :BZ: 1579714
         """
         new_name = gen_string('alpha')
         comp_res = make_compute_resource({

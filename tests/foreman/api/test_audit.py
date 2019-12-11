@@ -91,6 +91,19 @@ class AuditTestCase(APITestCase):
             },
             {'entity': entities.User(), 'value_template': '{entity.login}'},
             {'entity': entities.UserGroup()},
+            {'entity': entities.ContentView(), 'entity_type': 'katello/content_view'},
+            {'entity': entities.LifecycleEnvironment(), 'entity_type': 'katello/kt_environment'},
+            {'entity': entities.ActivationKey(), 'entity_type': 'katello/activation_key'},
+            {'entity': entities.HostCollection(), 'entity_type': 'katello/host_collection'},
+            {'entity': entities.Product(), 'entity_type': 'katello/product'},
+            {
+                'entity': entities.GPGKey(),
+                'entity_type': 'katello/gpg_key',
+                'value_template': 'content credential (gpg_key - {entity.name})'
+            },
+            {'entity': entities.SyncPlan(
+                organization=entities.Organization(id=1)
+                                        ), 'entity_type': 'katello/sync_plan'},
         ]:
             created_entity = entity_item['entity'].create()
             entity_type = entity_item.get(
@@ -102,7 +115,11 @@ class AuditTestCase(APITestCase):
             entity_audits = [entry for entry in audits
                              if entry.auditable_name == entity_value]
             if not entity_audits:
-                self.fail('audit not found by name "{}"'.format(entity_value))
+                self.fail('audit not found by name "{0}" for entity: {1}'.format(
+                    entity_value,
+                    created_entity.__class__.__name__.lower()
+                )
+                )
             audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(audit.action, 'create')

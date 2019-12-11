@@ -15,7 +15,7 @@ else
 fi
 
 # finds occurrences of empty id: testimony tags
-EMPTY_IDS=$(grep -E -i -r -n "${ID_TOKEN}(.+[[:blank:]]|$)" tests/foreman/ --include=*.py)
+EMPTY_IDS=$(grep -E -i -r -n "\s*${ID_TOKEN}\s*(.+[[:blank:]]|$)" tests/foreman/ --include=*.py)
 
 if [ -n "$EMPTY_IDS" ]; then
    if [ $CHECK_ONLY = true ]; then

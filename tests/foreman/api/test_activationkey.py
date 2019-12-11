@@ -25,9 +25,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    rm_bug_is_open,
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -148,24 +146,6 @@ class ActivationKeyTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(
                         max_hosts=max_host, unlimited_hosts=False).create()
-
-    @tier3
-    @skip_if_bug_open('bugzilla', 1156555)
-    def test_negative_create_with_no_host_limit_set_max(self):
-        """Create activation key with unlimited hosts and set max hosts of
-        varied values.
-
-        :id: 71b9b000-b978-4a95-b6f8-83c09ed39c01
-
-        :expectedresults: Activation key is not created
-
-        :CaseImportance: Low
-        """
-        for max_host in _bad_max_hosts():
-            with self.subTest(max_host):
-                with self.assertRaises(HTTPError):
-                    entities.ActivationKey(
-                        max_hosts=max_host, unlimited_hosts=True).create()
 
     @tier3
     def test_negative_create_with_invalid_name(self):
@@ -560,8 +540,6 @@ class ActivationKeySearchTestCase(APITestCase):
         super(ActivationKeySearchTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.act_key = entities.ActivationKey(organization=cls.org).create()
-        if rm_bug_is_open(4638):
-            cls.act_key.read()  # Wait for elasticsearch to index new act key.
 
     @tier1
     def test_positive_search_by_org(self):

@@ -15,7 +15,7 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import skip_if_bug_open, tier1, upgrade
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -69,7 +69,6 @@ class TemplateCombinationTestCase(APITestCase):
         self.template.delete()
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1369737)
     def test_positive_get_combination(self):
         """Assert API template combination get method works.
 
@@ -80,6 +79,8 @@ class TemplateCombinationTestCase(APITestCase):
         :expectedresults: TemplateCombination can be retrieved through API
 
         :CaseImportance: Critical
+
+        :BZ: 1369737
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)
@@ -88,7 +89,6 @@ class TemplateCombinationTestCase(APITestCase):
         self.assertEqual(self.hostgroup.id, combination.hostgroup.id)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1369737)
     @upgrade
     def test_positive_delete_combination(self):
         """Assert API template combination delete method works.
@@ -100,6 +100,8 @@ class TemplateCombinationTestCase(APITestCase):
         :expectedresults: TemplateCombination can be deleted through API
 
         :CaseImportance: Critical
+
+        :BZ: 1369737
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)

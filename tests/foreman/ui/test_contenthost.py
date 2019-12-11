@@ -19,7 +19,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
-from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.cli.factory import make_virt_who_config, virt_who_hypervisor_config
 from robottelo.config import settings
@@ -44,11 +43,9 @@ from robottelo.constants import (
     DEFAULT_SYSPURPOSE_ATTRIBUTES,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     fixture,
     run_in_one_thread,
     setting_is_set,
-    skip_if_bug_open,
     skip_if_not_set,
     tier3,
     upgrade,
@@ -166,8 +163,12 @@ def test_positive_end_to_end(session, repos_collection, vm):
         chost = session.contenthost.read(vm.hostname,
                                          widget_names=['details',
                                                        'provisioning_details',
-                                                       'subscriptions',
-                                                       'repository_sets'])
+                                                       'subscriptions'])
+        session.contenthost.update(vm.hostname, {'repository_sets.limit_to_lce': True})
+        ch_reposet = session.contenthost.read(vm.hostname, widget_names=['repository_sets'])
+        chost = {}
+        chost.update(chost)
+        chost.update(ch_reposet)
         # Ensure all content host fields/tabs have appropriate values
         assert chost['details']['name'] == vm.hostname
         assert (
@@ -211,15 +212,15 @@ def test_positive_end_to_end(session, repos_collection, vm):
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.contenthost.install_errata(vm.hostname, FAKE_2_ERRATA_ID)
+        result = session.errata.install(FAKE_2_ERRATA_ID, vm.hostname)
         assert result['result'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
         # Delete content host
         session.contenthost.delete(vm.hostname)
-        if not bz_bug_is_open(1662325):
-            assert not session.contenthost.search(vm.hostname)
+
+        assert not session.contenthost.search(vm.hostname)
 
 
 @upgrade
@@ -268,7 +269,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+            search_query='label = Actions::Katello::Host::UploadProfiles'
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),
@@ -303,6 +304,7 @@ def test_positive_search_by_subscription_status(session, vm):
         result = session.contenthost.search('subscription_status != valid')
         assert vm.hostname not in {host['Name'] for host in result}
         # check dashboard
+        session.dashboard.action({'HostSubscription': {'type': 'Invalid'}})
         values = session.contenthost.read_all()
         assert values['searchbox'] == 'subscription_status = invalid'
         assert len(values['table']) == 0
@@ -425,7 +427,6 @@ def test_positive_remove_package_group(session, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
-@skip_if_bug_open('bugzilla', 1662405)
 @tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
     """Search for host's errata by non-admin user with enough permissions
@@ -434,7 +435,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
 
     :customerscenario: true
 
-    :BZ: 1255515
+    :BZ: 1255515, 1662405, 1652938
 
     :expectedresults: User can access errata page and proper errata is
         listed
@@ -445,11 +446,6 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     with Session(
             test_name, user=module_viewer_user.login, password=module_viewer_user.password
     ) as session:
-        if bz_bug_is_open(1652938):
-            try:
-                session.contenthost.search('')
-            except NoSuchElementException:
-                session.browser.refresh()
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
@@ -493,6 +489,44 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
         assert result.return_code == 0
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
+
+
+@tier3
+def test_positive_host_re_registion_with_host_rename(session, module_org, repos_collection, vm):
+    """Ensure that content host should get re-registered after change in the hostname
+
+    :id: c11f4e69-6ef5-45ab-aff5-00cf2d87f209
+
+    :customerscenario: true
+
+    :steps:
+        1. Prepare an activation key with content view and repository
+        2. Register the host to activation key
+        3. Install the package from repository
+        4. Unregister the content host
+        5. Change the hostname of content host
+        6. Re-register the same content host again
+
+    :expectedresults: Re-registration should work as expected even after change in hostname
+
+    :BZ: 1762793
+
+    :CaseLevel: System
+    """
+    vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    result = vm.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    assert result.return_code == 0
+    vm.unregister()
+    updated_hostname = '{}.{}'.format(gen_string('alpha'), vm.hostname).lower()
+    vm.run('hostnamectl set-hostname {}'.format(updated_hostname))
+    assert result.return_code == 0
+    vm.register_contenthost(
+        module_org.name,
+        activation_key=repos_collection.setup_content_data['activation_key']['name']
+    )
+    assert result.return_code == 0
+    with session:
+        assert session.contenthost.search(updated_hostname)[0]['Name'] == updated_hostname
 
 
 @run_in_one_thread
@@ -965,7 +999,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
         host = entities.Host().search(
             query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+            search_query='label = Actions::Katello::Host::UploadProfiles'
                          ' and resource_id = {}'
                          ' and started_at >= "{}"'.format(
                              host[0].id, timestamp),

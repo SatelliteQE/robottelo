@@ -6,8 +6,6 @@ import logging.config
 import os
 import six
 
-from functools import partial
-
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
@@ -70,6 +68,9 @@ class INIReader(object):
     def get(self, section, option, default=None, cast=None):
         """Read an option from a section of a INI file.
 
+        First try to lookup for the value as an environment variable having the
+        following format: ROBOTTELO_{SECTION}_{OPTION}.
+
         The default value will return if the look up option is not available.
         The value will be cast using a callable if specified otherwise a string
         will be returned.
@@ -80,10 +81,17 @@ class INIReader(object):
             defined.
         :param cast: If provided the value will be cast using the cast
             provided.
-
         """
+        # First try to read from environment variable.
+        # [bugzilla]
+        # api_key=123456
+        # can be expressed as:
+        # $ export ROBOTTELO_BUGZILLA_API_KEY=123456
+        value = os.environ.get(f'ROBOTTELO_{section.upper()}_{option.upper()}')
+
         try:
-            value = self.config_parser.get(section, option)
+            # If envvar does not exist then try from .properties file.
+            value = value or self.config_parser.get(section, option)
             if cast is not None:
                 if cast is bool:
                     value = self.cast_boolean(value)
@@ -137,6 +145,7 @@ class ServerSettings(FeatureSettings):
         self.ssh_key = None
         self.ssh_password = None
         self.ssh_username = None
+        self._version = None
 
     def read(self, reader):
         """Read and validate Satellite server settings."""
@@ -150,6 +159,16 @@ class ServerSettings(FeatureSettings):
         self.ssh_key = reader.get('server', 'ssh_key')
         self.ssh_password = reader.get('server', 'ssh_password')
         self.ssh_username = reader.get('server', 'ssh_username', 'root')
+        self._version = reader.get('server', 'version', None)
+
+    @property
+    def version(self):
+        # Version is lazily taken from config OR SAT_VERSION env var or SSH.
+        if self._version is None:
+            # import here to avoid circular import error
+            from robottelo.host_info import get_sat_version
+            self._version = get_sat_version()
+        return self._version
 
     def validate(self):
         validation_errors = []
@@ -230,36 +249,17 @@ class BugzillaSettings(FeatureSettings):
     """Bugzilla server settings definitions."""
     def __init__(self, *args, **kwargs):
         super(BugzillaSettings, self).__init__(*args, **kwargs)
-        self.password = None
-        self.username = None
-        self.wontfix_lookup = None
+        self.url = None
+        self.api_key = None
 
     def read(self, reader):
         """Read and validate Bugzilla server settings."""
-        get_bz = partial(reader.get, 'bugzilla')
-        self.password = get_bz('bz_password', None)
-        self.username = get_bz('bz_username', None)
-        self.wontfix_lookup = reader.get(
-            'bugzilla', 'wontfix_lookup', True, bool)
-
-    def get_credentials(self):
-        """Return credentials for interacting with a Bugzilla API.
-
-        :return: A username-password dict.
-        :rtype: dict
-
-        """
-        return {'user': self.username, 'password': self.password}
+        self.url = reader.get('bugzilla', 'url', 'https://bugzilla.redhat.com')
+        self.api_key = reader.get('bugzilla', 'api_key', None)
 
     def validate(self):
-        validation_errors = []
-        if self.username is None:
-            validation_errors.append(
-                '[bugzilla] bz_username must be provided.')
-        if self.password is None:
-            validation_errors.append(
-                '[bugzilla] bz_password must be provided.')
-        return validation_errors
+        """This section is lazily validated on .issue_handlers.bugzilla."""
+        return []
 
 
 class CapsuleSettings(FeatureSettings):
@@ -385,10 +385,7 @@ class DockerSettings(FeatureSettings):
     def __init__(self, *args, **kwargs):
         super(DockerSettings, self).__init__(*args, **kwargs)
         self.docker_image = None
-        self.external_url = None
         self.external_registry_1 = None
-        self.external_registry_2 = None
-        self.unix_socket = None
         self.private_registry_url = None
         self.private_registry_name = None
         self.private_registry_username = None
@@ -397,11 +394,7 @@ class DockerSettings(FeatureSettings):
     def read(self, reader):
         """Read docker settings."""
         self.docker_image = reader.get('docker', 'docker_image')
-        self.unix_socket = reader.get(
-            'docker', 'unix_socket', False, bool)
-        self.external_url = reader.get('docker', 'external_url')
         self.external_registry_1 = reader.get('docker', 'external_registry_1')
-        self.external_registry_2 = reader.get('docker', 'external_registry_2')
         self.private_registry_url = reader.get(
             'docker', 'private_registry_url')
         self.private_registry_name = reader.get(
@@ -417,28 +410,10 @@ class DockerSettings(FeatureSettings):
         if not self.docker_image:
             validation_errors.append(
                 '[docker] docker_image option must be provided or enabled.')
-        if not all((self.external_registry_1, self.external_registry_2)):
+        if not self.external_registry_1:
             validation_errors.append(
-                'Both [docker] external_registry_1 and external_registry_2 '
-                'options must be provided.')
+                '[docker] external_registry_1 option must be provided.')
         return validation_errors
-
-    def get_unix_socket_url(self):
-        """Use the unix socket connection to the local docker daemon. Make sure
-        that your Satellite server's docker is configured to allow foreman user
-        accessing it. This can be done by::
-
-            $ groupadd docker
-            $ usermod -aG docker foreman
-            # Add -G docker to the options for the docker daemon
-            $ systemctl restart docker
-            $ katello-service restart
-
-        """
-        return (
-            'unix:///var/run/docker.sock'
-            if self.unix_socket else None
-        )
 
 
 class EC2Settings(FeatureSettings):
@@ -1428,10 +1403,6 @@ class Settings(object):
         ``robottelo.entity_mixins.Entity`` for more information on the effects
         of this.
         * Set a default value for ``nailgun.entities.GPGKey.content``.
-        * Set the default value for
-          ``nailgun.entities.DockerComputeResource.url``
-        if either ``docker.internal_url`` or ``docker.external_url`` is set in
-        the configuration file.
         """
         entity_mixins.CREATE_MISSING = True
         entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
@@ -1450,23 +1421,6 @@ class Settings(object):
                 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
             )
         entities.GPGKey.__init__ = patched_gpgkey_init
-
-        # NailGun provides a default value for ComputeResource.url. We override
-        # that value if `docker.internal_url` or `docker.external_url` is set.
-        docker_url = None
-        # Try getting internal url
-        docker_url = self.docker.get_unix_socket_url()
-        # Try getting external url
-        if docker_url is None:
-            docker_url = self.docker.external_url
-        if docker_url is not None:
-            dockercr_init = entities.DockerComputeResource.__init__
-
-            def patched_dockercr_init(self, server_config=None, **kwargs):
-                """Set a default value on the ``docker_url`` field."""
-                dockercr_init(self, server_config, **kwargs)
-                self._fields['url'].default = docker_url
-            entities.DockerComputeResource.__init__ = patched_dockercr_init
 
     def _configure_airgun(self):
         """Pass required settings to AirGun"""
@@ -1522,7 +1476,6 @@ class Settings(object):
     def _configure_third_party_logging(self):
         """Increase the level of third party packages logging."""
         loggers = (
-            'bugzilla',
             'easyprocess',
             'paramiko',
             'requests.packages.urllib3.connectionpool',

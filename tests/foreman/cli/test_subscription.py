@@ -15,9 +15,9 @@
 :Upstream: No
 """
 import csv
+import pytest
 
 from robottelo import manifests
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -29,13 +29,16 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier2,
     tier3,
     upgrade
 )
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+
+from fauxfactory import gen_string
+from nailgun import entities
 
 
 @run_in_one_thread
@@ -206,25 +209,68 @@ class SubscriptionTestCase(CLITestCase):
             'organization-id': self.org['id'],
         })
 
-    @skip_if_bug_open('bugzilla', 1226425)
+    @pytest.mark.skip_if_open("BZ:1686916")
     @tier2
-    def test_negative_manifest_refresh(self):
-        """manifest refresh must fail with a cloned manifest
+    def test_positive_subscription_list(self):
+        """Verify that subscription list contains start and end date
 
-        :id: 7f40795f-7841-4063-8a43-de0325c92b1f
+        :id: 4861bcbc-785a-436d-98ce-14cfef7d6907
 
-        :expectedresults: the refresh command returns a non-zero return code
+        :expectedresults: subscription list contains the start and end date
 
-        :BZ: 1226425
+        :BZ: 1686916
 
-        :CaseImportance: High
+        :CaseImportance: Medium
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
+        subscription_list = Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,
         )
-        with self.assertRaises(CLIReturnCodeError):
-            Subscription.refresh_manifest({
-                'organization-id': self.org['id'],
-            })
+        for column in ['start-date', 'end-date']:
+            self.assertIn(column, subscription_list[0].keys())
+
+    @tier2
+    def test_positive_delete_manifest_as_another_user(self):
+        """Verify that uploaded manifest if visible and deletable
+            by a different user than the one who uploaded it
+
+        :id: 4861bcbc-785a-436d-98cf-13cfef7d6907
+
+        :expectedresults: manifest is refreshed
+
+        :BZ: 1669241
+
+        :CaseImportance: Medium
+        """
+        org = entities.Organization().create()
+        user1_password = gen_string('alphanumeric')
+        user1 = entities.User(
+            admin=True,
+            password=user1_password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        user2_password = gen_string('alphanumeric')
+        user2 = entities.User(
+            admin=True,
+            password=user2_password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        # use the first admin to upload a manifest
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        Subscription.with_user(
+                   username=user1.login,
+                   password=user1_password
+             ).upload({
+                   u'file': manifest.filename,
+                   u'organization-id': org.id,
+             })
+        # try to search and delete the manifest with another admin
+        Subscription.with_user(
+                   username=user2.login,
+                   password=user2_password
+             ).delete_manifest({'organization-id': org.id})
+        self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))

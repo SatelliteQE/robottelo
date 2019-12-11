@@ -120,7 +120,6 @@ def test_cli_subscription_method_called(mocker, command_sub):
     of Subscription methods
     """
     # avoid BZ call in `upload` method
-    mocker.patch('robottelo.cli.subscription.bz_bug_is_open')
     execute = mocker.patch('robottelo.cli.subscription.Subscription.execute')
     construct = mocker.patch(
         'robottelo.cli.subscription.Subscription._construct_command')

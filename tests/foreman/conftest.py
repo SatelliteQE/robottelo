@@ -1,6 +1,7 @@
 # coding: utf-8
 """Configurations for py.test runner"""
 import datetime
+
 import logging
 
 import pytest
@@ -8,11 +9,10 @@ try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
-from types import SimpleNamespace
+
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
-from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
-from robottelo.helpers import get_func_name
+from robottelo.helpers import generate_issue_collection, is_open
 
 
 def log(message, level="DEBUG"):
@@ -20,7 +20,7 @@ def log(message, level="DEBUG"):
     so we need to emulate the logger by stdouting the output
     """
     now = datetime.datetime.utcnow()
-    full_message = "{date} - conftest - {level} - {message}\n".format(
+    full_message = "{date} - conftest - {level} - {message}".format(
         date=now.strftime("%Y-%m-%d %H:%M:%S"),
         level=level,
         message=message
@@ -119,63 +119,38 @@ def log_test_execution(robottelo_logger, request):
     robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
-class NestedDict(SimpleNamespace):
-    def __init__(self, dict_data, **kwargs):
-        super().__init__(**kwargs)
-        for key, value in dict_data.items():
-            if isinstance(value, dict):
-                self.__setattr__(key, NestedDict(value))
-            else:
-                self.__setattr__(key, value)
-
-
-def pytest_configure():
-    """return dict of name->object to be made globally available in
-    the pytest configure.  This hook is called at plugin registration
-    time.
-    Object is accessible only via dotted notation `item.key.nested_key`
-
-    Exposes the list of all WONTFIX bugs and a mapping between decorated
-    functions and Bug IDS (populated by decorator).
-    """
-    log("Registering custom pytest_configure")
-    pytest.bugzilla = NestedDict({
-            'removal_ids': get_deselect_bug_ids(log=log),
-            'decorated_functions': []
-    })
-
-
-def _extract_setup_class_ids(item):
-    setup_class_method = getattr(item.parent.obj, 'setUpClass', None)
-    return getattr(setup_class_method, 'bugzilla_ids', [])
-
-
 def pytest_collection_modifyitems(items, config):
-    """ called after collection has been performed, may filter or re-order
+    """Called after collection has been performed, may filter or re-order
     the items in-place.
-
-    Deselecting all tests skipped due to WONTFIX BZ.
     """
-    if not settings.configured:
-        settings.configure()
-
-    if settings.bugzilla.wontfix_lookup is not True:
-        # if lookup is disable return all collection unmodified
-        log('BZ deselect is disabled in settings')
-        return items
-
-    deselected_items = []
-    decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
 
     log("Collected %s test cases" % len(items))
 
+    # First collect all issues in use and build an issue collection
+    # This collection includes pre-processed `is_open` status for each issue
+    # generate_issue_collection will save a file `bz_cache.json` on each run.
+    pytest.issue_data = generate_issue_collection(items, config)
+
+    # Modify items based on collected issue_data
+    deselected_items = []
+
     for item in items:
-        name = get_func_name(item.function, test_item=item)
-        bug_ids = list(decorated_functions.get(name, []))
-        bug_ids.extend(_extract_setup_class_ids(item))
-        if any(bug_id in pytest.bugzilla.removal_ids for bug_id in bug_ids):
+        # 1. Deselect tests marked with @pytest.mark.deselect
+        # WONTFIX BZs makes test to be dynamically marked as deselect.
+        deselect = item.get_closest_marker('deselect')
+        if deselect:
             deselected_items.append(item)
-            log("Deselected test %s" % name)
+            reason = deselect.kwargs.get('reason', deselect.args)
+            log(f"Deselected test '{item.name}' reason: {reason}")
+            # Do nothing more with deselected tests
+            continue
+
+        # 2. Skip items based on skip_if_open marker
+        skip_if_open = item.get_closest_marker('skip_if_open')
+        if skip_if_open:
+            # marker must have `BZ:123456` as argument.
+            issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
+            item.add_marker(pytest.mark.skipif(is_open(issue), reason=issue))
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
@@ -185,3 +160,37 @@ def pytest_collection_modifyitems(items, config):
 def record_test_timestamp_xml(record_property):
     now = datetime.datetime.utcnow()
     record_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
+
+
+def pytest_configure(config):
+    """Register custom markers to avoid warnings."""
+    markers = [
+        "stubbed: Tests that are not automated yet.",
+        "deselect(reason=None): Mark test to be removed from collection.",
+        "skip_if_open(issue): Skip test based on issue status.",
+        "tier1: Tier 1 tests",
+        "tier2: Tier 2 tests",
+        "tier3: Tier 3 tests",
+        "tier4: Tier 4 tests",
+        "destructive: Destructive tests",
+        "upgrade: Upgrade tests",
+        "run_in_one_thread: Sequential tests",
+    ]
+    for marker in markers:
+        config.addinivalue_line("markers", marker)
+
+    # ignore warnings about dynamically added markers e.g: component markers
+    config.addinivalue_line(
+        'filterwarnings', 'ignore::pytest.PytestUnknownMarkWarning'
+    )
+
+
+def pytest_addoption(parser):
+    """Adds custom options to pytest runner."""
+    parser.addoption(
+        "--bz-cache",
+        nargs='?',
+        default=None,
+        const='bz_cache.json',
+        help="Use a bz_cache.json instead of calling BZ API.",
+    )

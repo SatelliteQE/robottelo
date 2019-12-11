@@ -15,7 +15,6 @@ from robottelo.constants import (
     DEFAULT_PXE_TEMPLATE,
     DEFAULT_TEMPLATE,
     FAKE_1_YUM_REPO,
-    PERMISSIONS_WITH_BZ,
     REPO_TYPE,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
@@ -564,30 +563,6 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     }
 
 
-def get_role_by_bz(bz_id):
-    """Create and configure custom role entity for the testing of specific bugs
-     This function will read the dictionary of permissions and their associated
-     bugzilla id's from robottelo.constants "PERMISSIONS_WITH_BZ",
-     these permissions will create filter and a single role will be created
-     from all the filters.
-
-     :param bz_id: This is the bugzilla id that is specified in the
-        PERMISSIONS_WITH_BZ list, all the permissions associated with the bz_id
-        will be fetched and filters will be created
-     :return: A single role entity will be created from all the created filters
-     """
-    role = entities.Role().create()
-    for perms in PERMISSIONS_WITH_BZ.values():
-        perms_with_bz = [x for x in perms if bz_id in x.get('bz', [])]
-        if perms_with_bz:
-            permissions = [
-                entities.Permission(name=perm['name']).search()[0]
-                for perm in perms_with_bz
-                ]
-            entities.Filter(permission=permissions, role=role).create()
-    return role.read()
-
-
 def create_role_permissions(role, permissions_types_names, search=None):  # pragma: no cover
     """Create role permissions found in dict permissions_types_names.
 
@@ -893,6 +868,33 @@ def attach_custom_product_subscription(prod_name=None, host_name=None):
         data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})
 
 
+class templateupdate:
+    """Context Manager to unlock lock template for updating"""
+
+    def __init__(self, temp):
+        """Context manager that takes entities.ProvisioningTemplate's object
+
+        :param entities.ProvisioningTemplate temp: entities.ProvisioningTemplate's object
+        """
+        self.temp = temp
+        if not isinstance(self.temp, entities.ProvisioningTemplate):
+            raise TypeError(
+                'The template should be of type entities.ProvisioningTemplate, {} given'.format(
+                    type(temp)))
+
+    def __enter__(self):
+        """Unlocks template for update"""
+        if self.temp.locked:
+            self.temp.locked = False
+            self.temp.update(['locked'])
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Locks template after update"""
+        if not self.temp.locked:
+            self.temp.locked = True
+            self.temp.update(['locked'])
+
+
 def update_provisioning_template(name=None, old=None, new=None):
     """ Update provisioning template content
 
@@ -908,10 +910,87 @@ def update_provisioning_template(name=None, old=None, new=None):
             'search': 'name="{}"'.format(name),
         })[0].read()
     if old in temp.template:
-        temp.template = temp.template.replace(old, new, 1)
-        update = temp.update(['template'])
+        with templateupdate(temp):
+            temp.template = temp.template.replace(old, new, 1)
+            update = temp.update(['template'])
         return new in update.template
     elif new in temp.template:
         return True
     else:
         raise ValueError('{} does not exists in template {}'.format(old, name))
+
+
+def apply_package_filter(content_view, repo, package, inclusion=True):
+    """ Apply package filter on content view
+
+    :param content_view: entity content view
+    :param repo: entity repository
+    :param str package: package name to filter
+    :param boolean inclusion: True/False based on include or exclude filter
+
+    :return list : list of content view versions
+    """
+    cv_filter = entities.RPMContentViewFilter(
+        content_view=content_view,
+        inclusion=inclusion,
+        repository=[repo],
+    ).create()
+    cv_filter_rule = entities.ContentViewFilterRule(
+        content_view_filter=cv_filter,
+        name=package
+    ).create()
+    assert cv_filter.id == cv_filter_rule.content_view_filter.id
+    content_view.publish()
+    content_view = content_view.read()
+    content_view_version_info = content_view.version[0].read()
+    return content_view_version_info
+
+
+def create_org_admin_role(orgs, locs, name=None):
+    """Helper function to create org admin role for particular
+    organizations and locations by cloning 'Organization admin' role.
+
+    :param list orgs: The list of organizations for which the org admin is
+        being created
+    :param list locs: The list of locations for which the org admin is
+        being created
+    :param str name: The name of cloned Org Admin role, autogenerates if None provided
+    :return dict: The object of ```nailgun.Role``` of Org Admin role.
+    """
+    name = gen_string('alpha') if not name else name
+    default_org_admin = entities.Role().search(
+        query={'search': u'name="Organization admin"'})
+    org_admin = entities.Role(id=default_org_admin[0].id).clone(
+        data={
+            'role': {
+                'name': name,
+                'organization_ids': orgs or [],
+                'location_ids': locs or []
+            }
+        }
+    )
+    return entities.Role(id=org_admin['id']).read()
+
+
+def create_org_admin_user(orgs, locs):
+    """Helper function to create an Org Admin user by assigning org admin role and assign
+    taxonomies to Role and User
+
+    The taxonomies for role and user will be assigned based on parameters of this function
+
+    :return User: Returns the ```nailgun.entities.User``` object with passwd attr
+    """
+    # Create Org Admin Role
+    org_admin = create_org_admin_role(orgs=orgs, locs=locs)
+    # Create Org Admin User
+    user_login = gen_string('alpha')
+    user_passwd = gen_string('alphanumeric')
+    user = entities.User(
+        login=user_login,
+        password=user_passwd,
+        organization=orgs,
+        location=locs,
+        role=[org_admin.id]
+    ).create()
+    user.passwd = user_passwd
+    return user

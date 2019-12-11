@@ -14,17 +14,12 @@
 
 :Upstream: No
 """
-from fauxfactory import (
-    gen_integer,
-)
-
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
@@ -33,13 +28,13 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     skip_if_not_set,
     tier2,
     tier3,
     upgrade,
 )
+from robottelo.helpers import is_open
 from robottelo.products import (
     RepositoryCollection,
     SatelliteToolsRepository,
@@ -92,7 +87,7 @@ def test_positive_host_configuration_status(session):
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
-    if bz_bug_is_open(1631219):
+    if is_open('BZ:1631219'):
         criteria_list.pop()
         search_strings_list.pop()
 
@@ -153,7 +148,8 @@ def test_positive_host_configuration_chart(session):
 @run_in_one_thread
 @tier2
 def test_positive_task_status(session):
-    """Check if the Task Status is working in the Dashboard UI
+    """Check if the Task Status is working in the Dashboard UI and
+        filter from Tasks dashboard is working correctly
 
     :id: fb667d6a-7255-4341-9f79-2f03d19e8e0f
 
@@ -161,10 +157,15 @@ def test_positive_task_status(session):
 
         1. Navigate to Monitor -> Dashboard
         2. Review the Latest Warning/Error Tasks widget
-        3. Review the Task Status widget
-        4. Click few links from the widget
+        3. Review the Running Chart widget
+        4. Review the Task Status widget
+        5. Review the Stopped Chart widget
+        6. Click few links from the widget
 
-    :expectedresults: Each link shows the right info
+    :expectedresults: Each link shows the right info and filter can be set
+        from Tasks dashboard
+
+    :BZ: 1718889
 
     :CaseLevel: Integration
     """
@@ -180,23 +181,37 @@ def test_positive_task_status(session):
         session.dashboard.action({
             'TaskStatus': {'state': 'running', 'result': 'pending'}
         })
-        tasks = session.task.read_all()
-        assert tasks['searchbox'] == 'state=running&result=pending'
+        searchbox = session.task.read_all('searchbox')
+        assert searchbox['searchbox'] == 'state=running&result=pending'
+        session.task.set_chart_filter('RunningChart')
+        tasks = session.task.read_all(['pagination', 'RunningChart'])
+        assert (
+            tasks['pagination']['total_items'] ==
+            tasks['RunningChart']['total']['Total']
+        )
         session.dashboard.action({
             'TaskStatus': {'state': 'stopped', 'result': 'warning'}
         })
-        tasks = session.task.read_all()
+        tasks = session.task.read_all('searchbox')
         assert tasks['searchbox'] == 'state=stopped&result=warning'
+        session.task.set_chart_filter(
+            'StoppedChart', {'row': 1, 'focus': 'Total'})
+        tasks = session.task.read_all()
         assert (
-            tasks['table'][0]['Action'] ==
+            tasks['pagination']['total_items'] ==
+            tasks['StoppedChart']['table'][1]['Total']
+        )
+        task_name = (
             "Synchronize repository '{}'; product '{}'; "
-            "organization '{}'".format(repo.name, product.name, org.name))
+            "organization '{}'".format(repo.name, product.name, org.name)
+        )
+        assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'
         session.dashboard.action({
             'LatestFailedTasks': {'name': 'Synchronize'}
         })
-        values = session.task.read('Synchronize')
+        values = session.task.read(task_name)
         assert values['task']['result'] == 'warning'
         assert (
             values['task']['errors'] ==
@@ -276,44 +291,3 @@ def test_positive_user_access_with_host_filter(test_name, module_loc):
             assert len(errata_values) == 1
             assert errata_values[0]['Type'] == 'security'
             assert FAKE_2_ERRATA_ID in errata_values[0]['Errata']
-
-
-@tier2
-def test_positive_virtwho_configs_widget(session):
-    """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
-
-    :id: 6bed6d55-2bd5-4438-9f72-d48e78566789
-
-    :Steps:
-
-        1. Create a Virt-who Configuration
-        2. Navigate Monitor -> Dashboard
-        3. Review the Virt-who Configurations Status widget
-
-    :expectedresults: The widget is updated with all details.
-
-    :CaseLevel: Integration
-    """
-    org = entities.Organization().create()
-    entities.VirtWhoConfig(
-        name="example_config{}".format(gen_integer()),
-        organization=org,
-        hypervisor_server=settings.clients.provisioning_server,
-        satellite_url=settings.server.hostname,
-        hypervisor_type='libvirt',
-        hypervisor_username='root',
-        hypervisor_id='hostname',
-        hypervisor_password='',
-    ).create()
-
-    with session:
-        session.organization.select(org_name=org.name)
-        expected_values = [
-            {'Configuration Status': 'No Reports', 'Count': '1'},
-            {'Configuration Status': 'No Change', 'Count': '0'},
-            {'Configuration Status': 'OK', 'Count': '0'},
-            {'Configuration Status': 'Total Configurations', 'Count': '1'}
-        ]
-        values = session.dashboard.read('VirtWhoConfigStatus')
-        assert values['config_status'] == expected_values
-        assert values['latest_config'] == 'No configuration found'

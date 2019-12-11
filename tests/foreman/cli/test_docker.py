@@ -23,15 +23,11 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.docker import Docker
 from robottelo.cli.factory import (
     make_activation_key,
-    make_compute_resource,
-    make_container,
     make_content_view,
     make_lifecycle_environment,
     make_org,
     make_product_wait,  # workaround for BZ 1332650
-    make_registry,
     make_repository,
-    CLIFactoryError
 )
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
@@ -46,12 +42,10 @@ from robottelo.constants import (
 from robottelo.datafactory import (
     generate_strings_list,
     invalid_docker_upstream_names,
-    valid_data_list,
     valid_docker_repository_names,
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -95,7 +89,6 @@ class DockerManifestTestCase(CLITestCase):
     """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1658274)
     def test_positive_read_docker_tags(self):
         """docker manifest displays tags information for a docker manifest
 
@@ -105,6 +98,8 @@ class DockerManifestTestCase(CLITestCase):
             manifest
 
         :CaseImportance: Medium
+
+        :BZ: 1658274
         """
         organization = make_org()
         product = make_product_wait({
@@ -572,7 +567,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -606,7 +600,6 @@ class DockerContentViewTestCase(CLITestCase):
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
@@ -1897,17 +1890,24 @@ class DockerClientTestCase(CLITestCase):
             Docker image from a Satellite 6 instance, add a new package and
             upload the modified image (plus layer) back to the Satellite 6.
         """
-        compute_resource = make_compute_resource({
-            'organization-ids': [self.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': u'http://{0}:2375'.format(self.docker_host.ip_addr),
-        })
         try:
+            """
+            These functions were removed, but let's leave them here
+            to maintain overall test logic - in case required functionality
+            is eventually implemented
+
+            compute_resource = make_compute_resource({
+                'organization-ids': [self.org['id']],
+                'provider': DOCKER_PROVIDER,
+                'url': u'http://{0}:2375'.format(self.docker_host.ip_addr),
+            })
             container = make_container({
                 'compute-resource-id': compute_resource['id'],
                 'organization-ids': [self.org['id']],
             })
             Docker.container.start({'id': container['id']})
+            """
+            container = {'uuid': 'stubbed test'}
             repo_name = gen_string('alphanumeric').lower()
             # Commit a new docker image and verify image was created
             result = ssh.command(
@@ -1961,84 +1961,3 @@ class DockerClientTestCase(CLITestCase):
         finally:
             # Remove the archive
             ssh.command('rm -f /tmp/{0}.tar'.format(repo_name))
-
-
-@skip_if_bug_open('bugzilla', 1414821)
-class DockerUnixSocketContainerTestCase(CLITestCase):
-    """Tests specific to using ``Containers`` with internal unix-socket
-      Docker Compute Resource
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization which can be re-used in tests."""
-        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
-        cls.org = make_org()
-        cls.cr_internal = make_compute_resource({
-            'organization-ids': [cls.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': settings.docker.get_unix_socket_url(),
-        })
-
-    @tier3
-    @upgrade
-    def test_positive_create_with_compresource(self):
-        """Create containers on a docker compute resource
-
-        :id: 5ad180d5-ee36-440e-a0a0-130c7ebc8c8d
-
-        :expectedresults: The docker container is created
-
-        :CaseLevel: System
-        """
-        container = make_container({
-            'compute-resource-id': self.cr_internal['id'],
-            'organization-ids': [self.org['id']],
-        })
-        self.assertEqual(
-            container['compute-resource'], self.cr_internal['name'])
-
-
-class DockerRegistryTestCase(CLITestCase):
-    """Tests specific to performing CRUD methods against ``Registries``
-    repositories.
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Skip the tests if docker section is not set in properties file and
-        set external docker registry url which can be re-used in tests.
-        """
-        super(DockerRegistryTestCase, cls).setUpClass()
-        cls.url = settings.docker.external_registry_1
-
-    @tier3
-    def test_negative_create_with_name(self):
-        """Create an external docker registry
-
-        :id: c2380323-56d6-4465-ad79-0f9c6b97be16
-
-        :expectedresults: the external registry is not created
-        """
-        for name in valid_data_list():
-            description = gen_string('alphanumeric')
-            with self.assertRaises(CLIFactoryError):
-                make_registry({
-                    'description': description,
-                    'name': name,
-                    'url': self.url,
-                })

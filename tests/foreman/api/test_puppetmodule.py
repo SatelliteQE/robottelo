@@ -62,7 +62,7 @@ class RepositorySearchTestCase(APITestCase):
 
         :expectedresults: Only the modules in that repository are returned.
 
-        :bz: 1711929
+        :BZ: 1711929
 
         :CaseImportance: Critical
         """

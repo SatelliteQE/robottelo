@@ -17,6 +17,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :Upstream: No
 """
+import pytest
 import datetime
 from random import randint
 
@@ -26,6 +27,7 @@ from selenium.common.exceptions import InvalidElementStateException
 from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 from nailgun import entities
+from productmd.common import parse_nvra
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import manifests
@@ -84,8 +86,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     tier2,
     tier3,
-    upgrade,
-    skip_if_bug_open,
+    upgrade
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import (
@@ -102,7 +103,6 @@ from robottelo.products import (
     YumRepository,
 )
 from robottelo.vm import VirtualMachine, VirtualMachineError
-
 
 VERSION = 'Version 1.0'
 
@@ -2647,6 +2647,47 @@ def test_positive_add_errata_filter(session, module_org):
 
 
 @tier3
+def test_positive_add_module_stream_filter(session, module_org):
+    """add module stream filter in a content view
+
+    :id: 343c543e-5773-4ea4-aff4-27e0ed6be19e
+
+    :expectedresults: content views filter created and selected module stream
+        can be added for inclusion/exclusion
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    create_sync_custom_repo(
+        module_org.id,
+        repo_name=repo_name,
+        repo_url=CUSTOM_MODULE_STREAM_REPO_2)
+    repo = entities.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id})[0]
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    with session:
+        session.contentviewfilter.create(cv.name, {
+            'name': filter_name,
+            'content_type': FILTER_CONTENT_TYPE['modulemd'],
+            'inclusion_type': FILTER_TYPE['include'],
+        })
+        for ms_name, ms_version in [('duck', '0'), ('walrus', '5.21')]:
+            session.contentviewfilter.add_module_stream(
+                cv.name,
+                filter_name,
+                'name = {} and stream = {}'.format(ms_name, ms_version)
+            )
+        cv.publish()
+        cvv = session.contentview.read_version(cv.name, VERSION)
+        assert len(cvv['module_streams']['table']) == 2
+        assert ({('duck', '0'), ('walrus', '5.21')} ==
+                {(value['Name'], value['Stream']) for value in cvv['module_streams']['table']})
+
+
+@tier3
 def test_positive_add_package_group_filter(session, module_org):
     """add package group to content views filter
 
@@ -3110,7 +3151,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product and Kickstart Repository for OS distribution content
     product = entities.Product(organization=org).create()
-    repo = entities.Repository(product=product, url=settings.rhel6_os).create()
+    repo = entities.Repository(product=product, url=settings.rhel7_os).create()
     # Repo sync procedure
     call_entity_method_with_timeout(repo.sync, timeout=3600)
     # Create, Publish and promote CV
@@ -3165,7 +3206,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
         assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_custom_ostree_end_to_end(session, module_org):
@@ -3187,6 +3228,8 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
     :CaseLevel: System
 
     :CaseImportance: High
+
+    :BZ: 1625783
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -3218,7 +3261,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
 @tier3
 def test_positive_rh_ostree_end_to_end(session):
@@ -3240,6 +3283,8 @@ def test_positive_rh_ostree_end_to_end(session):
     :CaseLevel: System
 
     :CaseImportance: Low
+
+    :BZ: 1625783
     """
     cv_name = gen_string('alpha')
     rh_repo = {
@@ -3274,7 +3319,7 @@ def test_positive_rh_ostree_end_to_end(session):
         assert cv['ostree_content']['resources']['unassigned'][0]['Name'] == repo_name
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
 @upgrade
 @tier3
@@ -3290,6 +3335,8 @@ def test_positive_mixed_content_end_to_end(session, module_org):
     :CaseLevel: System
 
     :CaseImportance: High
+
+    :BZ: 1625783
     """
     cv_name = gen_string('alpha')
     product = entities.Product(organization=module_org).create()
@@ -3591,8 +3638,10 @@ def test_positive_composite_child_inc_update(session):
             errata = version['errata']['table']
             assert len(errata) > 1
             assert (FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata})
-            packages = version['rpm_packages']['table']
-            assert len(packages) > 1
+            nvra1 = parse_nvra(FAKE_0_INC_UPD_NEW_PACKAGE)
+            packages = session.contentview.search_version_package(composite_cv.name,
+                                                                  expected_version,
+                                                                  nvra1['name'])
             packages_data = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
             assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
 

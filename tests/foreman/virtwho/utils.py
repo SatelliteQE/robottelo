@@ -1,6 +1,7 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
 import re
 import json
+import uuid
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
@@ -67,16 +68,18 @@ def get_guest_info():
     # Different UUID for vcenter by dmidecode and vcenter MOB
     if hypervisor_type == 'esx':
         guest_uuid = guest_uuid.split('-')[-1]
+    if hypervisor_type == 'hyperv':
+        guest_uuid = guest_uuid.split('-')[-1].upper()
     return guest_name, guest_uuid
 
 
-def runcmd(cmd, system=None, timeout=None, output_format='plain'):
+def runcmd(cmd, system=None, timeout=None, output_format='base'):
     """Return the retcode and stdout.
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
     :param int timeout: Time to wait for establish the connection.
-    :param str output_format: plain|json|csv|list
+    :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
     result = ssh.command(
@@ -137,11 +140,15 @@ def get_virtwho_status():
     """Return the status of virt-who service, it will help us to know
     the virt-who configure file is deployed or not.
     """
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
+    error = len(re.findall(r'\[.*ERROR.*\]', logs))
     ret, stdout = runcmd('systemctl status virt-who')
     running_stauts = ['is running', 'Active: active (running)']
     stopped_status = ['is stopped', 'Active: inactive (dead)']
     if ret != 0:
         return 'undefined'
+    if error != 0:
+        return 'logerror'
     if any(key in stdout for key in running_stauts):
         return 'running'
     elif any(key in stdout for key in stopped_status):
@@ -247,15 +254,13 @@ def deploy_validation():
     :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
-    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    error = len(re.findall(r'\[.*ERROR.*\]', logs))
-    if status != 'running' or error != 0:
+    if status != 'running':
         raise VirtWhoError("Failed to start virt-who service")
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
-    # Delete the hypervisor entry and always make sure it's new.
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
-    runcmd("systemctl restart virt-who; sleep 5")
+    restart_virtwho_service()
     return hypervisor_name, guest_name
 
 
@@ -265,9 +270,8 @@ def deploy_configure_by_command(command, debug=False):
         `hammer virt-who-config deploy --id 1 --organization-id 1`
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
-    if debug:
-        register_system(get_system('guest'))
-        virtwho_cleanup()
+    virtwho_cleanup()
+    register_system(get_system('guest'))
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(
@@ -290,9 +294,8 @@ def deploy_configure_by_script(script_content, debug=False):
         .replace('&gt;', '>')
         .replace('&lt;', '<')
     )
-    if debug:
-        register_system(get_system('guest'))
-        virtwho_cleanup()
+    virtwho_cleanup()
+    register_system(get_system('guest'))
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.upload_file(script_filename, script_filename)
@@ -304,3 +307,85 @@ def deploy_configure_by_script(script_content, debug=False):
         )
     if debug:
         return deploy_validation()
+
+
+def restart_virtwho_service():
+    """
+    Do the following:
+    1. clean rhsm.log message, make sure there is no old message exist.
+    2. restart virt-who service via systemctl command
+    """
+    runcmd("rm -f /var/log/rhsm/rhsm.log")
+    runcmd("systemctl restart virt-who; sleep 5")
+
+
+def update_configure_option(option, value, config_file):
+    """
+    Update option in virt-who config file
+    :param option: the option you want to update
+    :param value:  set the option to the value
+    :param config_file: path of virt-who config file
+    """
+    cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(
+        option, value, config_file)
+    ret, output = runcmd(cmd)
+    if ret != 0:
+        raise VirtWhoError(
+            "Failed to set option {0} value to {1}".format(option, value))
+
+
+def delete_configure_option(option, config_file):
+    """
+    Delete option in virt-who config file
+    :param option: the option you want to delete
+    :param config_file: path of virt-who config file
+    """
+    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(
+        option, config_file)
+    ret, output = runcmd(cmd)
+    if ret != 0:
+        raise VirtWhoError("Failed to delete option {}".format(option))
+
+
+def add_configure_option(option, value, config_file):
+    """
+    Add option to virt-who config file
+    :param option: the option you want to add
+    :param value:  the value of the option
+    :param config_file: path of virt-who config file
+    """
+    try:
+        get_configure_option(option, config_file)
+    except Exception:
+        cmd = 'echo -e "\n{0}={1}" >> {2}'.format(option, value, config_file)
+        ret, output = runcmd(cmd)
+        if ret != 0:
+            raise VirtWhoError(
+                "Failed to add option {0}={1}".format(option, value))
+    else:
+        raise VirtWhoError(
+            "option {} is already exist in {}"
+            .format(option, config_file)
+        )
+
+
+def hypervisor_json_create(hypervisors, guests):
+    """
+    Create a hypervisor/guesting json data
+    :param hypervisors: how many hypervisors will be created
+    :param guests: how many guests will be created
+    """
+    mapping = {}
+    for i in range(hypervisors):
+        guest_list = []
+        for c in range(guests):
+            guest_list.append({
+                "guestId": str(uuid.uuid4()),
+                "state": 1,
+                "attributes": {
+                    "active": 1,
+                    "virtWhoType": "esx"
+                }
+            })
+        mapping[str(uuid.uuid4()).replace("-", ".")] = guest_list
+    return mapping

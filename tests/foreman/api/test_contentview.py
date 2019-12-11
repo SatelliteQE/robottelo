@@ -15,21 +15,25 @@
 
 :Upstream: No
 """
+import pytest
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
+from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from robottelo import ssh
-from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
+from robottelo.api.utils import apply_package_filter, enable_rhrepo_and_fetchid, promote
 from robottelo import manifests
 from robottelo.constants import (
     CUSTOM_MODULE_STREAM_REPO_2,
     CUSTOM_REPODATA_PATH,
+    CUSTOM_RPM_SHA_512,
+    CUSTOM_RPM_SHA_512_FEED_COUNT,
     CUSTOM_SWID_TAG_REPO,
     DOCKER_REGISTRY_HUB,
-    FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
     FEDORA27_OSTREE_REPO,
     FILTER_ERRATA_TYPE,
     PERMISSIONS,
@@ -41,7 +45,6 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -317,6 +320,49 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.read().puppet_module), 1)
 
     @tier2
+    def test_positive_add_sha512_rpm(self):
+        """Associate sha512 RPM content in a view
+
+        :id: 1f473b02-5e2b-41ff-a706-c0635abc2476
+
+        :expectedresults: Custom sha512 assigned and present in content view
+
+        :CaseLevel: Integration
+
+        :CaseComponent: Pulp
+
+        :CaseImportance: Medium
+
+        :BZ: 1639406
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        yum_sha512_repo = entities.Repository(product=product, url=CUSTOM_RPM_SHA_512).create()
+        yum_sha512_repo.sync()
+        repo_content = yum_sha512_repo.read()
+        # Assert that the repository content was properly synced
+        self.assertEqual(
+            repo_content.content_counts['rpm'], CUSTOM_RPM_SHA_512_FEED_COUNT['rpm']
+        )
+        self.assertEqual(
+            repo_content.content_counts['erratum'], CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
+        )
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = [yum_sha512_repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.repository), 1,)
+        self.assertEqual(len(content_view.version), 1)
+        content_view_version = content_view.version[0].read()
+        self.assertEqual(
+            content_view_version.package_count, CUSTOM_RPM_SHA_512_FEED_COUNT['rpm']
+        )
+        self.assertEqual(
+            content_view_version.errata_counts['total'], CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
+        )
+
+    @tier2
     @stubbed()
     def test_positive_restart_promote_via_dynflow(self):
         """Attempt to restart a promotion
@@ -503,7 +549,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.component), cv_amount)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1581628)
+    @pytest.mark.skip_if_open("BZ:1581628")
     def test_positive_publish_with_long_name(self):
         """Publish a content view that has at least 255 characters in its name
 
@@ -1180,6 +1226,93 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(content_view.version[0].read().environment), 1)
         self.assertEqual(len(content_view.version[-1].read().environment), 0)
 
+    @tier3
+    def test_positive_publish_multiple_repos(self):
+        """Attempt to publish a content view with multiple YUM repos.
+
+        :id: 5557a33b-7a6f-45f5-9fe4-23a704ed9e21
+
+        :expectedresults: Content view publish should not raise an exception.
+
+        :CaseLevel: Integration
+
+        :CaseComponent: Pulp
+
+        :CaseImportance: Medium
+
+        :BZ: 1651930
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        for _ in range(10):
+            repo = entities.Repository(product=product).create()
+            repo.sync()
+            content_view.repository.append(repo)
+            content_view = content_view.update(['repository'])
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.repository), 10)
+        with self.assertNotRaises(TaskFailedError):
+            content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+
+    @tier2
+    def test_composite_content_view_with_same_repos(self):
+        """Create a Composite Content View with content views having same yum repo.
+        Add filter on the content views and check the package count for composite content view
+        should not be changed.
+
+        :id: 957f3758-ca1e-4a1f-8e7d-171750e0eb87
+
+        :expectedresults: package count for composite content view should not be changed in
+            case of mismatch.
+
+        :bz: 1639390
+
+        :CaseImportance: Medium
+        """
+        org = self.org
+        product = self.product
+        repo = entities.Repository(
+            content_type='yum',
+            product=product,
+            url=CUSTOM_MODULE_STREAM_REPO_2).create()
+        repo.sync()
+        content_view_1 = entities.ContentView(organization=org).create()
+        content_view_2 = entities.ContentView(organization=org).create()
+
+        # create content views with same repo and different filter
+        for content_view, package in [(content_view_1, 'camel'), (content_view_2, 'cow')]:
+            content_view.repository = [repo]
+            content_view.update(['repository'])
+            content_view_info = apply_package_filter(content_view, repo,
+                                                     package, inclusion=False,)
+            assert content_view_info.package_count == 35
+
+        # create composite content view with these two published content views
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=org,
+        ).create()
+        content_view_1 = content_view_1.read()
+        content_view_2 = content_view_2.read()
+        for content_view_version in [content_view_1.version[-1], content_view_2.version[-1]]:
+            comp_content_view.component.append(content_view_version)
+            comp_content_view = comp_content_view.update(['component'])
+        comp_content_view.publish()
+        comp_content_view = comp_content_view.read()
+        comp_content_view_info = comp_content_view.version[0].read()
+        assert comp_content_view_info.package_count == 36
+        result = ssh.command('ls -R /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+                             '/1.0/custom/{}/{}/'.format(org.label,
+                                                         comp_content_view.label,
+                                                         product.label,
+                                                         repo.label,
+                                                         ))
+        output = ' '.join(result.stdout)
+        assert 'cow' in output
+        assert 'camel' in output
+
 
 class ContentViewUpdateTestCase(APITestCase):
     """Tests for updating content views."""
@@ -1244,7 +1377,7 @@ class ContentViewUpdateTestCase(APITestCase):
                 cv = entities.ContentView(id=self.content_view.id).read()
                 self.assertNotEqual(cv.name, new_name)
 
-    @skip_if_bug_open('bugzilla', 1147100)
+    @pytest.mark.skip_if_open("BZ:1147100")
     @tier1
     def test_negative_update_label(self):
         """Try to update a content view label with any value
@@ -1255,6 +1388,8 @@ class ContentViewUpdateTestCase(APITestCase):
             modified
 
         :CaseImportance: Critical
+
+        :BZ: 1147100
         """
         with self.assertRaises(HTTPError):
             entities.ContentView(
@@ -1757,7 +1892,7 @@ class ContentViewRolesTestCase(APITestCase):
             entities.ContentView(id=content_view.id).read()
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 class OstreeContentViewTestCase(APITestCase):
     """Tests for ostree contents in content views."""
 
@@ -1900,7 +2035,7 @@ class OstreeContentViewTestCase(APITestCase):
             len(content_view.read().version[0].read().environment), 2)
 
 
-@skip_if_bug_open('bugzilla', 1625783)
+@pytest.mark.skip_if_open("BZ:1625783")
 class ContentViewRedHatOstreeContent(APITestCase):
     """Tests for publishing and promoting cv with RH ostree contents."""
 

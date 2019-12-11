@@ -26,13 +26,11 @@ from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
     upgrade
 )
-from robozilla.decorators import bz_bug_is_open
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo import ssh
 from robottelo.test import CLITestCase
@@ -104,16 +102,6 @@ class DiscoveredTestCase(CLITestCase):
         # discovered host provisioning.
         cls.configured_env = False
 
-        if bz_bug_is_open(1578290):
-            ssh.command('mkdir /var/lib/tftpboot/boot/fdi-image')
-            ssh.command('ln -s /var/lib/tftpboot/boot/'
-                        'foreman-discovery-image-3.4.4-1.iso-vmlinuz'
-                        ' /var/lib/tftpboot/boot/fdi-image/vmlinuz0')
-            ssh.command('ln -s /var/lib/tftpboot/boot/'
-                        'foreman-discovery-image-3.4.4-1.iso-img'
-                        ' /var/lib/tftpboot/boot/fdi-image/initrd0.img')
-            ssh.command('chown -R foreman-proxy /var/lib/tftpboot/boot/')
-
     @classmethod
     def tearDownClass(cls):
         """Restore default global setting's values"""
@@ -131,7 +119,6 @@ class DiscoveredTestCase(CLITestCase):
         })
         super(DiscoveredTestCase, cls).tearDownClass()
 
-    @skip_if_bug_open('bugzilla', 1731112)
     @tier3
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
@@ -146,6 +133,8 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: Host should be successfully discovered
 
         :CaseImportance: Critical
+
+        :BZ: 1731112
         """
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
@@ -218,7 +207,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @skip_if_bug_open('bugzilla', 1731112)
     @tier3
     @upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
@@ -252,6 +240,8 @@ class DiscoveredTestCase(CLITestCase):
             7. Ensure the entry from discovered host list disappeared
 
         :CaseImportance: High
+
+        :BZ: 1731112
         """
         if not self.configured_env:
             self.__class__.configured_env = configure_env_for_provision(
@@ -405,7 +395,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @skip_if_bug_open('bugzilla', 1731112)
     @tier3
     @upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
@@ -452,6 +441,8 @@ class DiscoveredTestCase(CLITestCase):
             9. Ensure the entry from discovered host list disappeared
 
         :CaseImportance: High
+
+        :BZ: 1731112
         """
         # fixme: assertion #1
         if not self.configured_env:
@@ -837,7 +828,6 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @skip_if_bug_open('bugzilla', 1572947)
     @tier3
     @upgrade
     def test_positive_provision_pxe_host_with_parameters(self):
@@ -864,6 +854,8 @@ class DiscoveredTestCase(CLITestCase):
             3. Ensure the discovered host is no more available to provision
 
         :CaseImportance: High
+
+        :BZ: 1572947
         """
         param1_key, param1_value = gen_string('alpha'), gen_string('alphanumeric')
         param2_key, param2_value = gen_string('alpha'), gen_string('alphanumeric')

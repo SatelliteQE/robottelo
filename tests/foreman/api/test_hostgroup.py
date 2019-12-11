@@ -717,6 +717,28 @@ class HostGroupTestCase(APITestCase):
                     hostgroup.update(['name'])
                 self.assertEqual(hostgroup.read().name, original_name)
 
+    @tier2
+    def test_positive_create_with_group_parameters(self):
+        """Create a hostgroup with 'group parameters' specified
+
+        :id: 0959e2a2-d635-482b-9b2e-d33990d6f0dc
+
+        :expectedresults: A hostgroup is created with assigned group parameters
+
+        :CaseLevel: Integration
+
+        :BZ: 1710853
+        """
+        group_params = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
+        hostgroup = entities.HostGroup(
+            organization=[self.org],
+            group_parameters_attributes=[group_params]
+        ).create()
+        self.assertEqual(group_params['name'],
+                         hostgroup.group_parameters_attributes[0]['name'])
+        self.assertEqual(group_params['value'],
+                         hostgroup.group_parameters_attributes[0]['value'])
+
 
 class HostGroupMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.

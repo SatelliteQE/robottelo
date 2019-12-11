@@ -18,6 +18,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
@@ -30,8 +31,8 @@ from robottelo.decorators import (
     tier3,
     upgrade
 )
+from robottelo.helpers import is_open
 from robottelo.test import APITestCase
-from robozilla.decorators import skip_if_bug_open
 
 
 class RoleTestCase(APITestCase):
@@ -518,7 +519,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertNotEqual(self.filter_org.id, filtr.organization[0].id)
         self.assertNotEqual(self.filter_loc.id, filtr.location[0].id)
 
-    @skip_if_bug_open('bugzilla', 1637436)
     @tier1
     def test_positive_create_org_admin_from_clone(self):
         """Create Org Admin role which has access to most of the resources
@@ -532,6 +532,8 @@ class CannedRoleTestCases(APITestCase):
         :expectedresults: Org Admin role should be created successfully
 
         :CaseImportance: Critical
+
+        :BZ: 1637436
         """
         default_org_admin = entities.Role().search(
             query={'search': u'name="Organization admin"'})
@@ -876,7 +878,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertTrue(cloned_filter.unlimited)
         self.assertTrue(cloned_filter.override)
 
-    @skip_if_bug_open('bugzilla', 1488908)
     @tier2
     def test_positive_clone_role_without_taxonomies_non_overided_filter(self):
         """When taxonomies not assigned to cloned role, only unlimited but not
@@ -898,6 +899,8 @@ class CannedRoleTestCases(APITestCase):
             2. Override flag should be set to False
 
         :CaseLevel: Integration
+
+        :BZ: 1488908
         """
         role = entities.Role(
             name=gen_string('alpha'),
@@ -919,7 +922,6 @@ class CannedRoleTestCases(APITestCase):
         self.assertTrue(cloned_filter.unlimited)
         self.assertFalse(cloned_filter.override)
 
-    @skip_if_bug_open('bugzilla', 1488908)
     @tier2
     def test_positive_clone_role_without_taxonomies_unlimited_filter(self):
         """When taxonomies not assigned to cloned role, Unlimited and override
@@ -940,6 +942,8 @@ class CannedRoleTestCases(APITestCase):
             2. Override flag should be set to False
 
         :CaseLevel: Integration
+
+        :BZ: 1488908
         """
         role = entities.Role(
             name=gen_string('alpha'),
@@ -1456,14 +1460,16 @@ class CannedRoleTestCases(APITestCase):
             2. Create user and assign above Org Admin role to it
             3. Login with above Org Admin user
             4. Attempt to create new users
+            5. Attempt to create location
 
         :expectedresults:
 
             1. Org Admin should be able to create new users
             2. Only Org Admin role should be available to assign to its users
             3. Org Admin should be able to assign Org Admin role to its users
+            4. Org Admin should be able create locations
 
-        :BZ: 1538316
+        :BZ: 1538316, 1760701
 
         :CaseLevel: Integration
         """
@@ -1498,6 +1504,10 @@ class CannedRoleTestCases(APITestCase):
         ).create()
         self.assertEqual(user_login, user.login)
         self.assertEqual(org_admin.id, user.role[0].id)
+        if not is_open('BZ:1760701'):
+            name = gen_string('alphanumeric')
+            location = entities.Location(sc_user, name=name).create()
+            self.assertEqual(location.name, name)
 
     @tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self):
@@ -1526,6 +1536,47 @@ class CannedRoleTestCases(APITestCase):
         sc = self.user_config(user)
         with self.assertNotRaises(HTTPError):
             entities.User(sc, id=test_user.id).read()
+
+    @pytest.mark.skip_if_open('BZ:1694199')
+    @tier2
+    def test_positive_create_nested_location(self):
+        """Org Admin can create nested locations
+
+        :id: 971bc909-96a5-4614-b254-04a51c708432
+
+        :bz: 1694199
+
+        :steps:
+            1. Create a regular user and associate it with existing location
+            2. Add org_admin rights to that user
+            3. Attempt to create a nested location
+
+        :expectedresults: after adding the needed permissions, user should be
+            able to create nested locations
+
+        :CaseLevel: Integration
+        """
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
+            organization=[self.role_org],
+            location=[self.role_loc]
+        ).create()
+        org_admin = self.create_org_admin_role(
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        user.role = [org_admin]
+        user = user.update(['role'])
+        sc = ServerConfig(
+            auth=(user_login, user_pass),
+            url=self.sat_url,
+            verify=False
+        )
+        name = gen_string('alphanumeric')
+        location = entities.Location(sc, name=name,
+                                     parent=self.role_loc.id).create()
+        self.assertEqual(location.name, name)
 
     @tier2
     def test_negative_access_users_outside_org_admin_taxonomies(self):

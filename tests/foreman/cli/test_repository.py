@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from wait_for import wait_for
 from nailgun import entities
 from fauxfactory import gen_alphanumeric, gen_string
@@ -43,6 +44,7 @@ from robottelo.cli.filter import Filter
 from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
+from robottelo.cli.srpm import Srpm
 from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA27_OSTREE_REPO,
@@ -75,8 +77,6 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -90,7 +90,7 @@ from robottelo.datafactory import (
     valid_http_credentials,
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file
+from robottelo.helpers import get_data_file, is_open
 from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
 
@@ -129,7 +129,7 @@ class RepositoryTestCase(CLITestCase):
         return repo_detail
 
     def _validated_image_tags_count(self, repo=None):
-        if bz_bug_is_open(1664631):
+        if is_open('BZ:1664631'):
             wait_for(
                 lambda: int(self._get_image_tags_count(repo=repo)
                             ['content-counts']['container-image-tags']) > 0,
@@ -361,11 +361,13 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: immediate download policy is updated to on_demand
 
         :CaseImportance: Critical
+
+        :BZ: 1732056
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
-            u'download-policy': 'immediate'
         })
+        self.assertEqual(new_repo['download-policy'], 'immediate')
         Repository.update({
             u'id': new_repo['id'],
             u'download-policy': 'on_demand'
@@ -1186,9 +1188,8 @@ class RepositoryTestCase(CLITestCase):
                          'content not synced correctly')
         self.assertEqual(repo['content-counts']['errata'], '0',
                          'content not ignored correctly')
-        if not bz_bug_is_open(1335621):
-            self.assertEqual(repo['content-counts']['source-rpms'], '0',
-                             'content not ignored correctly')
+        self.assertEqual(repo['content-counts']['source-rpms'], '0',
+                         'content not ignored correctly')
         # drpm check requires a different method
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
@@ -1227,21 +1228,18 @@ class RepositoryTestCase(CLITestCase):
                          'content not ignored correctly')
         self.assertEqual(repo['content-counts']['errata'], '2',
                          'content not synced correctly')
-        if not bz_bug_is_open(1664549):
+        if not is_open('BZ:1664549'):
             self.assertEqual(repo['content-counts']['source-rpms'], '3',
                              'content not synced correctly')
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/drpms/ | grep .drpm'
-            .format(
-                self.org['label'],
-                self.product['label'],
-                repo['label'],
-            )
-        )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 4,
-                                'content not synced correctly')
+
+        if not is_open('BZ:1682951'):
+            result = ssh.command(
+                'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+                '/custom/{}/{}/drpms/ | grep .drpm'
+                .format(self.org['label'], self.product['label'], repo['label']))
+            self.assertEqual(result.return_code, 0)
+            self.assertGreaterEqual(len(result.stdout), 4,
+                                    'content not synced correctly')
 
     @tier1
     def test_positive_update_url(self):
@@ -1423,10 +1421,16 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: A repository is not created and error is raised.
 
         :CaseImportance: Critical
+
+        :BZ: 1732056
         """
         for checksum_type in 'sha1', 'sha256':
             with self.assertRaises(CLIFactoryError):
-                self._make_repository({u'content-type': u'yum', u'checksum-type': checksum_type})
+                self._make_repository({
+                    u'content-type': u'yum',
+                    u'checksum-type': checksum_type,
+                    u'download-policy': 'on_demand'
+                    })
 
     @tier1
     def test_positive_delete_by_id(self):
@@ -1691,7 +1695,7 @@ class RepositoryTestCase(CLITestCase):
             CUSTOM_FILE_REPO_FILES_COUNT + 1
         )
 
-    @skip_if_bug_open('bugzilla', 1436209)
+    @pytest.mark.skip_if_open("BZ:1436209")
     @tier2
     def test_negative_restricted_user_cv_add_repository(self):
         """Attempt to add a product repository to content view with a
@@ -1849,32 +1853,96 @@ class RepositoryTestCase(CLITestCase):
             {'organization-id': org['id']})
         self.assertEqual(len(repos), 0)
 
-    @skip_if_bug_open('bugzilla', 1378442)
-    @tier1
-    def test_positive_upload_content_srpm(self):
-        """Create repository and upload a SRPM content
+    @tier2
+    def test_positive_upload_remove_srpm_content(self):
+        """Create repository, upload and remove an SRPM content
 
         :id: 706dc3e2-dacb-4fdd-8eef-5715ce498888
 
-        :expectedresults: File successfully uploaded
+        :expectedresults: SRPM successfully uploaded and removed
 
         :CaseImportance: Critical
+
+        :BZ: 1378442
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(
             local_file=get_data_file(SRPM_TO_UPLOAD),
             remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
         )
+        # Upload SRPM
         result = Repository.upload_content({
             'name': new_repo['name'],
             'organization': new_repo['organization'],
             'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
             'product-id': new_repo['product']['id'],
+            'content-type': 'srpm',
         })
-        self.assertIn(
-            "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD),
-            result[0]['message'],
+        assert "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD) in result[0]['message']
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
+
+        # Remove uploaded SRPM
+        Repository.remove_content({
+            'id': new_repo['id'],
+            'ids': [Srpm.list({'repository-id': new_repo['id']})[0]['id']],
+            'content-type': 'srpm'
+        })
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 0
+
+    @upgrade
+    @tier2
+    def test_positive_srpm_list_end_to_end(self):
+        """Create repository,  upload, list and remove an SRPM content
+
+        :id: 98ad4228-f2e5-438a-9210-5ce6561769f2
+
+        :expectedresults:
+            1. SRPM should be listed repository wise.
+            2. SRPM should be listed product wise.
+            3. SRPM should be listed for specific and all Organizations.
+            4. SRPM should be listed LCE wise.
+            5. Able to see info of uploaded SRPM.
+
+        :CaseImportance: High
+        """
+        new_repo = self._make_repository({'name': gen_string('alpha', 15)})
+        ssh.upload_file(
+            local_file=get_data_file(SRPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
         )
+        # Upload SRPM
+        Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+            'content-type': 'srpm',
+        })
+        assert len(Srpm.list()) > 0
+        srpm_list = Srpm.list({'repository-id': new_repo['id']})
+        assert srpm_list[0]['filename'] == SRPM_TO_UPLOAD
+        assert len(srpm_list) == 1
+        assert Srpm.info({'id': srpm_list[0]['id']})[0]['filename'] == SRPM_TO_UPLOAD
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
+        assert len(Srpm.list({'organization': new_repo['organization'], 'product-id': new_repo[
+                'product']['id'], 'repository-id': new_repo['id']})) > 0
+        assert len(Srpm.list({'organization': new_repo['organization']})) > 0
+        assert len(Srpm.list(
+            {'organization': new_repo['organization'], 'lifecycle-environment': 'Library'})) > 0
+        assert len(Srpm.list({
+            'content-view': 'Default Organization View',
+            'lifecycle-environment': 'Library',
+            'organization': new_repo['organization']})) > 0
+
+        # Remove uploaded SRPM
+        Repository.remove_content({
+            'id': new_repo['id'],
+            'ids': [Srpm.list({'repository-id': new_repo['id']})[0]['id']],
+            'content-type': 'srpm'
+        })
+        assert int(Repository.info(
+            {'id': new_repo['id']})['content-counts']['source-rpms']) == len(
+            Srpm.list({'repository-id': new_repo['id']}))
 
     @tier1
     def test_positive_create_get_update_delete_module_streams(self):
@@ -2025,7 +2093,6 @@ class OstreeRepositoryTestCase(CLITestCase):
     """Ostree Repository CLI tests."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1439835)
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
@@ -2064,7 +2131,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['content-type'], u'ostree')
 
-    @skip_if_bug_open('bugzilla', 1716429)
+    @pytest.mark.skip_if_open("BZ:1716429")
     @tier1
     def test_negative_create_ostree_repo_with_checksum(self):
         """Create a ostree repository with checksum type
@@ -2074,6 +2141,8 @@ class OstreeRepositoryTestCase(CLITestCase):
         :expectedresults: Validation error is raised
 
         :CaseImportance: Critical
+
+        :BZ: 1716429
         """
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
@@ -2114,7 +2183,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    @skip_if_bug_open('bugzilla', 1625783)
+    @pytest.mark.skip_if_open("BZ:1625783")
     def test_positive_synchronize_ostree_repo(self):
         """Synchronize ostree repo
 
@@ -2123,6 +2192,8 @@ class OstreeRepositoryTestCase(CLITestCase):
         :expectedresults: Ostree repository is created and synced
 
         :CaseLevel: Integration
+
+        :BZ: 1625783
         """
         new_repo = self._make_repository({
             u'content-type': u'ostree',
@@ -2183,7 +2254,6 @@ class SRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
@@ -2205,7 +2275,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         Repository.synchronize({'id': repo['id']})
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/ | grep .src.rpm'
+            '/custom/{}/{}/Packages/t/ | grep .src.rpm'
             .format(
                 self.org['label'],
                 self.product['label'],
@@ -2237,7 +2307,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         ContentView.publish({'id': cv['id']})
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/ | grep .src.rpm'
+            '/1.0/custom/{}/{}/Packages/t/ | grep .src.rpm'
             .format(
                 self.org['label'],
                 cv['label'],
@@ -2278,7 +2348,7 @@ class SRPMRepositoryTestCase(CLITestCase):
             'to-lifecycle-environment-id': lce['id'],
         })
         result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/Packages/t'
             ' | grep .src.rpm'
             .format(
                 self.org['label'],
@@ -2292,11 +2362,11 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
 
+@pytest.mark.skip_if_open("BZ:1682951")
 class DRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(DRPMRepositoryTestCase, cls).setUpClass()
