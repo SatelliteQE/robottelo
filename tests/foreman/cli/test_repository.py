@@ -1889,6 +1889,7 @@ class RepositoryTestCase(CLITestCase):
         })
         assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 0
 
+    @upgrade
     @tier2
     def test_positive_srpm_list_end_to_end(self):
         """Create repository,  upload, list and remove an SRPM content
@@ -1923,9 +1924,8 @@ class RepositoryTestCase(CLITestCase):
         assert len(srpm_list) == 1
         assert Srpm.info({'id': srpm_list[0]['id']})[0]['filename'] == SRPM_TO_UPLOAD
         assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
-        if not is_open('BZ:1778055'):
-            assert len(Srpm.list({'organization': new_repo['organization'], 'product-id': new_repo[
-                'product']['id']})) > 0
+        assert len(Srpm.list({'organization': new_repo['organization'], 'product-id': new_repo[
+                'product']['id'], 'repository-id': new_repo['id']})) > 0
         assert len(Srpm.list({'organization': new_repo['organization']})) > 0
         assert len(Srpm.list(
             {'organization': new_repo['organization'], 'lifecycle-environment': 'Library'})) > 0
@@ -1937,7 +1937,7 @@ class RepositoryTestCase(CLITestCase):
         # Remove uploaded SRPM
         Repository.remove_content({
             'id': new_repo['id'],
-            'ids': [Srpm.list()[0]['id']],
+            'ids': [Srpm.list({'repository-id': new_repo['id']})[0]['id']],
             'content-type': 'srpm'
         })
         assert int(Repository.info(
