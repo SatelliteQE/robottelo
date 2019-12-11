@@ -1782,6 +1782,7 @@ class SRPMRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
 
+    @upgrade
     @tier2
     def test_positive_srpm_upload_publish_promote_cv(self):
         """Upload SRPM to repository, add repository to content view
@@ -1811,6 +1812,7 @@ class SRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(
             len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1)
 
+    @upgrade
     @tier2
     def test_positive_repo_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
