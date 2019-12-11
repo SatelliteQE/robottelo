@@ -972,8 +972,10 @@ class ContentViewSync(CLITestCase):
         })
         Repository.synchronize({'id': repo['id']})
         exporting_cv = gen_string('alpha')
-        _, exporting_cvv_id = ContentViewSync._create_cv(
+        cv_dict, exporting_cvv_id = ContentViewSync._create_cv(
             exporting_cv, repo, exporting_org)
+        cv_name = cv_dict['name']
+        cv_version = cv_dict['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
                 'export-dir': '{}'.format(self.export_dir),
@@ -981,7 +983,8 @@ class ContentViewSync(CLITestCase):
             })
         self.assert_error_msg(
             error,
-            'All exported repositories must be set to an immediate download policy and re-synced'
+            "Could not export the content view:\n  Error: Ensure the content view version"
+            " '{} {}' has at least one repository.\n".format(cv_name, cv_version)
         )
 
     @tier2
@@ -1015,8 +1018,10 @@ class ContentViewSync(CLITestCase):
             'product-id': product['id']
         })
         Repository.synchronize({'id': repo['id']})
-        _, exporting_cvv_id = ContentViewSync._create_cv(
+        cv_dict, exporting_cvv_id = ContentViewSync._create_cv(
             gen_string('alpha'), repo, exporting_org)
+        cv_name = cv_dict['name']
+        cv_version = cv_dict['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
                 'export-dir': '{}'.format(self.export_dir),
@@ -1024,7 +1029,8 @@ class ContentViewSync(CLITestCase):
             })
         self.assert_error_msg(
             error,
-            'All exported repositories must be set to an immediate download policy and re-synced'
+            "Could not export the content view:\n  Error: Ensure the content view version"
+            " '{} {}' has at least one repository.\n".format(cv_name, cv_version)
         )
 
     @tier2
