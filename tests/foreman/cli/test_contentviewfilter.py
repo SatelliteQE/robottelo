@@ -79,6 +79,7 @@ class ContentViewFilterTestCase(CLITestCase):
                     'rpm',
                     'package_group',
                     'erratum',
+                    'modulemd',
                 ])
                 ContentView.filter.create({
                     'content-view-id': self.content_view['id'],
@@ -105,7 +106,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for filter_content_type in ('rpm', 'package_group', 'erratum'):
+        for filter_content_type in ('rpm', 'package_group', 'erratum', 'modulemd'):
             with self.subTest(filter_content_type):
                 cvf_name = gen_string('utf8')
                 ContentView.filter.create({
