@@ -1800,16 +1800,16 @@ class RoleSearchFilterTestCase(APITestCase):
     """
 
     @stubbed
-    @tier1
+    @tier3
     def test_positive_role_lce_search(self):
         """Test role with search filter using lifecycle enviroment.
 
         :id: 7147f402-8cc0-4f6a-affe-5a0dd122a05a
 
         :steps:
-            1. Created Lifecycle Environments DEV
-            2. Created Host dev1 in DEV lifecycle environment.
-            3. Created role 'integrationsrole' role:
+            1. Create Lifecycle Environments DEV
+            2. Create Host dev1 in DEV lifecycle environment.
+            3. Create role 'integrationsrole' role:
                 - see https://access.redhat.com/articles/3359731
                 - Filters: "view host", "view hostgroups", "view facts"
                 - Add search filter to view host rule "lifecycle_environment = DEV"
@@ -1824,16 +1824,16 @@ class RoleSearchFilterTestCase(APITestCase):
         """
 
     @stubbed
-    @tier1
+    @tier3
     def test_negative_role_lce_search(self):
         """Test role with search filter using lifecycle environment.
 
         :id: 19d97cda-642b-4758-94c9-b854ca84806d
 
         :steps:
-            1. Created Lifecycle Environments DEV, QA (id=3)
-            2. Created Host qa1 in QA lifecycle environment
-            3. Created role 'integrationsrole' role:
+            1. Create Lifecycle Environments DEV, QA (id=3)
+            2. Create Host qa1 in QA lifecycle environment
+            3. Create role 'integrationsrole' role:
                 - see https://access.redhat.com/articles/3359731
                 - Filters: "view host", "view hostgroups", "view facts"
                 - Added search filter to view host rule "lifecycle_environment = DEV"
