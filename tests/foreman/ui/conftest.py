@@ -6,6 +6,7 @@ from fauxfactory import gen_string
 from robottelo.constants import DEFAULT_ORG, DEFAULT_LOC
 from requests.exceptions import HTTPError
 from robottelo.decorators import fixture
+from robottelo.helpers import get_web_session
 
 
 LOGGER = logging.getLogger('robottelo')
@@ -123,7 +124,9 @@ def session(test_name, module_user):
                 session.architecture.create({'name': 'bar'})
 
     """
-    return Session(test_name, module_user.login, module_user.password)
+    return Session(test_name, session_cookie=get_web_session(
+        user=module_user.login, password=module_user.password)
+    )
 
 
 @fixture()

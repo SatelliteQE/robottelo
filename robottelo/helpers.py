@@ -711,7 +711,7 @@ def extract_ui_token(input):
         return(token[1])
 
 
-def get_web_session():
+def get_web_session(user=None, password=None):
     """Logs in as admin user and returns the valid requests.Session object"""
     sat_session = requests.Session()
     url = 'https://{0}'.format(settings.server.hostname)
@@ -724,8 +724,8 @@ def get_web_session():
         '{0}/users/login'.format(url),
         data={
             'authenticity_token': extract_ui_token(init_request.text),
-            'login[login]': settings.server.admin_username,
-            'login[password]': settings.server.admin_password,
+            'login[login]': user or settings.server.admin_username,
+            'login[password]': password or settings.server.admin_password,
             'commit': 'Log In'
         },
         verify=False
