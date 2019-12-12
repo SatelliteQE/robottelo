@@ -85,7 +85,7 @@ def test_positive_clone(session, clone_setup):
         assigned_oses = [os.read() for os in pt[0].read().operatingsystem]
         assert pt, 'Template {0} expected to exist but is not included in the search'\
                    'results'.format(clone_name)
-        assert set(clone_setup['os']) == set(
+        assert set(clone_setup['os_list']) == set(
             '{0} {1}'.format(os.name, os.major) for os in assigned_oses)
 
 
