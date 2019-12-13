@@ -543,7 +543,7 @@ CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 
 CUSTOM_MODULE_STREAM_REPO_1 = (
-    u'https://dl.fedoraproject.org/pub/fedora/linux/updates/29/Modular/x86_64/'
+    u'https://partha.fedorapeople.org/test-repos/pteradactyl/'
 )
 CUSTOM_MODULE_STREAM_REPO_2 = (
     u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
