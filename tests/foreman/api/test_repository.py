@@ -1283,7 +1283,7 @@ class RepositoryTestCase(APITestCase):
         repository.url = CUSTOM_MODULE_STREAM_REPO_1
         repository = repository.update(['url'])
         repository.sync()
-        self.assertGreaterEqual(repository.read().content_counts['module_stream'], 56)
+        self.assertGreaterEqual(repository.read().content_counts['module_stream'], 14)
         repository.delete()
         with self.assertRaises(HTTPError):
             repository.read()

@@ -2271,7 +2271,7 @@ class ContentViewTestCase(CLITestCase):
         new_cv_version_2 = ContentView.info({u'id': new_cv['id']})['versions'][1]
         module_streams = ModuleStream.list({'content-view-version-id': new_cv_version_2['id']})
         self.assertGreater(
-            len(module_streams), 44,
+            len(module_streams), 13,
             'Module Streams are not associated with Content View')
 
     @pytest.mark.skip_if_open("BZ:1625783")

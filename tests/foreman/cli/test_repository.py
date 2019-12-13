@@ -2041,7 +2041,7 @@ class RepositoryTestCase(CLITestCase):
         })
         Repository.synchronize({'id': repo2['id']})
         module_streams = ModuleStream.list()
-        self.assertGreater(len(module_streams), 11,
+        self.assertGreater(len(module_streams), 13,
                            'Module Streams get worked correctly')
         module_streams = ModuleStream.list({'product-id': product2['id']})
         self.assertEqual(len(module_streams), 7,
