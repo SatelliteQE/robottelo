@@ -142,6 +142,24 @@ def run_remote_command_on_content_host(command, vm_module_streams):
 
 
 @tier3
+def test_positive_rhel7_syspurpose(session, vm):
+    """Register a RHEL7 content host and validate the syspurpose status.
+
+    :id: 1b20e769-4dbd-4870-b8f2-cb4f66ff2ef7
+
+    :expectedresults: syspurpose status is 'Not Specified'
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    with session:
+        chost = session.contenthost.read(vm.hostname, widget_names=['details'])
+        # Ensure the System Purpose field equals 'Not Specified'
+        assert chost['details']['system_purpose_status'] == 'Not Specified'
+
+
+@tier3
 def test_positive_end_to_end(session, repos_collection, vm):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
