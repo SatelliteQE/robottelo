@@ -20,6 +20,7 @@ import os
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import manifests, ssh
+from robottelo.api.utils import create_sync_custom_repo
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.contentview import ContentView
@@ -92,6 +93,7 @@ from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
+from nailgun import entities
 
 
 class ContentViewTestCase(CLITestCase):
@@ -1230,6 +1232,58 @@ class ContentViewTestCase(CLITestCase):
             'content-view-id': new_cv['id'],
             'name': 'walgrind',
         })
+
+    @run_in_one_thread
+    @tier3
+    @upgrade
+    def test_positive_add_module_stream_filter_rule(self):
+        """Associate module stream content to a content view and create filter rule
+
+        :id: 8186a4b2-1c11-11ea-99cf-d46d6dd3b5b2
+
+        :setup: Sync custom yum repo content
+
+        :steps: Assure filter(s) applied to associated content
+
+        :expectedresults: Filter rule should get applied to Filter
+
+        :CaseImportance: Low
+
+        :CaseLevel: Integration
+
+        """
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        create_sync_custom_repo(
+            self.org['id'],
+            repo_name=repo_name,
+            repo_url=CUSTOM_MODULE_STREAM_REPO_2)
+        repo = entities.Repository(name=repo_name).search(
+            query={'organization_id': self.org['id']})[0]
+        content_view = entities.ContentView(
+            organization=self.org['id'],
+            repository=[repo]).create()
+        walrus_stream = ModuleStream.list({'search': "name=walrus, stream=5.21"})[0]
+        content_view = ContentView.info({u'id': content_view.id})
+
+        self.assertEqual(
+            content_view['yum-repositories'][0]['name'],
+            repo.name,
+            'Repo was not associated to CV',
+        )
+        content_view_filter = ContentView.filter.create({
+            'content-view-id': content_view['id'],
+            'inclusion': 'true',
+            'name': filter_name,
+            'type': 'modulemd',
+        })
+        content_view_filter_rule = ContentView.filter.rule.create({
+            'content-view-filter': filter_name,
+            'content-view-id': content_view['id'],
+            'module-stream-ids': walrus_stream['id'],
+        })
+        filter_info = ContentView.filter.info({'id': content_view_filter['filter-id']})
+        assert filter_info['rules'][0]['id'] == content_view_filter_rule['rule-id']
 
     @tier2
     def test_positive_add_custom_repo_by_id(self):
