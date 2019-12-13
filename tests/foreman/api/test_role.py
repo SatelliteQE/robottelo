@@ -1792,3 +1792,57 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseAutomation: notautomated
         """
+
+
+class RoleSearchFilterTestCase(APITestCase):
+    """
+    Tests adding additional search filters to role filters.
+    """
+
+    @stubbed
+    @tier3
+    def test_positive_role_lce_search(self):
+        """Test role with search filter using lifecycle enviroment.
+
+        :id: 7147f402-8cc0-4f6a-affe-5a0dd122a05a
+
+        :steps:
+            1. Create Lifecycle Environments DEV
+            2. Create Host dev1 in DEV lifecycle environment.
+            3. Create role 'integrationsrole' role:
+                - see https://access.redhat.com/articles/3359731
+                - Filters: "view host", "view hostgroups", "view facts"
+                - Add search filter to view host rule "lifecycle_environment = DEV"
+                - Set Organization and Location for integrationsrole to the same as dev1
+            4. Create apiuser with integrationsrole.
+            5. Using API with user apiuser read hosts facts of dev1.
+                (ie  curl -s -u 'apiuser:redhat' -k https://$SATELLITE/api/v2/hosts/$dev1_id/facts)
+
+        :expectedresults: The user is able to get dev1 facts.
+
+        :BZ: 1651699
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_role_lce_search(self):
+        """Test role with search filter using lifecycle environment.
+
+        :id: 19d97cda-642b-4758-94c9-b854ca84806d
+
+        :steps:
+            1. Create Lifecycle Environments DEV, QA (id=3)
+            2. Create Host qa1 in QA lifecycle environment
+            3. Create role 'integrationsrole' role:
+                - see https://access.redhat.com/articles/3359731
+                - Filters: "view host", "view hostgroups", "view facts"
+                - Added search filter to view host rule "lifecycle_environment = DEV"
+                - Set Organization and location for integrationsrole to the same as dev1
+            4. Create apiuser with integrationsrole.
+            5. Using API with user apiuser read hosts facts of qa1.
+                (ie  curl -s -u 'apiuser:redhat' -k https://$SATELLITE/api/v2/hosts/$qa1_id/facts)
+
+        :expectedresults: The user is not allowed to view qa1 facts.
+
+        :BZ: 1651699
+        """
