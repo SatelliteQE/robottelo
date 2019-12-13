@@ -1254,14 +1254,15 @@ class ContentViewTestCase(CLITestCase):
         """
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        org = entities.Organization().create()
         create_sync_custom_repo(
-            org.id,
+            self.org['id'],
             repo_name=repo_name,
             repo_url=CUSTOM_MODULE_STREAM_REPO_2)
         repo = entities.Repository(name=repo_name).search(
-            query={'organization_id': org.id})[0]
-        content_view = entities.ContentView(organization=org.id, repository=[repo]).create()
+            query={'organization_id': self.org['id']})[0]
+        content_view = entities.ContentView(
+            organization=self.org['id'],
+            repository=[repo]).create()
         walrus_stream = ModuleStream.list({'search': "name=walrus, stream=5.21"})[0]
         content_view = ContentView.info({u'id': content_view.id})
 
