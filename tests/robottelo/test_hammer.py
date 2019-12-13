@@ -395,6 +395,177 @@ class ParseInfoTestCase(unittest2.TestCase):
             }
         )
 
+    def test_parse(self):
+        """Can parse actual host info"""
+        output = [
+            'Id: 31',
+            'Name: name1',
+            'Organization: org1',
+            'Location: Default Location',
+            'Cert name: cert name',
+            'Managed: no',
+            'Installed at:',
+            'Last report:',
+            'Uptime (seconds): 67',
+            'Status:',
+            '    Global Status: Error',
+            'Network:',
+            '    IPv4 address: ip1',
+            '    MAC: mac1',
+            '    Domain: domain1',
+            'Network interfaces:',
+            ' 1) Id: 34',
+            '    Identifier: ens3',
+            '    Type: interface (primary, provision)',
+            '    MAC address: mac2',
+            '    IPv4 address: ip2',
+            '    FQDN: name1.domain',
+            'Operating system:',
+            '    Architecture: x86_64',
+            '    Operating System: os1',
+            '    Build: no',
+            '    Custom partition table:',
+            'Parameters:',
+            '',
+            'All parameters:',
+            '    enable-puppet5 => true',
+            '    enable-epel => false',
+            'Additional info:',
+            '    Owner: Anonymous Admin',
+            '    Owner Type: User',
+            '    Enabled: yes',
+            '    Model: Standard PC (i440FX + PIIX, 1996)',
+            '    Comment:',
+            'OpenSCAP Proxy:',
+            'Content Information:',
+            '    Content View:',
+            '        ID: 38',
+            '        Name: content view1',
+            '    Lifecycle Environment:',
+            '        ID: 40',
+            '        Name: lifecycle environment1',
+            '    Content Source:',
+            '        ID:',
+            '        Name:',
+            '    Kickstart Repository:',
+            '        ID:',
+            '        Name:',
+            '    Applicable Packages: 0',
+            '    Upgradable Packages: 0',
+            '    Applicable Errata:',
+            '        Enhancement: 0',
+            '        Bug Fix: 0',
+            '        Security: 0',
+            'Subscription Information:',
+            '    UUID: uuid1',
+            '    Last Checkin: 2019-12-13 00:00:00 UTC',
+            '    Release Version:',
+            '    Autoheal: true',
+            '    Registered To: tier3',
+            '    Registered At: 2019-12-13 00:00:00 UTC',
+            '    Registered by Activation Keys:',
+            '     1) ak1',
+            '    System Purpose:',
+            '        Service Level:',
+            '        Purpose Usage:',
+            '        Purpose Role:',
+            '        Purpose Addons:',
+            'Host Collections:'
+        ]
+        self.assertEqual(
+            hammer.parse_info(output),
+            {
+                'id': '31',
+                'name': 'name1',
+                'organization': 'org1',
+                'location': 'Default Location',
+                'cert-name': 'cert name',
+                'managed': 'no',
+                'installed-at': {},
+                'last-report': {},
+                'uptime-(seconds)': '67',
+                'status': {
+                    'global-status': 'Error'
+                },
+                'network': {
+                    'ipv4-address': 'ip1',
+                    'mac': 'mac1',
+                    'domain': 'domain1'
+                },
+                'network-interfaces': [
+                    {
+                        'id': '34',
+                        'identifier': 'ens3',
+                        'type': 'interface (primary, provision)',
+                        'mac-address': 'mac2',
+                        'ipv4-address': 'ip2',
+                        'fqdn': 'name1.domain'
+                    }
+                ],
+                'operating-system': {
+                    'architecture': 'x86_64',
+                    'operating-system': 'os1',
+                    'build': 'no',
+                    'custom-partition-table': ''
+                },
+                'parameters': {},
+                'all-parameters': {
+                    'enable-puppet5': 'true',
+                    'enable-epel': 'false'
+                },
+                'additional-info': {
+                    'owner': 'Anonymous Admin',
+                    'owner-type': 'User',
+                    'enabled': 'yes',
+                    'model': 'Standard PC (i440FX + PIIX, 1996)',
+                    'comment': ''
+                },
+                'openscap-proxy': {},
+                'content-information': {
+                    'content-view': {
+                        'id': '38',
+                        'name': 'content view1'
+                    },
+                    'lifecycle-environment': {
+                        'id': '40',
+                        'name': 'lifecycle environment1'
+                    },
+                    'content-source': {
+                        'id': '',
+                        'name': ''
+                    },
+                    'kickstart-repository': {
+                        'id': '',
+                        'name': ''
+                    },
+                    'applicable-packages': '0',
+                    'upgradable-packages': '0',
+                    'applicable-errata': {
+                        'enhancement': '0',
+                        'bug-fix': '0',
+                        'security': '0'
+                    }
+                },
+                'subscription-information': {
+                    'uuid': 'uuid1',
+                    'last-checkin': '2019-12-13 00:00:00 UTC',
+                    'release-version': '', 'autoheal': 'true',
+                    'registered-to': 'tier3',
+                    'registered-at': '2019-12-13 00:00:00 UTC',
+                    'registered-by-activation-keys': [
+                        'ak1'
+                    ],
+                    'system-purpose': {
+                        'service-level': '',
+                        'purpose-usage': '',
+                        'purpose-role': '',
+                        'purpose-addons': ''
+                    }
+                },
+                'host-collections': {}
+            }
+        )
+
     def test_parse_json_list(self):
         """Can parse a list in json"""
         self.assertEqual(
