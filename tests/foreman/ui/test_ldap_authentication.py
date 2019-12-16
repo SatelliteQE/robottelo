@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pyotp
 from fauxfactory import gen_url
 from navmazing import NavigationTriesExceeded
 from pytest import raises, skip
@@ -63,10 +64,12 @@ def ldap_data():
 def ipa_data():
     return {
         'ldap_ipa_user_name': settings.ipa.username_ipa,
+        'ipa_otp_username': settings.ipa.otp_user,
         'ldap_ipa_user_passwd': settings.ipa.password_ipa,
         'ipa_base_dn': settings.ipa.basedn_ipa,
         'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
         'ldap_ipa_hostname': settings.ipa.hostname_ipa,
+        'time_based_secret': settings.ipa.time_based_secret,
     }
 
 
@@ -85,6 +88,28 @@ def auth_source(ldap_data, module_org, module_loc):
         attr_mail=LDAP_ATTR['mail'],
         name=gen_string('alpha'),
         host=ldap_data['ldap_hostname'],
+        tls=False,
+        port='389',
+        organization=[module_org],
+        location=[module_loc],
+    ).create()
+
+
+@fixture(scope='module')
+def auth_source_ipa(ipa_data, module_org, module_loc):
+    return entities.AuthSourceLDAP(
+        onthefly_register=True,
+        account=ipa_data['ldap_ipa_user_name'],
+        account_password=ipa_data['ldap_ipa_user_passwd'],
+        base_dn=ipa_data['ipa_base_dn'],
+        groups_base=ipa_data['ipa_group_base_dn'],
+        attr_firstname=LDAP_ATTR['firstname'],
+        attr_lastname=LDAP_ATTR['surname'],
+        attr_login=LDAP_ATTR['login'],
+        server_type=LDAP_SERVER_TYPE['API']['ipa'],
+        attr_mail=LDAP_ATTR['mail'],
+        name=gen_string('alpha'),
+        host=ipa_data['ldap_ipa_hostname'],
         tls=False,
         port='389',
         organization=[module_org],
@@ -136,6 +161,21 @@ def ldap_auth_name():
         ldap[ldap_auth].delete()
     ldap_name = gen_string('alphanumeric')
     yield ldap_name
+
+
+def generate_otp(secret):
+    """Return the time_based_otp """
+    time_otp = pyotp.TOTP(secret)
+    return time_otp.now()
+
+
+def ldap_tear_down():
+    ldap = entities.AuthSourceLDAP().search()
+    for ldap_auth in range(len(ldap)):
+        users = entities.User(auth_source=ldap[ldap_auth]).search()
+        for user in range(len(users)):
+            users[user].delete()
+        ldap[ldap_auth].delete()
 
 
 @tier2
@@ -763,3 +803,68 @@ def test_positive_login_ad_user_basic_roles(
             ldapsession.usergroup.search('')
         ldapsession.architecture.create({'name': name})
         assert ldapsession.architecture.search(name)[0]['Name'] == name
+
+
+@upgrade
+@tier2
+def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
+    """Login with password with time based OTP
+
+    :id: be7eb5d6-3228-4660-aa64-c56f9f3ec5e0
+
+    :setup: Assure properly functioning IPA server for authentication
+
+    :steps: Login to server with an IPA user with time_based OTP.
+
+    :expectedresults: Log in to foreman UI successfully
+
+    """
+    try:
+        password_with_otp = "{0}{1}".format(
+            ipa_data['ldap_ipa_user_passwd'],
+            generate_otp(ipa_data['time_based_secret']))
+        with Session(
+                test_name,
+                ipa_data['ipa_otp_username'],
+                password_with_otp
+        ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.user.search('')
+            expected_user = "{} {}".format(ipa_data['ipa_otp_username'],
+                                           ipa_data['ipa_otp_username'])
+            assert ldapsession.task.read_all()['current_user'] == expected_user
+        users = entities.User().search(query={
+            'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])
+        })
+        assert users[0].login == ipa_data['ipa_otp_username']
+    finally:
+        ldap_tear_down()
+
+
+@tier2
+def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth_source_ipa):
+    """Login with password with time based OTP
+
+    :id: 3718c86e-5976-4fb8-9c80-4685d53bd955
+
+    :setup: Assure properly functioning IPA server for authentication
+
+    :steps: Login to server with an IPA user with invalid OTP.
+
+    :expectedresults: Log in to foreman UI should be failed
+
+    """
+    try:
+        password_with_otp = "{0}{1}".format(
+            ipa_data['ldap_ipa_user_passwd'],
+            gen_string(str_type='numeric', length=6))
+        with Session(
+                test_name,
+                ipa_data['ipa_otp_username'],
+                password_with_otp
+        ) as ldapsession:
+            with raises(NavigationTriesExceeded) as error:
+                ldapsession.user.search('')
+            assert error.typename == "NavigationTriesExceeded"
+    finally:
+        ldap_tear_down()
