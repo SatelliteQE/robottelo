@@ -35,6 +35,7 @@ from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.report_template import ReportTemplate
 from robottelo.cli.user import User
+from robottelo.cli.settings import Settings
 from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
@@ -693,3 +694,70 @@ class ReportTemplateTestCase(CLITestCase):
             host['name'],
             [item.split(',')[0] for item in result]
         )
+
+    @tier2
+    @pytest.mark.skip_if_open('BZ:1782807')
+    def test_positive_generate_ansible_template(self):
+        """ Report template named 'Ansible Inventory' (default name is specified in settings)
+        must be present in Satellite 6.7 and later in order to provide enhanced functionality
+        for Ansible Tower inventory synchronization with Satellite.
+
+        :id: f1f7adfc-9601-4498-95c8-3e82e2b36583
+
+        :setup:
+            1. A user with minimal required permissions: 'Ansible Tower Inventory Reader' role
+            2. A fake host to be checked in report output
+
+        :steps:
+            1. Check settings for default Ansible Inventory template name and ensure
+               the template is present
+            2. Try to render the template using the user with ATIR role
+            3. Check the fake host is present in the output
+
+        :expectedresults: Report template is present, renederable and provides output
+
+        :CaseImportance: Medium
+        """
+        settings = Settings.list({'search': 'name=ansible_inventory_template'})
+        assert 1 == len(settings)
+        template_name = settings[0]['value']
+
+        report_list = ReportTemplate.list()
+        assert template_name in [rt['name'] for rt in report_list]
+
+        login = gen_string('alpha').lower()
+        password = gen_string('alpha').lower()
+        loc = Location.info({'name': DEFAULT_LOC})
+        org = Org.info({'name': DEFAULT_ORG})
+
+        user = make_user({
+                'login': login,
+                'password': password,
+                'organization-ids': org['id'],
+                'location-ids': loc['id']
+        })
+
+        User.add_role({
+            'login': user['login'],
+            'role': 'Ansible Tower Inventory Reader',
+        })
+
+        host_name = gen_string('alpha').lower()
+        host = make_fake_host({'name': host_name})
+
+        schedule = ReportTemplate.with_user(
+            username=user['login'],
+            password=password
+        ).schedule({
+            'name': template_name,
+        })
+
+        report_data = ReportTemplate.with_user(
+            username=user['login'],
+            password=password
+        ).report_data({
+            'id': template_name,
+            'job-id': schedule[0].split("Job ID: ", 1)[1]
+        })
+
+        assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
