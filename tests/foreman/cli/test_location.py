@@ -92,7 +92,7 @@ class LocationTestCase(CLITestCase):
             'user-ids': self.user.id
         })
 
-        self.assertEqual(loc['description'], description)
+        self.assertEqual(loc['description'][0], description)
         self.assertIn(self.subnet.name, loc['subnets'][0])
         self.assertIn(self.subnet.network, loc['subnets'][0])
         self.assertEqual(loc['environments'][0], self.env.name)
