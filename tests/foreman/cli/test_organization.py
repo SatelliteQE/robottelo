@@ -102,7 +102,7 @@ class OrganizationTestCase(CLITestCase):
         # org list --help:
         result = Org.list({'help': True}, output_format=None)
         # get list of lines and check they all are unique
-        lines = [line for line in result if line != '']
+        lines = [line for line in result if line != '' and '+--' not in line]
         self.assertEqual(len(set(lines)), len(lines))
 
         # org info --help:info returns more lines (obviously), ignore exception
