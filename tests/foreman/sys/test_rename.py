@@ -43,7 +43,6 @@ class RenameHostTestCase(TestCase):
     def setUpClass(cls):
         """Get hostname and credentials"""
         super(RenameHostTestCase, cls).setUpClass()
-        cls.hostname = settings.server.hostname
         cls.username = settings.server.admin_username
         cls.password = settings.server.admin_password
         cls.default_org_id = entities.Organization().search(
@@ -81,18 +80,18 @@ class RenameHostTestCase(TestCase):
 
         :CaseAutomation: automated
         """
-        old_hostname = settings.server.hostname
-        new_hostname = 'new-{0}'.format(old_hostname)
-        # create installation medium with hostname in path
-        medium_path = 'http://{0}/testpath-{1}/os/'.format(
-                        old_hostname, gen_string('alpha'))
-        medium = entities.Media(
-                    organization=[self.org],
-                    path_=medium_path
-                ).create()
-        repo = entities.Repository(
-                product=self.product, name='testrepo').create()
         with get_connection() as connection:
+            old_hostname = connection.run('hostname').stdout[0]
+            new_hostname = 'new-{0}'.format(old_hostname)
+            # create installation medium with hostname in path
+            medium_path = 'http://{0}/testpath-{1}/os/'.format(
+                            old_hostname, gen_string('alpha'))
+            medium = entities.Media(
+                        organization=[self.org],
+                        path_=medium_path
+                    ).create()
+            repo = entities.Repository(
+                    product=self.product, name='testrepo').create()
             result = connection.run(
                 'satellite-change-hostname {0} -y -u {1} -p {2}'.format(
                     new_hostname, self.username, self.password), timeout=1200,
@@ -180,6 +179,7 @@ class RenameHostTestCase(TestCase):
         :CaseAutomation: automated
         """
         with get_connection() as connection:
+            original_name = connection.run('hostname').stdout[0]
             hostname = gen_string('alpha')
             result = connection.run(
                 'satellite-change-hostname -y \
@@ -191,7 +191,7 @@ class RenameHostTestCase(TestCase):
             self.assertIn(BAD_HN_MSG.format(hostname), result.stdout)
             # assert no changes were made
             result = connection.run('hostname')
-            self.assertEqual(self.hostname, result.stdout[0],
+            self.assertEqual(original_name, result.stdout[0],
                              "Invalid hostame assigned")
 
     @run_in_one_thread
@@ -208,6 +208,7 @@ class RenameHostTestCase(TestCase):
         :CaseAutomation: automated
         """
         with get_connection() as connection:
+            original_name = connection.run('hostname').stdout[0]
             hostname = gen_string('alpha')
             result = connection.run(
                 'satellite-change-hostname -y {0}'.format(hostname),
@@ -217,7 +218,7 @@ class RenameHostTestCase(TestCase):
             self.assertIn(NO_CREDS_MSG, result.stdout)
             # assert no changes were made
             result = connection.run('hostname')
-            self.assertEqual(self.hostname, result.stdout[0],
+            self.assertEqual(original_name, result.stdout[0],
                              "Invalid hostame assigned")
 
     @run_in_one_thread
@@ -234,7 +235,8 @@ class RenameHostTestCase(TestCase):
         :CaseAutomation: automated
         """
         with get_connection() as connection:
-            new_hostname = 'new-{0}'.format(self.hostname)
+            original_name = connection.run('hostname').stdout[0]
+            new_hostname = 'new-{0}'.format(original_name)
             password = gen_string('alpha')
             result = connection.run(
                 'satellite-change-hostname -y \
