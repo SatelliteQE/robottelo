@@ -586,7 +586,8 @@ class LDAPIPASettings(FeatureSettings):
         if not all(vars(self).values()):
             validation_errors.append(
                 'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
-                ' password_ipa, username_ipa, user_ipa options must be provided.'
+                ' password_ipa, username_ipa, user_ipa,'
+                ' otp_user, time_based_secret options must be provided.'
             )
         return validation_errors
 
