@@ -1970,3 +1970,31 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             gce_client.disconnect()
             skip_yum_update_during_provisioning(
                 template='Kickstart default user data', reverse=True)
+
+
+@tier2
+def test_positive_cockpit(session):
+    """Test whether webconsole button and cockpit integration works
+
+    :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
+
+    :expectedresults: Cockpit page is loaded and displays sat host info
+
+    :CaseLevel: System
+
+    """
+    with session:
+        session.organization.select(org_name='Default Organization')
+        session.location.select(loc_name='Any Location')
+        session.host.open_webconsole(entity_name=settings.server.hostname)
+        wd = session.browser.selenium
+        assert len(wd.find_elements_by_xpath('//iframe')) > 0, (
+            'Unable to find iframe on the page - are we on the Cockpit page?')
+        # the remote host content is loaded in an iframe, let's switch to it
+        wd.switch_to.frame(0)
+        hostname_element = wd.find_elements_by_id('system_information_hostname_button')
+        assert len(hostname_element) > 0, (
+            'element "system_information_hostname_button" not found in the iframe')
+        assert hostname_element[0].text == settings.server.hostname, (
+            'cockpit page shows hostname {0} instead of {1}'.format(
+                   hostname_element[0].text, settings.server.hostname))
