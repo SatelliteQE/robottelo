@@ -1908,3 +1908,25 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             skip_yum_update_during_provisioning(
                 template='Kickstart default user data', reverse=True
             )
+
+
+@tier2
+def test_positive_cockpit(session):
+    """Test whether webconsole button and cockpit integration works
+
+    :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
+
+    :expectedresults: Cockpit page is loaded and displays sat host info
+
+    :CaseLevel: System
+
+    """
+    with session:
+        session.organization.select(org_name='Default Organization')
+        session.location.select(loc_name='Any Location')
+        webconsole_view = session.host.has_working_webconsole(entity_name=settings.server.hostname)
+        assert (
+            webconsole_view[0].text == settings.server.hostname
+        ), 'cockpit page shows hostname {0} instead of {1}'.format(
+            webconsole_view[0].text, settings.server.hostname
+        )
