@@ -682,11 +682,8 @@ class ReportTemplateTestCase(CLITestCase):
         host_name = gen_string('alpha')
         host = make_fake_host({'name': host_name})
 
-        rt_host_statuses = ReportTemplate.info({
-            'name': 'Host statuses'
-        })
         result = ReportTemplate.generate({
-            'name': rt_host_statuses['name'],
+            'name': 'Host statuses',
             'organization': DEFAULT_ORG
         })
 
