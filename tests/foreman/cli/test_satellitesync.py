@@ -1137,9 +1137,9 @@ class ContentViewSync(CLITestCase):
 
         :expectedresults:
 
-            1. Export fails with error 'The Repository '#name' is a non-yum repository.
-            Only Yum is supported at this time. Please remove the repository from the
-            Content View, republish and try the export again'.
+            1. Export fails with error 'Could not export the content view:
+            Error: Ensure the content view version '#name' has at least one
+            repository.'.
 
         """
         module = {'name': 'versioned', 'version': '3.3.3'}
@@ -1163,6 +1163,7 @@ class ContentViewSync(CLITestCase):
             u'author': puppet_module['author'],
         })
         ContentView.publish({u'id': content_view['id']})
+        cv_version = ContentView.info({u'id': content_view['id']})['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export({
                 'export-dir': '{}'.format(self.export_dir),
@@ -1171,9 +1172,8 @@ class ContentViewSync(CLITestCase):
         self.assert_error_msg(
             error,
             "Could not export the content view:\n  "
-            "Error: The Content View '{}' contains Puppet modules, "
-            "this is not supported at this time. Please remove the modules, "
-            "publish a new version and try the export again.\n".format(content_view['name'])
+            "Error: Ensure the content view version "
+            "'{} {}' has at least one repository.\n".format(content_view['name'], cv_version)
         )
 
     @tier3
