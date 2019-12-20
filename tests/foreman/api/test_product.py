@@ -19,10 +19,15 @@ http://<sat6>/apidoc/v2/products.html
 :Upstream: No
 """
 import pytest
-from fauxfactory import gen_string
+import re
+from fauxfactory import (
+    gen_integer,
+    gen_string,
+    gen_url
+)
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import manifests
+from robottelo import manifests, ssh
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     FAKE_1_PUPPET_REPO,
@@ -399,3 +404,72 @@ class ProductTestCase(APITestCase):
         self.assertGreater(len(rh_products), 1)
         self.assertNotIn(product.name, [prod.name for prod in rh_products])
         self.assertIn('Red Hat Beta', [prod.name for prod in rh_products])
+
+    @tier2
+    def test_positive_assign_http_proxy_to_products(self):
+        """Assign http_proxy to Products and check whether http-proxy is
+         used during sync.
+
+        :id: c9d23aa1-3325-4abd-a1a6-d5e75c12b08a
+
+        :expectedresults: HTTP Proxy is assigned to all repos present
+            in Products and sync operation uses assigned http-proxy.
+
+        :CaseImportance: Critical
+        """
+        # create HTTP proxies
+        http_proxy_url_a = '{}:{}'.format(
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+        http_proxy_a = entities.HTTPProxy(
+            name=gen_string('alpha', 15),
+            url=http_proxy_url_a,
+            organization=[self.org.id]
+        ).create()
+        http_proxy_url_b = '{}:{}'.format(
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+        http_proxy_b = entities.HTTPProxy(
+            name=gen_string('alpha', 15),
+            url=http_proxy_url_b,
+            organization=[self.org.id]
+        ).create()
+        proxy_fqdn = re.split(r'[:]', http_proxy_b.url)[1].strip("//")
+        # Create products and repositories
+        product_a = entities.Product(organization=self.org).create()
+        product_b = entities.Product(organization=self.org).create()
+        repo_a1 = entities.Repository(
+            product=product_a,
+            http_proxy_policy='none',
+        ).create()
+        repo_a2 = entities.Repository(
+            product=product_a,
+            http_proxy_policy='use_selected_http_proxy',
+            http_proxy_id=http_proxy_a.id
+
+        ).create()
+        repo_b1 = entities.Repository(
+            product=product_b,
+            http_proxy_policy='none',
+        ).create()
+        repo_b2 = entities.Repository(
+            product=product_b,
+            http_proxy_policy='global_default_http_proxy',
+        ).create()
+        # Add http_proxy to products
+        entities.ProductBulkAction().http_proxy(
+            data={
+                "ids": [product_a.id, product_b.id],
+                "http_proxy_policy": "use_selected_http_proxy",
+                "http_proxy_id": http_proxy_b.id
+            })
+        assert repo_a1.read().http_proxy_policy == "use_selected_http_proxy"
+        assert repo_a2.read().http_proxy_policy == "use_selected_http_proxy"
+        assert repo_b1.read().http_proxy_policy == "use_selected_http_proxy"
+        assert repo_b2.read().http_proxy_policy == "use_selected_http_proxy"
+        assert repo_a1.read().http_proxy_id == http_proxy_b.id
+        assert repo_a2.read().http_proxy_id == http_proxy_b.id
+        assert repo_b1.read().http_proxy_id == http_proxy_b.id
+        assert repo_b2.read().http_proxy_id == http_proxy_b.id
+        # check if proxy fqdn is present in log during sync
+        product_a.sync({'async': True})
+        result = ssh.command('grep -F {} /var/log/messages'.format(proxy_fqdn))
+        assert result.return_code == 0
