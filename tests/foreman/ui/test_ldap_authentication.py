@@ -14,7 +14,9 @@
 
 :Upstream: No
 """
+import os
 import pyotp
+import pytest
 from fauxfactory import gen_url
 from navmazing import NavigationTriesExceeded
 from pytest import raises, skip
@@ -31,6 +33,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
+    destructive,
     fixture,
     run_in_one_thread,
     setting_is_set,
@@ -38,7 +41,8 @@ from robottelo.decorators import (
     tier2,
     upgrade,
 )
-
+from robottelo import ssh
+from robottelo.helpers import file_downloader
 
 pytestmark = [run_in_one_thread]
 
@@ -328,6 +332,82 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
         assert ldap_source[
             'attribute_mappings']['last_name'] == LDAP_ATTR['surname']
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
+
+
+@pytest.mark.skip_if_open("BZ:1785621")
+@skip_if_not_set('ipa')
+@destructive
+def test_positive_create_with_idm_https(session, test_name, ipa_data):
+    """Create LDAP auth_source for IDM with HTTPS.
+
+    :id: 7ff3daa4-2317-11ea-aeb8-d46d6dd3b5b2
+
+    :steps:
+        1. Create a new LDAP Auth source with IDM and HTTPS, provide organization and
+           location information.
+        2. Fill in all the fields appropriately for IDM.
+        3. Login with existing LDAP user present in IDM.
+
+    :BZ: 1785621
+
+    :expectedresults: LDAP auth source for IDM with HTTPS should be successful and LDAP login
+    should work as expected.
+    """
+    try:
+        idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, 'ipa/config/ca.crt')
+        local_path = settings.ipa.cert_path
+        file_downloader(file_url=idm_cert_path_url,
+                        local_path=local_path,
+                        file_name='ipa.crt',
+                        hostname=settings.server.hostname)
+        result = ssh.command('update-ca-trust extract && restorecon -R {}'.format(local_path))
+        if result.return_code != 0:
+            raise AssertionError('Failed to update and trust the certificate')
+        result = ssh.command('systemctl restart httpd')
+        if result.return_code != 0:
+            raise AssertionError('Failed to restart the httpd after applying IPA cert')
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        ldap_auth_name = gen_string('alphanumeric')
+        with session:
+            session.ldapauthentication.create({
+                'ldap_server.name': ldap_auth_name,
+                'ldap_server.host': ipa_data['ldap_ipa_hostname'],
+                'ldap_server.ldaps': True,
+                'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
+                'account.account_name': ipa_data['ldap_ipa_user_name'],
+                'account.password': ipa_data['ldap_ipa_user_passwd'],
+                'account.base_dn': ipa_data['ipa_base_dn'],
+                'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
+                'account.onthefly_register': True,
+                'attribute_mappings.login': LDAP_ATTR['login'],
+                'attribute_mappings.first_name': LDAP_ATTR['firstname'],
+                'attribute_mappings.last_name': LDAP_ATTR['surname'],
+                'attribute_mappings.mail': LDAP_ATTR['mail'],
+                'locations.resources.assigned': [loc.name],
+                'organizations.resources.assigned': [org.name]
+            })
+            session.organization.select(org_name=org.name)
+            session.location.select(loc_name=loc.name)
+            assert session.ldapauthentication.read_table_row(
+                ldap_auth_name)['Name'] == ldap_auth_name
+            ldap_source = session.ldapauthentication.read(ldap_auth_name)
+            assert ldap_source['ldap_server']['name'] == ldap_auth_name
+            assert ldap_source[
+                'ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
+            assert ldap_source['ldap_server']['port'] == '636'
+        username = 'foreman'
+        full_name = 'foreman katello'
+        with Session(
+                test_name,
+                username,
+                ipa_data['ldap_ipa_user_passwd'],
+        ) as ldapsession:
+            with raises(NavigationTriesExceeded):
+                ldapsession.usergroup.search('')
+            assert ldapsession.task.read_all()['current_user'] == full_name
+    finally:
+        ldap_tear_down()
 
 
 @tier2
