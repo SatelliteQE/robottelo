@@ -152,7 +152,7 @@ def test_positive_httpd_proxy_url_update(session, set_original_property_value):
     property_name = 'http_proxy'
     with session:
         set_original_property_value(property_name)
-        param_value = gen_url()
+        param_value = gen_url(scheme='https')
         session.settings.update(
             'name = {}'.format(property_name),
             param_value
