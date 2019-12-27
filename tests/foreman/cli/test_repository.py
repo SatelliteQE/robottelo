@@ -1695,7 +1695,7 @@ class RepositoryTestCase(CLITestCase):
             CUSTOM_FILE_REPO_FILES_COUNT + 1
         )
 
-    @pytest.mark.skip_if_open("BZ:1436209")
+    @pytest.mark.skip_if_open("BZ:1410916")
     @tier2
     def test_negative_restricted_user_cv_add_repository(self):
         """Attempt to add a product repository to content view with a
@@ -1703,7 +1703,7 @@ class RepositoryTestCase(CLITestCase):
 
         :id: 65792ae0-c5be-4a6c-9062-27dc03b83e10
 
-        :BZ: 1436209
+        :BZ: 1436209,1410916
 
         :Steps:
             1. Setup a restricted user with permissions that filter the
