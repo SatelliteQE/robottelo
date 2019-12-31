@@ -54,6 +54,30 @@ if not setting_is_set('ldap'):
     skip('skipping tests due to missing ldap settings', allow_module_level=True)
 
 
+def set_certificate_in_satellite(server_type):
+    """update the cert settings in satellite based on type of ldap server"""
+    if server_type == 'IPA':
+        idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, 'ipa/config/ca.crt')
+        file_downloader(file_url=idm_cert_path_url,
+                        local_path=CERT_PATH,
+                        file_name='ipa.crt',
+                        hostname=settings.server.hostname)
+    elif server_type == 'AD':
+        command = 'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
+        ssh.command(command.format(settings.ldap.password, settings.ldap.hostname))
+        result = ssh.command('cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {}'.
+                             format(CERT_PATH))
+        if result.return_code != 0:
+            raise AssertionError('Failed to copy the AD server certificate at right path')
+    result = ssh.command('update-ca-trust extract && restorecon -R {}'.format(CERT_PATH))
+    if result.return_code != 0:
+        raise AssertionError('Failed to update and trust the certificate')
+    result = ssh.command('systemctl restart httpd')
+    if result.return_code != 0:
+        raise AssertionError('Failed to restart the httpd after applying {} '
+                             'cert'.format(server_type))
+
+
 @fixture(scope='module')
 def ldap_data():
     return {
@@ -371,17 +395,7 @@ def test_positive_create_with_idm_https(session, test_name, ipa_data):
     :expectedresults: LDAP auth source for IDM with HTTPS should be successful and LDAP login
         should work as expected.
     """
-    idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, 'ipa/config/ca.crt')
-    file_downloader(file_url=idm_cert_path_url,
-                    local_path=CERT_PATH,
-                    file_name='ipa.crt',
-                    hostname=settings.server.hostname)
-    result = ssh.command('update-ca-trust extract && restorecon -R {}'.format(CERT_PATH))
-    if result.return_code != 0:
-        raise AssertionError('Failed to update and trust the certificate')
-    result = ssh.command('systemctl restart httpd')
-    if result.return_code != 0:
-        raise AssertionError('Failed to restart the httpd after applying IPA cert')
+    set_certificate_in_satellite(server_type='IPA')
     org = entities.Organization().create()
     loc = entities.Location().create()
     ldap_auth_name = gen_string('alphanumeric')
@@ -422,6 +436,65 @@ def test_positive_create_with_idm_https(session, test_name, ipa_data):
         with raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
         assert ldapsession.task.read_all()['current_user'] == full_name
+
+
+@ldap_wrapper
+@destructive
+def test_positive_create_with_ad_https(session, test_name, ldap_data):
+    """Create LDAP auth_source for AD with HTTPS.
+
+    :id: 739a82a2-2b01-11ea-93ea-398446a2b98f
+
+    :steps:
+        1. Create a new LDAP Auth source with AD and HTTPS, provide organization and
+           location information.
+        2. Fill in all the fields appropriately for AD.
+        3. Login with existing LDAP user present in AD.
+
+    :BZ: 1785621
+
+    :expectedresults: LDAP auth source for AD with HTTPS should be successful and LDAP login
+        should work as expected.
+    """
+    set_certificate_in_satellite(server_type='AD')
+    org = entities.Organization().create()
+    loc = entities.Location().create()
+    ldap_auth_name = gen_string('alphanumeric')
+    with session:
+        session.ldapauthentication.create({
+            'ldap_server.name': ldap_auth_name,
+            'ldap_server.host': ldap_data['ldap_hostname'],
+            'ldap_server.ldaps': True,
+            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
+            'account.account_name': ldap_data['ldap_user_name'],
+            'account.password': ldap_data['ldap_user_passwd'],
+            'account.base_dn': ldap_data['base_dn'],
+            'account.groups_base_dn': ldap_data['group_base_dn'],
+            'account.onthefly_register': True,
+            'attribute_mappings.login': LDAP_ATTR['login_ad'],
+            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
+            'attribute_mappings.last_name': LDAP_ATTR['surname'],
+            'attribute_mappings.mail': LDAP_ATTR['mail'],
+            'locations.resources.assigned': [loc.name],
+            'organizations.resources.assigned': [org.name]
+        })
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
+        assert session.ldapauthentication.read_table_row(
+            ldap_auth_name)['Name'] == ldap_auth_name
+        ldap_source = session.ldapauthentication.read(ldap_auth_name)
+        assert ldap_source['ldap_server']['name'] == ldap_auth_name
+        assert ldap_source[
+            'ldap_server']['host'] == ldap_data['ldap_hostname']
+        assert ldap_source['ldap_server']['port'] == '636'
+    with Session(
+            test_name,
+            settings.ldap.username,
+            ldap_data['ldap_user_passwd'],
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.usergroup.search('')
+        assert ldapsession.task.read_all()['current_user'] == settings.ldap.username
 
 
 @ldap_wrapper
