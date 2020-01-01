@@ -63,7 +63,7 @@ def set_certificate_in_satellite(server_type):
                         file_name='ipa.crt',
                         hostname=settings.server.hostname)
     elif server_type == 'AD':
-        command = 'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
+        command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
         ssh.command(command.format(settings.ldap.password, settings.ldap.hostname))
         result = ssh.command('cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {}'.
                              format(CERT_PATH))

@@ -24,6 +24,7 @@ from robottelo.cli.factory import (
     make_usergroup_external,
     make_usergroup
 )
+from robottelo.cli.auth import Auth
 from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.role import Role
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
@@ -32,7 +33,7 @@ from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1, tier2, tier3, upgrade
 from robottelo.test import CLITestCase
-from robottelo.cli.auth import Auth
+
 
 
 @run_in_one_thread
@@ -267,7 +268,7 @@ class IPAAuthSourceTestCase(CLITestCase):
     def test_usergroup_with_usergroup_sync(self):
         """Verify the usergroup-sync functionality in Ldap Auth Source
 
-        :id: c905eb80-2bd0-11ea-abc3-ddb7dbb3c930
+        :id: 2b63e886-2c53-11ea-9da5-db3ae0527554
 
         :expectedresults: external user-group sync works as expected automatically
             based on user-sync
