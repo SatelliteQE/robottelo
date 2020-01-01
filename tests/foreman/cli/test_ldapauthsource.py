@@ -35,7 +35,6 @@ from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1, tier
 from robottelo.test import CLITestCase
 
 
-
 @run_in_one_thread
 class LDAPAuthSourceTestCase(CLITestCase):
     """Implements Active Directory feature tests in CLI"""
@@ -101,21 +100,21 @@ class LDAPAuthSourceTestCase(CLITestCase):
 class IPAAuthSourceTestCase(CLITestCase):
     """Implements FreeIPA ldap auth feature tests in CLI"""
 
-    def _add_user_in_IPA(self, member_username, member_group):
+    def _add_user_in_IPA_usergroup(self, member_username, member_group):
         ssh.command('echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
                     hostname=self.ldap_ipa_hostname)
         ssh.command('ipa group-add-member {} --users={}'.format(member_group,
                                                                 member_username),
                     hostname=self.ldap_ipa_hostname)
 
-    def _remove_user_in_IPA(self, member_username, member_group):
+    def _remove_user_in_IPA_usergroup(self, member_username, member_group):
         ssh.command('echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
                     hostname=self.ldap_ipa_hostname)
         result = ssh.command('ipa group-remove-member {} --users={}'.format(member_group,
                                                                             member_username),
                              hostname=self.ldap_ipa_hostname)
         if result.return_code != 0:
-            raise AssertionError('failed to remove the user into user-group')
+            raise AssertionError('failed to remove the user from user-group')
 
     def _clean_up_previous_ldap(self):
         """clean up the all ldap settings user, usergroup and ldap delete"""
@@ -222,7 +221,7 @@ class IPAAuthSourceTestCase(CLITestCase):
         auth_source = LDAPAuthSource.info({u'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
-        self._add_user_in_IPA(member_username, member_group)
+        self._add_user_in_IPA_usergroup(member_username, member_group)
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
         ext_user_group = make_usergroup_external({
@@ -252,7 +251,7 @@ class IPAAuthSourceTestCase(CLITestCase):
         assert user_group['users'][0] == member_username
 
         # Removing User in IPA UserGroup
-        self._remove_user_in_IPA(member_username, member_group)
+        self._remove_user_in_IPA_usergroup(member_username, member_group)
         with self.assertNotRaises(CLIReturnCodeError):
             UserGroupExternal.refresh({
                 'user-group-id': user_group['id'],
@@ -300,7 +299,7 @@ class IPAAuthSourceTestCase(CLITestCase):
         auth_source = LDAPAuthSource.info({u'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
-        self._add_user_in_IPA(member_username, member_group)
+        self._add_user_in_IPA_usergroup(member_username, member_group)
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
         ext_user_group = make_usergroup_external({
@@ -323,7 +322,7 @@ class IPAAuthSourceTestCase(CLITestCase):
         assert user_group['users'][0] == member_username
 
         # Removing User in IPA UserGroup
-        self._remove_user_in_IPA(member_username, member_group)
+        self._remove_user_in_IPA_usergroup(member_username, member_group)
         with self.assertRaises(CLIReturnCodeError) as error:
             Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
         assert 'Missing one of the required permissions' in error.exception.message
