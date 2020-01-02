@@ -16,6 +16,7 @@
 :Upstream: No
 """
 import random
+import pytest
 
 from fauxfactory import gen_string
 from nailgun import client, entities
@@ -65,12 +66,34 @@ API_PATHS = {
         u'/katello/api/activation_keys/:id/releases',
         u'/katello/api/activation_keys/:id/remove_subscriptions',
     ),
+    u'ansible_collections': (
+        u'/katello/api/ansible_collections/compare',
+        u'/katello/api/ansible_collections/:id',
+    ),
+    u'ansible_inventories': (
+        u'/api/ansible_inventories/hosts',
+        u'/api/ansible_inventories/schedule',
+    ),
+    u'ansible_override_values': (
+        u'/ansible/api/ansible_override_values',
+        u'/ansible/api/ansible_override_values/:id',
+    ),
     u'ansible_roles': (
         u'/ansible/api/ansible_roles',
         u'/ansible/api/ansible_roles/:id',
         u'/ansible/api/ansible_roles/:id',
+        u'/ansible/api/ansible_roles/fetch',
         u'/ansible/api/ansible_roles/import',
         u'/ansible/api/ansible_roles/obsolete',
+    ),
+    u'ansible_variables': (
+        u'/ansible/api/ansible_variables/:id',
+        u'/ansible/api/ansible_variables',
+        u'/ansible/api/ansible_variables/:id',
+        u'/ansible/api/ansible_variables',
+        u'/ansible/api/ansible_variables/:id',
+        u'/ansible/api/ansible_variables/import',
+        u'/ansible/api/ansible_variables/obsolete',
     ),
     u'api': (),
     u'architectures': (
@@ -114,8 +137,8 @@ API_PATHS = {
     ),
     u'autosign': (
         u'/api/smart_proxies/:smart_proxy_id/autosign',
+        u'/api/smart_proxies/:smart_proxy_id/autosign',
         u'/api/smart_proxies/:smart_proxy_id/autosign/:id',
-        u'/api/smart_proxies/smart_proxy_id/autosign',
     ),
     u'base': (),
     u'bookmarks': (
@@ -124,6 +147,10 @@ API_PATHS = {
         u'/api/bookmarks/:id',
         u'/api/bookmarks/:id',
         u'/api/bookmarks/:id',
+    ),
+    u'candlepin_dynflow_proxy': (
+        u'/katello/api/consumers/:id/profiles',
+        u'/katello/api/systems/:id/deb_package_profile',
     ),
     u'candlepin_proxies': (
         u'/katello/api/consumers/:id/tracer',
@@ -152,6 +179,8 @@ API_PATHS = {
     u'compute_attributes': (
         u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
         u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
+        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
+        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id'
     ),
     u'compute_profiles': (
         u'/api/compute_profiles',
@@ -178,6 +207,8 @@ API_PATHS = {
         u'/api/compute_resources/:id/available_storage_pods',
         u'/api/compute_resources/:id/available_zones',
         u'/api/compute_resources/:id/refresh_cache',
+        u'/api/compute_resources/:id/storage_domains/:storage_domain_id',
+        u'/api/compute_resources/:id/storage_pods/:storage_pod_id'
     ),
     u'configs': (
         u'/foreman_virt_who_configure/api/v2/configs',
@@ -266,19 +297,12 @@ API_PATHS = {
         u'/katello/api/organizations/:organization_id/content_views',
         u'/katello/api/organizations/:organization_id/content_views',
     ),
-    u'containers': (
-        u'/docker/api/v2/containers',
-        u'/docker/api/v2/containers',
-        u'/docker/api/v2/containers/:id',
-        u'/docker/api/v2/containers/:id',
-        u'/docker/api/v2/containers/:id/logs',
-        u'/docker/api/v2/containers/:id/power',
-    ),
     u'content_view_histories': (
         u'/katello/api/content_views/:id/history',
     ),
     u'content_view_versions': (
         u'/katello/api/content_view_versions',
+        u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id',
         u'/katello/api/content_view_versions/:id/export',
@@ -382,6 +406,8 @@ API_PATHS = {
     u'foreman_tasks': (
         u'/foreman_tasks/api/tasks',
         u'/foreman_tasks/api/tasks/:id',
+        u'/foreman_tasks/api/tasks/:id/details',
+        u'/foreman_tasks/api/tasks/:id/sub_tasks',
         u'/foreman_tasks/api/tasks/bulk_resume',
         u'/foreman_tasks/api/tasks/bulk_search',
         u'/foreman_tasks/api/tasks/callback',
@@ -416,6 +442,12 @@ API_PATHS = {
         u'/katello/api/host_collections/:id/copy',
         u'/katello/api/host_collections/:id/remove_hosts',
     ),
+    u'host_debs': (
+        u'/api/hosts/:host_id/debs',
+    ),
+    u'host_module_streams': (
+        u'/api/hosts/:host_id/module_streams',
+    ),
     u'host_subscriptions': (
         u'/api/hosts/:host_id/subscriptions',
         u'/api/hosts/:host_id/subscriptions',
@@ -437,34 +469,40 @@ API_PATHS = {
     ),
     u'hostgroups': (
         u'/api/hostgroups',
+        u'/api/hostgroups/:id',
         u'/api/hostgroups',
         u'/api/hostgroups/:id',
         u'/api/hostgroups/:id',
-        u'/api/hostgroups/:id',
         u'/api/hostgroups/:id/clone',
-        u'/api/hostgroups/play_roles',
-        u'/api/hostgroups/:id/play_roles',
         u'/api/hostgroups/:id/rebuild_config',
+        u'/api/hostgroups/:id/play_roles',
+        u'/api/hostgroups/multiple_play_roles',
+        u'/api/hostgroups/:id/ansible_roles',
+        u'/api/hostgroups/:id/assign_ansible_roles'
     ),
     u'hosts': (
         u'/api/hosts',
-        u'/api/hosts',
-        u'/api/hosts/:host_id/host_collections',
         u'/api/hosts/:id',
+        u'/api/hosts',
         u'/api/hosts/:id',
         u'/api/hosts/:id',
         u'/api/hosts/:id/enc',
-        u'/api/hosts/:id/boot',
-        u'/api/hosts/:id/disassociate',
-        u'/api/hosts/:id/play_roles',
-        u'/api/hosts/:id/power',
-        u'/api/hosts/:id/rebuild_config',
         u'/api/hosts/:id/status',
         u'/api/hosts/:id/status/:type',
-        u'/api/hosts/:id/template/:kind',
         u'/api/hosts/:id/vm_compute_attributes',
+        u'/api/hosts/:id/disassociate',
+        u'/api/hosts/:id/power',
+        u'/api/hosts/:id/power',
+        u'/api/hosts/:id/boot',
         u'/api/hosts/facts',
-        u'/api/hosts/play_roles',
+        u'/api/hosts/:id/rebuild_config',
+        u'/api/hosts/:id/template/:kind',
+        u'/api/hosts/:id/play_roles',
+        u'/api/hosts/multiple_play_roles',
+        u'/api/hosts/:id/ansible_roles',
+        u'/api/hosts/:id/assign_ansible_roles',
+        u'/api/hosts/:host_id/host_collections',
+        u'/api/hosts/:id/policies_enc'
     ),
     u'hosts_bulk_actions': (
         u'/api/hosts/bulk/add_host_collections',
@@ -477,6 +515,7 @@ API_PATHS = {
         u'/api/hosts/bulk/environment_content_view',
         u'/api/hosts/bulk/install_content',
         u'/api/hosts/bulk/installable_errata',
+        u'/api/hosts/bulk/module_streams',
         u'/api/hosts/bulk/release_version',
         u'/api/hosts/bulk/remove_content',
         u'/api/hosts/bulk/remove_host_collections',
@@ -522,6 +561,7 @@ API_PATHS = {
         u'/api/job_invocations/:id',
         u'/api/job_invocations/:id/cancel',
         u'/api/job_invocations/:id/hosts/:host_id',
+        u'/api/job_invocations/:id/hosts/:host_id/raw',
         u'/api/job_invocations/:id/rerun',
     ),
     u'job_templates': (
@@ -566,6 +606,10 @@ API_PATHS = {
         u'/api/models/:id',
         u'/api/models/:id',
         u'/api/models/:id',
+    ),
+    u'module_streams': (
+        u'/katello/api/module_streams/compare',
+        u'/katello/api/module_streams/:id'
     ),
     u'operatingsystems': (
         u'/api/operatingsystems',
@@ -638,6 +682,8 @@ API_PATHS = {
     u'ping': (
         u'/katello/api/ping',
         u'/katello/api/status',
+        u'/api/ping',
+        u'/api/statuses',
     ),
     u'plugins': (
         u'/api/plugins',
@@ -653,6 +699,7 @@ API_PATHS = {
     ),
     u'products_bulk_actions': (
         u'/katello/api/products/bulk/destroy',
+        u'/katello/api/products/bulk/http_proxy',
         u'/katello/api/products/bulk/sync_plan',
     ),
     u'products': (
@@ -708,14 +755,8 @@ API_PATHS = {
     u'recurring_logics': (
         u'/foreman_tasks/api/recurring_logics',
         u'/foreman_tasks/api/recurring_logics/:id',
-        u'/foreman_tasks/api/recurring_logics/:id/cancel',
-    ),
-    u'registries': (
-        u'/docker/api/v2/registries',
-        u'/docker/api/v2/registries',
-        u'/docker/api/v2/registries/:id',
-        u'/docker/api/v2/registries/:id',
-        u'/docker/api/v2/registries/:id',
+        u'/foreman_tasks/api/recurring_logics/:id',
+        u'/foreman_tasks/api/recurring_logics/:id/cancel'
     ),
     u'remote_execution_features': (
         '/api/remote_execution_features',
@@ -728,6 +769,19 @@ API_PATHS = {
         u'/api/reports',
         u'/api/reports/:id',
         u'/api/reports/:id',
+    ),
+    u'report_templates': (
+        u'/api/report_templates',
+        u'/api/report_templates/:id',
+        u'/api/report_templates',
+        u'/api/report_templates/import',
+        u'/api/report_templates/:id',
+        u'/api/report_templates/:id',
+        u'/api/report_templates/:id/clone',
+        u'/api/report_templates/:id/export',
+        u'/api/report_templates/:id/generate',
+        u'/api/report_templates/:id/schedule_report',
+        u'/api/report_templates/:id/report_data/:job_id',
     ),
     u'repositories_bulk_actions': (
         u'/katello/api/repositories/bulk/destroy',
@@ -748,11 +802,11 @@ API_PATHS = {
         u'/katello/api/repositories/repository_types',
     ),
     u'repository_sets': (
-        u'/katello/api/products/:product_id/repository_sets',
-        u'/katello/api/products/:product_id/repository_sets/:id',
-        u'/katello/api/products/:product_id/repository_sets/:id/available_repositories',
-        u'/katello/api/products/:product_id/repository_sets/:id/disable',
-        u'/katello/api/products/:product_id/repository_sets/:id/enable',
+        u'/katello/api/repository_sets',
+        u'/katello/api/repository_sets/:id',
+        u'/katello/api/repository_sets/:id/available_repositories',
+        u'/katello/api/repository_sets/:id/disable',
+        u'/katello/api/repository_sets/:id/enable',
     ),
     u'roles': (
         u'/api/roles',
@@ -796,6 +850,10 @@ API_PATHS = {
         u'/api/smart_variables/:id',
         u'/api/smart_variables/:id',
         u'/api/smart_variables/:id',
+    ),
+    u'srpms': (
+        u'/katello/api/srpms/:id',
+        u'/katello/api/srpms/compare',
     ),
     u'ssh_keys': (
         u'/api/users/:user_id/ssh_keys',
@@ -882,6 +940,12 @@ API_PATHS = {
     u'template_kinds': (
         u'/api/template_kinds',
     ),
+    u'trends': (
+        u'/api/trends',
+        u'/api/trends/:id',
+        u'/api/trends',
+        u'/api/trends/:id',
+    ),
     u'upstream_subscriptions': (
         u'/katello/api/organizations/:organization_id/upstream_subscriptions',
         u'/katello/api/organizations/:organization_id/upstream_subscriptions',
@@ -897,10 +961,11 @@ API_PATHS = {
     ),
     u'users': (
         u'/api/users',
+        u'/api/users/:id',
+        u'/api/current_user',
         u'/api/users',
         u'/api/users/:id',
-        u'/api/users/:id',
-        u'/api/users/:id',
+        u'/api/users/:id'
     ),
 }
 
@@ -954,14 +1019,12 @@ class AvailableURLsTestCase(TestCase):
         api_paths = response.json()['links']
         for group, path_pairs in api_paths.items():
             api_paths[group] = list(path_pairs.values())
-
         self.assertEqual(
             frozenset(api_paths.keys()),
             frozenset(API_PATHS.keys())
         )
         for group in api_paths.keys():
             self.assertItemsEqual(api_paths[group], API_PATHS[group], group)
-
         # (line-too-long) pylint:disable=C0301
         # response.json()['links'] is a dict like this:
         #
@@ -1064,6 +1127,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             u'Not all services seem to be up and running!'
         )
 
+    @pytest.mark.skip_if_open("BZ:1787147")
     @skip_if_not_set('compute_resources')
     @tier4
     @upgrade

@@ -17,6 +17,7 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 :Upstream: No
 """
+import pytest
 import time
 
 from random import choice
@@ -469,7 +470,7 @@ class TemplateSyncTestCase(APITestCase):
         filtered_imported_templates = entities.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
-                'branch': 'master',
+                'branch': 'automation',
                 'filter': 'robottelo',
                 'organization_id': org.id,
                 'prefix': org.name
@@ -477,25 +478,31 @@ class TemplateSyncTestCase(APITestCase):
         imported_count = [
             template['imported'] for template in filtered_imported_templates[
                 'message']['templates']].count(True)
-        self.assertEqual(imported_count, 7)
+        self.assertEqual(imported_count, 8)
         ptemplates = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 1000,
+                'per_page': 100,
                 'search': 'name~robottelo',
                 'organization_id': org.id})
         self.assertEqual(len(ptemplates), 5)
         ptables = entities.PartitionTable().search(
             query={
-                'per_page': 1000,
+                'per_page': 100,
                 'search': 'name~robottelo',
                 'organization_id': org.id})
         self.assertEqual(len(ptables), 1)
         jtemplates = entities.JobTemplate().search(
             query={
-                'per_page': 1000,
+                'per_page': 100,
                 'search': 'name~robottelo',
                 'organization_id': org.id})
         self.assertEqual(len(jtemplates), 1)
+        rtemplates = entities.ReportTemplate().search(
+            query={
+                'per_page': 10,
+                'search': 'name~robottelo',
+                'organization_id': org.id})
+        self.assertEqual(len(rtemplates), 1)
 
     @tier2
     def test_negative_import_filtered_templates_from_git(self):
@@ -520,7 +527,7 @@ class TemplateSyncTestCase(APITestCase):
         filtered_imported_templates = entities.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
-                'branch': 'master',
+                'branch': 'automation',
                 'filter': 'robottelo',
                 'organization_id': org.id,
                 'prefix': org.name,
@@ -529,25 +536,31 @@ class TemplateSyncTestCase(APITestCase):
         not_imported_count = [
             template['imported'] for template in filtered_imported_templates[
                 'message']['templates']].count(False)
-        self.assertEqual(not_imported_count, 7)
+        self.assertEqual(not_imported_count, 8)
         ptemplates = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 1000,
+                'per_page': 100,
                 'search': 'name~jenkins',
                 'organization_id': org.id})
         self.assertEqual(len(ptemplates), 6)
         ptables = entities.PartitionTable().search(
             query={
-                'per_page': 1000,
+                'per_page': 100,
                 'search': 'name~jenkins',
                 'organization_id': org.id})
         self.assertEqual(len(ptables), 1)
         jtemplates = entities.JobTemplate().search(
             query={
-                'per_page': 1000,
+                'per_page': 100,
                 'search': 'name~jenkins',
                 'organization_id': org.id})
         self.assertEqual(len(jtemplates), 1)
+        rtemplates = entities.ReportTemplate().search(
+            query={
+                'per_page': 100,
+                'search': 'name~jenkins',
+                'organization_id': org.id})
+        self.assertEqual(len(rtemplates), 1)
 
     @stubbed()
     @tier2
@@ -699,14 +712,14 @@ class TemplateSyncTestCase(APITestCase):
         all_imported_templates = entities.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
-                'branch': 'master',
+                'branch': 'automation',
                 'organization_id': org.id,
                 'prefix': org.name
             })
         imported_count = [
             template['imported'] for template in all_imported_templates[
                 'message']['templates']].count(True)
-        self.assertEqual(imported_count, 16)  # Total Count
+        self.assertEqual(imported_count, 18)  # Total Count
         # Export some filtered templates to local dir
         dir_name = 'test-b7c98b75-4dd1-4b6a-b424-35b0f48c25db'
         dir_path = self.create_import_export_local_directory(dir_name)
@@ -716,10 +729,10 @@ class TemplateSyncTestCase(APITestCase):
                 'organization_ids': [org.id],
                 'filter': 'robottelo'
             })
-        self.assertEqual(len(exported_temps['message']['templates']), 7)
+        self.assertEqual(len(exported_temps['message']['templates']), 8)
         self.assertEqual(
             ssh.command(
-                'find {} -type f | wc -l'.format(dir_path)).stdout[0], '7')
+                'find {} -type f | wc -l'.format(dir_path)).stdout[0], '8')
 
     @stubbed()
     @tier2
@@ -1229,6 +1242,7 @@ class TemplateSyncTestCase(APITestCase):
             'Failed to parse metadata',
             template['message']['templates'][0]['additional_errors'])
 
+    @pytest.mark.skip_if_open('BZ:1787355')
     @tier2
     def test_positive_import_json_output_filtered_skip_message(self):
         """Assert template imports output returns template import skipped info
@@ -1404,14 +1418,14 @@ class TemplateSyncTestCase(APITestCase):
         imported_templates = entities.Template().imports(
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
-                'branch': 'master',
+                'branch': 'automation',
                 'organization_id': org.id,
                 'prefix': org.name
             })
         imported_count = [
             template['imported'] for template in imported_templates[
                 'message']['templates']].count(True)
-        self.assertEqual(imported_count, 16)  # Total Count
+        self.assertEqual(imported_count, 18)  # Total Count
         # Export some filtered templates to local dir
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
@@ -1421,7 +1435,7 @@ class TemplateSyncTestCase(APITestCase):
                 'organization_ids': [org.id],
                 'filter': org.name
             })
-        self.assertEqual(len(exported_temps['message']['templates']), 16)
+        self.assertEqual(len(exported_temps['message']['templates']), 18)
         self.assertIn('name', exported_temps['message']['templates'][0].keys())
         self.assertEqual(
             ssh.command(
@@ -1434,6 +1448,10 @@ class TemplateSyncTestCase(APITestCase):
         self.assertEqual(
             ssh.command(
                 '[ -d {}/provisioning_templates ]'.format(dir_path)
+            ).return_code, 0)
+        self.assertEqual(
+            ssh.command(
+                '[ -d {}/report_templates ]'.format(dir_path)
             ).return_code, 0)
 
     @tier3
