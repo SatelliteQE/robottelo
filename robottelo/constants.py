@@ -77,6 +77,7 @@ _abcs = dict.fromkeys(
 )
 _zones_combo = {**_bcds, **_abcfs, **_abcs}
 VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
+LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'

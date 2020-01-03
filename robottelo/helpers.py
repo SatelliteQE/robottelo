@@ -24,8 +24,9 @@ from robottelo.config import settings
 from robottelo.constants import (
     PULP_PUBLISHED_YUM_REPOS_PATH,
     RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION
 )
+from robottelo.errors import GCECertNotFoundError
 from robottelo.issue_handlers import bugzilla
 
 LOGGER = logging.getLogger(__name__)
@@ -1077,3 +1078,10 @@ def _handle_version(key, value):  # pragma: no cover
             for item in value
         ]
     return value
+
+
+def download_gce_cert(gce_cert_url, gce_cert_path):
+    ssh.command('curl {0} -o {1}'.format(gce_cert_url, gce_cert_path))
+    if ssh.command('[ -f {} ]'.format(gce_cert_path)).return_code != 0:
+        raise GCECertNotFoundError(
+            "The GCE certificate {} is not found in satellite.".format(gce_cert_path))

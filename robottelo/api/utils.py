@@ -994,3 +994,18 @@ def create_org_admin_user(orgs, locs):
     ).create()
     user.passwd = user_passwd
     return user
+
+
+def skip_yum_update_during_provisioning(template=None, reverse=False):
+    """Hides the yum update command with echo text
+
+    :param str template: The template name where the yum update will be hidden
+    :param bool reverse: Reverses the echo text to yum update
+    :return: Boolean True on success else exception
+    """
+    old = 'yum -t -y update'
+    new = 'echo "Yum update skipped for faster automation testing"'
+    if not reverse:
+        return update_provisioning_template(name=template, old=old, new=new)
+    else:
+        return update_provisioning_template(name=template, old=new, new=old)
