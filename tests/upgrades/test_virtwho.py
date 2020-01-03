@@ -24,6 +24,7 @@ from robottelo.virtwho_utils import (
     get_configure_command,
     get_configure_file,
     get_configure_option,
+    get_hypervisor_info
 )
 from upgrade_tests import pre_upgrade, post_upgrade
 from wait_for import wait_for
@@ -55,7 +56,7 @@ class scenario_positive_virt_who(APITestCase):
         cls.vdc_physical = settings.virtwho.sku_vdc_physical
         cls.vdc_virtual = settings.virtwho.sku_vdc_virtual
 
-        cls.name = gen_string('alpha')
+        cls.name = 'preupgrade_virt_who'
 
     def _make_virtwho_configure(self):
         args = {
@@ -118,12 +119,12 @@ class scenario_positive_virt_who(APITestCase):
             entities.VirtWhoConfig().search(
                 query={'search': 'name={}'.format(self.name)})[0].status,
             'ok')
-        self.hosts = [
+        hosts = [
             (hypervisor_name, 'product_id={} and type=NORMAL'.format(
                 self.vdc_physical)),
             (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
                 self.vdc_physical))]
-        for hostname, sku in self.hosts:
+        for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
                 subscriptions = entities.Subscription().search(
                     query={'search': '{0}'.format(sku)})
@@ -170,7 +171,9 @@ class scenario_positive_virt_who(APITestCase):
         self.assertEqual(vhd.status, 'ok')
 
         # Vefify the connection of the guest on Content host
-        for hostname, sku in self.hosts:
+        hypervisor_name, guest_name = get_hypervisor_info()
+        hosts = [hypervisor_name, guest_name]
+        for hostname in hosts:
             result = entities.Host().search(
                 query={'search': '{0}'.format(hostname)})[0].read_json()
             self.assertEqual(

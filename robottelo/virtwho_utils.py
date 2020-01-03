@@ -389,3 +389,12 @@ def hypervisor_json_create(hypervisors, guests):
             })
         mapping[str(uuid.uuid4()).replace("-", ".")] = guest_list
     return mapping
+
+
+def get_hypervisor_info():
+    """
+    Get the hypervisor_name and guest_name from rhsm.log.
+    """
+    _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
+    hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+    return hypervisor_name, guest_name
