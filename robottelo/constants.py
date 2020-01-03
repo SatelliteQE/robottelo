@@ -1701,7 +1701,6 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'ContentCredential', 'controller': 'katello_gpg_keys',
-        'skip_for_ui': ['BZ:1638781']
     },
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
     {'name': 'ContentView', 'controller': 'katello_content_views'},
@@ -1745,7 +1744,7 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'DiscoveryRule', 'controller': 'discovery_rules',
-        'skip_for_ui': ['BZ:1387569'], 'setup': entities.DiscoveryRule
+        'skip_for_ui': True, 'setup': entities.DiscoveryRule
     },
     {
         'name': 'GlobalParameter', 'controller': 'common_parameters',
