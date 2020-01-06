@@ -1543,7 +1543,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
 @tier4
 @upgrade
 def test_positive_bulk_delete_host(session, module_loc):
-    """Delete a multiple hosts from the list
+    """Delete multiple hosts from the list
 
     :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
 
@@ -1568,13 +1568,13 @@ def test_positive_bulk_delete_host(session, module_loc):
             operatingsystem=host_template.operatingsystem,
             ptable=host_template.ptable,
         ).create().name
-        for _ in range(18)
+        for _ in range(3)
     ]
     with session:
         session.organization.select(org_name=org.name)
         values = session.host.read_all()
-        assert {host['Name'] for host in values['table']} == set(hosts_names)
-        session.host.delete_hosts(list(hosts_names))
+        assert len(hosts_names) == len(values['table'])
+        session.host.delete_hosts('All')
         values = session.host.read_all()
         assert not values['table']
 
