@@ -39,7 +39,7 @@ class scenario_positive_virt_who(APITestCase):
         2. Upgrade the satellite to next/latest version
         3. Postupgrade, Verify the virt-who config is intact, update and delete
 
-    :expectedresults: Virtwho config should create, update and delete successfully.
+    :expectedresults: Virtwho config should be created, updated and deleted successfully.
     """
     @classmethod
     @skip_if_not_set('virtwho')
@@ -127,13 +127,12 @@ class scenario_positive_virt_who(APITestCase):
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
                 subscriptions = entities.Subscription().search(
-                    query={'search': '{0}'.format(sku)})
+                    query={'search': sku})
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 vdc_id = self._get_guest_bonus(hypervisor_name, sku)
             host, time = wait_for(entities.Host().search,
-                                  func_args=(None, {
-                                      'search': "{0}".format(hostname)}),
+                                  func_args=(None, {'search': hostname}),
                                   fail_condition=[],
                                   timeout=5,
                                   delay=1)
@@ -142,7 +141,7 @@ class scenario_positive_virt_who(APITestCase):
                     'id': vdc_id,
                     'quantity': 1}]})
             result = entities.Host().search(
-                query={'search': '{0}'.format(hostname)})[0].read_json()
+                query={'search': hostname})[0].read_json()
             self.assertEqual(
                 result['subscription_status_label'],
                 'Fully entitled')
@@ -175,7 +174,7 @@ class scenario_positive_virt_who(APITestCase):
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = entities.Host().search(
-                query={'search': '{0}'.format(hostname)})[0].read_json()
+                query={'search': hostname})[0].read_json()
             self.assertEqual(
                 result['subscription_status_label'],
                 'Fully entitled')
