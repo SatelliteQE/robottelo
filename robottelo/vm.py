@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import six
+from wait_for import wait_for
 
 from fauxfactory import gen_string
 
@@ -397,7 +398,11 @@ gpgcheck=0'''.format(name, url)
             installed.
 
         """
-        self.run('yum install -y katello-agent')
+        wait_for(
+            lambda: self.run('yum install -y katello-agent').return_code == 0,
+            timeout=100,
+            delay=2,
+        )
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
