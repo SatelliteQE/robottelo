@@ -153,7 +153,7 @@ class scenario_positive_virt_who(APITestCase):
         :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
 
         :steps:
-            1. Postupgrade, Verify virt-who exists and has same status.
+            1. Post upgrade, Verify virt-who exists and has same status.
             2. Verify the connection of the guest on Content host.
             3. Verify the virt-who config-file exist.
             4. Update virt-who config with new name.
