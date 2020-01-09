@@ -50,6 +50,7 @@ import pytest
 
 TEMPLATE_FILE = u'template_file.txt'
 TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
+distros = settings.clients.distros
 
 
 @pytest.fixture(scope="module")
@@ -63,8 +64,7 @@ def fixture_org():
     return org
 
 
-@skip_if_not_set('clients')
-@pytest.fixture(params=settings.clients.distros, scope="module")
+@pytest.fixture(params=distros, scope="module")
 def fixture_vmsetup(request, fixture_org):
     """Create Org, Lifecycle Environment, Content View, Activation key,
     VM, install katello-ca, register it, add remote execution key
