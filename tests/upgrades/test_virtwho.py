@@ -155,16 +155,16 @@ class scenario_positive_virt_who(APITestCase):
         :steps:
             1. Post upgrade, Verify virt-who exists and has same status.
             2. Verify the connection of the guest on Content host.
-            3. Verify the virt-who config-file exist.
+            3. Verify the virt-who config-file exists.
             4. Update virt-who config with new name.
             5. Delete virt-who config.
 
         :expectedresults:
             1. virt-who config is intact post upgrade.
             2. the config and guest connection have the same status.
-            2. virt-who config should update and delete successfully.
+            3. virt-who config should update and delete successfully.
         """
-        # virt-who config exist and check status
+        # Post upgrade, Verify virt-who exists and has same status.
         vhd = entities.VirtWhoConfig().search(
             query={'search': 'name={}'.format(self.name)})[0]
         self.assertEqual(vhd.status, 'ok')
@@ -179,11 +179,11 @@ class scenario_positive_virt_who(APITestCase):
                 result['subscription_status_label'],
                 'Fully entitled')
 
-        # Verify the virt-who config-file exist.
+        # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
         get_configure_option('hypervisor_id', config_file),
 
-        # Update virt-who config after upgrade
+        # Update virt-who config
         modify_name = gen_string('alpha')
         vhd.name = modify_name
         vhd.update(['name'])
