@@ -1080,8 +1080,10 @@ def _handle_version(key, value):  # pragma: no cover
     return value
 
 
-def download_gce_cert(gce_cert_url, gce_cert_path):
-    ssh.command('curl {0} -o {1}'.format(gce_cert_url, gce_cert_path))
-    if ssh.command('[ -f {} ]'.format(gce_cert_path)).return_code != 0:
+def download_gce_cert():
+    ssh.command('curl {0} -o {1}'.format(settings.gce.cert_url, settings.gce.cert_path))
+    if ssh.command('[ -f {} ]'.format(settings.gce.cert_path)).return_code != 0:
         raise GCECertNotFoundError(
-            "The GCE certificate {} is not found in satellite.".format(gce_cert_path))
+            "The GCE certificate in path {} is not found in satellite.".format(
+                settings.gce.cert_path))
+    return download_server_file('json', settings.gce.cert_url)

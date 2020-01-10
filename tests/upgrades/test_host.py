@@ -58,7 +58,7 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
         cls.arch = entities.Architecture().search(query={'search': 'name=x86_64'})[0]
         cls.os = entities.OperatingSystem().search(
             query={'search': 'family=Redhat and major=7'})[0]
-        download_gce_cert(GCE_SETTINGS['cert_url'], GCE_SETTINGS['cert_path'])
+        download_gce_cert()
         cls.domain_name = settings.server.hostname.split('.', 1)[1]
 
     @classmethod
