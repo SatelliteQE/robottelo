@@ -80,7 +80,7 @@ class scenario_positive_virt_who(APITestCase):
 
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
         subscriptions = entities.Subscription().search(
-            query={'search': '{0}'.format(sku)})
+            query={'search': sku})
         for item in subscriptions:
             item = item.read_json()
             if hypervisor_name.lower() in item['hypervisor']['name']:
