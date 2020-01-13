@@ -212,6 +212,10 @@ def make_activation_key(options=None):
         u'organization-id': None,
         u'organization-label': None,
         u'unlimited-hosts': None,
+        u'service-level': None,
+        u'purpose-role': None,
+        u'purpose-usage': None,
+        u'purpose-addons': None,
     }
 
     return create_object(ActivationKey, args, options)
