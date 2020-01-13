@@ -69,7 +69,18 @@ class ActivationKeyTestCase(CLITestCase):
     def setUpClass(cls):
         """Tests for activation keys via Hammer CLI"""
         super(ActivationKeyTestCase, cls).setUpClass()
-        cls.org = make_org()
+        # syspurpose test will use cls org and manifest
+        cls.org = make_org(cached=True)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        try:
+            Subscription.upload({
+                u'file': manifest.filename,
+                u'organization-id': cls.org['id'],
+            })
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to upload manifest\n{0}'.format(err.msg))
 
     @staticmethod
     def get_default_env():
