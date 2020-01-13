@@ -59,6 +59,7 @@ from robottelo.decorators import (
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
+from robottelo.helpers import is_open
 
 
 class ActivationKeyTestCase(CLITestCase):
@@ -1148,6 +1149,50 @@ class ActivationKeyTestCase(CLITestCase):
                     u'id': activation_key['id'],
                 })
                 self.assertEqual(len(activation_key['host-collections']), 0)
+
+    @tier2
+    def test_create_ak_with_syspurpose_set(self):
+        """Test that an activation key can be created with system purpose values set.
+
+        :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
+
+        :Steps:
+            1. Create Activation key with system purpose values set
+            2. Read Activation key values and assert system purpose values are set
+            3. Clear AK system purpose values
+            4. Read the AK system purpose values and assert system purpose values are unset
+
+        :CaseImportance: Medium
+
+        :BZ: 1789028
+        """
+        # Requires Cls org and manifest. Manifest is for self-support values.
+        new_ak = self._make_activation_key({
+                    u'purpose-addons': "test-addon1, test-addon2",
+                    u'purpose-role': "test-role",
+                    u'purpose-usage': "test-usage",
+                    u'service-level': "Self-Support",
+                    u'organization-id': self.org['id'],
+                })
+        self.assertEqual(new_ak['system-purpose']['purpose-addons'], "test-addon1, test-addon2")
+        self.assertEqual(new_ak['system-purpose']['purpose-role'], "test-role")
+        self.assertEqual(new_ak['system-purpose']['purpose-usage'], "test-usage")
+        if not is_open('BZ:1789028'):
+            self.assertEqual(new_ak['system-purpose']['service-level'], "Self-Support")
+        # Check that system purpose values can be deleted.
+        ActivationKey.update({
+                    u'id': new_ak['id'],
+                    u'purpose-addons': '',
+                    u'purpose-role': '',
+                    u'purpose-usage': '',
+                    u'service-level': '',
+                    u'organization-id': self.org['id'],
+                })
+        updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': self.org['id']})
+        self.assertEqual(updated_ak['system-purpose']['purpose-addons'], '')
+        self.assertEqual(updated_ak['system-purpose']['purpose-role'], '')
+        self.assertEqual(updated_ak['system-purpose']['purpose-usage'], '')
+        self.assertEqual(updated_ak['system-purpose']['service-level'], '')
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
