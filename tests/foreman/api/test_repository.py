@@ -2161,7 +2161,10 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
     """These test are similar to the ones in ``DockerRepositoryTestCase``,
     but test with more container registries and registries that use
     really long (>255 or >1024)tokens for passwords.
-    These test require container registry configs in container_repo.yaml
+    These test require container registry configs in the
+    container_repo section of robottelo.yaml
+
+    :CaseComponent: ContainerManagement-Content
     """
 
     @classmethod
