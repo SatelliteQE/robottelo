@@ -1205,6 +1205,67 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(updated_ak['system-purpose']['purpose-usage'], '')
         self.assertEqual(updated_ak['system-purpose']['service-level'], '')
 
+    @tier2
+    def test_update_ak_with_syspurpose_values(self):
+        """Test that system purpose values can be added to an existing activation key
+        and can then be changed.
+
+        :id: db943c05-70f1-4385-9537-fe23368a9dfd
+
+        :Steps:
+
+            1. Create Activation key with no system purpose values set
+            2. Assert system purpose values are not set
+            3. Add system purpose values
+            4. Read the AK system purpose values and assert system purpose values are set
+            5. Update the system purpose values
+            6. Read the AK system purpose values and assert system purpose values have changed
+
+        :CaseImportance: Medium
+
+        :BZ: 1789028
+        """
+        # Requires Cls org and manifest. Manifest is for self-support values.
+        # Create an AK with no system purpose values set
+        new_ak = self._make_activation_key({
+                    u'organization-id': self.org['id'],
+                })
+        # Assert system purpose values are null after creating the AK and adding the manifest.
+        self.assertEqual(new_ak['system-purpose']['purpose-addons'], '')
+        self.assertEqual(new_ak['system-purpose']['purpose-role'], '')
+        self.assertEqual(new_ak['system-purpose']['purpose-usage'], '')
+        self.assertEqual(new_ak['system-purpose']['service-level'], '')
+        # Check that system purpose values can be added to an AK.
+        ActivationKey.update({
+                    u'id': new_ak['id'],
+                    u'purpose-addons': "test-addon1, test-addon2",
+                    u'purpose-role': "test-role1",
+                    u'purpose-usage': "test-usage1",
+                    u'service-level': "Self-Support",
+                    u'organization-id': self.org['id'],
+                })
+        updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': self.org['id']})
+        self.assertEqual(updated_ak['system-purpose']['purpose-addons'],
+                         "test-addon1, test-addon2")
+        self.assertEqual(updated_ak['system-purpose']['purpose-role'], "test-role1")
+        self.assertEqual(updated_ak['system-purpose']['purpose-usage'], "test-usage1")
+        self.assertEqual(updated_ak['system-purpose']['service-level'], "Self-Support")
+        # Check that system purpose values can be updated
+        ActivationKey.update({
+                    u'id': new_ak['id'],
+                    u'purpose-addons': "test-addon3, test-addon4",
+                    u'purpose-role': "test-role2",
+                    u'purpose-usage': "test-usage2",
+                    u'service-level': "Premium",
+                    u'organization-id': self.org['id'],
+                })
+        updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': self.org['id']})
+        self.assertEqual(updated_ak['system-purpose']['purpose-addons'],
+                         "test-addon3, test-addon4")
+        self.assertEqual(updated_ak['system-purpose']['purpose-role'], "test-role2")
+        self.assertEqual(updated_ak['system-purpose']['purpose-usage'], "test-usage2")
+        self.assertEqual(updated_ak['system-purpose']['service-level'], "Premium")
+
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
