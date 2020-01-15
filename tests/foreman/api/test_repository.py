@@ -36,6 +36,8 @@ from robottelo.constants import (
     DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
     FAKE_1_PUPPET_REPO,
+    FAKE_0_YUM_REPO_STRING_BASED_VERSIONS,
+    FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS,
     FAKE_2_YUM_REPO,
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
@@ -1293,6 +1295,13 @@ class RepositoryTestCase(APITestCase):
 class RepositorySyncTestCase(APITestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        super(RepositorySyncTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
+
     @tier2
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh(self):
@@ -1316,6 +1325,31 @@ class RepositorySyncTestCase(APITestCase):
             releasever=None,
         )
         entities.Repository(id=repo_id).sync()
+
+    @tier2
+    def test_positive_sync_yum_with_string_based_version(self):
+        """Sync Yum Repo with string based versions on update-info.
+
+        :id: 22eaef61-0fd9-4db0-abd7-433e23c2686d
+
+        :expectedresults: Synced repo should fetch the data successfully and
+         parse versions as string.
+
+        :CaseLevel: Integration
+
+        :BZ: 1741011
+        """
+        repository = entities.Repository(
+            url=FAKE_0_YUM_REPO_STRING_BASED_VERSIONS,
+            content_type=REPO_TYPE['yum'],
+            product=self.product,
+        ).create()
+        repository.sync()
+        repository = repository.read()
+
+        # This is not a subtest all the counts should match.
+        for key, count in FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS.items():
+            assert repository.content_counts[key] == count
 
     @stubbed
     @tier2
