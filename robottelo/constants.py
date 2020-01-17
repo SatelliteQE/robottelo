@@ -689,6 +689,17 @@ FAKE_0_PUPPET_MODULE = 'httpd'
 FAKE_PULP_REMOTE_FILEREPO = (
     u'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
 )
+
+FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
+    'https://repos.fedorapeople.org/pulp/pulp'
+    '/fixtures/rpm-string-version-updateinfo/'
+)
+FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {
+    'rpm': 35,
+    'package_group': 2,
+    'erratum': 4
+}
+
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
