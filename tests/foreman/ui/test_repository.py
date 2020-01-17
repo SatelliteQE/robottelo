@@ -868,7 +868,6 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @tier2
-@pytest.mark.skip_if_open("BZ:1776108")
 def test_positive_recommended_repos(session, module_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
@@ -895,5 +894,5 @@ def test_positive_recommended_repos(session, module_org):
         cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
         assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
-        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
+        assert REPOSET['rhae2'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)
