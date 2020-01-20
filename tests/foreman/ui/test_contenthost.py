@@ -166,8 +166,6 @@ def test_positive_end_to_end(session, repos_collection, vm):
                                                        'subscriptions'])
         session.contenthost.update(vm.hostname, {'repository_sets.limit_to_lce': True})
         ch_reposet = session.contenthost.read(vm.hostname, widget_names=['repository_sets'])
-        chost = {}
-        chost.update(chost)
         chost.update(ch_reposet)
         # Ensure all content host fields/tabs have appropriate values
         assert chost['details']['name'] == vm.hostname
