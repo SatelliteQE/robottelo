@@ -30,6 +30,7 @@ from robottelo.cli.task import Task
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.constants import (
+    DISTRO_DEFAULT,
     DISTRO_RHEL7,
     DISTRO_SLES11,
     DISTRO_SLES12,
@@ -50,7 +51,7 @@ import pytest
 
 TEMPLATE_FILE = u'template_file.txt'
 TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
-distros = settings.clients.distros
+distros = [DISTRO_DEFAULT]
 
 
 @pytest.fixture(scope="module")
