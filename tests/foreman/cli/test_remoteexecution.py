@@ -37,13 +37,11 @@ from robottelo.constants import (
     FAKE_0_YUM_REPO
 )
 from robottelo.decorators import (
-    skip_if_not_set,
     stubbed,
     tier3,
     upgrade
 )
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 from time import sleep
 
@@ -52,7 +50,6 @@ import pytest
 TEMPLATE_FILE = u'template_file.txt'
 TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
 distros = [DISTRO_DEFAULT]
-
 
 @pytest.fixture(scope="module")
 def fixture_org():
@@ -66,7 +63,7 @@ def fixture_org():
 
 
 @pytest.fixture(params=distros, scope="module")
-def fixture_vmsetup(request, fixture_org):
+def fixture_vmsetup(request, fixture_org, subnet_id=None, by_ip=True):
     """Create Org, Lifecycle Environment, Content View, Activation key,
     VM, install katello-ca, register it, add remote execution key
     """
@@ -85,6 +82,18 @@ def fixture_vmsetup(request, fixture_org):
         )
         assert client.subscribed
         add_remote_execution_ssh_key(client.ip_addr)
+        if subnet_id is not None:
+            Host.update({
+                'name': client.hostname,
+                'subnet-id': subnet_id,
+            })
+        if by_ip:
+            # connect to host by ip
+            Host.set_parameter({
+                'host': client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            })
         yield client
     finally:
         client._hostname = None
@@ -93,33 +102,6 @@ def fixture_vmsetup(request, fixture_org):
 
 class TestRemoteExecution():
     """Implements job execution tests in CLI."""
-
-    @stubbed()
-    @tier3
-    def test_positive_run_job_multiple_hosts_time_span(self):
-        """Run job against multiple hosts with time span setting
-
-        :id: 82d69069-0592-4083-8992-8969235cc8c9
-
-        :expectedresults: Verify the jobs were successfully distributed
-            across the specified time sequence
-        """
-        # currently it is not possible to get subtasks from
-        # a task other than via UI
-
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_run_job_multiple_hosts_concurrency(self):
-        """Run job against multiple hosts with concurrency-level
-
-        :id: 15639753-fe50-4e33-848a-04fe464947a6
-
-        :expectedresults: Verify the number of running jobs does comply
-            with the concurrency-level setting
-        """
-        # currently it is not possible to get subtasks from
-        # a task other than via UI
 
     @tier3
     def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup, fixture_org):
@@ -134,12 +116,6 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         command = "echo {0}".format(gen_string('alpha'))
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
@@ -175,12 +151,6 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
@@ -235,12 +205,6 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         template_name = gen_string('alpha', 7)
         make_job_template({
             u'organizations': self.org.name,
@@ -274,11 +238,6 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         with VirtualMachine(distro=DISTRO_RHEL7) as client2:
             client2.install_katello_ca()
             client2.register_contenthost(
@@ -320,12 +279,6 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
         repo = entities.Repository(
@@ -383,12 +336,6 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
             'inputs': 'command="ls"',
@@ -434,11 +381,6 @@ class TestRemoteExecution():
             system_current_time, '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime(
             "%Y-%m-%d %H:%M")
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
             'inputs': 'command="ls"',
@@ -494,12 +436,6 @@ class TestAnsibleREX():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
@@ -567,12 +503,6 @@ class TestAnsibleREX():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - Ansible Default',
             'inputs': 'command="ls"',
@@ -627,12 +557,6 @@ class TestAnsibleREX():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
         packages = ["cow"]
         # Create a custom repo
         repo = entities.Repository(
@@ -731,31 +655,6 @@ class TestAnsibleREX():
     @stubbed()
     @tier3
     @upgrade
-    def test_positive_run_puppet_job(self):
-        """Tests Ansible REX job can trigger puppet run successfully
-
-        :id: 7404991d-8832-422e-af66-9b21c7337a63
-
-        :Steps:
-
-            0. Create a VM and register to SAT and prepare for REX (ssh key)
-
-            1. Setup puppet-agent on a host
-
-            2. Run Ansible Puppet job for the host to trigger a new puppet run
-
-            3. Check the new puppet run occurred (logs)
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    @upgrade
     def test_positive_run_roles_galaxy_install_job(self):
         """Tests Ansible REX job installs roles from Galaxy successfully
 
@@ -791,63 +690,6 @@ class TestAnsibleREX():
             1. Run Ansible Git job for the proxy to install and import roles
 
             2. Check the roles are imported at the proxy
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-
-class AnsibleREXProvisionedTestCase(CLITestCase):
-    """Test class for remote execution via Ansible"""
-
-    @classmethod
-    @skip_if_not_set('clients')
-    def setUpClass(cls):
-        super(AnsibleREXProvisionedTestCase, cls).setUpClass()
-        cls.sat6_hostname = settings.server.hostname
-        # provision host here and tests will share the host, step 0. in tests
-
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_run_job_for_provisioned_host(self):
-        """Tests Ansible REX job runs successfully for a provisioned host
-
-        :id: 36de179b-d41f-4278-92d3-b748c3bfcbbc
-
-        :Steps:
-
-            0. Provision a host
-
-            1. Run job for the host
-
-            2. Check the run at the host
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_run_job_for_multiple_provisioned_hosts(self):
-        """Tests Ansible REX job runs successfully for multiple provisioned hosts
-
-        :id: 08ce6b2c-5385-48a4-8987-2815b3bd83b8
-
-        :Steps:
-
-            0. Provision two hosts
-
-            1. Run job for both hosts
-
-            2. Check the run at the hosts
 
         :expectedresults: multiple asserts along the code
 
