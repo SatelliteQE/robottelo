@@ -13,6 +13,9 @@ Robottelo
 .. image:: https://img.shields.io/pypi/l/robottelo.svg
   :target: https://pypi.org/project/robottelo
 
+.. image:: https://readthedocs.org/projects/robottelo/badge/?version=latest
+  :target: https://robottelo.readthedocs.io/en/latest/?badge=latest
+
 `Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
 automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
