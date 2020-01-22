@@ -15,31 +15,43 @@
 :Upstream: No
 """
 import pytest
+from robottelo import manifests
 from fauxfactory import gen_string
+from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.base import Base, CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_architecture,
+    make_activation_key,
+    make_content_view,
+    make_product,
+    make_repository,
     make_fake_host,
     make_filter,
     make_medium,
     make_os,
+    make_org,
     make_partition_table,
     make_role,
     make_report_template,
     make_template_input,
+    make_lifecycle_environment,
     make_user,
 )
 from robottelo.cli.filter import Filter
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
+from robottelo.cli.repository import Repository
 from robottelo.cli.report_template import ReportTemplate
 from robottelo.cli.user import User
 from robottelo.cli.settings import Settings
+from robottelo.cli.subscription import Subscription
 from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
     REPORT_TEMPLATE_FILE,
+    DISTRO_RHEL7
 )
 from robottelo.decorators import (
     stubbed,
@@ -48,8 +60,53 @@ from robottelo.decorators import (
     tier3,
 )
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
+from robottelo.ssh import upload_file
 
 
+@pytest.fixture(scope='class')
+def setup_content(request):
+    """Pytest fixture for setting up an organization, manifest, content-view,
+    lifecycle environment, and activation key with subscriptions"""
+    org = make_org()
+    with manifests.clone() as manifest:
+        upload_file(manifest.content, manifest.filename)
+    new_product = make_product({u'organization-id': org['id']})
+    new_repo = make_repository({u'product-id': new_product['id']})
+    Repository.synchronize({'id': new_repo['id']})
+    content_view = make_content_view({'organization-id': org['id']})
+    ContentView.add_repository({
+        u'id': content_view['id'],
+        u'organization-id': org['id'],
+        u'repository-id': new_repo['id'],
+    })
+    ContentView.publish({'id': content_view['id']})
+    env = make_lifecycle_environment({'organization-id': org['id']})
+    cvv = ContentView.info({'id': content_view['id']})['versions'][0]
+    ContentView.version_promote({
+        'id': cvv['id'],
+        'to-lifecycle-environment-id': env['id'],
+    })
+    new_ak = make_activation_key({
+        'lifecycle-environment-id': env['id'],
+        'content-view': content_view['name'],
+        'organization-id': org['id'],
+        'auto-attach': False,
+    })
+    subs_id = Subscription.list(
+        {'organization-id': org['id']},
+        per_page=False
+    )
+    ActivationKey.add_subscription({
+        'id': new_ak['id'],
+        'subscription-id': subs_id[0]['id'],
+    })
+    request.cls.setup_org = org
+    request.cls.setup_new_ak = new_ak
+    request.cls.setup_subs_id = subs_id
+
+
+@pytest.mark.usefixtures("setup_content")
 class ReportTemplateTestCase(CLITestCase):
     """Report Templates CLI tests."""
 
@@ -758,3 +815,49 @@ class ReportTemplateTestCase(CLITestCase):
         })
 
         assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
+
+    @tier3
+    def test_positive_generate_entitlements_report_multiple_formats(self):
+        """Generate an report using the Entitlements template in html, yaml, and csv format.
+
+        :id: f2b74916-1298-4d20-9c24-a2c2b3a3e9a9
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, and Subscriptions.
+
+        :steps:
+            1. hammer report-template generate --organization '' --id '' --report-format ''
+
+        :expectedresults: report is generated containing all the expected information
+                          regarding Entitlements.
+
+        :CaseImportance: High
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
+            assert vm.subscribed
+            result_html = ReportTemplate.generate({
+                'organization': self.setup_org['name'],
+                'id': 115,
+                'report-format': 'html'
+            })
+            assert vm.hostname in result_html[2]
+            assert self.setup_subs_id[0]['name'] in result_html[2]
+            result_yaml = ReportTemplate.generate({
+                'organization': self.setup_org['name'],
+                'id': 115,
+                'report-format': 'yaml'
+            })
+            for entry in result_yaml:
+                if '-Name:' in entry:
+                    assert vm.hostname in entry
+                elif 'Subscription Name:' in entry:
+                    assert self.setup_subs_id[0]['name'] in entry
+            result_csv = ReportTemplate.generate({
+                'organization': self.setup_org['name'],
+                'id': 115,
+                'report-format': 'csv'
+            })
+            assert vm.hostname in result_csv[1]
+            assert self.setup_subs_id[0]['name'] in result_csv[1]
