@@ -16,7 +16,7 @@ class VirtWhoError(Exception):
 
 
 def _parse_entry(entry):
-    """Paser the the string and return json format"""
+    """Parse the string and return json format"""
     try:
         return json.loads(entry)
     except json.decoder.JSONDecodeError:
@@ -78,7 +78,7 @@ def runcmd(cmd, system=None, timeout=None, output_format='base'):
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
-    :param int timeout: Time to wait for establish the connection.
+    :param int timeout: Time to wait to establish the connection.
     :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
@@ -138,7 +138,7 @@ def virtwho_cleanup():
 
 def get_virtwho_status():
     """Return the status of virt-who service, it will help us to know
-    the virt-who configure file is deployed or not.
+    the virt-who configuration file is deployed or not.
     """
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     error = len(re.findall(r'\[.*ERROR.*\]', logs))
@@ -181,8 +181,8 @@ def get_configure_command(config_id, org=DEFAULT_ORG):
 
 
 def get_configure_file(config_id):
-    """Return the configure file full name in /etc/virt-who.d
-    :param str config_id: the unique id of the configure file you have created.
+    """Return the configuration file full name in /etc/virt-who.d
+    :param str config_id: the unique id of the configuration file you have created.
     """
     return (
         "/etc/virt-who.d/virt-who-config-{}.conf"
@@ -192,11 +192,11 @@ def get_configure_file(config_id):
 
 def get_configure_option(option, filename):
     """Return the option's value for the specific file.
-    :param str option: the option name in the configure file
-    :param str filename: the configure file, it could be:
+    :param str option: the option name in the configuration file
+    :param str filename: the configuration file, it could be:
         /etc/sysconfig/virt-who
         /etc/virt-who.d/virt-who-config-{}.conf
-    :raises: VirtWhoError: If no this option name in the file.
+    :raises: VirtWhoError: If this option name not in the file.
     """
     cmd = "grep -v '^#' {} | grep ^{}".format(filename, option)
     ret, stdout = runcmd(cmd)
@@ -283,7 +283,7 @@ def deploy_configure_by_command(command, debug=False):
 
 
 def deploy_configure_by_script(script_content, debug=False):
-    """Deploy and run virt-who servcie by the shell script.
+    """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
@@ -312,7 +312,7 @@ def deploy_configure_by_script(script_content, debug=False):
 def restart_virtwho_service():
     """
     Do the following:
-    1. clean rhsm.log message, make sure there is no old message exist.
+    1. remove rhsm.log to ensure there are no old messages.
     2. restart virt-who service via systemctl command
     """
     runcmd("rm -f /var/log/rhsm/rhsm.log")
@@ -371,7 +371,7 @@ def add_configure_option(option, value, config_file):
 
 def hypervisor_json_create(hypervisors, guests):
     """
-    Create a hypervisor/guesting json data
+    Create a hypervisor guest json data
     :param hypervisors: how many hypervisors will be created
     :param guests: how many guests will be created
     """
