@@ -31,12 +31,12 @@ from wait_for import wait_for
 
 
 class scenario_positive_virt_who(APITestCase):
-    """Virt-who config is intact post upgrade and verify the config can be updated and deleted
+    """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
     :steps:
 
-        1. In Preupgrade Satellite, create virt-who-config
-        2. Upgrade the satellite to next/latest version
-        3. Postupgrade, Verify the virt-who config is intact, update and delete
+        1. In Preupgrade Satellite, create virt-who-config.
+        2. Upgrade the satellite to next/latest version.
+        3. Postupgrade, Verify the virt-who config is intact, update and delete.
 
     :expectedresults: Virtwho config should be created, updated and deleted successfully.
     """
@@ -95,7 +95,7 @@ class scenario_positive_virt_who(APITestCase):
 
     @pre_upgrade
     def test_pre_create_virt_who_configuration(self):
-        """Create and deploy virt-who configuration
+        """Create and deploy virt-who configuration.
 
         :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
 
@@ -147,7 +147,7 @@ class scenario_positive_virt_who(APITestCase):
 
     @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
     def test_post_crud_virt_who_configuration(self):
-        """Virt-who config is intact post upgrade and verify the config can be updated and deleted
+        """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 
         :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
 
