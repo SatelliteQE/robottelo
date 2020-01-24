@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: rubygem-foreman-redhat_access
+:CaseComponent: InsightsPlugin
 
 :TestType: Functional
 
