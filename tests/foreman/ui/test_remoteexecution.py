@@ -22,10 +22,11 @@ from nailgun import entities
 from robottelo.api.utils import update_vm_host_location
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DISTRO_DEFAULT
+from robottelo.constants import DISTRO_DEFAULT, ANSWERS
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture, tier3, upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.ssh import get_connection
 from robottelo.vm import VirtualMachine
 from wait_for import wait_for
 
@@ -162,6 +163,71 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
                 'schedule': 'Execute now',
             }
         )
+        assert job_status['overview']['job_status'] == 'Success'
+        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
+        assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+
+
+@tier3
+def test_positive_run_job_in_manual_mode_by_ip(session, module_vm_client_by_ip):
+    """Run a job template in manual mode on a host connected by ip
+
+    :id: ebbc6de8-18df-471d-922c-f387c0552ced
+
+    :Setup: Create a job template enabling manual mode.
+
+    :Steps:
+
+        1. Set remote_execution_connect_by_ip on host to true
+        2. Navigate to an individual host and click Run Job
+        3. Select the job and appropriate template
+        4. Run the job
+
+    :expectedresults: Verify the job was successfully ran against the host
+
+    :BZ: 1698151, 1691453
+
+    :CaseLevel: System
+    """
+    # check if async ssh is on
+    with get_connection() as connection:
+        result = connection.run('grep "{0}" {1}'.format('async_ssh', ANSWERS))
+        assert result.stdout[0].split()[-1] == 'true', 'assync_ssh not enabled for rex'
+    hostname = module_vm_client_by_ip.hostname
+    job_template_name = gen_string('alpha')
+    template = '''$CONTROL_SCRIPT manual-mode;
+           <%= input("command") %>;
+           $CONTROL_SCRIPT finish'''
+    command = '''echo "$(date): automatic";
+           sleep 5;
+           echo "$(date): done";
+           sleep 10;
+           echo "$(date): really done"'''
+    with session:
+        session.jobtemplate.create({
+            'template.name': job_template_name,
+            'template.template_editor.rendering_options': 'Editor',
+            'template.template_editor.editor': template,
+            'job.provider_type': 'SSH',
+            'inputs': [{
+                'name': 'command',
+                'required': True,
+                'input_type': 'User input',
+            }],
+        })
+        assert session.jobtemplate.search(job_template_name)[0]['Name'] == job_template_name
+        assert session.host.search(hostname)[0]['Name'] == hostname
+
+        job_status, _ = wait_for(
+            lambda: session.host.schedule_remote_job([hostname],
+                                                     {'job_category': 'Miscellaneous',
+                                                      'job_template': job_template_name,
+                                                      'template_content.command': command,
+                                                      'schedule': 'Execute now', }),
+            timeout=50,
+            delay=1,
+        )
+
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
