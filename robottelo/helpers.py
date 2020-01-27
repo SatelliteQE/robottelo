@@ -859,7 +859,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
             ...
         }
     """
-
+    settings.configure()
     valid_markers = ["skip_if_open", "skip", "deselect"]
     collected_data = defaultdict(lambda: {"data": {}, "used_in": []})
 
