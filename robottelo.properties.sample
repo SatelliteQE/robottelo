@@ -349,6 +349,27 @@ ssh_key=
 # 'semanage port -a -t websm_port_t -p tcp <port-range>'
 port_range=9091, 14999
 
+# [azurerm]
+# Azure Resource Manager(AzureRM) Provider as Compute Resource
+# Client ID of the AzureRM account
+# client_id=
+# Client Secret of the AzureRM account
+# client_secret=
+# The subscription ID is a GUID that uniquely identifies your subscription to use Azure services.
+# subscription_id=
+# Tenant ID, the ID of the AAD directory in which you created the application
+# tenant_id=
+# Azure Region
+# azure_region=
+# SSH Public Key of the user from which login as passwordless in VM
+# ssh_pub_key=
+# Username of admin user(non-root)
+# username=
+# Password of the admin user
+# password=
+# Azure Private subnet details
+# azure_subnet=
+
 # [ec2]
 # AWS EC2 to be added as a compute resource.
 # Access key ID of the IAM user
