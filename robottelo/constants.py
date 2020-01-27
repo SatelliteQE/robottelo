@@ -1938,6 +1938,8 @@ VMWARE_CONSTANTS = {
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 
+ANSWERS = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+
 FOREMAN_TEMPLATE_IMPORT_URL = (
     'https://github.com/SatelliteQE/foreman_templates.git')
 
