@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_alphanumeric, gen_string
+from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
@@ -32,6 +32,7 @@ from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
+from robottelo.cli.http_proxy import HttpProxy
 from robottelo.constants import FAKE_0_YUM_REPO, FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.datafactory import (
     valid_data_list,
@@ -246,3 +247,112 @@ class ProductTestCase(CLITestCase):
             Defaults.delete({u'param-name': 'organization_id'})
             result = ssh.command('hammer defaults list')
             self.assertTrue(default_org['id'] not in "".join(result.stdout))
+
+    @tier2
+    def test_positive_assign_http_proxy_to_products(self):
+        """Assign http_proxy to Products and check whether http-proxy is
+         used during sync.
+
+        :id: 6af7b2b8-15d5-4d9f-9f87-e76b404a966f
+
+        :expectedresults: HTTP Proxy is assigned to all repos present
+            in Products and sync operation uses assigned http-proxy.
+
+        :CaseImportance: Critical
+        """
+        # create HTTP proxies
+        http_proxy_url_a = '{}:{}'.format(
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+        http_proxy_url_b = '{}:{}'.format(
+            gen_url(scheme='http'), gen_integer(min_value=10, max_value=9999))
+        http_proxy_a = HttpProxy.create({
+            'name': gen_string('alpha', 15),
+            'url': http_proxy_url_a,
+            'organization-id': self.org['id'],
+        })
+        http_proxy_b = HttpProxy.create({
+            'name': gen_string('alpha', 15),
+            'url': http_proxy_url_b,
+            'organization-id': self.org['id'],
+        })
+        proxy_fqdn = http_proxy_b['url'].split(":")[1].strip("//")
+        repo_fqdn = FAKE_0_YUM_REPO.split("/")[2]
+        # Create products and repositories
+        product_a = make_product({
+            u'organization-id': self.org['id'],
+        })
+        product_b = make_product({
+            u'organization-id': self.org['id'],
+        })
+        repo_a1 = make_repository({
+            'product-id': product_a['id'],
+            'url': FAKE_0_YUM_REPO,
+            'http-proxy-policy': 'none'
+        })
+        repo_a2 = make_repository({
+            'product-id': product_a['id'],
+            'url': FAKE_0_YUM_REPO,
+            'http-proxy-policy': 'use_selected_http_proxy',
+            'http-proxy-id': http_proxy_a['id']
+        })
+        repo_b1 = make_repository({
+            'product-id': product_b['id'],
+            'url': FAKE_0_YUM_REPO,
+            'http-proxy-policy': 'none'
+        })
+        repo_b2 = make_repository({
+            'product-id': product_b['id'],
+            'url': FAKE_0_YUM_REPO,
+        })
+        # Add http_proxy to products
+        Product.update_proxy({
+            'ids': '{},{}'.format(product_a['id'], product_b['id']),
+            'http-proxy-policy': 'use_selected_http_proxy',
+            'http-proxy-id': http_proxy_b['id']
+        })
+        repo_a1 = Repository.info({'id': repo_a1['id']})
+        repo_a2 = Repository.info({'id': repo_a2['id']})
+        repo_b1 = Repository.info({'id': repo_b1['id']})
+        repo_b2 = Repository.info({'id': repo_b2['id']})
+        # Update following assert statements when BZ#1777713 is fixed.
+        assert repo_a1['product']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_a2['product']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_b1['product']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_b2['product']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_a1['http-proxy']['id'] == http_proxy_b['id']
+        assert repo_a2['http-proxy']['id'] == http_proxy_b['id']
+        assert repo_b1['http-proxy']['id'] == http_proxy_b['id']
+        assert repo_b2['http-proxy']['id'] == http_proxy_b['id']
+        # check if proxy fqdn is present in log during sync
+        with self.assertRaises(CLIReturnCodeError):
+            Product.synchronize({
+                'id': product_a['id'],
+                'organization-id': self.org['id'],
+            })
+        result = ssh.command(
+            'grep -F "HTTP connection (1): {}" /var/log/messages'.format(proxy_fqdn))
+        assert result.return_code == 0
+        # Add http_proxy to products
+        Product.update_proxy({
+            'ids': '{},{}'.format(product_a['id'], product_b['id']),
+            'http-proxy-policy': 'none',
+        })
+        repo_a1 = Repository.info({'id': repo_a1['id']})
+        repo_a2 = Repository.info({'id': repo_a2['id']})
+        repo_b1 = Repository.info({'id': repo_b1['id']})
+        repo_b2 = Repository.info({'id': repo_b2['id']})
+        # Update following assert statements when BZ#1777713 is fixed.
+        assert repo_a1['product']['http-proxy-policy'] == "none"
+        assert repo_a2['product']['http-proxy-policy'] == "none"
+        assert repo_b1['product']['http-proxy-policy'] == "none"
+        assert repo_b2['product']['http-proxy-policy'] == "none"
+        # verify that proxy fqdn is not present in log during sync.
+        Product.synchronize({
+            'id': product_a['id'],
+            'organization-id': self.org['id'],
+        })
+        result = ssh.command(
+            'tail -n 50 /var/log/messages | grep -F "HTTP connection (1): {}"'.format(repo_fqdn))
+        assert result.return_code == 0
+        result = ssh.command('tail -n 50 /var/log/messages | grep -F "{}"'.format(proxy_fqdn))
+        assert result.return_code == 1
