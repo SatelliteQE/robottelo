@@ -42,7 +42,6 @@ pytestmark = [run_in_one_thread]
 
 @tier2
 @upgrade
-@pytest.mark.skip_if_open("BZ:1730360")
 def test_positive_create_event(session, module_org, module_loc):
     """When new host is created, corresponding audit entry appear in the application
 
