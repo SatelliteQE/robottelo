@@ -354,32 +354,6 @@ class UserTestCase(CLITestCase):
                 ):
                     User.create(options)
 
-    @pytest.mark.skip_if_open("BZ:1204686")
-    @tier1
-    def test_negative_create_with_empty_email(self):
-        """Create User with empty Email Address
-
-        :id: e55b2937-9b43-45ee-aa22-2d4ae6da01f3
-
-        :expectedresults: User is not created. Appropriate error shown.
-
-        :BZ: 1204686
-
-        :CaseImportance: Critical
-        """
-        with self.assertRaisesRegex(
-            CLIReturnCodeError,
-            u'Could not create the user:'
-        ):
-            User.create({
-                'auth-source-id': 1,
-                'firstname': gen_string('alpha'),
-                'lastname': gen_string('alpha'),
-                'login': gen_string('alpha'),
-                'mail': '',
-                'password': gen_string('alpha'),
-            })
-
     @tier1
     def test_negative_create_with_blank_authorized_by(self):
         """Create User with blank Authorized by
