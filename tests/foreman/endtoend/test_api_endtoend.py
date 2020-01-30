@@ -1127,7 +1127,6 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             u'Not all services seem to be up and running!'
         )
 
-    @pytest.mark.skip_if_open("BZ:1787147")
     @skip_if_not_set('compute_resources')
     @tier4
     @upgrade
@@ -1274,7 +1273,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         # step 2.15: Add the products to the activation key
         for sub in entities.Subscription(organization=org).search():
-            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+            if sub.name == DEFAULT_SUBSCRIPTION_NAME:
                 activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': sub.id,
