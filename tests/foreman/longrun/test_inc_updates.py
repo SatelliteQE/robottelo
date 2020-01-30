@@ -163,14 +163,14 @@ class IncrementalUpdateTestCase(TestCase):
             **kwargs
         ).create()
 
-        # Assign subscription to activation key. Fetch available subscriptions
+        # Fetch available subscriptions
         subs = entities.Subscription(organization=self.org).search()
         assert len(subs) > 0
 
-        # Add subscription to activation key
+        # Add default subscription to activation key
         sub_found = False
         for sub in subs:
-            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+            if sub.name == DEFAULT_SUBSCRIPTION_NAME:
                 rhel_6_partial_ak.add_subscriptions(data={
                     u'subscription_id': sub.id
                 })
