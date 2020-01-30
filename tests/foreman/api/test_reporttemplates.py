@@ -15,15 +15,32 @@
 
 :Upstream: No
 """
-
-from robottelo.decorators import tier1, tier2, stubbed
+from fauxfactory import gen_string
+from nailgun import entities
+from robottelo.decorators import (
+    stubbed,
+    tier1,
+    tier2,
+    tier3
+)
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import is_open
 from robottelo.test import APITestCase
-
-from fauxfactory import gen_string
-from nailgun import entities
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL7,
+    PRDS,
+    REPOS,
+    REPOSET
+)
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest
+)
+from robottelo import manifests
 from requests import HTTPError
+from robottelo.vm import VirtualMachine
 
 
 class ReportTemplateTestCase(APITestCase):
@@ -406,3 +423,68 @@ class ReportTemplateTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
+
+    @tier3
+    def test_positive_generate_entitlements_report(self):
+        """Generate a report using the Entitlements template.
+
+        :id: 722e8802-367b-4399-bcaa-949daab26632
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, and Subscriptions.
+
+        :steps:
+
+            1. Get /api/report_templates/115-Entitlements/generate/id/report_format
+
+        :expectedresults: Report is generated showing all necessary information for entitlements.
+
+        :CaseImportance: High
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
+        custom_repo = entities.Repository(
+            product=entities.Product(organization=org).create(),
+        ).create()
+        custom_repo.sync()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        cv = entities.ContentView(
+            organization=org,
+            repository=[rh_repo_id, custom_repo.id],
+        ).create()
+        cv.publish()
+        cvv = cv.read().version[0].read()
+        promote(cvv, lce.id)
+        ak = entities.ActivationKey(
+            content_view=cv,
+            max_hosts=100,
+            organization=org,
+            environment=lce,
+            auto_attach=True
+        ).create()
+        subscription = entities.Subscription(organization=org).search(
+            query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
+        ak.add_subscriptions(data={
+            'quantity': 1,
+            'subscription_id': subscription.id,
+        })
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(org.label, ak.name)
+            assert vm.subscribed
+            rt = entities.ReportTemplate().search(
+                query={'search': u'name="Entitlements"'})[0].read()
+            res = rt.generate(data={"organization_id": org.id, "report_format": "json"})
+            assert res[0]['Name'] == vm.hostname
+            assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
