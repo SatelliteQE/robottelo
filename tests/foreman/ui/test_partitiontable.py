@@ -258,8 +258,8 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
         assert pt['inputs'][0]['name'] == input_name
         assert pt['inputs'][0]['required'] is True
         assert pt['inputs'][0]['input_type'] == 'Puppet parameter'
-        assert pt['locations']['resources']['assigned'][0] == module_loc.name
-        assert pt['organizations']['resources']['assigned'][0] == module_org.name
+        assert module_loc.name in pt['locations']['resources']['assigned']
+        assert module_org.name in pt['organizations']['resources']['assigned']
         session.partitiontable.update(
             name,
             {
