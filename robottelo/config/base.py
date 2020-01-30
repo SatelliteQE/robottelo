@@ -19,7 +19,7 @@ import airgun.settings
 from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
 from robottelo.config import casts
-from robottelo.constants import VALID_GCE_ZONES
+from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -479,6 +479,46 @@ class DockerSettings(FeatureSettings):
         if not self.external_registry_1:
             validation_errors.append(
                 '[docker] external_registry_1 option must be provided.')
+        return validation_errors
+
+
+class AzureRMSettings(FeatureSettings):
+    """Azure Resource Manager settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(AzureRMSettings, self).__init__(*args, **kwargs)
+        self.client_id = None
+        self.client_secret = None
+        self.subscription_id = None
+        self.tenant_id = None
+        self.azure_region = None
+        self.ssh_pub_key = None
+        self.username = None
+        self.password = None
+        self.azure_subnet = None
+
+    def read(self, reader):
+        """Read AzureRM settings."""
+        self.client_id = reader.get('azurerm', 'client_id')
+        self.client_secret = reader.get('azurerm', 'client_secret')
+        self.subscription_id = reader.get('azurerm', 'subscription_id')
+        self.tenant_id = reader.get('azurerm', 'tenant_id')
+        self.azure_region = reader.get('azurerm', 'azure_region')
+        self.ssh_pub_key = reader.get('azurerm', 'ssh_pub_key')
+        self.username = reader.get('azurerm', 'username')
+        self.password = reader.get('azurerm', 'password')
+        self.azure_subnet = reader.get('azurerm', 'azure_subnet')
+
+    def validate(self):
+        """Validate AzureRM settings."""
+        validation_errors = []
+        if not all(self.__dict__.values()):
+            validation_errors.append(
+                'All [azurerm] {} options must be provided'.format(self.__dict__.keys()))
+        if self.azure_region not in AZURERM_VALID_REGIONS:
+            validation_errors.append(
+                'Invalid [azurerm] region - {0}, The region should be one of {1}'.format(
+                    self.azure_region, AZURERM_VALID_REGIONS))
         return validation_errors
 
 
@@ -1275,6 +1315,7 @@ class Settings(object):
 
         self.bugzilla = BugzillaSettings()
         # Features
+        self.azurerm = AzureRMSettings()
         self.capsule = CapsuleSettings()
         self.certs = CertsSettings()
         self.clients = ClientsSettings()

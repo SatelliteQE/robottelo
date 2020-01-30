@@ -39,6 +39,7 @@ FOREMAN_PROVIDERS = {
     'openstack': 'RHEL OpenStack Platform',
     'rackspace': 'Rackspace',
     'google': 'Google',
+    'azurerm': 'Azure Resource Manager',
 }
 
 EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'
@@ -82,6 +83,24 @@ LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
+
+# AzureRM specific constants
+AZURERM_VALID_REGIONS = [
+    'East Asia', 'Southeast Asia', 'Central US', 'East US', 'East US 2', 'West US',
+    'North Central US', 'South Central US', 'North Europe', 'West Europe', 'Japan West',
+    'Japan East', 'Brazil South', 'Australia East', 'Australia Southeast', 'South India',
+    'Central India', 'West India', 'Canada Central', 'Canada East', 'UK South', 'UK West',
+    'West Central US', 'West US 2', 'Korea Central', 'Korea South', 'France Central',
+    'France South', 'Australia Central', 'Australia Central 2', 'UAE Central', 'UAE North',
+    'South Africa North', 'South Africa West', 'Switzerland North', 'Switzerland West',
+    'Germany North', 'Germany West Central', 'Norway West', 'Norway East']
+AZURERM_RHEL7_FT_IMG_URN = 'RedHat:RHEL:7-RAW:latest'
+AZURERM_RHEL7_UD_IMG_URN = 'RedHat:RHEL:7-RAW-CI:7.6.2019072418'
+AZURERM_RG_DEFAULT = 'SATQE'
+AZURERM_PLATFORM_DEFAULT = 'Linux'
+AZURERM_VM_SIZE_DEFAULT = 'Standard_B2ms'
+AZURERM_PREMIUM_OS_Disk = True
+AZURERM_FILE_URI = 'https://github.com/SatelliteQE/robottelo/blob/master/tests/foreman/data/uri.sh'
 
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
