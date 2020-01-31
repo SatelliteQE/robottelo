@@ -165,9 +165,6 @@ class RepositoryTestCase(APITestCase):
         repo_b.sync({'async': True})
         result = ssh.command('grep -F {} /var/log/messages'.format(proxy_fqdn))
         assert result.return_code == 0
-        # Delete repositories
-        entities.Repository(id=repo_a.id).delete()
-        entities.Repository(id=repo_b.id).delete()
 
     @tier1
     def test_positive_create_with_label(self):
