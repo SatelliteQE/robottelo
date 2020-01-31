@@ -72,6 +72,8 @@ def test_positive_default_end_to_end_with_custom_profile(session):
         GCE_SETTINGS['cert_url'], GCE_SETTINGS['cert_path'])
 
     with session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         # Compute Resource Create and Assertions
         session.computeresource.create({
             'name': cr_name,

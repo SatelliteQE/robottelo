@@ -972,7 +972,7 @@ class TemplateSyncTestCase(APITestCase):
             })
         expected_fields = [
             'name', 'imported', 'diff', 'additional_errors', 'exception',
-            'validation_errors', 'file', 'type', 'id', 'changed'
+            'validation_errors', 'file', 'type', 'id', 'changed', 'additional_info'
         ]
         actual_fields = templates['message']['templates'][0].keys()
         self.assertListEqual(sorted(actual_fields), sorted(expected_fields))
@@ -1009,7 +1009,7 @@ class TemplateSyncTestCase(APITestCase):
             })
         expected_fields = [
             'name', 'imported', 'changed', 'additional_errors', 'exception',
-            'validation_errors', 'file', 'type', 'id'
+            'validation_errors', 'file', 'type', 'id', 'additional_info'
         ]
         actual_fields = templates['message']['templates'][0].keys()
         self.assertListEqual(sorted(actual_fields), sorted(expected_fields))
