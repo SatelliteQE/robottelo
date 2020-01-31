@@ -4,3 +4,7 @@
 
 class GCECertNotFoundError(Exception):
     """An exception to raise when GCE Cert json is not available for creating GCE CR"""
+
+
+class HostNotDiscoveredException(Exception):
+    """Raised when host is not discovered"""

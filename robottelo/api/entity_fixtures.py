@@ -21,6 +21,11 @@ from robottelo.test import settings
 
 
 @pytest.fixture(scope='module')
+def default_lce():
+    return entities.LifecycleEnvironment().search(query={'search': 'name=Library'})[0]
+
+
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
@@ -36,7 +41,7 @@ def module_lce(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_smart_proxy(module_location):
+def default_smart_proxy(module_location):
     smart_proxy = (
         entities.SmartProxy()
         .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
@@ -48,33 +53,40 @@ def module_smart_proxy(module_location):
 
 
 @pytest.fixture(scope='module')
-def module_domain(module_org, module_location):
-    return entities.Domain(location=[module_location], organization=[module_org]).create()
+def default_domain(module_org, module_location, default_smart_proxy):
+    _, _, domain_name = settings.server.hostname.partition('.')
+    dom = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})[0]
+    dom.organization = [module_org]
+    dom.location = [module_location]
+    dom.dns = default_smart_proxy
+    dom.update(['organization', 'location', 'dns'])
+    return entities.Domain(id=dom.id).read()
 
 
 @pytest.fixture(scope='module')
-def module_subnet(module_org, module_location, module_domain, module_smart_proxy):
+def module_subnet(module_org, module_location, default_domain, default_smart_proxy):
     network = settings.vlan_networking.subnet
+    entities.Subnet
     subnet = entities.Subnet(
         network=network,
         mask=settings.vlan_networking.netmask,
-        domain=[module_domain],
+        domain=[default_domain],
         location=[module_location],
         organization=[module_org],
-        dns=module_smart_proxy,
-        dhcp=module_smart_proxy,
-        tftp=module_smart_proxy,
-        discovery=module_smart_proxy,
+        dns=default_smart_proxy,
+        dhcp=default_smart_proxy,
+        tftp=default_smart_proxy,
+        discovery=default_smart_proxy,
         ipam='DHCP',
     ).create()
     return subnet
 
 
 @pytest.fixture(scope='module')
-def module_partiontable(module_org, module_location):
+def default_partitiontable(module_org, module_location):
     ptable = (
         entities.PartitionTable()
-        .search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+        .search(query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
         .read()
     )
     ptable.location.append(module_location)
@@ -110,19 +122,19 @@ def module_configtemaplate(module_org, module_location):
 
 
 @pytest.fixture(scope='module')
-def module_architecture():
+def default_architecture():
     arch = (
         entities.Architecture()
-        .search(query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .search(query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
         .read()
     )
     return arch
 
 
 @pytest.fixture(scope='module')
-def module_os(
-    module_architecture,
-    module_partiontable,
+def default_os(
+    default_architecture,
+    default_partitiontable,
     module_configtemaplate,
     module_provisioingtemplate,
     os=None,
@@ -144,15 +156,15 @@ def module_os(
             entities.OperatingSystem()
             .search(
                 query={
-                    'search': 'family="Redhat" AND major="{0}" AND minor="{1}")'.format(
+                    u'search': u'family="Redhat" AND major="{0}" AND minor="{1}")'.format(
                         os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
                     )
                 }
             )[0]
             .read()
         )
-    os.architecture.append(module_architecture)
-    os.ptable.append(module_partiontable)
+    os.architecture.append(default_architecture)
+    os.ptable.append(default_partitiontable)
     os.config_template.append(module_configtemaplate)
     os.provisioning_template.append(module_provisioingtemplate)
     os.update(['architecture', 'ptable', 'config_template', 'provisioning_template'])
@@ -254,13 +266,13 @@ def module_azurerm_cr(azurerm_settings, module_org, module_location):
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_finishimg(module_architecture, module_os, module_azurerm_cr):
+def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr):
     """ Creates Finish Template image on AzureRM Compute Resource """
     finish_image = entities.Image(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_IMG_URN,
     ).create()
@@ -268,13 +280,13 @@ def module_azurerm_finishimg(module_architecture, module_os, module_azurerm_cr):
 
 
 @pytest.fixture(scope='module')
-def module_azurerm_cloudimg(module_architecture, module_os, module_azurerm_cr):
+def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr):
     """ Creates cloudinit image on AzureRM Compute Resource """
     finish_image = entities.Image(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_UD_IMG_URN,
         user_data=True,
@@ -308,6 +320,53 @@ def module_product(module_org):
     return entities.Product(organization=module_org).create()
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='module')
 def module_cv(module_org):
     return entities.ContentView(organization=module_org).create()
+
+
+@pytest.fixture(scope='module')
+def default_contentview(module_org):
+    return entities.ContentView().search(
+        query={
+            'search': 'label=Default_Organization_View',
+            'organization_id': '{}'.format(module_org.id),
+        }
+    )
+
+
+# Discovery Entities
+
+
+@pytest.fixture(scope='module')
+def module_discovery_hostgroup(
+    default_architecture,
+    module_gce_compute,
+    default_domain,
+    default_lce,
+    module_location,
+    module_puppet_environment,
+    default_smart_proxy,
+    default_os,
+    module_org,
+    default_partitiontable,
+    default_contentview,
+    module_subnet,
+):
+    """Sets Hostgroup for GCE Host Provisioning"""
+    hgroup = entities.HostGroup(
+        architecture=default_architecture,
+        content_view=default_contentview,
+        content_source=default_smart_proxy,
+        domain=default_domain,
+        lifecycle_environment=default_lce,
+        location=[module_location],
+        environment=module_puppet_environment,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
+        operatingsystem=default_os,
+        organization=[module_org],
+        ptable=default_partitiontable,
+        subnet=module_subnet,
+    ).create()
+    return hgroup

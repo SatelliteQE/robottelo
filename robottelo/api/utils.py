@@ -9,6 +9,7 @@ from inflector import Inflector
 from nailgun import entities
 from nailgun import entity_mixins
 from nailgun.client import request
+from nailgun.config import ServerConfig
 
 from robottelo import ssh
 from robottelo.config import settings
@@ -21,6 +22,7 @@ from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.errors import HostNotDiscoveredException
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -969,3 +971,25 @@ def set_hammer_api_timeout(timeout=-1, reverse=False):
                 new_timeout, default_timeout
             )
         )
+
+
+def assertdiscoveredhost(hostname, user_config=None):
+    """Check if host is discovered and information about it can be
+    retrieved back
+
+    Introduced a delay of 300secs by polling every 10 secs to get expected
+    host
+    """
+    default_config = ServerConfig.get()
+    for _ in range(30):
+        discovered_host = entities.DiscoveredHost(user_config or default_config).search(
+            query={'search': 'name={}'.format(hostname)}
+        )
+        if discovered_host:
+            break
+        time.sleep(10)
+    else:
+        raise HostNotDiscoveredException(
+            "The host {} is not discovered within 300 seconds".format(hostname)
+        )
+    return discovered_host[0]
