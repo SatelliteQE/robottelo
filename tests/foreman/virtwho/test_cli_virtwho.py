@@ -412,3 +412,49 @@ class VirtWhoConfigTestCase(CLITestCase):
                 )
             else:
                 self.assertTrue(result.status_code == 200)
+
+    @tier2
+    def test_positive_register_virt_who_host_with_uuid(self):
+        """ Verify you can register a virt-who host using UUID not name.
+
+        :id: 98c6da29-e628-45c2-9805-535b998a01c0
+
+        :expectedresults: virt-who host is registered
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1687378
+        """
+        name = gen_string('alpha')
+        args = self._make_virtwho_configure()
+        args.update({'name': name, 'hypervisor-id': 'uuid'})
+        vhd = VirtWhoConfig.create(args)['general-information']
+        self.assertEqual(vhd['status'], 'No Report Yet')
+        script = VirtWhoConfig.fetch({'id': vhd['id']}, output_format='base')
+        hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
+        self.assertEqual(
+            VirtWhoConfig.info({'id': vhd['id']})['general-information']['status'], 'OK')
+        hosts = [
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical))]
+        for hostname, sku in hosts:
+            host = Host.list({'search': hostname})[0]
+            subscriptions = Subscription.list({
+                'organization': DEFAULT_ORG,
+                'search': sku,
+            })
+            vdc_id = subscriptions[0]['id']
+            if 'type=STACK_DERIVED' in sku:
+                for item in subscriptions:
+                    if hypervisor_name.lower() in item['type']:
+                        vdc_id = item['id']
+                        break
+            result = Host.subscription_attach({
+                'host-id': host['id'],
+                'subscription-id': vdc_id
+            })
+            self.assertTrue('attached to the host successfully' in '\n'.join(result))
+        VirtWhoConfig.delete({'name': name})
+        self.assertFalse(VirtWhoConfig.exists(search=('name', name)))
