@@ -129,14 +129,18 @@ class RepositoryTestCase(CLITestCase):
         return repo_detail
 
     def _validated_image_tags_count(self, repo=None):
-        if is_open('BZ:1664631'):
-            wait_for(
-                lambda: int(self._get_image_tags_count(repo=repo)
-                            ['content-counts']['container-image-tags']) > 0,
-                timeout=30,
-                delay=2,
-                logger=self.logger
-            )
+        """Wrapper around Repository.info(), that returns once
+        container-image-tags in repo is greater than 0.
+        Needed due to BZ#1664631 (container-image-tags is not populated
+        immediately after synchronization), which was CLOSED WONTFIX
+        """
+        wait_for(
+            lambda: int(self._get_image_tags_count(repo=repo)
+                        ['content-counts']['container-image-tags']) > 0,
+            timeout=30,
+            delay=2,
+            logger=self.logger
+        )
         return self._get_image_tags_count(repo=repo)
 
     @tier1
