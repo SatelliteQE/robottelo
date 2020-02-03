@@ -220,7 +220,10 @@ def enroll_idm_and_configure_external_auth():
     result = run_command(cmd='ipa host-add --random {}'.format(settings.server.hostname),
                          hostname=settings.ipa.hostname_ipa)
 
-    password = result[4][-22:]
+    for line in result:
+        if "Random password" in line:
+            _, password = line.split(': ', 2)
+            break
     run_command(cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
                 hostname=settings.ipa.hostname_ipa)
     domain = settings.ipa.hostname_ipa[settings.ipa.hostname_ipa.find('satqe'):]
