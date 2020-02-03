@@ -1100,8 +1100,9 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
     """
     # register the satellite with IPA for single singon and update external auth
     try:
+        run_command(cmd="subscription-manager repos --enable rhel-7-server-optional-rpms")
         run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
-        run_command('katello-service restart', timeout=300)
+        run_command('foreman-maintain service restart', timeout=300)
         result = run_command(cmd="curl -k -u : --negotiate https://{}/users/extlogin/".
                              format(settings.server.hostname),
                              hostname=settings.ipa.hostname_ipa)
@@ -1112,7 +1113,7 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
-        run_command('katello-service restart', timeout=300)
+        run_command('foreman-maintain service restart', timeout=300)
         run_command(cmd='ipa service-del HTTP/{}'.format(settings.server.hostname),
                     hostname=settings.ipa.hostname_ipa)
         run_command(cmd='ipa host-del {}'.format(settings.server.hostname),
