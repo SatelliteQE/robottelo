@@ -85,10 +85,12 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
+from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
@@ -2319,21 +2321,27 @@ class HostSubscriptionTestCase(CLITestCase):
 
     @tier3
     def test_negative_without_attach(self):
-        """Attempt to enable a repository of a subscription that was not
-        attached to a host
+        """ Register content host from satellite, register client to uuid
+        of that content host, as there was no attach on the client,
+        Test if the list of the repository subscriptions is empty
 
         :id: 54a2c95f-be08-4353-a96c-4bc4d96ad03d
 
-        :expectedresults: repository not enabled on host
+        :expectedresults: repository list is empty
 
         :CaseLevel: System
         """
-        activation_key = self._make_activation_key(add_subscription=False)
         self._host_subscription_register()
-        self._register_client(activation_key=activation_key, auto_attach=True)
-        self.assertTrue(self.client.subscribed)
-        result = self._client_enable_repo()
-        self.assertNotEqual(result.return_code, 0)
+        host = Host.info({'name': self.client.hostname})
+        self.client.register_contenthost(
+            self.org['name'],
+            consumerid=host['subscription-information']['uuid'],
+            force=False,
+        )
+        client_status = self.client.status()
+        self.assertIn(SM_OVERALL_STATUS['current'], client_status.stdout)
+        repo_list = self.client.list_repos()
+        self.assertIn(NO_REPOS_AVAILABLE, repo_list.stdout)
 
     @tier3
     def test_negative_without_attach_with_lce(self):

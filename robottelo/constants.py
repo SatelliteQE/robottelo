@@ -343,6 +343,15 @@ REPOSET = {
     'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
 }
 
+NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
+
+SM_OVERALL_STATUS = {
+    'current': 'Overall Status: Current',
+    'invalid': 'Overall Status: Invalid',
+    'insufficient': 'Overall Status: Insufficient',
+    'unknown': 'Overall Status: Unknown',
+}
+
 REPOS = {
     'rhel7': {
         'id': 'rhel-7-server-rpms',

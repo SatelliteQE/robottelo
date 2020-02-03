@@ -376,6 +376,12 @@ class VirtualMachine(object):
         if force or settings.cdn or not downstream_repo:
             self.run(u'subscription-manager repos --enable {0}'.format(repo))
 
+    def list_repos(self):
+        return self.run("subscription-manager repos --list")
+
+    def status(self):
+        return self.run("subscription-manager status")
+
     def create_custom_repos(self, **kwargs):
         """Create custom repofiles.
         Each ``kwargs`` item will result in one repository file created. Where
@@ -467,6 +473,7 @@ gpgcheck=0'''.format(
         org,
         activation_key=None,
         lce=None,
+        consumerid=None,
         force=True,
         releasever=None,
         username=None,
@@ -483,6 +490,8 @@ gpgcheck=0'''.format(
             with.
         :param lce: lifecycle environment name to which register the content
             host.
+        :param consumerid: uuid of content host, register to this content host,
+            content host has to be created before
         :param org: Organization name to register content host for.
         :param force: Register the content host even if it's already registered
         :param releasever: Set a release version
@@ -503,6 +512,18 @@ gpgcheck=0'''.format(
 
             cmd += u' --environment {0} --username {1} --password {2}'.format(
                 lce, username, password
+            )
+            if auto_attach:
+                cmd += u' --auto-attach'
+        elif consumerid is not None:
+            if username is None and password is None:
+                username = settings.server.admin_username
+                password = settings.server.admin_password
+
+            cmd += u' --consumerid {0} --username {1} --password {2}'.format(
+                consumerid,
+                username,
+                password,
             )
             if auto_attach:
                 cmd += u' --auto-attach'
