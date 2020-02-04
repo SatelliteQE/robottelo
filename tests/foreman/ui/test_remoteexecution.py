@@ -35,7 +35,7 @@ def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
 
     :param VirtualMachine vm_client: where vm_client is VirtualMachine instance.
     :param str org_label: The organization label.
-    :param int subnet: (Optioanl) Nailgun subnet entity id, to be used by the vm_client host.
+    :param int subnet: (Optional) Nailgun subnet entity id, to be used by the vm_client host.
     :param bool by_ip: Whether remote execution will use ip or host name to access server.
     """
     vm_client.install_katello_ca()
