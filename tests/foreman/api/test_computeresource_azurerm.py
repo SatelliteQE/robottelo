@@ -79,7 +79,7 @@ class TestAzureRMComputeResourceTestCase:
         description = gen_string('utf8')
         compresource.name = new_cr_name
         compresource.description = description
-        compresource.update(['name', 'description'])
+        compresource = compresource.update(['name', 'description'])
         assert compresource.name == new_cr_name
         assert compresource.description == description
 
