@@ -17,6 +17,7 @@
 import csv
 import json
 import os
+import json
 
 import pytest
 import yaml
@@ -285,6 +286,36 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
             assert res['Name'] == host_name
             # also tests comma in field contents
             assert res['Operating System'] == '{0} {1}'.format(os_name, os.major)
+
+
+@upgrade
+@tier2
+def test_positive_generate_subscriptions_report_json(session, module_org, module_loc):
+    """Use provided Subscriptions report, generate JSON
+
+    :id: b44d4cd8-a88e-47cf-9993-0bb871ac2c96
+
+    :expectedresults: The Subscriptions report is generated in JSON
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    # make sure we have some subscriptions
+    with manifests.clone() as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    # generate Subscriptions report
+    with session:
+        file_path = session.reporttemplate.generate("Subscriptions",
+                                                    values={'output_format': 'JSON'})
+    with open(file_path) as json_file:
+        data = json.load(json_file)
+    subscription_cnt = len(entities.Subscription(organization=module_org).search())
+    assert subscription_cnt > 0
+    assert len(data) > subscription_cnt
+    keys_expected = ['Available', 'Contract number', 'ID', 'Name', 'Quantity', 'SKU']
+    for subscription in data:
+        assert sorted(list(subscription.keys())) == keys_expected
 
 
 @tier3
