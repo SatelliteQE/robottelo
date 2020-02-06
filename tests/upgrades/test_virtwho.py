@@ -31,6 +31,7 @@ from robottelo.virtwho_utils import (
 from upgrade_tests import pre_upgrade, post_upgrade
 from wait_for import wait_for
 
+
 class scenario_positive_virt_who(APITestCase):
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
     :steps:
