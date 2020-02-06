@@ -97,6 +97,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
     :param dict system: system account used by ssh to connect and register.
     :param str activation_key: the activation key will be used to register.
     :param str org: Which organization will be used to register.
+    :param str env: Which environment will be used to register.
     :raises: VirtWhoError: If failed to register the system.
     """
     runcmd('subscription-manager unregister', system)
