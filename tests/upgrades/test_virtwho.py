@@ -17,6 +17,8 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
 from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase, settings
 from robottelo.virtwho_utils import (
@@ -28,7 +30,6 @@ from robottelo.virtwho_utils import (
 )
 from upgrade_tests import pre_upgrade, post_upgrade
 from wait_for import wait_for
-
 
 class scenario_positive_virt_who(APITestCase):
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
@@ -43,9 +44,7 @@ class scenario_positive_virt_who(APITestCase):
     @classmethod
     @skip_if_not_set('virtwho')
     def setUpClass(cls):
-        cls.org = entities.Organization().search(
-            query={'search': 'name="Default Organization"'}
-        )[0]
+        cls.org_name = 'virtwho_upgrade_org_name'
         cls.satellite_url = settings.server.hostname
         cls.hypervisor_type = settings.virtwho.hypervisor_type
         cls.hypervisor_server = settings.virtwho.hypervisor_server
@@ -64,7 +63,6 @@ class scenario_positive_virt_who(APITestCase):
             u'hypervisor_id': 'hostname',
             u'hypervisor_type': self.hypervisor_type,
             u'hypervisor_server': self.hypervisor_server,
-            u'organization_id': self.org.id,
             u'filtering_mode': 'none',
             u'satellite_url': self.satellite_url,
         }
@@ -76,22 +74,6 @@ class scenario_positive_virt_who(APITestCase):
             args[u'hypervisor_username'] = self.hypervisor_username
             args[u'hypervisor_password'] = self.hypervisor_password
         return args
-
-    def _try_to_get_guest_bonus(self, hypervisor_name, sku):
-        subscriptions = entities.Subscription().search(
-            query={'search': sku})
-        for item in subscriptions:
-            item = item.read_json()
-            if hypervisor_name.lower() in item['hypervisor']['name']:
-                return item['id']
-
-    def _get_guest_bonus(self, hypervisor_name, sku):
-        vdc_id, time = wait_for(self._try_to_get_guest_bonus,
-                                func_args=(hypervisor_name, sku),
-                                fail_condition=None,
-                                timeout=15,
-                                delay=1)
-        return vdc_id
 
     @pre_upgrade
     def test_pre_create_virt_who_configuration(self):
@@ -107,15 +89,18 @@ class scenario_positive_virt_who(APITestCase):
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
+        org = entities.Organization(name=self.org_name).create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         args = self._make_virtwho_configure()
-        args.update({'name': self.name})
+        args.update({'name': self.name, 'organization_id': org.id})
         vhd = entities.VirtWhoConfig(**args).create()
         self.assertEqual(vhd.status, 'unknown')
-        command = get_configure_command(vhd.id)
+        command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, debug=True)
+            command, debug=True, org=org.name)
         self.assertEqual(
-            entities.VirtWhoConfig().search(
+            entities.VirtWhoConfig(organization_id=org.id).search(
                 query={'search': 'name={}'.format(self.name)})[0].status,
             'ok')
         hosts = [
@@ -125,12 +110,14 @@ class scenario_positive_virt_who(APITestCase):
                 self.vdc_physical))]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
-                subscriptions = entities.Subscription().search(
+                subscriptions = entities.Subscription(organization=org.id).search(
                     query={'search': sku})
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
-                vdc_id = self._get_guest_bonus(hypervisor_name, sku)
-            host, time = wait_for(entities.Host().search,
+                subscriptions = entities.Subscription(organization=org.id).search(
+                    query={'search': sku})
+                vdc_id = subscriptions[0].id
+            host, time = wait_for(entities.Host(organization=org.id).search,
                                   func_args=(None, {'search': hostname}),
                                   fail_condition=[],
                                   timeout=5,
@@ -139,7 +126,7 @@ class scenario_positive_virt_who(APITestCase):
                 data={'subscriptions': [{
                     'id': vdc_id,
                     'quantity': 1}]})
-            result = entities.Host().search(
+            result = entities.Host(organization=org.id).search(
                 query={'search': hostname})[0].read_json()
             self.assertEqual(
                 result['subscription_status_label'],
@@ -163,8 +150,11 @@ class scenario_positive_virt_who(APITestCase):
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
+        org = entities.Organization().search(query={
+            'search': 'name={0}'.format(self.org_name)})[0]
+
         # Post upgrade, Verify virt-who exists and has same status.
-        vhd = entities.VirtWhoConfig().search(
+        vhd = entities.VirtWhoConfig(organization_id=org.id).search(
             query={'search': 'name={}'.format(self.name)})[0]
         self.assertEqual(vhd.status, 'ok')
 
@@ -172,7 +162,7 @@ class scenario_positive_virt_who(APITestCase):
         hypervisor_name, guest_name = get_hypervisor_info()
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
-            result = entities.Host().search(
+            result = entities.Host(organization=org.id).search(
                 query={'search': hostname})[0].read_json()
             self.assertEqual(
                 result['subscription_status_label'],
@@ -189,5 +179,5 @@ class scenario_positive_virt_who(APITestCase):
 
         # Delete virt-who config
         vhd.delete()
-        self.assertFalse(entities.VirtWhoConfig().search(
+        self.assertFalse(entities.VirtWhoConfig(organization_id=org.id).search(
             query={'search': 'name={}'.format(modify_name)}))

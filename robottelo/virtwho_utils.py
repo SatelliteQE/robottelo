@@ -5,6 +5,7 @@ import uuid
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
+from robottelo.cli.base import Base
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
 
@@ -73,12 +74,12 @@ def get_guest_info():
     return guest_name, guest_uuid
 
 
-def runcmd(cmd, system=None, timeout=None, output_format='base'):
+def runcmd(cmd, system=None, timeout=600, output_format='base'):
     """Return the retcode and stdout.
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
-    :param int timeout: Time to wait to establish the connection.
+    :param int timeout: Time to wait for establish the connection.
     :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
@@ -91,7 +92,7 @@ def runcmd(cmd, system=None, timeout=None, output_format='base'):
     return ret, stdout
 
 
-def register_system(system, activation_key=None, org='Default_Organization'):
+def register_system(system, activation_key=None, org='Default_Organization', env='Library'):
     """Return True if the system is registered to satellite successfully.
     :param dict system: system account used by ssh to connect and register.
     :param str activation_key: the activation key will be used to register.
@@ -105,7 +106,7 @@ def register_system(system, activation_key=None, org='Default_Organization'):
         'rpm -ihv http://{}/pub/katello-ca-consumer-latest.noarch.rpm'
         .format(settings.server.hostname), system
     )
-    cmd = 'subscription-manager register --org={} '.format(org)
+    cmd = 'subscription-manager register --org={} --environment={} '.format(org, env)
     if activation_key is not None:
         cmd += '--activationkey={}'.format(activation_key)
     else:
@@ -169,14 +170,19 @@ def get_configure_id(name):
         raise VirtWhoError("No configure id found for {}".format(name))
 
 
-def get_configure_command(config_id, org=DEFAULT_ORG):
+def get_configure_command(config_id, org=DEFAULT_ORG, auth=None):
     """Return the deploy command line based on configure id.
     :param str config_id: the unique id of the configure file you have created.
     :param str org: the satellite organization name.
     """
+    username, password = Base._get_username_password()
     return (
-        "hammer virt-who-config deploy --id {} --organization '{}'"
-        .format(config_id, org)
+        "hammer -u {} -p {} virt-who-config deploy --id {} --organization '{}' "
+        .format(
+            username,
+            password,
+            config_id,
+            org)
     )
 
 
@@ -264,14 +270,14 @@ def deploy_validation():
     return hypervisor_name, guest_name
 
 
-def deploy_configure_by_command(command, debug=False):
+def deploy_configure_by_command(command, debug=False, org=DEFAULT_ORG):
     """Deploy and run virt-who servcie by the hammer command.
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     virtwho_cleanup()
-    register_system(get_system('guest'))
+    register_system(get_system('guest'), org=org)
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(
