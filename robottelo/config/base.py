@@ -1301,6 +1301,7 @@ class Settings(object):
         self.swid_tools_repo = None
         self.screenshots_path = None
         self.tmp_dir = None
+        self.artifacts_server = None
         self.saucelabs_key = None
         self.saucelabs_user = None
         self.server = ServerSettings()
@@ -1430,6 +1431,7 @@ class Settings(object):
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
+        self.artifacts_server = self.reader.get('robottelo', 'artifacts_server', None)
         self.run_one_datapoint = self.reader.get(
             'robottelo', 'run_one_datapoint', False, bool)
         self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
