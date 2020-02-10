@@ -6,9 +6,13 @@ import unittest2
 
 from robottelo import ssh
 from robottelo.config.base import DistroSettings
+from robottelo.constants import NO_REPOS_AVAILABLE
+from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
 
+from unittest.mock import call
+from unittest.mock import patch
 
 class VirtualMachineTestCase(unittest2.TestCase):
     """Tests for :class:`robottelo.vm.VirtualMachine`."""
@@ -159,3 +163,29 @@ class VirtualMachineTestCase(unittest2.TestCase):
         vm = VirtualMachine()
         vm.create()
         self.assertEqual(vm.ip_addr, '10.8.30.135')
+
+    @patch('time.sleep')
+    @patch('robottelo.ssh.command', side_effect=[
+        ssh.SSHCommandResult(
+            return_code=0,
+            stdout=['CPUs:     1', 'Memory:   512 MB', 'MAC:      52:54:00:f7:bb:a8']
+        ),
+        ssh.SSHCommandResult(stdout=[
+            '{"return":[{"name":"lo","ip-addresses":[{"ip-address-type":"ipv4",'
+            '"ip-address":"127.0.0.1","prefix":8}],"hardware-address":"00:00:00:00:00:00"}'
+            ',{"name":"ens3","ip-addresses":[{"ip-address-type":"ipv4",'
+            '"ip-address":"10.8.30.135","prefix":19}],"hardware-address":"52:54:00:f7:bb:a8"}]}'
+        ]),
+        ssh.SSHCommandResult(),
+        ssh.SSHCommandResult(stdout=SM_OVERALL_STATUS['current']),
+        ssh.SSHCommandResult(stdout=NO_REPOS_AVAILABLE),
+    ])
+    def test_subscription_manager_overall_status(self, ssh_command, sleep):
+        self.configure_provisioning_server()
+        vm = VirtualMachine()
+        vm.create()
+        self.assertEqual(vm.subscription_manager_status().stdout, 'Overall Status: Current')
+        self.assertEqual(
+            vm.subscription_manager_list_repos().stdout,
+            'This system has no repositories available through subscriptions.'
+        )

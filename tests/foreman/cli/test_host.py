@@ -2338,9 +2338,9 @@ class HostSubscriptionTestCase(CLITestCase):
             consumerid=host['subscription-information']['uuid'],
             force=False,
         )
-        client_status = self.client.status()
+        client_status = self.client.subscription_manager_status()
         self.assertIn(SM_OVERALL_STATUS['current'], client_status.stdout)
-        repo_list = self.client.list_repos()
+        repo_list = self.client.subscription_manager_list_repos()
         self.assertIn(NO_REPOS_AVAILABLE, repo_list.stdout)
 
     @tier3

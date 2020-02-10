@@ -376,10 +376,10 @@ class VirtualMachine(object):
         if force or settings.cdn or not downstream_repo:
             self.run(u'subscription-manager repos --enable {0}'.format(repo))
 
-    def list_repos(self):
+    def subscription_manager_list_repos(self):
         return self.run("subscription-manager repos --list")
 
-    def status(self):
+    def subscription_manager_status(self):
         return self.run("subscription-manager status")
 
     def create_custom_repos(self, **kwargs):
@@ -505,7 +505,7 @@ gpgcheck=0'''.format(
         cmd = u'subscription-manager register --org {0}'.format(org)
         if activation_key is not None:
             cmd += u' --activationkey {0}'.format(activation_key)
-        elif lce is not None:
+        elif lce:
             if username is None and password is None:
                 username = settings.server.admin_username
                 password = settings.server.admin_password
@@ -515,7 +515,7 @@ gpgcheck=0'''.format(
             )
             if auto_attach:
                 cmd += u' --auto-attach'
-        elif consumerid is not None:
+        elif consumerid:
             if username is None and password is None:
                 username = settings.server.admin_username
                 password = settings.server.admin_password
