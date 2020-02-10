@@ -32,6 +32,7 @@ from robottelo.constants import (
     LDAP_SERVER_TYPE,
     PERMISSIONS,
 )
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     destructive,
@@ -40,6 +41,7 @@ from robottelo.decorators import (
     setting_is_set,
     skip_if_not_set,
     tier2,
+    tier4,
     upgrade,
 )
 from robottelo import ssh
@@ -190,6 +192,46 @@ def ldap_auth_name():
         ldap[ldap_auth].delete()
     ldap_name = gen_string('alphanumeric')
     yield ldap_name
+
+
+def run_command(cmd, hostname=settings.server.hostname, timeout=None):
+    """helper function for ssh command and avoiding the return code check in called function"""
+    if timeout is not None:
+        result = ssh.command(cmd=cmd, hostname=hostname, timeout=timeout)
+    else:
+        result = ssh.command(cmd=cmd, hostname=hostname)
+    if result.return_code != 0:
+        raise CLIReturnCodeError(
+            result.return_code,
+            result.stderr,
+            'Failed to run the command : {}'.format(cmd),
+        )
+    else:
+        return result.stdout
+
+
+@fixture(scope='module')
+def enroll_idm_and_configure_external_auth():
+    """Enroll the Satellite6 Server to an IDM Server."""
+    run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
+
+    run_command(cmd='echo {0} | kinit admin'.format(settings.ipa.password_ipa),
+                hostname=settings.ipa.hostname_ipa)
+    result = run_command(cmd='ipa host-add --random {}'.format(settings.server.hostname),
+                         hostname=settings.ipa.hostname_ipa)
+
+    for line in result:
+        if "Random password" in line:
+            _, password = line.split(': ', 2)
+            break
+    run_command(cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
+                hostname=settings.ipa.hostname_ipa)
+    domain = settings.ipa.hostname_ipa[settings.ipa.hostname_ipa.find('satqe'):]
+    run_command(cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".
+                format(password,
+                       domain,
+                       settings.ipa.hostname_ipa,
+                       domain.upper()))
 
 
 def generate_otp(secret):
@@ -1039,3 +1081,40 @@ def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
+
+
+@destructive
+@ldap_wrapper
+@tier4
+def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
+    """Verify the single sign-on functionality with external authentication
+
+    :id: 9813a4da-4639-11ea-9780-d46d6dd3b5b2
+
+    :setup: Enroll the IDM Configuration for External Authentication
+
+    :steps: Assert single sign-on session user directed to satellite instead login page
+
+    :expectedresults: After single sign on user should redirected from /extlogin to /hosts page
+
+    """
+    # register the satellite with IPA for single sign-on and update external auth
+    try:
+        run_command(cmd="subscription-manager repos --enable rhel-7-server-optional-rpms")
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
+        run_command('foreman-maintain service restart', timeout=300)
+        result = run_command(cmd="curl -k -u : --negotiate https://{}/users/extlogin/".
+                             format(settings.server.hostname),
+                             hostname=settings.ipa.hostname_ipa)
+        result = ''.join(result)
+        assert 'redirected' in result
+        assert 'https://{}/hosts'.format(settings.server.hostname) in result
+        assert 'You are being' in result
+    finally:
+        # resetting the settings to default for external auth
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
+        run_command('foreman-maintain service restart', timeout=300)
+        run_command(cmd='ipa service-del HTTP/{}'.format(settings.server.hostname),
+                    hostname=settings.ipa.hostname_ipa)
+        run_command(cmd='ipa host-del {}'.format(settings.server.hostname),
+                    hostname=settings.ipa.hostname_ipa)
