@@ -44,7 +44,8 @@ ssh_key=
 # verbosity=debug
 # Directory for temporary files
 # tmp_dir=/var/tmp
-
+# Web Server to provide various test artifacts
+# artifacts_server=server.example.com
 # Webdriver logging options
 # A list of commands to be logged
 # log_driver_commands=newSession,windowMaximize,get,findElement,sendKeysToElement,clickElement,mouseMoveTo

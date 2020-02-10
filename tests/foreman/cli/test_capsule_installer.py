@@ -24,6 +24,7 @@ from robottelo.cli.capsule import Capsule
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
+    skip_if,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -163,6 +164,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
+    @skip_if(not settings.artifacts_server)
     @tier3
     def test_positive_reinstall_on_same_node_after_remove(self):
         """Reinstall capsule on the same node after remove
@@ -184,14 +186,16 @@ class CapsuleInstallerTestCase(CLITestCase):
             with self.assertNotRaises(CLIReturnCodeError):
                 Capsule.refresh_features(
                     {'name': capsule_vm._capsule_hostname})
-            # katello-remove command request to confirm by typing Y and then by
-            # typing remove
+            # katello-remove is no longer part of product so deploy it sideways to perform testing
+            capsule_vm.run("wget -nv -P /usr/bin http://{0}/pub/katello-remove"
+                           .format(settings.artifacts_server))
+            capsule_vm.run("chmod +x /usr/bin/katello-remove")
+            # katello-remove command request to confirm by typing Y and then by typing remove
             result = capsule_vm.run("printf 'Y\nremove\n' | katello-remove")
             self.assertEqual(result.return_code, 0)
             # ensure that capsule refresh-features fail
             with self.assertRaises(CLIReturnCodeError):
-                Capsule.refresh_features(
-                    {'name': capsule_vm._capsule_hostname})
+                Capsule.refresh_features({'name': capsule_vm._capsule_hostname})
             # reinstall katello certs as they have been removed
             capsule_vm.install_katello_ca()
             # install satellite-capsule package
