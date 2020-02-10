@@ -1098,7 +1098,7 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
     :expectedresults: After single sign on user should redirected from /extlogin to /hosts page
 
     """
-    # register the satellite with IPA for single singon and update external auth
+    # register the satellite with IPA for single sign-on and update external auth
     try:
         run_command(cmd="subscription-manager repos --enable rhel-7-server-optional-rpms")
         run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
