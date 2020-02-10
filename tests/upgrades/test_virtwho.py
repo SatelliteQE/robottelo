@@ -93,8 +93,10 @@ class scenario_positive_virt_who(APITestCase):
         """
         default_loc_id = entities.Location().search(
             query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-        entities.Location(id=default_loc_id).read()
+        default_loc = entities.Location(id=default_loc_id).read()
         org = entities.Organization(name=self.org_name).create()
+        default_loc.organization.append(entities.Organization(id=org.id))
+        default_loc.update(['organization'])
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         args = self._make_virtwho_configure()
