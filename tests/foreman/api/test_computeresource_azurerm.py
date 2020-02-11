@@ -53,7 +53,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :CaseLevel: Component
         """
-
         # Create CR
         cr_name = gen_string('alpha')
         compresource = entities.AzureRMComputeResource(
@@ -90,10 +89,8 @@ class TestAzureRMComputeResourceTestCase:
 
     @upgrade
     @tier2
-    def test_positive_create_finish_template_image(self,
-                                                   module_architecture,
-                                                   module_azurerm_cr,
-                                                   module_azurerm_finishimg):
+    def test_positive_create_finish_template_image(
+            self, module_architecture, module_azurerm_cr, module_azurerm_finishimg):
         """ Finish template image along with username is being added in AzureRM CR
 
         :id: 78facb19-4b27-454b-abc5-2c69c0a6c28a
@@ -160,7 +157,7 @@ class TestAzureRMHostProvisioningTestCase:
 
     """
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr):
+    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -176,7 +173,7 @@ class TestAzureRMHostProvisioningTestCase:
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
             "vm_size": self.vm_size,
-            "username": settings.azurerm.username,
+            "username": module_azurerm_finishimg.username,
             "password": settings.azurerm.password,
             "platform": self.platform,
             "script_command": 'touch /var/tmp/text.txt',

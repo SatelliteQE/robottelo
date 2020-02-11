@@ -398,7 +398,7 @@ def module_gce_compute(module_org, module_location):
     return gce_cr
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def azurerm_settings():
     deps = {
         'tenant': settings.azurerm.tenant_id,
@@ -456,7 +456,7 @@ def module_azurerm_cloudimg(module_architecture, module_os, module_azurerm_cr):
     return finish_image
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def azurermclient(azurerm_settings):
     """ Connect to AzureRM using wrapanapi AzureSystem"""
     azurermclient = AzureSystem(
