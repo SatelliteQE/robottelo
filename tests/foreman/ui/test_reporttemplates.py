@@ -14,12 +14,13 @@
 
 :Upstream: No
 """
-
+import pytest
 import csv
 import os
-
+import json
+import yaml
+from lxml import etree
 from nailgun import entities
-
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     tier2,
@@ -28,7 +29,21 @@ from robottelo.decorators import (
     fixture,
     upgrade
 )
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL7,
+    PRDS,
+    REPOS,
+    REPOSET
+)
 from robottelo.ui.utils import create_fake_host
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
+from robottelo import manifests
+from robottelo.vm import VirtualMachine
 
 
 @fixture(scope='module')
@@ -39,6 +54,49 @@ def module_org():
 @fixture(scope='module')
 def module_loc():
     return entities.Location().create()
+
+
+@pytest.fixture(scope='module')
+def content_setup():
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_product = entities.Product(organization=org).create()
+    custom_repo = entities.Repository(
+        name=gen_string('alphanumeric').upper(),
+        product=custom_product).create()
+    custom_repo.sync()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    cv = entities.ContentView(
+        organization=org,
+        repository=[rh_repo_id, custom_repo.id],
+    ).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    promote(cvv, lce.id)
+    ak = entities.ActivationKey(
+        content_view=cv,
+        organization=org,
+        environment=lce,
+        auto_attach=True
+    ).create()
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
+    ak.add_subscriptions(data={
+        'quantity': 1,
+        'subscription_id': subscription.id,
+    })
+    return org, ak
 
 
 @tier3
@@ -345,3 +403,60 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
     :expectedresults: Report can't be downloaded. Error.
     :CaseImportance: High
     """
+
+
+@tier3
+def test_positive_generate_entitlements_reports_multiple_formats(session, content_setup):
+    """Generate reports using the Entitlements template in html, yaml, json, and csv format.
+
+        :id: b268663d-c213-4e59-8f81-61bec0838b1e
+
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, and Subscriptions.
+
+        :steps:
+            1. Monitor -> Report Templates
+            2. Entitlements -> Generate
+            3. Click the dropdown to select output format
+            4. Submit
+
+        :expectedresults: reports are generated containing all the expected information
+                          regarding Entitlements for each output format.
+
+        :CaseImportance: High
+    """
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        vm.install_katello_ca()
+        vm.register_contenthost(content_setup[0].label, content_setup[1].name)
+        assert vm.subscribed
+        with session:
+            session.organization.select(content_setup[0].name)
+            session.location.select('Default Location')
+            result_json = session.reporttemplate.generate("Entitlements",
+                                                          values={'output_format': 'JSON'})
+            with open(result_json) as json_file:
+                data_json = json.load(json_file)
+                assert data_json[0]['Name'] == vm.hostname
+                assert data_json[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+            result_yaml = session.reporttemplate.generate("Entitlements",
+                                                          values={'output_format': 'YAML'})
+            with open(result_yaml) as yaml_file:
+                data_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
+                assert data_yaml[0]['Name'] == vm.hostname
+                assert data_yaml[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+            result_csv = session.reporttemplate.generate("Entitlements",
+                                                         values={'output_format': 'CSV'})
+            with open(result_csv) as csv_file:
+                data_csv = csv.DictReader(csv_file)
+                res = next(data_csv)
+                assert res['Name'] == vm.hostname
+                assert res['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+            result_html = session.reporttemplate.generate("Entitlements",
+                                                          values={'output_format': 'HTML'})
+            with open(result_html) as html_file:
+                parser = etree.HTMLParser()
+                tree = etree.parse((html_file), parser)
+                tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html')
+                assert vm.hostname in str(tree_result)
+                assert DEFAULT_SUBSCRIPTION_NAME in str(tree_result)
