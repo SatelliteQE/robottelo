@@ -45,7 +45,6 @@ help:
 	@echo "  test-foreman-upgrade       to run Foreman deployment post-upgrade tests"
 	@echo "  test-foreman-endtoend      to perform a generic end-to-end test"
 	@echo "  graph-entities             to graph entity relationships"
-	@echo "  lint                       to run pylint on the entire codebase"
 	@echo "  logs-join                  to join xdist log files into one"
 	@echo "  logs-clean                 to delete all xdist log files in the root"
 	@echo "  pyc-clean                  to delete all temporary artifacts"
@@ -53,8 +52,6 @@ help:
 	@echo "  uuid-fix                   to fix all duplicated or empty :id: in testimony docstring tags"
 	@echo "  token-prefix-editor        to fix all tokens prefix and ensure :<token>: format"
 	@echo "  can-i-push                 to check if local changes are suitable to push"
-	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
-	@echo "  gitflake8                  to check flake8 styling only for modified files"
 	@echo "  clean-shared               to clean shared functions storage data files"
 	@echo "  clean-cache                to clean pytest cache files"
 	@echo "  clean-all                  to clean cache, pyc, logs and docs"
@@ -137,9 +134,6 @@ test-foreman-upgrade:
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
 
-lint:
-	scripts/lint.py
-
 pyc-clean: ## remove Python file artifacts
 	$(info "Removing unused Python compiled files, caches and ~ backups...")
 	find . -name '*.pyc' -exec rm -f {} +
@@ -170,17 +164,8 @@ uuid-fix:
 token-prefix-editor:
 	@scripts/token_editor.py
 
-gitflake8:
-	$(info "Checking style and syntax errors with flake8 linter...")
-	@flake8 $(shell git diff --name-only | grep ".py$$") robottelo/__init__.py --show-source
-
-can-i-push: gitflake8 uuid-check test-docstrings test-robottelo
+can-i-push: uuid-check test-docstrings test-robottelo
 	$(info "!!! Congratulations your changes are good to fly, make a great PR! ${USER}++ !!!")
-
-install-commit-hook:
-	$(info "Installing git pre-commit hook...")
-	@grep -q '^make uuid-fix' .git/hooks/pre-commit || echo "make uuid-fix" >> .git/hooks/pre-commit
-	@grep -q '^make can-i-push' .git/hooks/pre-commit || echo "make can-i-push" >> .git/hooks/pre-commit
 
 clean-cache:
 	$(info "Cleaning the .cache directory...")
@@ -196,7 +181,7 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
         test-foreman-virtwho test-foreman-ui \
-        test-foreman-endtoend graph-entities lint logs-join \
+        test-foreman-endtoend graph-entities logs-join \
         logs-clean pyc-clean uuid-check uuid-fix token-prefix-editor \
-        can-i-push install-commit-hook gitflake8 clean-cache clean-all \
+        can-i-push clean-cache clean-all \
         clean-shared
