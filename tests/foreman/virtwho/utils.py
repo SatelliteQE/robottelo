@@ -91,7 +91,7 @@ def runcmd(cmd, system=None, timeout=None, output_format='base'):
     return ret, stdout
 
 
-def register_system(system, activation_key=None, org='Default_Organization'):
+def register_system(system, activation_key=None, org='Default_Organization', env='Library'):
     """Return True if the system is registered to satellite successfully.
     :param dict system: system account used by ssh to connect and register.
     :param str activation_key: the activation key will be used to register.
@@ -109,9 +109,10 @@ def register_system(system, activation_key=None, org='Default_Organization'):
     if activation_key is not None:
         cmd += '--activationkey={}'.format(activation_key)
     else:
-        cmd += '--username={} --password={}'.format(
+        cmd += '--username={} --password={} --environment={}'.format(
             settings.server.admin_username,
-            settings.server.admin_password)
+            settings.server.admin_password,
+            env)
     ret, stdout = runcmd(cmd, system)
     if ret == 0 or "system has been registered" in stdout:
         return True
