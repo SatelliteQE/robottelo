@@ -20,40 +20,34 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import promote
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_2_ERRATA_ID,
-    FAKE_3_ERRATA_ID,
-    FAKE_3_YUM_REPO,
-    FAKE_6_YUM_REPO,
-    FAKE_9_YUM_REPO,
-    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
-    FAKE_9_YUM_SECURITY_ERRATUM,
-    FAKE_9_YUM_OUTDATED_PACKAGES,
-    PRDS,
-    REAL_0_RH_PACKAGE,
-    REAL_4_ERRATA_ID,
-    REAL_4_ERRATA_CVES,
-)
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_3_ERRATA_ID
+from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
+from robottelo.constants import FAKE_9_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM
+from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_0_RH_PACKAGE
+from robottelo.constants import REAL_4_ERRATA_CVES
+from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.manifests import upload_manifest_locked
-from robottelo.products import (
-    RHELAnsibleEngineRepository,
-    YumRepository,
-    RepositoryCollection,
-    SatelliteToolsRepository,
-    VirtualizationAgentsRepository,
-)
+from robottelo.products import RepositoryCollection
+from robottelo.products import RHELAnsibleEngineRepository
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import VirtualizationAgentsRepository
+from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
 
 CUSTOM_REPO_URL = FAKE_6_YUM_REPO

@@ -14,9 +14,11 @@
 
 :Upstream: No
 """
-from robottelo import ssh
 from unittest2.case import TestCase
-from upgrade_tests import post_upgrade, pre_upgrade
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
+from robottelo import ssh
 
 
 class ScenarioForemanMaintain(TestCase):

@@ -1,8 +1,6 @@
 """DEPRECATED UI FUNCTIONALITY"""
-
 # """
 # import requests
-
 # from fauxfactory import gen_string
 # from nailgun import client, entities
 # from robottelo.config import settings
@@ -31,11 +29,8 @@
 # from robottelo.ui.factory import make_resource, make_host
 # from robottelo.ui.locators import common_locators, locators
 # from robottelo.ui.session import Session
-
-
 # class RhevComputeResourceTestCase(UITestCase):
 #     """Implements Compute Resource tests in UI"""
-
 #     @classmethod
 #     @skip_if_not_set('rhev')
 #     def setUpClass(cls):
@@ -52,28 +47,20 @@
 #         cls.rhev_vm_name = settings.rhev.vm_name
 #         cls.rhev_storage_domain = settings.rhev.storage_domain
 #         cls.rhev_cacert = requests.get(settings.rhev.ca_cert).content.decode()
-
 #     @tier1
 #     def test_positive_create_rhev_with_name(self):
 #         """Create a new rhev Compute Resource using different value
 #         types as a name
-
 #         :id: be735d8c-5644-4a42-9a08-2f9c6181a8c6
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Provide a valid name to rhev Compute Resource.
 #             4. Test the connection using Load Datacenter and submit.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: A rhev CR is created successfully with proper
 #             connection.
-
 #         :CaseImportance: Critical
 #         """
 #         parameter_list = [
@@ -82,7 +69,6 @@
 #             ['Password', self.rhev_password, 'field'],
 #             ['X509 Certification Authorities', self.rhev_cacert, 'field'],
 #             ['Datacenter', self.rhev_datacenter, 'special select'],
-
 #         ]
 #         with Session(self) as session:
 #             for name in valid_data_list():
@@ -94,18 +80,13 @@
 #                         parameter_list=parameter_list
 #                     )
 #                     self.assertIsNotNone(self.compute_resource.search(name))
-
 #     @skip_if_bug_open('bugzilla', 1467664)
 #     @tier1
 #     def test_positive_create_rhev_with_same_name(self):
 #         """Create a new rhev Compute Resource with existing name correction
-
 #         :id: b9499d65-ef70-48b7-854a-f4cf740fbf9c
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Provide a valid name to rhev Compute Resource.
@@ -114,14 +95,10 @@
 #             6. After error of name already taken,
 #                update with different name
 #             7. Click submit
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: A rhev CR is created successfully with proper
 #             connection.
-
 #         :CaseImportance: Critical
-
 #         :BZ: 1467664
 #         """
 #         name = gen_string('alpha')
@@ -158,26 +135,18 @@
 #                     timeout=2,
 #                 )
 #             )
-
 #     @tier1
 #     def test_positive_create_rhev_with_description(self):
 #         """Create rhev Compute Resource with description.
-
 #         :id: bd5e3066-395c-486e-bce8-b0a9bdd4e236
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Provide it with some valid description to rhev Compute Resource.
 #             4. Test the connection using Load Datacenter and submit.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: A rhev Compute Resource is created successfully
-
 #         :CaseImportance: Critical
 #         """
 #         parameter_list = [
@@ -198,27 +167,19 @@
 #                         parameter_list=parameter_list
 #                     )
 #                     self.assertIsNotNone(self.compute_resource.search(name))
-
 #     @tier1
 #     def test_negative_create_rhev_with_invalid_name(self):
 #         """Create a new rhev Compute Resource with incorrect values
 #         only
-
 #         :id: 5598b123-b6ad-4bdf-b192-2b1ccc2f41eb
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Provide a invalid name to rhev Compute Resource.
 #             4. Test the connection using Load Datacenter and submit.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: A rhev Compute Resource is not created
-
 #         :CaseImportance: Critical
 #         """
 #         parameter_list = [
@@ -242,27 +203,19 @@
 #                             common_locators["name_haserror"]
 #                         )
 #                     )
-
 #     @tier1
 #     def test_positive_update_rhev_name(self):
 #         """Update a rhev Compute Resource name
-
 #         :id: 62d0c495-c87e-42dd-91aa-9b9b728f7dda
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Provide a valid name to rhev Compute Resource.
 #             4. Test the connection using Load Datacenter and submit.
 #             5. Update the name of the created CR with valid string.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: The rhev Compute Resource is updated
-
 #         :CaseImportance: Critical
 #         """
 #         parameter_list = [
@@ -285,27 +238,19 @@
 #                 self.assertIsNotNone(self.compute_resource.search(name))
 #                 self.compute_resource.update(name=name, newname=newname)
 #                 self.assertIsNotNone(self.compute_resource.search(newname))
-
 #     @tier1
 #     def test_positive_delete_rhev(self):
 #         """Delete a rhev Compute Resource
-
 #         :id: 4a8b18f0-a2af-491a-bcf7-64d59a0fbc01
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Provide a valid name to rhev Compute Resource.
 #             4. Test the connection using Load Datacenter and submit.
 #             5. Delete the created compute resource.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: The Compute Resource is deleted
-
 #         :CaseImportance: Critical
 #         """
 #         parameter_list = [
@@ -326,26 +271,19 @@
 #                 )
 #                 self.assertIsNotNone(self.compute_resource.search(name))
 #                 self.compute_resource.delete(name, dropdown_present=True)
-
 #     @tier2
 #     def test_negative_add_image_rhev_with_invalid_name(self):
 #         """Add images to the rhev compute resource
-
 #         :id: 0054b389-1e2f-44d9-a306-0410fc0b9d99
-
 #         :setup: rhev hostname, credentials and images as templates in rhev.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Select the created rhev CR and click images tab.
 #             4. Select "New image", provide it invalid name and valid
 #                information.
 #             5. Select the desired template to create the image from and submit.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: The image should not be added to the CR
 #         """
 #         parameter_list = [
@@ -390,25 +328,18 @@
 #                         img_name,
 #                         self.compute_resource.list_images(cr_name)
 #                     )
-
 #     @tier2
 #     def test_positive_access_rhev_with_default_profile(self):
 #         """Associate default (3-Large) compute profile to rhev compute resource
-
 #         :id: 7049227e-f384-4aa1-8a01-228c3e7292a6
-
 #         :setup: rhev hostname and credentials.
-
 #         :steps:
-
 #             1. Create a compute resource of type rhev.
 #             2. Provide it with the valid hostname, username and password.
 #             3. Select the created rhev CR.
 #             4. Click Compute Profile tab.
 #             5. Select (3-Large) and submit.
-
 #         :CaseAutomation: Automated
-
 #         :expectedresults: The Compute Resource created and opened successfully
 #         """
 #         parameter_list = [
@@ -428,11 +359,8 @@
 #             )
 #             self.assertIsNotNone(self.compute_profile.select_resource(
 #                 '3-Large', name, 'RHV'))
-
-
 # class RhevComputeResourceHostTestCase(UITestCase):
 #     """Implements Compute Resource tests in UI"""
-
 #     @classmethod
 #     @skip_if_not_set('rhev')
 #     def setUpClass(cls):
@@ -470,7 +398,6 @@
 #             subnet = subnet[0].read()
 #             subnet.ipam = "DHCP"
 #             subnet.update(['ipam'])
-
 #     def tearDown(self):
 #         """Delete the host to free the resources"""
 #         super(RhevComputeResourceHostTestCase, self).tearDown()
@@ -478,23 +405,17 @@
 #             query={u'search': u'organization={0}'.format(self.org_name)})
 #         for host in hosts:
 #             host.delete()
-
 #     @upgrade
 #     @tier3
 #     def test_positive_provision_rhev_with_image(self):
 #         """ Provision a host on rhev compute resource with image based
-
 #         :id: 80abd6b1-31cd-4f3e-949c-f1ca608d0bbb
-
 #         :setup: rhev hostname and credentials.
-
 #             1. Configured subnet for provisioning of the host.
 #             2. Configured domains for the host.
 #             3. Population of images into satellite from rhev templates.
 #             4. Activation key and CV for the host.
-
 #         :steps:
-
 #             1. Go to "Hosts --> New host".
 #             2. Fill in the required details.(eg name,loc, org).
 #             3. Select rhev compute resource from "Deploy on" drop down.
@@ -503,11 +424,8 @@
 #             6. Edit Provisioning Method to image based.
 #             7. Select the appropriate image .
 #             8. Associate the activation key and submit.
-
 #         :expectedresults: The host should be provisioned successfully
-
 #         :BZ: 1467828, 1466645, 1514885, 1467925
-
 #         :CaseAutomation: Automated
 #         """
 #         hostname = gen_string('alpha', 9).lower()
@@ -600,26 +518,19 @@
 #                     })[0].read().ip
 #             with self.assertNotRaises(ProvisioningCheckError):
 #                 self.compute_resource.host_provisioning_check(host_ip)
-
 #     @tier3
 #     def test_positive_provision_rhev_with_compute_profile(self):
 #         """ Provision a host on rhev compute resource with compute profile
 #         default (3-Large)
-
 #         :id: fe4a05ef-d548-4c28-80d0-d17851fb4b03
-
 #         :setup: rhev hostname ,credentials and provisioning setup.
-
 #         :steps:
-
 #             1. Go to "Hosts --> New host".
 #             2. Fill in the required details.(eg name,loc, org).
 #             3. Select rhev compute resource from "Deploy on" drop down.
 #             4. Select the "Compute profile" from the drop down.
 #             5. Provision the host using the compute profile.
-
 #         :expectedresults: The host should be provisioned successfully
-
 #         :CaseAutomation: Automated
 #         """
 #         hostname = gen_string('alpha', 9).lower()
@@ -700,30 +611,22 @@
 #                     })[0].read().ip
 #             with self.assertNotRaises(ProvisioningCheckError):
 #                 self.compute_resource.host_provisioning_check(host_ip)
-
 #     @upgrade
 #     @tier3
 #     def test_positive_provision_rhev_with_custom_compute_settings(self):
 #         """ Provision a host on rhev compute resource with
 #          custom disk, cpu count and memory
-
 #         :id: a972c095-7567-4bb0-86cb-9bd835fed7b7
-
 #         :setup: rhev hostname ,credentials and provisioning setup.
-
 #         :steps:
-
 #             1. Go to "Hosts --> New host".
 #             2. Fill in the required details.(eg name,loc, org).
 #             3. Select rhev custom compute resource from "Deploy on" drop down.
 #             4. Select the custom compute profile" with custom disk size, cpu
 #                count and memory.
 #             5. Provision the host using the compute profile.
-
 #         :expectedresults: The host should be provisioned with custom settings
-
 #         :BZ: 1467925, 1467828, 1514885
-
 #         :CaseAutomation: Automated
 #         """
 #         hostname = gen_string('alpha', 9).lower()
@@ -814,41 +717,29 @@
 #                     })[0].read().ip
 #             with self.assertNotRaises(ProvisioningCheckError):
 #                 self.compute_resource.host_provisioning_check(host_ip)
-
 #     @stubbed()
 #     @tier3
 #     def test_positive_provision_rhev_with_host_group(self):
 #         """ Provision a host on rhev compute resource with
 #         the help of hostgroup.
-
 #         :id: e02fae7d-ac39-4068-ba82-ec0cf110aae8
-
 #         :setup: rhev hostname ,credentials provisioning setup and hostgroup
-
 #         :steps:
-
 #             1. Go to "Hosts --> New host".
 #             2. Assign the host group to the host.
 #             3. Select the Deploy on as rhev Compute Resource.
 #             4. Provision the host.
-
 #         :expectedresults: The host should be provisioned with host group
-
 #         :CaseAutomation: notautomated
 #         """
-
 #     @upgrade
 #     @tier3
 #     def test_positive_check_provisioned_rhev_os(self):
 #         """Provision a host on rhev compute resource and check the hypervisor
 #         provisioned VM os type.
-
 #         :id: 97f66fca-50b4-42bc-b187-3b846f03ab76
-
 #         :customerscenario: true
-
 #         :steps:
-
 #             1. Prepare an RHEV  compute resource.
 #             2. Create an image.
 #             3. Select the custom compute profile" with custom disk size, cpu
@@ -856,14 +747,10 @@
 #             4. Go to "Hosts --> New host".
 #             5. Provision the host using the compute profile.
 #             6. Check RHEV hypervisor VM OS type.
-
 #         :expectedresults: Hypervisor VM OS type must be the same as the one
 #             used in provisioning.
-
 #         :CaseAutomation: Automated
-
 #         :BZ: 1315281
-
 #         :CaseLevel: System
 #         """
 #         host_name = gen_string('alpha').lower()
@@ -1013,20 +900,15 @@
 #                 response.json()['os']['type'],
 #                 'rhel_{0}x{1}'.format(os.major, arch.name.split('_')[-1])
 #             )
-
 #     @upgrade
 #     @tier3
 #     def test_positive_check_provisioned_vm_name(self):
 #         """Provision a host on rhev compute resource and check that the
 #         hypervisor provisioned VM name is like "name.example.com" (where name
 #         is the host name and example.com the domain name).
-
 #         :id: 1315e36a-d7d1-4b3b-83a6-a6d622592142
-
 #         :customerscenario: true
-
 #         :steps:
-
 #             1. Prepare an RHEV  compute resource.
 #             2. Create an image.
 #             3. Select the custom compute profile" with custom disk size, cpu
@@ -1034,13 +916,9 @@
 #             4. Go to "Hosts --> New host".
 #             5. Provision the host using the compute profile.
 #             6. Check RHEV hypervisor VM name.
-
 #         :expectedresults: Hypervisor VM name is like name.example.com
-
 #         :CaseAutomation: Automated
-
 #         :BZ: 1317529
-
 #         :CaseLevel: System
 #         """
 #         host_name = gen_string('alpha').lower()

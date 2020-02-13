@@ -21,27 +21,22 @@ from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    make_hostgroup,
-    make_location,
-    make_org,
-    make_smart_variable,
-    publish_puppet_module)
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_smart_variable
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.host import Host
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.smart_variable import SmartVariable
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import (
-    gen_string,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
 

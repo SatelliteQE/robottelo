@@ -15,20 +15,19 @@
 
 :Upstream: No
 """
+from airgun.session import Session
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_string
+from nailgun import entities
 from pytest import raises
 
-from airgun.session import Session
-from fauxfactory import gen_integer, gen_ipaddr, gen_string
-from nailgun import entities
-
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

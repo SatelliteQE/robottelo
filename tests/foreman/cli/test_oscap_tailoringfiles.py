@@ -16,27 +16,24 @@
 :Upstream: No
 """
 import pytest
-
 from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_tailoringfile, CLIFactoryError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_tailoringfile
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.config import settings
 from robottelo.constants import SNIPPET_DATA_FILE
-from robottelo.datafactory import (
-    valid_data_list,
-    invalid_names_list,
-)
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier4,
-    upgrade
-)
-from robottelo.helpers import get_data_file, file_downloader
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
+from robottelo.helpers import file_downloader
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
 

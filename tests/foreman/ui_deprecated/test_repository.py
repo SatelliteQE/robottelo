@@ -1,7 +1,5 @@
 """DEPRECATED UI FUNCTIONALITY"""
-
 # import time
-
 # from fauxfactory import gen_string
 # from nailgun import entities
 # from robottelo import ssh
@@ -47,11 +45,8 @@
 # )
 # from robottelo.ui.session import Session
 # from selenium.common.exceptions import NoSuchElementException
-
-
 # class RepositoryTestCase(UITestCase):
 #     """Implements Repos tests in UI"""
-
 #     @classmethod
 #     def setUpClass(cls):
 #         super(RepositoryTestCase, cls).setUpClass()
@@ -59,14 +54,12 @@
 #         cls.session_loc = entities.Location().create()
 #         cls.session_prod = entities.Product(
 #             organization=cls.session_org).create()
-
 #     @classmethod
 #     def set_session_org(cls):
 #         """Creates new organization to be used for current session the
 #         session_user will login automatically with this org in context
 #         """
 #         cls.session_org = entities.Organization().create()
-
 #     def setup_navigate_syncnow(self, session, prd_name, repo_name):
 #         """Helps with Navigation for syncing via the repos page."""
 #         session.nav.go_to_select_org(self.session_org.name, force=False)
@@ -74,7 +67,6 @@
 #         session.nav.click(locators['repo.select'] % prd_name)
 #         session.nav.click(locators['repo.select_checkbox'] % repo_name)
 #         session.nav.click(locators['repo.sync_now'])
-
 #     def prd_sync_is_ok(self, repo_name):
 #         """Asserts whether the sync Result is successful."""
 #         self.repository.click(tab_locators['prd.tab_tasks'])
@@ -92,16 +84,12 @@
 #         result = self.repository.wait_until_element(
 #             locators['repo.result_event']).text
 #         return result == 'success'
-
 #     @skip_if_os('RHEL6')
 #     @tier1
 #     def test_positive_create_custom_ostree_repo(self):
 #         """Create Custom ostree repository.
-
 #         :id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
-
 #         :expectedresults: Create custom ostree repository should be successful
-
 #         :CaseImportance: Critical
 #         """
 #         prod = entities.Product(organization=self.session_org).create()
@@ -119,17 +107,13 @@
 #                         url=FEDORA27_OSTREE_REPO,
 #                     )
 #                     self.assertIsNotNone(self.repository.search(repo_name))
-
 #     @skip_if_os('RHEL6')
 #     @tier1
 #     @upgrade
 #     def test_positive_delete_custom_ostree_repo(self):
 #         """Delete custom ostree repository.
-
 #         :id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
-
 #         :expectedresults: Delete custom ostree repository should be successful
-
 #         :CaseImportance: Critical
 #         """
 #         prod = entities.Product(organization=self.session_org).create()
@@ -147,18 +131,13 @@
 #             self.products.click(self.products.search(prod.name))
 #             self.assertIsNotNone(self.repository.search(repo_name))
 #             self.repository.delete(repo_name)
-
 #     @skip_if_os('RHEL6')
 #     @tier1
 #     def test_positive_update_custom_ostree_repo_name(self):
 #         """Update custom ostree repository name.
-
 #         :id: 098ee88f-6cdb-45e0-850a-e1b71662f7ab
-
 #         :Steps: Update repo name
-
 #         :expectedresults: ostree repo name should be updated successfully
-
 #         :CaseImportance: Critical
 #         """
 #         prod = entities.Product(organization=self.session_org).create()
@@ -183,18 +162,13 @@
 #                 repo_name, new_name=new_repo_name)
 #             self.products.search_and_click(prod.name)
 #             self.assertIsNotNone(self.repository.search(new_repo_name))
-
 #     @skip_if_os('RHEL6')
 #     @tier1
 #     def test_positive_update_custom_ostree_repo_url(self):
 #         """Update custom ostree repository url.
-
 #         :id: dfd392f9-6f1d-4d87-a43b-ced40606b8c2
-
 #         :Steps: Update ostree repo URL
-
 #         :expectedresults: ostree repo URL should be updated successfully
-
 #         :CaseImportance: Critical
 #         """
 #         prod = entities.Product(organization=self.session_org).create()
@@ -222,16 +196,12 @@
 #                     repo_name, 'url', FEDORA27_OSTREE_REPO
 #                 )
 #             )
-
 #     @tier1
 #     def test_positive_download_policy_displayed_for_yum_repos(self):
 #         """Verify that YUM repositories can be created with download policy
-
 #         :id: 8037a68b-66b8-4b42-a80b-fb08495f948d
-
 #         :expectedresults: Dropdown for download policy is displayed for yum
 #             repo
-
 #         :CaseImportance: Critical
 #         """
 #         with Session(self) as session:
@@ -245,16 +215,12 @@
 #             self.assertIsNotNone(
 #                 self.repository.find_element(locators['repo.download_policy'])
 #             )
-
 #     @skip_if_bug_open('bugzilla', 1378442)
 #     @tier2
 #     def test_positive_srpm_sync(self):
 #         """Synchronize repository with SRPMs
-
 #         :id: 1967a540-a265-4046-b87b-627524b63688
-
 #         :expectedresults: srpms can be listed in repository
-
 #         :CaseLevel: Integration
 #         """
 #         product = entities.Product(organization=self.session_org).create()
@@ -284,17 +250,13 @@
 #         )
 #         self.assertEqual(result.return_code, 0)
 #         self.assertGreaterEqual(len(result.stdout), 1)
-
 #     @skip_if_bug_open('bugzilla', 1378442)
 #     @tier2
 #     def test_positive_srpm_sync_publish_cv(self):
 #         """Synchronize repository with SRPMs, add repository to content view
 #         and publish content view
-
 #         :id: 2a57cbde-c616-440d-8bcb-6e18bd2d5c5f
-
 #         :expectedresults: srpms can be listed in content view
-
 #         :CaseLevel: Integration
 #         """
 #         product = entities.Product(organization=self.session_org).create()
@@ -314,7 +276,6 @@
 #                 repo_name,
 #             )
 #             self.assertTrue(self.prd_sync_is_ok(repo_name))
-
 #             make_contentview(session, org=self.session_org.name, name=cv_name)
 #             self.assertIsNotNone(self.content_views.search(cv_name))
 #             self.content_views.add_remove_repos(cv_name, [repo_name])
@@ -335,19 +296,15 @@
 #         )
 #         self.assertEqual(result.return_code, 0)
 #         self.assertGreaterEqual(len(result.stdout), 1)
-
 #     @skip_if_bug_open('bugzilla', 1378442)
 #     @tier2
 #     @upgrade
 #     def test_positive_srpm_sync_publish_promote_cv(self):
 #         """Synchronize repository with SRPMs, add repository to content view,
 #         publish and promote content view to lifecycle environment
-
 #         :id: 4563d1c1-cdce-4838-a67f-c0a5d4e996a6
-
 #         :expectedresults: srpms can be listed in content view in proper
 #             lifecycle environment
-
 #         :CaseLevel: Integration
 #         """
 #         lce = entities.LifecycleEnvironment(
@@ -369,7 +326,6 @@
 #                 repo_name,
 #             )
 #             self.assertTrue(self.prd_sync_is_ok(repo_name))
-
 #             make_contentview(session, org=self.session_org.name, name=cv_name)
 #             self.assertIsNotNone(self.content_views.search(cv_name))
 #             self.content_views.add_remove_repos(cv_name, [repo_name])
@@ -393,16 +349,12 @@
 #         )
 #         self.assertEqual(result.return_code, 0)
 #         self.assertGreaterEqual(len(result.stdout), 1)
-
 #     @skip_if_bug_open('bugzilla', 1378442)
 #     @tier2
 #     def test_positive_drpm_sync(self):
 #         """Synchronize repository with DRPMs
-
 #         :id: 5e703d9a-ea26-4062-9d5c-d31bfbe87417
-
 #         :expectedresults: drpms can be listed in repository
-
 #         :CaseLevel: Integration
 #         """
 #         product = entities.Product(organization=self.session_org).create()
@@ -432,17 +384,13 @@
 #         )
 #         self.assertEqual(result.return_code, 0)
 #         self.assertGreaterEqual(len(result.stdout), 1)
-
 #     @skip_if_bug_open('bugzilla', 1378442)
 #     @tier2
 #     def test_positive_drpm_sync_publish_cv(self):
 #         """Synchronize repository with DRPMs, add repository to content view
 #         and publish content view
-
 #         :id: cffa862c-f972-4aa4-96b2-5a4513cb3eef
-
 #         :expectedresults: drpms can be listed in content view
-
 #         :CaseLevel: Integration
 #         """
 #         product = entities.Product(organization=self.session_org).create()
@@ -462,7 +410,6 @@
 #                 repo_name,
 #             )
 #             self.assertTrue(self.prd_sync_is_ok(repo_name))
-
 #             make_contentview(session, org=self.session_org.name, name=cv_name)
 #             self.assertIsNotNone(self.content_views.search(cv_name))
 #             self.content_views.add_remove_repos(cv_name, [repo_name])
@@ -483,19 +430,15 @@
 #         )
 #         self.assertEqual(result.return_code, 0)
 #         self.assertGreaterEqual(len(result.stdout), 1)
-
 #     @skip_if_bug_open('bugzilla', 1378442)
 #     @tier2
 #     @upgrade
 #     def test_positive_drpm_sync_publish_promote_cv(self):
 #         """Synchronize repository with DRPMs, add repository to content view,
 #         publish and promote content view to lifecycle environment
-
 #         :id: e33ee07c-4677-4be8-bd53-73689edfda34
-
 #         :expectedresults: drpms can be listed in content view in proper
 #             lifecycle environment
-
 #         :CaseLevel: Integration
 #         """
 #         lce = entities.LifecycleEnvironment(
@@ -517,7 +460,6 @@
 #                 repo_name,
 #             )
 #             self.assertTrue(self.prd_sync_is_ok(repo_name))
-
 #             make_contentview(session, org=self.session_org.name, name=cv_name)
 #             self.assertIsNotNone(self.content_views.search(cv_name))
 #             self.content_views.add_remove_repos(cv_name, [repo_name])

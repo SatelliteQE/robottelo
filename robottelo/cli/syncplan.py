@@ -17,7 +17,6 @@ Subcommands::
     list                          List sync plans
     update
 """
-
 from robottelo.cli.base import Base
 
 

@@ -17,24 +17,18 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.constants import (
-    DISTRO_RHEL7,
-    ENVIRONMENT,
-    PRDS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.cli.factory import (
-    setup_cdn_and_custom_repositories,
-    setup_virtual_machine,
-)
+from robottelo.cli.factory import setup_cdn_and_custom_repositories
+from robottelo.cli.factory import setup_virtual_machine
 from robottelo.config import settings
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    upgrade
-)
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
 

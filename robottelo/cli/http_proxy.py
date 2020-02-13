@@ -17,7 +17,6 @@ Subcommands:
 Options:
  -h, --help                    Print help
 """
-
 from robottelo.cli.base import Base
 
 

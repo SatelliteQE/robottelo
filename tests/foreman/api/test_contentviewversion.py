@@ -15,27 +15,26 @@
 :Upstream: No
 """
 import random
+
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import promote
-from robottelo.constants import (
-    DOCKER_REGISTRY_HUB,
-    DEFAULT_CV,
-    ENVIRONMENT,
-    FAKE_0_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    PUPPET_MODULE_NTP_PUPPETLABS,
-    REPO_TYPE,
-    ZOO_CUSTOM_GPG_KEY,
-)
-from robottelo.decorators import (
-    stubbed,
-    tier2,
-    tier3,
-    upgrade
-)
-from robottelo.helpers import get_data_file, read_data_file
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import ZOO_CUSTOM_GPG_KEY
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import get_data_file
+from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
 

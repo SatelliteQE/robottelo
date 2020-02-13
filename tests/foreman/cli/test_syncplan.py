@@ -15,42 +15,41 @@
 
 :Upstream: No
 """
+from datetime import datetime
+from datetime import timedelta
+from time import sleep
 
-from datetime import datetime, timedelta
 from fauxfactory import gen_string
+
 from robottelo import manifests
-from robottelo.api.utils import wait_for_tasks, wait_for_syncplan_tasks
+from robottelo.api.utils import wait_for_syncplan_tasks
+from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_org,
-    make_product,
-    make_repository,
-    make_sync_plan,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_sync_plan
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.constants import PRDS, REPOS, REPOSET
-from robottelo.datafactory import (
-    filtered_datapoint,
-    valid_data_list,
-    invalid_values_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    tier3,
-    tier4,
-    upgrade,
-    stubbed
-)
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-from time import sleep
 
 
 @filtered_datapoint
@@ -126,7 +125,6 @@ class SyncPlanTestCase(CLITestCase):
 
     org = None
 
-    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Sync Plans via Hammer CLI"""
         super(SyncPlanTestCase, self).setUp()

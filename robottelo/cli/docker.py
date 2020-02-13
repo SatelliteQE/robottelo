@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-
 """Docker related hammer commands"""
-
 from robottelo.cli.base import Base
 
 

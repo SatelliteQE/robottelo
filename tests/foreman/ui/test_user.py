@@ -15,12 +15,17 @@
 :Upstream: No
 """
 import random
-from fauxfactory import gen_string, gen_email
-from nailgun import entities
 
 from airgun.session import Session
-from robottelo.constants import DEFAULT_ORG, ROLES
-from robottelo.decorators import fixture, tier2, upgrade
+from fauxfactory import gen_email
+from fauxfactory import gen_string
+from nailgun import entities
+
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import ROLES
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

@@ -21,45 +21,40 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
-from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid,
-    enable_sync_redhat_repo,
-    create_role_permissions,
-    create_sync_custom_repo,
-    cv_publish_promote,
-    promote,
-    upload_manifest,
-)
+from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import create_sync_custom_repo
+from robottelo.api.utils import cv_publish_promote
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import enable_sync_redhat_repo
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
-    DEFAULT_LOC,
-    DEFAULT_RELEASE_VERSION,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    DOCKER_REGISTRY_HUB,
-    ENVIRONMENT,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    PERMISSIONS,
-    PRDS,
-    REPO_TYPE,
-    REPOS,
-    REPOSET,
-)
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_RELEASE_VERSION
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import PERMISSIONS
+from robottelo.constants import PRDS
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    fixture,
-    parametrize,
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    tier3,
-    upgrade,
-)
-from robottelo.products import RepositoryCollection, SatelliteToolsRepository
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.products import RepositoryCollection
+from robottelo.products import SatelliteToolsRepository
 from robottelo.vm import VirtualMachine
 
 

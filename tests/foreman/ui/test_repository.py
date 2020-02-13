@@ -15,9 +15,10 @@
 
 :Upstream: No
 """
-import pytest
-from random import shuffle, randint
+from random import randint
+from random import shuffle
 
+import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
@@ -25,35 +26,31 @@ from pytest import raises
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import (
-    CHECKSUM_TYPE,
-    CUSTOM_MODULE_STREAM_REPO_1,
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DISTRO_RHEL7,
-    DOCKER_REGISTRY_HUB,
-    DOWNLOAD_POLICIES,
-    FAKE_0_PUPPET_REPO,
-    FAKE_1_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    FAKE_8_PUPPET_REPO,
-    FEDORA26_OSTREE_REPO,
-    FEDORA27_OSTREE_REPO,
-    INVALID_URL,
-    REPO_DISCOVERY_URL,
-    REPO_TYPE,
-    REPOSET,
-    VALID_GPG_KEY_FILE,
-    VALID_GPG_KEY_BETA_FILE,
-)
+from robottelo.constants import CHECKSUM_TYPE
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_1_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import FAKE_8_PUPPET_REPO
+from robottelo.constants import FEDORA26_OSTREE_REPO
+from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants import INVALID_URL
+from robottelo.constants import REPO_DISCOVERY_URL
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOSET
+from robottelo.constants import VALID_GPG_KEY_BETA_FILE
+from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    stubbed,
-    tier2,
-    upgrade
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.host_info import get_sat_version
 from robottelo.products import SatelliteToolsRepository

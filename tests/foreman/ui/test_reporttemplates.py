@@ -14,20 +14,17 @@
 
 :Upstream: No
 """
-
 import csv
 import os
 
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    tier2,
-    tier3,
-    stubbed,
-    fixture,
-    upgrade
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.ui.utils import create_fake_host
 
 

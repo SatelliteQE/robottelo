@@ -3,10 +3,11 @@ import functools
 import logging
 import os
 import re
+
 from packaging.version import Version
-from robottelo.cli.base import CLIReturnCodeError
 
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
 LOGGER = logging.getLogger(__name__)
 
 

@@ -19,7 +19,6 @@ Subcommands::
     remove-role                   Remove a user role
     update                        Update an user.
 """
-
 from robottelo.cli.base import Base
 
 

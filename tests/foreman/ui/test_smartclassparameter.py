@@ -15,16 +15,21 @@
 
 :Upstream: No
 """
+from random import choice
+from random import uniform
+
 import yaml
 from nailgun import entities
-from random import choice, uniform
-from robottelo.api.utils import (
-    delete_puppet_class,
-    publish_puppet_module,
-)
-from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
+
+from robottelo.api.utils import delete_puppet_class
+from robottelo.api.utils import publish_puppet_module
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, run_in_one_thread, tier2
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier2
 
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [

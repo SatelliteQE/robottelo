@@ -15,9 +15,13 @@
 
 :Upstream: No
 """
+from time import sleep
+
 from fauxfactory import gen_string
+
 from robottelo import ssh
-from robottelo.cli.auth import Auth, AuthLogin
+from robottelo.cli.auth import Auth
+from robottelo.cli.auth import AuthLogin
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_user
 from robottelo.cli.org import Org
@@ -25,13 +29,10 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    upgrade,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
-from time import sleep
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
 LOGEDOFF_MSG = "Using sessions, you are currently not logged in"

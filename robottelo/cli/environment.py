@@ -18,7 +18,6 @@ Subcommands::
     sc-params                     List all smart class parameters
     update                        Update an environment
 """
-
 from robottelo.cli.base import Base
 
 

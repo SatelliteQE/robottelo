@@ -15,12 +15,18 @@
 :Upstream: No
 """
 import random
-from fauxfactory import gen_string, gen_url
+
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

@@ -14,10 +14,11 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo.cli.fact import Fact
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

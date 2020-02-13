@@ -1,34 +1,32 @@
 """Tests for module ``robottelo.datafactory``."""
 import itertools
 import random
+
 import six
 import unittest2
 
 from robottelo.config import settings
 from robottelo.constants import STRING_TYPES
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_emails_list,
-    invalid_id_list,
-    invalid_interfaces_list,
-    invalid_names_list,
-    invalid_values_list,
-    invalid_usernames_list,
-    InvalidArgumentError,
-    valid_data_list,
-    valid_docker_repository_names,
-    valid_emails_list,
-    valid_environments_list,
-    valid_hosts_list,
-    valid_hostgroups_list,
-    valid_interfaces_list,
-    valid_labels_list,
-    valid_names_list,
-    valid_org_names_list,
-    valid_usernames_list,
-    valid_cron_expressions
-
-)
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_emails_list
+from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import invalid_interfaces_list
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import invalid_usernames_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import InvalidArgumentError
+from robottelo.datafactory import valid_cron_expressions
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_docker_repository_names
+from robottelo.datafactory import valid_emails_list
+from robottelo.datafactory import valid_environments_list
+from robottelo.datafactory import valid_hostgroups_list
+from robottelo.datafactory import valid_hosts_list
+from robottelo.datafactory import valid_interfaces_list
+from robottelo.datafactory import valid_labels_list
+from robottelo.datafactory import valid_names_list
+from robottelo.datafactory import valid_org_names_list
+from robottelo.datafactory import valid_usernames_list
 
 if six.PY2:
     import mock

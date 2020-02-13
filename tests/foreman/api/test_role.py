@@ -22,15 +22,15 @@ import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
+
 from robottelo.config import settings
-from robottelo.datafactory import gen_string, generate_strings_list
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import generate_strings_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
 from robottelo.test import APITestCase
 

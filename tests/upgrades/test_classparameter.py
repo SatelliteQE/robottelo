@@ -17,11 +17,15 @@
 import json
 
 from nailgun import entities
-from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+
+from robottelo.api.utils import delete_puppet_class
+from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.test import APITestCase
-from upgrade_tests import pre_upgrade, post_upgrade
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
 def _valid_sc_parameters_data():

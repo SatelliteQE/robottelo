@@ -81,7 +81,6 @@ This module is intended to be used for upgrade tests, that have two run stages,
         # in post_upgrade scenario, test results should be
         #  2 passed, 6 deselected
 """
-
 import datetime
 import functools
 import json

@@ -18,7 +18,9 @@ from nailgun import entities
 
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 
 

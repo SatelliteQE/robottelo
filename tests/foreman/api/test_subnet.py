@@ -21,18 +21,15 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.datafactory import (
-    gen_string,
-    generate_strings_list,
-    invalid_values_list
-)
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

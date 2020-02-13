@@ -15,13 +15,18 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_alphanumeric
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_location, make_medium, make_org, make_os
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_os
 from robottelo.cli.medium import Medium
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -102,7 +107,6 @@ class MediumTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Medium.info({'id': medium['id']})
 
-    # pylint: disable=no-self-use
     @tier2
     def test_positive_add_os(self):
         """Check if Medium can be associated with operating system

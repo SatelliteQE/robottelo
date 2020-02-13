@@ -15,12 +15,16 @@
 :Upstream: No
 """
 import re
+
 from six.moves import zip
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-from robottelo.decorators import tier1, tier3, upgrade
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.decorators import tier1
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_host_info
 from robottelo.test import TestCase
 

@@ -15,14 +15,20 @@
 :Upstream: No
 """
 import os
+
 from nailgun import entities
+
+from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT, OSCAP_PROFILE
+from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import OSCAP_PROFILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier1, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
-from robottelo import ssh
 
 
 @fixture(scope='module')

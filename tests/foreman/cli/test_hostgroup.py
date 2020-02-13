@@ -16,27 +16,26 @@
 :Upstream: No
 """
 from fauxfactory import gen_integer
+
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_architecture,
-    make_content_view,
-    make_domain,
-    make_environment,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_location,
-    make_medium,
-    make_org,
-    make_os,
-    make_partition_table,
-    make_proxy,
-    make_subnet,
-    publish_puppet_module,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_architecture
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_partition_table
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
@@ -44,17 +43,13 @@ from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
 )
-from robottelo.datafactory import (
-    invalid_id_list,
-    invalid_values_list,
-    valid_hostgroups_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_hostgroups_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

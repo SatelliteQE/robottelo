@@ -17,28 +17,25 @@
 """
 import random
 
-from fauxfactory import gen_alphanumeric, gen_choice, gen_string
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_choice
+from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveryrule import DiscoveryRule
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_discoveryrule,
-    make_hostgroup,
-    make_location,
-    make_org,
-    make_user,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_discoveryrule
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_user
 from robottelo.cli.user import User
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    tier3
-)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 from robottelo.test import CLITestCase
 
 

@@ -14,23 +14,22 @@
 :Upstream: No
 """
 import json
-
 from random import choice
 
-from fauxfactory import gen_boolean, gen_integer, gen_string
-
+from fauxfactory import gen_boolean
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from robottelo.api.utils import delete_puppet_class
+from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

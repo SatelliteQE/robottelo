@@ -18,35 +18,37 @@ API reference for sync plans can be found on your Satellite:
 
 :Upstream: No
 """
-from datetime import datetime, timedelta
-from fauxfactory import gen_string, gen_choice
-from nailgun import client, entities
-from robottelo import manifests
-from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid,
-    wait_for_tasks,
-    wait_for_syncplan_tasks
-)
-from robottelo.config import settings
-from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-    valid_cron_expressions
-)
+from datetime import datetime
+from datetime import timedelta
+from time import sleep
+
+from fauxfactory import gen_choice
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    tier3,
-    tier4,
-    upgrade
-)
+
+from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import wait_for_syncplan_tasks
+from robottelo.api.utils import wait_for_tasks
+from robottelo.config import settings
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants import SYNC_INTERVAL
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_cron_expressions
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
 from robottelo.test import APITestCase
-from time import sleep
 
 
 @filtered_datapoint

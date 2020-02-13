@@ -16,8 +16,11 @@
 """
 from fauxfactory import gen_ipaddr
 from nailgun import entities
+
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

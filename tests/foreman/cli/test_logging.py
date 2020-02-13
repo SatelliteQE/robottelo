@@ -15,20 +15,18 @@
 :Upstream: No
 """
 import re
+
 from fauxfactory import gen_string
-from robottelo import (
-    manifests,
-    ssh,
-)
-from robottelo.cli.factory import (
-    make_org,
-    make_product_wait,
-    make_repository,
-)
+
+from robottelo import manifests
+from robottelo import ssh
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
 from robottelo.cli.subscription import Subscription
+from robottelo.decorators import tier4
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-from robottelo.decorators import tier4
 
 
 def line_count(file, connection=None):

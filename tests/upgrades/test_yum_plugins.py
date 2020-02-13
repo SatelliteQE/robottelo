@@ -14,33 +14,27 @@
 
 :Upstream: No
 """
-from wait_for import wait_for
-
 from fabric.api import execute
 from nailgun import entities
-from robottelo.api.utils import (
-    attach_custom_product_subscription,
-    call_entity_method_with_timeout,
-)
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DISTRO_RHEL7,
-    REPOS,
-)
-from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import (
-    install_or_update_package,
-    publish_content_view,
-    run_goferd
-)
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    create_dict,
-    dockerize,
-    get_entity_data
-)
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import dockerize
+from upgrade_tests.helpers.scenarios import get_entity_data
+from wait_for import wait_for
+
+from robottelo.api.utils import attach_custom_product_subscription
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import REPOS
+from robottelo.test import APITestCase
+from robottelo.test import settings
+from robottelo.upgrade_utility import install_or_update_package
+from robottelo.upgrade_utility import publish_content_view
+from robottelo.upgrade_utility import run_goferd
 
 
 class Scenario_yum_plugins_count(APITestCase):

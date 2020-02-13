@@ -17,7 +17,9 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.datafactory import invalid_values_list, valid_data_list
+
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 

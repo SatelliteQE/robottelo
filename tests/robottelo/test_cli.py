@@ -1,14 +1,13 @@
+from functools import partial
+
 import six
 import unittest2
 
-from functools import partial
-from robottelo.cli.base import (
-    Base,
-    CLIBaseError,
-    CLIDataBaseError,
-    CLIError,
-    CLIReturnCodeError
-)
+from robottelo.cli.base import Base
+from robottelo.cli.base import CLIBaseError
+from robottelo.cli.base import CLIDataBaseError
+from robottelo.cli.base import CLIError
+from robottelo.cli.base import CLIReturnCodeError
 
 if six.PY2:
     import mock

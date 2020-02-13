@@ -15,11 +15,15 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_choice, gen_integer, gen_string
+from fauxfactory import gen_choice
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 

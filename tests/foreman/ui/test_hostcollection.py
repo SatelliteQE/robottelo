@@ -19,36 +19,36 @@ import time
 from nailgun import entities
 from pytest import raises
 
-from robottelo.api.utils import promote, update_vm_host_location
+from robottelo.api.utils import promote
+from robottelo.api.utils import update_vm_host_location
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DISTRO_DEFAULT,
-    DISTRO_RHEL8,
-    FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_0_CUSTOM_PACKAGE_GROUP,
-    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_3_CUSTOM_PACKAGE,
-    FAKE_3_CUSTOM_PACKAGE_NAME,
-    FAKE_4_CUSTOM_PACKAGE,
-    FAKE_4_CUSTOM_PACKAGE_NAME,
-    FAKE_0_MODULAR_ERRATA_ID,
-    FAKE_1_YUM_REPO,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_2_ERRATA_ID,
-    FAKE_6_YUM_REPO,
-)
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import DISTRO_DEFAULT
+from robottelo.constants import DISTRO_RHEL8
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_3_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, tier3, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.products import (
-    YumRepository,
-    RepositoryCollection,
-    SatelliteToolsRepository,
-)
+from robottelo.products import RepositoryCollection
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
 
 

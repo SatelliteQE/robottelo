@@ -19,9 +19,13 @@ import yaml
 from nailgun import entities
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_LOC, ENVIRONMENT
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier2, upgrade, fixture
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
 
 PUPPET_MODULES = [

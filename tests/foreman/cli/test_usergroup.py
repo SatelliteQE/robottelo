@@ -15,36 +15,32 @@
 
 :Upstream: No
 """
-
 from random import randint
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_ldap_auth_source,
-    make_role,
-    make_user,
-    make_usergroup,
-    make_usergroup_external,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_ldap_auth_source
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
+from robottelo.cli.factory import make_usergroup
+from robottelo.cli.factory import make_usergroup_external
 from robottelo.cli.ldapauthsource import LDAPAuthSource
-from robottelo.cli.user import User
-from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.task import Task
+from robottelo.cli.user import User
+from robottelo.cli.usergroup import UserGroup
+from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.config import settings
-from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
-from robottelo.datafactory import (
-    gen_string,
-    invalid_values_list,
-    valid_data_list,
-    valid_usernames_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_usernames_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

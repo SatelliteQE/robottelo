@@ -15,12 +15,15 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-import pytest
 
 from robottelo.datafactory import valid_domain_names
-from robottelo.decorators import fixture, parametrize, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

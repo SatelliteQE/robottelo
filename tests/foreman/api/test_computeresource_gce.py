@@ -18,14 +18,16 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :Upstream: No
 """
-import pytest
 import random
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo.config import settings
 from robottelo.constants import VALID_GCE_ZONES
-from robottelo.decorators import tier1, tier3
+from robottelo.decorators import tier1
+from robottelo.decorators import tier3
 
 
 GCE_SETTINGS = dict(

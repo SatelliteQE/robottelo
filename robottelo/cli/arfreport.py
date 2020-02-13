@@ -17,7 +17,6 @@ Subcommands::
      list                          List ARF reports
 
 """
-
 from robottelo.cli.base import Base
 
 

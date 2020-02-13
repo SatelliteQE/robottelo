@@ -1,19 +1,18 @@
-import re
 import logging
-
-import requests
-import pytest
+import re
 from collections import defaultdict
 
+import pytest
+import requests
 from packaging.version import Version
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_fixed
 
 from robottelo.config import settings
-from robottelo.constants import (
-    CLOSED_STATUSES,
-    OPEN_STATUSES,
-    WONTFIX_RESOLUTIONS
-)
+from robottelo.constants import CLOSED_STATUSES
+from robottelo.constants import OPEN_STATUSES
+from robottelo.constants import WONTFIX_RESOLUTIONS
 
 LOGGER = logging.getLogger(__name__)
 

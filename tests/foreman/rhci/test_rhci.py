@@ -1,4 +1,3 @@
-# pylint:disable=too-many-public-methods
 """Unit tests for the ``fusor/api/v21/deployments`` paths.
 
 :Requirement: Rhci
@@ -18,6 +17,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.test import APITestCase
 
 

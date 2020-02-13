@@ -7,4 +7,3 @@
 --------------------------------
 
 .. automodule:: robottelo.decorators.host
-

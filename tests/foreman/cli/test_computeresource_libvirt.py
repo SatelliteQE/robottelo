@@ -34,19 +34,20 @@ Subcommands::
 """
 import random
 
-from fauxfactory import gen_string, gen_url
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import make_location, make_compute_resource
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_location
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import (
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -117,7 +118,6 @@ class ComputeResourceTestCase(CLITestCase):
             LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
-    # pylint: disable=no-self-use
     @tier1
     def test_positive_create_with_name(self):
         """Create Compute Resource

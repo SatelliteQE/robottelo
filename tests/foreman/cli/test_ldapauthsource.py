@@ -15,23 +15,28 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-
 from nailgun import entities
+
 from robottelo import ssh
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_ldap_auth_source,
-    make_usergroup_external,
-    make_usergroup
-)
 from robottelo.cli.auth import Auth
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_ldap_auth_source
+from robottelo.cli.factory import make_usergroup
+from robottelo.cli.factory import make_usergroup_external
 from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.role import Role
-from robottelo.cli.usergroup import UserGroup, UserGroupExternal
+from robottelo.cli.usergroup import UserGroup
+from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.config import settings
-from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1, tier2, tier3, upgrade
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

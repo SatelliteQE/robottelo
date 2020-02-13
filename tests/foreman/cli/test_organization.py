@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=no-self-use
 """Test class for Organization CLI
 
 :Requirement: Organization
@@ -17,39 +16,34 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_compute_resource,
-    make_domain,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_location,
-    make_medium,
-    make_org,
-    make_proxy,
-    make_subnet,
-    make_template,
-    make_user,
-)
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import make_template
+from robottelo.cli.factory import make_user
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-    valid_org_names_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_org_names_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

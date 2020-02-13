@@ -22,7 +22,6 @@ Subcommands::
     smart-variables               List all smart variables
     update                        Update an hostgroup.
 """
-
 from robottelo.cli.base import Base
 
 

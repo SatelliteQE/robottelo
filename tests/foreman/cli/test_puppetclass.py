@@ -15,18 +15,14 @@
 
 :Upstream: No
 """
-
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    make_org,
-    make_smart_variable,
-    publish_puppet_module)
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_smart_variable
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.decorators import (
-    tier2,
-    upgrade
-)
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

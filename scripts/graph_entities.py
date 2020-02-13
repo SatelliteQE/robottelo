@@ -8,7 +8,9 @@ command provided by the make file in the parent directory.
 
 """
 from __future__ import print_function
+
 import inspect
+
 from nailgun import entities
 from nailgun import entity_mixins
 

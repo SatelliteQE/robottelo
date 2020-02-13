@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-
 from inflection import camelize
 from nailgun import entities
 
@@ -23,7 +22,8 @@ from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier4
+from robottelo.decorators import fixture
+from robottelo.decorators import tier4
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 

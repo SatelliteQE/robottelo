@@ -23,8 +23,11 @@ from pytest import raises
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.decorators import fixture, tier2, upgrade
-from robottelo.helpers import get_nailgun_config, is_open
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import is_open
 
 
 @fixture(scope='module')

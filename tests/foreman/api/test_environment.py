@@ -21,9 +21,12 @@ http://theforeman.org/api/apidoc/v2/environments.html
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import one_to_many_names
-from robottelo.datafactory import filtered_datapoint, invalid_names_list
-from robottelo.decorators import tier1, tier2
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_names_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 

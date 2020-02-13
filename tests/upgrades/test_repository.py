@@ -15,27 +15,28 @@
 :Upstream: No
 """
 import os
-from fabric.api import execute, run
 
+from fabric.api import execute
+from fabric.api import run
 from nailgun import entities
-from robottelo import ssh
-from robottelo.api.utils import create_sync_custom_repo, promote
-from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import (
-    create_repo,
-    install_or_update_package,
-    host_location_update,
-    publish_content_view
-)
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    create_dict,
-    dockerize,
-    get_entity_data,
-    rpm1,
-    rpm2
-)
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import dockerize
+from upgrade_tests.helpers.scenarios import get_entity_data
+from upgrade_tests.helpers.scenarios import rpm1
+from upgrade_tests.helpers.scenarios import rpm2
+
+from robottelo import ssh
+from robottelo.api.utils import create_sync_custom_repo
+from robottelo.api.utils import promote
+from robottelo.test import APITestCase
+from robottelo.test import settings
+from robottelo.upgrade_utility import create_repo
+from robottelo.upgrade_utility import host_location_update
+from robottelo.upgrade_utility import install_or_update_package
+from robottelo.upgrade_utility import publish_content_view
 
 
 class Scenario_repository_upstream_authorization_check(APITestCase):

@@ -18,19 +18,20 @@ from random import choice
 
 import pytest
 from nailgun import entities
-from wrapanapi.systems.virtualcenter import vim, VMWareSystem
+from wrapanapi.systems.virtualcenter import vim
+from wrapanapi.systems.virtualcenter import VMWareSystem
 
 from robottelo.api.utils import check_create_os_with_title
-from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    setting_is_set,
-    tier1,
-    tier2
-)
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_LARGE, FOREMAN_PROVIDERS, VMWARE_CONSTANTS
+from robottelo.constants import COMPUTE_PROFILE_LARGE
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import VMWARE_CONSTANTS
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 
 if not setting_is_set('vmware'):
     pytest.skip('skipping tests due to missing vmware settings', allow_module_level=True)

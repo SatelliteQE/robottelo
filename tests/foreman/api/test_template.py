@@ -17,31 +17,28 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 :Upstream: No
 """
-import pytest
 import time
-
 from random import choice
 
+import pytest
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
+from nailgun import entities
 from requests import get
 from requests.exceptions import HTTPError
 
-from robottelo.config import settings
-from robottelo.constants import (
-    FOREMAN_TEMPLATE_IMPORT_URL,
-    FOREMAN_TEMPLATE_TEST_TEMPLATE
-)
-from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
-from robottelo.helpers import get_nailgun_config
 from robottelo import ssh
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
+from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 

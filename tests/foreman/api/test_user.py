@@ -19,24 +19,29 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 :Upstream: No
 """
 import json
-import paramiko
 
+import paramiko
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
+
 from robottelo.config import settings
-from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
-from robottelo.datafactory import (
-    gen_string,
-    generate_strings_list,
-    valid_data_list,
-    valid_usernames_list,
-    valid_emails_list,
-    invalid_emails_list,
-    invalid_usernames_list,
-    invalid_names_list
-)
-from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1, tier2, tier3, upgrade
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_emails_list
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import invalid_usernames_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_emails_list
+from robottelo.datafactory import valid_usernames_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
@@ -347,7 +352,6 @@ class UserRoleTestCase(APITestCase):
                 self.assertEqual(len(user.role), i)
                 self.assertEqual(
                     set([role.id for role in user.role]),
-                    # pylint:disable=no-member
                     set([role.id for role in chosen_roles]),
                 )
 
@@ -373,7 +377,6 @@ class UserRoleTestCase(APITestCase):
                 user = user.update(['role'])
                 self.assertEqual(
                     set([role.id for role in user.role]),
-                    # pylint:disable=no-member
                     set([role.id for role in chosen_roles]),
                 )
 

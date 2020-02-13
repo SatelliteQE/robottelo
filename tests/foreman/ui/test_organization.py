@@ -20,9 +20,14 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_not_set, tier2, upgrade
-from robottelo.manifests import original_manifest, upload_manifest_locked
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import INSTALL_MEDIUM_URL
+from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.manifests import original_manifest
+from robottelo.manifests import upload_manifest_locked
 
 
 @tier2

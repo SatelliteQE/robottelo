@@ -4,8 +4,9 @@ import nailgun.entities
 from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
-from robottelo.decorators import fixture
+
 from robottelo.constants import DEFAULT_ORG
+from robottelo.decorators import fixture
 
 
 LOGGER = logging.getLogger('robottelo')

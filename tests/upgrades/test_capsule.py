@@ -14,19 +14,23 @@
 
 :Upstream: No
 """
-from fabric.api import execute, run
+from fabric.api import execute
+from fabric.api import run
 from nailgun import entities
-from robottelo.test import APITestCase, settings
-from robottelo.api.utils import promote, call_entity_method_with_timeout
-from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_ORG
 from upgrade.helpers.tasks import wait_untill_capsule_sync
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    create_dict,
-    get_entity_data,
-    rpm1,
-    rpm2
-)
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+from upgrade_tests.helpers.scenarios import rpm1
+from upgrade_tests.helpers.scenarios import rpm2
+
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import promote
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DEFAULT_ORG
+from robottelo.test import APITestCase
+from robottelo.test import settings
 from robottelo.upgrade_utility import create_repo
 
 

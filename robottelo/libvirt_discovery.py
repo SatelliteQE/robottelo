@@ -12,6 +12,7 @@ import logging
 import os
 
 from fauxfactory import gen_mac
+
 from robottelo import ssh
 from robottelo.config import settings
 

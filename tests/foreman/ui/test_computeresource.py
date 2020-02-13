@@ -16,23 +16,22 @@
 """
 import pytest
 import requests
-from wait_for import wait_for
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo.api.utils import check_create_os_with_title
-from robottelo.constants import DEFAULT_LOC
-from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    parametrize,
-    run_in_one_thread,
-    setting_is_set,
-    skip_if_not_set,
-    tier2,
-    tier3
-)
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_LARGE, FOREMAN_PROVIDERS
+from robottelo.constants import COMPUTE_PROFILE_LARGE
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 
 
 if not setting_is_set('rhev'):

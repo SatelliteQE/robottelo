@@ -16,7 +16,6 @@ Subcommands::
     list                          List reports.
 
 """
-
 from robottelo.cli.base import Base
 
 

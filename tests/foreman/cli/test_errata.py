@@ -15,27 +15,27 @@
 :Upstream: No
 """
 from operator import itemgetter
+
 from fauxfactory import gen_string
-from robottelo import manifests, ssh
+
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
-from robottelo.cli.factory import (
-    make_activation_key,
-    make_content_view,
-    make_filter,
-    make_host_collection,
-    make_lifecycle_environment,
-    make_org,
-    make_product,
-    make_repository,
-    make_role,
-    make_user,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
-from robottelo.cli.task import Task
-from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.erratum import Erratum
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_filter
+from robottelo.cli.factory import make_host_collection
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
@@ -43,36 +43,33 @@ from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
+from robottelo.cli.task import Task
 from robottelo.cli.user import User
-from robottelo.constants import (
-    DISTRO_RHEL7,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_0_ERRATA_ID,
-    FAKE_1_ERRATA_ID,
-    FAKE_2_ERRATA_ID,
-    FAKE_3_ERRATA_ID,
-    FAKE_0_YUM_ERRATUM_COUNT,
-    FAKE_1_YUM_ERRATUM_COUNT,
-    FAKE_3_YUM_ERRATUM_COUNT,
-    FAKE_6_YUM_ERRATUM_COUNT,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    FAKE_3_YUM_REPO,
-    FAKE_6_YUM_REPO,
-    REAL_4_ERRATA_ID,
-    REAL_4_ERRATA_CVES,
-    REPOS,
-    REPOSET,
-    PRDS,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-    upgrade,
-)
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_0_ERRATA_ID
+from robottelo.constants import FAKE_0_YUM_ERRATUM_COUNT
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_ERRATA_ID
+from robottelo.constants import FAKE_1_YUM_ERRATUM_COUNT
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import FAKE_3_ERRATA_ID
+from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
+from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_6_YUM_ERRATUM_COUNT
+from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_4_ERRATA_CVES
+from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 

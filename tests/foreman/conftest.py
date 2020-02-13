@@ -1,36 +1,32 @@
 # coding: utf-8
 """Configurations for py.test runner"""
 import datetime
-
 import logging
 
 import pytest
-from robottelo.api.entity_fixtures import (  # noqa: F401
-    # Katello Entities
-    module_cv,
-    module_product,
-    # Global Entities
-    module_lce,
-    module_location,
-    module_architecture,
-    module_org,
-    module_smart_proxy,
-    module_partiontable,
-    module_domain,
-    module_os,
-    module_puppet_environment,
-    module_subnet,
-    module_configtemaplate,
-    module_provisioingtemplate,
-    # GCE Entities
-    module_gce_compute,
-    # AzureRM Entities
-    azurerm_settings,
-    module_azurerm_cr,
-    module_azurerm_finishimg,
-    module_azurerm_cloudimg,
-    azurermclient
-)
+
+from robottelo.api.entity_fixtures import azurerm_settings  # noqa: F401
+from robottelo.api.entity_fixtures import azurermclient  # noqa: F401
+from robottelo.api.entity_fixtures import module_architecture  # noqa: F401
+from robottelo.api.entity_fixtures import module_azurerm_cloudimg  # noqa: F401
+from robottelo.api.entity_fixtures import module_azurerm_cr  # noqa: F401
+from robottelo.api.entity_fixtures import module_azurerm_finishimg  # noqa: F401
+from robottelo.api.entity_fixtures import module_configtemaplate  # noqa: F401
+from robottelo.api.entity_fixtures import module_cv  # noqa: F401
+from robottelo.api.entity_fixtures import module_domain  # noqa: F401
+from robottelo.api.entity_fixtures import module_gce_compute  # noqa: F401
+from robottelo.api.entity_fixtures import module_lce  # noqa: F401
+from robottelo.api.entity_fixtures import module_location  # noqa: F401
+from robottelo.api.entity_fixtures import module_org  # noqa: F401
+from robottelo.api.entity_fixtures import module_os  # noqa: F401
+from robottelo.api.entity_fixtures import module_partiontable  # noqa: F401
+from robottelo.api.entity_fixtures import module_product  # noqa: F401
+from robottelo.api.entity_fixtures import module_provisioingtemplate  # noqa: F401
+from robottelo.api.entity_fixtures import module_puppet_environment  # noqa: F401
+from robottelo.api.entity_fixtures import module_smart_proxy  # noqa: F401
+from robottelo.api.entity_fixtures import module_subnet  # noqa: F401
+# TODO: load fixtures consistently without hanging imports here, entry_points or module inclusion
+
 
 try:
     from pytest_reportportal import RPLogger, RPLogHandler

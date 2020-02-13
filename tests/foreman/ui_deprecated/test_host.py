@@ -1,10 +1,7 @@
 """DEPRECATED UI FUNCTIONALITY"""
-
 # import six
-
 # from fauxfactory import gen_string
 # from nailgun import entities
-
 # from robottelo.api.utils import (
 #     call_entity_method_with_timeout,
 #     enable_rhrepo_and_fetchid,
@@ -38,21 +35,16 @@
 #     set_context,
 # )
 # from robottelo.ui.session import Session
-
-
 # @run_in_one_thread
 # class AtomicHostTestCase(UITestCase):
 #     """Implements Atomic Host tests in UI"""
-
 #     hostname = gen_string('numeric')
-
 #     @classmethod
 #     @skip_if_bug_open('bugzilla', 1414134)
 #     @skip_if_os('RHEL6')
 #     @skip_if_not_set('vlan_networking', 'compute_resources', 'ostree')
 #     def setUpClass(cls):
 #         """Steps required to create a Atomic host on libvirt
-
 #         1. Creates new Organization and Location.
 #         2. Creates new life-cycle environment.
 #         3. Creates new product and sync RH Atomic OSTree repository.
@@ -124,7 +116,6 @@
 #         cls.proxy.location.append(cls.loc)
 #         cls.proxy.organization.append(cls.org)
 #         cls.proxy = cls.proxy.update(['organization', 'location'])
-
 #         # Search for existing domain or create new otherwise. Associate org,
 #         # location and dns to it
 #         _, _, domain = settings.server.hostname.partition('.')
@@ -146,7 +137,6 @@
 #                 organization=[cls.org],
 #             ).create()
 #         cls.domain_name = cls.domain.name
-
 #         # Search if subnet is defined with given network.
 #         # If so, just update its relevant fields otherwise,
 #         # Create new subnet
@@ -189,7 +179,6 @@
 #                 tftp=cls.proxy,
 #                 discovery=cls.proxy
 #             ).create()
-
 #         # Search if Libvirt compute-resource already exists
 #         # If so, just update its relevant fields otherwise,
 #         # Create new compute-resource with 'libvirt' provider.
@@ -218,7 +207,6 @@
 #                 location=[cls.loc.id],
 #                 organization=[cls.org.id],
 #             ).create()
-
 #         # Get the Partition table ID
 #         cls.ptable = entities.PartitionTable().search(
 #             query={
@@ -228,7 +216,6 @@
 #         cls.ptable.location.append(cls.loc)
 #         cls.ptable.organization.append(cls.org)
 #         cls.ptable = cls.ptable.update(['location', 'organization'])
-
 #         # Get the OS ID
 #         os = entities.OperatingSystem().search(query={
 #             u'search': u'name="RedHat_Enterprise_Linux_Atomic_Host"'
@@ -241,7 +228,6 @@
 #                 family='Redhat',
 #                 major=RHEL_7_MAJOR_VERSION,
 #             ).create()
-
 #         # update the provisioning templates with OS, Org and Location
 #         cls.templates = []
 #         for template_name in [DEFAULT_ATOMIC_TEMPLATE, DEFAULT_PXE_TEMPLATE]:
@@ -257,7 +243,6 @@
 #                 ['location', 'operatingsystem', 'organization']
 #             )
 #             cls.templates.append(template)
-
 #         # Get the arch ID
 #         cls.arch = entities.Architecture().search(
 #             query={u'search': u'name="x86_64"'}
@@ -291,7 +276,6 @@
 #             'ptable',
 #             'medium',
 #         ])
-
 #         # Create Hostgroup
 #         cls.host_group = entities.HostGroup(
 #             architecture=cls.arch,
@@ -306,7 +290,6 @@
 #             organization=[cls.org.id],
 #             ptable=cls.ptable.id,
 #         ).create()
-
 #     def tearDown(self):
 #         """Delete the host to free the resources"""
 #         hosts = entities.Host().search(
@@ -314,16 +297,12 @@
 #         for host in hosts:
 #             host.delete()
 #         super(AtomicHostTestCase, self).tearDown()
-
 #     @tier3
 #     def test_positive_provision_atomic_host(self):
 #         """Provision an atomic host on libvirt and register it with satellite
-
 #         :id: 5ddf2f7f-f7aa-4321-8717-372c7b6e99b6
-
 #         :expectedresults: Atomic host should be provisioned and listed under
 #             content-hosts/Hosts
-
 #         :CaseLevel: System
 #         """
 #         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
@@ -354,49 +333,35 @@
 #                 u'{0}.{1}'.format(self.hostname, self.domain_name)
 #             )
 #             self.assertIsNotNone(search)
-
 #     @stubbed()
 #     @tier3
 #     def test_positive_register_pre_installed_atomic_host(self):
 #         """Register a pre-installed atomic host with satellite using admin
 #         credentials
-
 #         :id: 09729944-b60b-4742-8f1b-e8859e2e36d3
-
 #         :expectedresults: Atomic host should be registered successfully and
 #             listed under content-hosts/Hosts
-
 #         :CaseAutomation: notautomated
-
 #         :CaseLevel: System
 #         """
-
 #     @stubbed()
 #     @tier3
 #     def test_positive_register_pre_installed_atomic_host_using_ak(self):
 #         """Register a pre-installed atomic host with satellite using activation
 #         key
-
 #         :id: 31e5ffcf-2e3c-474a-a6a3-6d8e2f392abe
-
 #         :expectedresults: Atomic host should be registered successfully and
 #             listed under content-hosts/Hosts
-
 #         :CaseAutomation: notautomated
-
 #         :CaseLevel: System
 #         """
-
 #     @tier3
 #     @upgrade
 #     def test_positive_delete_atomic_host(self):
 #         """Delete a provisioned atomic host
-
 #         :id: c0bcf753-8ddf-4e95-b214-42d1e077a6cf
-
 #         :expectedresults: Atomic host should be deleted successfully and
 #             shouldn't be listed under hosts/content-hosts
-
 #         :CaseLevel: System
 #         """
 #         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
@@ -428,52 +393,35 @@
 #                 u'{0}.{1}'.format(self.hostname, self.domain_name),
 #                 dropdown_present=True,
 #             )
-
 #     @stubbed()
 #     @tier3
 #     def test_positive_update_atomic_host_cv(self):
 #         """Update atomic-host with a new environment and content-view
-
 #         :id: 2ddd3bb7-ef58-42c0-908c-ae4d4bd0bff9
-
 #         :expectedresults: Atomic host should be updated with new content-view
-
 #         :CaseAutomation: notautomated
-
 #         :CaseLevel: System
 #         """
-
 #     @stubbed()
 #     @tier3
 #     def test_positive_execute_cmd_on_atomic_host_with_job_templates(self):
 #         """Execute ostree/atomic commands on provisioned atomic host with job
 #         templates
-
 #         :id: 56a46a1e-9e24-4ad7-9cea-3d78c7310b14
-
 #         :expectedresults: Ostree/atomic commands should be executed
 #             successfully via job templates
-
 #         :CaseAutomation: notautomated
-
 #         :CaseLevel: System
 #         """
-
-
 # class BulkHostTestCase(UITestCase):
 #     """Implements tests for Bulk Hosts actions in UI"""
-
 #     @stubbed()
 #     @tier3
 #     def test_positive_bulk_delete_atomic_host(self):
 #         """Delete a multiple atomic hosts
-
 #         :id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
-
 #         :expectedresults: All selected atomic hosts should be deleted
 #             successfully
-
 #         :CaseAutomation: notautomated
-
 #         :CaseLevel: System
 #         """

@@ -26,7 +26,6 @@ Subcommands::
     subscriptions                 List associated subscriptions
     update                        Update an activation key
 """
-
 from robottelo.cli.base import Base
 
 

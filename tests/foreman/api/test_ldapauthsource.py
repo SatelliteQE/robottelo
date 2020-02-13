@@ -16,10 +16,14 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.config import settings
-from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_not_set, tier3, upgrade
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

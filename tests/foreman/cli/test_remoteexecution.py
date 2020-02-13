@@ -15,39 +15,34 @@
 
 :Upstream: No
 """
-
-from datetime import datetime, timedelta
-from fauxfactory import gen_string
-from nailgun import entities
-from robottelo import ssh
-from robottelo.config import settings
-from robottelo.cli.factory import (
-    make_job_invocation,
-    make_job_template,
-)
-from robottelo.cli.host import Host
-from robottelo.cli.task import Task
-from robottelo.cli.job_invocation import JobInvocation
-from robottelo.cli.recurring_logic import RecurringLogic
-from robottelo.constants import (
-    DISTRO_DEFAULT,
-    DISTRO_RHEL7,
-    DISTRO_SLES11,
-    DISTRO_SLES12,
-    FAKE_0_YUM_REPO
-)
-from robottelo.decorators import (
-    skip_if_not_set,
-    stubbed,
-    tier3,
-    upgrade
-)
-from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.test import CLITestCase
-from robottelo.vm import VirtualMachine
+from datetime import datetime
+from datetime import timedelta
 from time import sleep
 
 import pytest
+from fauxfactory import gen_string
+from nailgun import entities
+
+from robottelo import ssh
+from robottelo.cli.factory import make_job_invocation
+from robottelo.cli.factory import make_job_template
+from robottelo.cli.host import Host
+from robottelo.cli.job_invocation import JobInvocation
+from robottelo.cli.recurring_logic import RecurringLogic
+from robottelo.cli.task import Task
+from robottelo.config import settings
+from robottelo.constants import DISTRO_DEFAULT
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_SLES11
+from robottelo.constants import DISTRO_SLES12
+from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
 
 TEMPLATE_FILE = u'template_file.txt'
 TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'

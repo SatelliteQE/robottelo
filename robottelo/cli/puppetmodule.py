@@ -14,7 +14,6 @@ Subcommands::
     info                          Show a puppet module
     list                          List puppet modules
 """
-
 from robottelo.cli.base import Base
 
 

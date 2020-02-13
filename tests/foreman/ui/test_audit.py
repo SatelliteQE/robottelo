@@ -12,19 +12,17 @@
 
 :Upstream: No
 """
-
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import ANY_CONTEXT, ENVIRONMENT
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    tier2,
-    upgrade,
-)
+from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import ENVIRONMENT
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

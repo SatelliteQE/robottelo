@@ -18,7 +18,8 @@
 from fauxfactory import gen_string
 
 from robottelo.constants import TREND_TYPES
-from robottelo.decorators import tier2, upgrade
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @tier2

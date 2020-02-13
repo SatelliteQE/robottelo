@@ -1,26 +1,23 @@
 """Virtual machine client provisioning with satellite capsule product setup"""
 import logging
-import time
-
 import os
+import time
+from tempfile import mkstemp
+
 from fauxfactory import gen_alphanumeric
 
 from robottelo import ssh
-from robottelo.config import settings
-from robottelo.constants import (
-    DISTRO_RHEL7,
-    SATELLITE_FIREWALL_SERVICE_NAME,
-)
-from robottelo.decorators import setting_is_set
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
-from robottelo.helpers import (
-    extract_capsule_satellite_installer_command,
-    is_open
-)
-from robottelo.ssh import download_file, upload_file
+from robottelo.config import settings
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
+from robottelo.decorators import setting_is_set
+from robottelo.helpers import extract_capsule_satellite_installer_command
+from robottelo.helpers import is_open
+from robottelo.ssh import download_file
+from robottelo.ssh import upload_file
 from robottelo.vm import VirtualMachine
-from tempfile import mkstemp
 
 logger = logging.getLogger(__name__)
 

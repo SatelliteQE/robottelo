@@ -22,25 +22,31 @@ When testing email validation [1] and [2] should be taken into consideration.
 :Upstream: No
 """
 import datetime
-import pytest
 import random
 
+import pytest
 from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_location, make_org, make_role, make_user
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
 from robottelo.cli.org import Org
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ROLE
-from robottelo.datafactory import (
-    invalid_emails_list,
-    invalid_names_list,
-    valid_data_list,
-    valid_emails_list,
-    valid_usernames_list,
-)
-from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
+from robottelo.datafactory import invalid_emails_list
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_emails_list
+from robottelo.datafactory import valid_usernames_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

@@ -1,4 +1,5 @@
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string
 
 

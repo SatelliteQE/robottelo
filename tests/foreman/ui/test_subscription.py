@@ -14,38 +14,33 @@
 
 :Upstream: No
 """
-import pytest
+import time
 from tempfile import mkstemp
 
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
-from robottelo.cli.factory import (
-    make_virt_who_config,
-    setup_virtual_machine,
-    virt_who_hypervisor_config
-)
+from robottelo.cli.factory import make_virt_who_config
+from robottelo.cli.factory import setup_virtual_machine
+from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
-from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL7,
-    VDC_SUBSCRIPTION_NAME,
-    VIRT_WHO_HYPERVISOR_TYPES,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    setting_is_set,
-    tier2,
-    tier3,
-    upgrade,
-)
-from robottelo.products import RepositoryCollection, RHELAnsibleEngineRepository
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import VDC_SUBSCRIPTION_NAME
+from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.products import RepositoryCollection
+from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
-import time
 pytestmark = [run_in_one_thread]
 
 if not setting_is_set('fake_manifest'):

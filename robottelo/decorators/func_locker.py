@@ -45,7 +45,6 @@ import inspect
 import logging
 import os
 import tempfile
-
 from contextlib import contextmanager
 
 from pytest_services.locks import file_lock

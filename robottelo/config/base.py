@@ -1,25 +1,23 @@
 """Define and instantiate the configuration class for Robottelo."""
 import importlib
-import logging
 import logging.config
-
 import os
-import six
-import yaml
-
-from six.moves.urllib.parse import urlunsplit, urljoin
-from six.moves.configparser import (
-    NoOptionError,
-    NoSectionError,
-    ConfigParser
-)
 
 import airgun.settings
-
-from nailgun import entities, entity_mixins
+import six
+import yaml
+from nailgun import entities
+from nailgun import entity_mixins
 from nailgun.config import ServerConfig
+from six.moves.configparser import ConfigParser
+from six.moves.configparser import NoOptionError
+from six.moves.configparser import NoSectionError
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urlunsplit
+
 from robottelo.config import casts
-from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
+from robottelo.constants import AZURERM_VALID_REGIONS
+from robottelo.constants import VALID_GCE_ZONES
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'

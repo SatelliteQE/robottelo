@@ -21,19 +21,20 @@ References for the relevant paths can be found on your Satellite:
 :Upstream: No
 """
 import random
+
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+from six.moves.http_client import NOT_FOUND
+
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
 from robottelo.test import APITestCase
-from six.moves.http_client import NOT_FOUND
 
 
 class OperatingSystemParameterTestCase(APITestCase):

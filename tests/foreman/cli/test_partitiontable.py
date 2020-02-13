@@ -19,11 +19,14 @@ from random import randint
 
 from fauxfactory import gen_string
 
-from robottelo.datafactory import generate_strings_list
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_os, make_partition_table
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.datafactory import generate_strings_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

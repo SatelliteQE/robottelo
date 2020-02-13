@@ -20,10 +20,14 @@ http://www.katello.org/docs/api/apidoc/repository_sets.html
 :Upstream: No
 """
 from nailgun import entities
+
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import run_in_one_thread, tier1, upgrade
+from robottelo.constants import PRDS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

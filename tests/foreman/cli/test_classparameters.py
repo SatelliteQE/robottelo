@@ -13,31 +13,26 @@
 
 :Upstream: No
 """
-
 from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    add_role_permissions,
-    make_hostgroup,
-    make_location,
-    make_org,
-    make_role,
-    make_user,
-    publish_puppet_module,
-)
+from robottelo.cli.factory import add_role_permissions
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

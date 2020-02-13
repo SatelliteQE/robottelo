@@ -16,26 +16,24 @@
 :Upstream: No
 """
 import json
-from random import choice, uniform
+from random import choice
+from random import uniform
 
 import yaml
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
 
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import (
-    filtered_datapoint,
-    generate_strings_list,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

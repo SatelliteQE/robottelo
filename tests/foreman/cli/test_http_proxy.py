@@ -14,18 +14,18 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string, gen_url, gen_integer
-from robottelo.cleanup import location_cleanup, org_cleanup
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+
+from robottelo.cleanup import location_cleanup
+from robottelo.cleanup import org_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_location,
-    make_org,
-)
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
 from robottelo.cli.http_proxy import HttpProxy
-from robottelo.decorators import (
-    tier1,
-    upgrade
-)
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

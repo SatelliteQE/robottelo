@@ -18,16 +18,17 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :Upstream: No
 """
-from fauxfactory import gen_integer, gen_string
-from nailgun import entities
 from random import randint
+
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_values_list,
-    valid_data_list,
-)
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 

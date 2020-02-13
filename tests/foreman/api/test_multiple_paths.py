@@ -16,16 +16,18 @@
 """
 import logging
 
-from nailgun import client, entities, entity_fields
+from nailgun import client
+from nailgun import entities
+from nailgun import entity_fields
 from requests.exceptions import HTTPError
-from robottelo.config import settings
-from robottelo.decorators import (
-    tier1,
-    tier3,
-)
-from robottelo.helpers import get_nailgun_config, is_open
-from robottelo.test import APITestCase
 from six.moves import http_client
+
+from robottelo.config import settings
+from robottelo.decorators import tier1
+from robottelo.decorators import tier3
+from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import is_open
+from robottelo.test import APITestCase
 
 logger = logging.getLogger(__name__)
 

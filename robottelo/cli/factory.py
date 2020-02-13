@@ -2,35 +2,34 @@
 """
 Factory object creation for all CLI methods
 """
-
 import datetime
 import json
 import logging
 import os
 import random
 import time
-
-from fauxfactory import (
-    gen_alphanumeric,
-    gen_choice,
-    gen_integer,
-    gen_ipaddr,
-    gen_mac,
-    gen_netmask,
-    gen_string,
-    gen_url,
-)
 from os import chmod
-from robottelo import manifests, ssh
+from tempfile import mkstemp
+from time import sleep
+
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_choice
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_netmask
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.contentview import (
-    ContentView,
-    ContentViewFilter,
-    ContentViewFilterRule,
-)
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.contentview import ContentViewFilter
+from robottelo.cli.contentview import ContentViewFilterRule
 from robottelo.cli.discoveryrule import DiscoveryRule
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -51,56 +50,53 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import CapsuleTunnelError, Proxy
+from robottelo.cli.proxy import CapsuleTunnelError
+from robottelo.cli.proxy import Proxy
 from robottelo.cli.realm import Realm
 from robottelo.cli.report_template import ReportTemplate
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
+from robottelo.cli.scap_policy import Scappolicy
+from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.scapcontent import Scapcontent
+from robottelo.cli.smart_variable import SmartVariable
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.cli.scap_policy import Scappolicy
-from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.template import Template
 from robottelo.cli.template_input import TemplateInput
 from robottelo.cli.user import User
-from robottelo.cli.usergroup import UserGroup, UserGroupExternal
-from robottelo.cli.smart_variable import SmartVariable
+from robottelo.cli.usergroup import UserGroup
+from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DEFAULT_PTABLE,
-    DEFAULT_PXE_TEMPLATE,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DEFAULT_TEMPLATE,
-    DISTRO_RHEL7,
-    DISTROS_MAJOR_VERSION,
-    FAKE_1_YUM_REPO,
-    FOREMAN_PROVIDERS,
-    OPERATING_SYSTEMS,
-    PRDS,
-    REPOS,
-    REPOSET,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
-    SYNC_INTERVAL,
-    TEMPLATE_TYPES,
-)
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import DEFAULT_PXE_TEMPLATE
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTROS_MAJOR_VERSION
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import OPERATING_SYSTEMS
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants import SYNC_INTERVAL
+from robottelo.constants import TEMPLATE_TYPES
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import cacheable
-from robottelo.helpers import (
-    update_dictionary,
-    default_url_on_new_port,
-    get_available_capsule_port,
-)
-from robottelo.ssh import download_file, upload_file
-from tempfile import mkstemp
-from time import sleep
+from robottelo.helpers import default_url_on_new_port
+from robottelo.helpers import get_available_capsule_port
+from robottelo.helpers import update_dictionary
+from robottelo.ssh import download_file
+from robottelo.ssh import upload_file
 
 logger = logging.getLogger(__name__)
 

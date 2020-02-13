@@ -3,8 +3,10 @@ import logging
 import nailgun.entities
 from airgun.session import Session
 from fauxfactory import gen_string
-from robottelo.constants import DEFAULT_ORG, DEFAULT_LOC
 from requests.exceptions import HTTPError
+
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import fixture
 
 

@@ -15,19 +15,20 @@
 """
 import time
 
-from fauxfactory import gen_string, gen_ipaddr, gen_mac
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
+
 from robottelo import ssh
 from robottelo.api.utils import create_org_admin_user
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    skip_if_not_set,
-    stubbed,
-    tier2,
-    tier3,
-)
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import APITestCase

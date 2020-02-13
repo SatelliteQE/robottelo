@@ -15,30 +15,26 @@
 :Upstream: No
 """
 from datetime import datetime
-from fauxfactory import gen_string
 
 from airgun.session import Session
-from robottelo.config import settings
-from robottelo.decorators import (
-    fixture,
-    tier2,
-)
-from robottelo.datafactory import valid_emails_list
+from fauxfactory import gen_string
 
-from .utils import (
-    add_configure_option,
-    delete_configure_option,
-    deploy_configure_by_command,
-    deploy_configure_by_script,
-    get_configure_id,
-    get_configure_file,
-    get_configure_option,
-    get_configure_command,
-    get_virtwho_status,
-    restart_virtwho_service,
-    update_configure_option,
-    VIRTWHO_SYSCONFIG,
-)
+from .utils import add_configure_option
+from .utils import delete_configure_option
+from .utils import deploy_configure_by_command
+from .utils import deploy_configure_by_script
+from .utils import get_configure_command
+from .utils import get_configure_file
+from .utils import get_configure_id
+from .utils import get_configure_option
+from .utils import get_virtwho_status
+from .utils import restart_virtwho_service
+from .utils import update_configure_option
+from .utils import VIRTWHO_SYSCONFIG
+from robottelo.config import settings
+from robottelo.datafactory import valid_emails_list
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
 
 
 @fixture()

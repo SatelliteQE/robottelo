@@ -18,14 +18,19 @@ import json
 import re
 
 from fauxfactory import gen_string
+from six import StringIO
+
 from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import make_org, make_product
-from robottelo.decorators import run_in_one_thread, tier1, upgrade
-from robottelo.helpers import is_open, read_data_file
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
+from robottelo.helpers import is_open
+from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
-from six import StringIO
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
 

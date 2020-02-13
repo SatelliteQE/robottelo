@@ -1,19 +1,21 @@
 """Manifest clonning tools.."""
 import json
-import requests
-import six
 import time
 import uuid
 import zipfile
 
+import requests
+import six
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from nailgun import entities
 
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import INTERFACE_API, INTERFACE_CLI
+from robottelo.constants import INTERFACE_API
+from robottelo.constants import INTERFACE_CLI
 from robottelo.decorators.func_locker import lock_function
 from robottelo.ssh import upload_file
 

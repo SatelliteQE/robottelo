@@ -4,11 +4,16 @@ import random
 import string
 from functools import wraps
 
-from fauxfactory import gen_string, gen_integer, gen_alpha, gen_utf8, gen_url
+from fauxfactory import gen_alpha
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+from fauxfactory import gen_utf8
 from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
-from robottelo.constants import STRING_TYPES, DOMAIN
+from robottelo.constants import DOMAIN
+from robottelo.constants import STRING_TYPES
 
 
 class InvalidArgumentError(Exception):

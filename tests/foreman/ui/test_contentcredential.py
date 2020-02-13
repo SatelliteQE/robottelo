@@ -17,16 +17,17 @@
 """
 from nailgun import entities
 
-from robottelo.constants import (
-    CONTENT_CREDENTIALS_TYPES,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    REPO_DISCOVERY_URL,
-    VALID_GPG_KEY_FILE,
-)
+from robottelo.constants import CONTENT_CREDENTIALS_TYPES
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import REPO_DISCOVERY_URL
+from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
-from robottelo.helpers import get_data_file, read_data_file
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.helpers import get_data_file
+from robottelo.helpers import read_data_file
 
 empty_message = "You currently don't have any Products associated with this Content Credential."
 

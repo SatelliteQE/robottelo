@@ -20,30 +20,25 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.constants import (
-    DISTRO_RHEL6, DISTRO_RHEL7,
-    DOCKER_REGISTRY_HUB,
-    DOCKER_UPSTREAM_NAME,
-    FAKE_1_YUM_REPO,
-    FEDORA27_OSTREE_REPO,
-    REPOS,
-    REPOSET,
-    REPO_TYPE,
-    PRDS,
-)
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    upgrade,
-)
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
-from robottelo.products import (
-    RepositoryCollection,
-    RHELCloudFormsTools,
-    SatelliteCapsuleRepository,
-)
+from robottelo.products import RepositoryCollection
+from robottelo.products import RHELCloudFormsTools
+from robottelo.products import SatelliteCapsuleRepository
 
 
 @fixture(scope='module')

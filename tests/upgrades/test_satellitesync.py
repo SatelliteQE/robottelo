@@ -16,12 +16,15 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
-from upgrade_tests import pre_upgrade, post_upgrade
 from robottelo.test import CLITestCase
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
 class scenario_preversion_cv_exports_imports(CLITestCase):

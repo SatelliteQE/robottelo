@@ -182,38 +182,39 @@ return cdn repo data:
     # also test usage located at:
     # tests/foreman/cli/test_vm_install_products_package.py
 """
-from typing import Any, Dict, List, Tuple, Optional, TYPE_CHECKING  # noqa
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
 
-from robottelo.cli.factory import (
-    make_activation_key,
-    make_lifecycle_environment,
-    make_content_view,
-    make_product_wait,
-    make_repository,
-    setup_virtual_machine,
-)
+from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import setup_virtual_machine
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_DEFAULT,
-    DISTRO_RHEL6,
-    DISTROS_MAJOR_VERSION,
-    DISTROS_SUPPORTED,
-    ENVIRONMENT,
-    MAJOR_VERSION_DISTRO,
-    REPO_TYPE,
-    REPOS,
-)
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_DEFAULT
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTROS_MAJOR_VERSION
+from robottelo.constants import DISTROS_SUPPORTED
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import MAJOR_VERSION_DISTRO
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
 from robottelo.helpers import get_host_info
-from robottelo import manifests
 if TYPE_CHECKING:
     from robottelo.vm import VirtualMachine  # noqa
 

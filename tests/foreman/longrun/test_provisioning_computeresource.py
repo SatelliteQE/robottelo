@@ -12,26 +12,22 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from wrapanapi import RHEVMSystem, VMWareSystem
+from wrapanapi import RHEVMSystem
+from wrapanapi import VMWareSystem
 
 from robottelo.api.utils import configure_provisioning
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import (
-    make_compute_resource,
-    make_host
-)
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_host
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, VMWARE_CONSTANTS
-from robottelo.decorators import (
-    skip_if_not_set,
-    tier3,
-)
-from robottelo.helpers import (
-    ProvisioningCheckError,
-    host_provisioning_check,
-    is_open,
-)
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import VMWARE_CONSTANTS
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier3
+from robottelo.helpers import host_provisioning_check
+from robottelo.helpers import is_open
+from robottelo.helpers import ProvisioningCheckError
 from robottelo.test import CLITestCase
 
 

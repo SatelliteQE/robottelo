@@ -1,26 +1,21 @@
 # coding: utf-8
-
 import multiprocessing
 import os
 import time
 
-
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
 from unittest2 import TestCase
 
-from robottelo.decorators.func_shared.shared import (
-    _set_configured,
-    set_default_scope,
-    enable_shared_function,
-    shared,
-    SharedFunctionException,
-    _NAMESPACE_SCOPE_KEY_TYPE,
-)
-from robottelo.decorators.func_shared.file_storage import (
-    get_temp_dir,
-    TEMP_ROOT_DIR,
-    TEMP_FUNC_SHARED_DIR,
-)
+from robottelo.decorators.func_shared.file_storage import get_temp_dir
+from robottelo.decorators.func_shared.file_storage import TEMP_FUNC_SHARED_DIR
+from robottelo.decorators.func_shared.file_storage import TEMP_ROOT_DIR
+from robottelo.decorators.func_shared.shared import _NAMESPACE_SCOPE_KEY_TYPE
+from robottelo.decorators.func_shared.shared import _set_configured
+from robottelo.decorators.func_shared.shared import enable_shared_function
+from robottelo.decorators.func_shared.shared import set_default_scope
+from robottelo.decorators.func_shared.shared import shared
+from robottelo.decorators.func_shared.shared import SharedFunctionException
 
 DEFAULT_POOL_SIZE = 8
 SIMPLE_TIMEOUT_VALUE = 3

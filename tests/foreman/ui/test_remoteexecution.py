@@ -18,17 +18,20 @@ import datetime
 import time
 
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo.api.utils import update_vm_host_location
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DISTRO_DEFAULT, ANSWERS
+from robottelo.constants import ANSWERS
+from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier3, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.ssh import get_connection
 from robottelo.vm import VirtualMachine
-from wait_for import wait_for
 
 
 def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):

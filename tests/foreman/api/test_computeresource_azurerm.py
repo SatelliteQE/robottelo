@@ -15,26 +15,22 @@
 :Upstream: No
 """
 import pytest
-
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
-from robottelo.constants import (
-    AZURERM_FILE_URI,
-    AZURERM_RHEL7_FT_IMG_URN,
-    AZURERM_RHEL7_UD_IMG_URN,
-    AZURERM_RG_DEFAULT,
-    AZURERM_PREMIUM_OS_Disk,
-    AZURERM_PLATFORM_DEFAULT,
-    AZURERM_VM_SIZE_DEFAULT,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.constants import AZURERM_FILE_URI
+from robottelo.constants import AZURERM_PLATFORM_DEFAULT
+from robottelo.constants import AZURERM_PREMIUM_OS_Disk
+from robottelo.constants import AZURERM_RG_DEFAULT
+from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
+from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 class TestAzureRMComputeResourceTestCase:

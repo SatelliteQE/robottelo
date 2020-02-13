@@ -14,17 +14,16 @@
 
 :Upstream: No
 """
+from robottelo import manifests
 from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo import manifests
-from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    upgrade,
-)
+from robottelo.constants import PRDS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 

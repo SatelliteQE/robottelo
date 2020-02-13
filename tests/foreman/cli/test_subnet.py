@@ -13,18 +13,25 @@
 
 :Upstream: No
 """
-
 import random
 import re
 
-from fauxfactory import gen_integer, gen_ipaddr
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_subnet
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
-from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import (
-     stubbed, tier1, tier2, tier3, upgrade)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

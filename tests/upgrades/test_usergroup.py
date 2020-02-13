@@ -17,10 +17,13 @@
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo.config import settings
-from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.test import APITestCase
-from upgrade_tests import post_upgrade, pre_upgrade
 
 
 class scenario_positive_verify_usergroup_membership(APITestCase):

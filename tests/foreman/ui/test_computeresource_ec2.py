@@ -19,14 +19,14 @@ from nailgun import entities
 from pytest import skip
 
 from robottelo.config import settings
-from robottelo.constants import (
-    AWS_EC2_FLAVOR_T2_MICRO,
-    COMPUTE_PROFILE_LARGE,
-    DEFAULT_LOC,
-    EC2_REGION_CA_CENTRAL_1,
-    FOREMAN_PROVIDERS
-)
-from robottelo.decorators import fixture, setting_is_set, tier2
+from robottelo.constants import AWS_EC2_FLAVOR_T2_MICRO
+from robottelo.constants import COMPUTE_PROFILE_LARGE
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import EC2_REGION_CA_CENTRAL_1
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.decorators import fixture
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import tier2
 
 
 if not setting_is_set('ec2'):

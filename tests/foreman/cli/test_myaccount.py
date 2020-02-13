@@ -15,14 +15,15 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_user
 from robottelo.cli.user import User
 from robottelo.constants import LOCALES
 from robottelo.datafactory import invalid_emails_list
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

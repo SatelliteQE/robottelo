@@ -20,26 +20,20 @@ from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import (
-    DISTRO_RHEL7,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_2_ERRATA_ID,
-    FAKE_6_YUM_REPO,
-)
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
-from robottelo.products import (
-    RepositoryCollection,
-    SatelliteToolsRepository,
-    YumRepository,
-)
+from robottelo.products import RepositoryCollection
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
 
 

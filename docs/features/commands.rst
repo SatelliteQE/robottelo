@@ -127,5 +127,3 @@ It is also possible to open the `browse` session in specific page if you specify
 
     # create user using factory
     In [1]:  session.ui.make_user(username="my_username")
-
-

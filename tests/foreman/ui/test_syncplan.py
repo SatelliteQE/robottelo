@@ -15,26 +15,22 @@
 :Upstream: No
 """
 import time
+from datetime import datetime
+from datetime import timedelta
 
-from datetime import datetime, timedelta
 from fauxfactory import gen_choice
 from nailgun import entities
 from pytest import raises
-from robottelo.api.utils import (
-    wait_for_tasks,
-    wait_for_syncplan_tasks
-)
+
+from robottelo.api.utils import wait_for_syncplan_tasks
+from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.datafactory import (
-    gen_string,
-    valid_cron_expressions
-)
-from robottelo.decorators import (
-    fixture,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import valid_cron_expressions
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):

@@ -15,45 +15,48 @@
 
 :Upstream: No
 """
-import pytest
 import random
 
-from fauxfactory import gen_integer, gen_string, gen_utf8
+import pytest
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import ssh
-from robottelo.api.utils import apply_package_filter, enable_rhrepo_and_fetchid, promote
+
 from robottelo import manifests
-from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2,
-    CUSTOM_REPODATA_PATH,
-    CUSTOM_RPM_SHA_512,
-    CUSTOM_RPM_SHA_512_FEED_COUNT,
-    CUSTOM_SWID_TAG_REPO,
-    DOCKER_REGISTRY_HUB,
-    FAKE_0_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FEDORA27_OSTREE_REPO,
-    FILTER_ERRATA_TYPE,
-    PERMISSIONS,
-    PRDS,
-    PUPPET_MODULE_NTP_PUPPETLABS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo import ssh
+from robottelo.api.utils import apply_package_filter
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import CUSTOM_REPODATA_PATH
+from robottelo.constants import CUSTOM_RPM_SHA_512
+from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
+from robottelo.constants import CUSTOM_SWID_TAG_REPO
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants import FILTER_ERRATA_TYPE
+from robottelo.constants import PERMISSIONS
+from robottelo.constants import PRDS
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file, get_nailgun_config
+from robottelo.helpers import get_data_file
+from robottelo.helpers import get_nailgun_config
 
 
 # Some tests repeatedly publish content views or promote content view versions.

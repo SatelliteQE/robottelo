@@ -14,47 +14,50 @@
 
 :Upstream: No
 """
-import pytest
 import time
 from random import choice
 
-from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
-from nailgun import entities
+import pytest
 import yaml
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_string
+from nailgun import entities
 
 from robottelo import ssh
-from robottelo.cleanup import capsule_cleanup, vm_cleanup
 from robottelo.api.utils import wait_for_errata_applicability_task
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    add_role_permissions,
-    CLIFactoryError,
-    make_activation_key,
-    make_architecture,
-    make_content_view,
-    make_domain,
-    make_environment,
-    make_fake_host,
-    make_host,
-    make_host_collection,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_location,
-    make_medium,
-    make_org,
-    make_os,
-    make_proxy,
-    make_role,
-    make_smart_variable,
-    make_user,
-    publish_puppet_module,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
-from robottelo.cli.host import Host, HostInterface
+from robottelo.cli.factory import add_role_permissions
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_architecture
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import make_fake_host
+from robottelo.cli.factory import make_host
+from robottelo.cli.factory import make_host_collection
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_smart_variable
+from robottelo.cli.factory import make_user
+from robottelo.cli.factory import publish_puppet_module
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.host import Host
+from robottelo.cli.host import HostInterface
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
@@ -65,45 +68,40 @@ from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_PUPPET_REPO,
-    DEFAULT_CV,
-    DISTRO_RHEL7,
-    DEFAULT_SUBSCRIPTION_NAME,
-    ENVIRONMENT,
-    FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_GROUP,
-    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-    FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_2_CUSTOM_PACKAGE_NAME,
-    FAKE_1_ERRATA_ID,
-    FAKE_1_YUM_REPO,
-    FAKE_2_ERRATA_ID,
-    FAKE_6_YUM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
-    SATELLITE_SUBSCRIPTION_NAME,
-)
-from robottelo.datafactory import (
-    invalid_values_list,
-    valid_data_list,
-    valid_hosts_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_ERRATA_ID
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_hosts_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
-from robottelo.vm import VirtualMachine, VirtualMachineError
+from robottelo.vm import VirtualMachine
+from robottelo.vm import VirtualMachineError
 
 
 class HostCreateTestCase(CLITestCase):

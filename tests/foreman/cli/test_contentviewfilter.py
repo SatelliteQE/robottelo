@@ -15,28 +15,26 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_choice
+from fauxfactory import gen_string
 
-from fauxfactory import gen_choice, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import (
-    make_content_view,
-    make_content_view_filter,
-    make_location,
-    make_org,
-    make_product_wait,  # workaround for BZ 1332650
-    make_repository,
-)
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_content_view_filter
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

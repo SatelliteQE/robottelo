@@ -16,42 +16,38 @@
 :Upstream: No
 """
 import random
-import pytest
 
+import pytest
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
+from nailgun import entities
+from six.moves import http_client
+
+from .utils import AK_CONTENT_LABEL
+from .utils import ClientProvisioningMixin
 from robottelo import manifests
-from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-)
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DEFAULT_SUBSCRIPTION_NAME,
-    FAKE_0_PUPPET_REPO,
-    CUSTOM_RPM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    setting_is_set,
-    skip_if_not_set,
-    tier1,
-    tier4,
-    upgrade
-)
+from robottelo.constants import CUSTOM_RPM_REPO
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
-from six.moves import http_client
-from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
-# (too many public methods) pylint: disable=R0904
 
 API_PATHS = {
-    # flake8:noqa (line-too-long) pylint:disable=C0301
+    # flake8:noqa (line-too-long)
     u'activation_keys': (
         u'/katello/api/activation_keys',
         u'/katello/api/activation_keys',
@@ -1025,7 +1021,7 @@ class AvailableURLsTestCase(TestCase):
         )
         for group in api_paths.keys():
             self.assertItemsEqual(api_paths[group], API_PATHS[group], group)
-        # (line-too-long) pylint:disable=C0301
+        # noqa (line-too-long)
         # response.json()['links'] is a dict like this:
         #
         #     {u'content_views': {

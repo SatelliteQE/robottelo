@@ -1,16 +1,21 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
 import pytest
-
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import (
-    AZURERM_RHEL7_FT_IMG_URN, AZURERM_RHEL7_UD_IMG_URN, AZURERM_RG_DEFAULT, DEFAULT_ARCHITECTURE,
-    DEFAULT_TEMPLATE, DEFAULT_PXE_TEMPLATE, DEFAULT_PTABLE, RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION
-)
+from wrapanapi import AzureSystem
+from wrapanapi import GoogleCloudSystem
+
+from robottelo.constants import AZURERM_RG_DEFAULT
+from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import DEFAULT_PXE_TEMPLATE
+from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import download_gce_cert
 from robottelo.test import settings
-from wrapanapi import AzureSystem, GoogleCloudSystem
 
 # Global Satellite Entities
 

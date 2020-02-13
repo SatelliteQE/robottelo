@@ -16,13 +16,12 @@
 """
 from nailgun import entities
 
-from robottelo.constants import (
-    ENVIRONMENT,
-    DOCKER_REGISTRY_HUB,
-    DOCKER_UPSTREAM_NAME,
-    REPO_TYPE,
-)
-from robottelo.decorators import fixture, tier2
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import REPO_TYPE
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
 
 
 @fixture(scope="module")
