@@ -14,6 +14,8 @@
 /robottelo.egg-info
 /build/
 /dist/
+.eggs/
+.robottelo/
 
 # Test results.
 **/foreman-results.xml
