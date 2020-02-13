@@ -15,15 +15,20 @@
 
 :Upstream: No
 """
-
-from fauxfactory import gen_alphanumeric, gen_string
 from math import ceil
+
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_lifecycle_environment, make_org
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

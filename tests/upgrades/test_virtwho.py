@@ -14,23 +14,23 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from wait_for import wait_for
+
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_LOC
 from robottelo.decorators import skip_if_not_set
-from robottelo.test import APITestCase, settings
-from robottelo.virtwho_utils import (
-    deploy_configure_by_command,
-    get_configure_command,
-    get_configure_file,
-    get_configure_option,
-    get_hypervisor_info
-)
-from upgrade_tests import pre_upgrade, post_upgrade
-from wait_for import wait_for
+from robottelo.test import APITestCase
+from robottelo.test import settings
+from robottelo.virtwho_utils import deploy_configure_by_command
+from robottelo.virtwho_utils import get_configure_command
+from robottelo.virtwho_utils import get_configure_file
+from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import get_hypervisor_info
 
 
 class scenario_positive_virt_who(APITestCase):

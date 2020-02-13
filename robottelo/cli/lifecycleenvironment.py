@@ -17,7 +17,6 @@ Subcommands::
     delete                        Destroy an environment
     info                          Show an environment
 """
-
 from robottelo.cli.base import Base
 
 

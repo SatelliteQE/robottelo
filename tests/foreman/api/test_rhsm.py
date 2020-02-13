@@ -19,10 +19,11 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 :Upstream: No
 """
 from nailgun import client
+from six.moves import http_client
+
 from robottelo.config import settings
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 class RedHatSubscriptionManagerTestCase(APITestCase):

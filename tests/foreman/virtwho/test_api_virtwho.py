@@ -16,19 +16,17 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from wait_for import wait_for
+
+from .utils import deploy_configure_by_command
+from .utils import deploy_configure_by_script
+from .utils import get_configure_command
+from .utils import get_configure_file
+from .utils import get_configure_option
+from .utils import VIRTWHO_SYSCONFIG
 from robottelo.config import settings
 from robottelo.decorators import tier2
 from robottelo.test import APITestCase
-from wait_for import wait_for
-
-from .utils import (
-    deploy_configure_by_command,
-    deploy_configure_by_script,
-    get_configure_command,
-    get_configure_file,
-    get_configure_option,
-    VIRTWHO_SYSCONFIG
-)
 
 
 class VirtWhoConfigApiTestCase(APITestCase):

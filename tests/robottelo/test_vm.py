@@ -1,10 +1,13 @@
 """Tests for :mod:`robottelo.vm`."""
+from unittest.mock import call
+from unittest.mock import patch
+
 import unittest2
+
 from robottelo import ssh
 from robottelo.config.base import DistroSettings
-from robottelo.vm import VirtualMachine, VirtualMachineError
-
-from unittest.mock import call, patch
+from robottelo.vm import VirtualMachine
+from robottelo.vm import VirtualMachineError
 
 
 class VirtualMachineTestCase(unittest2.TestCase):

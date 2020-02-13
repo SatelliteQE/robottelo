@@ -16,7 +16,6 @@ Subcommands::
     sc-params                     List all smart class parameters
     smart-variables               List all smart variables
 """
-
 from robottelo.cli.base import Base
 
 

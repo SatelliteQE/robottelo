@@ -14,22 +14,22 @@
 
 :Upstream: No
 """
-from wait_for import wait_for
-
 from fabric.api import execute
 from nailgun import entities
-from robottelo import manifests
-from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import delete_manifest
+from upgrade_tests.helpers.scenarios import dockerize
+from upgrade_tests.helpers.scenarios import get_entity_data
+from upgrade_tests.helpers.scenarios import upload_manifest
+from wait_for import wait_for
+
+from robottelo import manifests
+from robottelo.test import APITestCase
+from robottelo.test import settings
 from robottelo.upgrade_utility import host_location_update
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    create_dict,
-    delete_manifest,
-    dockerize,
-    get_entity_data,
-    upload_manifest,
-)
 
 
 class Scenario_manifest_refresh(APITestCase):

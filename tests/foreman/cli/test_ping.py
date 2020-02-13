@@ -14,10 +14,12 @@
 
 :Upstream: No
 """
-from robottelo import ssh
-from robottelo.decorators import tier1, upgrade
-from robottelo.test import CLITestCase
 from six.moves import zip
+
+from robottelo import ssh
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
+from robottelo.test import CLITestCase
 
 
 class PingTestCase(CLITestCase):

@@ -18,7 +18,9 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.constants import INSTALL_MEDIUM_URL
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

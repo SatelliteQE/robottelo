@@ -19,13 +19,19 @@ import random
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.api.utils import skip_yum_update_during_provisioning
-from robottelo.constants import FOREMAN_PROVIDERS, LATEST_RHEL7_GCE_IMG_UUID, VALID_GCE_ZONES
-from robottelo.helpers import download_gce_cert
-from robottelo.test import APITestCase, settings
-from upgrade_tests import pre_upgrade, post_upgrade
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
+
+from robottelo.api.utils import skip_yum_update_during_provisioning
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import LATEST_RHEL7_GCE_IMG_UUID
+from robottelo.constants import VALID_GCE_ZONES
+from robottelo.helpers import download_gce_cert
+from robottelo.test import APITestCase
+from robottelo.test import settings
 
 
 GCE_SETTINGS = dict(

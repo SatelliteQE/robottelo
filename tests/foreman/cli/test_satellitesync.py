@@ -16,44 +16,40 @@
 :Upstream: No
 """
 import json
-
-from fauxfactory import gen_integer, gen_string
-from nailgun import entities
 from random import randint
 
-from robottelo import manifests, ssh
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import entities
+
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import (
-    make_content_view,
-    make_lifecycle_environment,
-    make_org,
-    make_product,
-    make_repository,
-)
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.package import Package
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import (
-    CUSTOM_PUPPET_REPO,
-    ENVIRONMENT,
-    PRDS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    tier4,
-    upgrade
-)
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

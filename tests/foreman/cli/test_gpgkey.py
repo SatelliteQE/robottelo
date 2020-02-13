@@ -15,37 +15,34 @@
 
 :Upstream: No
 """
+from tempfile import mkstemp
 
-from fauxfactory import (
-    gen_alphanumeric,
-    gen_choice,
-    gen_integer,
-    gen_string,
-)
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_choice
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_gpg_key,
-    make_org,
-    make_product,
-    make_repository,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.constants import DEFAULT_ORG, VALID_GPG_KEY_FILE
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
-from tempfile import mkstemp
 
 VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
 
@@ -76,7 +73,6 @@ class TestGPGKey(CLITestCase):
         hundreds of organizations
         """
         super(TestGPGKey, cls).setUpClass()
-        # pylint: disable=unexpected-keyword-arg
         cls.org = make_org(cached=True)
 
     # Bug verification

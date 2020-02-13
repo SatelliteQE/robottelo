@@ -2,23 +2,25 @@
 """Module containing convenience functions for working with the API."""
 import time
 
-from fauxfactory import gen_ipaddr, gen_mac, gen_string
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_string
 from inflector import Inflector
-from nailgun import entities, entity_mixins
+from nailgun import entities
+from nailgun import entity_mixins
 from nailgun.client import request
+
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.config.base import ImproperlyConfigured
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_PTABLE,
-    DEFAULT_PXE_TEMPLATE,
-    DEFAULT_TEMPLATE,
-    FAKE_1_YUM_REPO,
-    REPO_TYPE,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
-)
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import DEFAULT_PXE_TEMPLATE
+from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):

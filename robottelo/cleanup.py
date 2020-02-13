@@ -3,6 +3,7 @@
 import logging
 
 from nailgun import entities
+
 from robottelo.cli.proxy import Proxy
 from robottelo.vm import VirtualMachine
 

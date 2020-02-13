@@ -20,7 +20,6 @@ Subcommands::
     refresh-features              Refresh capsule features
     update                        Update a capsule
 """
-
 from robottelo.cli.base import Base
 
 

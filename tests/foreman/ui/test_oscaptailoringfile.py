@@ -16,16 +16,15 @@
 :Upstream: No
 """
 from nailgun import entities
+
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    tier1,
-    tier2,
-    tier4,
-    stubbed,
-    upgrade,
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
 
 

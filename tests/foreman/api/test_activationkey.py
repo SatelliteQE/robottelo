@@ -14,30 +14,32 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_integer, gen_string
-from nailgun import client, entities
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.config import settings
-from robottelo.constants import PRDS, REPOS, REPOSET
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_names_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from six.moves import http_client
+
 from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 @filtered_datapoint

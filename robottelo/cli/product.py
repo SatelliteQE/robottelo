@@ -21,7 +21,6 @@ Subcommands::
     update                        Update a product
     update-proxy                  Updates an HTTP Proxy for a product
 """
-
 from robottelo.cli.base import Base
 
 

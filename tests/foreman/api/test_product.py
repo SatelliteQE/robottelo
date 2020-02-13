@@ -18,29 +18,27 @@ http://<sat6>/apidoc/v2/products.html
 
 :Upstream: No
 """
-import pytest
 import re
-from fauxfactory import (
-    gen_integer,
-    gen_string,
-    gen_url
-)
+
+import pytest
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import manifests, ssh
+
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import (
-    FAKE_1_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    VALID_GPG_KEY_BETA_FILE,
-    VALID_GPG_KEY_FILE,
-)
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.constants import FAKE_1_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import VALID_GPG_KEY_BETA_FILE
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 

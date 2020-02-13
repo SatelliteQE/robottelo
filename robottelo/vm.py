@@ -12,25 +12,24 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 import json
 import logging
 import os
-import six
-from wait_for import wait_for
+from time import sleep
 
+import six
 from fauxfactory import gen_string
+from six.moves.urllib.parse import urlunsplit
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import (
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    DISTRO_RHEL8,
-    DISTRO_SLES11,
-    DISTRO_SLES12,
-    REPOS
-)
-from robottelo.helpers import install_katello_ca, remove_katello_ca
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL8
+from robottelo.constants import DISTRO_SLES11
+from robottelo.constants import DISTRO_SLES12
+from robottelo.constants import REPOS
+from robottelo.helpers import install_katello_ca
+from robottelo.helpers import remove_katello_ca
 from robottelo.host_info import get_host_os_version
-from six.moves.urllib.parse import urlunsplit
-from time import sleep
 # This conditional is here to centralize use of urljoin
 if six.PY3:  # pragma: no cover
     from urllib.parse import urljoin  # noqa

@@ -16,43 +16,35 @@
 """
 import pytest
 from fauxfactory import gen_string
+from nailgun import entities
 
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_hostgroup,
-    make_scapcontent,
-    make_scap_policy,
-    make_tailoringfile,
-    make_user
-)
 from robottelo.cli.ansible import Ansible
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_scap_policy
+from robottelo.cli.factory import make_scapcontent
+from robottelo.cli.factory import make_tailoringfile
+from robottelo.cli.factory import make_user
+from robottelo.cli.host import Host
 from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
-from robottelo.cli.host import Host
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import (
-    OSCAP_DEFAULT_CONTENT,
-    OSCAP_PROFILE,
-    OSCAP_PERIOD,
-    OSCAP_WEEKDAY
-)
-from robottelo.datafactory import (
-    valid_data_list,
-    invalid_names_list
-)
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier4,
-    upgrade,
-)
+from robottelo.constants import OSCAP_DEFAULT_CONTENT
+from robottelo.constants import OSCAP_PERIOD
+from robottelo.constants import OSCAP_PROFILE
+from robottelo.constants import OSCAP_WEEKDAY
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
 from robottelo.test import CLITestCase
-from nailgun import entities
 
 
 class OpenScapTestCase(CLITestCase):

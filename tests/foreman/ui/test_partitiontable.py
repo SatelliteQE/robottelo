@@ -20,7 +20,9 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 
 

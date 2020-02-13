@@ -1,4 +1,5 @@
 import pytest
+
 from robottelo.cli.org import Org
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.repository import Repository

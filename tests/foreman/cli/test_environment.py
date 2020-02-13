@@ -15,29 +15,23 @@
 
 :Upstream: No
 """
-
-from nailgun import entities
 from random import choice
 
 from fauxfactory import gen_string
+from nailgun import entities
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    make_environment,
-    publish_puppet_module,
-)
+from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import (
-    invalid_id_list,
-    invalid_values_list,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

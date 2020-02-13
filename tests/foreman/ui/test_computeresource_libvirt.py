@@ -22,8 +22,12 @@ from nailgun import entities
 from pytest import skip
 
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import fixture, setting_is_set, tier2
+from robottelo.constants import COMPUTE_PROFILE_SMALL
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.decorators import fixture
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import tier2
 
 
 if not setting_is_set('compute_resources'):

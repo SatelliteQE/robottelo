@@ -14,32 +14,28 @@
 
 :Upstream: No
 """
+from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 
-from airgun.session import Session
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2,
-    ENVIRONMENT,
-    FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_0_PUPPET_REPO,
-    FAKE_0_YUM_REPO,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_3_CUSTOM_PACKAGE_NAME,
-    REPO_TYPE,
-)
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
+from robottelo.constants import REPO_TYPE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

@@ -1,9 +1,7 @@
 """DEPRECATED UI FUNCTIONALITY"""
-
 # """
 # from six.moves.urllib.parse import urljoin
 # from nailgun import entities
-
 # from robottelo.cleanup import vm_cleanup
 # from robottelo.cli.factory import (
 #     setup_org_for_a_custom_repo,
@@ -31,18 +29,14 @@
 # from robottelo.ui.locators import common_locators, tab_locators
 # from robottelo.ui.session import Session
 # from robottelo.vm import VirtualMachine
-
-
 # @run_in_one_thread
 # class ContentHostTestCase(UITestCase):
 #     """Implements Content Host tests in UI"""
-
 #     @classmethod
 #     def set_session_org(cls):
 #         """Create an organization for tests, which will be selected
 #         automatically"""
 #         cls.session_org = entities.Organization().create()
-
 #     @classmethod
 #     @skip_if_not_set('clients', 'fake_manifest')
 #     def setUpClass(cls):
@@ -80,7 +74,6 @@
 #             'lifecycle-environment-id': cls.env.id,
 #             'activationkey-id': cls.activation_key.id,
 #         })
-
 #     def setUp(self):
 #         """Create a VM, subscribe it to satellite-tools repo, install
 #         katello-ca and katello-agent packages"""
@@ -94,19 +87,13 @@
 #         self.assertTrue(self.client.subscribed)
 #         self.client.enable_repo(REPOS['rhst7']['id'])
 #         self.client.install_katello_agent()
-
 #     @tier3
 #     def test_positive_sort_by_last_checkin(self):
 #         """Register two content hosts and then sort them by last checkin date
-
 #         :id: c42c1347-8b3a-4ba7-95d1-609e2e9ec40e
-
 #         :customerscenario: true
-
 #         :expectedresults: Validate that content hosts are sorted properly
-
 #         :BZ: 1281251
-
 #         :CaseLevel: System
 #         """
 #         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
@@ -138,22 +125,17 @@
 #                 self.assertGreater(checked_in_dates[1], checked_in_dates[0])
 #                 dates = self.contenthost.sort_table_by_column('Last Checkin')
 #                 self.assertGreater(dates[0], dates[1])
-
 #     @skip_if_bug_open('bugzilla', 1351464)
 #     @skip_if_bug_open('bugzilla', 1387892)
 #     @tier3
 #     def test_positive_provisioning_host_link(self):
 #         """Check that the host link in provisioning tab of content host page
 #         point to the host details page.
-
 #         :id: 28f5fb0e-007b-4ee6-876e-9693fb7f5841
-
 #         :expectedresults: The Provisioning host details name link at
 #             content_hosts/provisioning point to host detail page eg:
 #             hosts/hostname
-
 #         :BZ: 1387892
-
 #         :CaseLevel: System
 #         """
 #         with Session(self):
@@ -170,39 +152,29 @@
 #             host_url = urljoin(settings.server.get_url(),
 #                                'hosts/{0}'.format(self.client.hostname))
 #             self.assertEqual(self.browser.current_url, host_url)
-
 #     @tier3
 #     @upgrade
 #     @stubbed()
 #     def test_positive_bulk_add_subscriptions(self):
 #         """Add a subscription to more than one content host, using bulk actions.
-
 #         :id: a427c77f-100d-4af5-9248-6f806db364ef
-
 #         :steps:
-
 #             1. Upload a manifest with, or use an existing, subscription
 #             2. Register multiple hosts to the current organization
 #             3. Select all of those hosts
 #             4. Navigate to the bulk subscriptions page
 #             5. Select and add a subscription to the hosts
-
 #         :expectedresults: The subscriptions are successfully attached to the
 #             hosts
-
 #         :CaseLevel: System
 #         """
-
 #     @tier3
 #     @stubbed()
 #     def test_positive_bulk_remove_subscriptions(self):
 #         """Remove a subscription to more than one content host, using bulk
 #         actions.
-
 #         :id: f74b829e-d888-4caf-a25e-ca64b073a3fc
-
 #         :steps:
-
 #             1. Upload a manifest with, or use an existing, subscription
 #             2. Register multiple hosts to the current organization
 #             3. Select all of those hosts
@@ -212,9 +184,7 @@
 #             7. Reselect all the hosts from step 3
 #             8. Navigate to the bulk subscriptions page
 #             9. Select the subscription added in step 5 and remove it
-
 #         :expectedresults: The subscriptions are successfully removed from the
 #             hosts
-
 #         :CaseLevel: System
 #         """

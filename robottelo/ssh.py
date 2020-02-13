@@ -4,12 +4,12 @@ import logging
 import os
 import re
 import time
+from contextlib import contextmanager
+from fnmatch import fnmatch
 
 import paramiko
 import six
 
-from fnmatch import fnmatch
-from contextlib import contextmanager
 from robottelo.cli import hammer
 from robottelo.config import settings
 

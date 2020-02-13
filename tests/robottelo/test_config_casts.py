@@ -1,8 +1,9 @@
 """Tests for module ``robottelo.config.casts``."""
 import logging
 
-from robottelo.config import casts
 from unittest2 import TestCase
+
+from robottelo.config import casts
 
 
 class BooleanTestCase(TestCase):

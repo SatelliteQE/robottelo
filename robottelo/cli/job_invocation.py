@@ -14,7 +14,6 @@ Subcommands:
     list            List job invocations
     output          View the output for a host
 """
-
 from robottelo.cli.base import Base
 
 

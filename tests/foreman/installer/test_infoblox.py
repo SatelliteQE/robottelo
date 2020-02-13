@@ -12,8 +12,9 @@
 
 :Upstream: No
 """
-
-from robottelo.decorators import stubbed, tier3, upgrade
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import TestCase
 
 

@@ -7,11 +7,13 @@ to help writing API and CLI tests.
 """
 import logging
 import re
+
 import unittest2
 
 from robottelo import manifests
 from robottelo.config import settings
-from robottelo.constants import INTERFACE_API, INTERFACE_CLI
+from robottelo.constants import INTERFACE_API
+from robottelo.constants import INTERFACE_CLI
 
 LOGGER = logging.getLogger(__name__)
 

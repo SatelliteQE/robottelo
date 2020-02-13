@@ -15,30 +15,26 @@
 :Upstream: No
 """
 import csv
+
 import pytest
+from fauxfactory import gen_string
+from nailgun import entities
 
 from robottelo import manifests
 from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import (
-    PRDS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-
-from fauxfactory import gen_string
-from nailgun import entities
 
 
 @run_in_one_thread
@@ -50,7 +46,6 @@ class SubscriptionTestCase(CLITestCase):
         super(SubscriptionTestCase, self).setUp()
         self.org = make_org()
 
-    # pylint: disable=no-self-use
     def _upload_manifest(self, org_id, manifest=None):
         """Uploads a manifest into an organization.
 

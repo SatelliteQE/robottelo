@@ -1,12 +1,13 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
-import re
 import json
+import re
 import uuid
+
 from robottelo import ssh
-from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
 
 VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
 

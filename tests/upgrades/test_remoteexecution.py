@@ -15,13 +15,19 @@
 :Upstream: No
 """
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+
 from robottelo.cleanup import cleanup_of_provisioned_server
-from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DISTRO_RHEL7
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.test import APITestCase
+from robottelo.test import settings
 from robottelo.vm import VirtualMachine
-from robottelo.test import APITestCase, settings
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
 class Scenario_remoteexecution_external_capsule(APITestCase):

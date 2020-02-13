@@ -14,7 +14,8 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, tier1
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 

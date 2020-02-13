@@ -18,7 +18,6 @@ Subcommands::
      list                          List Tailoring files
      update                        Update a Tailoring file
 """
-
 from robottelo.cli.base import Base
 
 

@@ -21,9 +21,12 @@ from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 
-from robottelo.constants import PERMISSIONS_UI, ROLES
+from robottelo.constants import PERMISSIONS_UI
+from robottelo.constants import ROLES
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

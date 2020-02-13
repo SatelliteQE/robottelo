@@ -14,14 +14,11 @@
 
 :Upstream: No
 """
-
 from robottelo.config import settings
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
 from robottelo.test import APITestCase
 
 

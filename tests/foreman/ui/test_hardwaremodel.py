@@ -17,7 +17,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 from pytest import raises
 
-from robottelo.decorators import tier2, upgrade
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.ui.utils import create_fake_host
 
 

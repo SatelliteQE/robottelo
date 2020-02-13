@@ -16,32 +16,30 @@
 """
 from fabric.api import execute
 from nailgun import entities
-from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL7,
-    FAKE_9_YUM_ERRATUM,
-    FAKE_9_YUM_OUTDATED_PACKAGES,
-    FAKE_9_YUM_REPO,
-    FAKE_9_YUM_UPDATED_PACKAGES,
-    REPOS,
-)
-from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import (
-    host_location_update,
-    install_or_update_package,
-    publish_content_view,
-    run_goferd)
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    create_dict,
-    dockerize,
-    get_entity_data
-)
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import dockerize
+from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
+
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_9_YUM_ERRATUM
+from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
+from robottelo.constants import FAKE_9_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
+from robottelo.constants import REPOS
+from robottelo.test import APITestCase
+from robottelo.test import settings
+from robottelo.upgrade_utility import host_location_update
+from robottelo.upgrade_utility import install_or_update_package
+from robottelo.upgrade_utility import publish_content_view
+from robottelo.upgrade_utility import run_goferd
 
 
 class ScenarioErrataAbstract(object):

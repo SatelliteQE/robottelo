@@ -19,28 +19,30 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :Upstream: No
 """
-from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
-from nailgun import client, entities
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
 from six.moves import http_client
 
-from robottelo.api.utils import promote, publish_puppet_module
+from robottelo.api.utils import promote
+from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
-from robottelo.datafactory import (
-    invalid_interfaces_list,
-    invalid_values_list,
-    valid_data_list,
-    valid_hosts_list,
-    valid_interfaces_list,
-)
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import ENVIRONMENT
+from robottelo.datafactory import invalid_interfaces_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_hosts_list
+from robottelo.datafactory import valid_interfaces_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import APITestCase
 
@@ -782,7 +784,6 @@ class HostTestCase(APITestCase):
         host = entities.Host().create()
         new_medium = entities.Media(
             operatingsystem=[host.operatingsystem],
-            # pylint:disable=no-member
             location=[host.location],
             organization=[host.organization],
         ).create()

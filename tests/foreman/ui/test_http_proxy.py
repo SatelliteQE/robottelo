@@ -14,8 +14,12 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string, gen_url, gen_integer
-from robottelo.decorators import tier2, upgrade
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @tier2

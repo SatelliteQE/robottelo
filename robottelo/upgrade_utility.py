@@ -1,11 +1,12 @@
 """Common Upgrade test utilities """
-
-from fabric.api import execute, run
+from fabric.api import execute
+from fabric.api import run
 from nailgun import entities
-from robottelo.test import settings
-from robottelo.api.utils import call_entity_method_with_timeout
 from upgrade.helpers.docker import docker_execute_command
 from wait_for import wait_for
+
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.test import settings
 
 
 def run_goferd(client_hostname=None):

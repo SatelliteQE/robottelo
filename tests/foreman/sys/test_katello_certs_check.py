@@ -18,23 +18,23 @@
 """
 import os
 import re
-
-from fauxfactory import gen_string
 from pathlib import Path
 
-from robottelo.config import settings
+from fauxfactory import gen_string
+
 from robottelo import ssh
-from robottelo.ssh import get_connection, upload_file, download_file
-from robottelo.test import TestCase
+from robottelo.config import settings
+from robottelo.decorators import destructive
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
-from robottelo.decorators import (
-    destructive,
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    upgrade,
-    )
+from robottelo.ssh import download_file
+from robottelo.ssh import get_connection
+from robottelo.ssh import upload_file
+from robottelo.test import TestCase
 
 
 @run_in_one_thread

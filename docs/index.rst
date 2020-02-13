@@ -65,7 +65,7 @@ are a few other things you may wish to do before continuing:
 2. You may wish to install the optional dependencies listed in
    ``requirements-optional.txt``. (Use pip, as shown above.) They are required
    for tasks like working with certificates, running the internal robottelo test
-   suite and checking code quality with pylint.
+   suite and checking code quality with pre-commit.
 
 Robottelo on Docker
 -------------------
@@ -151,7 +151,7 @@ documentation.
 Using environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the sections in the ``robottelo.properties`` file can be mapped to an 
+Each of the sections in the ``robottelo.properties`` file can be mapped to an
 environment variable prefixed with ``ROBOTTELO_`` so for example if you want
 to override the ``server.hostname`` without changing the properties file you can do::
 
@@ -327,7 +327,7 @@ Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
 for that too! Finally, the :doc:`API reference </api/index>` covers individual
 functions, classes, methods and modules.
 
-**Robottelo** is compatible with Python 2.7.
+**Robottelo** is compatible with Python 3.6+.
 
 Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
 If you think you've found a new issue, please do one of the following:
@@ -348,7 +348,8 @@ you have `graphviz`_ installed::
 
 To check for code smells::
 
-    $ make lint
+    $ pre-commit install-hooks
+    $ pre-commit run --all-files
 
 The design and development for this software is led by `Og Maciel`_.
 

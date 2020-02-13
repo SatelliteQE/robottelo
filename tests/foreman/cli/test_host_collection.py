@@ -15,26 +15,24 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_fake_host,
-    make_host_collection,
-    make_org,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_fake_host
+from robottelo.cli.factory import make_host_collection
+from robottelo.cli.factory import make_org
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
-from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import ENVIRONMENT
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

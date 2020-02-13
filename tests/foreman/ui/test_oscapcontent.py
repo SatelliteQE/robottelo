@@ -15,13 +15,17 @@
 :Upstream: No
 """
 import os
+
 import pytest
 from nailgun import entities
+
+from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier1, upgrade
-from robottelo import ssh
+from robottelo.decorators import fixture
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')

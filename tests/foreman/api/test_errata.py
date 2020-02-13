@@ -14,57 +14,49 @@
 
 :Upstream: No
 """
-
 # For ease of use hc refers to host-collection throughout this document
-import pytest
-
-from nailgun import entities
-from robottelo.cli.factory import (
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
-from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_SWID_TAG_REPO,
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_RELEASE_VERSION,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    DISTRO_RHEL8,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_2_ERRATA_ID,
-    FAKE_3_ERRATA_ID,
-    FAKE_3_YUM_REPO,
-    FAKE_9_YUM_ERRATUM,
-    FAKE_9_YUM_OUTDATED_PACKAGES,
-    FAKE_9_YUM_REPO,
-    PRDS,
-    REAL_0_ERRATA_ID,
-    REAL_0_RH_PACKAGE,
-    REAL_1_ERRATA_ID,
-    REAL_2_ERRATA_ID,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-    upgrade
-)
-from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.products import (
-    YumRepository,
-    RepositoryCollection,
-)
-
-from robottelo.test import APITestCase
-from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
-from robottelo.vm import VirtualMachine
 from time import sleep
+
+import pytest
+from nailgun import entities
+
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.config import settings
+from robottelo.constants import CUSTOM_SWID_TAG_REPO
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_RELEASE_VERSION
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL8
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_3_ERRATA_ID
+from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_ERRATUM
+from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
+from robottelo.constants import FAKE_9_YUM_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_0_ERRATA_ID
+from robottelo.constants import REAL_0_RH_PACKAGE
+from robottelo.constants import REAL_1_ERRATA_ID
+from robottelo.constants import REAL_2_ERRATA_ID
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.products import RepositoryCollection
+from robottelo.products import YumRepository
+from robottelo.test import APITestCase
+from robottelo.vm import VirtualMachine
 
 CUSTOM_REPO_URL = FAKE_9_YUM_REPO
 CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID

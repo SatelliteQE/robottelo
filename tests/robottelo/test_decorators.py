@@ -1,14 +1,10 @@
 """Unit tests for :mod:`robottelo.decorators`."""
-import six
-from unittest2 import SkipTest, TestCase
+from unittest import mock
+
+from unittest2 import SkipTest
+from unittest2 import TestCase
 
 from robottelo import decorators
-# (Too many public methods) pylint: disable=R0904
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
 
 
 class CacheableTestCase(TestCase):

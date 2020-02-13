@@ -17,29 +17,24 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3
-)
+from requests import HTTPError
+
+from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 from robottelo.helpers import is_open
 from robottelo.test import APITestCase
-from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL7,
-    PRDS,
-    REPOS,
-    REPOSET
-)
-from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest
-)
-from robottelo import manifests
-from requests import HTTPError
 from robottelo.vm import VirtualMachine
 
 

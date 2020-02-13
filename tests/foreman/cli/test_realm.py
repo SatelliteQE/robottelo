@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=no-self-use
 """Test class for Realm CLI
 
 :Requirement: Realm
@@ -19,15 +18,17 @@
 import random
 
 from fauxfactory import gen_string
-from robottelo.cleanup import capsule_cleanup, realm_cleanup
+
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import realm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_proxy,
-    make_realm,
-    CLIFactoryError,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_realm
 from robottelo.cli.realm import Realm
-from robottelo.decorators import tier1, tier2, run_in_one_thread
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import CLITestCase
 
 

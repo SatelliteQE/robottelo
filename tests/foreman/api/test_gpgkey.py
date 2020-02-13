@@ -17,8 +17,11 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE, VALID_GPG_KEY_FILE
-from robottelo.datafactory import invalid_values_list, valid_data_list
+
+from robottelo.constants import VALID_GPG_KEY_BETA_FILE
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase

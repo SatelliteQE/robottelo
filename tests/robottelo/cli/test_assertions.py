@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import pytest
 
-from robottelo.cli.assertions import assert_cli_not_raises, \
-    assert_cli_not_raises_regex
+from robottelo.cli.assertions import assert_cli_not_raises
+from robottelo.cli.assertions import assert_cli_not_raises_regex
 from robottelo.cli.base import CLIReturnCodeError
 from tests.robottelo.test_assertions import fake_128_return_code
 

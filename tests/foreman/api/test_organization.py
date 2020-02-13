@@ -19,16 +19,22 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 
 :Upstream: No
 """
-from fauxfactory import gen_string
-from nailgun import client, entities
 from random import randint
+
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
+from six.moves import http_client
+
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
-from robottelo.datafactory import filtered_datapoint, invalid_values_list
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 @filtered_datapoint

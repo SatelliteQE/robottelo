@@ -18,22 +18,20 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :Upstream: No
 """
-
+from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
-from robottelo.api.utils import upload_manifest
-from robottelo import manifests
-from robottelo.cli.subscription import Subscription
-from robottelo.decorators import (
-    run_in_one_thread, skip_if_not_set, tier1, tier2
-)
-from robottelo.test import (
-    APITestCase,
-    settings,
-)
 
-from fauxfactory import gen_string
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
+from robottelo.cli.subscription import Subscription
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.test import APITestCase
+from robottelo.test import settings
 
 
 @run_in_one_thread

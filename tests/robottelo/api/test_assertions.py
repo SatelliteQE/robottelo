@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import pytest
 from requests import HTTPError
 
-from robottelo.api.assertions import assert_api_not_raises, \
-    assert_api_not_raises_regex
-from tests.robottelo.test_assertions import fake_404_response, \
-    fake_200_response
+from robottelo.api.assertions import assert_api_not_raises
+from robottelo.api.assertions import assert_api_not_raises_regex
+from tests.robottelo.test_assertions import fake_200_response
+from tests.robottelo.test_assertions import fake_404_response
 
 
 def test_positive_raised_callable():

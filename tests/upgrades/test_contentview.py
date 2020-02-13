@@ -14,30 +14,27 @@
 
 :Upstream: No
 """
-
 import os
 
 from fauxfactory import gen_string
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_content_view,
-    make_org,
-    make_product,
-    make_repository,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
-from robottelo.constants import (
-    CUSTOM_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    RPM_TO_UPLOAD,
-)
-from robottelo.test import CLITestCase
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.helpers import get_data_file
-from upgrade_tests import post_upgrade, pre_upgrade
+from robottelo.test import CLITestCase
 
 
 class Scenario_contentview_upgrade(CLITestCase):

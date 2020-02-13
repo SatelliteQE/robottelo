@@ -1,29 +1,22 @@
 """Tests for module ``robottelo.helpers``."""
-# (Too many public methods) pylint: disable=R0904
 import os
+from collections import defaultdict
+from unittest import mock
 
 import unittest2
 
-from collections import defaultdict
-
-from robottelo.constants import (
-    CLOSED_STATUSES,
-    OPEN_STATUSES,
-    WONTFIX_RESOLUTIONS
-)
-from robottelo.helpers import (
-    HostInfoError,
-    Storage,
-    _add_workaround,
-    _should_deselect,
-    escape_search,
-    get_host_info,
-    get_server_version,
-    is_open,
-    slugify_component
-)
-
-from unittest import mock
+from robottelo.constants import CLOSED_STATUSES
+from robottelo.constants import OPEN_STATUSES
+from robottelo.constants import WONTFIX_RESOLUTIONS
+from robottelo.helpers import _add_workaround
+from robottelo.helpers import _should_deselect
+from robottelo.helpers import escape_search
+from robottelo.helpers import get_host_info
+from robottelo.helpers import get_server_version
+from robottelo.helpers import HostInfoError
+from robottelo.helpers import is_open
+from robottelo.helpers import slugify_component
+from robottelo.helpers import Storage
 
 
 class GetServerVersionTestCase(unittest2.TestCase):

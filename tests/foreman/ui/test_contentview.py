@@ -17,92 +17,82 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :Upstream: No
 """
-import pytest
 import datetime
 from random import randint
 
+import pytest
+from airgun.session import Session
+from nailgun import entities
+from navmazing import NavigationTriesExceeded
+from productmd.common import parse_nvra
 from pytest import raises
 from selenium.common.exceptions import InvalidElementStateException
-
-from airgun.session import Session
-from navmazing import NavigationTriesExceeded
-from nailgun import entities
-from productmd.common import parse_nvra
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo import manifests
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    create_role_permissions,
-    create_sync_custom_repo,
-    enable_sync_redhat_repo,
-    promote,
-    upload_manifest,
-)
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import create_sync_custom_repo
+from robottelo.api.utils import enable_sync_redhat_repo
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2,
-    CUSTOM_PUPPET_REPO,
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
-    DEFAULT_PTABLE,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    DOCKER_REGISTRY_HUB,
-    DOCKER_UPSTREAM_NAME,
-    ENVIRONMENT,
-    FAKE_0_INC_UPD_URL,
-    FAKE_0_INC_UPD_NEW_PACKAGE,
-    FAKE_0_INC_UPD_NEW_UPDATEFILE,
-    FAKE_0_INC_UPD_OLD_PACKAGE,
-    FAKE_0_INC_UPD_OLD_UPDATEFILE,
-    FAKE_0_PUPPET_REPO,
-    FAKE_0_INC_UPD_ERRATA,
-    FAKE_0_YUM_REPO,
-    FAKE_1_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_3_YUM_REPO,
-    FAKE_9_YUM_REPO,
-    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
-    FEDORA27_OSTREE_REPO,
-    FILTER_CONTENT_TYPE,
-    FILTER_ERRATA_TYPE,
-    FILTER_TYPE,
-    PERMISSIONS,
-    PRDS,
-    PUPPET_MODULE_CUSTOM_FILE_NAME,
-    PUPPET_MODULE_CUSTOM_NAME,
-    REPO_TYPE,
-    REPOS,
-    REPOSET,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
-)
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_INC_UPD_ERRATA
+from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
+from robottelo.constants import FAKE_0_INC_UPD_NEW_UPDATEFILE
+from robottelo.constants import FAKE_0_INC_UPD_OLD_PACKAGE
+from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
+from robottelo.constants import FAKE_0_INC_UPD_URL
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants import FAKE_1_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants import FILTER_CONTENT_TYPE
+from robottelo.constants import FILTER_ERRATA_TYPE
+from robottelo.constants import FILTER_TYPE
+from robottelo.constants import PERMISSIONS
+from robottelo.constants import PRDS
+from robottelo.constants import PUPPET_MODULE_CUSTOM_FILE_NAME
+from robottelo.constants import PUPPET_MODULE_CUSTOM_NAME
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    skip_if_not_set,
-    run_in_one_thread,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import (
-    create_repo,
-    get_data_file,
-    repo_add_updateinfo,
-)
-from robottelo.products import (
-    DockerRepository,
-    PuppetRepository,
-    RepositoryCollection,
-    SatelliteToolsRepository,
-    VirtualizationAgentsRepository,
-    YumRepository,
-)
-from robottelo.vm import VirtualMachine, VirtualMachineError
+from robottelo.helpers import create_repo
+from robottelo.helpers import get_data_file
+from robottelo.helpers import repo_add_updateinfo
+from robottelo.products import DockerRepository
+from robottelo.products import PuppetRepository
+from robottelo.products import RepositoryCollection
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import VirtualizationAgentsRepository
+from robottelo.products import YumRepository
+from robottelo.vm import VirtualMachine
+from robottelo.vm import VirtualMachineError
 
 VERSION = 'Version 1.0'
 

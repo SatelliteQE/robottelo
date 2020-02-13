@@ -1,8 +1,8 @@
 """Helpers to interact with hammer command line utility."""
 import csv
 import json
-
 import re
+
 import six
 from six import text_type
 from six.moves import cStringIO as StringIO

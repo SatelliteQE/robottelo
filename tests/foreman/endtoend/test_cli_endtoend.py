@@ -17,8 +17,13 @@
 """
 import random
 
-from fauxfactory import gen_alphanumeric, gen_ipaddr
-from robottelo import manifests, ssh
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_ipaddr
+
+from .utils import AK_CONTENT_LABEL
+from .utils import ClientProvisioningMixin
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -36,28 +41,21 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DEFAULT_SUBSCRIPTION_NAME,
-    FAKE_0_PUPPET_REPO,
-    CUSTOM_RPM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
-)
 from robottelo.config import settings
-from robottelo.decorators import (
-    setting_is_set,
-    skip_if_not_set,
-    tier1,
-    tier4,
-    upgrade
-)
+from robottelo.constants import CUSTOM_RPM_REPO
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
-
-from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
-# (too many public methods) pylint: disable=R0904
 
 
 class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):

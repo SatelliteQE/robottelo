@@ -14,15 +14,18 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_choice, gen_string
-from requests.exceptions import HTTPError
-
+from fauxfactory import gen_choice
+from fauxfactory import gen_string
 from nailgun import entities
+from requests.exceptions import HTTPError
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.test import APITestCase
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
 class ScenarioSyncPlan(APITestCase):

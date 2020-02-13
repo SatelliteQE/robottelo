@@ -28,10 +28,8 @@
     9. Create a Discovery rule
 
 """
-from robottelo.decorators import (
-        destructive,
-        stubbed,
-)
+from robottelo.decorators import destructive
+from robottelo.decorators import stubbed
 from robottelo.test import TestCase
 
 

@@ -15,27 +15,27 @@
 :Upstream: No
 """
 import re
+
 import requests
 from fauxfactory import gen_string
-from robottelo.api.utils import wait_for_tasks
-from robottelo.config import settings
-from robottelo.cli.virt_who_config import VirtWhoConfig
-from robottelo.cli.subscription import Subscription
-from robottelo.cli.host import Host
-from robottelo.cli.user import User
-from robottelo.constants import DEFAULT_ORG
-from robottelo.decorators import tier2, skip_if_not_set
-from robottelo.test import CLITestCase
 
-from .utils import (
-    deploy_configure_by_command,
-    deploy_configure_by_script,
-    get_configure_file,
-    get_configure_option,
-    get_configure_command,
-    hypervisor_json_create,
-    VIRTWHO_SYSCONFIG,
-)
+from .utils import deploy_configure_by_command
+from .utils import deploy_configure_by_script
+from .utils import get_configure_command
+from .utils import get_configure_file
+from .utils import get_configure_option
+from .utils import hypervisor_json_create
+from .utils import VIRTWHO_SYSCONFIG
+from robottelo.api.utils import wait_for_tasks
+from robottelo.cli.host import Host
+from robottelo.cli.subscription import Subscription
+from robottelo.cli.user import User
+from robottelo.cli.virt_who_config import VirtWhoConfig
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.test import CLITestCase
 
 
 class VirtWhoConfigTestCase(CLITestCase):

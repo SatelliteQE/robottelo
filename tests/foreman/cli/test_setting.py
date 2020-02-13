@@ -15,29 +15,26 @@
 
 :Upstream: No
 """
+from time import sleep
+
 import pytest
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.settings import Settings
-from robottelo.datafactory import (
-    gen_string,
-    generate_strings_list,
-    invalid_boolean_strings,
-    invalid_emails_list,
-    valid_data_list,
-    valid_emails_list,
-    valid_url_list,
-    xdist_adapter
-)
-from robottelo.decorators import (
-    stubbed,
-    run_in_one_thread,
-    tier2,
-    tier3,
-)
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_boolean_strings
+from robottelo.datafactory import invalid_emails_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_emails_list
+from robottelo.datafactory import valid_url_list
+from robottelo.datafactory import xdist_adapter
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 from robottelo.test import CLITestCase
-from time import sleep
 
 
 class SettingTestCase(CLITestCase):

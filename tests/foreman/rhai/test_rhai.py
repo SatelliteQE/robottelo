@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-
 import pytest
 from airgun.entities.rhai.base import InsightsOrganizationPageError
 from fauxfactory import gen_string
@@ -22,8 +21,12 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest as up_man
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL7, ANY_CONTEXT
-from robottelo.decorators import fixture, parametrize, stubbed
+from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import stubbed
 from robottelo.vm import VirtualMachine
 
 

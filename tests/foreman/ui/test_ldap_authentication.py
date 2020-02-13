@@ -14,37 +14,34 @@
 
 :Upstream: No
 """
-import decorator
 import os
+
+import decorator
 import pyotp
-from fauxfactory import gen_url
-from navmazing import NavigationTriesExceeded
-from pytest import raises, skip
-
 from airgun.session import Session
+from fauxfactory import gen_url
 from nailgun import entities
+from navmazing import NavigationTriesExceeded
+from pytest import raises
+from pytest import skip
 
-from robottelo.api.utils import create_role_permissions
-from robottelo.config import settings
-from robottelo.constants import (
-    CERT_PATH,
-    LDAP_ATTR,
-    LDAP_SERVER_TYPE,
-    PERMISSIONS,
-)
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    destructive,
-    fixture,
-    run_in_one_thread,
-    setting_is_set,
-    skip_if_not_set,
-    tier2,
-    tier4,
-    upgrade,
-)
 from robottelo import ssh
+from robottelo.api.utils import create_role_permissions
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.config import settings
+from robottelo.constants import CERT_PATH
+from robottelo.constants import LDAP_ATTR
+from robottelo.constants import LDAP_SERVER_TYPE
+from robottelo.constants import PERMISSIONS
+from robottelo.datafactory import gen_string
+from robottelo.decorators import destructive
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
 
 pytestmark = [run_in_one_thread]

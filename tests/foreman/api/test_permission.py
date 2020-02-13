@@ -21,16 +21,19 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 """
 import json
 import re
+from itertools import chain
 
 from fauxfactory import gen_alphanumeric
-from itertools import chain
 from nailgun import entities
 from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
+
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import tier1, upgrade
-from robottelo.helpers import get_nailgun_config, get_server_software
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
+from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import get_server_software
 from robottelo.test import APITestCase
 
 

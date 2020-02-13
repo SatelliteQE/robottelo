@@ -15,12 +15,16 @@
 
 :Upstream: No
 """
-
-from robottelo.cli.factory import make_org, make_product, make_repository
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
-from robottelo.constants import FAKE_0_PUPPET_REPO, FAKE_1_PUPPET_REPO
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_1_PUPPET_REPO
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

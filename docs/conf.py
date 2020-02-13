@@ -4,9 +4,8 @@ The full set of configuration options is listed on the Sphinx website:
 http://sphinx-doc.org/config.html
 
 """
-import sys
 import os
-# pylint:disable=invalid-name
+import sys
 
 # Add the Robottelo root directory to the system path. This allows references
 # such as :mod:`robottelo` to be processed correctly.
@@ -21,7 +20,7 @@ sys.path.insert(
 # Project Information ---------------------------------------------------------
 
 project = u'Robottelo'
-copyright = u'2012, Og Maciel <omaciel@redhat.com>'  # pylint:disable=W0622
+copyright = u'2012, Og Maciel <omaciel@redhat.com>'
 
 # `version` should be a short X.Y version, and `release` should be a full
 # version string. Robottelo has thus far had little use for versions, which is

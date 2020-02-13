@@ -18,15 +18,15 @@ import pytest
 from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
-from robottelo.datafactory import filtered_datapoint, gen_string
-from robottelo.decorators import (
-    run_in_one_thread,
-    fixture,
-    stubbed,
-    tier2,
-    tier3,
-    upgrade
-)
+
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 @filtered_datapoint

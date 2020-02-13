@@ -16,81 +16,76 @@
 :Upstream: No
 """
 import pytest
-from wait_for import wait_for
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 from nailgun import entities
-from fauxfactory import gen_alphanumeric, gen_string
+from wait_for import wait_for
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.package import Package
-from robottelo.cli.module_stream import ModuleStream
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_filter
+from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
 from robottelo.cli.file import File
-from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.cli.task import Task
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_content_view,
-    make_filter,
-    make_gpg_key,
-    make_lifecycle_environment,
-    make_org,
-    make_product,
-    make_product_wait,
-    make_repository,
-    make_role,
-    make_user,
-)
 from robottelo.cli.filter import Filter
+from robottelo.cli.module_stream import ModuleStream
+from robottelo.cli.package import Package
+from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
 from robottelo.cli.srpm import Srpm
+from robottelo.cli.task import Task
 from robottelo.cli.user import User
-from robottelo.constants import (
-    FEDORA27_OSTREE_REPO,
-    CUSTOM_FILE_REPO,
-    CUSTOM_LOCAL_FOLDER,
-    CUSTOM_FILE_REPO_FILES_COUNT,
-    CUSTOM_MODULE_STREAM_REPO_1,
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DOCKER_REGISTRY_HUB,
-    FAKE_0_YUM_REPO,
-    FAKE_1_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_2_PUPPET_REPO,
-    FAKE_2_YUM_REPO,
-    FAKE_3_PUPPET_REPO,
-    FAKE_3_YUM_REPO,
-    FAKE_4_PUPPET_REPO,
-    FAKE_4_YUM_REPO,
-    FAKE_5_PUPPET_REPO,
-    FAKE_5_YUM_REPO,
-    FAKE_7_PUPPET_REPO,
-    FAKE_YUM_DRPM_REPO,
-    FAKE_YUM_MIXED_REPO,
-    FAKE_YUM_SRPM_REPO,
-    FAKE_PULP_REMOTE_FILEREPO,
-    OS_TEMPLATE_DATA_FILE,
-    RPM_TO_UPLOAD,
-    SRPM_TO_UPLOAD,
-    DOWNLOAD_POLICIES,
-    REPO_TYPE
-)
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    upgrade
-)
-from robottelo.datafactory import (
-    invalid_http_credentials,
-    invalid_values_list,
-    valid_data_list,
-    valid_docker_repository_names,
-    valid_http_credentials,
-)
+from robottelo.constants import CUSTOM_FILE_REPO
+from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
+from robottelo.constants import CUSTOM_LOCAL_FOLDER
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants import FAKE_1_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_2_PUPPET_REPO
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import FAKE_3_PUPPET_REPO
+from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_4_PUPPET_REPO
+from robottelo.constants import FAKE_4_YUM_REPO
+from robottelo.constants import FAKE_5_PUPPET_REPO
+from robottelo.constants import FAKE_5_YUM_REPO
+from robottelo.constants import FAKE_7_PUPPET_REPO
+from robottelo.constants import FAKE_PULP_REMOTE_FILEREPO
+from robottelo.constants import FAKE_YUM_DRPM_REPO
+from robottelo.constants import FAKE_YUM_MIXED_REPO
+from robottelo.constants import FAKE_YUM_SRPM_REPO
+from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants import OS_TEMPLATE_DATA_FILE
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants import SRPM_TO_UPLOAD
+from robottelo.datafactory import invalid_http_credentials
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_docker_repository_names
+from robottelo.datafactory import valid_http_credentials
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file, is_open
+from robottelo.helpers import get_data_file
+from robottelo.helpers import is_open
 from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
 
@@ -101,7 +96,6 @@ class RepositoryTestCase(CLITestCase):
     org = None
     product = None
 
-    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Repository via Hammer CLI"""
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from setuptools import setup
 
 with open('README.rst', 'r') as f:
     README = f.read()

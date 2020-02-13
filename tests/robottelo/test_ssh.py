@@ -1,11 +1,11 @@
 """Tests for module ``robottelo.ssh``."""
-# (too-many-public-methods) pylint: disable=R0904
 import os
+
 import paramiko
 import six
+from unittest2 import TestCase
 
 from robottelo import ssh
-from unittest2 import TestCase
 
 if six.PY2:
     import mock
@@ -54,11 +54,11 @@ class MockSSHClient(object):
         self.password = None
         self.ret_code = 0
 
-    def set_missing_host_key_policy(self, policy):  # pylint:disable=W0613
+    def set_missing_host_key_policy(self, policy):
         """A no-op stub method."""
         self.set_missing_host_key_policy_ += 1
 
-    def connect(  # pylint:disable=W0613,R0913
+    def connect(
             self, hostname, port=22, username=None, password=None, pkey=None,
             key_filename=None, timeout=None, allow_agent=True,
             look_for_keys=True, compress=False, sock=None):
@@ -103,7 +103,7 @@ class SSHTestCase(TestCase):
         ``paramiko.SSHClient`` object, and that certain methods on that object
         are called.
         """
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
 
         key_filename = os.path.join(
             os.path.abspath(__name__), 'data', 'test_dsa.key'
@@ -113,7 +113,7 @@ class SSHTestCase(TestCase):
         settings.server.ssh_key = key_filename
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
-        with ssh.get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
             self.assertEqual(connection.close_, 0)
@@ -135,14 +135,14 @@ class SSHTestCase(TestCase):
         ``paramiko.SSHClient`` object, and that certain methods on that object
         are called.
         """
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
-        with ssh.get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
             self.assertEqual(connection.close_, 0)
@@ -209,7 +209,7 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_add_authorized_key(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
@@ -220,7 +220,7 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_execute_command(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
@@ -228,14 +228,14 @@ class SSHTestCase(TestCase):
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
 
-        with ssh.get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:
             ret = ssh.execute_command('ls -la', connection)
             self.assertEqual(ret.stdout, [u'ls -la'])
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
     def test_execute_command_base_output(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
@@ -243,7 +243,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
 
-        with ssh.get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:
             ret = ssh.execute_command(
                 'ls -la', connection, output_format='base')
             self.assertEqual(ret.stdout, u'ls -la')
@@ -251,7 +251,7 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_command(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
@@ -265,7 +265,7 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_command_base_output(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
@@ -279,7 +279,7 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_parse_csv(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
@@ -293,7 +293,7 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_parse_json(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None

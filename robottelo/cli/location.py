@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# (Too many public methods) pylint: disable=R0904
 """
 Usage::
 
@@ -38,7 +37,6 @@ Subcommands::
     remove-user                   Disassociate an user
     update                        Update a location
 """
-
 from robottelo.cli.base import Base
 
 

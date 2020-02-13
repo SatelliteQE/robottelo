@@ -13,18 +13,18 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_ipaddr, gen_string
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import ssh
-from robottelo.api.utils import configure_provisioning, create_discovered_host
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    skip_if_not_set,
-    tier3,
-    upgrade,
-)
+from robottelo.api.utils import configure_provisioning
+from robottelo.api.utils import create_discovered_host
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.products import RHELRepository
 

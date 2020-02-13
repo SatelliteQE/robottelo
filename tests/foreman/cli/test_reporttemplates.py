@@ -15,53 +15,49 @@
 :Upstream: No
 """
 import pytest
-from robottelo import manifests
 from fauxfactory import gen_string
+
+from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.base import Base
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.base import Base, CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_architecture,
-    make_activation_key,
-    make_content_view,
-    make_product,
-    make_repository,
-    make_fake_host,
-    make_filter,
-    make_medium,
-    make_os,
-    make_org,
-    make_partition_table,
-    make_role,
-    make_report_template,
-    make_template_input,
-    make_lifecycle_environment,
-    make_user,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_architecture
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_fake_host
+from robottelo.cli.factory import make_filter
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_partition_table
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_report_template
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_template_input
+from robottelo.cli.factory import make_user
 from robottelo.cli.filter import Filter
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
-from robottelo.cli.repository import Repository
 from robottelo.cli.report_template import ReportTemplate
-from robottelo.cli.user import User
+from robottelo.cli.repository import Repository
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    REPORT_TEMPLATE_FILE,
-    DISTRO_RHEL7
-)
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-)
+from robottelo.cli.user import User
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import REPORT_TEMPLATE_FILE
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
-from robottelo.ssh import upload_file
 
 
 @pytest.fixture(scope='class')

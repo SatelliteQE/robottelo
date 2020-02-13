@@ -28,7 +28,6 @@ Subcommands::
                                   operating system.
     update                        Update an OS.
 """
-
 from robottelo.cli.base import Base
 
 

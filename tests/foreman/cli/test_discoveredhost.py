@@ -13,28 +13,25 @@
 
 :Upstream: No
 """
+from time import sleep
+
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveredhost import DiscoveredHost
-from robottelo.cli.factory import (
-    configure_env_for_provision,
-    make_location,
-    make_org,
-)
+from robottelo.cli.factory import configure_env_for_provision
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
 from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
-from robottelo import ssh
 from robottelo.test import CLITestCase
-from time import sleep
 
 
 @run_in_one_thread

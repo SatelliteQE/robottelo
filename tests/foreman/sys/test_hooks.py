@@ -19,10 +19,13 @@
 from fauxfactory import gen_ipaddr
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo import ssh
-from robottelo.decorators import run_in_one_thread, destructive
+from robottelo.datafactory import valid_hostgroups_list
+from robottelo.datafactory import valid_hosts_list
+from robottelo.decorators import destructive
+from robottelo.decorators import run_in_one_thread
 from robottelo.test import TestCase
-from robottelo.datafactory import valid_hosts_list, valid_hostgroups_list
 
 HOOKS_DIR = '/usr/share/foreman/config/hooks'
 LOGS_DIR = '/usr/share/foreman/tmp/hooks.log'

@@ -1,6 +1,5 @@
 """Configuration casts to help typing the settings."""
 import logging
-
 from shlex import shlex
 
 

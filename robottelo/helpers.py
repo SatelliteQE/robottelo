@@ -21,11 +21,9 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import (
-    PULP_PUBLISHED_YUM_REPOS_PATH,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION
-)
+from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.errors import GCECertNotFoundError
 from robottelo.issue_handlers import bugzilla
 

@@ -17,19 +17,22 @@ http://theforeman.org/api/apidoc/v2/locations.html
 
 :Upstream: No
 """
-from fauxfactory import gen_integer, gen_string
-from nailgun import entities
 from random import randint
+
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.cleanup import capsule_cleanup, location_cleanup
-from robottelo.constants import DEFAULT_LOC
+
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import location_cleanup
 from robottelo.cli.factory import make_proxy
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-)
-from robottelo.datafactory import filtered_datapoint, invalid_values_list
+from robottelo.constants import DEFAULT_LOC
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 

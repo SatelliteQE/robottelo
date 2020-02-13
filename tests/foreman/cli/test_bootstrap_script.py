@@ -15,7 +15,9 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, tier1, upgrade
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

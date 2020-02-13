@@ -15,17 +15,16 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_model
 from robottelo.cli.model import Model
-from robottelo.datafactory import (
-    invalid_id_list,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import tier1, upgrade
+from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

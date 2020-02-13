@@ -14,37 +14,34 @@
 
 :Upstream: No
 """
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 
-from datetime import date, timedelta, datetime
 from fauxfactory import gen_alpha
 from nailgun import entities
 from nailgun import entity_mixins
+
 from robottelo import manifests
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-    wait_for_tasks,
-)
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
+from robottelo.api.utils import wait_for_tasks
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.contentview import ContentView as ContentViewCLI
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_RELEASE_VERSION,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
-    PRDS,
-    REAL_0_RH_PACKAGE,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier4,
-    upgrade
-)
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_RELEASE_VERSION
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_0_RH_PACKAGE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 

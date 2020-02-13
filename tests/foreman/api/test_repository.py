@@ -14,74 +14,69 @@
 
 :Upstream: No
 """
-import pytest
 import re
 import tempfile
 
-from six.moves.urllib.parse import urljoin
-from fauxfactory import (
-    gen_integer,
-    gen_string,
-    gen_url,
-)
-from nailgun import client, entities
+import pytest
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+from nailgun import client
+from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
-from requests.exceptions import HTTPError, SSLError
-from robottelo import manifests, ssh
-from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-)
-from robottelo.constants import (
-    CHECKSUM_TYPE,
-    CUSTOM_MODULE_STREAM_REPO_1,
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DOCKER_REGISTRY_HUB,
-    DOWNLOAD_POLICIES,
-    FAKE_0_PUPPET_REPO,
-    FAKE_1_PUPPET_REPO,
-    FAKE_0_YUM_REPO_STRING_BASED_VERSIONS,
-    FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS,
-    FAKE_2_YUM_REPO,
-    FAKE_5_YUM_REPO,
-    FAKE_7_PUPPET_REPO,
-    FAKE_YUM_DRPM_REPO,
-    FAKE_YUM_SRPM_DUPLICATE_REPO,
-    FAKE_YUM_SRPM_REPO,
-    FEDORA26_OSTREE_REPO,
-    FEDORA27_OSTREE_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
-    REPO_TYPE,
-    RPM_TO_UPLOAD,
-    SRPM_TO_UPLOAD,
-    VALID_GPG_KEY_BETA_FILE,
-    VALID_GPG_KEY_FILE,
-)
-from robottelo.datafactory import (
-    invalid_http_credentials,
-    invalid_names_list,
-    invalid_values_list,
-    valid_data_list,
-    valid_docker_repository_names,
-    valid_http_credentials,
-    valid_labels_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier1,
-    tier2,
-    stubbed,
-    upgrade
-)
-from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file, read_data_file
-from robottelo.config import settings
-from robottelo.test import APITestCase
+from requests.exceptions import HTTPError
+from requests.exceptions import SSLError
+from six.moves.urllib.parse import urljoin
+
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
+from robottelo.constants import CHECKSUM_TYPE
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS
+from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS
+from robottelo.constants import FAKE_1_PUPPET_REPO
+from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants import FAKE_5_YUM_REPO
+from robottelo.constants import FAKE_7_PUPPET_REPO
+from robottelo.constants import FAKE_YUM_DRPM_REPO
+from robottelo.constants import FAKE_YUM_SRPM_DUPLICATE_REPO
+from robottelo.constants import FAKE_YUM_SRPM_REPO
+from robottelo.constants import FEDORA26_OSTREE_REPO
+from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants import SRPM_TO_UPLOAD
+from robottelo.constants import VALID_GPG_KEY_BETA_FILE
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.datafactory import invalid_http_credentials
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_docker_repository_names
+from robottelo.datafactory import valid_http_credentials
+from robottelo.datafactory import valid_labels_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.decorators.host import skip_if_os
+from robottelo.helpers import get_data_file
+from robottelo.helpers import read_data_file
+from robottelo.test import APITestCase
 
 
 class RepositoryTestCase(APITestCase):

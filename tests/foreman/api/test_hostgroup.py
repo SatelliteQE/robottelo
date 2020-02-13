@@ -18,20 +18,22 @@
 from random import randint
 
 from fauxfactory import gen_string
-from nailgun import client, entities, entity_fields
+from nailgun import client
+from nailgun import entities
+from nailgun import entity_fields
 from requests.exceptions import HTTPError
 
-from robottelo.api.utils import promote, one_to_one_names
+from robottelo.api.utils import one_to_one_names
+from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.datafactory import invalid_values_list, valid_hostgroups_list
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_hostgroups_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 

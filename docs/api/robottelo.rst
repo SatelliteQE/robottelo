@@ -56,4 +56,3 @@ Submodules:
 ---------------------
 
 .. automodule:: robottelo.vm
-

@@ -24,7 +24,6 @@ Subcommands::
  remove-host                   Remove hosts from the host collection
  update                        Update a host collection
 """
-
 from robottelo.cli.base import Base
 
 

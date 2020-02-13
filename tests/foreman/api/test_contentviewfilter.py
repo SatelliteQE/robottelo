@@ -18,25 +18,28 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :Upstream: No
 """
-
-from fauxfactory import gen_integer, gen_string
-from nailgun import client, entities
 from random import randint
+
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
+from six.moves import http_client
+
 from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_REPODATA_PATH,
-    CUSTOM_SWID_TAG_REPO,
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DOCKER_REGISTRY_HUB,
-    FAKE_0_MODULAR_ERRATA_ID,
-)
-from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import tier1, tier2
+from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants import CUSTOM_REPODATA_PATH
+from robottelo.constants import CUSTOM_SWID_TAG_REPO
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 class ContentViewFilterTestCase(APITestCase):

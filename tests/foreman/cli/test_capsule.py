@@ -15,24 +15,22 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 
-from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError, make_proxy
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-)
-from robottelo.helpers import (
-    default_url_on_new_port,
-    get_available_capsule_port
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.helpers import default_url_on_new_port
+from robottelo.helpers import get_available_capsule_port
 from robottelo.test import CLITestCase
 
 

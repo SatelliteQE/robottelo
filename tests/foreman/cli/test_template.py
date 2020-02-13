@@ -15,19 +15,21 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_location,
-    make_org,
-    make_os,
-    make_template,
-    make_user,
-)
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_template
+from robottelo.cli.factory import make_user
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
-from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

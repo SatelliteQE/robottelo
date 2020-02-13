@@ -22,13 +22,11 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.capsule import Capsule
 from robottelo.config import settings
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier3
 from robottelo.helpers import extract_capsule_satellite_installer_command
 from robottelo.test import CLITestCase
 from robottelo.vm_capsule import CapsuleVirtualMachine

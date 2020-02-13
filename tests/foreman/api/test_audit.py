@@ -15,6 +15,7 @@
 :Upstream: No
 """
 from nailgun import entities
+
 from robottelo.datafactory import gen_string
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase

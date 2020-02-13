@@ -1,5 +1,4 @@
 """DEPRECATED UI FUNCTIONALITY"""
-
 # import re
 # from nailgun import entities
 # from robottelo.constants import DISTRO_RHEL6, ENVIRONMENT
@@ -8,11 +7,8 @@
 # from robottelo.ui.locators import locators
 # from robottelo.ui.session import Session
 # from robottelo.vm import VirtualMachine
-
-
 # class ActivationKeyTestCase(UITestCase):
 #     """Implements Activation key tests in UI"""
-
 #     @classmethod
 #     def setUpClass(cls):  # noqa
 #         super(ActivationKeyTestCase, cls).setUpClass()
@@ -28,13 +24,9 @@
 #     def test_positive_open_associated_host(self):
 #         """Associate content host with activation key, open activation key's
 #         associated hosts, click on content host link
-
 #         :id: 3dbe8370-f85b-416f-847f-7b7d81585bfc
-
 #         :expectedresults: Redirected to specific content host page
-
 #         :BZ: 1405166
-
 #         :CaseLevel: System
 #         """
 #         ak = entities.ActivationKey(

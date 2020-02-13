@@ -15,67 +15,59 @@
 
 :Upstream: No
 """
-import csv
 import copy
+import csv
 import os
 import random
+
 import pytest
 import yaml
-
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
 from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
+from wrapanapi import GoogleCloudSystem
 
 from robottelo import ssh
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    create_role_permissions,
-    promote,
-    publish_puppet_module,
-    skip_yum_update_during_provisioning
-)
-from robottelo.cli.factory import (
-    make_content_view,
-    make_host,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_scap_policy,
-    make_scapcontent,
-)
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import promote
+from robottelo.api.utils import publish_puppet_module
+from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_host
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_scap_policy
+from robottelo.cli.factory import make_scapcontent
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
-from robottelo.constants import (
-    ANY_CONTEXT,
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
-    DEFAULT_PTABLE,
-    CUSTOM_PUPPET_REPO,
-    ENVIRONMENT,
-    FOREMAN_PROVIDERS,
-    OSCAP_PROFILE,
-    OSCAP_PERIOD,
-    OSCAP_WEEKDAY,
-    PERMISSIONS,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION
-)
+from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import OSCAP_PERIOD
+from robottelo.constants import OSCAP_PROFILE
+from robottelo.constants import OSCAP_WEEKDAY
+from robottelo.constants import PERMISSIONS
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    tier2,
-    tier3,
-    tier4,
-    skip_if,
-    skip_if_not_set,
-    upgrade,
-)
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import download_server_file
 from robottelo.ui.utils import create_fake_host
-from wrapanapi import GoogleCloudSystem
 
 
 def _get_set_from_list_of_dict(value):

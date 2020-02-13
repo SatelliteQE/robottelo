@@ -21,9 +21,15 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.constants import ENVIRONMENT
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

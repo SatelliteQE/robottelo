@@ -15,24 +15,21 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
-from robottelo.cleanup import capsule_cleanup, location_cleanup
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_location,
-    make_medium,
-    make_proxy,
-)
 from nailgun import entities
+
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import location_cleanup
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_proxy
 from robottelo.cli.location import Location
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

@@ -22,17 +22,13 @@ from robottelo.api.utils import one_to_many_names
 from robottelo.cleanup import capsule_cleanup
 from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
-from robottelo.helpers import (
-    default_url_on_new_port,
-    get_available_capsule_port,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.helpers import default_url_on_new_port
+from robottelo.helpers import get_available_capsule_port
 from robottelo.test import APITestCase
 
 

@@ -5,12 +5,13 @@ from collections import namedtuple
 from requests import HTTPError
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.test import APITestCase, CLITestCase
+from robottelo.test import APITestCase
+from robottelo.test import CLITestCase
 
 
 def fake_128_return_code():
     """Fake CLI response with 128 return_code"""
-    # flake8:noqa (line-too-long) pylint:disable=C0301
+    # flake8:noqa (line-too-long)
     raise CLIReturnCodeError(
         128,
         u"""[ERROR 2017-03-01 05:58:50 API] 404 Resource Not Found

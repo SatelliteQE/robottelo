@@ -15,18 +15,15 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-
 from nailgun import entities
+
 from robottelo.api.utils import wait_for_tasks
-from robottelo.helpers import file_downloader, add_remote_execution_ssh_key, ProxyError
-from robottelo.cli.arfreport import Arfreport
-from robottelo.cli.factory import (
-    setup_org_for_a_custom_repo,
-    make_hostgroup,
-    make_scap_policy,
-    make_tailoringfile
-)
 from robottelo.cli.ansible import Ansible
+from robottelo.cli.arfreport import Arfreport
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_scap_policy
+from robottelo.cli.factory import make_tailoringfile
+from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.proxy import Proxy
@@ -34,21 +31,20 @@ from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
-from robottelo.constants import (
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    OSCAP_DEFAULT_CONTENT,
-    OSCAP_PERIOD,
-    OSCAP_PROFILE,
-    OSCAP_WEEKDAY,
-    DEFAULT_LOC,
-)
-from robottelo.decorators import (
-    skip_if_not_set,
-    stubbed,
-    tier4,
-    upgrade
-)
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import OSCAP_DEFAULT_CONTENT
+from robottelo.constants import OSCAP_PERIOD
+from robottelo.constants import OSCAP_PROFILE
+from robottelo.constants import OSCAP_WEEKDAY
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
+from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.helpers import file_downloader
+from robottelo.helpers import ProxyError
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 

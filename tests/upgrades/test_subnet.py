@@ -14,8 +14,8 @@
 
 :Upstream: No
 """
-
-from upgrade_tests import pre_upgrade, post_upgrade
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
 
 
 class scenario_positive_create_parameters_in_existing_subnet:

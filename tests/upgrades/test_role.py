@@ -15,8 +15,10 @@
 :Upstream: No
 """
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo.test import APITestCase
-from upgrade_tests import pre_upgrade, post_upgrade
 
 
 class scenario_positive_existing_overridden_filter:

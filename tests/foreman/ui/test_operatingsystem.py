@@ -16,9 +16,11 @@
 """
 from nailgun import entities
 
-from robottelo.constants import DEFAULT_TEMPLATE, HASH_TYPE
+from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import HASH_TYPE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
 
 
 @fixture(scope='module')

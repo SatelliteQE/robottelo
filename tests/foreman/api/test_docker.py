@@ -13,25 +13,24 @@
 
 :Upstream: No
 """
-from random import choice, randint, shuffle
+from random import choice
+from random import randint
+from random import shuffle
 
-from fauxfactory import gen_string, gen_url
-from requests.exceptions import HTTPError
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 from nailgun import entities
+from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_docker_upstream_names,
-    valid_docker_repository_names,
-    valid_docker_upstream_names,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_docker_upstream_names
+from robottelo.datafactory import valid_docker_repository_names
+from robottelo.datafactory import valid_docker_upstream_names
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
@@ -563,7 +562,7 @@ class DockerContentViewTestCase(APITestCase):
         comp_content_view.component = [content_view.version[0]]
         comp_content_view = comp_content_view.update(['component'])
         self.assertIn(
-            content_view.version[0].id,  # pylint:disable=no-member
+            content_view.version[0].id,
             [component.id for component in comp_content_view.component]
         )
         # … publish it…

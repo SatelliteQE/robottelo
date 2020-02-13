@@ -18,32 +18,26 @@ import time
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import (
-    make_content_view,
-    make_org,
-    setup_cdn_and_custom_repositories,
-    setup_virtual_machine,
-)
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import setup_cdn_and_custom_repositories
+from robottelo.cli.factory import setup_virtual_machine
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
 from robottelo.config import settings
-from robottelo.constants import (
-    DISTRO_RHEL7,
-    ENVIRONMENT,
-    REAL_RHEL7_0_0_PACKAGE,
-    REAL_RHEL7_0_0_PACKAGE_NAME,
-    REAL_RHEL7_0_1_PACKAGE_FILENAME,
-    REAL_RHEL7_0_ERRATA_ID,
-    REPOS,
-    REPOSET,
-    PRDS,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    upgrade
-)
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_RHEL7_0_0_PACKAGE
+from robottelo.constants import REAL_RHEL7_0_0_PACKAGE_NAME
+from robottelo.constants import REAL_RHEL7_0_1_PACKAGE_FILENAME
+from robottelo.constants import REAL_RHEL7_0_ERRATA_ID
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 

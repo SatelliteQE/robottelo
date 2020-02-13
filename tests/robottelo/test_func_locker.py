@@ -1,21 +1,19 @@
 # coding: utf-8
-
 import multiprocessing
 import os
-import time
 import tempfile
+import time
 
 from unittest2 import TestCase
-from robottelo.decorators.func_locker import (
-    get_temp_dir,
-    lock_function,
-    locking_function,
-    set_default_scope,
-    LOCK_FILE_NAME_EXT,
-    TEMP_FUNC_LOCK_DIR,
-    TEMP_ROOT_DIR,
-    FunctionLockerError,
-)
+
+from robottelo.decorators.func_locker import FunctionLockerError
+from robottelo.decorators.func_locker import get_temp_dir
+from robottelo.decorators.func_locker import LOCK_FILE_NAME_EXT
+from robottelo.decorators.func_locker import lock_function
+from robottelo.decorators.func_locker import locking_function
+from robottelo.decorators.func_locker import set_default_scope
+from robottelo.decorators.func_locker import TEMP_FUNC_LOCK_DIR
+from robottelo.decorators.func_locker import TEMP_ROOT_DIR
 
 _this_module_name_string = 'tests.robottelo.test_func_locker'
 

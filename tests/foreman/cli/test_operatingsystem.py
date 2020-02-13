@@ -16,32 +16,27 @@
 :Upstream: No
 """
 import pytest
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 
-from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_architecture
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_partition_table
+from robottelo.cli.factory import make_template
 from robottelo.cli.operatingsys import OperatingSys
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_architecture,
-    make_medium,
-    make_os,
-    make_partition_table,
-    make_template,
-)
 from robottelo.constants import DEFAULT_ORG
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    destructive,
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import destructive
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

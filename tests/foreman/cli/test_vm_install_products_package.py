@@ -16,27 +16,21 @@
 """
 import pytest
 
-from robottelo.cli.factory import (
-    make_lifecycle_environment,
-    make_org,
-)
-from robottelo.constants import (
-    CUSTOM_PUPPET_REPO,
-    DISTROS_SUPPORTED,
-    DOCKER_REGISTRY_HUB,
-    DOCKER_UPSTREAM_NAME,
-    FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_YUM_REPO,
-)
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DISTROS_SUPPORTED
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_YUM_REPO
 from robottelo.datafactory import xdist_adapter
 from robottelo.decorators import tier4
-from robottelo.products import (
-    DockerRepository,
-    PuppetRepository,
-    YumRepository,
-    RepositoryCollection,
-    SatelliteToolsRepository,
-)
+from robottelo.products import DockerRepository
+from robottelo.products import PuppetRepository
+from robottelo.products import RepositoryCollection
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
 
 

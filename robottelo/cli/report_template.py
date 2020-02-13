@@ -23,11 +23,13 @@ Subcommands::
     update                        Update a report template
 """
 from os import chmod
-from robottelo.cli.base import Base, CLIError
+from tempfile import mkstemp
+
+from robottelo import ssh
+from robottelo.cli.base import Base
+from robottelo.cli.base import CLIError
 from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.helpers import get_data_file
-from robottelo import ssh
-from tempfile import mkstemp
 
 
 class ReportTemplate(Base):

@@ -14,10 +14,12 @@
 
 :Upstream: No
 """
+from unittest2.case import TestCase
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo import ssh
 from robottelo.decorators import destructive
-from upgrade_tests import post_upgrade, pre_upgrade
-from unittest2.case import TestCase
 
 
 DEFAULT_CUSTOM_HIERA_DATA = [

@@ -15,35 +15,33 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 
-from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
 from robottelo import ssh
+from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_gpg_key,
-    make_org,
-    make_product,
-    make_repository,
-    make_sync_plan,
-)
-from robottelo.api.utils import wait_for_tasks
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import make_sync_plan
+from robottelo.cli.http_proxy import HttpProxy
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.cli.http_proxy import HttpProxy
-from robottelo.constants import FAKE_0_YUM_REPO, FAKE_0_YUM_REPO_PACKAGES_COUNT
-from robottelo.datafactory import (
-    valid_data_list,
-    valid_labels_list,
-    invalid_values_list,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_labels_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -52,7 +50,6 @@ class ProductTestCase(CLITestCase):
 
     org = None
 
-    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Lifecycle Environment via Hammer CLI"""
 

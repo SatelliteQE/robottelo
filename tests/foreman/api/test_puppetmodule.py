@@ -15,8 +15,10 @@
 :Upstream: No
 """
 from nailgun import entities
+
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 

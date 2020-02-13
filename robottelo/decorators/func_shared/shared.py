@@ -85,7 +85,6 @@ Usage::
 
             return dict(org=cls.org, repo=cls.repo}
 """
-from importlib import import_module
 import datetime
 import functools
 import hashlib
@@ -95,6 +94,7 @@ import os
 import sys
 import traceback
 import uuid
+from importlib import import_module
 
 from nailgun.entities import Entity
 

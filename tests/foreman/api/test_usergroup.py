@@ -18,16 +18,18 @@ http://theforeman.org/api/1.11/apidoc/v2/usergroups.html
 
 :Upstream: No
 """
+from random import randint
+
 from fauxfactory import gen_string
 from nailgun import entities
-from random import randint
 from requests.exceptions import HTTPError
-from robottelo.datafactory import (
-    invalid_values_list,
-    valid_data_list,
-    valid_usernames_list,
-)
-from robottelo.decorators import tier1, tier2, upgrade
+
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_usernames_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

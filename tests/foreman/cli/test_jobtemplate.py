@@ -15,25 +15,21 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_job_template,
-    make_location,
-    make_org
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_job_template
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
 from robottelo.cli.job_template import JobTemplate
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    run_in_one_thread,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 TEMPLATE_FILE = u'template_file.txt'

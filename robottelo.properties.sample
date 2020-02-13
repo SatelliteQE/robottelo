@@ -135,7 +135,7 @@ ssh_key=
 # url default value is set to 'https://bugzilla.redhat.com' even if not provided.
 # url=https://bugzilla.redhat.com
 
-# Provide api_key to access Bugzilla REST API 
+# Provide api_key to access Bugzilla REST API
 # api_key=
 
 # For LDAP Authentication.
@@ -200,7 +200,7 @@ ssh_key=
 # This will be used by tests that exercise external docker registries.
 # External docker registry url in the format http[s]://<server>[:<port>].
 # external_registry_1=
-# For testing the support for private registry repos 
+# For testing the support for private registry repos
 # private_registry_url='https://registry.hub.docker.com'
 # private_registry_name=username/imagename
 # private_registry_username=

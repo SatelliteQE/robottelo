@@ -18,15 +18,14 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
-from robottelo.decorators import (
-        destructive,
-        run_in_one_thread,
-        stubbed,
-)
+from robottelo.decorators import destructive
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import stubbed
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 

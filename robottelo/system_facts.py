@@ -1,12 +1,14 @@
 """JSON representation for a RHEL server."""
-
 import copy
 import datetime
 
-from fauxfactory import (
-    gen_alpha, gen_choice, gen_date,
-    gen_integer, gen_ipaddr, gen_mac, gen_uuid
-)
+from fauxfactory import gen_alpha
+from fauxfactory import gen_choice
+from fauxfactory import gen_date
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_uuid
 
 
 def _bios_date():

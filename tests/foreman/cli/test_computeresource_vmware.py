@@ -14,19 +14,16 @@
 """
 from fauxfactory import gen_string
 
-from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, VMWARE_CONSTANTS
-from robottelo.cli.factory import (
-    make_compute_resource,
-    make_location,
-    make_org,
-)
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
 from robottelo.cli.org import Org
-from robottelo.decorators import (
-    skip_if_not_set,
-    tier1,
-    upgrade
-)
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import VMWARE_CONSTANTS
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

@@ -8,7 +8,6 @@ Subcommands::
      roles                         Manage ansible roles
      variables                     Manage ansible variables
 """
-
 from robottelo.cli.base import Base
 
 

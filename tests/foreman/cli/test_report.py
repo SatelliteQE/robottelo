@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=no-self-use
 """Test class for Reports CLI.
 
 :Requirement: Report
@@ -16,13 +15,13 @@
 
 :Upstream: No
 """
-
 import random
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.report import Report
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

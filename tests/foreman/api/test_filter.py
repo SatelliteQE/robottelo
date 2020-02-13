@@ -20,6 +20,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 

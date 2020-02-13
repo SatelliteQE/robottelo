@@ -15,21 +15,21 @@
 
 :Upstream: No
 """
-import pytest
 import random
 
+import pytest
+
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import (
-    make_content_view,
-    make_org_with_credentials,
-    make_product_with_credentials,
-    make_repository_with_credentials,
-    make_user
-)
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_org_with_credentials
+from robottelo.cli.factory import make_product_with_credentials
+from robottelo.cli.factory import make_repository_with_credentials
+from robottelo.cli.factory import make_user
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.constants import FEDORA27_OSTREE_REPO
-from robottelo.decorators import tier3, upgrade
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 

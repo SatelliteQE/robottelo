@@ -1,6 +1,7 @@
 """Unit tests for :mod:`robottelo.api.utils`."""
-from robottelo.api import utils
 from unittest2 import TestCase
+
+from robottelo.api import utils
 
 
 class UtilsTestCase(TestCase):

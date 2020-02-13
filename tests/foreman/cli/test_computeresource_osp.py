@@ -17,19 +17,15 @@
 from fauxfactory import gen_string
 
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    CLIReturnCodeError,
-    make_compute_resource
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import CLIReturnCodeError
+from robottelo.cli.factory import make_compute_resource
 from robottelo.config import settings
-from robottelo.decorators import (
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier3,
-    upgrade
-)
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 

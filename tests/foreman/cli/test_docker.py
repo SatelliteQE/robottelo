@@ -1,4 +1,3 @@
-# pylint: attribute-defined-outside-init
 """Unit tests for the Docker feature.
 
 :Requirement: Docker
@@ -13,46 +12,40 @@
 
 :Upstream: No
 """
-from random import choice, randint
+from random import choice
+from random import randint
 
-from fauxfactory import gen_string, gen_url
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 from wait_for import wait_for
 
 from robottelo import ssh
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.docker import Docker
-from robottelo.cli.factory import (
-    make_activation_key,
-    make_content_view,
-    make_lifecycle_environment,
-    make_org,
-    make_product_wait,  # workaround for BZ 1332650
-    make_repository,
-)
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.docker import Docker
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import (
-    DOCKER_REGISTRY_HUB,
-    DOCKER_RH_REGISTRY_UPSTREAM_NAME,
-)
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_docker_upstream_names,
-    valid_docker_repository_names,
-    valid_docker_upstream_names,
-)
-from robottelo.decorators import (
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_RH_REGISTRY_UPSTREAM_NAME
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_docker_upstream_names
+from robottelo.datafactory import valid_docker_repository_names
+from robottelo.datafactory import valid_docker_upstream_names
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 

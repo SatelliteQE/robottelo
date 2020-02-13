@@ -14,13 +14,15 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL6
-from robottelo.decorators import run_in_one_thread, skip_if_not_set
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 

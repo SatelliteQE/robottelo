@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=unexpected-keyword-arg
 """Test class for Activation key CLI
 
 :Requirement: Activationkey
@@ -17,49 +16,50 @@
 :Upstream: No
 """
 import re
-
 from random import choice
 
-from fauxfactory import gen_string, gen_alphanumeric
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import (
-    add_role_permissions,
-    CLIFactoryError,
-    make_activation_key,
-    make_content_view,
-    make_host_collection,
-    make_lifecycle_environment,
-    make_org,
-    make_role,
-    make_user,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
+from robottelo.cli.factory import add_role_permissions
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_host_collection
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
-from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import is_open
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
-from robottelo.helpers import is_open
 
 
 class ActivationKeyTestCase(CLITestCase):

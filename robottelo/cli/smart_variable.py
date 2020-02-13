@@ -21,7 +21,6 @@ Subcommands::
                                   variable
     update                        Update a smart variable
 """
-
 from robottelo.cli.base import Base
 
 

@@ -16,8 +16,12 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import tier1, tier2, upgrade
+
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

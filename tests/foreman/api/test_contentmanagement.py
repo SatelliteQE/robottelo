@@ -15,59 +15,54 @@
 :Upstream: No
 """
 import os
+from time import sleep
 
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
+from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
-from robottelo import ssh, manifests
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-)
+
+from robottelo import manifests
+from robottelo import ssh
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_KICKSTART_REPO,
-    CUSTOM_PUPPET_REPO,
-    DISTRO_RHEL7,
-    ENVIRONMENT,
-    FAKE_1_YUM_REPO,
-    FAKE_1_YUM_REPO_RPMS,
-    FAKE_1_YUM_REPOS_COUNT,
-    FAKE_3_YUM_REPO,
-    FAKE_3_YUM_REPOS_COUNT,
-    FAKE_7_YUM_REPO,
-    FAKE_8_YUM_REPO,
-    PRDS,
-    PULP_PUBLISHED_ISO_REPOS_PATH,
-    PULP_PUBLISHED_PUPPET_REPOS_PATH,
-    PULP_PUBLISHED_YUM_REPOS_PATH,
-    REPO_TYPE,
-    REPOS,
-    REPOSET,
-    RPM_TO_UPLOAD,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    tier3,
-    tier4,
-)
-from robottelo.helpers import (
-    create_repo,
-    form_repo_path,
-    get_data_file,
-    is_open,
-    md5_by_url,
-)
-from robottelo.host_info import get_repo_files, get_repomd_revision
+from robottelo.constants import CUSTOM_KICKSTART_REPO
+from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import FAKE_1_YUM_REPO_RPMS
+from robottelo.constants import FAKE_1_YUM_REPOS_COUNT
+from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_3_YUM_REPOS_COUNT
+from robottelo.constants import FAKE_7_YUM_REPO
+from robottelo.constants import FAKE_8_YUM_REPO
+from robottelo.constants import PRDS
+from robottelo.constants import PULP_PUBLISHED_ISO_REPOS_PATH
+from robottelo.constants import PULP_PUBLISHED_PUPPET_REPOS_PATH
+from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import tier4
+from robottelo.helpers import create_repo
+from robottelo.helpers import form_repo_path
+from robottelo.helpers import get_data_file
+from robottelo.helpers import is_open
+from robottelo.helpers import md5_by_url
+from robottelo.host_info import get_repo_files
+from robottelo.host_info import get_repomd_revision
+from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
-from robottelo.test import APITestCase
-
-from time import sleep
 
 
 class ContentManagementTestCase(APITestCase):

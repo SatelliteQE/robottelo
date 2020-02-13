@@ -1,4 +1,5 @@
 import operator
+
 import six
 from unittest2 import TestCase
 
