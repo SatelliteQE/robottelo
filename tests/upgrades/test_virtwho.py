@@ -19,6 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
+from robottelo.constants import DEFAULT_LOC
 from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase, settings
 from robottelo.virtwho_utils import (
@@ -90,7 +91,12 @@ class scenario_positive_virt_who(APITestCase):
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
+        default_loc_id = entities.Location().search(
+            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+        default_loc = entities.Location(id=default_loc_id).read()
         org = entities.Organization(name=self.org_name).create()
+        default_loc.organization.append(entities.Organization(id=org.id))
+        default_loc.update(['organization'])
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         args = self._make_virtwho_configure()
