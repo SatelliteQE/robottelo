@@ -13,12 +13,19 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import (
-    DEFAULT_ARCHITECTURE, DEFAULT_TEMPLATE, DEFAULT_PXE_TEMPLATE, DEFAULT_PTABLE,
-    RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+    AZURERM_RHEL7_FT_IMG_URN,
+    AZURERM_RHEL7_UD_IMG_URN,
+    AZURERM_RG_DEFAULT,
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_TEMPLATE,
+    DEFAULT_PXE_TEMPLATE,
+    DEFAULT_PTABLE,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION
 )
 from robottelo.decorators import setting_is_set
 from robottelo.helpers import download_gce_cert, generate_issue_collection, is_open
-from wrapanapi import GoogleCloudSystem
+from wrapanapi import AzureSystem, GoogleCloudSystem
 
 
 def log(message, level="DEBUG"):
@@ -389,3 +396,77 @@ def module_gce_compute(module_org, module_location):
         zone=settings.gce.zone, organization=[module_org],
         location=[module_location]).create()
     return gce_cr
+
+
+@pytest.fixture(scope='session')
+def azurerm_settings():
+    deps = {
+        'tenant': settings.azurerm.tenant_id,
+        'app_ident': settings.azurerm.client_id,
+        'sub_id': settings.azurerm.subscription_id,
+        'secret': settings.azurerm.client_secret,
+        'region': settings.azurerm.azure_region.lower().replace(' ', ''),
+    }
+    return deps
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_cr(azurerm_settings, module_org, module_location):
+    """ Create AzureRM Compute Resource """
+    azure_cr = entities.AzureRMComputeResource(
+        name=gen_string('alpha'),
+        provider='AzureRm',
+        tenant=azurerm_settings['tenant'],
+        app_ident=azurerm_settings['app_ident'],
+        sub_id=azurerm_settings['sub_id'],
+        secret_key=azurerm_settings['secret'],
+        region=azurerm_settings['region'],
+        organization=[module_org],
+        location=[module_location],
+    ).create()
+    return azure_cr
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_finishimg(module_architecture, module_os, module_azurerm_cr):
+    """ Creates Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=module_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_IMG_URN
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_cloudimg(module_architecture, module_os, module_azurerm_cr):
+    """ Creates cloudinit image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=module_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_UD_IMG_URN,
+        user_data=True
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='session')
+def azurermclient(azurerm_settings):
+    """ Connect to AzureRM using wrapanapi AzureSystem"""
+    azurermclient = AzureSystem(
+        username=azurerm_settings['app_ident'],
+        password=azurerm_settings['secret'],
+        tenant_id=azurerm_settings['tenant'],
+        subscription_id=azurerm_settings['sub_id'],
+        provisioning={
+            "resource_group": AZURERM_RG_DEFAULT,
+            "template_container": None,
+            "region_api": azurerm_settings['region']})
+    yield azurermclient
+    azurermclient.disconnect()
