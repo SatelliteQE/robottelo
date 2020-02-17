@@ -22,7 +22,7 @@ from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import make_org, make_product
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import run_in_one_thread, tier1, upgrade
 from robottelo.helpers import is_open, read_data_file
 from robottelo.test import CLITestCase
 from six import StringIO
@@ -169,6 +169,7 @@ class HammerTestCase(CLITestCase):
     """Tests related to hammer sub options. """
     @tier1
     @upgrade
+    @run_in_one_thread
     def test_positive_disable_hammer_defaults(self):
         """Verify hammer disable defaults command.
 
