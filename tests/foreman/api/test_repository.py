@@ -2326,7 +2326,8 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                         product=product,
                         url=config['registry_url'],
                         upstream_username=config['registry_username'],
-                        upstream_password=config['registry_password']
+                        upstream_password=config['registry_password'],
+                        docker_tags_whitelist=['latest']
                     ).create()
                     self.assertEqual(repo.name, repo_name)
                     self.assertEqual(repo.docker_upstream_name, repo_name)
@@ -2334,5 +2335,5 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                     self.assertEqual(repo.upstream_username,
                                      config['registry_username'])
                     repo.sync()
-                    self.assertGreater(
+                    self.assertGreaterEqual(
                         repo.read().content_counts['docker_manifest'], 1)
