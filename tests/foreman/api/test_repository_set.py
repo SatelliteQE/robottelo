@@ -48,28 +48,21 @@ class RepositorySetTestCase(APITestCase):
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        product = entities.Product(
-            name=PRDS['rhel'],
-            organization=org,
-        ).search()[0]
-        reposet = entities.RepositorySet(
-            name=REPOSET['rhva6'],
-            product=product,
-        ).search()[0]
-        data = {
-            'basearch': 'x86_64',
-            'releasever': '6Server',
-            'product_id': product.id
-        }
+        product = entities.Product(name=PRDS['rhel'], organization=org).search()[0]
+        reposet = entities.RepositorySet(name=REPOSET['rhva6'], product=product).search()[0]
+        data = {'basearch': 'x86_64', 'releasever': '6Server', 'product_id': product.id}
         reposet.enable(data=data)
         repositories = reposet.available_repositories(data=data)['results']
-        self.assertTrue([
-            repo['enabled']
-            for repo
-            in repositories
-            if (repo['substitutions']['basearch'] == 'x86_64' and
-                repo['substitutions']['releasever'] == '6Server')
-        ][0])
+        self.assertTrue(
+            [
+                repo['enabled']
+                for repo in repositories
+                if (
+                    repo['substitutions']['basearch'] == 'x86_64'
+                    and repo['substitutions']['releasever'] == '6Server'
+                )
+            ][0]
+        )
 
     @tier1
     @upgrade
@@ -85,26 +78,19 @@ class RepositorySetTestCase(APITestCase):
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        product = entities.Product(
-            name=PRDS['rhel'],
-            organization=org,
-        ).search()[0]
-        reposet = entities.RepositorySet(
-            name=REPOSET['rhva6'],
-            product=product,
-        ).search()[0]
-        data = {
-            'basearch': 'x86_64',
-            'releasever': '6Server',
-            'product_id': product.id
-        }
+        product = entities.Product(name=PRDS['rhel'], organization=org).search()[0]
+        reposet = entities.RepositorySet(name=REPOSET['rhva6'], product=product).search()[0]
+        data = {'basearch': 'x86_64', 'releasever': '6Server', 'product_id': product.id}
         reposet.enable(data=data)
         reposet.disable(data=data)
         repositories = reposet.available_repositories(data=data)['results']
-        self.assertFalse([
-            repo['enabled']
-            for repo
-            in repositories
-            if (repo['substitutions']['basearch'] == 'x86_64' and
-                repo['substitutions']['releasever'] == '6Server')
-        ][0])
+        self.assertFalse(
+            [
+                repo['enabled']
+                for repo in repositories
+                if (
+                    repo['substitutions']['basearch'] == 'x86_64'
+                    and repo['substitutions']['releasever'] == '6Server'
+                )
+            ][0]
+        )

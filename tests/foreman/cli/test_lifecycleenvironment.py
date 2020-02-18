@@ -58,12 +58,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         # List available lifecycle environments using default Table
         # output
         cmd = u'lifecycle-environment list --organization-id="%s"'
-        result = LifecycleEnvironment.execute(
-            cmd % self.org['id'],
-            None,
-            None,
-            False,
-        )
+        result = LifecycleEnvironment.execute(cmd % self.org['id'], None, None, False)
         self.assertGreater(len(result), 0)
 
     @tier2
@@ -78,15 +73,14 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        test_data = {
-            'name': gen_string('utf8', 15),
-            'organization-id': self.org['id'],
-        }
+        test_data = {'name': gen_string('utf8', 15), 'organization-id': self.org['id']}
         # Can we find the new object
-        result = LifecycleEnvironment.info({
-            'name': make_lifecycle_environment(test_data)['name'],
-            'organization-id': self.org['id'],
-        })
+        result = LifecycleEnvironment.info(
+            {
+                'name': make_lifecycle_environment(test_data)['name'],
+                'organization-id': self.org['id'],
+            }
+        )
         self.assertEqual(result['name'], test_data['name'])
 
     # CRUD
@@ -104,12 +98,10 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                lc_env = make_lifecycle_environment({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
-                self.assertEqual(
-                    lc_env['prior-lifecycle-environment'], ENVIRONMENT)
+                lc_env = make_lifecycle_environment(
+                    {'name': name, 'organization-id': self.org['id']}
+                )
+                self.assertEqual(lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
     @tier2
     def test_positive_create_with_description(self):
@@ -125,15 +117,12 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         for desc in valid_data_list():
             name = gen_alphanumeric()
             with self.subTest(desc):
-                lc_env = make_lifecycle_environment({
-                    'description': desc,
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                lc_env = make_lifecycle_environment(
+                    {'description': desc, 'name': name, 'organization-id': self.org['id']}
+                )
                 self.assertEqual(lc_env['name'], name)
                 self.assertEqual(lc_env['description'], desc)
-                self.assertEqual(
-                    lc_env['prior-lifecycle-environment'], ENVIRONMENT)
+                self.assertEqual(lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
     @tier2
     def test_positive_create_with_label(self):
@@ -144,14 +133,15 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :expectedresults: Lifecycle environment with label is created
 
         """
-        for label in (gen_string("alpha", 15), gen_string("alphanumeric", 15),
-                      gen_string("numeric", 15)):
+        for label in (
+            gen_string("alpha", 15),
+            gen_string("alphanumeric", 15),
+            gen_string("numeric", 15),
+        ):
             with self.subTest(label):
-                new_lce = make_lifecycle_environment({
-                    'label': label,
-                    'name': gen_alphanumeric(),
-                    'organization-id': self.org['id'],
-                })
+                new_lce = make_lifecycle_environment(
+                    {'label': label, 'name': gen_alphanumeric(), 'organization-id': self.org['id']}
+                )
                 self.assertEqual(new_lce['label'], label)
 
     @tier1
@@ -166,10 +156,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :CaseImportance: Critical
 
         """
-        new_lce = make_lifecycle_environment({
-            'name': gen_string('alpha'),
-            'organization': self.org['name'],
-        })
+        new_lce = make_lifecycle_environment(
+            {'name': gen_string('alpha'), 'organization': self.org['name']}
+        )
         self.assertEqual(new_lce['organization'], self.org['name'])
 
     @tier1
@@ -184,10 +173,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_lce = make_lifecycle_environment({
-            'name': gen_string('alpha'),
-            'organization-label': self.org['label'],
-        })
+        new_lce = make_lifecycle_environment(
+            {'name': gen_string('alpha'), 'organization-label': self.org['label']}
+        )
         self.assertEqual(new_lce['organization'], self.org['name'])
 
     @tier1
@@ -205,16 +193,14 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_lce = make_lifecycle_environment({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                new_lce = make_lifecycle_environment(
+                    {'name': name, 'organization-id': self.org['id']}
+                )
                 LifecycleEnvironment.delete({'id': new_lce['id']})
                 with self.assertRaises(CLIReturnCodeError):
-                    LifecycleEnvironment.info({
-                        'id': new_lce['id'],
-                        'organization-id': self.org['id'],
-                    })
+                    LifecycleEnvironment.info(
+                        {'id': new_lce['id'], 'organization-id': self.org['id']}
+                    )
 
     @tier1
     def test_positive_update_name(self):
@@ -227,20 +213,15 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
+        new_lce = make_lifecycle_environment({'organization-id': self.org['id']})
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                LifecycleEnvironment.update({
-                    'id': new_lce['id'],
-                    'new-name': new_name,
-                    'organization-id': self.org['id'],
-                })
-                result = LifecycleEnvironment.info({
-                    'id': new_lce['id'],
-                    'organization-id': self.org['id'],
-                })
+                LifecycleEnvironment.update(
+                    {'id': new_lce['id'], 'new-name': new_name, 'organization-id': self.org['id']}
+                )
+                result = LifecycleEnvironment.info(
+                    {'id': new_lce['id'], 'organization-id': self.org['id']}
+                )
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result['name'], new_name)
 
@@ -255,20 +236,19 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
+        new_lce = make_lifecycle_environment({'organization-id': self.org['id']})
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
-                LifecycleEnvironment.update({
-                    'description': new_desc,
-                    'id': new_lce['id'],
-                    'organization-id': self.org['id'],
-                })
-                result = LifecycleEnvironment.info({
-                    'id': new_lce['id'],
-                    'organization-id': self.org['id'],
-                })
+                LifecycleEnvironment.update(
+                    {
+                        'description': new_desc,
+                        'id': new_lce['id'],
+                        'organization-id': self.org['id'],
+                    }
+                )
+                result = LifecycleEnvironment.info(
+                    {'id': new_lce['id'], 'organization-id': self.org['id']}
+                )
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result['description'], new_desc)
 
@@ -283,22 +263,19 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
-        registry_name_pattern = ("{}-<%= organization.label %>"
-                                 "/<%= repository.docker_upstream_name %>").format(
-                                     gen_string('alpha', 5))
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        registry_name_pattern = (
+            "{}-<%= organization.label %>" "/<%= repository.docker_upstream_name %>"
+        ).format(gen_string('alpha', 5))
 
-        LifecycleEnvironment.update({
-            'registry-name-pattern': registry_name_pattern,
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
-        result = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
+        LifecycleEnvironment.update(
+            {
+                'registry-name-pattern': registry_name_pattern,
+                'id': lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
+        result = LifecycleEnvironment.info({'id': lce['id'], 'organization-id': self.org['id']})
         self.assertGreater(len(result), 0)
         self.assertEqual(result['registry-name-pattern'], registry_name_pattern)
 
@@ -315,19 +292,16 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
 
-        LifecycleEnvironment.update({
-            'registry-unauthenticated-pull': 'true',
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
-        result = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
+        LifecycleEnvironment.update(
+            {
+                'registry-unauthenticated-pull': 'true',
+                'id': lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
+        result = LifecycleEnvironment.info({'id': lce['id'], 'organization-id': self.org['id']})
         self.assertGreater(len(result), 0)
         self.assertEqual(result['unauthenticated-pull'], 'true')
 
@@ -343,18 +317,12 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         org = make_org()
-        lc_env = make_lifecycle_environment({
-            'organization-id': org['id'],
-        })
+        lc_env = make_lifecycle_environment({'organization-id': org['id']})
         # Add paths to lifecycle environments
-        result = LifecycleEnvironment.paths({
-            'organization-id': org['id'],
-            'permission-type': 'readable',
-        })
-        self.assertIn(
-            u'Library >> {0}'.format(lc_env['name']),
-            u''.join(result)
+        result = LifecycleEnvironment.paths(
+            {'organization-id': org['id'], 'permission-type': 'readable'}
         )
+        self.assertIn(u'Library >> {0}'.format(lc_env['name']), u''.join(result))
 
 
 class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
@@ -372,11 +340,9 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         cls.env_names = [last_env_name]
         for env_index in range(cls.lces_count):
             env_name = '{0}-{1}'.format(env_base_name, env_index)
-            make_lifecycle_environment({
-                'name': env_name,
-                'organization-id': cls.org['id'],
-                'prior': last_env_name
-            })
+            make_lifecycle_environment(
+                {'name': env_name, 'organization-id': cls.org['id'], 'prior': last_env_name}
+            )
             last_env_name = env_name
             cls.env_names.append(env_name)
 
@@ -396,10 +362,9 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         """
         per_page_count = self.lces_count + 5
 
-        lifecycle_environments = LifecycleEnvironment.list({
-            'organization-id': self.org['id'],
-            'per-page': per_page_count
-        })
+        lifecycle_environments = LifecycleEnvironment.list(
+            {'organization-id': self.org['id'], 'per-page': per_page_count}
+        )
 
         self.assertEqual(len(lifecycle_environments), self.lces_count)
         env_name_set = {env['name'] for env in lifecycle_environments}
@@ -424,18 +389,14 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
             with self.subTest(per_page):
                 # Verify the first page contains exactly the same items count
                 # as `per-page` value
-                lces = LifecycleEnvironment.list({
-                    'organization-id': self.org['id'],
-                    'per-page': per_page,
-                })
+                lces = LifecycleEnvironment.list(
+                    {'organization-id': self.org['id'], 'per-page': per_page}
+                )
                 self.assertEqual(len(lces), per_page)
                 # Verify pagination and total amount of pages by checking the
                 # items count on the last page
                 last_page = ceil(self.lces_count / per_page)
-                lces = LifecycleEnvironment.list({
-                    'organization-id': self.org['id'],
-                    'page': last_page,
-                    'per-page': per_page,
-                })
-                self.assertEqual(
-                    len(lces), self.lces_count % per_page or per_page)
+                lces = LifecycleEnvironment.list(
+                    {'organization-id': self.org['id'], 'page': last_page, 'per-page': per_page}
+                )
+                self.assertEqual(len(lces), self.lces_count % per_page or per_page)

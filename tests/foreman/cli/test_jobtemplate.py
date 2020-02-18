@@ -44,9 +44,7 @@ class JobTemplateTestCase(CLITestCase):
         """Create an organization to be reused in tests."""
         super(JobTemplateTestCase, cls).setUpClass()
         cls.organization = make_org()
-        ssh.command(
-            '''echo '<%= input("command") %>' > {0}'''.format(TEMPLATE_FILE)
-        )
+        ssh.command('''echo '<%= input("command") %>' > {0}'''.format(TEMPLATE_FILE))
         ssh.command('touch {0}'.format(TEMPLATE_FILE_EMPTY))
 
     @tier1
@@ -60,14 +58,14 @@ class JobTemplateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
-        make_job_template({
-            u'organizations': self.organization['name'],
-            u'name': template_name,
-            u'file': TEMPLATE_FILE
-        })
-        self.assertIsNotNone(
-            JobTemplate.info({u'name': template_name})
+        make_job_template(
+            {
+                u'organizations': self.organization['name'],
+                u'name': template_name,
+                u'file': TEMPLATE_FILE,
+            }
         )
+        self.assertIsNotNone(JobTemplate.info({u'name': template_name}))
 
     @tier1
     def test_negative_create_job_template_with_invalid_name(self):
@@ -83,14 +81,15 @@ class JobTemplateTestCase(CLITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaisesRegex(
-                    CLIFactoryError,
-                    u'Could not create the job template:'
+                    CLIFactoryError, u'Could not create the job template:'
                 ):
-                    make_job_template({
-                        u'organizations': self.organization['name'],
-                        u'name': name,
-                        u'file': TEMPLATE_FILE
-                    })
+                    make_job_template(
+                        {
+                            u'organizations': self.organization['name'],
+                            u'name': name,
+                            u'file': TEMPLATE_FILE,
+                        }
+                    )
 
     @tier1
     def test_negative_create_job_template_with_same_name(self):
@@ -103,20 +102,21 @@ class JobTemplateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
-        make_job_template({
-            u'organizations': self.organization['name'],
-            u'name': template_name,
-            u'file': TEMPLATE_FILE
-        })
-        with self.assertRaisesRegex(
-            CLIFactoryError,
-            u'Could not create the job template:'
-        ):
-            make_job_template({
+        make_job_template(
+            {
                 u'organizations': self.organization['name'],
                 u'name': template_name,
-                u'file': TEMPLATE_FILE
-            })
+                u'file': TEMPLATE_FILE,
+            }
+        )
+        with self.assertRaisesRegex(CLIFactoryError, u'Could not create the job template:'):
+            make_job_template(
+                {
+                    u'organizations': self.organization['name'],
+                    u'name': template_name,
+                    u'file': TEMPLATE_FILE,
+                }
+            )
 
     @tier1
     def test_negative_create_empty_job_template(self):
@@ -129,15 +129,14 @@ class JobTemplateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
-        with self.assertRaisesRegex(
-            CLIFactoryError,
-            u'Could not create the job template:'
-        ):
-            make_job_template({
-                u'organizations': self.organization['name'],
-                u'name': template_name,
-                u'file': TEMPLATE_FILE_EMPTY
-            })
+        with self.assertRaisesRegex(CLIFactoryError, u'Could not create the job template:'):
+            make_job_template(
+                {
+                    u'organizations': self.organization['name'],
+                    u'name': template_name,
+                    u'file': TEMPLATE_FILE_EMPTY,
+                }
+            )
 
     @tier1
     @upgrade
@@ -151,11 +150,13 @@ class JobTemplateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
-        make_job_template({
-            u'organizations': self.organization['name'],
-            u'name': template_name,
-            u'file': TEMPLATE_FILE
-        })
+        make_job_template(
+            {
+                u'organizations': self.organization['name'],
+                u'name': template_name,
+                u'file': TEMPLATE_FILE,
+            }
+        )
         JobTemplate.delete({u'name': template_name})
         with self.assertRaises(CLIReturnCodeError):
             JobTemplate.info({u'name': template_name})
@@ -174,22 +175,17 @@ class JobTemplateTestCase(CLITestCase):
         """
         template_name = gen_string('alpha')
         location = make_location()
-        make_job_template({
-            u'organizations': self.organization['name'],
-            u'name': template_name,
-            u'file': TEMPLATE_FILE,
-        })
-        templates = JobTemplate.list({
-            'organization-id': self.organization['id']})
+        make_job_template(
+            {
+                u'organizations': self.organization['name'],
+                u'name': template_name,
+                u'file': TEMPLATE_FILE,
+            }
+        )
+        templates = JobTemplate.list({'organization-id': self.organization['id']})
         self.assertGreaterEqual(len(templates), 1)
-        Defaults.add({
-            u'param-name': 'organization_id',
-            u'param-value': self.organization['id'],
-        })
-        Defaults.add({
-            u'param-name': 'location_id',
-            u'param-value': location['id'],
-        })
+        Defaults.add({u'param-name': 'organization_id', u'param-value': self.organization['id']})
+        Defaults.add({u'param-name': 'location_id', u'param-value': location['id']})
         try:
             templates = JobTemplate.list()
             self.assertGreaterEqual(len(templates), 1)
@@ -207,10 +203,12 @@ class JobTemplateTestCase(CLITestCase):
 
         """
         template_name = gen_string('alpha', 7)
-        make_job_template({
-            u'organizations': self.organization['name'],
-            u'name': template_name,
-            u'file': TEMPLATE_FILE
-        })
+        make_job_template(
+            {
+                u'organizations': self.organization['name'],
+                u'name': template_name,
+                u'file': TEMPLATE_FILE,
+            }
+        )
         dumped_content = JobTemplate.dump({u'name': template_name})
         self.assertGreater(len(dumped_content), 0)

@@ -33,9 +33,7 @@ class FilterTestCase(APITestCase):
         """Search for provisioning template permissions. Set ``cls.ct_perms``.
         """
         super(FilterTestCase, cls).setUpClass()
-        cls.ct_perms = (
-            entities.Permission(resource_type='ProvisioningTemplate').search()
-        )
+        cls.ct_perms = entities.Permission(resource_type='ProvisioningTemplate').search()
 
     @tier1
     def test_positive_create_with_permission(self):
@@ -50,8 +48,7 @@ class FilterTestCase(APITestCase):
         # Create a filter and assign all ProvisioningTemplate permissions to it
         filter_ = entities.Filter(permission=self.ct_perms).create()
         self.assertListEqual(
-            [perm.id for perm in filter_.permission],
-            [perm.id for perm in self.ct_perms],
+            [perm.id for perm in filter_.permission], [perm.id for perm in self.ct_perms]
         )
 
     @tier1

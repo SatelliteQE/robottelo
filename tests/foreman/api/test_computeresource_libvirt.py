@@ -150,18 +150,12 @@ class ComputeResourceTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        locs = [
-            entities.Location(organization=[self.org]).create()
-            for _ in range(randint(3, 5))
-        ]
+        locs = [entities.Location(organization=[self.org]).create() for _ in range(randint(3, 5))]
         compresource = entities.LibvirtComputeResource(
-            location=locs,
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=locs, organization=[self.org], url=self.current_libvirt_url
         ).create()
         self.assertEqual(
-            set(loc.name for loc in locs),
-            set(loc.read().name for loc in compresource.location)
+            set(loc.name for loc in locs), set(loc.read().name for loc in compresource.location)
         )
 
     @tier2
@@ -177,17 +171,13 @@ class ComputeResourceTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        orgs = [
-            entities.Organization().create()
-            for _ in range(randint(3, 5))
-        ]
+        orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
         compresource = entities.LibvirtComputeResource(
-            organization=orgs,
-            url=self.current_libvirt_url,
+            organization=orgs, url=self.current_libvirt_url
         ).create()
         self.assertEqual(
             set(org.name for org in orgs),
-            set(org.read().name for org in compresource.organization)
+            set(org.read().name for org in compresource.organization),
         )
 
     @tier1
@@ -203,9 +193,7 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
@@ -279,9 +267,7 @@ class ComputeResourceTestCase(APITestCase):
         new_url = 'qemu+tcp://localhost:16509/system'
 
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         compresource.url = new_url
         compresource = compresource.update(['url'])
@@ -300,9 +286,7 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         new_loc = entities.Location(organization=[self.org]).create()
         compresource.location = [new_loc]
@@ -323,13 +307,10 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         new_locs = [
-            entities.Location(organization=[self.org]).create()
-            for _ in range(randint(3, 5))
+            entities.Location(organization=[self.org]).create() for _ in range(randint(3, 5))
         ]
         compresource.location = new_locs
         compresource = compresource.update(['location'])
@@ -352,8 +333,7 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            organization=[self.org], url=self.current_libvirt_url
         ).create()
         new_org = entities.Organization().create()
         compresource.organization = [new_org]
@@ -375,13 +355,9 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            organization=[self.org], url=self.current_libvirt_url
         ).create()
-        new_orgs = [
-            entities.Organization().create()
-            for _ in range(randint(3, 5))
-        ]
+        new_orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
         compresource.organization = new_orgs
         compresource = compresource.update(['organization'])
         self.assertEqual(
@@ -402,9 +378,7 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         compresource.delete()
         with self.assertRaises(HTTPError):
@@ -446,10 +420,7 @@ class ComputeResourceTestCase(APITestCase):
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
-            location=[self.loc],
-            name=name,
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], name=name, organization=[self.org], url=self.current_libvirt_url
         ).create()
         with self.assertRaises(HTTPError):
             entities.LibvirtComputeResource(
@@ -475,9 +446,7 @@ class ComputeResourceTestCase(APITestCase):
             with self.subTest(url):
                 with self.assertRaises(HTTPError):
                     entities.LibvirtComputeResource(
-                        location=[self.loc],
-                        organization=[self.org],
-                        url=url,
+                        location=[self.loc], organization=[self.org], url=url
                     ).create()
 
     @tier2
@@ -494,10 +463,7 @@ class ComputeResourceTestCase(APITestCase):
         """
         name = gen_string('alphanumeric')
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            name=name,
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], name=name, organization=[self.org], url=self.current_libvirt_url
         ).create()
         for new_name in invalid_values_list():
             with self.subTest(new_name):
@@ -520,15 +486,10 @@ class ComputeResourceTestCase(APITestCase):
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
-            location=[self.loc],
-            name=name,
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], name=name, organization=[self.org], url=self.current_libvirt_url
         ).create()
         new_compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         with self.assertRaises(HTTPError):
             new_compresource.name = name
@@ -548,9 +509,7 @@ class ComputeResourceTestCase(APITestCase):
         :CaseLevel: Component
         """
         compresource = entities.LibvirtComputeResource(
-            location=[self.loc],
-            organization=[self.org],
-            url=self.current_libvirt_url,
+            location=[self.loc], organization=[self.org], url=self.current_libvirt_url
         ).create()
         for url in ('', gen_string('alpha')):
             with self.subTest(url):

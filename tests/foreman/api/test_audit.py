@@ -50,46 +50,39 @@ class AuditTestCase(APITestCase):
             {
                 'entity': entities.AuthSourceLDAP(),
                 'entity_type': 'auth_source',
-                'value_template': 'LDAP-{entity.name}'
+                'value_template': 'LDAP-{entity.name}',
             },
-            {
-                'entity': entities.ComputeProfile(),
-                'entity_type': 'compute_profile'
-            },
+            {'entity': entities.ComputeProfile(), 'entity_type': 'compute_profile'},
             {
                 'entity': entities.LibvirtComputeResource(),
                 'entity_type': 'compute_resource',
-                'value_template': '{entity.name} (Libvirt)'
+                'value_template': '{entity.name} (Libvirt)',
             },
             {'entity': entities.ConfigGroup(), 'entity_type': 'config_group'},
             {'entity': entities.Domain()},
             {'entity': entities.Host()},
             {'entity': entities.HostGroup()},
-            {'entity': entities.Image(
-                compute_resource=entities.LibvirtComputeResource().create())},
+            {
+                'entity': entities.Image(
+                    compute_resource=entities.LibvirtComputeResource().create()
+                )
+            },
             {'entity': entities.Location()},
             {'entity': entities.Media(), 'entity_type': 'medium'},
             {'entity': entities.Organization()},
             {
                 'entity': entities.OperatingSystem(),
                 'entity_type': 'os',
-                'value_template': '{entity.name} {entity.major}'
+                'value_template': '{entity.name} {entity.major}',
             },
-            {
-                'entity': entities.PartitionTable(),
-                'entity_type': 'ptable',
-            },
+            {'entity': entities.PartitionTable(), 'entity_type': 'ptable'},
             {'entity': entities.PuppetClass()},
             {'entity': entities.Role()},
             {
                 'entity': entities.Subnet(),
-                'value_template': '{entity.name} '
-                                  '({entity.network}/{entity.cidr})'
+                'value_template': '{entity.name} ' '({entity.network}/{entity.cidr})',
             },
-            {
-                'entity': entities.ProvisioningTemplate(),
-                'entity_type': 'provisioning_template',
-            },
+            {'entity': entities.ProvisioningTemplate(), 'entity_type': 'provisioning_template'},
             {'entity': entities.User(), 'value_template': '{entity.login}'},
             {'entity': entities.UserGroup()},
             {'entity': entities.ContentView(), 'entity_type': 'katello/content_view'},
@@ -100,26 +93,24 @@ class AuditTestCase(APITestCase):
             {
                 'entity': entities.GPGKey(),
                 'entity_type': 'katello/gpg_key',
-                'value_template': 'content credential (gpg_key - {entity.name})'
+                'value_template': 'content credential (gpg_key - {entity.name})',
             },
-            {'entity': entities.SyncPlan(
-                organization=entities.Organization(id=1)
-                                        ), 'entity_type': 'katello/sync_plan'},
+            {
+                'entity': entities.SyncPlan(organization=entities.Organization(id=1)),
+                'entity_type': 'katello/sync_plan',
+            },
         ]:
             created_entity = entity_item['entity'].create()
-            entity_type = entity_item.get(
-                'entity_type', created_entity.__class__.__name__.lower())
+            entity_type = entity_item.get('entity_type', created_entity.__class__.__name__.lower())
             value_template = entity_item.get('value_template', '{entity.name}')
             entity_value = value_template.format(entity=created_entity)
-            audits = entities.Audit().search(
-                query={'search': 'type={0}'.format(entity_type)})
-            entity_audits = [entry for entry in audits
-                             if entry.auditable_name == entity_value]
+            audits = entities.Audit().search(query={'search': 'type={0}'.format(entity_type)})
+            entity_audits = [entry for entry in audits if entry.auditable_name == entity_value]
             if not entity_audits:
-                self.fail('audit not found by name "{0}" for entity: {1}'.format(
-                    entity_value,
-                    created_entity.__class__.__name__.lower()
-                )
+                self.fail(
+                    'audit not found by name "{0}" for entity: {1}'.format(
+                        entity_value, created_entity.__class__.__name__.lower()
+                    )
                 )
             audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
@@ -155,18 +146,14 @@ class AuditTestCase(APITestCase):
             created_entity.name = new_name
             created_entity = created_entity.update(['name'])
             audits = entities.Audit().search(
-                query={'search': 'type={0}'.format(
-                    created_entity.__class__.__name__.lower())
-                }
+                query={'search': 'type={0}'.format(created_entity.__class__.__name__.lower())}
             )
-            entity_audits = [entry for entry in audits
-                             if entry.auditable_name == name]
+            entity_audits = [entry for entry in audits if entry.auditable_name == name]
             if not entity_audits:
                 self.fail('audit not found by name "{}"'.format(name))
             audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
-            self.assertEqual(
-                audit.audited_changes['name'], [name, new_name])
+            self.assertEqual(audit.audited_changes['name'], [name, new_name])
             self.assertEqual(audit.action, 'update')
             self.assertEqual(audit.version, 2)
 
@@ -197,15 +184,13 @@ class AuditTestCase(APITestCase):
             created_entity = entity.create()
             created_entity.delete()
             audits = entities.Audit().search(
-                query={'search': 'type={0}'.format(
-                    created_entity.__class__.__name__.lower())
-                }
+                query={'search': 'type={0}'.format(created_entity.__class__.__name__.lower())}
             )
-            entity_audits = [entry for entry in audits
-                             if entry.auditable_name == created_entity.name]
+            entity_audits = [
+                entry for entry in audits if entry.auditable_name == created_entity.name
+            ]
             if not entity_audits:
-                self.fail('audit not found by name "{}"'.format(
-                            created_entity.name))
+                self.fail('audit not found by name "{}"'.format(created_entity.name))
             audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(audit.action, 'destroy')

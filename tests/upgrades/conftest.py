@@ -117,9 +117,7 @@ def log(message, level="DEBUG"):
     """
     now = datetime.datetime.now()
     full_message = "{date} - conftest - {level} - {message}\n".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"),
-        level=level,
-        message=message
+        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
     )
     print(full_message)  # noqa
     with open('robottelo.log', 'a') as log_file:
@@ -240,7 +238,7 @@ def pytest_addoption(parser):
     parser.addoption(
         '--{0}'.format(PRE_UPGRADE_TESTS_FILE_OPTION),
         action='store',
-        default=PRE_UPGRADE_TESTS_FILE_PATH
+        default=PRE_UPGRADE_TESTS_FILE_PATH,
     )
 
 
@@ -254,8 +252,11 @@ def __initiate(config):
     global POST_UPGRADE
     global PRE_UPGRADE_TESTS_FILE_PATH
     PRE_UPGRADE_TESTS_FILE_PATH = getattr(config.option, PRE_UPGRADE_TESTS_FILE_OPTION)
-    if not [upgrade_mark for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
-            if upgrade_mark in config.option.markexpr]:
+    if not [
+        upgrade_mark
+        for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
+        if upgrade_mark in config.option.markexpr
+    ]:
         raise OptionMarksError('options error: pre_upgrade or post_upgrade marks must be selected')
     if PRE_UPGRADE_MARK in config.option.markexpr:
         pre_upgrade_failed_tests = []
@@ -266,7 +267,8 @@ def __initiate(config):
     if POST_UPGRADE_MARK in config.option.markexpr:
         if PRE_UPGRADE:
             raise OptionMarksError(
-                'options error: cannot do pre_upgrade and post_upgrade at the same time')
+                'options error: cannot do pre_upgrade and post_upgrade at the same time'
+            )
         POST_UPGRADE = True
         pre_upgrade_failed_tests = []
         if os.path.exists(PRE_UPGRADE_TESTS_FILE_PATH):
@@ -300,8 +302,7 @@ def pytest_collection_modifyitems(items, config):
 
     # mark the pre upgrade test functions with node_id
     pre_upgrade_items = [
-        item
-        for item in items if item.get_closest_marker(PRE_UPGRADE_MARK) is not None
+        item for item in items if item.get_closest_marker(PRE_UPGRADE_MARK) is not None
     ]
     for item in pre_upgrade_items:
         _set_test_node_id(item.function, item.nodeid)
@@ -309,8 +310,7 @@ def pytest_collection_modifyitems(items, config):
     if POST_UPGRADE:
         # will skip item/post_upgrade test if pre_upgrade test status failed.
         post_upgrade_items = [
-            item
-            for item in items if item.get_closest_marker(POST_UPGRADE_MARK) is not None
+            item for item in items if item.get_closest_marker(POST_UPGRADE_MARK) is not None
         ]
         deselected_items = []
         for item in post_upgrade_items:
@@ -321,12 +321,14 @@ def pytest_collection_modifyitems(items, config):
                     dependant_on_functions.extend(depend_on)
                 elif depend_on is not None:
                     dependant_on_functions.append(depend_on)
-                depend_on_node_ids = [
-                    _get_test_node_id(f) for f in dependant_on_functions]
+                depend_on_node_ids = [_get_test_node_id(f) for f in dependant_on_functions]
                 for depend_on_node_id in depend_on_node_ids:
                     if depend_on_node_id in pre_upgrade_failed_tests:
-                        log('Deselected (because of dependant test failed): {}'.format(
-                            item.nodeid, 'INFO'))
+                        log(
+                            'Deselected (because of dependant test failed): {}'.format(
+                                item.nodeid, 'INFO'
+                            )
+                        )
                         deselected_items.append(item)
 
         config.hook.pytest_deselected(items=deselected_items)

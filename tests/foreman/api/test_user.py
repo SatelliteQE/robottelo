@@ -74,8 +74,7 @@ class UserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for firstname in generate_strings_list(
-                exclude_types=['html'], max_length=50):
+        for firstname in generate_strings_list(exclude_types=['html'], max_length=50):
             with self.subTest(firstname):
                 user = entities.User(firstname=firstname).create()
                 self.assertEqual(user.firstname, firstname)
@@ -90,8 +89,7 @@ class UserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for lastname in generate_strings_list(
-                exclude_types=['html'], max_length=50):
+        for lastname in generate_strings_list(exclude_types=['html'], max_length=50):
             with self.subTest(lastname):
                 user = entities.User(lastname=lastname).create()
                 self.assertEqual(user.lastname, lastname)
@@ -136,8 +134,7 @@ class UserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for password in generate_strings_list(
-                exclude_types=['html'], max_length=50):
+        for password in generate_strings_list(exclude_types=['html'], max_length=50):
             with self.subTest(password):
                 user = entities.User(password=password).create()
                 self.assertIsNotNone(user)
@@ -188,8 +185,7 @@ class UserTestCase(APITestCase):
         :CaseImportance: Critical
         """
         user = entities.User().create()
-        for firstname in generate_strings_list(
-                exclude_types=['html'], max_length=50):
+        for firstname in generate_strings_list(exclude_types=['html'], max_length=50):
             with self.subTest(firstname):
                 user.firstname = firstname
                 user = user.update(['firstname'])
@@ -206,8 +202,7 @@ class UserTestCase(APITestCase):
         :CaseImportance: Critical
         """
         user = entities.User().create()
-        for lastname in generate_strings_list(
-                exclude_types=['html'], max_length=50):
+        for lastname in generate_strings_list(exclude_types=['html'], max_length=50):
             with self.subTest(lastname):
                 user.lastname = lastname
                 user = user.update(['lastname'])
@@ -351,8 +346,7 @@ class UserRoleTestCase(APITestCase):
                 user = entities.User(role=chosen_roles).create()
                 self.assertEqual(len(user.role), i)
                 self.assertEqual(
-                    set([role.id for role in user.role]),
-                    set([role.id for role in chosen_roles]),
+                    set([role.id for role in user.role]), set([role.id for role in chosen_roles])
                 )
 
     @tier1
@@ -376,8 +370,7 @@ class UserRoleTestCase(APITestCase):
                 user.role = chosen_roles
                 user = user.update(['role'])
                 self.assertEqual(
-                    set([role.id for role in user.role]),
-                    set([role.id for role in chosen_roles]),
+                    set([role.id for role in user.role]), set([role.id for role in chosen_roles])
                 )
 
 
@@ -415,8 +408,7 @@ class SshKeyInUserTestCase(APITestCase):
         """
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(
-            user=self.user, name=ssh_name, key=ssh_key).create()
+        user_sshkey = entities.SSHKey(user=self.user, name=ssh_name, key=ssh_key).create()
         self.assertEqual(ssh_name, user_sshkey.name)
         self.assertEqual(ssh_key, user_sshkey.key)
 
@@ -430,13 +422,10 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        user = entities.User().search(
-            query={'search': u'login="admin"'}
-        )[0]
+        user = entities.User().search(query={'search': u'login="admin"'})[0]
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(
-            user=user, name=ssh_name, key=ssh_key).create()
+        user_sshkey = entities.SSHKey(user=user, name=ssh_name, key=ssh_key).create()
         self.assertEqual(ssh_name, user_sshkey.name)
         self.assertEqual(ssh_key, user_sshkey.key)
 
@@ -461,27 +450,17 @@ class SshKeyInUserTestCase(APITestCase):
         """
         invalid_sshkey = gen_string('alpha', length=256)
         with self.assertRaises(HTTPError) as context:
-            entities.SSHKey(
-                user=self.user,
-                name=gen_string('alpha'),
-                key=invalid_sshkey
-            ).create()
+            entities.SSHKey(user=self.user, name=gen_string('alpha'), key=invalid_sshkey).create()
         self.assertRegexpMatches(
-            context.exception.response.text,
-            'Key is not a valid public ssh key'
+            context.exception.response.text, 'Key is not a valid public ssh key'
         )
         self.assertRegexpMatches(
-            context.exception.response.text,
-            'Key must be in OpenSSH public key format'
+            context.exception.response.text, 'Key must be in OpenSSH public key format'
         )
         self.assertRegexpMatches(
-            context.exception.response.text,
-            'Fingerprint could not be generated'
+            context.exception.response.text, 'Fingerprint could not be generated'
         )
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            'Length could not be calculated'
-        )
+        self.assertRegexpMatches(context.exception.response.text, 'Length could not be calculated')
 
     @tier1
     def test_negative_create_invalid_length_ssh_key(self):
@@ -502,15 +481,11 @@ class SshKeyInUserTestCase(APITestCase):
         invalid_length_key = self.data_keys['ssh_keys']['invalid_ssh_key']
         with self.assertRaises(HTTPError) as context:
             entities.SSHKey(
-                user=self.user,
-                name=gen_string('alpha'),
-                key=invalid_length_key
+                user=self.user, name=gen_string('alpha'), key=invalid_length_key
             ).create()
-        self.assertRegexpMatches(
-            context.exception.response.text, 'Length could not be calculated')
+        self.assertRegexpMatches(context.exception.response.text, 'Length could not be calculated')
         self.assertNotRegexpMatches(
-            context.exception.response.text,
-            'Fingerprint could not be generated'
+            context.exception.response.text, 'Fingerprint could not be generated'
         )
 
     @tier1
@@ -531,13 +506,9 @@ class SshKeyInUserTestCase(APITestCase):
         invalid_ssh_key_name = gen_string('alpha', length=300)
         with self.assertRaises(HTTPError) as context:
             entities.SSHKey(
-                user=self.user,
-                name=invalid_ssh_key_name,
-                key=self.gen_ssh_rsakey()
+                user=self.user, name=invalid_ssh_key_name, key=self.gen_ssh_rsakey()
             ).create()
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Name is too long")
+        self.assertRegexpMatches(context.exception.response.text, "Name is too long")
 
     @tier1
     @upgrade
@@ -560,11 +531,7 @@ class SshKeyInUserTestCase(APITestCase):
         ed = self.data_keys['ssh_keys']['ed']
         user = entities.User().create()
         for key in [rsa, dsa, ecdsa, ed]:
-            entities.SSHKey(
-                user=user,
-                name=gen_string('alpha'),
-                key=key
-            ).create()
+            entities.SSHKey(user=user, name=gen_string('alpha'), key=key).create()
         user_sshkeys = entities.SSHKey(user=user).search()
         self.assertEqual(len(user_sshkeys), 4)
 
@@ -587,9 +554,7 @@ class SshKeyInUserTestCase(APITestCase):
         """
         user = entities.User().create()
         sshkey_name = gen_string('alpha')
-        sshkey = entities.SSHKey(
-            user=user, name=sshkey_name, key=self.gen_ssh_rsakey()
-        ).create()
+        sshkey = entities.SSHKey(user=user, name=sshkey_name, key=self.gen_ssh_rsakey()).create()
         sshkey.delete()
         result = entities.SSHKey(user=user).search()
         self.assertEqual(len(result), 0)
@@ -614,21 +579,14 @@ class SshKeyInUserTestCase(APITestCase):
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-        user = entities.User(
-            organization=[org], location=[loc]).create()
+        user = entities.User(organization=[org], location=[loc]).create()
         ssh_key = self.gen_ssh_rsakey()
-        entities.SSHKey(
-            user=user, name=gen_string('alpha'), key=ssh_key).create()
+        entities.SSHKey(user=user, name=gen_string('alpha'), key=ssh_key).create()
         host = entities.Host(
-            owner=user,
-            owner_type='User',
-            organization=org,
-            location=loc,
+            owner=user, owner_type='User', organization=org, location=loc
         ).create()
         sshkey_updated_for_host = '{0} {1}@{2}'.format(
-            ssh_key,
-            user.login,
-            settings.server.hostname
+            ssh_key, user.login, settings.server.hostname
         )
         host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
         self.assertEqual(sshkey_updated_for_host, host_enc_key[0])
@@ -676,8 +634,7 @@ class SshKeyInUserTestCase(APITestCase):
         """
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(
-            user=self.user, name=ssh_name, key=ssh_key).create()
+        user_sshkey = entities.SSHKey(user=self.user, name=ssh_name, key=ssh_key).create()
         self.assertEqual(ssh_name, user_sshkey.name)
         self.assertEqual(ssh_key, user_sshkey.key)
 
@@ -716,8 +673,9 @@ class ActiveDirectoryUserTestCase(APITestCase):
         ).create()
 
     def tearDown(self):
-        for user in entities.User().search(query={'search': u'login={}'.format(
-                self.ldap_user_name)}):
+        for user in entities.User().search(
+            query={'search': u'login={}'.format(self.ldap_user_name)}
+        ):
             user.delete()
         super(ActiveDirectoryUserTestCase, self).tearDown()
 
@@ -735,9 +693,7 @@ class ActiveDirectoryUserTestCase(APITestCase):
         for username in valid_usernames_list():
             with self.subTest(username):
                 user = entities.User(
-                    login=username,
-                    auth_source=self.authsource,
-                    password='',
+                    login=username, auth_source=self.authsource, password=''
                 ).create()
                 self.assertEqual(user.login, username)
 
@@ -757,9 +713,7 @@ class ActiveDirectoryUserTestCase(APITestCase):
         :CaseLevel: System
         """
         sc = ServerConfig(
-            auth=(self.ldap_user_name, self.ldap_user_passwd),
-            url=self.sat_url,
-            verify=False
+            auth=(self.ldap_user_name, self.ldap_user_passwd), url=self.sat_url, verify=False
         )
         with self.assertRaises(HTTPError):
             entities.Architecture(sc).search()
@@ -786,21 +740,18 @@ class ActiveDirectoryUserTestCase(APITestCase):
         :CaseLevel: System
         """
         role_name = gen_string('alpha')
-        default_org_admin = entities.Role().search(
-            query={'search': u'name="Organization admin"'})
+        default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
             data={
                 'role': {
                     'name': role_name,
                     'organization': self.org.name,
-                    'location': self.loc.name
+                    'location': self.loc.name,
                 }
             }
         )
         sc = ServerConfig(
-            auth=(self.ldap_user_name, self.ldap_user_passwd),
-            url=self.sat_url,
-            verify=False
+            auth=(self.ldap_user_name, self.ldap_user_passwd), url=self.sat_url, verify=False
         )
         with self.assertRaises(HTTPError):
             entities.Architecture(sc).search()
@@ -809,10 +760,16 @@ class ActiveDirectoryUserTestCase(APITestCase):
         user.update(['role'])
         with self.assertNotRaises(HTTPError):
             for entity in [
-                entities.Architecture, entities.Audit, entities.Bookmark,
-                entities.CommonParameter, entities.LibvirtComputeResource,
-                entities.OVirtComputeResource, entities.VMWareComputeResource,
-                entities.ConfigGroup, entities.Errata, entities.OperatingSystem
+                entities.Architecture,
+                entities.Audit,
+                entities.Bookmark,
+                entities.CommonParameter,
+                entities.LibvirtComputeResource,
+                entities.OVirtComputeResource,
+                entities.VMWareComputeResource,
+                entities.ConfigGroup,
+                entities.Errata,
+                entities.OperatingSystem,
             ]:
                 entity(sc).search()
 
@@ -872,9 +829,7 @@ class FreeIPAUserTestCase(APITestCase):
         :CaseLevel: System
         """
         sc = ServerConfig(
-            auth=(self.username, self.ldap_user_passwd),
-            url=self.sat_url,
-            verify=False
+            auth=(self.username, self.ldap_user_passwd), url=self.sat_url, verify=False
         )
         with self.assertRaises(HTTPError):
             entities.Architecture(sc).search()
@@ -901,21 +856,18 @@ class FreeIPAUserTestCase(APITestCase):
         :CaseLevel: System
         """
         role_name = gen_string('alpha')
-        default_org_admin = entities.Role().search(
-            query={'search': u'name="Organization admin"'})
+        default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
             data={
                 'role': {
                     'name': role_name,
                     'organization': self.org.name,
-                    'location': self.loc.name
+                    'location': self.loc.name,
                 }
             }
         )
         sc = ServerConfig(
-            auth=(self.username, self.ldap_user_passwd),
-            url=self.sat_url,
-            verify=False
+            auth=(self.username, self.ldap_user_passwd), url=self.sat_url, verify=False
         )
         with self.assertRaises(HTTPError):
             entities.Architecture(sc).search()
@@ -924,9 +876,15 @@ class FreeIPAUserTestCase(APITestCase):
         user.update(['role'])
         with self.assertNotRaises(HTTPError):
             for entity in [
-                entities.Architecture, entities.Audit, entities.Bookmark,
-                entities.CommonParameter, entities.LibvirtComputeResource,
-                entities.OVirtComputeResource, entities.VMWareComputeResource,
-                entities.ConfigGroup, entities.Errata, entities.OperatingSystem
+                entities.Architecture,
+                entities.Audit,
+                entities.Bookmark,
+                entities.CommonParameter,
+                entities.LibvirtComputeResource,
+                entities.OVirtComputeResource,
+                entities.VMWareComputeResource,
+                entities.ConfigGroup,
+                entities.Errata,
+                entities.OperatingSystem,
             ]:
                 entity(sc).search()

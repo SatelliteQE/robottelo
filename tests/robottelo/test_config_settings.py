@@ -8,14 +8,15 @@ from robottelo.config.base import Settings
 
 if six.PY2:
     import mock
+
     builtin_open = '__builtin__.open'
 else:
     from unittest import mock
+
     builtin_open = 'builtins.open'
 
 
 class SettingsTestCase(TestCase):
-
     @mock.patch(builtin_open, new_callable=lambda: get_invalid_ini)
     def test_ini_reader(self, mock_open):
         ini_reader = INIReader(None)
@@ -27,12 +28,8 @@ class SettingsTestCase(TestCase):
     @mock.patch(builtin_open, new_callable=lambda: get_invalid_ini)
     def test_ini_reader_cast(self, mock_open):
         ini_reader = INIReader(None)
-        self.assertEqual(
-            ini_reader.get('awesomeness', 'enabled', cast=bool), True
-        )
-        self.assertEqual(
-            ini_reader.get('awesomeness', 'level', cast=int), 100
-        )
+        self.assertEqual(ini_reader.get('awesomeness', 'enabled', cast=bool), True)
+        self.assertEqual(ini_reader.get('awesomeness', 'level', cast=int), 100)
 
     @mock.patch(builtin_open, new_callable=lambda: get_invalid_ini)
     def test_ini_reader_get_default(self, mock_open):
@@ -92,23 +89,37 @@ class FakeOpen(object):
 
 def get_invalid_ini(path, *args, **kwargs):
     lines = [
-        '[teste]', 'foo=bar', 'bar=foo',
-        '[another]', 'x=y',
-        '[awesomeness]', 'enabled=true', 'level=100'
+        '[teste]',
+        'foo=bar',
+        'bar=foo',
+        '[another]',
+        'x=y',
+        '[awesomeness]',
+        'enabled=true',
+        'level=100',
     ]
     return FakeOpen(lines)
 
 
 def get_valid_ini(path, *args, **kwargs):
     lines = [
-        '[server]', 'hostname=example.com', 'ssh_password=1234',
+        '[server]',
+        'hostname=example.com',
+        'ssh_password=1234',
         # IniParserDefaults
-        '[formatters]', 'keys=generic',
-        '[formatter_generic]', 'class=logging.Formatter',
-        '[handlers]', 'keys=default',
-        '[handler_default]', 'class=handlers.TimedRotatingFileHandler',
+        '[formatters]',
+        'keys=generic',
+        '[formatter_generic]',
+        'class=logging.Formatter',
+        '[handlers]',
+        'keys=default',
+        '[handler_default]',
+        'class=handlers.TimedRotatingFileHandler',
         'args=("",)',
-        '[loggers]', 'keys=root',
-        '[logger_root]', 'level=NOTSET', 'handlers=default'
+        '[loggers]',
+        'keys=root',
+        '[logger_root]',
+        'level=NOTSET',
+        'handlers=default',
     ]
     return FakeOpen(lines)

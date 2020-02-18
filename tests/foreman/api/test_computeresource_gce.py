@@ -35,7 +35,8 @@ GCE_SETTINGS = dict(
     client_email=settings.gce.client_email,
     cert_path=settings.gce.cert_path,
     zone=settings.gce.zone,
-    cert_url=settings.gce.cert_url)
+    cert_url=settings.gce.cert_url,
+)
 
 
 clouduser = gen_string('alpha')
@@ -44,13 +45,17 @@ finishuser = gen_string('alpha')
 
 @pytest.fixture(scope='module')
 def module_gce_cloudimg(
-        module_architecture, module_gce_compute, module_os, gce_custom_cloudinit_uuid):
+    module_architecture, module_gce_compute, module_os, gce_custom_cloudinit_uuid
+):
     """Creates cloudinit image on GCE Compute Resource"""
     cloud_image = entities.Image(
-        architecture=module_architecture, compute_resource=module_gce_compute,
-        name=gen_string('alpha'), operatingsystem=module_os,
-        username=clouduser, uuid=gce_custom_cloudinit_uuid,
-        user_data=True
+        architecture=module_architecture,
+        compute_resource=module_gce_compute,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        username=clouduser,
+        uuid=gce_custom_cloudinit_uuid,
+        user_data=True,
     ).create()
     return cloud_image
 
@@ -59,9 +64,12 @@ def module_gce_cloudimg(
 def module_gce_finishimg(module_architecture, module_gce_compute, module_os, gce_latest_rhel_uuid):
     """Creates finish image on GCE Compute Resource"""
     finish_image = entities.Image(
-        architecture=module_architecture, compute_resource=module_gce_compute,
-        name=gen_string('alpha'), operatingsystem=module_os,
-        username=finishuser, uuid=gce_latest_rhel_uuid
+        architecture=module_architecture,
+        compute_resource=module_gce_compute,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        username=finishuser,
+        uuid=gce_latest_rhel_uuid,
     ).create()
     return finish_image
 
@@ -70,11 +78,7 @@ def module_gce_finishimg(module_architecture, module_gce_compute, module_os, gce
 def gce_domain(module_org, module_location, module_smart_proxy):
     """Sets Domain for GCE Host Provisioning"""
     _, _, dom = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(
-        query={
-            u'search': u'name="{0}"'.format(dom)
-        }
-    )
+    domain = entities.Domain().search(query={u'search': u'name="{0}"'.format(dom)})
     domain = domain[0].read()
     domain.location.append(module_location)
     domain.organization.append(module_org)
@@ -85,9 +89,17 @@ def gce_domain(module_org, module_location, module_smart_proxy):
 
 @pytest.fixture(scope='class')
 def gce_hostgroup(
-        module_architecture, module_gce_compute, gce_domain, module_location,
-        module_puppet_environment, module_smart_proxy, module_os, module_org,
-        module_partiontable, googleclient):
+    module_architecture,
+    module_gce_compute,
+    gce_domain,
+    module_location,
+    module_puppet_environment,
+    module_smart_proxy,
+    module_os,
+    module_org,
+    module_partiontable,
+    googleclient,
+):
     """Sets Hostgroup for GCE Host Provisioning"""
     hgroup = entities.HostGroup(
         architecture=module_architecture,
@@ -100,7 +112,8 @@ def gce_hostgroup(
         root_pass=gen_string('alphanumeric'),
         operatingsystem=module_os,
         organization=[module_org],
-        ptable=module_partiontable).create()
+        ptable=module_partiontable,
+    ).create()
     return hgroup
 
 
@@ -129,7 +142,7 @@ class TestGCEComputeResourceTestCases:
             project=GCE_SETTINGS['project_id'],
             zone=GCE_SETTINGS['zone'],
             organization=[module_org],
-            location=[module_location]
+            location=[module_location],
         ).create()
         assert compresource.name == cr_name
         # Testing Update
@@ -148,7 +161,8 @@ class TestGCEComputeResourceTestCases:
         # Testing Delete
         updated.delete()
         assert not entities.GCEComputeResource().search(
-            query={'search': 'name={}'.format(new_name)})
+            query={'search': 'name={}'.format(new_name)}
+        )
 
     @pytest.mark.skip_if_open("BZ:1794744")
     @tier3
@@ -198,7 +212,8 @@ class TestGCEComputeResourceTestCases:
 
     @tier3
     def test_positive_create_finish_template_image(
-            self, module_gce_finishimg, module_gce_compute, gce_latest_rhel_uuid):
+        self, module_gce_finishimg, module_gce_compute, gce_latest_rhel_uuid
+    ):
         """Finish template image along with username is being added in GCE CR
 
         :id: ec7ac618-ed1d-4b36-af7b-995cf4f78341
@@ -219,7 +234,8 @@ class TestGCEComputeResourceTestCases:
 
     @tier3
     def test_positive_create_cloud_init_image(
-            self, module_gce_cloudimg, module_gce_compute, gce_custom_cloudinit_uuid):
+        self, module_gce_cloudimg, module_gce_compute, gce_custom_cloudinit_uuid
+    ):
         """Cloud Init template image along with username is being added in GCE CR
 
         :id: 5a30c227-324a-49f9-932f-ce80da8611d0
@@ -244,6 +260,7 @@ class TestGCEHostProvisioningTestCase:
 
     :CaseComponent: Hosts
     """
+
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, gce_latest_rhel_uuid, gce_domain):
         """
@@ -261,25 +278,38 @@ class TestGCEHostProvisioningTestCase:
             'machine_type': self.mtype,
             'network': self.network,
             'associate_external_ip': True,
-            'volumes_attributes': {
-                '0': {'size_gb': self.volsize}
-            }
+            'volumes_attributes': {'0': {'size_gb': self.volsize}},
         }
 
     @pytest.fixture(scope='class')
     def class_host(
-            self, googleclient, module_architecture, gce_domain, gce_hostgroup,
-            module_org, module_os, module_location, gce_latest_rhel_uuid, module_gce_finishimg):
+        self,
+        googleclient,
+        module_architecture,
+        gce_domain,
+        gce_hostgroup,
+        module_org,
+        module_os,
+        module_location,
+        gce_latest_rhel_uuid,
+        module_gce_finishimg,
+    ):
         """Provisions the host on GCE
 
         Later in tests this host will be used to perform assertions
         """
         host = entities.Host(
-            architecture=module_architecture, compute_attributes=self.compute_attrs,
-            domain=gce_domain, hostgroup=gce_hostgroup, organization=module_org,
-            operatingsystem=module_os, location=module_location, name=self.hostname,
-            provision_method='image', image=module_gce_finishimg,
-            root_pass=gen_string('alphanumeric')
+            architecture=module_architecture,
+            compute_attributes=self.compute_attrs,
+            domain=gce_domain,
+            hostgroup=gce_hostgroup,
+            organization=module_org,
+            operatingsystem=module_os,
+            location=module_location,
+            name=self.hostname,
+            provision_method='image',
+            image=module_gce_finishimg,
+            root_pass=gen_string('alphanumeric'),
         ).create()
         yield host
         host.delete()

@@ -28,17 +28,11 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
         """
         down_versions = u'6 6.1 6.1.1'.split()
         up_versions = u'7.1.1 7.2 7.2.1'.split()
-        cls._up_and_down_versions = tuple(
-            u'RHEL' + v for v in chain(down_versions, up_versions)
-        )
-        cls._get_host_os_patcher = mock.patch(
-            'robottelo.decorators.host.get_host_os_version'
-        )
+        cls._up_and_down_versions = tuple(u'RHEL' + v for v in chain(down_versions, up_versions))
+        cls._get_host_os_patcher = mock.patch('robottelo.decorators.host.get_host_os_version')
         cls._get_host_mock = cls._get_host_os_patcher.start()
         cls._get_host_mock.return_value = 'Not Available'
-        cls._settings_patcher = mock.patch(
-            'robottelo.decorators.host.settings'
-        )
+        cls._settings_patcher = mock.patch('robottelo.decorators.host.settings')
         cls._settings_patcher.start()
 
     def assert_not_skipped(self, dummy):
@@ -56,6 +50,7 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
     def test_dont_skipping_with_single_version(self):
         """Check don't skip if os version isn't available"""
         for single_version in self._up_and_down_versions:
+
             @host.skip_if_os(single_version)
             def dummy():
                 return True
@@ -134,10 +129,25 @@ class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
     def test_skipping_non_normalized_version(self):
         """Test skipping occurs even if version prefix is not normalized"""
         all_cases = (
-            'rhel', 'Rhel', 'rHel', 'RHel', 'rhEl', 'RhEl', 'rHEl', 'RHEl',
-            'rheL', 'RheL', 'rHeL', 'RHeL', 'rhEL', 'RhEL', 'rHEL', 'RHEL'
+            'rhel',
+            'Rhel',
+            'rHel',
+            'RHel',
+            'rhEl',
+            'RhEl',
+            'rHEl',
+            'RHEl',
+            'rheL',
+            'RheL',
+            'rHeL',
+            'RHeL',
+            'rhEL',
+            'RhEL',
+            'rHEL',
+            'RHEL',
         )
         for v in (p + '7.1.0' for p in all_cases):
+
             @host.skip_if_os(v)
             def dummy():
                 return True

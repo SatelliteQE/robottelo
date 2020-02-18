@@ -76,8 +76,9 @@ class ComputeProfileTestCase(APITestCase):
         profile = entities.ComputeProfile().create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                updated_profile = entities.ComputeProfile(
-                    id=profile.id, name=new_name).update(['name'])
+                updated_profile = entities.ComputeProfile(id=profile.id, name=new_name).update(
+                    ['name']
+                )
                 self.assertEqual(new_name, updated_profile.name)
 
     @tier1
@@ -96,8 +97,7 @@ class ComputeProfileTestCase(APITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.ComputeProfile(
-                        id=profile.id, name=new_name).update(['name'])
+                    entities.ComputeProfile(id=profile.id, name=new_name).update(['name'])
                 updated_profile = entities.ComputeProfile(id=profile.id).read()
                 self.assertNotEqual(new_name, updated_profile.name)
 

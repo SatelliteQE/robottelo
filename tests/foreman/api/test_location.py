@@ -58,6 +58,7 @@ def valid_loc_data_list():
 
 class LocationTestCase(APITestCase):
     """Tests for the ``locations`` path."""
+
     # TODO Add coverage for media, realms as soon as they're implemented
 
     def _make_proxy(self, options=None):
@@ -131,8 +132,7 @@ class LocationTestCase(APITestCase):
         location.organization = orgs
         location = location.update(['organization'])
         self.assertEqual(
-            set([org.id for org in orgs]),
-            set([org.id for org in location.organization]),
+            set([org.id for org in orgs]), set([org.id for org in location.organization])
         )
 
     @tier1
@@ -217,27 +217,18 @@ class LocationTestCase(APITestCase):
 
         self.assertEqual(location.update(['domain']).domain[0].id, self.domain.id)
         self.assertEqual(location.update(['subnet']).subnet[0].id, self.subnet.id)
-        self.assertEqual(
-            location.update(['environment']).environment[0].id,
-            self.env.id
-        )
-        self.assertEqual(
-            location.update(['hostgroup']).hostgroup[0].id,
-            self.host_group.id
-        )
+        self.assertEqual(location.update(['environment']).environment[0].id, self.env.id)
+        self.assertEqual(location.update(['hostgroup']).hostgroup[0].id, self.host_group.id)
         ct_list = [
             ct
-            for ct
-            in location.update(['config_template']).config_template
+            for ct in location.update(['config_template']).config_template
             if ct.id == self.template.id
         ]
         self.assertEqual(len(ct_list), 1)
         self.assertEqual(
-            location.update(['compute_resource']).compute_resource[0].id,
-            self.test_cr.id
+            location.update(['compute_resource']).compute_resource[0].id, self.test_cr.id
         )
-        self.assertEqual(
-            location.compute_resource[0].read().provider, 'Libvirt')
+        self.assertEqual(location.compute_resource[0].read().provider, 'Libvirt')
         self.assertEqual(location.update(['user']).user[0].id, self.new_user.id)
 
     @run_in_one_thread
@@ -285,16 +276,11 @@ class LocationTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        location = entities.Location(
-            domain=[entities.Domain().create()],
-        ).create()
+        location = entities.Location(domain=[entities.Domain().create()]).create()
         domain = entities.Domain().create()
         location.domain[0].id = gen_integer(10000, 99999)
         with self.assertRaises(HTTPError):
-            self.assertNotEqual(
-                location.update(['domain']).domain[0].id,
-                domain.id
-            )
+            self.assertNotEqual(location.update(['domain']).domain[0].id, domain.id)
 
     @tier1
     def test_default_loc_id_check(self):
@@ -307,6 +293,7 @@ class LocationTestCase(APITestCase):
         :expectedresults: The default_location ID remain 2.
 
         """
-        default_loc_id = entities.Location().search(
-            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+        default_loc_id = (
+            entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+        )
         self.assertEqual(default_loc_id, 2)

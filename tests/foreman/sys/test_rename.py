@@ -46,8 +46,9 @@ class RenameHostTestCase(TestCase):
         super(RenameHostTestCase, cls).setUpClass()
         cls.username = settings.server.admin_username
         cls.password = settings.server.admin_password
-        cls.default_org_id = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.default_org_id = (
+            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        )
         cls.org = entities.Organization().create()
         with manifests.original_manifest() as manifest:
             upload_manifest(cls.org.id, manifest.content)
@@ -87,76 +88,73 @@ class RenameHostTestCase(TestCase):
             old_hostname = connection.run('hostname').stdout[0]
             new_hostname = 'new-{0}'.format(old_hostname)
             # create installation medium with hostname in path
-            medium_path = 'http://{0}/testpath-{1}/os/'.format(
-                            old_hostname, gen_string('alpha'))
-            medium = entities.Media(
-                        organization=[self.org],
-                        path_=medium_path
-                    ).create()
-            repo = entities.Repository(
-                    product=self.product, name='testrepo').create()
+            medium_path = 'http://{0}/testpath-{1}/os/'.format(old_hostname, gen_string('alpha'))
+            medium = entities.Media(organization=[self.org], path_=medium_path).create()
+            repo = entities.Repository(product=self.product, name='testrepo').create()
             result = connection.run(
                 'satellite-change-hostname {0} -y -u {1} -p {2}'.format(
-                    new_hostname, self.username, self.password), timeout=1200,
+                    new_hostname, self.username, self.password
+                ),
+                timeout=1200,
             )
             self.assertEqual(result.return_code, 0, 'unsuccessful rename')
             self.assertIn(BCK_MSG, result.stdout)
             # services running after rename?
             result = connection.run('hammer ping')
-            self.assertEqual(result.return_code, 0,
-                             'services did not start properly')
+            self.assertEqual(result.return_code, 0, 'services did not start properly')
             # basic hostname check
             result = connection.run('hostname')
             self.assertEqual(result.return_code, 0)
-            self.assertIn(new_hostname, result.stdout,
-                          'hostname left unchanged')
+            self.assertIn(new_hostname, result.stdout, 'hostname left unchanged')
             # check default capsule
             result = connection.run(
                 'hammer -u {1} -p {2} --output json capsule \
                         info --name {0}'.format(
-                    new_hostname, self.username, self.password),
-                output_format='json'
+                    new_hostname, self.username, self.password
+                ),
+                output_format='json',
             )
-            self.assertEqual(result.return_code, 0,
-                             'internal capsule not renamed correctly')
-            self.assertEqual(
-                    result.stdout['url'],
-                    "https://{}:9090".format(new_hostname))
+            self.assertEqual(result.return_code, 0, 'internal capsule not renamed correctly')
+            self.assertEqual(result.stdout['url'], "https://{}:9090".format(new_hostname))
             # check old consumer certs were deleted
             result = connection.run('rpm -qa | grep ^{}'.format(old_hostname))
-            self.assertEqual(result.return_code, 1,
-                             'old consumer certificates not removed')
+            self.assertEqual(result.return_code, 1, 'old consumer certificates not removed')
             # check new consumer certs were created
             result = connection.run('rpm -qa | grep ^{}'.format(new_hostname))
-            self.assertEqual(result.return_code, 0,
-                             'new consumer certificates not created')
+            self.assertEqual(result.return_code, 0, 'new consumer certificates not created')
             # check if installation media paths were updated
             result = connection.run(
                 'hammer -u {1} -p {2} --output json \
                         medium info --id {0}'.format(
-                   medium.id, self.username, self.password),
-                output_format='json'
+                    medium.id, self.username, self.password
+                ),
+                output_format='json',
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(new_hostname, result.stdout['path'],
-                          'medium path not updated correctly')
+            self.assertIn(new_hostname, result.stdout['path'], 'medium path not updated correctly')
             # check answer file for instances of old hostname
             ans_f = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-            result = connection.run(
-                    'grep " {0}" {1}'.format(old_hostname, ans_f))
-            self.assertEqual(result.return_code, 1,
-                             'old hostname was not correctly replaced \
-                                     in answers.yml')
+            result = connection.run('grep " {0}" {1}'.format(old_hostname, ans_f))
+            self.assertEqual(
+                result.return_code,
+                1,
+                'old hostname was not correctly replaced \
+                                     in answers.yml',
+            )
             # check repository published at path
             result = connection.run(
                 'hammer -u {1} -p {2} --output json \
                         repository info --id {0}'.format(
-                   repo.id, self.username, self.password),
-                output_format='json'
+                    repo.id, self.username, self.password
+                ),
+                output_format='json',
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(new_hostname, result.stdout['published-at'],
-                          'repository published path not updated correctly')
+            self.assertIn(
+                new_hostname,
+                result.stdout['published-at'],
+                'repository published path not updated correctly',
+            )
 
         # refresh manifest
         sub = entities.Subscription(organization=self.org)
@@ -187,15 +185,15 @@ class RenameHostTestCase(TestCase):
             result = connection.run(
                 'satellite-change-hostname -y \
                         {0} -u {1} -p {2}'.format(
-                    hostname, self.username, self.password),
-                output_format='plain'
+                    hostname, self.username, self.password
+                ),
+                output_format='plain',
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(BAD_HN_MSG.format(hostname), result.stdout)
             # assert no changes were made
             result = connection.run('hostname')
-            self.assertEqual(original_name, result.stdout[0],
-                             "Invalid hostame assigned")
+            self.assertEqual(original_name, result.stdout[0], "Invalid hostame assigned")
 
     @run_in_one_thread
     def test_negative_rename_sat_no_credentials(self):
@@ -214,15 +212,13 @@ class RenameHostTestCase(TestCase):
             original_name = connection.run('hostname').stdout[0]
             hostname = gen_string('alpha')
             result = connection.run(
-                'satellite-change-hostname -y {0}'.format(hostname),
-                output_format='plain'
+                'satellite-change-hostname -y {0}'.format(hostname), output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(NO_CREDS_MSG, result.stdout)
             # assert no changes were made
             result = connection.run('hostname')
-            self.assertEqual(original_name, result.stdout[0],
-                             "Invalid hostame assigned")
+            self.assertEqual(original_name, result.stdout[0], "Invalid hostame assigned")
 
     @run_in_one_thread
     def test_negative_rename_sat_wrong_passwd(self):
@@ -244,8 +240,9 @@ class RenameHostTestCase(TestCase):
             result = connection.run(
                 'satellite-change-hostname -y \
                         {0} -u {1} -p {2}'.format(
-                    new_hostname, self.username, password),
-                output_format='plain'
+                    new_hostname, self.username, password
+                ),
+                output_format='plain',
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(BAD_CREDS_MSG, result.stderr)
@@ -289,8 +286,9 @@ class RenameHostTestCase(TestCase):
                 'satellite-change-hostname -y -u {0} -p {1}\
                         --disable-system-checks\
                         --scenario capsule {2}'.format(
-                    username, password, hostname),
-                output_format='plain'
+                    username, password, hostname
+                ),
+                output_format='plain',
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG, result.stdout)

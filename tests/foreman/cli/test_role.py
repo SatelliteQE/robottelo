@@ -76,14 +76,10 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'Organization'})
-            ]
+            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+        ]
         # Assign filter to created role
-        filter_ = make_filter({
-            'role-id': role['id'],
-            'permissions': permissions,
-        })
+        filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
         self.assertEqual(role['name'], filter_['role'])
 
     @tier1
@@ -101,18 +97,11 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'Organization'})
-            ]
+            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+        ]
         # Assign filter to created role
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permissions,
-        })
-        self.assertEqual(
-            set(Role.filters({'id': role['id']})[0]['permissions']),
-            set(permissions)
-        )
+        make_filter({'role-id': role['id'], 'permissions': permissions})
+        self.assertEqual(set(Role.filters({'id': role['id']})[0]['permissions']), set(permissions))
 
     @tier1
     def test_positive_delete_by_id(self):
@@ -145,10 +134,7 @@ class RoleTestCase(CLITestCase):
         role = make_role({'name': gen_string('alpha', 15)})
         for new_name in generate_strings_list(length=10):
             with self.subTest(new_name):
-                Role.update({
-                    'id': role['id'],
-                    'new-name': new_name,
-                })
+                Role.update({'id': role['id'], 'new-name': new_name})
                 role = Role.info({'id': role['id']})
                 self.assertEqual(role['name'], new_name)
 
@@ -166,17 +152,12 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'Organization'})
-            ]
+            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+        ]
         # Assign filter to created role
-        filter_ = make_filter({
-            'role-id': role['id'],
-            'permissions': permissions,
-        })
+        filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
         self.assertEqual(role['name'], filter_['role'])
-        self.assertEqual(
-            Role.filters({'id': role['id']})[0]['id'], filter_['id'])
+        self.assertEqual(Role.filters({'id': role['id']})[0]['id'], filter_['id'])
 
     @tier1
     def test_positive_list_filters_by_name(self):
@@ -192,17 +173,12 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'Organization'})
-            ]
+            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+        ]
         # Assign filter to created role
-        filter_ = make_filter({
-            'role': role['name'],
-            'permissions': permissions,
-        })
+        filter_ = make_filter({'role': role['name'], 'permissions': permissions})
         self.assertEqual(role['name'], filter_['role'])
-        self.assertEqual(
-            Role.filters({'name': role['name']})[0]['id'], filter_['id'])
+        self.assertEqual(Role.filters({'name': role['name']})[0]['id'], filter_['id'])
 
     @tier1
     def test_negative_list_filters_without_parameters(self):
@@ -219,8 +195,7 @@ class RoleTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as err:
             with self.assertNotRaises(CLIDataBaseError):
                 Role.filters()
-        self.assertRegex(
-            err.exception.msg, 'At least one of options .* is required')
+        self.assertRegex(err.exception.msg, 'At least one of options .* is required')
 
     @tier1
     @upgrade
@@ -245,35 +220,25 @@ class RoleTestCase(CLITestCase):
         while len(permissions) <= 20:
             permissions += [
                 permission['name']
-                for permission in Filter.available_permissions(
-                    {'resource-type': next(res_types)})
+                for permission in Filter.available_permissions({'resource-type': next(res_types)})
             ]
         # Create a filter for each permission
         for perm in permissions:
-            make_filter({
-                'role': role['name'],
-                'permissions': perm,
-            })
+            make_filter({'role': role['name'], 'permissions': perm})
         # Test different `per-page` values
         for per_page in (1, 5, 20):
             with self.subTest(per_page):
                 # Verify the first page contains exactly the same items count
                 # as `per-page` value
-                filters = Role.filters({
-                    'name': role['name'],
-                    'per-page': per_page,
-                })
+                filters = Role.filters({'name': role['name'], 'per-page': per_page})
                 self.assertEqual(len(filters), per_page)
                 # Verify pagination and total amount of pages by checking the
                 # items count on the last page
                 last_page = ceil(len(permissions) / per_page)
-                filters = Role.filters({
-                    'name': role['name'],
-                    'page': last_page,
-                    'per-page': per_page,
-                })
-                self.assertEqual(
-                    len(filters), len(permissions) % per_page or per_page)
+                filters = Role.filters(
+                    {'name': role['name'], 'page': last_page, 'per-page': per_page}
+                )
+                self.assertEqual(len(filters), len(permissions) % per_page or per_page)
 
     @tier1
     @upgrade
@@ -289,13 +254,11 @@ class RoleTestCase(CLITestCase):
         :CaseImportance: Critical
 
         """
-        role_list = Role.list({
-            'search': 'name=\\"{}\\"'.format(choice(ROLES))})
+        role_list = Role.list({'search': 'name=\\"{}\\"'.format(choice(ROLES))})
         self.assertEqual(len(role_list), 1)
-        cloned_role = Role.clone({
-            'id': role_list[0]['id'],
-            'new-name': gen_string('alphanumeric'),
-        })
+        cloned_role = Role.clone(
+            {'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')}
+        )
         Role.delete({'id': cloned_role['id']})
         with self.assertRaises(CLIReturnCodeError):
             Role.info({'id': cloned_role['id']})
@@ -659,7 +622,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier2
-    def test_positive_clone_role_having_overridden_filter_with_taxonomies(self):# noqa
+    def test_positive_clone_role_having_overridden_filter_with_taxonomies(self):  # noqa
         """When taxonomies assigned to cloned role, Unlimited and Override flag
         sets on filter that is overridden in parent role
 
@@ -682,7 +645,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier2
-    def test_positive_clone_role_with_taxonomies_having_non_overridden_filter(self):# noqa
+    def test_positive_clone_role_with_taxonomies_having_non_overridden_filter(self):  # noqa
         """When taxonomies assigned to cloned role, Neither unlimited nor
         override sets on filter that is not overridden in parent role
 
@@ -726,7 +689,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier2
-    def test_positive_clone_role_having_overridden_filter_without_taxonomies(self):# noqa
+    def test_positive_clone_role_having_overridden_filter_without_taxonomies(self):  # noqa
         """When taxonomies not assigned to cloned role, Unlimited and override
         flags sets on filter that is overridden in parent role
 
@@ -1271,10 +1234,7 @@ class SystemAdminTestCases(CLITestCase):
 
     def tearDown(self):
         """Will reset the changed value of settings"""
-        Settings.set({
-            'name': "outofsync_interval",
-            'value': "30"
-        })
+        Settings.set({'name': "outofsync_interval", 'value': "30"})
 
     @upgrade
     @tier3
@@ -1310,63 +1270,59 @@ class SystemAdminTestCases(CLITestCase):
         location = make_location()
         common_pass = gen_string('alpha')
         role = Role.info({'name': 'System admin'})
-        system_admin_1 = make_user({
-            'password': common_pass,
-            'organization-ids': org['id'],
-            'location-ids': location['id']
-            })
-        User.add_role({
-            'id': system_admin_1['id'],
-            'role-id': role['id']
-            })
-        Settings.with_user(
-            username=system_admin_1['login'],
-            password=common_pass).set({
-                'name': "outofsync_interval",
-                'value': "32"
-                })
-        sync_time = Settings.list({
-            'search': 'name=outofsync_interval'
-            })[0]
+        system_admin_1 = make_user(
+            {
+                'password': common_pass,
+                'organization-ids': org['id'],
+                'location-ids': location['id'],
+            }
+        )
+        User.add_role({'id': system_admin_1['id'], 'role-id': role['id']})
+        Settings.with_user(username=system_admin_1['login'], password=common_pass).set(
+            {'name': "outofsync_interval", 'value': "32"}
+        )
+        sync_time = Settings.list({'search': 'name=outofsync_interval'})[0]
         # Asserts if the setting was updated successfully
         self.assertEqual('32', sync_time['value'])
 
         # Create another System Admin user using the first one
         system_admin = User.with_user(
-                username=system_admin_1['login'],
-                password=common_pass).create({
-                    u'auth-source-id': 1,
-                    u'firstname': gen_string('alpha'),
-                    u'lastname': gen_string('alpha'),
-                    u'login': gen_string('alpha'),
-                    u'mail': '{0}@example.com'.format(gen_string('alpha')),
-                    u'password': common_pass,
-                    u'organizations': org['name'],
-                    u'role-ids': role['id'],
-                    u'locations': location['name']
-                    })
+            username=system_admin_1['login'], password=common_pass
+        ).create(
+            {
+                u'auth-source-id': 1,
+                u'firstname': gen_string('alpha'),
+                u'lastname': gen_string('alpha'),
+                u'login': gen_string('alpha'),
+                u'mail': '{0}@example.com'.format(gen_string('alpha')),
+                u'password': common_pass,
+                u'organizations': org['name'],
+                u'role-ids': role['id'],
+                u'locations': location['name'],
+            }
+        )
         # Create the Org Admin user
-        org_role = Role.with_user(
-            username=system_admin['login'],
-            password=common_pass).clone({
+        org_role = Role.with_user(username=system_admin['login'], password=common_pass).clone(
+            {
                 'name': 'Organization admin',
                 'new-name': gen_string('alpha'),
                 'organization-ids': org['id'],
-                'location-ids': location['id']
-                })
-        org_admin = User.with_user(
-                username=system_admin['login'],
-                password=common_pass).create({
-                    u'auth-source-id': 1,
-                    u'firstname': gen_string('alpha'),
-                    u'lastname': gen_string('alpha'),
-                    u'login': gen_string('alpha'),
-                    u'mail': '{0}@example.com'.format(gen_string('alpha')),
-                    u'password': common_pass,
-                    u'organizations': org['name'],
-                    u'role-ids': org_role['id'],
-                    u'location-ids': location['id']
-                    })
+                'location-ids': location['id'],
+            }
+        )
+        org_admin = User.with_user(username=system_admin['login'], password=common_pass).create(
+            {
+                u'auth-source-id': 1,
+                u'firstname': gen_string('alpha'),
+                u'lastname': gen_string('alpha'),
+                u'login': gen_string('alpha'),
+                u'mail': '{0}@example.com'.format(gen_string('alpha')),
+                u'password': common_pass,
+                u'organizations': org['name'],
+                u'role-ids': org_role['id'],
+                u'location-ids': location['id'],
+            }
+        )
         # Assert if the cloning was successful
         self.assertIsNotNone(org_role['id'])
         org_role_filters = Role.filters({'id': org_role['id']})
@@ -1375,22 +1331,14 @@ class SystemAdminTestCases(CLITestCase):
             if arch_filter['resource-type'] == 'Architecture':
                 search_filter = arch_filter
                 break
-        Filter.with_user(
-            username=system_admin['login'],
-            password=common_pass).update({
-                'role-id': org_role['id'],
-                'id': arch_filter['id'],
-                'search': 'name=x86_64'
-                })
+        Filter.with_user(username=system_admin['login'], password=common_pass).update(
+            {'role-id': org_role['id'], 'id': arch_filter['id'], 'search': 'name=x86_64'}
+        )
         # Asserts if the filter is updated
-        self.assertIn('name=x86_64',
-                      Filter.info({
-                          'id': search_filter['id']
-                            }).values()
-                      )
-        org_admin = User.with_user(
-            username=system_admin['login'],
-            password=common_pass).info({'id': org_admin['id']})
+        self.assertIn('name=x86_64', Filter.info({'id': search_filter['id']}).values())
+        org_admin = User.with_user(username=system_admin['login'], password=common_pass).info(
+            {'id': org_admin['id']}
+        )
         # Asserts Created Org Admin
         self.assertIn(org_role['name'], org_admin['roles'])
         self.assertIn(org['name'], org_admin['organizations'])

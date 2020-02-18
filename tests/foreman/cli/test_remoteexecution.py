@@ -52,9 +52,7 @@ distros = [DISTRO_DEFAULT]
 @pytest.fixture(scope="module")
 def fixture_org():
     org = entities.Organization().create()
-    ssh.command(
-        '''echo 'echo Enforcing' > {0}'''.format(TEMPLATE_FILE)
-    )
+    ssh.command('''echo 'echo Enforcing' > {0}'''.format(TEMPLATE_FILE))
     # needed to work around BZ#1656480
     ssh.command('''sed -i '/ProxyCommand/s/^/#/g' /etc/ssh/ssh_config''')
     return org
@@ -74,10 +72,7 @@ def fixture_vmsetup(request, fixture_org):
             client._hostname = client.hostname.split(".")[0]
         client.install_katello_ca()
         # Register content host
-        client.register_contenthost(
-            org=fixture_org.label,
-            lce='Library'
-        )
+        client.register_contenthost(org=fixture_org.label, lce='Library')
         assert client.subscribed
         add_remote_execution_ssh_key(client.ip_addr)
         yield client
@@ -86,7 +81,7 @@ def fixture_vmsetup(request, fixture_org):
         client.destroy()
 
 
-class TestRemoteExecution():
+class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
     @stubbed()
@@ -130,27 +125,32 @@ class TestRemoteExecution():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         command = "echo {0}".format(gen_string('alpha'))
-        invocation_command = make_job_invocation({
-            'job-template': 'Run Command - SSH Default',
-            'inputs': 'command={0}'.format(command),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': 'command={0}'.format(command),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
 
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
 
         task = Task.list_tasks({"search": command})[0]
@@ -172,51 +172,58 @@ class TestRemoteExecution():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = make_job_invocation({
-            'job-template': 'Run Command - SSH Default',
-            'inputs': "command='useradd -m {0}'".format(username),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        make_user_job = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': "command='useradd -m {0}'".format(username),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         try:
             assert make_user_job[u'success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': make_user_job[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': make_user_job[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
         # create a file as new user
-        invocation_command = make_job_invocation({
-            'job-template': 'Run Command - SSH Default',
-            'inputs': "command='touch /home/{0}/{1}'".format(
-                username, filename),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-            'effective-user': '{0}'.format(username),
-        })
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': "command='touch /home/{0}/{1}'".format(username, filename),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+                'effective-user': '{0}'.format(username),
+            }
+        )
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
         # check the file owner
         result = ssh.command(
             '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
-            hostname=self.client.ip_addr
+            hostname=self.client.ip_addr,
         )
         # assert the file is owned by the effective user
         assert username == result.stdout[0]
@@ -232,36 +239,40 @@ class TestRemoteExecution():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         template_name = gen_string('alpha', 7)
-        make_job_template({
-            u'organizations': self.org.name,
-            u'name': template_name,
-            u'file': TEMPLATE_FILE
-        })
-        invocation_command = make_job_invocation({
-            'job-template': template_name,
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        make_job_template(
+            {u'organizations': self.org.name, u'name': template_name, u'file': TEMPLATE_FILE}
+        )
+        invocation_command = make_job_invocation(
+            {
+                'job-template': template_name,
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
 
     @tier3
     @upgrade
-    def test_positive_run_default_job_template_multiple_hosts_by_ip(self, fixture_vmsetup,
-                                                                    fixture_org):
+    def test_positive_run_default_job_template_multiple_hosts_by_ip(
+        self, fixture_vmsetup, fixture_org
+    ):
         """Run default job template against multiple hosts by ip
 
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
@@ -270,43 +281,52 @@ class TestRemoteExecution():
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
-        with VirtualMachine(distro=DISTRO_RHEL7) as client2:
-            client2.install_katello_ca()
-            client2.register_contenthost(
-                self.org.label, lce='Library')
-            add_remote_execution_ssh_key(client2.ip_addr)
-            Host.set_parameter({
-                'host': client2.hostname,
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
-            })
-            invocation_command = make_job_invocation({
-                'job-template': 'Run Command - SSH Default',
-                'inputs': 'command="ls"',
-                'search-query': "name ~ {0} or name ~ {1}".format(
-                    self.client.hostname, client2.hostname),
-            })
+            }
+        )
+        with VirtualMachine(distro=DISTRO_RHEL7) as client2:
+            client2.install_katello_ca()
+            client2.register_contenthost(self.org.label, lce='Library')
+            add_remote_execution_ssh_key(client2.ip_addr)
+            Host.set_parameter(
+                {
+                    'host': client2.hostname,
+                    'name': 'remote_execution_connect_by_ip',
+                    'value': 'True',
+                }
+            )
+            invocation_command = make_job_invocation(
+                {
+                    'job-template': 'Run Command - SSH Default',
+                    'inputs': 'command="ls"',
+                    'search-query': "name ~ {0} or name ~ {1}".format(
+                        self.client.hostname, client2.hostname
+                    ),
+                }
+            )
             # collect output messages from clients
             output_msgs = []
             for vm in self.client, client2:
-                output_msgs.append('host output from {0}: {1}'.format(
-                    vm.hostname,
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': vm.hostname})
+                output_msgs.append(
+                    'host output from {0}: {1}'.format(
+                        vm.hostname,
+                        ' '.join(
+                            JobInvocation.get_output(
+                                {'id': invocation_command[u'id'], 'host': vm.hostname}
+                            )
+                        ),
                     )
-                )
                 )
             assert invocation_command['success'] == u'2', output_msgs
 
     @tier3
-    def test_positive_install_multiple_packages_with_a_job_by_ip(self, fixture_vmsetup,
-                                                                 fixture_org):
+    def test_positive_install_multiple_packages_with_a_job_by_ip(
+        self, fixture_vmsetup, fixture_org
+    ):
         """Run job to install several packages on host by ip
 
         :id: 8b73033f-83c9-4024-83c3-5e442a79d320
@@ -317,11 +337,13 @@ class TestRemoteExecution():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
         repo = entities.Repository(
@@ -331,45 +353,42 @@ class TestRemoteExecution():
         ).create()
         repo.sync()
         prod = repo.product.read()
-        subs = entities.Subscription().search(
-            query={'search': 'name={0}'.format(prod.name)}
-        )
+        subs = entities.Subscription().search(query={'search': 'name={0}'.format(prod.name)})
         assert len(subs) > 0, 'No subscriptions matching the product returned'
 
         ak = entities.ActivationKey(
             organization=self.org,
             content_view=self.org.default_content_view,
-            environment=self.org.library
+            environment=self.org.library,
         ).create()
         ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
-        self.client.register_contenthost(
-            org=self.org.label, activation_key=ak.name
-        )
+        self.client.register_contenthost(org=self.org.label, activation_key=ak.name)
 
-        invocation_command = make_job_invocation({
-            'job-template': 'Install Package - Katello SSH Default',
-            'inputs': 'package={0} {1} {2}'.format(*packages),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Install Package - Katello SSH Default',
+                'inputs': 'package={0} {1} {2}'.format(*packages),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
-        result = ssh.command(
-            "rpm -q {0}".format(" ".join(packages)),
-            hostname=self.client.ip_addr
-        )
+        result = ssh.command("rpm -q {0}".format(" ".join(packages)), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
     @tier3
-    def test_positive_run_recurring_job_with_max_iterations_by_ip(self, fixture_vmsetup,
-                                                                  fixture_org):
+    def test_positive_run_recurring_job_with_max_iterations_by_ip(
+        self, fixture_vmsetup, fixture_org
+    ):
         """Run default job template multiple times with max iteration by ip
 
         :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
@@ -380,37 +399,38 @@ class TestRemoteExecution():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
-        invocation_command = make_job_invocation({
-            'job-template': 'Run Command - SSH Default',
-            'inputs': 'command="ls"',
-            'search-query': "name ~ {0}".format(self.client.hostname),
-            'cron-line': '* * * * *',  # every minute
-            'max-iteration': 2,  # just two runs
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': 'command="ls"',
+                'search-query': "name ~ {0}".format(self.client.hostname),
+                'cron-line': '* * * * *',  # every minute
+                'max-iteration': 2,  # just two runs
+            }
+        )
 
-        JobInvocation.get_output({
-            'id': invocation_command[u'id'],
-            'host': self.client.hostname
-        })
+        JobInvocation.get_output({'id': invocation_command[u'id'], 'host': self.client.hostname})
         try:
             assert invocation_command['status'] == u'queued'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
 
         sleep(150)
-        rec_logic = RecurringLogic.info({
-            'id': invocation_command['recurring-logic-id']})
+        rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
         assert rec_logic['state'] == u'finished'
         assert rec_logic['iteration'] == u'2'
 
@@ -426,43 +446,44 @@ class TestRemoteExecution():
         self.org = fixture_org
         self.client = fixture_vmsetup
         system_current_time = ssh.command('date --utc +"%b %d %Y %I:%M%p"').stdout[0]
-        current_time_object = datetime.strptime(
-            system_current_time, '%b %d %Y %I:%M%p')
-        plan_time = (current_time_object + timedelta(seconds=30)).strftime(
-            "%Y-%m-%d %H:%M")
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
-        invocation_command = make_job_invocation({
-            'job-template': 'Run Command - SSH Default',
-            'inputs': 'command="ls"',
-            'start-at': plan_time,
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        current_time_object = datetime.strptime(system_current_time, '%b %d %Y %I:%M%p')
+        plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': 'command="ls"',
+                'start-at': plan_time,
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         # Wait until the job runs
         pending_state = u'1'
         while pending_state != u'0':
-            invocation_info = JobInvocation.info({
-                'id': invocation_command[u'id']})
+            invocation_info = JobInvocation.info({'id': invocation_command[u'id']})
             pending_state = invocation_info[u'pending']
             sleep(30)
-        invocation_info = JobInvocation.info({
-            'id': invocation_command[u'id']})
+        invocation_info = JobInvocation.info({'id': invocation_command[u'id']})
         try:
             assert invocation_info['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
 
 
-class TestAnsibleREX():
+class TestAnsibleREX:
     """Test class for remote execution via Ansible"""
 
     @tier3
@@ -491,51 +512,58 @@ class TestAnsibleREX():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host via ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
-        make_user_job = make_job_invocation({
-            'job-template': 'Run Command - Ansible Default',
-            'inputs': "command='useradd -m {0}'".format(username),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        make_user_job = make_job_invocation(
+            {
+                'job-template': 'Run Command - Ansible Default',
+                'inputs': "command='useradd -m {0}'".format(username),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         try:
             assert make_user_job[u'success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': make_user_job[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': make_user_job[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
         # create a file as new user
-        invocation_command = make_job_invocation({
-            'job-template': 'Run Command - Ansible Default',
-            'inputs': "command='touch /home/{0}/{1}'".format(
-                username, filename),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-            'effective-user': '{0}'.format(username),
-        })
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Ansible Default',
+                'inputs': "command='touch /home/{0}/{1}'".format(username, filename),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+                'effective-user': '{0}'.format(username),
+            }
+        )
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
         # check the file owner
         result = ssh.command(
             '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
-            hostname=self.client.ip_addr
+            hostname=self.client.ip_addr,
         )
         # assert the file is owned by the effective user
         assert username == result.stdout[0], "file ownership mismatch"
@@ -564,35 +592,36 @@ class TestAnsibleREX():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
-        invocation_command = make_job_invocation({
-            'job-template': 'Run Command - Ansible Default',
-            'inputs': 'command="ls"',
-            'search-query': "name ~ {0}".format(self.client.hostname),
-            'cron-line': '* * * * *',  # every minute
-            'max-iteration': 2,  # just two runs
-        })
-        JobInvocation.get_output({
-            'id': invocation_command[u'id'],
-            'host': self.client.hostname
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Ansible Default',
+                'inputs': 'command="ls"',
+                'search-query': "name ~ {0}".format(self.client.hostname),
+                'cron-line': '* * * * *',  # every minute
+                'max-iteration': 2,  # just two runs
+            }
+        )
+        JobInvocation.get_output({'id': invocation_command[u'id'], 'host': self.client.hostname})
         try:
             assert invocation_command['status'] == u'queued'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
         sleep(150)
-        rec_logic = RecurringLogic.info({
-            'id': invocation_command['recurring-logic-id']})
+        rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
         assert rec_logic['state'] == u'finished'
         assert rec_logic['iteration'] == u'2'
 
@@ -624,11 +653,13 @@ class TestAnsibleREX():
         self.org = fixture_org
         self.client = fixture_vmsetup
         # set connecting to host by ip
-        Host.set_parameter({
-            'host': self.client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {
+                'host': self.client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         packages = ["cow"]
         # Create a custom repo
         repo = entities.Repository(
@@ -638,67 +669,63 @@ class TestAnsibleREX():
         ).create()
         repo.sync()
         prod = repo.product.read()
-        subs = entities.Subscription().search(
-            query={'search': 'name={0}'.format(prod.name)}
-        )
+        subs = entities.Subscription().search(query={'search': 'name={0}'.format(prod.name)})
         assert len(subs) > 0, 'No subscriptions matching the product returned'
         ak = entities.ActivationKey(
             organization=self.org,
             content_view=self.org.default_content_view,
-            environment=self.org.library
+            environment=self.org.library,
         ).create()
         ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
-        self.client.register_contenthost(
-            org=self.org.label, activation_key=ak.name
-        )
+        self.client.register_contenthost(org=self.org.label, activation_key=ak.name)
 
         # install package
-        invocation_command = make_job_invocation({
-            'job-template': 'Package Action - Ansible Default',
-            'inputs': 'state=latest, name={}'.format(*packages),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Package Action - Ansible Default',
+                'inputs': 'state=latest, name={}'.format(*packages),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
-        result = ssh.command(
-            "rpm -q {0}".format(*packages),
-            hostname=self.client.ip_addr
-        )
+        result = ssh.command("rpm -q {0}".format(*packages), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
         # start a service
         service = "postfix"
         ssh.command(
             "sed -i 's/^inet_protocols.*/inet_protocols = ipv4/' /etc/postfix/main.cf",
-            hostname=self.client.ip_addr
+            hostname=self.client.ip_addr,
         )
-        invocation_command = make_job_invocation({
-            'job-template': 'Service Action - Ansible Default',
-            'inputs': 'state=started, name={}'.format(service),
-            'search-query': "name ~ {0}".format(self.client.hostname),
-        })
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Service Action - Ansible Default',
+                'inputs': 'state=started, name={}'.format(service),
+                'search-query': "name ~ {0}".format(self.client.hostname),
+            }
+        )
         try:
             assert invocation_command['success'] == u'1'
         except AssertionError:
             result = 'host output: {0}'.format(
-                ' '.join(JobInvocation.get_output({
-                    'id': invocation_command[u'id'],
-                    'host': self.client.hostname})
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
                     )
                 )
+            )
             raise AssertionError(result)
-        result = ssh.command(
-            "systemctl status {0}".format(service),
-            hostname=self.client.ip_addr
-        )
+        result = ssh.command("systemctl status {0}".format(service), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
     @stubbed()

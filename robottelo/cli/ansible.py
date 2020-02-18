@@ -13,6 +13,7 @@ from robottelo.cli.base import Base
 
 class Ansible(Base):
     """Manipulates Ansible Variables and roles."""
+
     command_base = 'ansible'
 
     @classmethod

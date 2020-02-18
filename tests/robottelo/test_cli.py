@@ -17,6 +17,7 @@ else:
 
 class CLIClass(Base):
     """Class used for the username and password lookup tests"""
+
     foreman_admin_username = 'adminusername'
     foreman_admin_password = 'adminpassword'
 
@@ -28,12 +29,9 @@ class BaseCliTestCase(unittest2.TestCase):
         """_construct_command builds a command using flags and arguments"""
         Base.command_base = 'basecommand'
         Base.command_sub = 'subcommand'
-        command_parts = Base._construct_command({
-            u'flag-one': True,
-            u'flag-two': False,
-            u'argument': u'value',
-            u'ommited-arg': None,
-        }).split()
+        command_parts = Base._construct_command(
+            {u'flag-one': True, u'flag-two': False, u'argument': u'value', u'ommited-arg': None}
+        ).split()
 
         self.assertIn(u'basecommand', command_parts)
         self.assertIn(u'subcommand', command_parts)
@@ -96,14 +94,8 @@ class BaseCliTestCase(unittest2.TestCase):
             u'stderr contains following message:\n{}'.format(response.stderr)
         )
         warning.reset_mock()
-        self.assertEqual(
-            response.stdout,
-            base._handle_response(response, True)
-        )
-        self.assertFalse(
-            warning.called,
-            u'Should not be called when ignore_stderr is True'
-        )
+        self.assertEqual(response.stdout, base._handle_response(response, True))
+        self.assertFalse(warning.called, u'Should not be called when ignore_stderr is True')
 
     def test_handle_response_error(self):
         """Check handle_response raise ``CLIReturnCodeError`` when
@@ -135,7 +127,7 @@ class BaseCliTestCase(unittest2.TestCase):
               constraint "hostgroups_architecture_id_fk"
               DETAIL:  Key (architecture_id)=(1122222) is not present in table
               "architectures"
-            '''
+            ''',
         )
         for msg in msgs:
             self.assert_response_error(CLIDataBaseError, msg)
@@ -158,10 +150,7 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check command_sub edited when executing add_operating_system"""
         options = {u'foo': u'bar'}
         self.assertNotEqual('add-operatingsystem', Base.command_sub)
-        self.assertEqual(
-            execute.return_value,
-            Base.add_operating_system(options)
-        )
+        self.assertEqual(execute.return_value, Base.add_operating_system(options))
         self.assertEqual('add-operatingsystem', Base.command_sub)
         construct.called_once_with(options)
         execute.called_once_with(construct.return_value)
@@ -171,10 +160,7 @@ class BaseCliTestCase(unittest2.TestCase):
     def test_add_create_with_empty_result(self, construct, execute):
         """Check command create when result is empty"""
         execute.return_value = []
-        self.assertEqual(
-            execute.return_value,
-            Base.create()
-        )
+        self.assertEqual(execute.return_value, Base.create())
         self.assertEqual('create', Base.command_sub)
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
@@ -182,14 +168,10 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.Base.info')
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
-    def test_add_create_with_result_dct_without_id(
-            self, construct, execute, info):
+    def test_add_create_with_result_dct_without_id(self, construct, execute, info):
         """Check command create when result has dct but dct hasn't id key"""
         execute.return_value = [{'not_id': 'foo'}]
-        self.assertEqual(
-            execute.return_value,
-            Base.create()
-        )
+        self.assertEqual(execute.return_value, Base.create())
         self.assertEqual('create', Base.command_sub)
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
@@ -198,17 +180,13 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.Base.info')
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
-    def test_add_create_with_result_dct_with_id_not_required_org(
-            self, construct, execute, info):
+    def test_add_create_with_result_dct_with_id_not_required_org(self, construct, execute, info):
         """Check command create when result has dct id key and organization
         is not required
         """
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = False
-        self.assertEqual(
-            execute.return_value,
-            Base.create()
-        )
+        self.assertEqual(execute.return_value, Base.create())
         self.assertEqual('create', Base.command_sub)
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
@@ -217,17 +195,13 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.Base.info')
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
-    def test_add_create_with_result_dct_with_id_required_org(
-            self, construct, execute, info):
+    def test_add_create_with_result_dct_with_id_required_org(self, construct, execute, info):
         """Check command create when result has dct id key and organization
         is required
         """
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = True
-        self.assertEqual(
-            execute.return_value,
-            Base.create({'organization-id': 'org-id'})
-        )
+        self.assertEqual(execute.return_value, Base.create({'organization-id': 'org-id'}))
         self.assertEqual('create', Base.command_sub)
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
@@ -235,14 +209,11 @@ class BaseCliTestCase(unittest2.TestCase):
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
-    def test_add_create_with_result_dct_id_required_org_error(
-            self, construct, execute):
+    def test_add_create_with_result_dct_id_required_org_error(self, construct, execute):
         """Check command create when result has dct id key and organization
         is required but is not present
         """
-        execute.return_value = [
-            {'id': 'foo', 'bar': 'bas'}
-        ]
+        execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = True
         self.assertRaises(CLIError, Base.create)
         self.assertEqual('create', Base.command_sub)
@@ -250,32 +221,25 @@ class BaseCliTestCase(unittest2.TestCase):
         execute.called_once_with(construct.return_value, output_format='csv')
 
     def assert_cmd_execution(
-            self, construct, execute, base_method, cmd_sub,
-            ignore_stderr=False, **base_method_kwargs):
+        self, construct, execute, base_method, cmd_sub, ignore_stderr=False, **base_method_kwargs
+    ):
         """Asssert Base class method successfully executed """
-        self.assertEqual(
-            execute.return_value,
-            base_method(**base_method_kwargs)
-        )
+        self.assertEqual(execute.return_value, base_method(**base_method_kwargs))
         self.assertEqual(cmd_sub, Base.command_sub)
         construct.called_once_with({})
-        execute.called_once_with(
-            construct.return_value, ignore_stderr=ignore_stderr
-        )
+        execute.called_once_with(construct.return_value, ignore_stderr=ignore_stderr)
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_delete(self, construct, execute):
         """Check delete method"""
-        self.assert_cmd_execution(
-            construct, execute, Base.delete, 'delete', True)
+        self.assert_cmd_execution(construct, execute, Base.delete, 'delete', True)
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_delete_parameter(self, construct, execute):
         """Check delete_parameter method"""
-        self.assert_cmd_execution(
-            construct, execute, Base.delete_parameter, 'delete-parameter')
+        self.assert_cmd_execution(construct, execute, Base.delete_parameter, 'delete-parameter')
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
@@ -294,10 +258,7 @@ class BaseCliTestCase(unittest2.TestCase):
         response = Base.execute('some_cmd', return_raw_response=True)
         ssh_cmd = u'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
-            ssh_cmd.encode('utf-8'),
-            output_format=None,
-            timeout=None,
-            connection_timeout=None
+            ssh_cmd.encode('utf-8'), output_format=None, timeout=None, connection_timeout=None
         )
         self.assertIs(response, command.return_value)
 
@@ -311,20 +272,11 @@ class BaseCliTestCase(unittest2.TestCase):
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', output_format='json')
-        ssh_cmd = (
-            u'LANG=en_US time -p hammer -v -u admin -p password --output=json'
-            u' some_cmd'
-        )
+        ssh_cmd = u'LANG=en_US time -p hammer -v -u admin -p password --output=json' u' some_cmd'
         command.assert_called_once_with(
-            ssh_cmd.encode('utf-8'),
-            output_format='json',
-            timeout=None,
-            connection_timeout=None
+            ssh_cmd.encode('utf-8'), output_format='json', timeout=None, connection_timeout=None
         )
-        handle_resp.assert_called_once_with(
-            command.return_value,
-            ignore_stderr=None
-        )
+        handle_resp.assert_called_once_with(command.return_value, ignore_stderr=None)
         self.assertIs(response, handle_resp.return_value)
 
     @mock.patch('robottelo.cli.base.Base.list')
@@ -362,7 +314,7 @@ class BaseCliTestCase(unittest2.TestCase):
             Base.info,
             'info',
             output_format='json',
-            options={'organization-id': 1}
+            options={'organization-id': 1},
         )
         parse.assert_not_called()
 
@@ -373,11 +325,7 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check info method execution parsing response"""
         parse.return_value = execute.return_value = 'some_response'
         self.assert_cmd_execution(
-            construct,
-            execute,
-            Base.info,
-            'info',
-            options={'organization-id': 1}
+            construct, execute, Base.info, 'info', options={'organization-id': 1}
         )
         parse.called_once_with('some_response')
 
@@ -392,10 +340,7 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_list_with_default_per_page(self, construct, execute):
         """Check list method set per_page as 1000 by default"""
-        self.assertEqual(
-            execute.return_value,
-            Base.list(options={'organization-id': 1})
-        )
+        self.assertEqual(execute.return_value, Base.list(options={'organization-id': 1}))
         self.assertEqual('list', Base.command_sub)
         construct.called_once_with({'per-page': 1000})
         execute.called_once_with(construct.return_value, output_format='csv')
@@ -405,71 +350,41 @@ class BaseCliTestCase(unittest2.TestCase):
     def test_list_without_per_page(self, construct, execute):
         """Check list with per_page set as false"""
         list_with_per_page_false = partial(
-            Base.list,
-            per_page=False,
-            options={'organization-id': 1}
+            Base.list, per_page=False, options={'organization-id': 1}
         )
-        self.assert_cmd_execution(
-            construct,
-            execute,
-            list_with_per_page_false,
-            'list',
-        )
+        self.assert_cmd_execution(construct, execute, list_with_per_page_false, 'list')
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_puppet_classes(self, construct, execute):
         """Check puppet_classes method execution"""
-        self.assert_cmd_execution(
-            construct,
-            execute,
-            Base.puppetclasses,
-            'puppet-classes'
-        )
+        self.assert_cmd_execution(construct, execute, Base.puppetclasses, 'puppet-classes')
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_remove_operating_system(self, construct, execute):
         """Check remove_operating_system method execution"""
         self.assert_cmd_execution(
-            construct,
-            execute,
-            Base.remove_operating_system,
-            'remove-operatingsystem'
+            construct, execute, Base.remove_operating_system, 'remove-operatingsystem'
         )
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_sc_params(self, construct, execute):
         """Check sc_params method execution"""
-        self.assert_cmd_execution(
-            construct,
-            execute,
-            Base.sc_params,
-            'sc-params'
-        )
+        self.assert_cmd_execution(construct, execute, Base.sc_params, 'sc-params')
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_set_parameter(self, construct, execute):
         """Check set_parameter method execution"""
-        self.assert_cmd_execution(
-            construct,
-            execute,
-            Base.set_parameter,
-            'set-parameter'
-        )
+        self.assert_cmd_execution(construct, execute, Base.set_parameter, 'set-parameter')
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_update(self, construct, execute):
         """Check update method execution"""
-        self.assert_cmd_execution(
-            construct,
-            execute,
-            Base.update,
-            'update'
-        )
+        self.assert_cmd_execution(construct, execute, Base.update, 'update')
 
 
 class CLIErrorTests(unittest2.TestCase):

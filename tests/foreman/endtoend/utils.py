@@ -9,8 +9,8 @@ AK_CONTENT_LABEL = u'rhel-6-server-rhev-agent-rpms'
 
 class ClientProvisioningMixin(object):
     def client_provisioning(
-            self, activation_key_name, organization_label,
-            package_name='python-kitchen'):
+        self, activation_key_name, organization_label, package_name='python-kitchen'
+    ):
         """Provision a Satellite's client.
 
         Do the following:

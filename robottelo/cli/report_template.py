@@ -75,8 +75,7 @@ class ReportTemplate(Base):
 
         options['file'] = layout
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         # Extract new object ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:

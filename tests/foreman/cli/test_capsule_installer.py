@@ -182,11 +182,13 @@ class CapsuleInstallerTestCase(CLITestCase):
         with CapsuleVirtualMachine() as capsule_vm:
             # ensure that capsule refresh-features succeed
             with self.assertNotRaises(CLIReturnCodeError):
-                Capsule.refresh_features(
-                    {'name': capsule_vm._capsule_hostname})
+                Capsule.refresh_features({'name': capsule_vm._capsule_hostname})
             # katello-remove is no longer part of product so deploy it sideways to perform testing
-            capsule_vm.run("wget -nv -P /usr/bin http://{0}/pub/katello-remove"
-                           .format(settings.artifacts_server))
+            capsule_vm.run(
+                "wget -nv -P /usr/bin http://{0}/pub/katello-remove".format(
+                    settings.artifacts_server
+                )
+            )
             capsule_vm.run("chmod +x /usr/bin/katello-remove")
             # katello-remove command request to confirm by typing Y and then by typing remove
             result = capsule_vm.run("printf 'Y\nremove\n' | katello-remove")
@@ -204,25 +206,22 @@ class CapsuleInstallerTestCase(CLITestCase):
             result = ssh.command(
                 'capsule-certs-generate '
                 '--foreman-proxy-fqdn {0} '
-                '--certs-tar {1}'
-                .format(capsule_vm.hostname, cert_file_path)
+                '--certs-tar {1}'.format(capsule_vm.hostname, cert_file_path)
             )
             self.assertEqual(result.return_code, 0)
             # retrieve the installer command from the result output
-            installer_cmd = extract_capsule_satellite_installer_command(
-                result.stdout
-            )
+            installer_cmd = extract_capsule_satellite_installer_command(result.stdout)
             # copy the generated certs to capsule vm
             _, temporary_local_cert_file_path = mkstemp(suffix='-certs.tar')
             ssh.download_file(
                 remote_file=cert_file_path,
                 local_file=temporary_local_cert_file_path,
-                hostname=settings.server.hostname
+                hostname=settings.server.hostname,
             )
             ssh.upload_file(
                 local_file=temporary_local_cert_file_path,
                 remote_file=cert_file_path,
-                hostname=capsule_vm.ip_addr
+                hostname=capsule_vm.ip_addr,
             )
             # delete the temporary file
             os.remove(temporary_local_cert_file_path)
@@ -230,5 +229,4 @@ class CapsuleInstallerTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             # ensure that capsule refresh-features succeed
             with self.assertNotRaises(CLIReturnCodeError):
-                Capsule.refresh_features(
-                    {'name': capsule_vm.hostname})
+                Capsule.refresh_features({'name': capsule_vm.hostname})

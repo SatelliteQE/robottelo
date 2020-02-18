@@ -78,40 +78,35 @@ class RepositoryExportTestCase(CLITestCase):
             result = ssh.command('mkdir /mnt/{0}'.format(self.export_dir))
             self.assertEqual(result.return_code, 0)
 
-            result = ssh.command(
-                'chown foreman.foreman /mnt/{0}'.format(self.export_dir))
+            result = ssh.command('chown foreman.foreman /mnt/{0}'.format(self.export_dir))
             self.assertEqual(result.return_code, 0)
 
-            result = ssh.command(
-                'ls -Z /mnt/ | grep {0}'.format(self.export_dir))
+            result = ssh.command('ls -Z /mnt/ | grep {0}'.format(self.export_dir))
             self.assertEqual(result.return_code, 0)
             self.assertGreaterEqual(len(result.stdout), 1)
             self.assertIn('unconfined_u:object_r:mnt_t:s0', result.stdout[0])
 
             # Fix SELinux policy for new directory
             result = ssh.command(
-                'semanage fcontext -a -t foreman_var_run_t "/mnt/{0}(/.*)?"'
-                .format(self.export_dir)
+                'semanage fcontext -a -t foreman_var_run_t "/mnt/{0}(/.*)?"'.format(
+                    self.export_dir
+                )
             )
             self.assertEqual(result.return_code, 0)
 
-            result = ssh.command(
-                'restorecon -Rv /mnt/{0}'.format(self.export_dir))
+            result = ssh.command('restorecon -Rv /mnt/{0}'.format(self.export_dir))
             self.assertEqual(result.return_code, 0)
 
             # Assert that we have the correct policy
-            result = ssh.command(
-                'ls -Z /mnt/ | grep {0}'.format(self.export_dir))
+            result = ssh.command('ls -Z /mnt/ | grep {0}'.format(self.export_dir))
             self.assertEqual(result.return_code, 0)
             self.assertGreaterEqual(len(result.stdout), 1)
-            self.assertIn(
-                'unconfined_u:object_r:foreman_var_run_t:s0', result.stdout[0])
+            self.assertIn('unconfined_u:object_r:foreman_var_run_t:s0', result.stdout[0])
 
             # Update the 'pulp_export_destination' settings to new directory
-            Settings.set({
-                'name': 'pulp_export_destination',
-                'value': '/mnt/{0}'.format(self.export_dir),
-            })
+            Settings.set(
+                {'name': 'pulp_export_destination', 'value': '/mnt/{0}'.format(self.export_dir)}
+            )
             # Create an organization to reuse in tests
             RepositoryExportTestCase.org = make_org()
 
@@ -120,8 +115,7 @@ class RepositoryExportTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove the export directory with all exported repository archives"""
-        ssh.command(
-            'rm -rf /mnt/{0}'.format(RepositoryExportTestCase.export_dir))
+        ssh.command('rm -rf /mnt/{0}'.format(RepositoryExportTestCase.export_dir))
         super(RepositoryExportTestCase, cls).tearDownClass()
 
     @tier3
@@ -137,13 +131,14 @@ class RepositoryExportTestCase(CLITestCase):
         """
         # Create custom product and repository
         product = make_product({'organization-id': self.org['id']})
-        repo = make_repository({
-            'download-policy': 'immediate',
-            'organization-id': self.org['id'],
-            'product-id': product['id'],
-        })
-        backend_identifier = entities.Repository(
-            id=repo['id']).read().backend_identifier
+        repo = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': self.org['id'],
+                'product-id': product['id'],
+            }
+        )
+        backend_identifier = entities.Repository(id=repo['id']).read().backend_identifier
         repo_export_dir = '/mnt/{0}/{1}/{2}/{3}/custom/{4}/{5}'.format(
             self.export_dir,
             backend_identifier,
@@ -187,40 +182,33 @@ class RepositoryExportTestCase(CLITestCase):
         # Enable RH repository
         with manifests.clone() as manifest:
             ssh.upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': self.org['id'],
-        })
-        RepositorySet.enable({
-            'basearch': 'x86_64',
-            'name': REPOSET['rhva6'],
-            'organization-id': self.org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-        })
-        repo = Repository.info({
-            'name': REPOS['rhva6']['name'],
-            'organization-id': self.org['id'],
-            'product': PRDS['rhel'],
-        })
-        backend_identifier = entities.Repository(
-            id=repo['id']).read().backend_identifier
+        Subscription.upload({'file': manifest.filename, 'organization-id': self.org['id']})
+        RepositorySet.enable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhva6'],
+                'organization-id': self.org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+            }
+        )
+        repo = Repository.info(
+            {
+                'name': REPOS['rhva6']['name'],
+                'organization-id': self.org['id'],
+                'product': PRDS['rhel'],
+            }
+        )
+        backend_identifier = entities.Repository(id=repo['id']).read().backend_identifier
         repo_export_dir = (
             '/mnt/{0}/{1}/{2}/{3}/content/dist/rhel/server/6/6Server/'
-            'x86_64/rhev-agent/3/os'
-            .format(
-                self.export_dir,
-                backend_identifier,
-                self.org['label'],
-                ENVIRONMENT,
+            'x86_64/rhev-agent/3/os'.format(
+                self.export_dir, backend_identifier, self.org['label'], ENVIRONMENT
             )
         )
 
         # Update the download policy to 'immediate'
-        Repository.update({
-            'download-policy': 'immediate',
-            'id': repo['id'],
-        })
+        Repository.update({'download-policy': 'immediate', 'id': repo['id']})
 
         # Export the repository
         Repository.export({'id': repo['id']})
@@ -259,19 +247,15 @@ class ContentViewSync(CLITestCase):
         :param publish: Publishes the CV if True else doesnt
         :return: The directory of CV and Content View ID
         """
-        content_view = make_content_view({
-            'name': cv_name,
-            'organization-id': organization['id']
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'organization-id': organization['id'],
-            'repository-id': repo['id']
-        })
-        content_view = ContentView.info({
-            'name': cv_name,
-            'organization-id': organization['id']
-        })
+        content_view = make_content_view({'name': cv_name, 'organization-id': organization['id']})
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': organization['id'],
+                'repository-id': repo['id'],
+            }
+        )
+        content_view = ContentView.info({'name': cv_name, 'organization-id': organization['id']})
         cvv_id = None
         if publish:
             ContentView.publish({u'id': content_view['id']})
@@ -288,34 +272,37 @@ class ContentViewSync(CLITestCase):
         :param bool sync: Syncs contents to repository if true else doesnt
         :return: Repository cli object
         """
-        manifests.upload_manifest_locked(
-            organization['id'], interface=manifests.INTERFACE_CLI)
-        RepositorySet.enable({
-            'basearch': 'x86_64',
-            'name': REPOSET[repo_name],
-            'organization-id': organization['id'],
-            'product': PRDS[product],
-            'releasever': releasever,
-        })
-        repo = Repository.info({
-            'name': REPOS[repo_name]['name'],
-            'organization-id': organization['id'],
-            'product': PRDS[product],
-        })
+        manifests.upload_manifest_locked(organization['id'], interface=manifests.INTERFACE_CLI)
+        RepositorySet.enable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET[repo_name],
+                'organization-id': organization['id'],
+                'product': PRDS[product],
+                'releasever': releasever,
+            }
+        )
+        repo = Repository.info(
+            {
+                'name': REPOS[repo_name]['name'],
+                'organization-id': organization['id'],
+                'product': PRDS[product],
+            }
+        )
         # Update the download policy to 'immediate'
-        Repository.update({
-            'download-policy': 'immediate',
-            'mirror-on-sync': 'no',
-            'id': repo['id'],
-        })
+        Repository.update(
+            {'download-policy': 'immediate', 'mirror-on-sync': 'no', 'id': repo['id']}
+        )
         if sync:
             # Synchronize the repository
             Repository.synchronize({'id': repo['id']}, timeout=7200)
-        repo = Repository.info({
-            'name': REPOS[repo_name]['name'],
-            'organization-id': organization['id'],
-            'product': PRDS[product],
-        })
+        repo = Repository.info(
+            {
+                'name': REPOS[repo_name]['name'],
+                'organization-id': organization['id'],
+                'product': PRDS[product],
+            }
+        )
         return repo
 
     def _update_json(self, json_path):
@@ -329,14 +316,15 @@ class ContentViewSync(CLITestCase):
         result = ssh.command('[ -f {} ]'.format(json_path))
         if result.return_code == 0:
             ssh.command(
-                'sed -i \'s/\"major\": [0-9]\\+/\"major\": {0}/\' {1}'.format(
-                    new_major, json_path))
+                'sed -i \'s/\"major\": [0-9]\\+/\"major\": {0}/\' {1}'.format(new_major, json_path)
+            )
             ssh.command(
-                'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {0}/\' {1}'.format(
-                    new_minor, json_path))
+                'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {0}/\' {1}'.format(new_minor, json_path)
+            )
             return new_major, new_minor
         raise IOError(
-            'Json File {} not found to alternate the major/minor versions'.format(json_path))
+            'Json File {} not found to alternate the major/minor versions'.format(json_path)
+        )
 
     def set_importing_org(self, product, repo, cv, mos='no'):
         """Sets same CV, product and repository in importing organization as
@@ -348,25 +336,27 @@ class ContentViewSync(CLITestCase):
         :param str mos: Mirror on Sync repo, by default 'no' can override to 'yes'
         """
         self.importing_org = make_org()
-        self.importing_prod = make_product({
-            'organization-id': self.importing_org['id'],
-            'name': product
-        })
-        self.importing_repo = make_repository({
-            'name': repo,
-            'mirror-on-sync': mos,
-            'download-policy': 'immediate',
-            'product-id': self.importing_prod['id']
-        })
-        self.importing_cv = make_content_view({
-            'name': cv,
-            'organization-id': self.importing_org['id']
-        })
-        ContentView.add_repository({
-            'id': self.importing_cv['id'],
-            'organization-id': self.importing_org['id'],
-            'repository-id': self.importing_repo['id']
-        })
+        self.importing_prod = make_product(
+            {'organization-id': self.importing_org['id'], 'name': product}
+        )
+        self.importing_repo = make_repository(
+            {
+                'name': repo,
+                'mirror-on-sync': mos,
+                'download-policy': 'immediate',
+                'product-id': self.importing_prod['id'],
+            }
+        )
+        self.importing_cv = make_content_view(
+            {'name': cv, 'organization-id': self.importing_org['id']}
+        )
+        ContentView.add_repository(
+            {
+                'id': self.importing_cv['id'],
+                'organization-id': self.importing_org['id'],
+                'repository-id': self.importing_repo['id'],
+            }
+        )
 
     @classmethod
     def setUpClass(cls):
@@ -374,24 +364,27 @@ class ContentViewSync(CLITestCase):
         super(ContentViewSync, cls).setUpClass()
         if ssh.command('[ -d {} ]'.format(cls.export_base)).return_code == 1:
             raise ExportDirectoryNotSet(
-                'Export Directory "{}" is not set/found.'.format(cls.export_base))
+                'Export Directory "{}" is not set/found.'.format(cls.export_base)
+            )
         cls.exporting_org = make_org()
         cls.exporting_prod_name = gen_string('alpha')
-        product = make_product({
-            'organization-id': cls.exporting_org['id'],
-            'name': cls.exporting_prod_name
-        })
+        product = make_product(
+            {'organization-id': cls.exporting_org['id'], 'name': cls.exporting_prod_name}
+        )
         cls.exporting_repo_name = gen_string('alpha')
-        cls.exporting_repo = make_repository({
-            'name': cls.exporting_repo_name,
-            'mirror-on-sync': 'no',
-            'download-policy': 'immediate',
-            'product-id': product['id']
-        })
+        cls.exporting_repo = make_repository(
+            {
+                'name': cls.exporting_repo_name,
+                'mirror-on-sync': 'no',
+                'download-policy': 'immediate',
+                'product-id': product['id'],
+            }
+        )
         Repository.synchronize({'id': cls.exporting_repo['id']})
         cls.exporting_cv_name = gen_string('alpha')
         cls.exporting_cv, cls.exporting_cvv_id = ContentViewSync._create_cv(
-            cls.exporting_cv_name, cls.exporting_repo, cls.exporting_org)
+            cls.exporting_cv_name, cls.exporting_repo, cls.exporting_org
+        )
 
     def setUp(self):
         """Create Directory for CV export"""
@@ -410,7 +403,8 @@ class ContentViewSync(CLITestCase):
         :return: The path to the tar (if it exists).
         """
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, content_view_name, content_view_version)
+            self.export_dir, content_view_name, content_view_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         return exported_tar
@@ -444,46 +438,47 @@ class ContentViewSync(CLITestCase):
         """
         exporting_cv_name = gen_string('alpha')
         exporting_cv, exporting_cvv = ContentViewSync._create_cv(
-            exporting_cv_name, self.exporting_repo, self.exporting_org, False)
+            exporting_cv_name, self.exporting_repo, self.exporting_org, False
+        )
         filter_name = gen_string('alphanumeric')
-        ContentView.filter.create({
-            'name': filter_name,
-            'content-view-id': exporting_cv['id'],
-            'inclusion': 'yes',
-            'type': 'rpm'
-        })
-        ContentView.filter.rule.create({
-            'name': 'cat',
-            'content-view-filter': filter_name,
-            'content-view-id': exporting_cv['id'],
-        })
-        ContentView.publish({
-            'id': exporting_cv['id'],
-            'organization-id': self.exporting_org['id'],
-
-        })
+        ContentView.filter.create(
+            {
+                'name': filter_name,
+                'content-view-id': exporting_cv['id'],
+                'inclusion': 'yes',
+                'type': 'rpm',
+            }
+        )
+        ContentView.filter.rule.create(
+            {
+                'name': 'cat',
+                'content-view-filter': filter_name,
+                'content-view-id': exporting_cv['id'],
+            }
+        )
+        ContentView.publish(
+            {'id': exporting_cv['id'], 'organization-id': self.exporting_org['id']}
+        )
         exporting_cv = ContentView.info({u'id': exporting_cv['id']})
         exporting_cvv_id = exporting_cv['versions'][0]['id']
         exporting_cvv_version = exporting_cv['versions'][0]['version']
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+        )
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, exporting_cv_name, exporting_cvv_version)
+            self.export_dir, exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) == 1)
         self.set_importing_org(
-            self.exporting_prod_name, self.exporting_repo_name, exporting_cv_name)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': self.importing_org['id']
-        })
-        importing_cvv = ContentView.info({
-            u'id': self.importing_cv['id']
-        })['versions']
+            self.exporting_prod_name, self.exporting_repo_name, exporting_cv_name
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+        )
+        importing_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
         self.assertTrue(len(importing_cvv) >= 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertTrue(len(imported_packages) == 1)
@@ -515,26 +510,24 @@ class ContentViewSync(CLITestCase):
 
         :CaseLevel: System
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)
         self.set_importing_org(
-            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': self.importing_org['id']
-        })
-        importing_cvv = ContentView.info({
-            u'id': self.importing_cv['id']
-        })['versions']
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+        )
+        importing_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
         self.assertTrue(len(importing_cvv) >= 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertTrue(len(imported_packages) > 0)
@@ -574,17 +567,19 @@ class ContentViewSync(CLITestCase):
         releasever = '6Server'
         product = 'rhel'
         rhva_repo = ContentViewSync._enable_rhel_content(
-            self.exporting_org, rhva_repo_name, releasever, product)
+            self.exporting_org, rhva_repo_name, releasever, product
+        )
         rhva_cv_name = gen_string('alpha')
         rhva_cv, exporting_cvv_id = ContentViewSync._create_cv(
-            rhva_cv_name, rhva_repo, self.exporting_org)
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': exporting_cvv_id
-        })
+            rhva_cv_name, rhva_repo, self.exporting_org
+        )
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+        )
         exporting_cvv_version = rhva_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, rhva_cv_name, exporting_cvv_version)
+            self.export_dir, rhva_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -592,16 +587,15 @@ class ContentViewSync(CLITestCase):
         Subscription.delete_manifest({'organization-id': self.exporting_org['id']})
         importing_org = make_org()
         imp_rhva_repo = ContentViewSync._enable_rhel_content(
-            importing_org, rhva_repo_name, releasever, product, sync=False)
+            importing_org, rhva_repo_name, releasever, product, sync=False
+        )
         importing_cv, _ = ContentViewSync._create_cv(
-            rhva_cv_name, imp_rhva_repo, importing_org, publish=False)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': importing_org['id']
-        })
-        importing_cvv_id = ContentView.info({
-            u'id': importing_cv['id']
-        })['versions'][0]['id']
+            rhva_cv_name, imp_rhva_repo, importing_org, publish=False
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': importing_org['id']}
+        )
+        importing_cvv_id = ContentView.info({u'id': importing_cv['id']})['versions'][0]['id']
         imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
@@ -639,16 +633,19 @@ class ContentViewSync(CLITestCase):
         product = 'rhscl'
         releasever = '7Server'
         rhel_repo = ContentViewSync._enable_rhel_content(
-            self.exporting_org, rhel_repo_name, releasever, product)
+            self.exporting_org, rhel_repo_name, releasever, product
+        )
         rhel_cv_name = gen_string('alpha')
         rhel_cv, exporting_cvv_id = ContentViewSync._create_cv(
-            rhel_cv_name, rhel_repo, self.exporting_org)
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': exporting_cvv_id}, timeout=7200)
+            rhel_cv_name, rhel_repo, self.exporting_org
+        )
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}, timeout=7200
+        )
         exporting_cvv_version = rhel_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, rhel_cv_name, exporting_cvv_version)
+            self.export_dir, rhel_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
@@ -656,15 +653,15 @@ class ContentViewSync(CLITestCase):
         Subscription.delete_manifest({'organization-id': self.exporting_org['id']})
         importing_org = make_org()
         imp_rhel_repo = ContentViewSync._enable_rhel_content(
-            importing_org, rhel_repo_name, releasever, product, sync=False)
+            importing_org, rhel_repo_name, releasever, product, sync=False
+        )
         importing_cv, _ = ContentViewSync._create_cv(
-            rhel_cv_name, imp_rhel_repo, importing_org, publish=False)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': importing_org['id']}, timeout=7200)
-        importing_cvv_id = ContentView.info({
-            u'id': importing_cv['id']
-        })['versions'][0]['id']
+            rhel_cv_name, imp_rhel_repo, importing_org, publish=False
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': importing_org['id']}, timeout=7200
+        )
+        importing_cvv_id = ContentView.info({u'id': importing_cv['id']})['versions'][0]['id']
         imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
@@ -689,24 +686,26 @@ class ContentViewSync(CLITestCase):
 
         :CaseLevel: Integration
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         result = ssh.command("tar -t -f {}".format(exported_tar))
         contents_tar = 'export-{0}-{1}/export-{0}-{1}-repos.tar'.format(
-            self.exporting_cv_name, exporting_cvv_version)
+            self.exporting_cv_name, exporting_cvv_version
+        )
         self.assertIn(contents_tar, result.stdout)
         cvv_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(cvv_packages) > 0)
         ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
-        exported_packages = ssh.command("tar -tf {0}/{1} | grep .rpm | wc -l".format(
-            self.export_dir, contents_tar))
+        exported_packages = ssh.command(
+            "tar -tf {0}/{1} | grep .rpm | wc -l".format(self.export_dir, contents_tar)
+        )
         self.assertEqual(len(cvv_packages), int(exported_packages.stdout[0]))
 
     @tier1
@@ -734,32 +733,27 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: System
         """
         env = make_lifecycle_environment({u'organization-id': self.exporting_org['id']})
-        ContentView.version_promote({
-            u'id': self.exporting_cvv_id,
-            u'to-lifecycle-environment-id': env['id'],
-        })
-        promoted_cvv_id = ContentView.info({
-            u'id': self.exporting_cv['id'],
-        })['versions'][-1]['id']
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': promoted_cvv_id
-        })
+        ContentView.version_promote(
+            {u'id': self.exporting_cvv_id, u'to-lifecycle-environment-id': env['id']}
+        )
+        promoted_cvv_id = ContentView.info({u'id': self.exporting_cv['id']})['versions'][-1]['id']
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': promoted_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
         self.set_importing_org(
-            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': self.importing_org['id']
-        })
-        importing_cvv = ContentView.info({
-            u'id': self.importing_cv['id']
-        })['versions']
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+        )
+        importing_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
         self.assertEqual(len(importing_cvv), 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertEqual(len(exported_packages), len(imported_packages))
@@ -784,27 +778,28 @@ class ContentViewSync(CLITestCase):
 
         :CaseLevel: Integration
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         self.set_importing_org(
-            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': self.importing_org['id']
-        })
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+        )
         exported_repo = Repository.info({'id': self.exporting_repo['id']})
         imported_repo = Repository.info({'id': self.importing_repo['id']})
         self.assertEqual(
             exported_repo['content-counts']['packages'],
-            imported_repo['content-counts']['packages'])
+            imported_repo['content-counts']['packages'],
+        )
         self.assertEqual(
-            exported_repo['content-counts']['errata'],
-            imported_repo['content-counts']['errata'])
+            exported_repo['content-counts']['errata'], imported_repo['content-counts']['errata']
+        )
 
     @tier2
     def test_negative_reimport_cv_with_same_major_minor(self):
@@ -827,30 +822,29 @@ class ContentViewSync(CLITestCase):
             2. Satellite displays an error 'A CV version already exists with the same major and
                 minor version'
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
-            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': self.importing_org['id']
-        })
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+        )
         with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_import({
-                'export-tar': exported_tar,
-                'organization-id': self.importing_org['id']
-            })
+            ContentView.version_import(
+                {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+            )
         self.assert_error_msg(
             error,
             "the Content View '{0}' is greater or equal to the version you "
-            "are trying to import".format(self.exporting_cv_name)
+            "are trying to import".format(self.exporting_cv_name),
         )
 
     @tier2
@@ -873,24 +867,24 @@ class ContentViewSync(CLITestCase):
             1. Error 'Unable to sync repositories, no library repository found' should be
                 displayed
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         importing_org = make_org()
         with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_import({
-                'export-tar': exported_tar,
-                'organization-id': importing_org['id']
-            })
+            ContentView.version_import(
+                {'export-tar': exported_tar, 'organization-id': importing_org['id']}
+            )
         self.assert_error_msg(
             error,
             'Error: The Content View {} is not present on this server, '
             'please create the Content View and try the import again'.format(
-                self.exporting_cv_name)
+                self.exporting_cv_name
+            ),
         )
 
     @tier1
@@ -913,27 +907,20 @@ class ContentViewSync(CLITestCase):
             1. Error 'Unable to sync repositories, no library repository found' should be
                 displayed
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
-        importing_org = make_org()
-        make_content_view({
-            'name': self.exporting_cv_name,
-            'organization-id': importing_org['id']
-        })
-        with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_import({
-                'export-tar': exported_tar,
-                'organization-id': importing_org['id']
-            })
-        self.assert_error_msg(
-            error,
-            'Unable to sync repositories, no library repository found'
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
+        importing_org = make_org()
+        make_content_view({'name': self.exporting_cv_name, 'organization-id': importing_org['id']})
+        with self.assertRaises(CLIReturnCodeError) as error:
+            ContentView.version_import(
+                {'export-tar': exported_tar, 'organization-id': importing_org['id']}
+            )
+        self.assert_error_msg(error, 'Unable to sync repositories, no library repository found')
 
     @tier2
     def test_negative_export_cv_with_on_demand_repo(self):
@@ -956,31 +943,24 @@ class ContentViewSync(CLITestCase):
         """
         exporting_org = make_org()
         exporting_prod = gen_string('alpha')
-        product = make_product({
-            'organization-id': exporting_org['id'],
-            'name': exporting_prod
-        })
+        product = make_product({'organization-id': exporting_org['id'], 'name': exporting_prod})
         exporting_repo = gen_string('alpha')
-        repo = make_repository({
-            'name': exporting_repo,
-            'download-policy': 'on_demand',
-            'product-id': product['id']
-        })
+        repo = make_repository(
+            {'name': exporting_repo, 'download-policy': 'on_demand', 'product-id': product['id']}
+        )
         Repository.synchronize({'id': repo['id']})
         exporting_cv = gen_string('alpha')
-        cv_dict, exporting_cvv_id = ContentViewSync._create_cv(
-            exporting_cv, repo, exporting_org)
+        cv_dict, exporting_cvv_id = ContentViewSync._create_cv(exporting_cv, repo, exporting_org)
         cv_name = cv_dict['name']
         cv_version = cv_dict['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_export({
-                'export-dir': '{}'.format(self.export_dir),
-                'id': exporting_cvv_id
-            })
+            ContentView.version_export(
+                {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+            )
         self.assert_error_msg(
             error,
             "Could not export the content view:\n  Error: Ensure the content view version"
-            " '{} {}' has at least one repository.\n".format(cv_name, cv_version)
+            " '{} {}' has at least one repository.\n".format(cv_name, cv_version),
         )
 
     @tier2
@@ -1004,29 +984,28 @@ class ContentViewSync(CLITestCase):
         """
         exporting_org = make_org()
         exporting_prod = gen_string('alpha')
-        product = make_product({
-            'organization-id': exporting_org['id'],
-            'name': exporting_prod
-        })
-        repo = make_repository({
-            'name': gen_string('alpha'),
-            'download-policy': 'background',
-            'product-id': product['id']
-        })
+        product = make_product({'organization-id': exporting_org['id'], 'name': exporting_prod})
+        repo = make_repository(
+            {
+                'name': gen_string('alpha'),
+                'download-policy': 'background',
+                'product-id': product['id'],
+            }
+        )
         Repository.synchronize({'id': repo['id']})
         cv_dict, exporting_cvv_id = ContentViewSync._create_cv(
-            gen_string('alpha'), repo, exporting_org)
+            gen_string('alpha'), repo, exporting_org
+        )
         cv_name = cv_dict['name']
         cv_version = cv_dict['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_export({
-                'export-dir': '{}'.format(self.export_dir),
-                'id': exporting_cvv_id
-            })
+            ContentView.version_export(
+                {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+            )
         self.assert_error_msg(
             error,
             "Could not export the content view:\n  Error: Ensure the content view version"
-            " '{} {}' has at least one repository.\n".format(cv_name, cv_version)
+            " '{} {}' has at least one repository.\n".format(cv_name, cv_version),
         )
 
     @tier2
@@ -1050,40 +1029,43 @@ class ContentViewSync(CLITestCase):
 
         """
         exporting_prod_name = gen_string('alpha')
-        product = make_product({
-            'organization-id': self.exporting_org['id'],
-            'name': exporting_prod_name
-        })
+        product = make_product(
+            {'organization-id': self.exporting_org['id'], 'name': exporting_prod_name}
+        )
         exporting_repo_name = gen_string('alpha')
-        repo = make_repository({
-            'name': exporting_repo_name,
-            'download-policy': 'immediate',
-            'mirror-on-sync': 'yes',
-            'product-id': product['id']
-        })
+        repo = make_repository(
+            {
+                'name': exporting_repo_name,
+                'download-policy': 'immediate',
+                'mirror-on-sync': 'yes',
+                'product-id': product['id'],
+            }
+        )
         Repository.synchronize({'id': repo['id']})
         exporting_cv_name = gen_string('alpha')
         exporting_cv, exporting_cvv_id = ContentViewSync._create_cv(
-            exporting_cv_name, repo, self.exporting_org)
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': exporting_cvv_id
-        })
+            exporting_cv_name, repo, self.exporting_org
+        )
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+        )
         exporting_cvv_version = exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, exporting_cv_name, exporting_cvv_version)
+            self.export_dir, exporting_cv_name, exporting_cvv_version
+        )
         self.set_importing_org(
-            exporting_prod_name, exporting_repo_name, exporting_cv_name, mos='yes')
+            exporting_prod_name, exporting_repo_name, exporting_cv_name, mos='yes'
+        )
         with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_import({
-                'export-tar': exported_tar,
-                'organization-id': self.importing_org['id']
-            })
+            ContentView.version_import(
+                {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
+            )
         self.assert_error_msg(
             error,
             "The Repository '{}' is set with Mirror-on-Sync to YES. "
             "Please change Mirror-on-Sync to NO and try the import again".format(
-                exporting_repo_name)
+                exporting_repo_name
+            ),
         )
 
     @tier2
@@ -1108,10 +1090,9 @@ class ContentViewSync(CLITestCase):
         org = make_org()
         major = randint(1, 1000)
         minor = randint(1, 1000)
-        content_view = make_content_view({
-            'name': gen_string('alpha'),
-            'organization-id': org['id']
-        })
+        content_view = make_content_view(
+            {'name': gen_string('alpha'), 'organization-id': org['id']}
+        )
         ContentView.publish({u'id': content_view['id'], 'major': major, 'minor': minor})
         content_view = ContentView.info({u'id': content_view['id']})
         cvv = content_view['versions'][0]['version']
@@ -1140,36 +1121,38 @@ class ContentViewSync(CLITestCase):
         """
         module = {'name': 'versioned', 'version': '3.3.3'}
         exporting_org = make_org()
-        product = make_product({
-            'organization-id': exporting_org['id'],
-            'name': gen_string('alpha')
-        })
-        repo = make_repository({
-            'url': CUSTOM_PUPPET_REPO,
-            'content-type': 'puppet',
-            'product-id': product['id']
-        })
+        product = make_product(
+            {'organization-id': exporting_org['id'], 'name': gen_string('alpha')}
+        )
+        repo = make_repository(
+            {'url': CUSTOM_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
+        )
         Repository.synchronize({'id': repo['id']})
-        puppet_module = PuppetModule.list({
-            'search': 'name={name} and version={version}'.format(**module)})[0]
+        puppet_module = PuppetModule.list(
+            {'search': 'name={name} and version={version}'.format(**module)}
+        )[0]
         content_view = make_content_view({u'organization-id': exporting_org['id']})
-        ContentView.puppet_module_add({
-            u'content-view-id': content_view['id'],
-            u'name': puppet_module['name'],
-            u'author': puppet_module['author'],
-        })
+        ContentView.puppet_module_add(
+            {
+                u'content-view-id': content_view['id'],
+                u'name': puppet_module['name'],
+                u'author': puppet_module['author'],
+            }
+        )
         ContentView.publish({u'id': content_view['id']})
         cv_version = ContentView.info({u'id': content_view['id']})['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
-            ContentView.version_export({
-                'export-dir': '{}'.format(self.export_dir),
-                'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id']
-            })
+            ContentView.version_export(
+                {
+                    'export-dir': '{}'.format(self.export_dir),
+                    'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id'],
+                }
+            )
         self.assert_error_msg(
             error,
             "Could not export the content view:\n  "
             "Error: Ensure the content view version "
-            "'{} {}' has at least one repository.\n".format(content_view['name'], cv_version)
+            "'{} {}' has at least one repository.\n".format(content_view['name'], cv_version),
         )
 
     @tier3
@@ -1194,42 +1177,45 @@ class ContentViewSync(CLITestCase):
 
         """
         module = {'name': 'versioned', 'version': '3.3.3'}
-        product = make_product({
-            'organization-id': self.exporting_org['id'],
-            'name': gen_string('alpha')
-        })
-        nonyum_repo = make_repository({
-            'url': CUSTOM_PUPPET_REPO,
-            'content-type': 'puppet',
-            'product-id': product['id']
-        })
+        product = make_product(
+            {'organization-id': self.exporting_org['id'], 'name': gen_string('alpha')}
+        )
+        nonyum_repo = make_repository(
+            {'url': CUSTOM_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
+        )
         Repository.synchronize({'id': nonyum_repo['id']})
-        yum_repo = make_repository({
-            'name': gen_string('alpha'),
-            'download-policy': 'immediate',
-            'mirror-on-sync': 'no',
-            'product-id': product['id']
-        })
+        yum_repo = make_repository(
+            {
+                'name': gen_string('alpha'),
+                'download-policy': 'immediate',
+                'mirror-on-sync': 'no',
+                'product-id': product['id'],
+            }
+        )
         Repository.synchronize({'id': yum_repo['id']})
-        puppet_module = PuppetModule.list({
-            'search': 'name={name} and version={version}'.format(**module)})[0]
+        puppet_module = PuppetModule.list(
+            {'search': 'name={name} and version={version}'.format(**module)}
+        )[0]
         content_view = make_content_view({u'organization-id': self.exporting_org['id']})
-        ContentView.puppet_module_add({
-            'content-view-id': content_view['id'],
-            'name': puppet_module['name'],
-            'author': puppet_module['author'],
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'organization-id': self.exporting_org['id'],
-            'repository-id': yum_repo['id']
-        })
+        ContentView.puppet_module_add(
+            {
+                'content-view-id': content_view['id'],
+                'name': puppet_module['name'],
+                'author': puppet_module['author'],
+            }
+        )
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': self.exporting_org['id'],
+                'repository-id': yum_repo['id'],
+            }
+        )
         ContentView.publish({u'id': content_view['id']})
         export_cvv_info = ContentView.info({u'id': content_view['id']})['versions'][0]
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': export_cvv_info['id']
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': export_cvv_info['id']}
+        )
         self.assert_exported_cvv_exists(content_view['name'], export_cvv_info['version'])
 
     @tier2
@@ -1254,34 +1240,36 @@ class ContentViewSync(CLITestCase):
             1. The Cv version is imported with updated json
             2. The Imported CV version has major and minor updated in exported tar json
         """
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
-            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name)
+            self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
+        )
         # Updating the json in exported tar
         ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
         extracted_directory_name = 'export-{0}-{1}'.format(
-            self.exporting_cv_name, exporting_cvv_version)
+            self.exporting_cv_name, exporting_cvv_version
+        )
         json_path = '{0}/{1}/{1}.json'.format(self.export_dir, extracted_directory_name)
         new_major, new_minor = self._update_json(json_path)
         custom_cvv_tar = '{0}/{1}.tar'.format(self.export_dir, extracted_directory_name)
-        ssh.command("tar -cvf {0} {1}/{2}".format(
-            custom_cvv_tar, self.export_dir, extracted_directory_name))
+        ssh.command(
+            "tar -cvf {0} {1}/{2}".format(
+                custom_cvv_tar, self.export_dir, extracted_directory_name
+            )
+        )
         # Importing the updated tar
-        ContentView.version_import({
-            'export-tar': custom_cvv_tar,
-            'organization-id': self.importing_org['id']
-        })
-        imported_cvv = ContentView.info({
-            u'id': self.importing_cv['id']
-        })['versions']
+        ContentView.version_import(
+            {'export-tar': custom_cvv_tar, 'organization-id': self.importing_org['id']}
+        )
+        imported_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
         self.assertEqual(str(new_major), imported_cvv[0]['version'].split('.')[0])
         self.assertEqual(str(new_minor), imported_cvv[0]['version'].split('.')[1])
 
@@ -1318,25 +1306,22 @@ class ContentViewSync(CLITestCase):
              Errata IDs
 
         """
-        exporting_repo = Repository.info({
-            u'id': self.exporting_repo['id']
-        })
-        exporting_cv = ContentView.info({
-            u'id': self.exporting_cv['id']
-        })
-        ContentView.version_export({
-            'export-dir': '{}'.format(self.export_dir),
-            'id': self.exporting_cvv_id
-        })
+        exporting_repo = Repository.info({u'id': self.exporting_repo['id']})
+        exporting_cv = ContentView.info({u'id': self.exporting_cv['id']})
+        ContentView.version_export(
+            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+        )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_dir, self.exporting_cv_name, exporting_cvv_version)
+            self.export_dir, self.exporting_cv_name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         # Updating the json in exported tar
         ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
         extracted_directory_name = 'export-{0}-{1}'.format(
-            self.exporting_cv_name, exporting_cvv_version)
+            self.exporting_cv_name, exporting_cvv_version
+        )
         json_path_server = '{0}/{1}/{1}.json'.format(self.export_dir, extracted_directory_name)
         json_path_local = '/tmp/{}.json'.format(extracted_directory_name)
         ssh.download_file(json_path_server, json_path_local)
@@ -1344,9 +1329,11 @@ class ContentViewSync(CLITestCase):
             metadata = json.load(metafile)
         self.assertEqual(metadata.get('name'), self.exporting_cv_name)
         self.assertEqual(
-            str(metadata.get('major')), exporting_cv['versions'][0]['version'].split('.')[0])
+            str(metadata.get('major')), exporting_cv['versions'][0]['version'].split('.')[0]
+        )
         self.assertEqual(
-            str(metadata.get('minor')), exporting_cv['versions'][0]['version'].split('.')[1])
+            str(metadata.get('minor')), exporting_cv['versions'][0]['version'].split('.')[1]
+        )
         self.assertIsNotNone(metadata.get('repositories'))
         cvv_repository = metadata['repositories'][0]
         self.assertEqual(cvv_repository.get('content_type'), 'yum')
@@ -1356,10 +1343,11 @@ class ContentViewSync(CLITestCase):
         self.assertIsNotNone(cvv_repository.get('relative_path'))
         self.assertEqual(
             int(exporting_repo['content-counts']['packages']),
-            len(cvv_repository.get('rpm_filenames')))
+            len(cvv_repository.get('rpm_filenames')),
+        )
         self.assertEqual(
-            int(exporting_repo['content-counts']['errata']),
-            len(cvv_repository.get('errata_ids')))
+            int(exporting_repo['content-counts']['errata']), len(cvv_repository.get('errata_ids'))
+        )
 
 
 class InterSatelliteSyncTestCase(CLITestCase):
@@ -1970,7 +1958,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-# Red Hat Repositories Export and Import
+    # Red Hat Repositories Export and Import
 
     @stubbed()
     @tier3

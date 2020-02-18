@@ -60,10 +60,7 @@ class Product(Base):
     def synchronize(cls, options=None):
         """Synchronize a product."""
         cls.command_sub = 'synchronize'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
     def update_proxy(cls, options=None):

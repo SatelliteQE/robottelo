@@ -19,7 +19,6 @@ from robottelo.test import TestCase
 
 
 class InfobloxTestCase(TestCase):
-
     @stubbed()
     @tier3
     @upgrade

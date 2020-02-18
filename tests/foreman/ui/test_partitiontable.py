@@ -58,11 +58,13 @@ def test_positive_create_default_for_organization(session):
     name = gen_string('alpha')
     org_name = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.default': True,
-            'template.template_editor': gen_string('alpha')
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.default': True,
+                'template.template_editor': gen_string('alpha'),
+            }
+        )
         session.organization.create({'name': org_name})
         session.organization.select(org_name)
         assert session.partitiontable.search(name)[0]['Name'] == name
@@ -85,11 +87,13 @@ def test_positive_create_custom_organization(session):
     name = gen_string('alpha')
     org_name = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.default': False,
-            'template.template_editor': gen_string('alpha')
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.default': False,
+                'template.template_editor': gen_string('alpha'),
+            }
+        )
         session.organization.create({'name': org_name})
         session.organization.select(org_name)
         assert not session.partitiontable.search(name)
@@ -112,11 +116,13 @@ def test_positive_create_default_for_location(session):
     name = gen_string('alpha')
     loc_name = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.default': True,
-            'template.template_editor': gen_string('alpha')
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.default': True,
+                'template.template_editor': gen_string('alpha'),
+            }
+        )
         session.location.create({'name': loc_name})
         session.location.select(loc_name)
         assert session.partitiontable.search(name)[0]['Name'] == name
@@ -139,11 +145,13 @@ def test_positive_create_custom_location(session):
     name = gen_string('alpha')
     loc_name = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.default': False,
-            'template.template_editor': gen_string('alpha')
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.default': False,
+                'template.template_editor': gen_string('alpha'),
+            }
+        )
         session.location.create({'name': loc_name})
         session.location.select(loc_name)
         assert not session.partitiontable.search(name)
@@ -164,11 +172,13 @@ def test_positive_delete_with_lock_and_unlock(session):
     """
     name = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.default': True,
-            'template.template_editor': gen_string('alpha')
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.default': True,
+                'template.template_editor': gen_string('alpha'),
+            }
+        )
         assert session.partitiontable.search(name)[0]['Name'] == name
         session.partitiontable.lock(name)
         with raises(ValueError):
@@ -195,10 +205,9 @@ def test_positive_clone(session):
     audit_comment = gen_string('alpha')
     os_family = 'Red Hat'
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.template_editor': gen_string('alpha')
-        })
+        session.partitiontable.create(
+            {'template.name': name, 'template.template_editor': gen_string('alpha')}
+        )
         session.partitiontable.clone(
             name,
             {
@@ -207,7 +216,7 @@ def test_positive_clone(session):
                 'template.snippet': False,
                 'template.os_family_selection.os_family': os_family,
                 'template.audit_comment': audit_comment,
-            }
+            },
         )
         pt = session.partitiontable.read(new_name, widget_names='template')
         assert pt['template']['name'] == new_name
@@ -232,25 +241,29 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
     audit_comment = gen_string('alpha')
     os_family = 'FreeBSD'
     input_name = gen_string('alpha')
-    template_inputs = [{
-        'name': input_name,
-        'required': True,
-        'input_type': 'Puppet parameter',
-        'input_content.puppet_class_name': gen_string('alpha'),
-        'input_content.puppet_parameter_name':  gen_string('alpha'),
-        'input_content.description': gen_string('alpha')
-    }]
+    template_inputs = [
+        {
+            'name': input_name,
+            'required': True,
+            'input_type': 'Puppet parameter',
+            'input_content.puppet_class_name': gen_string('alpha'),
+            'input_content.puppet_parameter_name': gen_string('alpha'),
+            'input_content.description': gen_string('alpha'),
+        }
+    ]
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.default': True,
-            'template.snippet': True,
-            'template.template_editor': template_data,
-            'template.audit_comment': audit_comment,
-            'inputs': template_inputs,
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.default': True,
+                'template.snippet': True,
+                'template.template_editor': template_data,
+                'template.audit_comment': audit_comment,
+                'inputs': template_inputs,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         assert session.partitiontable.search(name)[0]['Name'] == name
         pt = session.partitiontable.read(name)
         assert pt['template']['name'] == name
@@ -268,7 +281,7 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
                 'template.name': new_name,
                 'template.snippet': False,
                 'template.os_family_selection.os_family': os_family,
-            }
+            },
         )
         assert session.partitiontable.search(new_name)[0]['Name'] == new_name
         updated_pt = session.partitiontable.read(new_name, widget_names='template')

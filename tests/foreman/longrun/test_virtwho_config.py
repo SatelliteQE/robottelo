@@ -20,7 +20,6 @@ from robottelo.test import TestCase
 
 
 class VirtWhoConfigLongRunTestCase(TestCase):
-
     @stubbed()
     @tier3
     def test_positive_hypervisors(self):

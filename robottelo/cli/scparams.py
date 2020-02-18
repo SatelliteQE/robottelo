@@ -30,8 +30,7 @@ class SmartClassParameter(Base):
     @classmethod
     def info(cls, options=None):
         """Gets information for smart class parameter"""
-        return super(SmartClassParameter, cls).info(
-            options=options, output_format='json')
+        return super(SmartClassParameter, cls).info(options=options, output_format='json')
 
     @classmethod
     def add_override_value(cls, options=None):
@@ -57,8 +56,7 @@ class SmartClassParameter(Base):
             --value VALUE                                       Override value
         """
         cls.command_sub = 'add-override-value'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_override_value(cls, options=None):
@@ -80,5 +78,4 @@ class SmartClassParameter(Base):
             --smart-class-parameter-id SMART_CLASS_PARAMETER_ID
         """
         cls.command_sub = 'remove-override-value'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

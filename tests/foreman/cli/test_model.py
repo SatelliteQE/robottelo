@@ -30,6 +30,7 @@ from robottelo.test import CLITestCase
 
 class ModelTestCase(CLITestCase):
     """Test class for Model CLI"""
+
     @tier1
     def test_positive_create_with_name(self):
         """Successfully creates a Model.
@@ -87,10 +88,7 @@ class ModelTestCase(CLITestCase):
         model = make_model()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                Model.update({
-                    'id': model['id'],
-                    'new-name': new_name,
-                })
+                Model.update({'id': model['id'], 'new-name': new_name})
                 model = Model.info({'id': model['id']})
                 self.assertEqual(model['name'], new_name)
 
@@ -108,10 +106,7 @@ class ModelTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    Model.update({
-                        'id': model['id'],
-                        'new-name': new_name,
-                    })
+                    Model.update({'id': model['id'], 'new-name': new_name})
                 result = Model.info({'id': model['id']})
                 self.assertEqual(model['name'], result['name'])
 

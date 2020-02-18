@@ -3,8 +3,21 @@
 from nailgun import entities
 
 LOCALES = (
-    'ca', 'de', 'en', 'en_GB', 'es', 'fr', 'gl', 'it', 'ja', 'ko',
-    'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'
+    'ca',
+    'de',
+    'en',
+    'en_GB',
+    'es',
+    'fr',
+    'gl',
+    'it',
+    'ja',
+    'ko',
+    'pt_BR',
+    'ru',
+    'sv_SE',
+    'zh_CN',
+    'zh_TW',
 )
 
 DISTRO_RHEL6 = "rhel6"
@@ -22,10 +35,9 @@ DISTROS_SUPPORTED = [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8]
 DISTROS_MAJOR_VERSION = {
     DISTRO_RHEL6: RHEL_6_MAJOR_VERSION,
     DISTRO_RHEL7: RHEL_7_MAJOR_VERSION,
-    DISTRO_RHEL8: RHEL_8_MAJOR_VERSION
+    DISTRO_RHEL8: RHEL_8_MAJOR_VERSION,
 }
-MAJOR_VERSION_DISTRO = {
-    value: key for key, value in DISTROS_MAJOR_VERSION.items()}
+MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
 
 INTERFACE_API = 'API'
@@ -44,10 +56,7 @@ FOREMAN_PROVIDERS = {
 
 EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'
 
-CONTENT_CREDENTIALS_TYPES = {
-    'gpg': 'GPG Key',
-    'ssl': 'SSL Certificate'
-}
+CONTENT_CREDENTIALS_TYPES = {'gpg': 'GPG Key', 'ssl': 'SSL Certificate'}
 
 VIRT_WHO_HYPERVISOR_TYPES = {
     'esx': 'esx',
@@ -70,11 +79,26 @@ COMPUTE_PROFILE_SMALL = '1-Small'
 _bcds = dict.fromkeys(['us-east1', 'europe-west1'], ['b', 'c', 'd'])
 _abcfs = dict.fromkeys(['us-central1'], ['a', 'b', 'c', 'f'])
 _abcs = dict.fromkeys(
-    ['us-east4', 'us-west1', 'europe-west4', 'europe-west3', 'europe-west2', 'asia-east1',
-     'asia-southeast1', 'asia-northeast1', 'asia-south1', 'australia-southeast1',
-     'southamerica-east1', 'asia-east2', 'asia-northeast2', 'europe-north1', 'europe-west6',
-     'northamerica-northeast1', 'us-west2'],
-    ['a', 'b', 'c']
+    [
+        'us-east4',
+        'us-west1',
+        'europe-west4',
+        'europe-west3',
+        'europe-west2',
+        'asia-east1',
+        'asia-southeast1',
+        'asia-northeast1',
+        'asia-south1',
+        'australia-southeast1',
+        'southamerica-east1',
+        'asia-east2',
+        'asia-northeast2',
+        'europe-north1',
+        'europe-west6',
+        'northamerica-northeast1',
+        'us-west2',
+    ],
+    ['a', 'b', 'c'],
 )
 _zones_combo = {**_bcds, **_abcfs, **_abcs}
 VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
@@ -86,14 +110,47 @@ GCE_EXTERNAL_IP_DEFAULT = True
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
-    'East Asia', 'Southeast Asia', 'Central US', 'East US', 'East US 2', 'West US',
-    'North Central US', 'South Central US', 'North Europe', 'West Europe', 'Japan West',
-    'Japan East', 'Brazil South', 'Australia East', 'Australia Southeast', 'South India',
-    'Central India', 'West India', 'Canada Central', 'Canada East', 'UK South', 'UK West',
-    'West Central US', 'West US 2', 'Korea Central', 'Korea South', 'France Central',
-    'France South', 'Australia Central', 'Australia Central 2', 'UAE Central', 'UAE North',
-    'South Africa North', 'South Africa West', 'Switzerland North', 'Switzerland West',
-    'Germany North', 'Germany West Central', 'Norway West', 'Norway East']
+    'East Asia',
+    'Southeast Asia',
+    'Central US',
+    'East US',
+    'East US 2',
+    'West US',
+    'North Central US',
+    'South Central US',
+    'North Europe',
+    'West Europe',
+    'Japan West',
+    'Japan East',
+    'Brazil South',
+    'Australia East',
+    'Australia Southeast',
+    'South India',
+    'Central India',
+    'West India',
+    'Canada Central',
+    'Canada East',
+    'UK South',
+    'UK West',
+    'West Central US',
+    'West US 2',
+    'Korea Central',
+    'Korea South',
+    'France Central',
+    'France South',
+    'Australia Central',
+    'Australia Central 2',
+    'UAE Central',
+    'UAE North',
+    'South Africa North',
+    'South Africa West',
+    'Switzerland North',
+    'Switzerland West',
+    'Germany North',
+    'Germany West Central',
+    'Norway West',
+    'Norway East',
+]
 AZURERM_RHEL7_FT_IMG_URN = 'RedHat:RHEL:7-RAW:latest'
 AZURERM_RHEL7_UD_IMG_URN = 'RedHat:RHEL:7-RAW-CI:7.6.2019072418'
 AZURERM_RG_DEFAULT = 'SATQE'
@@ -103,19 +160,99 @@ AZURERM_PREMIUM_OS_Disk = True
 AZURERM_FILE_URI = 'https://github.com/SatelliteQE/robottelo/blob/master/tests/foreman/data/uri.sh'
 
 HTML_TAGS = [
-    'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
-    'BASE', 'BASEFONT', 'BDO', 'BIG', 'BLINK', 'BLOCKQUOTE', 'BODY', 'BR',
-    'BUTTON', 'CAPTION', 'CENTER', 'CITE', 'CODE', 'COL', 'COLGROUP',
-    'DD', 'DEL', 'DFN', 'DIR', 'DIV', 'DL', 'DT',
-    'EM', 'FIELDSET', 'FONT', 'FORM', 'FRAME', 'FRAMESET', 'H1',
-    'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR',
-    'HTML', 'I', 'IFRAME', 'IMG', 'INPUT', 'INS', 'ISINDEX',
-    'KBD', 'LABEL', 'LEGEND', 'LI', 'LINK', 'MAP', 'MENU',
-    'META', 'NOFRAMES', 'NOSCRIPT', 'OBJECT', 'OL', 'OPTGROUP', 'OPTION',
-    'P', 'PARAM', 'PRE', 'Q', 'S', 'SAMP', 'SCRIPT',
-    'SELECT', 'SMALL', 'SPAN', 'STRIKE', 'STRONG', 'STYLE', 'SUB',
-    'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH',
-    'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL', 'VAR']
+    'A',
+    'ABBR',
+    'ACRONYM',
+    'ADDRESS',
+    'APPLET',
+    'AREA',
+    'B',
+    'BASE',
+    'BASEFONT',
+    'BDO',
+    'BIG',
+    'BLINK',
+    'BLOCKQUOTE',
+    'BODY',
+    'BR',
+    'BUTTON',
+    'CAPTION',
+    'CENTER',
+    'CITE',
+    'CODE',
+    'COL',
+    'COLGROUP',
+    'DD',
+    'DEL',
+    'DFN',
+    'DIR',
+    'DIV',
+    'DL',
+    'DT',
+    'EM',
+    'FIELDSET',
+    'FONT',
+    'FORM',
+    'FRAME',
+    'FRAMESET',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+    'H5',
+    'H6',
+    'HEAD',
+    'HR',
+    'HTML',
+    'I',
+    'IFRAME',
+    'IMG',
+    'INPUT',
+    'INS',
+    'ISINDEX',
+    'KBD',
+    'LABEL',
+    'LEGEND',
+    'LI',
+    'LINK',
+    'MAP',
+    'MENU',
+    'META',
+    'NOFRAMES',
+    'NOSCRIPT',
+    'OBJECT',
+    'OL',
+    'OPTGROUP',
+    'OPTION',
+    'P',
+    'PARAM',
+    'PRE',
+    'Q',
+    'S',
+    'SAMP',
+    'SCRIPT',
+    'SELECT',
+    'SMALL',
+    'SPAN',
+    'STRIKE',
+    'STRONG',
+    'STYLE',
+    'SUB',
+    'SUP',
+    'TABLE',
+    'TBODY',
+    'TD',
+    'TEXTAREA',
+    'TFOOT',
+    'TH',
+    'THEAD',
+    'TITLE',
+    'TR',
+    'TT',
+    'U',
+    'UL',
+    'VAR',
+]
 
 OPERATING_SYSTEMS = entities._OPERATING_SYSTEMS
 
@@ -127,7 +264,7 @@ TEMPLATE_TYPES = [
     'PXELinux',
     'script',
     'user_data',
-    'ZTP'
+    'ZTP',
 ]
 
 RESOURCE_DEFAULT = 'Bare Metal'
@@ -157,45 +294,21 @@ ENVIRONMENT = "Library"
 
 NOT_IMPLEMENTED = 'Test not implemented'
 
-SYNC_INTERVAL = {
-    'hour': "hourly",
-    'day': "daily",
-    'week': "weekly",
-    'custom': "custom cron"
-}
+SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
-REPO_TYPE = {
-    'yum': "yum",
-    'puppet': "puppet",
-    'docker': "docker",
-    'ostree': "ostree",
-}
+REPO_TYPE = {'yum': "yum", 'puppet': "puppet", 'docker': "docker", 'ostree': "ostree"}
 
 DOWNLOAD_POLICIES = {
     'on_demand': "On Demand",
     'background': "Background",
-    'immediate': "Immediate"
+    'immediate': "Immediate",
 }
 
-CHECKSUM_TYPE = {
-    'default': "Default",
-    'sha256': "sha256",
-    'sha1': "sha1",
-}
+CHECKSUM_TYPE = {'default': "Default", 'sha256': "sha256", 'sha1': "sha1"}
 
-HASH_TYPE = {
-    'sha256': "SHA256",
-    'sha512': "SHA512",
-    'base64': "Base64",
-    'md5': "MD5",
-}
+HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
-REPO_TAB = {
-    'rpms': "RPMs",
-    'kickstarts': "Kickstarts",
-    'isos': "ISOs",
-    'ostree': "OSTree",
-}
+REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
@@ -215,9 +328,7 @@ REPOSET = {
     'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
-    'rhva6': (
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
-    ),
+    'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
     'rhsc7': 'Red Hat Satellite Capsule 6.6 (for RHEL 7 Server) (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.6 (for RHEL 7 Server) (ISOs)',
     'rhsc6': 'Red Hat Satellite Capsule 6.6 (for RHEL 6 Server) (RPMs)',
@@ -227,10 +338,8 @@ REPOSET = {
     'rhst7_66': 'Red Hat Satellite Tools 6.6 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.6 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
-    'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
-              ' Server'),
-    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
-               ' Linux 7 Server'),
+    'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7' ' Server'),
+    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise' ' Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
 }
 
@@ -263,9 +372,7 @@ REPOS = {
     },
     'rhsc7': {
         'id': 'rhel-7-server-satellite-capsule-6.6-rpms',
-        'name': (
-            'Red Hat Satellite Capsule 6.6 for RHEL 7 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Capsule 6.6 for RHEL 7 Server RPMs x86_64'),
         'version': '6.6',
         'reposet': REPOSET['rhsc7'],
         'product': PRDS['rhsc'],
@@ -274,15 +381,11 @@ REPOS = {
     },
     'rhsc7_iso': {
         'id': 'rhel-7-server-satellite-capsule-6.6-isos',
-        'name': (
-            'Red Hat Satellite Capsule 6.6 for RHEL 7 Server ISOs x86_64'
-        ),
+        'name': ('Red Hat Satellite Capsule 6.6 for RHEL 7 Server ISOs x86_64'),
     },
     'rhsc6': {
         'id': 'rhel-6-server-satellite-capsule-6.6-rpms',
-        'name': (
-            'Red Hat Satellite Capsule 6.6 for RHEL 6 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Capsule 6.6 for RHEL 6 Server RPMs x86_64'),
         'version': '6.6',
         'reposet': REPOSET['rhsc6'],
         'product': PRDS['rhsc'],
@@ -291,9 +394,7 @@ REPOS = {
     },
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.6-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.6 for RHEL 7 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Tools 6.6 for RHEL 7 Server RPMs x86_64'),
         'version': '6.6',
         'reposet': REPOSET['rhst7'],
         'product': PRDS['rhel'],
@@ -302,9 +403,7 @@ REPOS = {
     },
     'rhst7_64': {
         'id': 'rhel-7-server-satellite-tools-6.4-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Tools 6.4 for RHEL 7 Server RPMs x86_64'),
         'version': '6.4',
         'reposet': REPOSET['rhst7_64'],
         'product': PRDS['rhel'],
@@ -313,9 +412,7 @@ REPOS = {
     },
     'rhst7_65': {
         'id': 'rhel-7-server-satellite-tools-6.5-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.5 for RHEL 7 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Tools 6.5 for RHEL 7 Server RPMs x86_64'),
         'version': '6.5',
         'reposet': REPOSET['rhst7_65'],
         'product': PRDS['rhel'],
@@ -324,9 +421,7 @@ REPOS = {
     },
     'rhst7_66': {
         'id': 'rhel-7-server-satellite-tools-6.6-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.6 for RHEL 7 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Tools 6.6 for RHEL 7 Server RPMs x86_64'),
         'version': '6.6',
         'reposet': REPOSET['rhst7_66'],
         'product': PRDS['rhel'],
@@ -335,9 +430,7 @@ REPOS = {
     },
     'rhst6': {
         'id': 'rhel-6-server-satellite-tools-6.6-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.6 for RHEL 6 Server RPMs x86_64'
-        ),
+        'name': ('Red Hat Satellite Tools 6.6 for RHEL 6 Server RPMs x86_64'),
         'version': '6.6',
         'reposet': REPOSET['rhst6'],
         'product': PRDS['rhel'],
@@ -347,8 +440,7 @@ REPOS = {
     'rhva6': {
         'id': 'rhel-6-server-rhev-agent-rpms',
         'name': (
-            'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
-            'x86_64 6Server'
+            'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6Server'
         ),
         'version': '6.0',
         'reposet': REPOSET['rhva6'],
@@ -358,10 +450,7 @@ REPOS = {
         'key': 'rhva6',
     },
     'rhva65': {
-        'name': (
-            'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
-            'x86_64 6.5'
-        ),
+        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6.5'),
         'version': '6.5',
         'reposet': REPOSET['rhva6'],
         'product': PRDS['rhel'],
@@ -378,17 +467,16 @@ REPOS = {
         'distro': DISTRO_RHEL6,
         'key': 'rhct6',
     },
-    'rhaht': {
-        'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
-    },
+    'rhaht': {'name': ('Red Hat Enterprise Linux Atomic Host Trees')},
     'rhdt7': {
-        'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7'
-                 ' Server x86_64'),
+        'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7' ' Server x86_64')
     },
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
-        'name': ('Red Hat Software Collections RPMs for Red Hat Enterprise'
-                 ' Linux 7 Server x86_64 7Server'),
+        'name': (
+            'Red Hat Software Collections RPMs for Red Hat Enterprise'
+            ' Linux 7 Server x86_64 7Server'
+        ),
     },
     'rhae2': {
         'id': 'rhel-7-server-ansible-2.7-rpms',
@@ -417,35 +505,39 @@ DISTRO_REPOS = {
 
 RHVA_REPO_TREE = [
     (
-        'rhel', 'rhva6', 'rhva65', 'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
-        'x86_64 6.5'
+        'rhel',
+        'rhva6',
+        'rhva65',
+        'repo_name',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6.5',
     ),
     ('rhel', 'rhva6', 'rhva65', 'repo_arch', 'x86_64'),
     ('rhel', 'rhva6', 'rhva65', 'repo_ver', '6.5'),
     (
-        'rhel', 'rhva6', 'rhva6S', 'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
-        'x86_64 6Server'
+        'rhel',
+        'rhva6',
+        'rhva6S',
+        'repo_name',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6Server',
     ),
     ('rhel', 'rhva6', 'rhva6S', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server')
+    ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server'),
 ]
 
 SAT6_TOOLS_TREE = [
     (
-        'rhel', 'rhst6', 'rhst6', 'repo_name',
-        'Red Hat Satellite Tools 6.6 for RHEL 6 Server RPMs x86_64'
+        'rhel',
+        'rhst6',
+        'rhst6',
+        'repo_name',
+        'Red Hat Satellite Tools 6.6 for RHEL 6 Server RPMs x86_64',
     ),
     ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
     ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.6'),
 ]
 
 ATOMIC_HOST_TREE = [
-    (
-        'rhah', 'rhaht', 'rhaht', 'repo_name',
-        'Red Hat Enterprise Linux Atomic Host Trees'
-    ),
+    ('rhah', 'rhaht', 'rhaht', 'repo_name', 'Red Hat Enterprise Linux Atomic Host Trees'),
     ('rhah', 'rhaht', 'rhaht', 'repo_arch', None),
     ('rhah', 'rhaht', 'rhaht', 'repo_ver', None),
 ]
@@ -458,8 +550,7 @@ DEFAULT_TEMPLATE = "Kickstart default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
 DEFAULT_ATOMIC_TEMPLATE = 'Atomic Kickstart default'
 DEFAULT_PTABLE = "Kickstart default"
-DEFAULT_SUBSCRIPTION_NAME = (
-    'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
+DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)'
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
@@ -480,13 +571,12 @@ LANGUAGES = {
     u'Русский': u'ru',
     u'sv_SE': u'sv_SE',
     u'简体中文': u'zh_CN',
-    u'zh_TW': u'zh_TW'
+    u'zh_TW': u'zh_TW',
 }
 
 SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Infrastructure Subscription'
 SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
-VDC_SUBSCRIPTION_NAME = (
-    'Red Hat Enterprise Linux for Virtual Datacenters, Premium')
+VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',
@@ -501,13 +591,10 @@ FILTER_CONTENT_TYPE = {
     'package group': "Package Group",
     'erratum by id': "Erratum - by ID",
     'erratum by date and type': "Erratum - Date and Type",
-    'modulemd': "Module Stream"
+    'modulemd': "Module Stream",
 }
 
-FILTER_TYPE = {
-    'include': "Include",
-    'exclude': "Exclude"
-}
+FILTER_TYPE = {'include': "Include", 'exclude': "Exclude"}
 
 FILTER_ERRATA_TYPE = {
     'security': "security",
@@ -518,10 +605,7 @@ FILTER_ERRATA_TYPE = {
     'optional': 'optional',
 }
 
-FILTER_ERRATA_DATE = {
-    'updated': "updated",
-    'issued': "issued"
-}
+FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 
 REPORT_TEMPLATE_FILE = 'report_template.txt'
 REP_TEM_APPLIED_ERRATA_INPUT = {
@@ -533,43 +617,28 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
         'canceled': 'canceled',
         'pending': 'pending',
     },
-    'Include Last Reboot': {
-        'yes': 'yes',
-        'no': 'no',
-    }
+    'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
 DOCKER_UPSTREAM_NAME = u'busybox'
-DOCKER_RH_REGISTRY_UPSTREAM_NAME = (
-    u'openshift3/ose-metrics-hawkular-openshift-agent'
-)
-CUSTOM_FILE_REPO = (
-    u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
-)
+DOCKER_RH_REGISTRY_UPSTREAM_NAME = u'openshift3/ose-metrics-hawkular-openshift-agent'
+CUSTOM_FILE_REPO = u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
 CUSTOM_LOCAL_FOLDER = u'/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = u'/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 
 CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
 
-CUSTOM_RPM_REPO = (
-    u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
-)
+CUSTOM_RPM_REPO = u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 
 CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with-sha-512/'
 
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 
-CUSTOM_MODULE_STREAM_REPO_1 = (
-    u'https://partha.fedorapeople.org/test-repos/pteradactyl/'
-)
-CUSTOM_MODULE_STREAM_REPO_2 = (
-    u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
-)
-CUSTOM_SWID_TAG_REPO = (
-    u'https://partha.fedorapeople.org/test-repos/swid-zoo/'
-)
+CUSTOM_MODULE_STREAM_REPO_1 = u'https://partha.fedorapeople.org/test-repos/pteradactyl/'
+CUSTOM_MODULE_STREAM_REPO_2 = u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
+CUSTOM_SWID_TAG_REPO = u'https://partha.fedorapeople.org/test-repos/swid-zoo/'
 CUSTOM_REPODATA_PATH = u'/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = u"/etc/pki/ca-trust/source/anchors/"
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
@@ -578,26 +647,14 @@ FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
 FAKE_3_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = (
-    u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
-)
-FAKE_7_YUM_REPO = (
-    u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
-)
+FAKE_6_YUM_REPO = u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
+FAKE_7_YUM_REPO = u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
 FAKE_8_YUM_REPO = u'https://abalakht.fedorapeople.org/test_repos/lots_files/'
-FAKE_9_YUM_REPO = (
-    u'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
-)
-FAKE_YUM_DRPM_REPO = (
-    u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
-)
-FAKE_YUM_SRPM_REPO = (
-    u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
-)
+FAKE_9_YUM_REPO = u'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
+FAKE_YUM_DRPM_REPO = u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
+FAKE_YUM_SRPM_REPO = u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
 FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
-FAKE_YUM_MIXED_REPO = (
-    u'https://pondrejk.fedorapeople.org/test_repos/mixed/'
-)
+FAKE_YUM_MIXED_REPO = u'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 CUSTOM_PUPPET_REPO = u'http://omaciel.fedorapeople.org/bagoftricks'
 FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
@@ -676,12 +733,7 @@ FAKE_3_YUM_ERRATUM_COUNT = 79
 FAKE_3_YUM_REPOS_COUNT = 136
 FAKE_6_YUM_ERRATUM_COUNT = 4
 FAKE_9_YUM_ERRATUM_COUNT = 4
-FAKE_9_YUM_ERRATUM = [
-    'RHEA-2012:0055',
-    'RHEA-2012:0056',
-    'RHEA-2012:0057',
-    'RHEA-2012:0058',
-]
+FAKE_9_YUM_ERRATUM = ['RHEA-2012:0055', 'RHEA-2012:0056', 'RHEA-2012:0057', 'RHEA-2012:0058']
 FAKE_9_YUM_SECURITY_ERRATUM = FAKE_9_YUM_ERRATUM[:-1]
 FAKE_9_YUM_SECURITY_ERRATUM_COUNT = len(FAKE_9_YUM_SECURITY_ERRATUM)
 
@@ -697,26 +749,15 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'stork-0.12-2.noarch',
 ]
 
-FAKE_1_YUM_REPO_RPMS = [
-    'bear-4.1-1.noarch.rpm',
-    'camel-0.1-1.noarch.rpm',
-    'cat-1.0-1.noarch.rpm',
-]
+FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_0_PUPPET_MODULE = 'httpd'
 
-FAKE_PULP_REMOTE_FILEREPO = (
-    u'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
-)
+FAKE_PULP_REMOTE_FILEREPO = u'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
 
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://repos.fedorapeople.org/pulp/pulp'
-    '/fixtures/rpm-string-version-updateinfo/'
+    'https://repos.fedorapeople.org/pulp/pulp' '/fixtures/rpm-string-version-updateinfo/'
 )
-FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {
-    'rpm': 35,
-    'package_group': 2,
-    'erratum': 4
-}
+FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
 
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
@@ -755,11 +796,7 @@ PERMISSIONS = {
         'view_tasks',
         'view_statuses',
     ],
-    'AnsibleRole': [
-        'view_ansible_roles',
-        'destroy_ansible_roles',
-        'import_ansible_roles',
-    ],
+    'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
         'edit_ansible_variables',
         'view_ansible_variables',
@@ -773,21 +810,14 @@ PERMISSIONS = {
         'edit_architectures',
         'destroy_architectures',
     ],
-    'Audit': [
-        'view_audit_logs',
-    ],
+    'Audit': ['view_audit_logs'],
     'AuthSource': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
         'destroy_authenticators',
     ],
-    'Bookmark': [
-        'view_bookmarks',
-        'create_bookmarks',
-        'edit_bookmarks',
-        'destroy_bookmarks',
-    ],
+    'Bookmark': ['view_bookmarks', 'create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
     'ConfigGroup': [
         'view_config_groups',
         'create_config_groups',
@@ -819,12 +849,7 @@ PERMISSIONS = {
         'execute_discovery_rules',
         'view_discovery_rules',
     ],
-    'Domain': [
-        'view_domains',
-        'create_domains',
-        'edit_domains',
-        'destroy_domains',
-    ],
+    'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
     'Environment': [
         'view_environments',
         'create_environments',
@@ -838,16 +863,8 @@ PERMISSIONS = {
         'edit_external_usergroups',
         'destroy_external_usergroups',
     ],
-    'FactValue': [
-        'view_facts',
-        'upload_facts',
-    ],
-    'Filter': [
-        'view_filters',
-        'create_filters',
-        'edit_filters',
-        'destroy_filters',
-    ],
+    'FactValue': ['view_facts', 'upload_facts'],
+    'Filter': ['view_filters', 'create_filters', 'edit_filters', 'destroy_filters'],
     'ForemanTasks::RecurringLogic': [
         'create_recurring_logics',
         'view_recurring_logics',
@@ -871,15 +888,8 @@ PERMISSIONS = {
         'edit_scap_contents',
         'view_scap_contents',
     ],
-    'ForemanTasks::Task': [
-        u'edit_foreman_tasks',
-        u'view_foreman_tasks',
-    ],
-    'JobInvocation': [
-        'view_job_invocations',
-        'create_job_invocations',
-        'cancel_job_invocations',
-    ],
+    'ForemanTasks::Task': [u'edit_foreman_tasks', u'view_foreman_tasks'],
+    'JobInvocation': ['view_job_invocations', 'create_job_invocations', 'cancel_job_invocations'],
     'JobTemplate': [
         'view_job_templates',
         'edit_job_templates',
@@ -887,27 +897,20 @@ PERMISSIONS = {
         'create_job_templates',
         'lock_job_templates',
     ],
-    'ConfigReport': [
-        'destroy_config_reports',
-        'view_config_reports',
-        'upload_config_reports',
-    ],
+    'ConfigReport': ['destroy_config_reports', 'view_config_reports', 'upload_config_reports'],
     'ForemanVirtWhoConfigure::Config': [
         "view_virt_who_config",
         "create_virt_who_config",
         "edit_virt_who_config",
-        "destroy_virt_who_config"
+        "destroy_virt_who_config",
     ],
     "ForemanOpenscap::TailoringFile": [
         "create_tailoring_files",
         "view_tailoring_files",
         "edit_tailoring_files",
         "destroy_tailoring_files",
-
     ],
-    'HostClass': [
-        'edit_classes',
-    ],
+    'HostClass': ['edit_classes'],
     'Hostgroup': [
         'view_hostgroups',
         'create_hostgroups',
@@ -921,16 +924,8 @@ PERMISSIONS = {
         'edit_http_proxies',
         'destroy_http_proxies',
     ],
-    'Image': [
-        'view_images',
-        'create_images',
-        'edit_images',
-        'destroy_images',
-    ],
-    'KeyPair': [
-        "view_keypairs",
-        "destroy_keypairs",
-    ],
+    'Image': ['view_images', 'create_images', 'edit_images', 'destroy_images'],
+    'KeyPair': ["view_keypairs", "destroy_keypairs"],
     'Location': [
         'view_locations',
         'create_locations',
@@ -938,33 +933,16 @@ PERMISSIONS = {
         'destroy_locations',
         'assign_locations',
     ],
-    'MailNotification': [
-        'view_mail_notifications',
-    ],
-    'Medium': [
-        'view_media',
-        'create_media',
-        'edit_media',
-        'destroy_media',
-    ],
-    'Model': [
-        'view_models',
-        'create_models',
-        'edit_models',
-        'destroy_models',
-    ],
+    'MailNotification': ['view_mail_notifications'],
+    'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
+    'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
         'view_operatingsystems',
         'create_operatingsystems',
         'edit_operatingsystems',
         'destroy_operatingsystems',
     ],
-    'Parameter': [
-        'view_params',
-        'create_params',
-        'edit_params',
-        'destroy_params',
-    ],
+    'Parameter': ['view_params', 'create_params', 'edit_params', 'destroy_params'],
     'PersonalAccessToken': [
         'view_personal_access_tokens',
         'create_personal_access_tokens',
@@ -998,20 +976,9 @@ PERMISSIONS = {
         'edit_external_parameters',
         'destroy_external_parameters',
     ],
-    'Realm': [
-        'view_realms',
-        'create_realms',
-        'edit_realms',
-        'destroy_realms',
-    ],
-    'RemoteExecutionFeature': [
-        'edit_remote_execution_features',
-    ],
-    'Report': [
-        'view_reports',
-        'destroy_reports',
-        'upload_reports',
-    ],
+    'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
+    'RemoteExecutionFeature': ['edit_remote_execution_features'],
+    'Report': ['view_reports', 'destroy_reports', 'upload_reports'],
     'ReportTemplate': [
         'edit_report_templates',
         'destroy_report_templates',
@@ -1020,16 +987,8 @@ PERMISSIONS = {
         'view_report_templates',
         'lock_report_templates',
     ],
-    'Role': [
-        'view_roles',
-        'create_roles',
-        'edit_roles',
-        'destroy_roles',
-    ],
-    'Setting': [
-        'view_settings',
-        'edit_settings',
-    ],
+    'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'Setting': ['view_settings', 'edit_settings'],
     'SmartProxy': [
         'view_smart_proxies',
         'create_smart_proxies',
@@ -1045,11 +1004,7 @@ PERMISSIONS = {
         'view_capsule_content',
         'view_openscap_proxies',
     ],
-    'SshKey': [
-        "view_ssh_keys",
-        "create_ssh_keys",
-        "destroy_ssh_keys",
-    ],
+    'SshKey': ["view_ssh_keys", "create_ssh_keys", "destroy_ssh_keys"],
     'Subnet': [
         'view_subnets',
         'create_subnets',
@@ -1057,34 +1012,15 @@ PERMISSIONS = {
         'destroy_subnets',
         'import_subnets',
     ],
-    'Template': [
-        'export_templates',
-        'import_templates',
-    ],
+    'Template': ['export_templates', 'import_templates'],
     'TemplateInvocation': [
         'filter_autocompletion_for_template_invocation',
         'create_template_invocations',
         'view_template_invocations',
     ],
-    'Trend': [
-        'view_trends',
-        'create_trends',
-        'edit_trends',
-        'destroy_trends',
-        'update_trends',
-    ],
-    'Usergroup': [
-        'view_usergroups',
-        'create_usergroups',
-        'edit_usergroups',
-        'destroy_usergroups',
-    ],
-    'User': [
-        'view_users',
-        'create_users',
-        'edit_users',
-        'destroy_users',
-    ],
+    'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
+    'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
+    'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
     'VariableLookupKey': [
         'view_external_variables',
         'create_external_variables',
@@ -1212,21 +1148,14 @@ PERMISSIONS_UI = {
         'edit_architectures',
         'destroy_architectures',
     ],
-    'Audit': [
-        'view_audit_logs',
-    ],
+    'Audit': ['view_audit_logs'],
     'Auth source ldap': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
         'destroy_authenticators',
     ],
-    'Bookmark': [
-        'view_bookmarks',
-        'create_bookmarks',
-        'edit_bookmarks',
-        'destroy_bookmarks',
-    ],
+    'Bookmark': ['view_bookmarks', 'create_bookmarks', 'edit_bookmarks', 'destroy_bookmarks'],
     'Capsule': [
         'view_smart_proxies',
         'create_smart_proxies',
@@ -1266,11 +1195,7 @@ PERMISSIONS_UI = {
         'edit_config_groups',
         'destroy_config_groups',
     ],
-    'Config report': [
-        'view_config_reports',
-        'destroy_config_reports',
-        'upload_config_reports',
-    ],
+    'Config report': ['view_config_reports', 'destroy_config_reports', 'upload_config_reports'],
     'Content Views': [
         'view_content_views',
         'create_content_views',
@@ -1287,12 +1212,7 @@ PERMISSIONS_UI = {
         'execute_discovery_rules',
         'destroy_discovery_rules',
     ],
-    'Domain': [
-        'view_domains',
-        'create_domains',
-        'edit_domains',
-        'destroy_domains',
-    ],
+    'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
     'Environment': [
         'view_environments',
         'create_environments',
@@ -1306,22 +1226,9 @@ PERMISSIONS_UI = {
         'edit_external_usergroups',
         'destroy_external_usergroups',
     ],
-    'Fact value': [
-        'view_facts',
-        'upload_facts',
-    ],
-    'Filter': [
-        'view_filters',
-        'create_filters',
-        'edit_filters',
-        'destroy_filters',
-    ],
-    'GPG Keys': [
-        'view_gpg_keys',
-        'create_gpg_keys',
-        'edit_gpg_keys',
-        'destroy_gpg_keys',
-    ],
+    'Fact value': ['view_facts', 'upload_facts'],
+    'Filter': ['view_filters', 'create_filters', 'edit_filters', 'destroy_filters'],
+    'GPG Keys': ['view_gpg_keys', 'create_gpg_keys', 'edit_gpg_keys', 'destroy_gpg_keys'],
     'Host': [
         'view_hosts',
         'create_hosts',
@@ -1351,19 +1258,9 @@ PERMISSIONS_UI = {
         'edit_hostgroups',
         'destroy_hostgroups',
     ],
-    'Host сlass': [
-        'edit_classes',
-    ],
-    'Image': [
-        'view_images',
-        'create_images',
-        'edit_images',
-        'destroy_images',
-    ],
-    'Job invocation': [
-        'create_job_invocations',
-        'view_job_invocations',
-    ],
+    'Host сlass': ['edit_classes'],
+    'Image': ['view_images', 'create_images', 'edit_images', 'destroy_images'],
+    'Job invocation': ['create_job_invocations', 'view_job_invocations'],
     'Job template': [
         'view_job_templates',
         'create_job_templates',
@@ -1371,10 +1268,7 @@ PERMISSIONS_UI = {
         'destroy_job_templates',
         'lock_job_templates',
     ],
-    'Key pair': [
-        "view_keypairs",
-        "destroy_keypairs",
-    ],
+    'Key pair': ["view_keypairs", "destroy_keypairs"],
     'Lifecycle Environment': [
         'view_lifecycle_environments',
         'create_lifecycle_environments',
@@ -1389,21 +1283,9 @@ PERMISSIONS_UI = {
         'destroy_locations',
         'assign_locations',
     ],
-    'Mail notification': [
-        'view_mail_notifications',
-    ],
-    'Medium': [
-        'view_media',
-        'create_media',
-        'edit_media',
-        'destroy_media',
-    ],
-    'Model': [
-        'view_models',
-        'create_models',
-        'edit_models',
-        'destroy_models',
-    ],
+    'Mail notification': ['view_mail_notifications'],
+    'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
+    'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
         'view_operatingsystems',
         'create_operatingsystems',
@@ -1417,12 +1299,7 @@ PERMISSIONS_UI = {
         'destroy_organizations',
         'assign_organizations',
     ],
-    'Parameter': [
-        'view_params',
-        'create_params',
-        'edit_params',
-        'destroy_params',
-    ],
+    'Parameter': ['view_params', 'create_params', 'edit_params', 'destroy_params'],
     'Partition Table': [
         'view_ptables',
         'create_ptables',
@@ -1453,26 +1330,10 @@ PERMISSIONS_UI = {
         'destroy_puppetclasses',
         'import_puppetclasses',
     ],
-    'Realm': [
-        'view_realms',
-        'create_realms',
-        'edit_realms',
-        'destroy_realms',
-    ],
-    'Remote execution feature': [
-        'edit_remote_execution_features',
-    ],
-    'Report': [
-        'view_reports',
-        'destroy_reports',
-        'upload_reports',
-    ],
-    'Role': [
-        'view_roles',
-        'create_roles',
-        'edit_roles',
-        'destroy_roles',
-    ],
+    'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
+    'Remote execution feature': ['edit_remote_execution_features'],
+    'Report': ['view_reports', 'destroy_reports', 'upload_reports'],
+    'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
     'Satellite openscap/arf report': [
         'create_arf_reports',
         'view_arf_reports',
@@ -1496,17 +1357,13 @@ PERMISSIONS_UI = {
         "view_tailoring_files",
         "edit_tailoring_files",
         "destroy_tailoring_files",
-
     ],
     'Satellite tasks/recurring logic': [
         'create_recurring_logics',
         'view_recurring_logics',
         'edit_recurring_logics',
     ],
-    'Satellite tasks/task': [
-        'view_foreman_tasks',
-        'edit_foreman_tasks',
-    ],
+    'Satellite tasks/task': ['view_foreman_tasks', 'edit_foreman_tasks'],
     'Satellite virt who configure/config': [
         "view_virt_who_config",
         "create_virt_who_config",
@@ -1525,11 +1382,7 @@ PERMISSIONS_UI = {
         'edit_external_variables',
         'destroy_external_variables',
     ],
-    'Ssh key': [
-        "view_ssh_keys",
-        "create_ssh_keys",
-        "destroy_ssh_keys",
-    ],
+    'Ssh key': ["view_ssh_keys", "create_ssh_keys", "destroy_ssh_keys"],
     'Subnet': [
         'view_subnets',
         'create_subnets',
@@ -1554,38 +1407,15 @@ PERMISSIONS_UI = {
         'execute_template_invocation',
         'filter_autocompletion_for_template_invocation',
     ],
-    'Trend': [
-        'view_trends',
-        'create_trends',
-        'edit_trends',
-        'destroy_trends',
-        'update_trends',
-    ],
-    'User': [
-        'view_users',
-        'create_users',
-        'edit_users',
-        'destroy_users',
-    ],
-    'Usergroup': [
-        'view_usergroups',
-        'create_usergroups',
-        'edit_usergroups',
-        'destroy_usergroups',
-    ],
+    'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
+    'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
+    'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
 }
 
 
-ANY_CONTEXT = {
-    'org': "Any Organization",
-    'location': "Any Location"
-}
+ANY_CONTEXT = {'org': "Any Organization", 'location': "Any Location"}
 
-SUBNET_IPAM_TYPES = {
-    'dhcp': 'DHCP',
-    'internal': 'Internal DB',
-    'none': 'None',
-}
+SUBNET_IPAM_TYPES = {'dhcp': 'DHCP', 'internal': 'Internal DB', 'none': 'None'}
 
 TREND_TYPES = {
     'environment': 'Environment',
@@ -1597,21 +1427,9 @@ TREND_TYPES = {
 }
 
 LDAP_SERVER_TYPE = {
-    'API': {
-        'ipa': 'free_ipa',
-        'ad': 'active_directory',
-        'posix': 'posix',
-    },
-    'CLI': {
-        'ipa': 'free_ipa',
-        'ad': 'active_directory',
-        'posix': 'posix',
-    },
-    'UI': {
-        'ipa': 'FreeIPA',
-        'ad': 'Active Directory',
-        'posix': 'POSIX',
-    },
+    'API': {'ipa': 'free_ipa', 'ad': 'active_directory', 'posix': 'posix'},
+    'CLI': {'ipa': 'free_ipa', 'ad': 'active_directory', 'posix': 'posix'},
+    'UI': {'ipa': 'FreeIPA', 'ad': 'Active Directory', 'posix': 'POSIX'},
 }
 
 LDAP_ATTR = {
@@ -1622,11 +1440,7 @@ LDAP_ATTR = {
     'mail': 'mail',
 }
 
-OSCAP_PERIOD = {
-    'weekly': 'Weekly',
-    'monthly': 'Monthly',
-    'custom': 'Custom',
-}
+OSCAP_PERIOD = {'weekly': 'Weekly', 'monthly': 'Monthly', 'custom': 'Custom'}
 
 OSCAP_WEEKDAY = {
     'sunday': 'Sunday',
@@ -1647,15 +1461,15 @@ OSCAP_DEFAULT_CONTENT = {
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'esp': 'Example Server Profile',
-    'rhccp': ('Red Hat Corporate Profile for '
-              'Certified Cloud Providers (RH CCP)'),
+    'rhccp': ('Red Hat Corporate Profile for ' 'Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
-    'tailoring_rhel7': ('Standard System Security Profile for Red Hat Enterprise Linux 7 '
-                        '[CUSTOMIZED]'),
+    'tailoring_rhel7': (
+        'Standard System Security Profile for Red Hat Enterprise Linux 7 ' '[CUSTOMIZED]'
+    ),
     'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
-    'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7'
+    'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7',
 }
 
 ROLES = [
@@ -1720,122 +1534,93 @@ BOOKMARK_ENTITIES = [
     {'name': 'Audit', 'controller': 'audits', 'skip_for_ui': True},
     {'name': 'Report', 'controller': 'config_reports', 'skip_for_ui': True},
     {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'skip_for_ui': True},
-    {
-        'name': 'Subscriptions', 'controller': 'katello_subscriptions',
-        'skip_for_ui': True,
-    },
+    {'name': 'Subscriptions', 'controller': 'katello_subscriptions', 'skip_for_ui': True},
     {'name': 'Product', 'controller': 'katello_products'},
-    {
-        'name': 'Repository', 'controller': 'katello_repositories',
-        'skip_for_ui': True
-    },
-    {
-        'name': 'ContentCredential', 'controller': 'katello_gpg_keys',
-    },
+    {'name': 'Repository', 'controller': 'katello_repositories', 'skip_for_ui': True},
+    {'name': 'ContentCredential', 'controller': 'katello_gpg_keys'},
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
     {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
-    {
-        'name': 'Package', 'controller': 'katello_erratum_packages',
-        'skip_for_ui': True
-    },
-    {
-        'name': 'PuppetModule', 'controller': 'katello_puppet_modules',
-        'skip_for_ui': True
-    },
-    {
-        'name': 'ContainerImageTag', 'controller': 'katello_docker_tags',
-        'skip_for_ui': True
-    },
+    {'name': 'Package', 'controller': 'katello_erratum_packages', 'skip_for_ui': True},
+    {'name': 'PuppetModule', 'controller': 'katello_puppet_modules', 'skip_for_ui': True},
+    {'name': 'ContainerImageTag', 'controller': 'katello_docker_tags', 'skip_for_ui': True},
     {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host},
-    {
-        'name': 'ContentHost', 'controller': 'hosts',
-        'skip_for_ui': True
-    },
+    {'name': 'ContentHost', 'controller': 'hosts', 'skip_for_ui': True},
     {'name': 'HostCollection', 'controller': 'katello_host_collections'},
     {'name': 'Architecture', 'controller': 'architectures'},
     {
-        'name': 'HardwareModel', 'controller': 'models',
-        'setup': entities.Model, 'skip_for_ui': True
+        'name': 'HardwareModel',
+        'controller': 'models',
+        'setup': entities.Model,
+        'skip_for_ui': True,
     },
     {
-        'name': 'InstallationMedia', 'controller': 'media',
-        'setup': entities.Media, 'skip_for_ui': True
+        'name': 'InstallationMedia',
+        'controller': 'media',
+        'setup': entities.Media,
+        'skip_for_ui': True,
     },
     {'name': 'OperatingSystem', 'controller': 'operatingsystems'},
     {
-        'name': 'PartitionTable', 'controller': 'ptables',
-        'setup': entities.PartitionTable, 'skip_for_ui': False
+        'name': 'PartitionTable',
+        'controller': 'ptables',
+        'setup': entities.PartitionTable,
+        'skip_for_ui': False,
     },
     {'name': 'ProvisioningTemplate', 'controller': 'provisioning_templates'},
     {
-        'name': 'HostGroup', 'controller': 'hostgroups',
-        'setup': entities.HostGroup, 'skip_for_ui': True
+        'name': 'HostGroup',
+        'controller': 'hostgroups',
+        'setup': entities.HostGroup,
+        'skip_for_ui': True,
     },
     {
-        'name': 'DiscoveryRule', 'controller': 'discovery_rules',
-        'skip_for_ui': True, 'setup': entities.DiscoveryRule
+        'name': 'DiscoveryRule',
+        'controller': 'discovery_rules',
+        'skip_for_ui': True,
+        'setup': entities.DiscoveryRule,
     },
     {
-        'name': 'GlobalParameter', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': True
+        'name': 'GlobalParameter',
+        'controller': 'common_parameters',
+        'setup': entities.CommonParameter,
+        'skip_for_ui': True,
     },
     {
-        'name': 'ConfigGroup', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup, 'skip_for_ui': True
+        'name': 'ConfigGroup',
+        'controller': 'config_groups',
+        'setup': entities.ConfigGroup,
+        'skip_for_ui': True,
     },
+    {'name': 'PuppetEnvironment', 'controller': 'environments', 'setup': entities.Environment},
+    {'name': 'PuppetClass', 'controller': 'puppetclasses', 'setup': entities.PuppetClass},
     {
-        'name': 'PuppetEnvironment', 'controller': 'environments',
-        'setup': entities.Environment
+        'name': 'SmartVariable',
+        'controller': 'lookup_keys',
+        'setup': entities.SmartVariable,
+        'skip_for_ui': True,
     },
-    {
-        'name': 'PuppetClass', 'controller': 'puppetclasses',
-        'setup': entities.PuppetClass
-    },
-    {
-        'name': 'SmartVariable', 'controller': 'lookup_keys',
-        'setup': entities.SmartVariable, 'skip_for_ui': True
-    },
-    {
-        'name': 'Roles', 'controller': 'ansible_roles',
-        'setup': entities.Role
-    },
-    {
-        'name': 'Variables', 'controller': 'ansible_variables',
-    },
+    {'name': 'Roles', 'controller': 'ansible_roles', 'setup': entities.Role},
+    {'name': 'Variables', 'controller': 'ansible_variables'},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
-        'name': 'ComputeResource', 'controller': 'compute_resources',
-        'setup': entities.LibvirtComputeResource
+        'name': 'ComputeResource',
+        'controller': 'compute_resources',
+        'setup': entities.LibvirtComputeResource,
     },
-    {
-        'name': 'ComputeProfile', 'controller': 'compute_profiles',
-        'setup': entities.ComputeProfile
-    },
-    {
-        'name': 'Subnet', 'controller': 'subnets',
-        'setup': entities.Subnet
-    },
+    {'name': 'ComputeProfile', 'controller': 'compute_profiles', 'setup': entities.ComputeProfile},
+    {'name': 'Subnet', 'controller': 'subnets', 'setup': entities.Subnet},
     {'name': 'Domain', 'controller': 'domains', 'setup': entities.Domain},
-    {
-        'name': 'Realm', 'controller': 'realms', 'setup': entities.Realm,
-        'skip_for_ui': True
-    },
+    {'name': 'Realm', 'controller': 'realms', 'setup': entities.Realm, 'skip_for_ui': True},
     {'name': 'Location', 'controller': 'locations'},
     {'name': 'Organization', 'controller': 'organizations'},
     {'name': 'User', 'controller': 'users'},
-    {
-        'name': 'UserGroup', 'controller': 'usergroups',
-        'setup': entities.UserGroup
-    },
+    {'name': 'UserGroup', 'controller': 'usergroups', 'setup': entities.UserGroup},
     {'name': 'Role', 'controller': 'roles'},
     {'name': 'Settings', 'controller': 'settings', 'skip_for_ui': True},
 ]
 
-STRING_TYPES = [
-    u'alpha', u'numeric', u'alphanumeric',
-    u'latin1', u'utf8', u'cjk', u'html'
-]
+STRING_TYPES = [u'alpha', u'numeric', u'alphanumeric', u'latin1', u'utf8', u'cjk', u'html']
 
 BACKUP_FILES = [
     u'candlepin.dump',
@@ -1858,17 +1643,17 @@ REAL_4_ERRATA_DETAILS = [
     [
         'Topic',
         'Updated libvirt packages that fix three security issues and one bug '
-        'are now\navailable for Red Hat Enterprise Linux 6.'
+        'are now\navailable for Red Hat Enterprise Linux 6.',
     ],
     [
         'Description',
         'The libvirt library is a C API for managing and interacting with the'
-        '\nvirtualization capabilities of Linux and other operating systems.'
-     ],
+        '\nvirtualization capabilities of Linux and other operating systems.',
+    ],
     [
         'Solution',
         'Before applying this update, make sure all previously released errata'
-        '\nrelevant to your system have been applied.'
+        '\nrelevant to your system have been applied.',
     ],
 ]
 
@@ -1880,16 +1665,9 @@ TOOLS_ERRATA_DETAILS = [
     ['Issued', '7/27/16'],
     ['Last Updated On', '7/27/16'],
     ['Reboot Suggested', 'No'],
-    [
-        'Topic',
-        'Red Hat Satellite 6.2 now available for Red Hat Enterprise Linux 6 '
-        'and 7'
-    ],
+    ['Topic', 'Red Hat Satellite 6.2 now available for Red Hat Enterprise Linux 6 ' 'and 7'],
     ['Description', 'This update provides Satellite 6.2 client tooling'],
-    [
-        'Solution',
-        'Before applying this update, make sure all previously released errata'
-    ],
+    ['Solution', 'Before applying this update, make sure all previously released errata'],
 ]
 
 TOOLS_ERRATA_TABLE_DETAILS = [
@@ -1897,7 +1675,7 @@ TOOLS_ERRATA_TABLE_DETAILS = [
     'Satellite 6.2 Tools Release',
     'Bug Fix Advisory',
     'Installable',
-    '7/27/16'
+    '7/27/16',
 ]
 
 BACKUP_FILES = [
@@ -1933,39 +1711,29 @@ VMWARE_CONSTANTS = {
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
     'datastore': 'Local-Ironforge',
-    'network_interfaces': 'qe_%s'
+    'network_interfaces': 'qe_%s',
 }
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 
 ANSWERS = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
 
-FOREMAN_TEMPLATE_IMPORT_URL = (
-    'https://github.com/SatelliteQE/foreman_templates.git')
+FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
-    'example_template.erb')
+    'example_template.erb'
+)
 
 DEFAULT_SYSPURPOSE_ATTRIBUTES = {
-    'service_level': (
-        'sla',
-        'Self-Support',
-        'Standard',
-        'Premium'
-        ),
-    'usage_type': (
-        'usage',
-        'Production',
-        'Development/Test',
-        'Disaster Recovery'
-        ),
+    'service_level': ('sla', 'Self-Support', 'Standard', 'Premium'),
+    'usage_type': ('usage', 'Production', 'Development/Test', 'Disaster Recovery'),
     'role': (
         'role',
         'Red Hat Enterprise Linux Server',
         'Red Hat Enterprise Linux Workstation',
-        'Red Hat Enterprise Linux Compute Node'
-        ),
+        'Red Hat Enterprise Linux Compute Node',
+    ),
 }
 
 

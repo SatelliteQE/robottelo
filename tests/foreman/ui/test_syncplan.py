@@ -45,9 +45,9 @@ def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):
         wait_for_syncplan_tasks(repo_backend_id)
     wait_for_tasks(
         search_query='resource_type = Katello::Repository'
-                     ' and owner.login = foreman_admin'
-                     ' and resource_id = {}'.format(repo_id),
-        max_tries=max_tries
+        ' and owner.login = foreman_admin'
+        ' and resource_id = {}'.format(repo_id),
+        max_tries=max_tries,
     )
 
 
@@ -65,12 +65,14 @@ def validate_repo_content(repo, content_types, after_sync=True):
     for content in content_types:
         if after_sync:
             assert repo.last_sync, 'Repository was not synced.'
-            assert repo.content_counts[content] > 0, (
-                'Repository contains invalid number of content entities.')
+            assert (
+                repo.content_counts[content] > 0
+            ), 'Repository contains invalid number of content entities.'
         else:
             assert not repo.last_sync, 'Repository was unexpectedly synced.'
-            assert repo.content_counts[content] == 0, (
-                'Repository contains invalid number of content entities.')
+            assert (
+                repo.content_counts[content] == 0
+            ), 'Repository contains invalid number of content entities.'
 
 
 @fixture(scope='module')
@@ -92,17 +94,18 @@ def test_positive_end_to_end(session):
     description = gen_string('alpha')
     new_description = gen_string('alpha')
     with session:
-        startdate = (
-                session.browser.get_client_datetime() + timedelta(minutes=10))
+        startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         # Create new sync plan and check all values in entity that was created
-        session.syncplan.create({
-            'name': plan_name,
-            'interval': SYNC_INTERVAL['day'],
-            'description': description,
-            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
-            'date_time.hours': startdate.strftime('%H'),
-            'date_time.minutes': startdate.strftime('%M'),
-        })
+        session.syncplan.create(
+            {
+                'name': plan_name,
+                'interval': SYNC_INTERVAL['day'],
+                'description': description,
+                'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+                'date_time.hours': startdate.strftime('%H'),
+                'date_time.minutes': startdate.strftime('%M'),
+            }
+        )
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         syncplan_values = session.syncplan.read(plan_name)
         assert syncplan_values['details']['name'] == plan_name
@@ -112,10 +115,7 @@ def test_positive_end_to_end(session):
         time = syncplan_values['details']['date_time'].rpartition(':')[0]
         assert time == startdate.strftime("%b %-d, %Y %-I:%M")
         # Update sync plan with new description
-        session.syncplan.update(
-            plan_name,
-            {'details.description': new_description}
-        )
+        session.syncplan.update(plan_name, {'details.description': new_description})
         syncplan_values = session.syncplan.read(plan_name)
         assert syncplan_values['details']['description'] == new_description
         # Delete sync plan
@@ -137,18 +137,19 @@ def test_positive_end_to_end_custom_cron(session):
     description = gen_string('alpha')
     cron_expression = gen_choice(valid_cron_expressions())
     with session:
-        startdate = (
-                session.browser.get_client_datetime() + timedelta(minutes=10))
+        startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         # Create new sync plan and check all values in entity that was created
-        session.syncplan.create({
-            'name': plan_name,
-            'interval': SYNC_INTERVAL['custom'],
-            'description': description,
-            'cron_expression': cron_expression,
-            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
-            'date_time.hours': startdate.strftime('%H'),
-            'date_time.minutes': startdate.strftime('%M'),
-        })
+        session.syncplan.create(
+            {
+                'name': plan_name,
+                'interval': SYNC_INTERVAL['custom'],
+                'description': description,
+                'cron_expression': cron_expression,
+                'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+                'date_time.hours': startdate.strftime('%H'),
+                'date_time.minutes': startdate.strftime('%M'),
+            }
+        )
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         syncplan_values = session.syncplan.read(plan_name)
         assert syncplan_values['details']['interval'] == SYNC_INTERVAL['custom']
@@ -157,11 +158,7 @@ def test_positive_end_to_end_custom_cron(session):
         time = syncplan_values['details']['date_time'].rpartition(':')[0]
         assert time == startdate.strftime("%b %-d, %Y %-I:%M")
         # Update sync plan with new description
-        session.syncplan.update(
-            plan_name,
-            {'details.interval': SYNC_INTERVAL['day']
-             }
-        )
+        session.syncplan.update(plan_name, {'details.interval': SYNC_INTERVAL['day']})
         syncplan_values = session.syncplan.read(plan_name)
         assert syncplan_values['details']['interval'] == SYNC_INTERVAL['day']
         assert not syncplan_values['details']['cron_expression']
@@ -197,18 +194,16 @@ def test_positive_search_scoped(session):
     ).create()
     with session:
         session.organization.select(org.name)
-        for query_type, query_value in [
-            ('interval', SYNC_INTERVAL['day']),
-            ('enabled', 'true'),
-        ]:
-            assert session.syncplan.search(
-                '{} = {}'.format(query_type, query_value))[0]['Name'] == name
+        for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:
+            assert (
+                session.syncplan.search('{} = {}'.format(query_type, query_value))[0]['Name']
+                == name
+            )
         assert name not in session.syncplan.search('enabled = false')
 
 
 @tier3
-def test_positive_synchronize_custom_product_custom_cron_real_time(
-        session, module_org):
+def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org):
     """Create a sync plan with real datetime as a sync date,
     add a custom product and verify the product gets synchronized
     on the next sync occurrence based on custom cron interval
@@ -224,26 +219,27 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(
     repo = entities.Repository(product=product).create()
     with session:
         start_date = session.browser.get_client_datetime()
-        next_sync = (3 * 60)
+        next_sync = 3 * 60
         # forming cron expression sync repo after 3 min
         expected_next_run_time = start_date + timedelta(seconds=next_sync)
         cron_expression = '{} * * * *'.format(expected_next_run_time.minute)
-        session.syncplan.create({
-            'name': plan_name,
-            'interval': SYNC_INTERVAL['custom'],
-            'cron_expression': cron_expression,
-            'description': 'sync plan create with start time',
-            'date_time.start_date': start_date.strftime("%Y-%m-%d"),
-            'date_time.hours': start_date.strftime('%H'),
-            'date_time.minutes': start_date.strftime('%M'),
-        })
+        session.syncplan.create(
+            {
+                'name': plan_name,
+                'interval': SYNC_INTERVAL['custom'],
+                'cron_expression': cron_expression,
+                'description': 'sync plan create with start time',
+                'date_time.start_date': start_date.strftime("%Y-%m-%d"),
+                'date_time.hours': start_date.strftime('%H'),
+                'date_time.minutes': start_date.strftime('%M'),
+            }
+        )
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         session.syncplan.add_product(plan_name, product.name)
         with raises(AssertionError) as context:
             validate_task_status(repo.id, max_tries=2)
         assert 'No task was found using query' in str(context.value)
-        validate_repo_content(
-            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Waiting part of delay that left and check that product was synced
         time.sleep(next_sync)
         validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
@@ -257,8 +253,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(
 
 
 @tier3
-def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
-        session, module_org):
+def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session, module_org):
     """Create a sync plan with past datetime as a sync date,
     add a custom product and verify the product gets synchronized
     on the next sync occurrence based on custom cron interval
@@ -275,30 +270,28 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
     with session:
-        startdate = (
-            session.browser.get_client_datetime()
-            - timedelta(seconds=(interval - delay))
+        startdate = session.browser.get_client_datetime() - timedelta(seconds=(interval - delay))
+        session.syncplan.create(
+            {
+                'name': plan_name,
+                'interval': SYNC_INTERVAL['custom'],
+                'cron_expression': '*/5 * * * *',
+                'description': 'sync plan create with start time',
+                'date_time.start_date': startdate.strftime("%Y-%m-%d"),
+                'date_time.hours': startdate.strftime('%H'),
+                'date_time.minutes': startdate.strftime('%M'),
+            }
         )
-        session.syncplan.create({
-            'name': plan_name,
-            'interval': SYNC_INTERVAL['custom'],
-            'cron_expression': '*/5 * * * *',
-            'description': 'sync plan create with start time',
-            'date_time.start_date': startdate.strftime("%Y-%m-%d"),
-            'date_time.hours': startdate.strftime('%H'),
-            'date_time.minutes': startdate.strftime('%M'),
-        })
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         session.syncplan.add_product(plan_name, product.name)
         # Waiting part of delay and check that product was not synced
-        time.sleep(delay/4)
+        time.sleep(delay / 4)
         with raises(AssertionError) as context:
             validate_task_status(repo.id, max_tries=2)
         assert 'No task was found using query' in str(context.value)
-        validate_repo_content(
-            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Waiting part of delay that left and check that product was synced
-        time.sleep(delay * 3/4)
+        time.sleep(delay * 3 / 4)
         validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)

@@ -27,58 +27,55 @@ def _bios_date():
     return gen_date(ten_years_ago, today)
 
 
-ARCHITECTURES = [
-    u"i386",
-    u"x86_64",
-    u"ppc",
-    u's390x',
-]
+ARCHITECTURES = [u"i386", u"x86_64", u"ppc", u's390x']
 
 # https://en.wikipedia.org/wiki/Red_Hat_Enterprise_Linux#Version_history
 DISTRO_IDS = [
-    {u'id': u'Maipo',
-     u'version': u'7.0',
-     # There is no 'i386' for RHEL 7
-     u'architecture': gen_choice(ARCHITECTURES[1:]),
-     u'kernel': u'3.10.0-123.el7'},
-    {u'id': u'Santiago',
-     u'version': u'6.{0}'.format(gen_integer(1, 5)),
-     u'architecture': gen_choice(ARCHITECTURES),
-     u'kernel': u'2.6.32-431.el6'},
-    {u'id': u'Tikanga',
-     u'version': u'5.{0}'.format(gen_integer(1, 10)),
-     u'architecture': gen_choice(ARCHITECTURES),
-     u'kernel': u'2.6.18-371.el5'},
-    {u'id': u'Nahant',
-     u'version': u'4.{0}'.format(gen_integer(1, 9)),
-     # Assuming only 'i386' and 'x86_64'
-     u'architecture': gen_choice(ARCHITECTURES[:2]),
-     u'kernel': u'2.6.9-100.el4'},
-    {u'id': u'Taroon',
-     u'version': u'3.{0}'.format(gen_integer(1, 9)),
-     # Assuming only 'i386' and 'x86_64'
-     u'architecture': gen_choice(ARCHITECTURES[:2]),
-     u'kernel': u'2.4.21-50.el3'},
-    {u'id': u'Pensacola',
-     u'version': u'2.{0}'.format(gen_integer(1, 7)),
-     # Assuming only 'i386' and 'x86_64'
-     u'architecture': gen_choice(ARCHITECTURES[:2]),
-     u'kernel': u'2.4.9-e.57.el2'},
+    {
+        u'id': u'Maipo',
+        u'version': u'7.0',
+        # There is no 'i386' for RHEL 7
+        u'architecture': gen_choice(ARCHITECTURES[1:]),
+        u'kernel': u'3.10.0-123.el7',
+    },
+    {
+        u'id': u'Santiago',
+        u'version': u'6.{0}'.format(gen_integer(1, 5)),
+        u'architecture': gen_choice(ARCHITECTURES),
+        u'kernel': u'2.6.32-431.el6',
+    },
+    {
+        u'id': u'Tikanga',
+        u'version': u'5.{0}'.format(gen_integer(1, 10)),
+        u'architecture': gen_choice(ARCHITECTURES),
+        u'kernel': u'2.6.18-371.el5',
+    },
+    {
+        u'id': u'Nahant',
+        u'version': u'4.{0}'.format(gen_integer(1, 9)),
+        # Assuming only 'i386' and 'x86_64'
+        u'architecture': gen_choice(ARCHITECTURES[:2]),
+        u'kernel': u'2.6.9-100.el4',
+    },
+    {
+        u'id': u'Taroon',
+        u'version': u'3.{0}'.format(gen_integer(1, 9)),
+        # Assuming only 'i386' and 'x86_64'
+        u'architecture': gen_choice(ARCHITECTURES[:2]),
+        u'kernel': u'2.4.21-50.el3',
+    },
+    {
+        u'id': u'Pensacola',
+        u'version': u'2.{0}'.format(gen_integer(1, 7)),
+        # Assuming only 'i386' and 'x86_64'
+        u'architecture': gen_choice(ARCHITECTURES[:2]),
+        u'kernel': u'2.4.9-e.57.el2',
+    },
 ]
 
-MEMORY_CAPACITY = [
-    u"2 GB",
-    u"4 GB",
-    u"8 GB",
-    u"16 GB",
-]
+MEMORY_CAPACITY = [u"2 GB", u"4 GB", u"8 GB", u"16 GB"]
 
-MEMORY_SIZE = [
-    u"1024 MB",
-    u"2048 MB",
-    u"4096 MB",
-    u"8192 MB",
-]
+MEMORY_SIZE = [u"1024 MB", u"2048 MB", u"4096 MB", u"8192 MB"]
 
 SYSTEM_FACTS = {
     u'cpu.core(s)_per_socket': u'1',
@@ -188,8 +185,7 @@ def generate_system_facts(name=None):
     :rtype: dict
     """
     if name is None:
-        name = u'{0}.example.net'.format(
-            gen_alpha().lower())
+        name = u'{0}.example.net'.format(gen_alpha().lower())
 
     # Make a copy of the system facts 'template'
     new_facts = copy.deepcopy(SYSTEM_FACTS)
@@ -200,8 +196,7 @@ def generate_system_facts(name=None):
     new_facts['distribution.id'] = distro['id']
     new_facts['distribution.version'] = distro['version']
     new_facts['dmi.bios.relase_date'] = _bios_date().strftime('%m/%d/%Y')
-    new_facts['dmi.memory.maximum_capacity'] = gen_choice(
-        MEMORY_CAPACITY)
+    new_facts['dmi.memory.maximum_capacity'] = gen_choice(MEMORY_CAPACITY)
     new_facts['dmi.memory.size'] = gen_choice(MEMORY_SIZE)
     new_facts['dmi.system.uuid'] = gen_uuid()
     new_facts['dmi.system.version'] = u'RHEL'

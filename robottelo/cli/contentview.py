@@ -49,16 +49,16 @@ class ContentViewFilterRule(Base):
     def create(cls, options=None):
         """Create a content-view filter rule"""
         if (
-                not options or
-                'content-view-filter' not in options and
-                'content-view-filter-id' not in options):
+            not options
+            or 'content-view-filter' not in options
+            and 'content-view-filter-id' not in options
+        ):
             raise CLIError(
                 'Could not find content_view_filter, please set one of options'
                 ' "content-view-filter" or "content-view-filter-id".'
             )
         cls.command_sub = 'create'
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         # Extract new CV filter rule ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:
@@ -69,8 +69,7 @@ class ContentViewFilterRule(Base):
             info_options = {
                 'content-view-id': options.get('content-view-id'),
                 'content-view-filter': options.get('content-view-filter'),
-                'content-view-filter-id': options.get(
-                    'content-view-filter-id'),
+                'content-view-filter-id': options.get('content-view-filter-id'),
                 'id': cvfr_id,
             }
             result = cls.info(info_options)
@@ -96,32 +95,25 @@ class ContentView(Base):
     def add_repository(cls, options):
         """Associate repository to a selected CV."""
         cls.command_sub = 'add-repository'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def add_version(cls, options):
         """Associate version to a selected CV."""
         cls.command_sub = 'add-version'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def copy(cls, options):
         """Copy existing content-view to a new one"""
         cls.command_sub = 'copy'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def publish(cls, options, timeout=1500):
         """Publishes a new version of content-view."""
         cls.command_sub = 'publish'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def version_info(cls, options, output_format=None):
@@ -131,8 +123,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(
-            cls._construct_command(options), output_format=output_format)
+        result = cls.execute(cls._construct_command(options), output_format=output_format)
         if output_format != 'json':
             result = hammer.parse_info(result)
         return result
@@ -143,29 +134,25 @@ class ContentView(Base):
         cls.command_sub = 'version incremental-update'
         if options is None:
             options = {}
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppet_module_add(cls, options):
         """Associate puppet_module to selected CV"""
         cls.command_sub = 'puppet-module add'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppet_module_list(cls, options):
         """List content view puppet modules"""
         cls.command_sub = 'puppet-module list'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppet_module_remove(cls, options):
         """Remove a puppet module from the content view"""
         cls.command_sub = 'puppet-module remove'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def version_list(cls, options):
@@ -173,56 +160,37 @@ class ContentView(Base):
         cls.command_sub = 'version list'
         if options is None:
             options = {}
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def version_promote(cls, options, timeout=600):
         """Promotes content-view version to next env."""
         cls.command_sub = 'version promote'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def version_export(cls, options, timeout=300):
         """Exports content-view version in given directory"""
         cls.command_sub = 'version export'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def version_import(cls, options, timeout=300):
         """Imports content-view version from a given directory"""
         cls.command_sub = 'version import'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def version_delete(cls, options):
         """Removes content-view version."""
         cls.command_sub = 'version delete'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
     def remove_from_environment(cls, options=None):
         """Remove content-view from an environment"""
         cls.command_sub = 'remove-from-environment'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
     def remove(cls, options=None):
@@ -230,35 +198,28 @@ class ContentView(Base):
         reassign content hosts and keys
         """
         cls.command_sub = 'remove'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
     def remove_version(cls, options=None):
         """Remove a content view version from a composite view"""
         cls.command_sub = 'remove-version'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_repository(cls, options):
         """Remove repository from content view"""
         cls.command_sub = 'remove-repository'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def component_add(cls, options=None):
         """Add components to the content view"""
         cls.command_sub = 'component add'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def component_list(cls, options=None):
         """List components attached to the content view"""
         cls.command_sub = 'component list'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

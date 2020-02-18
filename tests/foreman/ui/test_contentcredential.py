@@ -62,14 +62,17 @@ def test_positive_end_to_end(session, module_org, gpg_content):
     new_name = gen_string('alpha')
     with session:
         # Create new gpg key with valid content
-        session.contentcredential.create({
-            'name': name,
-            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-            'content': gpg_content
-        })
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                'content': gpg_content,
+            }
+        )
         assert session.contentcredential.search(name)[0]['Name'] == name
         gpg_key = entities.ContentCredential(organization=module_org).search(
-            query={'search': 'name="{}"'.format(name)})[0]
+            query={'search': 'name="{}"'.format(name)}
+        )[0]
         product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
         repo = entities.Repository(product=product).create()
         values = session.contentcredential.read(name)
@@ -84,10 +87,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         assert values['products']['table'][0]['Name'] == product.name
         assert values['repositories']['table'][0]['Name'] == repo.name
         # Update gpg key with new name
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         assert session.contentcredential.search(new_name)[0]['Name'] == new_name
         # Delete gpg key
         session.contentcredential.delete(new_name)
@@ -110,13 +110,17 @@ def test_positive_search_scoped(session, gpg_content):
     org = entities.Organization().create()
     with session:
         session.organization.select(org.name)
-        session.contentcredential.create({
-            'name': name,
-            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-            'content': gpg_content
-        })
-        assert session.contentcredential.search(
-            'organization_id = {}'.format(org.id))[0]['Name'] == name
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                'content': gpg_content,
+            }
+        )
+        assert (
+            session.contentcredential.search('organization_id = {}'.format(org.id))[0]['Name']
+            == name
+        )
 
 
 @tier2
@@ -131,13 +135,9 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     prod_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
     with session:
-        session.product.create(
-            {'name': prod_name, 'gpg_key': gpg_key.name})
+        session.product.create({'name': prod_name, 'gpg_key': gpg_key.name})
         values = session.contentcredential.read(gpg_key.name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == prod_name
@@ -157,39 +157,24 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product
     product = entities.Product(organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        product=product,
-    ).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
         # Associate gpg key with a product
-        session.product.update(
-            product.name, {'details.gpg_key': gpg_key.name}
-        )
+        session.product.update(product.name, {'details.gpg_key': gpg_key.name})
         values = session.contentcredential.read(name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
-        assert (
-            values['repositories']['table'][0]['Product'] ==
-            product.name
-        )
+        assert values['repositories']['table'][0]['Product'] == product.name
         assert values['repositories']['table'][0]['Type'] == 'yum'
-        assert (
-            values['repositories']['table'][0]['Used as'] ==
-            CONTENT_CREDENTIALS_TYPES['gpg']
-        )
+        assert values['repositories']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
 
 
 @tier2
@@ -204,36 +189,18 @@ def test_positive_add_product_with_repos(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key,
-        organization=module_org,
-    ).create()
+    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(
-        product=product,
-        url=FAKE_1_YUM_REPO,
-    ).create()
+    repo1 = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
     # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(
-        product=product,
-        url=FAKE_2_YUM_REPO,
-    ).create()
+    repo2 = entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
     with session:
         values = session.contentcredential.read(name)
         assert len(values['repositories']['table']) == 2
-        assert (
-            {repo1.name, repo2.name} ==
-            set([
-                repo['Name']
-                for repo
-                in values['repositories']['table']
-            ])
+        assert {repo1.name, repo2.name} == set(
+            [repo['Name'] for repo in values['repositories']['table']]
         )
 
 
@@ -250,33 +217,21 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product
     product = entities.Product(organization=module_org).create()
     # Creates new repository
-    repo = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        product=product,
-    ).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
         # Associate gpg key with repository
-        session.repository.update(
-            product.name, repo.name, {'repo_content.gpg_key': gpg_key.name}
-        )
+        session.repository.update(product.name, repo.name, {'repo_content.gpg_key': gpg_key.name})
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
-        assert (
-            values['repositories']['table'][0]['Product'] ==
-            product.name
-        )
+        assert values['repositories']['table'][0]['Product'] == product.name
 
 
 @tier2
@@ -292,24 +247,13 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product without selecting GPGkey
     product = entities.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo1 = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        product=product,
-        gpg_key=gpg_key,
-    ).create()
+    repo1 = entities.Repository(url=FAKE_1_YUM_REPO, product=product, gpg_key=gpg_key).create()
     # Creates new repository without GPGKey
-    entities.Repository(
-        url=FAKE_2_YUM_REPO,
-        product=product,
-    ).create()
+    entities.Repository(url=FAKE_2_YUM_REPO, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -336,26 +280,29 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
     product_name = gen_string('alpha')
     repo_name = 'fakerepo01'
     with session:
-        session.contentcredential.create({
-            'name': name,
-            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-            'upload_file': gpg_path
-        })
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                'upload_file': gpg_path,
+            }
+        )
         assert session.contentcredential.search(name)[0]['Name'] == name
-        session.product.discover_repo({
-            'repo_type': 'Yum Repositories',
-            'url': REPO_DISCOVERY_URL,
-            'discovered_repos.repos': repo_name,
-            'create_repo.product_type': 'New Product',
-            'create_repo.product_content.product_name': product_name,
-            'create_repo.product_content.gpg_key': name,
-        })
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': REPO_DISCOVERY_URL,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+                'create_repo.product_content.gpg_key': name,
+            }
+        )
         values = session.contentcredential.read(name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product_name
         assert len(values['repositories']['table']) == 1
-        assert (values['repositories']['table'][0]['Name'].split(' ')[-1]
-                == repo_name)
+        assert values['repositories']['table'][0]['Name'].split(' ')[-1] == repo_name
 
 
 @tier2
@@ -376,30 +323,18 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key,
-        organization=module_org,
-    ).create()
+    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        product=product,
-    ).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     with session:
         values = session.contentcredential.read(gpg_key.name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
-        product_values = session.contentcredential.get_product_details(
-            gpg_key.name, product.name
-        )
+        product_values = session.contentcredential.get_product_details(gpg_key.name, product.name)
         assert product_values['details']['name'] == product.name
         assert product_values['details']['gpg_key'] == gpg_key.name
         assert product_values['details']['repos_count'] == '1'
@@ -425,38 +360,37 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
     product_name = gen_string('alpha')
     repo_name = 'fakerepo01'
     with session:
-        session.contentcredential.create({
-            'name': name,
-            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-            'upload_file': gpg_path
-        })
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                'upload_file': gpg_path,
+            }
+        )
         assert session.contentcredential.search(name)[0]['Name'] == name
-        session.product.discover_repo({
-            'repo_type': 'Yum Repositories',
-            'url': REPO_DISCOVERY_URL,
-            'discovered_repos.repos': repo_name,
-            'create_repo.product_type': 'New Product',
-            'create_repo.product_content.product_name': product_name,
-            'create_repo.product_content.gpg_key': name,
-        })
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': REPO_DISCOVERY_URL,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+                'create_repo.product_content.gpg_key': name,
+            }
+        )
         values = session.contentcredential.read(name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product_name
         assert len(values['repositories']['table']) == 1
-        assert (values['repositories']['table'][0]['Name'].split(' ')[-1]
-                == repo_name)
+        assert values['repositories']['table'][0]['Name'].split(' ')[-1] == repo_name
         product_values = session.product.read(product_name)
         assert product_values['details']['gpg_key'] == name
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product_name
         assert len(values['repositories']['table']) == 1
-        assert (values['repositories']['table'][0]['Name'].split(' ')[-1]
-                == repo_name)
+        assert values['repositories']['table'][0]['Name'].split(' ')[-1] == repo_name
         product_values = session.product.read(product_name)
         assert product_values['details']['gpg_key'] == new_name
 
@@ -481,20 +415,24 @@ def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path)
     product_name = gen_string('alpha')
     repo_name = 'fakerepo01'
     with session:
-        session.contentcredential.create({
-            'name': name,
-            'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-            'upload_file': gpg_path
-        })
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                'upload_file': gpg_path,
+            }
+        )
         assert session.contentcredential.search(name)[0]['Name'] == name
-        session.product.discover_repo({
-            'repo_type': 'Yum Repositories',
-            'url': REPO_DISCOVERY_URL,
-            'discovered_repos.repos': repo_name,
-            'create_repo.product_type': 'New Product',
-            'create_repo.product_content.product_name': product_name,
-            'create_repo.product_content.gpg_key': name,
-        })
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': REPO_DISCOVERY_URL,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+                'create_repo.product_content.gpg_key': name,
+            }
+        )
         product_values = session.product.read(product_name)
         assert product_values['details']['gpg_key'] == name
         session.contentcredential.delete(name)
@@ -516,25 +454,15 @@ def test_positive_update_key_for_empty_product(session, module_org, gpg_content)
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key,
-        organization=module_org,
-    ).create()
+    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     with session:
         values = session.contentcredential.read(name)
         # Assert that GPGKey is associated with product
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         # Assert that GPGKey is still associated with product
         assert len(values['products']['table']) == 1
@@ -555,26 +483,13 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key,
-        organization=module_org,
-    ).create()
+    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(
-        product=product,
-        url=FAKE_1_YUM_REPO,
-    ).create()
+    repo = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
     with session:
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         # Assert that GPGKey is still associated with product
         assert len(values['products']['table']) == 1
@@ -599,45 +514,24 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product and associate GPGKey with it
-    product = entities.Product(
-        gpg_key=gpg_key,
-        organization=module_org,
-    ).create()
+    product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(
-        product=product,
-        url=FAKE_1_YUM_REPO,
-    ).create()
+    repo1 = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
     # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(
-        product=product,
-        url=FAKE_2_YUM_REPO,
-    ).create()
+    repo2 = entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
     with session:
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         assert len(values['repositories']['table']) == 2
-        assert (
-            {repo1.name, repo2.name} ==
-            set([
-                repo['Name']
-                for repo
-                in values['repositories']['table']])
+        assert {repo1.name, repo2.name} == set(
+            [repo['Name'] for repo in values['repositories']['table']]
         )
 
 
 @tier2
-def test_positive_update_key_for_repo_from_product_with_repo(
-        session, module_org, gpg_content):
+def test_positive_update_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository then update
     the key
@@ -651,26 +545,13 @@ def test_positive_update_key_for_repo_from_product_with_repo(
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(
-        organization=module_org,
-    ).create()
+    product = entities.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(
-        gpg_key=gpg_key,
-        product=product,
-        url=FAKE_1_YUM_REPO,
-    ).create()
+    repo = entities.Repository(gpg_key=gpg_key, product=product, url=FAKE_1_YUM_REPO).create()
     with session:
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         # Assert that after update GPGKey is not associated with product
         assert values['products']['table'][0]['Name'] == empty_message
@@ -682,8 +563,7 @@ def test_positive_update_key_for_repo_from_product_with_repo(
 
 @tier2
 @upgrade
-def test_positive_update_key_for_repo_from_product_with_repos(
-        session, module_org, gpg_content):
+def test_positive_update_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
     then update the key
@@ -697,31 +577,15 @@ def test_positive_update_key_for_repo_from_product_with_repos(
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        name=name,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, name=name, organization=module_org).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(
-        organization=module_org,
-    ).create()
+    product = entities.Product(organization=module_org).create()
     # Creates new repository_1 with GPGKey
-    repo1 = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        product=product,
-        gpg_key=gpg_key,
-    ).create()
+    repo1 = entities.Repository(url=FAKE_1_YUM_REPO, product=product, gpg_key=gpg_key).create()
     # Creates new repository_2 without GPGKey
-    entities.Repository(
-        product=product,
-        url=FAKE_2_YUM_REPO,
-    ).create()
+    entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
     with session:
-        session.contentcredential.update(
-            name,
-            {'details.name': new_name},
-        )
+        session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         assert values['products']['table'][0]['Name'] == empty_message
         assert len(values['repositories']['table']) == 1
@@ -740,15 +604,10 @@ def test_positive_delete_key_for_empty_product(session, module_org, gpg_content)
 
     :CaseLevel: Integration
     """
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
     # Creates new product and associate GPGKey with it
     product = entities.Product(
-        gpg_key=gpg_key,
-        name=gen_string('alpha'),
-        organization=module_org,
+        gpg_key=gpg_key, name=gen_string('alpha'), organization=module_org
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -776,21 +635,14 @@ def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_cont
 
     :CaseLevel: Integration
     """
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
     # Creates new product and associate GPGKey with it
     product = entities.Product(
-        gpg_key=gpg_key,
-        name=gen_string('alpha'),
-        organization=module_org,
+        gpg_key=gpg_key, name=gen_string('alpha'), organization=module_org
     ).create()
     # Creates new repository without GPGKey
     repo = entities.Repository(
-        name=gen_string('alpha'),
-        url=FAKE_1_YUM_REPO,
-        product=product,
+        name=gen_string('alpha'), url=FAKE_1_YUM_REPO, product=product
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -824,27 +676,18 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
 
     :CaseLevel: Integration
     """
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
     # Creates new product and associate GPGKey with it
     product = entities.Product(
-        gpg_key=gpg_key,
-        name=gen_string('alpha'),
-        organization=module_org,
+        gpg_key=gpg_key, name=gen_string('alpha'), organization=module_org
     ).create()
     # Creates new repository_1 without GPGKey
     repo1 = entities.Repository(
-        name=gen_string('alpha'),
-        product=product,
-        url=FAKE_1_YUM_REPO,
+        name=gen_string('alpha'), product=product, url=FAKE_1_YUM_REPO
     ).create()
     # Creates new repository_2 without GPGKey
     repo2 = entities.Repository(
-        name=gen_string('alpha'),
-        product=product,
-        url=FAKE_2_YUM_REPO,
+        name=gen_string('alpha'), product=product, url=FAKE_2_YUM_REPO
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -852,12 +695,8 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
         assert len(values['repositories']['table']) == 2
-        assert (
-            {repo1.name, repo2.name} ==
-            set([
-                repo['Name']
-                for repo
-                in values['repositories']['table']])
+        assert {repo1.name, repo2.name} == set(
+            [repo['Name'] for repo in values['repositories']['table']]
         )
         session.contentcredential.delete(gpg_key.name)
         # Assert GPGKey isn't associated with product and repositories
@@ -869,8 +708,7 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
 
 
 @tier2
-def test_positive_delete_key_for_repo_from_product_with_repo(
-        session, module_org, gpg_content):
+def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has one repository
     then delete the key
@@ -882,21 +720,12 @@ def test_positive_delete_key_for_repo_from_product_with_repo(
 
     :CaseLevel: Integration
     """
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(
-        name=gen_string('alpha'),
-        organization=module_org,
-    ).create()
+    product = entities.Product(name=gen_string('alpha'), organization=module_org).create()
     # Creates new repository with GPGKey
     repo = entities.Repository(
-        name=gen_string('alpha'),
-        url=FAKE_1_YUM_REPO,
-        product=product,
-        gpg_key=gpg_key,
+        name=gen_string('alpha'), url=FAKE_1_YUM_REPO, product=product, gpg_key=gpg_key
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -914,8 +743,7 @@ def test_positive_delete_key_for_repo_from_product_with_repo(
 
 @tier2
 @upgrade
-def test_positive_delete_key_for_repo_from_product_with_repos(
-        session, module_org, gpg_content):
+def test_positive_delete_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has more than
     one repository then delete the key
@@ -931,21 +759,12 @@ def test_positive_delete_key_for_repo_from_product_with_repos(
     :CaseLevel: Integration
     """
     # Creates New GPGKey
-    gpg_key = entities.GPGKey(
-        content=gpg_content,
-        organization=module_org,
-    ).create()
+    gpg_key = entities.GPGKey(content=gpg_content, organization=module_org).create()
     # Creates new product without GPGKey association
-    product = entities.Product(
-        name=gen_string('alpha'),
-        organization=module_org,
-    ).create()
+    product = entities.Product(name=gen_string('alpha'), organization=module_org).create()
     # Creates new repository_1 with GPGKey association
     repo1 = entities.Repository(
-        gpg_key=gpg_key,
-        name=gen_string('alpha'),
-        product=product,
-        url=FAKE_1_YUM_REPO,
+        gpg_key=gpg_key, name=gen_string('alpha'), product=product, url=FAKE_1_YUM_REPO
     ).create()
     repo2 = entities.Repository(
         name=gen_string('alpha'),

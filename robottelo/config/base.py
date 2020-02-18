@@ -37,15 +37,12 @@ def get_project_root():
     :return: A directory path.
     :rtype: str
     """
-    return os.path.realpath(os.path.join(
-        os.path.dirname(__file__),
-        os.pardir,
-        os.pardir,
-    ))
+    return os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 
 
 class INIReader(object):
     """ConfigParser wrapper able to cast value when reading INI options."""
+
     # Helper casters
     cast_boolean = casts.Boolean()
     cast_dict = casts.Dict()
@@ -117,6 +114,7 @@ class FeatureSettings(object):
     Create a instance of this class and assign attributes to map to the feature
     options.
     """
+
     def read(self, reader):
         """Subclasses must implement this method in order to populate itself
         with expected settings values.
@@ -134,6 +132,7 @@ class FeatureSettings(object):
 
 class ServerSettings(FeatureSettings):
     """Satellite server settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(ServerSettings, self).__init__(*args, **kwargs)
         self.admin_password = None
@@ -148,10 +147,8 @@ class ServerSettings(FeatureSettings):
 
     def read(self, reader):
         """Read and validate Satellite server settings."""
-        self.admin_password = reader.get(
-            'server', 'admin_password', 'changeme')
-        self.admin_username = reader.get(
-            'server', 'admin_username', 'admin')
+        self.admin_password = reader.get('server', 'admin_password', 'changeme')
+        self.admin_username = reader.get('server', 'admin_username', 'admin')
         self.hostname = reader.get('server', 'hostname')
         self.port = reader.get('server', 'port', cast=int)
         self.scheme = reader.get('server', 'scheme', 'https')
@@ -166,6 +163,7 @@ class ServerSettings(FeatureSettings):
         if self._version is None:
             # import here to avoid circular import error
             from robottelo.host_info import get_sat_version
+
             self._version = get_sat_version()
         return self._version
 
@@ -173,9 +171,8 @@ class ServerSettings(FeatureSettings):
         validation_errors = []
         if self.hostname is None:
             validation_errors.append('[server] hostname must be provided.')
-        if (self.ssh_key is None and self.ssh_password is None):
-            validation_errors.append(
-                '[server] ssh_key or ssh_password must be provided.')
+        if self.ssh_key is None and self.ssh_password is None:
+            validation_errors.append('[server] ssh_key or ssh_password must be provided.')
         return validation_errors
 
     def get_credentials(self):
@@ -212,9 +209,7 @@ class ServerSettings(FeatureSettings):
         if not self.port:
             return urlunsplit((scheme, self.hostname, '', '', ''))
         else:
-            return urlunsplit((
-                scheme, '{0}:{1}'.format(self.hostname, self.port), '', '', ''
-            ))
+            return urlunsplit((scheme, '{0}:{1}'.format(self.hostname, self.port), '', '', ''))
 
     def get_pub_url(self):
         """Return the pub URL of the server being tested.
@@ -240,12 +235,12 @@ class ServerSettings(FeatureSettings):
         :rtype: str
 
         """
-        return urljoin(
-            self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
+        return urljoin(self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
 class BugzillaSettings(FeatureSettings):
     """Bugzilla server settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(BugzillaSettings, self).__init__(*args, **kwargs)
         self.url = None
@@ -286,13 +281,13 @@ class CapsuleSettings(FeatureSettings):
         """Validate capsule settings."""
         validation_errors = []
         if self.instance_name is None:
-            validation_errors.append(
-                '[capsule] instance_name option must be provided.')
+            validation_errors.append('[capsule] instance_name option must be provided.')
         return validation_errors
 
 
 class CertsSettings(FeatureSettings):
     """Katello-certs settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(CertsSettings, self).__init__(*args, **kwargs)
         self.cert_file = None
@@ -311,26 +306,19 @@ class CertsSettings(FeatureSettings):
         """Validate certs settings."""
         validation_errors = []
         if self.cert_file is None:
-            validation_errors.append(
-                '[certs] cert_file option must be provided.'
-            )
+            validation_errors.append('[certs] cert_file option must be provided.')
         if self.key_file is None:
-            validation_errors.append(
-                '[certs] key_file option must be provided.'
-            )
+            validation_errors.append('[certs] key_file option must be provided.')
         if self.req_file is None:
-            validation_errors.append(
-                '[certs] req_file option must be provided.'
-            )
+            validation_errors.append('[certs] req_file option must be provided.')
         if self.ca_bundle_file is None:
-            validation_errors.append(
-                '[certs] ca_bundle_file option must be provided.'
-            )
+            validation_errors.append('[certs] ca_bundle_file option must be provided.')
         return validation_errors
 
 
 class ClientsSettings(FeatureSettings):
     """Clients settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(ClientsSettings, self).__init__(*args, **kwargs)
         self.image_dir = None
@@ -347,17 +335,22 @@ class ClientsSettings(FeatureSettings):
         """Validate clients settings."""
         validation_errors = []
         if self.provisioning_server is None:
-            validation_errors.append(
-                '[clients] provisioning_server option must be provided.')
+            validation_errors.append('[clients] provisioning_server option must be provided.')
         return validation_errors
 
 
 class ContainerRepositorySettings(FeatureSettings):
     """Settings for syncing containers from container registries"""
+
     section = 'container_repo'
 
-    repo_config_required = ['label', 'registry_url', 'registry_username',
-                            'registry_password', 'repos_to_sync']
+    repo_config_required = [
+        'label',
+        'registry_url',
+        'registry_username',
+        'registry_password',
+        'repos_to_sync',
+    ]
 
     def __init__(self, *args, **kwargs):
         super(ContainerRepositorySettings, self).__init__(*args, **kwargs)
@@ -375,34 +368,39 @@ class ContainerRepositorySettings(FeatureSettings):
                 self.yaml = yaml.safe_load(cf)
                 self.config = self.yaml.get(self.section, None)
                 if self.config:
-                    self.long_pass_registry = self.config.get(
-                        'long_pass_test_registry', None)
+                    self.long_pass_registry = self.config.get('long_pass_test_registry', None)
                     self.multi_registry_test_configs = self.config.get(
-                        'multi_registry_test_configs', None)
+                        'multi_registry_test_configs', None
+                    )
 
     def validate(self):
         validation_errors = []
         if not self.config_file:
-            validation_errors.append(
-                '[{}] config_file must be provided'.format(self.section))
+            validation_errors.append('[{}] config_file must be provided'.format(self.section))
         elif not self.config:
-            validation_errors.append("{} contains no {} entry".format(self.config_file,
-                                                                      self.section))
+            validation_errors.append(
+                "{} contains no {} entry".format(self.config_file, self.section)
+            )
         else:
             if not self.long_pass_registry:
                 validation_errors.append(
-                    '[{}] contains no long_pass_registry'.format(self.section))
+                    '[{}] contains no long_pass_registry'.format(self.section)
+                )
             else:
                 validation_errors.extend(
-                    self._validate_registry_configs([self.long_pass_registry]))
+                    self._validate_registry_configs([self.long_pass_registry])
+                )
 
             if not self.multi_registry_test_configs:
                 validation_errors.append(
                     '[{}] {} contains no multi_registry_test_configs'.format(
-                        self.section, self.config_file))
+                        self.section, self.config_file
+                    )
+                )
             else:
-                validation_errors.extend(self._validate_registry_configs(
-                    self.multi_registry_test_configs))
+                validation_errors.extend(
+                    self._validate_registry_configs(self.multi_registry_test_configs)
+                )
 
         return validation_errors
 
@@ -412,13 +410,14 @@ class ContainerRepositorySettings(FeatureSettings):
             for req in self.repo_config_required:
                 if not config.get(req):
                     validation_errors.append(
-                        '[{}] {} is required in {}'.format(self.section, req,
-                                                           config))
+                        '[{}] {} is required in {}'.format(self.section, req, config)
+                    )
         return validation_errors
 
 
 class DistroSettings(FeatureSettings):
     """Distro settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(DistroSettings, self).__init__(*args, **kwargs)
         self.image_el6 = None
@@ -439,13 +438,15 @@ class DistroSettings(FeatureSettings):
         """Validate distro settings."""
         validation_errors = []
         if not all(self.__dict__.values()):
-            validation_errors.append('All [distro] %s options must be provided.'
-                                     % list(self.__dict__.keys()))
+            validation_errors.append(
+                'All [distro] %s options must be provided.' % list(self.__dict__.keys())
+            )
         return validation_errors
 
 
 class DockerSettings(FeatureSettings):
     """Docker settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(DockerSettings, self).__init__(*args, **kwargs)
         self.docker_image = None
@@ -459,24 +460,18 @@ class DockerSettings(FeatureSettings):
         """Read docker settings."""
         self.docker_image = reader.get('docker', 'docker_image')
         self.external_registry_1 = reader.get('docker', 'external_registry_1')
-        self.private_registry_url = reader.get(
-            'docker', 'private_registry_url')
-        self.private_registry_name = reader.get(
-            'docker', 'private_registry_name')
-        self.private_registry_username = reader.get(
-            'docker', 'private_registry_username')
-        self.private_registry_password = reader.get(
-            'docker', 'private_registry_password')
+        self.private_registry_url = reader.get('docker', 'private_registry_url')
+        self.private_registry_name = reader.get('docker', 'private_registry_name')
+        self.private_registry_username = reader.get('docker', 'private_registry_username')
+        self.private_registry_password = reader.get('docker', 'private_registry_password')
 
     def validate(self):
         """Validate docker settings."""
         validation_errors = []
         if not self.docker_image:
-            validation_errors.append(
-                '[docker] docker_image option must be provided or enabled.')
+            validation_errors.append('[docker] docker_image option must be provided or enabled.')
         if not self.external_registry_1:
-            validation_errors.append(
-                '[docker] external_registry_1 option must be provided.')
+            validation_errors.append('[docker] external_registry_1 option must be provided.')
         return validation_errors
 
 
@@ -512,11 +507,14 @@ class AzureRMSettings(FeatureSettings):
         validation_errors = []
         if not all(self.__dict__.values()):
             validation_errors.append(
-                'All [azurerm] {} options must be provided'.format(self.__dict__.keys()))
+                'All [azurerm] {} options must be provided'.format(self.__dict__.keys())
+            )
         if self.azure_region not in AZURERM_VALID_REGIONS:
             validation_errors.append(
                 'Invalid [azurerm] region - {0}, The region should be one of {1}'.format(
-                    self.azure_region, AZURERM_VALID_REGIONS))
+                    self.azure_region, AZURERM_VALID_REGIONS
+                )
+            )
         return validation_errors
 
 
@@ -542,8 +540,7 @@ class EC2Settings(FeatureSettings):
         self.image = reader.get('ec2', 'image')
         self.availability_zone = reader.get('ec2', 'availability_zone')
         self.subnet = reader.get('ec2', 'subnet')
-        self.security_groups = reader.get(
-            'ec2', 'security_groups', ['default'], list)
+        self.security_groups = reader.get('ec2', 'security_groups', ['default'], list)
         self.managed_ip = reader.get('ec2', 'managed_ip', 'Private')
 
     def validate(self):
@@ -551,18 +548,16 @@ class EC2Settings(FeatureSettings):
         validation_errors = []
         if not all((self.access_key, self.secret_key, self.region)):
             validation_errors.append(
-                'All [ec2] access_key, secret_key, region options '
-                'must be provided'
+                'All [ec2] access_key, secret_key, region options ' 'must be provided'
             )
-        if self. managed_ip not in ('Private', 'Public'):
-            validation_errors.append(
-                '[ec2] managed_ip option must be Public or Private'
-            )
+        if self.managed_ip not in ('Private', 'Public'):
+            validation_errors.append('[ec2] managed_ip option must be Public or Private')
         return validation_errors
 
 
 class FakeManifestSettings(FeatureSettings):
     """Fake manifest settings defintitions."""
+
     def __init__(self, *args, **kwargs):
         super(FakeManifestSettings, self).__init__(*args, **kwargs)
         self.cert_url = None
@@ -619,20 +614,25 @@ class GCESettings(FeatureSettings):
         validation_errors = []
         if not all(self.__dict__.values()):
             validation_errors.append(
-                'All [gce] {} options must be provided'.format(self.__dict__.keys()))
+                'All [gce] {} options must be provided'.format(self.__dict__.keys())
+            )
         if not str(self.cert_path).startswith(valid_cert_path):
             validation_errors.append(
                 '[gce] cert_path - cert should be available '
-                'from satellites {}'.format(valid_cert_path))
+                'from satellites {}'.format(valid_cert_path)
+            )
         if self.zone not in VALID_GCE_ZONES:
             validation_errors.append(
                 'Invalid [gce] zone - {0}, The zone should be one of {1}'.format(
-                    self.zone, VALID_GCE_ZONES))
+                    self.zone, VALID_GCE_ZONES
+                )
+            )
         return validation_errors
 
 
 class LDAPSettings(FeatureSettings):
     """LDAP settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(LDAPSettings, self).__init__(*args, **kwargs)
         self.basedn = None
@@ -662,6 +662,7 @@ class LDAPSettings(FeatureSettings):
 
 class LDAPIPASettings(FeatureSettings):
     """LDAP freeIPA settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(LDAPIPASettings, self).__init__(*args, **kwargs)
         self.basedn_ipa = None
@@ -698,6 +699,7 @@ class LDAPIPASettings(FeatureSettings):
 
 class LibvirtHostSettings(FeatureSettings):
     """Libvirt host settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(LibvirtHostSettings, self).__init__(*args, **kwargs)
         self.libvirt_image_dir = None
@@ -708,8 +710,7 @@ class LibvirtHostSettings(FeatureSettings):
         self.libvirt_image_dir = reader.get(
             'compute_resources', 'libvirt_image_dir', '/var/lib/libvirt/images'
         )
-        self.libvirt_hostname = reader.get(
-            'compute_resources', 'libvirt_hostname')
+        self.libvirt_hostname = reader.get('compute_resources', 'libvirt_hostname')
 
     def validate(self):
         """Validate libvirt host settings."""
@@ -723,28 +724,26 @@ class LibvirtHostSettings(FeatureSettings):
 
 class FakeCapsuleSettings(FeatureSettings):
     """Fake Capsule settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(FakeCapsuleSettings, self).__init__(*args, **kwargs)
         self.port_range = None
 
     def read(self, reader):
         """Read fake capsule settings"""
-        self.port_range = reader.get(
-            'fake_capsules', 'port_range', cast=tuple
-        )
+        self.port_range = reader.get('fake_capsules', 'port_range', cast=tuple)
 
     def validate(self):
         """Validate fake capsule settings."""
         validation_errors = []
         if self.port_range is None:
-            validation_errors.append(
-                '[fake_capsules] port_range option must be provided.'
-            )
+            validation_errors.append('[fake_capsules] port_range option must be provided.')
         return validation_errors
 
 
 class RHEVSettings(FeatureSettings):
     """RHEV settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(RHEVSettings, self).__init__(*args, **kwargs)
         # Compute Resource Information
@@ -794,6 +793,7 @@ class RHEVSettings(FeatureSettings):
 
 class VmWareSettings(FeatureSettings):
     """VmWare settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(VmWareSettings, self).__init__(*args, **kwargs)
         # Compute Resource Information
@@ -838,6 +838,7 @@ class VmWareSettings(FeatureSettings):
 
 class DiscoveryISOSettings(FeatureSettings):
     """Discovery ISO name settings definition."""
+
     def __init__(self, *args, **kwargs):
         super(DiscoveryISOSettings, self).__init__(*args, **kwargs)
         self.discovery_iso = None
@@ -850,14 +851,13 @@ class DiscoveryISOSettings(FeatureSettings):
         """Validate discovery iso name setting."""
         validation_errors = []
         if self.discovery_iso is None:
-            validation_errors.append(
-                '[discovery] discovery iso name must be provided.'
-            )
+            validation_errors.append('[discovery] discovery iso name must be provided.')
         return validation_errors
 
 
 class OscapSettings(FeatureSettings):
     """Oscap settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(OscapSettings, self).__init__(*args, **kwargs)
         self.content_path = None
@@ -872,18 +872,15 @@ class OscapSettings(FeatureSettings):
         """Validate Oscap settings."""
         validation_errors = []
         if self.content_path is None:
-            validation_errors.append(
-                '[oscap] content_path option must be provided.'
-            )
+            validation_errors.append('[oscap] content_path option must be provided.')
         if self.tailoring_path is None:
-            validation_errors.append(
-                '[oscap] tailoring_path option must be provided.'
-            )
+            validation_errors.append('[oscap] tailoring_path option must be provided.')
         return validation_errors
 
 
 class OSPSettings(FeatureSettings):
     """OSP settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(OSPSettings, self).__init__(*args, **kwargs)
         # Compute Resource Information
@@ -930,6 +927,7 @@ class OSPSettings(FeatureSettings):
 
 class OstreeSettings(FeatureSettings):
     """Ostree settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(OstreeSettings, self).__init__(*args, **kwargs)
         self.ostree_installer = None
@@ -942,14 +940,13 @@ class OstreeSettings(FeatureSettings):
         """Validate Ostree settings."""
         validation_errors = []
         if self.ostree_installer is None:
-            validation_errors.append(
-                '[ostree] ostree_installer option must be provided.'
-            )
+            validation_errors.append('[ostree] ostree_installer option must be provided.')
         return validation_errors
 
 
 class PerformanceSettings(FeatureSettings):
     """Performance settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(PerformanceSettings, self).__init__(*args, **kwargs)
         self.time_hammer = None
@@ -964,45 +961,33 @@ class PerformanceSettings(FeatureSettings):
 
     def read(self, reader):
         """Read performance settings."""
-        self.time_hammer = reader.get(
-            'performance', 'time_hammer', False, bool)
-        self.cdn_address = reader.get(
-            'performance', 'cdn_address')
-        self.virtual_machines = reader.get(
-            'performance', 'virtual_machines', cast=list)
-        self.fresh_install_savepoint = reader.get(
-            'performance', 'fresh_install_savepoint')
-        self.enabled_repos_savepoint = reader.get(
-            'performance', 'enabled_repos_savepoint')
-        self.csv_buckets_count = reader.get(
-            'performance', 'csv_buckets_count', 10, int)
-        self.sync_count = reader.get(
-            'performance', 'sync_count', 3, int)
-        self.sync_type = reader.get(
-            'performance', 'sync_type', 'sync')
-        self.repos = reader.get(
-            'performance', 'repos', cast=list)
+        self.time_hammer = reader.get('performance', 'time_hammer', False, bool)
+        self.cdn_address = reader.get('performance', 'cdn_address')
+        self.virtual_machines = reader.get('performance', 'virtual_machines', cast=list)
+        self.fresh_install_savepoint = reader.get('performance', 'fresh_install_savepoint')
+        self.enabled_repos_savepoint = reader.get('performance', 'enabled_repos_savepoint')
+        self.csv_buckets_count = reader.get('performance', 'csv_buckets_count', 10, int)
+        self.sync_count = reader.get('performance', 'sync_count', 3, int)
+        self.sync_type = reader.get('performance', 'sync_type', 'sync')
+        self.repos = reader.get('performance', 'repos', cast=list)
 
     def validate(self):
         """Validate performance settings."""
         validation_errors = []
         if self.cdn_address is None:
-            validation_errors.append(
-                '[performance] cdn_address must be provided.')
+            validation_errors.append('[performance] cdn_address must be provided.')
         if self.virtual_machines is None:
-            validation_errors.append(
-                '[performance] virtual_machines must be provided.')
+            validation_errors.append('[performance] virtual_machines must be provided.')
         if self.fresh_install_savepoint is None:
-            validation_errors.append(
-                '[performance] fresh_install_savepoint must be provided.')
+            validation_errors.append('[performance] fresh_install_savepoint must be provided.')
         if self.enabled_repos_savepoint is None:
-            validation_errors.append(
-                '[performance] enabled_repos_savepoint must be provided.')
+            validation_errors.append('[performance] enabled_repos_savepoint must be provided.')
         return validation_errors
 
 
 class RHAISettings(FeatureSettings):
     """RHAI settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(RHAISettings, self).__init__(*args, **kwargs)
         self.insights_client_el6repo = None
@@ -1010,10 +995,8 @@ class RHAISettings(FeatureSettings):
 
     def read(self, reader):
         """Read RHAI settings."""
-        self.insights_client_el6repo = reader.get(
-            'rhai', 'insights_client_el6repo')
-        self.insights_client_el7repo = reader.get(
-            'rhai', 'insights_client_el7repo')
+        self.insights_client_el6repo = reader.get('rhai', 'insights_client_el6repo')
+        self.insights_client_el7repo = reader.get('rhai', 'insights_client_el7repo')
 
     def validate(self):
         """Validate RHAI settings."""
@@ -1022,6 +1005,7 @@ class RHAISettings(FeatureSettings):
 
 class SSHClientSettings(FeatureSettings):
     """SSHClient settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(SSHClientSettings, self).__init__(*args, **kwargs)
         self._command_timeout = None
@@ -1029,20 +1013,18 @@ class SSHClientSettings(FeatureSettings):
 
     @property
     def command_timeout(self):
-        return self._command_timeout if (
-            self._command_timeout is not None) else 300
+        return self._command_timeout if (self._command_timeout is not None) else 300
 
     @property
     def connection_timeout(self):
-        return self._connection_timeout if (
-            self._connection_timeout is not None) else 10
+        return self._connection_timeout if (self._connection_timeout is not None) else 10
 
     def read(self, reader):
         """Read SSHClient settings."""
-        self._command_timeout = reader.get(
-            'ssh_client', 'command_timeout', default=300, cast=int)
+        self._command_timeout = reader.get('ssh_client', 'command_timeout', default=300, cast=int)
         self._connection_timeout = reader.get(
-            'ssh_client', 'connection_timeout', default=10, cast=int)
+            'ssh_client', 'connection_timeout', default=10, cast=int
+        )
 
     def validate(self):
         """Validate SSHClient settings."""
@@ -1051,6 +1033,7 @@ class SSHClientSettings(FeatureSettings):
 
 class VlanNetworkSettings(FeatureSettings):
     """Vlan Network settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(VlanNetworkSettings, self).__init__(*args, **kwargs)
         self.subnet = None
@@ -1082,27 +1065,36 @@ class VlanNetworkSettings(FeatureSettings):
         validation_errors = []
         if bool(self.bridge) == bool(self.network):
             validation_errors.append(
-                'exactly one of the "bridge" or "network" parameters '
-                'must be specified')
+                'exactly one of the "bridge" or "network" parameters ' 'must be specified'
+            )
         if bool(self.dhcp_from) != bool(self.dhcp_to):
             validation_errors.append(
-                'both or none of "dhcp_from", "dhcp_to" parameters '
-                'must be specified')
+                'both or none of "dhcp_from", "dhcp_to" parameters ' 'must be specified'
+            )
         if self.dhcp_ipam and self.dhcp_ipam not in ['Internal DB', 'DHCP']:
             validation_errors.append(
-                '[vlan_networking] "dhcp_ipam" must be one of "Internal DB" or "DHCP"')
+                '[vlan_networking] "dhcp_ipam" must be one of "Internal DB" or "DHCP"'
+            )
         ignored = [
-            'bridge', 'network', 'dhcp_ipam', 'dhcp_from', 'dhcp_to', 'dns_primary', 'dns_zone'
+            'bridge',
+            'network',
+            'dhcp_ipam',
+            'dhcp_from',
+            'dhcp_to',
+            'dns_primary',
+            'dns_zone',
         ]
         if not all(value for (key, value) in vars(self).items() if key not in ignored):
             validation_errors.append(
                 'All [vlan_networking] subnet, netmask, gateway, bridge|network '
-                'options must be provided.')
+                'options must be provided.'
+            )
         return validation_errors
 
 
 class UpgradeSettings(FeatureSettings):
     """Satellite upgrade settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(UpgradeSettings, self).__init__(*args, **kwargs)
         self.rhev_cap_host = None
@@ -1156,22 +1148,16 @@ class SharedFunctionSettings(FeatureSettings):
         """Read shared settings."""
         self.storage = reader.get('shared_function', 'storage', 'file')
         self.scope = reader.get('shared_function', 'scope', None)
-        self.enabled = reader.get(
-            'shared_function', 'enabled', False, bool)
-        self.lock_timeout = reader.get(
-            'shared_function', 'lock_timeout', 7200, int)
+        self.enabled = reader.get('shared_function', 'enabled', False, bool)
+        self.lock_timeout = reader.get('shared_function', 'lock_timeout', 7200, int)
         self.share_timeout = reader.get(
-            'shared_function', 'share_timeout', self.MAX_SHARE_TIMEOUT, int)
-        self.redis_host = reader.get(
-            'shared_function', 'redis_host', 'localhost')
-        self.redis_port = reader.get(
-            'shared_function', 'redis_port', 6379, int)
-        self.redis_db = reader.get(
-            'shared_function', 'redis_db', 0, int)
-        self.redis_password = reader.get(
-            'shared_function', 'redis_password', None)
-        self.call_retries = reader.get(
-            'shared_function', 'call_retries', 2, int)
+            'shared_function', 'share_timeout', self.MAX_SHARE_TIMEOUT, int
+        )
+        self.redis_host = reader.get('shared_function', 'redis_host', 'localhost')
+        self.redis_port = reader.get('shared_function', 'redis_port', 6379, int)
+        self.redis_db = reader.get('shared_function', 'redis_db', 0, int)
+        self.redis_password = reader.get('shared_function', 'redis_password', None)
+        self.call_retries = reader.get('shared_function', 'call_retries', 2, int)
 
     def validate(self):
         """Validate the shared settings"""
@@ -1179,21 +1165,18 @@ class SharedFunctionSettings(FeatureSettings):
         supported_storage_handlers = ['file', 'redis']
         if self.storage not in supported_storage_handlers:
             validation_errors.append(
-                '[shared] storage must be one of {}'
-                .format(supported_storage_handlers)
+                '[shared] storage must be one of {}'.format(supported_storage_handlers)
             )
         if self.storage == 'redis':
             try:
                 importlib.import_module('redis')
             except ImportError:
-                validation_errors.append(
-                    '[shared] python redis package not installed')
+                validation_errors.append('[shared] python redis package not installed')
         if self.share_timeout is None:
             self.share_timeout = self.MAX_SHARE_TIMEOUT
         if self.share_timeout > self.MAX_SHARE_TIMEOUT:
             validation_errors.append(
-                '[shared] share time out cannot be more than 86400'
-                ' seconds (24 hours)'
+                '[shared] share time out cannot be more than 86400' ' seconds (24 hours)'
             )
 
         return validation_errors
@@ -1201,6 +1184,7 @@ class SharedFunctionSettings(FeatureSettings):
 
 class VirtWhoSettings(FeatureSettings):
     """VirtWho settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(VirtWhoSettings, self).__init__(*args, **kwargs)
         # Hypervisor Information
@@ -1244,34 +1228,33 @@ class VirtWhoSettings(FeatureSettings):
             self.guest_password,
             self.sku_vdc_physical,
             self.sku_vdc_virtual,
-            )
+        )
         if not all(mandatory):
             validation_errors.append(
                 '[virtwho] hypervisor_type, hypervisor_server, guest, '
                 'guest_username, guest_password, sku_vdc_physical, '
                 'sku_vdc_virtual options must be provided.'
             )
-        supported_hypervisors = (
-                'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt'
-                )
+        supported_hypervisors = ('esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt')
         if self.hypervisor_type not in supported_hypervisors:
             validation_errors.append(
-                '[virtwho] hypervisor_type must be one of {}'
-                .format(supported_hypervisors)
+                '[virtwho] hypervisor_type must be one of {}'.format(supported_hypervisors)
             )
         if self.hypervisor_type == 'kubevirt' and self.hypervisor_config_file is None:
             validation_errors.append(
-                '[virtwho] hypervisor_config_file '
-                'must be provided for kubevirt type.')
+                '[virtwho] hypervisor_config_file ' 'must be provided for kubevirt type.'
+            )
         if self.hypervisor_type == 'libvirt' and self.hypervisor_username is None:
             validation_errors.append(
-                '[virtwho] hypervisor_username '
-                'must be provided for libvirt type')
+                '[virtwho] hypervisor_username ' 'must be provided for libvirt type'
+            )
         if self.hypervisor_type in ('esx', 'xen', 'hyperv', 'rhevm') and (
-                self.hypervisor_username is None or self.hypervisor_password is None):
+            self.hypervisor_username is None or self.hypervisor_password is None
+        ):
             validation_errors.append(
                 '[virtwho] hypervisor_username and hypervisor_password '
-                'must be provided for esx, xen, hyperv, rhevm')
+                'must be provided for esx, xen, hyperv, rhevm'
+            )
         return validation_errors
 
 
@@ -1361,21 +1344,15 @@ class Settings(object):
 
         if not os.path.isfile(settings_path):
             raise ImproperlyConfigured(
-                'Not able to find settings file at {}'.format(settings_path))
+                'Not able to find settings file at {}'.format(settings_path)
+            )
 
         self.reader = INIReader(settings_path)
         self._read_robottelo_settings()
-        self._validation_errors.extend(
-            self._validate_robottelo_settings())
+        self._validation_errors.extend(self._validate_robottelo_settings())
 
-        attrs = map(
-            lambda attr_name: (attr_name, getattr(self, attr_name)),
-            dir(self)
-        )
-        feature_settings = filter(
-            lambda tpl: isinstance(tpl[1], FeatureSettings),
-            attrs
-        )
+        attrs = map(lambda attr_name: (attr_name, getattr(self, attr_name)), dir(self))
+        feature_settings = filter(lambda tpl: isinstance(tpl[1], FeatureSettings), attrs)
         for name, settings in feature_settings:
             if self.reader.has_section(name) or name == 'server':
                 settings.read(self.reader)
@@ -1398,67 +1375,59 @@ class Settings(object):
         self.log_driver_commands = self.reader.get(
             'robottelo',
             'log_driver_commands',
-            ['newSession',
-             'windowMaximize',
-             'get',
-             'findElement',
-             'sendKeysToElement',
-             'clickElement',
-             'mouseMoveTo'],
-            list
+            [
+                'newSession',
+                'windowMaximize',
+                'get',
+                'findElement',
+                'sendKeysToElement',
+                'clickElement',
+                'mouseMoveTo',
+            ],
+            list,
         )
-        self.browser = self.reader.get(
-            'robottelo', 'browser', 'selenium')
+        self.browser = self.reader.get('robottelo', 'browser', 'selenium')
         self.cdn = self.reader.get('robottelo', 'cdn', True, bool)
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
-        self.rhel8_os = self.reader.get(
-            'robottelo', 'rhel8_os', None, dict)
+        self.rhel8_os = self.reader.get('robottelo', 'rhel8_os', None, dict)
         self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
         self.rhscl_repo = self.reader.get('robottelo', 'rhscl_repo', None)
         self.ansible_repo = self.reader.get('robottelo', 'ansible_repo', None)
-        self.sattools_repo = self.reader.get(
-            'robottelo', 'sattools_repo', None, dict)
-        self.satmaintenance_repo = self.reader.get(
-            'robottelo', 'satmaintenance_repo', None)
-        self.swid_tools_repo = self.reader.get(
-            'robottelo', 'swid_tools_repo', None)
+        self.sattools_repo = self.reader.get('robottelo', 'sattools_repo', None, dict)
+        self.satmaintenance_repo = self.reader.get('robottelo', 'satmaintenance_repo', None)
+        self.swid_tools_repo = self.reader.get('robottelo', 'swid_tools_repo', None)
         self.screenshots_path = self.reader.get(
-            'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
+            'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots'
+        )
         self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
         self.artifacts_server = self.reader.get('robottelo', 'artifacts_server', None)
-        self.run_one_datapoint = self.reader.get(
-            'robottelo', 'run_one_datapoint', False, bool)
+        self.run_one_datapoint = self.reader.get('robottelo', 'run_one_datapoint', False, bool)
         self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
         self.verbosity = self.reader.get(
             'robottelo',
             'verbosity',
             INIReader.cast_logging_level('debug'),
-            INIReader.cast_logging_level
+            INIReader.cast_logging_level,
         )
-        self.webdriver = self.reader.get(
-            'robottelo', 'webdriver', 'chrome')
-        self.saucelabs_user = self.reader.get(
-            'robottelo', 'saucelabs_user', None)
-        self.saucelabs_key = self.reader.get(
-            'robottelo', 'saucelabs_key', None)
-        self.webdriver_binary = self.reader.get(
-            'robottelo', 'webdriver_binary', None)
-        self.browseroptions = self.reader.get(
-            'robottelo', 'browseroptions', None)
+        self.webdriver = self.reader.get('robottelo', 'webdriver', 'chrome')
+        self.saucelabs_user = self.reader.get('robottelo', 'saucelabs_user', None)
+        self.saucelabs_key = self.reader.get('robottelo', 'saucelabs_key', None)
+        self.webdriver_binary = self.reader.get('robottelo', 'webdriver_binary', None)
+        self.browseroptions = self.reader.get('robottelo', 'browseroptions', None)
         self.webdriver_desired_capabilities = self.reader.get(
             'robottelo',
             'webdriver_desired_capabilities',
             None,
-            cast=INIReader.cast_webdriver_desired_capabilities
+            cast=INIReader.cast_webdriver_desired_capabilities,
         )
         self.command_executor = self.reader.get(
-            'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub')
-        self.window_manager_command = self.reader.get(
-            'robottelo', 'window_manager_command', None)
+            'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub'
+        )
+        self.window_manager_command = self.reader.get('robottelo', 'window_manager_command', None)
 
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""
@@ -1467,24 +1436,20 @@ class Settings(object):
         webdrivers = ('chrome', 'edge', 'firefox', 'ie', 'phantomjs')
         if self.browser not in browsers:
             validation_errors.append(
-                '[robottelo] browser should be one of {0}.'
-                .format(', '.join(browsers))
+                '[robottelo] browser should be one of {0}.'.format(', '.join(browsers))
             )
         if self.webdriver not in webdrivers:
             validation_errors.append(
-                '[robottelo] webdriver should be one of {0}.'
-                .format(', '.join(webdrivers))
+                '[robottelo] webdriver should be one of {0}.'.format(', '.join(webdrivers))
             )
         if self.browser == 'saucelabs':
             if self.saucelabs_user is None:
                 validation_errors.append(
-                    '[robottelo] saucelabs_user must be provided when '
-                    'browser is saucelabs.'
+                    '[robottelo] saucelabs_user must be provided when ' 'browser is saucelabs.'
                 )
             if self.saucelabs_key is None:
                 validation_errors.append(
-                    '[robottelo] saucelabs_key must be provided when '
-                    'browser is saucelabs.'
+                    '[robottelo] saucelabs_key must be provided when ' 'browser is saucelabs.'
                 )
         return validation_errors
 
@@ -1498,8 +1463,7 @@ class Settings(object):
         """List all expected feature settings sections."""
         if self._all_features is None:
             self._all_features = [
-                name for name, value in vars(self).items()
-                if isinstance(value, FeatureSettings)
+                name for name, value in vars(self).items() if isinstance(value, FeatureSettings)
             ]
         return self._all_features
 
@@ -1519,9 +1483,7 @@ class Settings(object):
         """
         entity_mixins.CREATE_MISSING = True
         entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
-            self.server.get_url(),
-            self.server.get_credentials(),
-            verify=False,
+            self.server.get_url(), self.server.get_credentials(), verify=False
         )
 
         gpgkey_init = entities.GPGKey.__init__
@@ -1530,36 +1492,37 @@ class Settings(object):
             """Set a default value on the ``content`` field."""
             gpgkey_init(self, server_config, **kwargs)
             self._fields['content'].default = os.path.join(
-                get_project_root(),
-                'tests', 'foreman', 'data', 'valid_gpg_key.txt'
+                get_project_root(), 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
             )
+
         entities.GPGKey.__init__ = patched_gpgkey_init
 
     def _configure_airgun(self):
         """Pass required settings to AirGun"""
-        airgun.settings.configure({
-            'airgun': {
-                'verbosity': logging.getLevelName(self.verbosity),
-                'tmp_dir': self.tmp_dir,
-            },
-            'satellite': {
-                'hostname': self.server.hostname,
-                'password': self.server.admin_password,
-                'username': self.server.admin_username,
-            },
-            'selenium': {
-                'browser': self.browser,
-                'saucelabs_key': self.saucelabs_key,
-                'saucelabs_user': self.saucelabs_user,
-                'screenshots_path': self.screenshots_path,
-                'webdriver': self.webdriver,
-                'webdriver_binary': self.webdriver_binary,
-                'command_executor': self.command_executor,
-                'browseroptions': self.browseroptions,
-            },
-            'webdriver_desired_capabilities': (
-                self.webdriver_desired_capabilities or {}),
-        })
+        airgun.settings.configure(
+            {
+                'airgun': {
+                    'verbosity': logging.getLevelName(self.verbosity),
+                    'tmp_dir': self.tmp_dir,
+                },
+                'satellite': {
+                    'hostname': self.server.hostname,
+                    'password': self.server.admin_password,
+                    'username': self.server.admin_username,
+                },
+                'selenium': {
+                    'browser': self.browser,
+                    'saucelabs_key': self.saucelabs_key,
+                    'saucelabs_user': self.saucelabs_user,
+                    'screenshots_path': self.screenshots_path,
+                    'webdriver': self.webdriver,
+                    'webdriver_binary': self.webdriver_binary,
+                    'command_executor': self.command_executor,
+                    'browseroptions': self.browseroptions,
+                },
+                'webdriver_desired_capabilities': (self.webdriver_desired_capabilities or {}),
+            }
+        )
 
     def _configure_logging(self):
         """Configure logging for the entire framework.
@@ -1582,9 +1545,7 @@ class Settings(object):
         if os.path.isfile(logging_conf_path):
             logging.config.fileConfig(logging_conf_path)
         else:
-            logging.basicConfig(
-                format='%(levelname)s %(module)s:%(lineno)d: %(message)s'
-            )
+            logging.basicConfig(format='%(levelname)s %(module)s:%(lineno)d: %(message)s')
 
     def _configure_third_party_logging(self):
         """Increase the level of third party packages logging."""

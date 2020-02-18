@@ -96,10 +96,7 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
 
     @tier1
     @upgrade
@@ -113,17 +110,9 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
-        Subscription.delete_manifest({
-            'organization-id': self.org['id'],
-        })
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
+        Subscription.delete_manifest({'organization-id': self.org['id']})
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
 
     @tier2
     @upgrade
@@ -140,22 +129,23 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
+        RepositorySet.enable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhva6'],
+                'organization-id': self.org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+            }
         )
-        RepositorySet.enable({
-            'basearch': 'x86_64',
-            'name': REPOSET['rhva6'],
-            'organization-id': self.org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-        })
-        Repository.synchronize({
-            'name': REPOS['rhva6']['name'],
-            'organization-id': self.org['id'],
-            'product': PRDS['rhel'],
-        })
+        Repository.synchronize(
+            {
+                'name': REPOS['rhva6']['name'],
+                'organization-id': self.org['id'],
+                'product': PRDS['rhel'],
+            }
+        )
 
     @tier3
     def test_positive_manifest_history(self):
@@ -168,17 +158,9 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=None,
-        )
-        history = Subscription.manifest_history({
-            'organization-id': self.org['id'],
-        })
-        self.assertIn(
-            '{0} file imported successfully.'.format(self.org['name']),
-            ''.join(history),
-        )
+        Subscription.list({'organization-id': self.org['id']}, per_page=None)
+        history = Subscription.manifest_history({'organization-id': self.org['id']})
+        self.assertIn('{0} file imported successfully.'.format(self.org['name']), ''.join(history))
 
     @tier1
     @upgrade
@@ -191,18 +173,10 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        self._upload_manifest(
-            self.org['id'], manifests.original_manifest())
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
-        Subscription.refresh_manifest({
-            'organization-id': self.org['id'],
-        })
-        Subscription.delete_manifest({
-            'organization-id': self.org['id'],
-        })
+        self._upload_manifest(self.org['id'], manifests.original_manifest())
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
+        Subscription.refresh_manifest({'organization-id': self.org['id']})
+        Subscription.delete_manifest({'organization-id': self.org['id']})
 
     @pytest.mark.skip_if_open("BZ:1686916")
     @tier2
@@ -218,10 +192,7 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         self._upload_manifest(self.org['id'])
-        subscription_list = Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
+        subscription_list = Subscription.list({'organization-id': self.org['id']}, per_page=False)
         for column in ['start-date', 'end-date']:
             self.assertIn(column, subscription_list[0].keys())
 
@@ -241,31 +212,20 @@ class SubscriptionTestCase(CLITestCase):
         org = entities.Organization().create()
         user1_password = gen_string('alphanumeric')
         user1 = entities.User(
-            admin=True,
-            password=user1_password,
-            organization=[org],
-            default_organization=org,
+            admin=True, password=user1_password, organization=[org], default_organization=org
         ).create()
         user2_password = gen_string('alphanumeric')
         user2 = entities.User(
-            admin=True,
-            password=user2_password,
-            organization=[org],
-            default_organization=org,
+            admin=True, password=user2_password, organization=[org], default_organization=org
         ).create()
         # use the first admin to upload a manifest
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
-        Subscription.with_user(
-                   username=user1.login,
-                   password=user1_password
-             ).upload({
-                   u'file': manifest.filename,
-                   u'organization-id': org.id,
-             })
+        Subscription.with_user(username=user1.login, password=user1_password).upload(
+            {u'file': manifest.filename, u'organization-id': org.id}
+        )
         # try to search and delete the manifest with another admin
-        Subscription.with_user(
-                   username=user2.login,
-                   password=user2_password
-             ).delete_manifest({'organization-id': org.id})
+        Subscription.with_user(username=user2.login, password=user2_password).delete_manifest(
+            {'organization-id': org.id}
+        )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))

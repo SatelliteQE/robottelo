@@ -41,39 +41,23 @@ from robottelo.test import APITestCase
 def valid_sc_variable_data():
     """Returns a list of valid smart class variable types and values"""
     return [
-        {
-            u'sc_type': 'string',
-            u'value': choice(generate_strings_list()),
-        },
-        {
-            u'sc_type': 'boolean',
-            u'value': choice([True, False]),
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': gen_integer(),
-        },
-        {
-            u'sc_type': 'real',
-            u'value': uniform(-1000, 1000),
-        },
+        {u'sc_type': 'string', u'value': choice(generate_strings_list())},
+        {u'sc_type': 'boolean', u'value': choice([True, False])},
+        {u'sc_type': 'integer', u'value': gen_integer()},
+        {u'sc_type': 'real', u'value': uniform(-1000, 1000)},
         {
             u'sc_type': 'array',
             u'value': u'["{0}","{1}","{2}"]'.format(
-                gen_string('alpha'),
-                gen_string('numeric').lstrip('0'),
-                gen_string('html'),
+                gen_string('alpha'), gen_string('numeric').lstrip('0'), gen_string('html')
             ),
         },
         {
             u'sc_type': 'hash',
-            u'value': '{{ "{0}": "{1}" }}'.format(
-                gen_string('alpha'), gen_string('alpha')),
+            u'value': '{{ "{0}": "{1}" }}'.format(gen_string('alpha'), gen_string('alpha')),
         },
         {
             u'sc_type': 'yaml',
-            u'value': '--- {0}=>{1} ...'.format(
-                gen_string('alpha'), gen_string('alpha')),
+            u'value': '--- {0}=>{1} ...'.format(gen_string('alpha'), gen_string('alpha')),
         },
         {
             u'sc_type': 'json',
@@ -81,7 +65,7 @@ def valid_sc_variable_data():
                 gen_string('alpha'),
                 gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),
-                gen_string('alphanumeric')
+                gen_string('alphanumeric'),
             ),
         },
     ]
@@ -91,30 +75,14 @@ def valid_sc_variable_data():
 def invalid_sc_variable_data():
     """Returns a list of invalid smart class variable type and values"""
     return [
-        {
-            u'sc_type': 'boolean',
-            u'value': gen_string('alphanumeric'),
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': gen_string('utf8'),
-        },
-        {
-            u'sc_type': 'real',
-            u'value': gen_string('alphanumeric'),
-        },
-        {
-            u'sc_type': 'array',
-            u'value': gen_string('alpha'),
-        },
-        {
-            u'sc_type': 'hash',
-            u'value': gen_string('alpha'),
-        },
+        {u'sc_type': 'boolean', u'value': gen_string('alphanumeric')},
+        {u'sc_type': 'integer', u'value': gen_string('utf8')},
+        {u'sc_type': 'real', u'value': gen_string('alphanumeric')},
+        {u'sc_type': 'array', u'value': gen_string('alpha')},
+        {u'sc_type': 'hash', u'value': gen_string('alpha')},
         {
             u'sc_type': 'yaml',
-            u'value': '{{{0}:{1}}}'.format(
-                gen_string('alpha'), gen_string('alpha')),
+            u'value': '{{{0}:{1}}}'.format(gen_string('alpha'), gen_string('alpha')),
         },
         {
             u'sc_type': 'json',
@@ -122,9 +90,9 @@ def invalid_sc_variable_data():
                 gen_string('alpha'),
                 gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),
-                gen_string('alphanumeric')
+                gen_string('alphanumeric'),
             ),
-        }
+        },
     ]
 
 
@@ -138,25 +106,28 @@ class SmartVariablesTestCase(APITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
-        cls.puppet_modules = [
-            {'author': 'robottelo', 'name': 'api_test_variables'},
-        ]
+        cls.puppet_modules = [{'author': 'robottelo', 'name': 'api_test_variables'}]
         cls.org = entities.Organization().create()
-        cv = publish_puppet_module(
-            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
+        cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = entities.Environment().search(
             query={'search': u'content_view="{0}"'.format(cv.name)}
         )[0]
         # Find imported puppet class
-        cls.puppet_class = entities.PuppetClass().search(query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
-                cls.puppet_modules[0]['name'], cls.env.name)
-        })[0]
+        cls.puppet_class = entities.PuppetClass().search(
+            query={
+                'search': u'name = "{0}" and environment = "{1}"'.format(
+                    cls.puppet_modules[0]['name'], cls.env.name
+                )
+            }
+        )[0]
         # And all its subclasses
-        cls.puppet_subclasses = entities.PuppetClass().search(query={
-            'search': u'name ~ "{0}::" and environment = "{1}"'.format(
-                cls.puppet_modules[0]['name'], cls.env.name)
-        })
+        cls.puppet_subclasses = entities.PuppetClass().search(
+            query={
+                'search': u'name ~ "{0}::" and environment = "{1}"'.format(
+                    cls.puppet_modules[0]['name'], cls.env.name
+                )
+            }
+        )
 
     # TearDown brakes parallel tests run as every test depends on the same
     # puppet class that will be removed during TearDown.
@@ -184,8 +155,7 @@ class SmartVariablesTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 smart_variable = entities.SmartVariable(
-                    puppetclass=self.puppet_class,
-                    variable=name,
+                    puppetclass=self.puppet_class, variable=name
                 ).create()
                 self.assertEqual(smart_variable.variable, name)
 
@@ -204,10 +174,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name), self.assertRaises(HTTPError):
-                entities.SmartVariable(
-                    puppetclass=self.puppet_class,
-                    variable=name,
-                ).create()
+                entities.SmartVariable(puppetclass=self.puppet_class, variable=name).create()
 
     @tier1
     def test_positive_delete_smart_variable_by_id(self):
@@ -221,16 +188,11 @@ class SmartVariablesTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet_class
-        ).create()
+        smart_variable = entities.SmartVariable(puppetclass=self.puppet_class).create()
         smart_variable.delete()
         with self.assertRaises(HTTPError) as context:
             smart_variable.read()
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Smart variable not found by id"
-        )
+        self.assertRegexpMatches(context.exception.response.text, "Smart variable not found by id")
 
     @tier1
     def test_positive_update_variable_puppet_class(self):
@@ -249,13 +211,11 @@ class SmartVariablesTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet_class,
-        ).create()
+        smart_variable = entities.SmartVariable(puppetclass=self.puppet_class).create()
         self.assertEqual(smart_variable.puppetclass.id, self.puppet_class.id)
-        new_puppet = entities.PuppetClass().search(query={
-            'search': 'name="{0}"'.format(choice(self.puppet_subclasses).name)
-        })[0]
+        new_puppet = entities.PuppetClass().search(
+            query={'search': 'name="{0}"'.format(choice(self.puppet_subclasses).name)}
+        )[0]
         smart_variable.puppetclass = new_puppet
         updated_sv = smart_variable.update(['puppetclass'])
         self.assertEqual(updated_sv.puppetclass.id, new_puppet.id)
@@ -284,15 +244,11 @@ class SmartVariablesTestCase(APITestCase):
                 ).create()
                 self.assertEqual(smart_variable.variable_type, data['sc_type'])
                 if data['sc_type'] in ('json', 'hash', 'array'):
-                    self.assertEqual(
-                        smart_variable.default_value, json.loads(data['value'])
-                    )
+                    self.assertEqual(smart_variable.default_value, json.loads(data['value']))
                 elif data['sc_type'] == 'yaml':
-                    self.assertEqual(
-                        smart_variable.default_value, yaml.load(data['value']))
+                    self.assertEqual(smart_variable.default_value, yaml.load(data['value']))
                 else:
-                    self.assertEqual(
-                        smart_variable.default_value, data['value'])
+                    self.assertEqual(smart_variable.default_value, data['value'])
 
     @tier1
     def test_negative_create_variable_type(self):
@@ -317,8 +273,7 @@ class SmartVariablesTestCase(APITestCase):
                         default_value=data['value'],
                     ).create()
                 self.assertRegexpMatches(
-                    context.exception.response.text,
-                    "Default value is invalid"
+                    context.exception.response.text, "Default value is invalid"
                 )
 
     @tier2
@@ -369,19 +324,13 @@ class SmartVariablesTestCase(APITestCase):
         :CaseImportance: Critical
         """
         value = gen_string('alpha')
-        smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet_class,
-        ).create()
+        smart_variable = entities.SmartVariable(puppetclass=self.puppet_class).create()
         entities.OverrideValue(
-            smart_variable=smart_variable,
-            match='domain=example.com',
-            value=value,
+            smart_variable=smart_variable, match='domain=example.com', value=value
         ).create()
         smart_variable = smart_variable.read()
-        self.assertEqual(
-            smart_variable.override_values[0]['match'], 'domain=example.com')
-        self.assertEqual(
-            smart_variable.override_values[0]['value'], value)
+        self.assertEqual(smart_variable.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(smart_variable.override_values[0]['value'], value)
 
     @tier1
     @upgrade
@@ -401,18 +350,13 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet_class,
-            override_value_order='is_virtual',
+            puppetclass=self.puppet_class, override_value_order='is_virtual'
         ).create()
         matcher = entities.OverrideValue(
-            smart_variable=smart_variable,
-            match='is_virtual=true',
-            value=value,
+            smart_variable=smart_variable, match='is_virtual=true', value=value
         ).create()
         smart_variable = smart_variable.read()
-        self.assertEqual(
-            smart_variable.override_values[0]['match'], 'is_virtual=true')
-        self.assertEqual(
-            smart_variable.override_values[0]['value'], value)
+        self.assertEqual(smart_variable.override_values[0]['match'], 'is_virtual=true')
+        self.assertEqual(smart_variable.override_values[0]['value'], value)
         matcher.delete()
         self.assertEqual(len(smart_variable.read().override_values), 0)

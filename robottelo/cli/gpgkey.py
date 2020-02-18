@@ -36,5 +36,4 @@ class GPGKey(Base):
 
         cls.command_sub = 'info'
 
-        return cls.execute(
-            cls._construct_command(options), output_format='json')
+        return cls.execute(cls._construct_command(options), output_format='json')

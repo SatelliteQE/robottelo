@@ -29,8 +29,7 @@ def _get_root_dir(create=True):
     if SHARED_DIR is not None:
         return SHARED_DIR
 
-    tmp_root_dir = os.path.join(get_temp_dir(), TEMP_ROOT_DIR,
-                                TEMP_FUNC_SHARED_DIR)
+    tmp_root_dir = os.path.join(get_temp_dir(), TEMP_ROOT_DIR, TEMP_FUNC_SHARED_DIR)
     if create and not os.path.exists(tmp_root_dir):
         try:
             # it can happen that the workers try to create this path at the
@@ -69,8 +68,9 @@ class FileStorageHandler(BaseStorageHandler):
     def lock(self, key):
         """Return the storage locker context manager"""
         lock_key = '{}.lock'.format(key)
-        return file_lock(self.get_key_file_path(lock_key), remove=False,
-                         timeout=self._lock_timeout)
+        return file_lock(
+            self.get_key_file_path(lock_key), remove=False, timeout=self._lock_timeout
+        )
 
     def when_lock_acquired(self, handler):
         """Write the process id to file handler"""

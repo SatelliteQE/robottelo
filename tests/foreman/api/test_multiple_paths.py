@@ -32,18 +32,30 @@ from robottelo.test import APITestCase
 logger = logging.getLogger(__name__)
 
 BZ_1118015_ENTITIES = (
-    entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,
-    entities.ContentView, entities.Environment, entities.GPGKey,
-    entities.Host, entities.HostCollection, entities.HostGroup,
-    entities.LibvirtComputeResource, entities.LifecycleEnvironment,
-    entities.OperatingSystem, entities.Organization, entities.Product,
-    entities.Repository, entities.Role, entities.Subnet, entities.User,
+    entities.ActivationKey,
+    entities.Architecture,
+    entities.ConfigTemplate,
+    entities.ContentView,
+    entities.Environment,
+    entities.GPGKey,
+    entities.Host,
+    entities.HostCollection,
+    entities.HostGroup,
+    entities.LibvirtComputeResource,
+    entities.LifecycleEnvironment,
+    entities.OperatingSystem,
+    entities.Organization,
+    entities.Product,
+    entities.Repository,
+    entities.Role,
+    entities.Subnet,
+    entities.User,
 )
 
 
 def valid_entities():
     """Returns a tuple of all valid entities."""
-    return(
+    return (
         entities.ActivationKey,
         entities.Architecture,
         entities.AuthSourceLDAP,
@@ -98,8 +110,8 @@ def _get_readable_attributes(entity):
     # Drop foreign key attributes.
     for field_name in list(attributes.keys()):
         if isinstance(
-                entity.get_fields()[field_name],
-                (entity_fields.OneToOneField, entity_fields.OneToManyField)
+            entity.get_fields()[field_name],
+            (entity_fields.OneToOneField, entity_fields.OneToManyField),
         ):
             del attributes[field_name]
 
@@ -154,16 +166,11 @@ class EntityTestCase(APITestCase):
             with self.subTest(entity_cls):
                 self.logger.info('test_get_status_code arg: %s', entity_cls)
                 response = client.get(
-                    entity_cls().path(),
-                    auth=settings.server.get_credentials(),
-                    verify=False,
+                    entity_cls().path(), auth=settings.server.get_credentials(), verify=False
                 )
                 response.raise_for_status()
                 self.assertEqual(http_client.OK, response.status_code)
-                self.assertIn(
-                    'application/json',
-                    response.headers['content-type']
-                )
+                self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
     def test_negative_get_unauthorized(self):
@@ -175,21 +182,13 @@ class EntityTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        exclude_list = (
-            entities.ActivationKey,  # need organization_id or environment_id
-        )
-        test_entities = self.get_entities_for_unauthorized(
-            valid_entities(), exclude_list)
+        exclude_list = (entities.ActivationKey,)  # need organization_id or environment_id
+        test_entities = self.get_entities_for_unauthorized(valid_entities(), exclude_list)
         for entity_cls in test_entities:
             with self.subTest(entity_cls):
                 self.logger.info('test_get_unauthorized arg: %s', entity_cls)
-                response = client.get(
-                    entity_cls().path(),
-                    auth=(),
-                    verify=False
-                )
-                self.assertEqual(
-                    http_client.UNAUTHORIZED, response.status_code)
+                response = client.get(entity_cls().path(), auth=(), verify=False)
+                self.assertEqual(http_client.UNAUTHORIZED, response.status_code)
 
     @tier3
     def test_positive_post_status_code(self):
@@ -204,9 +203,7 @@ class EntityTestCase(APITestCase):
 
         :BZ: 1118015
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_post_status_code arg: %s', entity_cls)
@@ -224,10 +221,7 @@ class EntityTestCase(APITestCase):
 
                 response = entity_cls().create_raw()
                 self.assertEqual(http_client.CREATED, response.status_code)
-                self.assertIn(
-                    'application/json',
-                    response.headers['content-type']
-                )
+                self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
     def test_negative_post_unauthorized(self):
@@ -240,19 +234,14 @@ class EntityTestCase(APITestCase):
         :BZ: 1122257
 
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
-        test_entities = self.get_entities_for_unauthorized(
-            valid_entities(), exclude_list)
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
+        test_entities = self.get_entities_for_unauthorized(valid_entities(), exclude_list)
         for entity_cls in test_entities:
             with self.subTest(entity_cls):
                 self.logger.info('test_post_unauthorized arg: %s', entity_cls)
                 server_cfg = get_nailgun_config()
                 server_cfg.auth = ()
-                return_code = entity_cls(server_cfg).create_raw(
-                    create_missing=False
-                ).status_code
+                return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
                 self.assertEqual(http_client.UNAUTHORIZED, return_code)
 
 
@@ -270,9 +259,7 @@ class EntityIdTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_get_status_code arg: %s', entity_cls)
@@ -282,10 +269,7 @@ class EntityIdTestCase(APITestCase):
                     self.fail(err)
                 response = entity.read_raw()
                 self.assertEqual(http_client.OK, response.status_code)
-                self.assertIn(
-                    'application/json',
-                    response.headers['content-type']
-                )
+                self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
     def test_positive_put_status_code(self):
@@ -300,9 +284,7 @@ class EntityIdTestCase(APITestCase):
 
         :BZ: 1378009
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_put_status_code arg: %s', entity_cls)
@@ -321,10 +303,7 @@ class EntityIdTestCase(APITestCase):
                     verify=False,
                 )
                 self.assertEqual(http_client.OK, response.status_code)
-                self.assertIn(
-                    'application/json',
-                    response.headers['content-type']
-                )
+                self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
     def test_positive_delete_status_code(self):
@@ -338,9 +317,7 @@ class EntityIdTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_delete_status_code arg: %s', entity_cls)
@@ -351,21 +328,14 @@ class EntityIdTestCase(APITestCase):
                 response = entity.delete_raw()
                 self.assertIn(
                     response.status_code,
-                    (
-                        http_client.NO_CONTENT,
-                        http_client.OK,
-                        http_client.ACCEPTED,
-                    )
+                    (http_client.NO_CONTENT, http_client.OK, http_client.ACCEPTED),
                 )
 
                 # According to RFC 2616, HTTP 204 responses "MUST NOT include a
                 # message-body". If a message does not have a body, there is no
                 # need to set the content-type of the message.
                 if response.status_code is not http_client.NO_CONTENT:
-                    self.assertIn(
-                        'application/json',
-                        response.headers['content-type']
-                    )
+                    self.assertIn('application/json', response.headers['content-type'])
 
 
 class DoubleCheckTestCase(APITestCase):
@@ -375,6 +345,7 @@ class DoubleCheckTestCase(APITestCase):
     that an action succeeded. Instead, issue a follow-up request after each
     action to ensure that the intended action was accomplished.
     """
+
     longMessage = True
 
     @tier1
@@ -389,9 +360,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :BZ: 1378009
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_put_and_get arg: %s', entity_cls)
@@ -429,9 +398,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_post_and_get arg: %s', entity_cls)
@@ -458,9 +425,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        exclude_list = (
-            entities.TemplateKind,  # see comments in class definition
-        )
+        exclude_list = (entities.TemplateKind,)  # see comments in class definition
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 self.logger.info('test_delete_and_get arg: %s', entity_cls)
@@ -471,10 +436,7 @@ class DoubleCheckTestCase(APITestCase):
                 except HTTPError as err:
                     self.fail(err)
                 entity.delete()
-                self.assertEqual(
-                    http_client.NOT_FOUND,
-                    entity.read_raw().status_code
-                )
+                self.assertEqual(http_client.NOT_FOUND, entity.read_raw().status_code)
 
 
 class EntityReadTestCase(APITestCase):
@@ -503,10 +465,7 @@ class EntityReadTestCase(APITestCase):
             with self.subTest(entity_cls):
                 self.logger.info('test_entity_read arg: %s', entity_cls)
                 entity_id = entity_cls().create_json()['id']
-                self.assertIsInstance(
-                    entity_cls(id=entity_id).read(),
-                    entity_cls
-                )
+                self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
 
     @tier1
     def test_positive_architecture_read(self):
@@ -520,9 +479,7 @@ class EntityReadTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os_id = entities.OperatingSystem().create_json()['id']
-        arch_id = entities.Architecture(
-            operatingsystem=[os_id]
-        ).create_json()['id']
+        arch_id = entities.Architecture(operatingsystem=[os_id]).create_json()['id']
         architecture = entities.Architecture(id=arch_id).read()
         self.assertEqual(len(architecture.operatingsystem), 1)
         self.assertEqual(architecture.operatingsystem[0].id, os_id)
@@ -540,12 +497,9 @@ class EntityReadTestCase(APITestCase):
         :CaseImportance: Critical
         """
         org_id = entities.Organization().create_json()['id']
-        syncplan_id = entities.SyncPlan(
-            organization=org_id
-        ).create_json()['id']
+        syncplan_id = entities.SyncPlan(organization=org_id).create_json()['id']
         self.assertIsInstance(
-            entities.SyncPlan(organization=org_id, id=syncplan_id).read(),
-            entities.SyncPlan
+            entities.SyncPlan(organization=org_id, id=syncplan_id).read(), entities.SyncPlan
         )
 
     @tier1
@@ -561,15 +515,10 @@ class EntityReadTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os_id = entities.OperatingSystem().create_json()['id']
-        osp_id = entities.OperatingSystemParameter(
-            operatingsystem=os_id
-        ).create_json()['id']
+        osp_id = entities.OperatingSystemParameter(operatingsystem=os_id).create_json()['id']
         self.assertIsInstance(
-            entities.OperatingSystemParameter(
-                id=osp_id,
-                operatingsystem=os_id,
-            ).read(),
-            entities.OperatingSystemParameter
+            entities.OperatingSystemParameter(id=osp_id, operatingsystem=os_id).read(),
+            entities.OperatingSystemParameter,
         )
 
     @tier1

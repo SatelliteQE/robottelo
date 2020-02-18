@@ -30,6 +30,7 @@ from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
 from robottelo.host_info import get_host_os_version
+
 # This conditional is here to centralize use of urljoin
 if six.PY3:  # pragma: no cover
     from urllib.parse import urljoin  # noqa
@@ -66,9 +67,20 @@ class VirtualMachine(object):
     """
 
     def __init__(
-            self, cpu=1, ram=512, distro=None, provisioning_server=None,
-            image_dir=None, tag=None, hostname=None, domain=None,
-            source_image=None, target_image=None, bridge=None, network=None):
+        self,
+        cpu=1,
+        ram=512,
+        distro=None,
+        provisioning_server=None,
+        image_dir=None,
+        tag=None,
+        hostname=None,
+        domain=None,
+        source_image=None,
+        target_image=None,
+        bridge=None,
+        network=None,
+    ):
         distro_docker = settings.docker.docker_image
         allowed_distros = list(settings.distro.__dict__.values()) + [distro_docker]
         distro_mapping = {
@@ -91,14 +103,16 @@ class VirtualMachine(object):
                 distro = DISTRO_RHEL7
             else:
                 raise VirtualMachineError(
-                    'Cannot find a default compatible distro to create the virtual machine')
+                    'Cannot find a default compatible distro to create the virtual machine'
+                )
         if distro in distro_mapping.keys():
             distro = distro_mapping[distro]
         self.distro = distro
         if self.distro not in (allowed_distros):
             raise VirtualMachineError(
-                u'{0} is not a supported distro. Choose one of {1}'
-                .format(self.distro, allowed_distros)
+                u'{0} is not a supported distro. Choose one of {1}'.format(
+                    self.distro, allowed_distros
+                )
             )
         if provisioning_server is None:
             self.provisioning_server = settings.clients.provisioning_server
@@ -122,9 +136,7 @@ class VirtualMachine(object):
         self._created = False
         self._subscribed = False
         self._source_image = source_image or u'{0}-base'.format(self.distro)
-        self._target_image = (
-            target_image or gen_string('alphanumeric', 16).lower()
-        )
+        self._target_image = target_image or gen_string('alphanumeric', 16).lower()
         if tag:
             self._target_image = tag + self._target_image
         self.bridge = bridge
@@ -132,8 +144,9 @@ class VirtualMachine(object):
         if len(self.hostname) > 59:
             raise VirtualMachineError(
                 'Max virtual machine name is 59 chars (see BZ1289363). Name '
-                '"{}" is {} chars long. Please provide shorter name'
-                .format(self.hostname, len(self.hostname))
+                '"{}" is {} chars long. Please provide shorter name'.format(
+                    self.hostname, len(self.hostname)
+                )
             )
 
     @property
@@ -147,8 +160,10 @@ class VirtualMachine(object):
                 domain = self.provisioning_server.split('.', 1)[1]
             except IndexError:
                 raise VirtualMachineError(
-                    u"Failed to fetch domain from provisioning server: {0} "
-                    .format(self.provisioning_server))
+                    u"Failed to fetch domain from provisioning server: {0} ".format(
+                        self.provisioning_server
+                    )
+                )
         else:
             domain = self._domain
         return domain
@@ -213,18 +228,12 @@ class VirtualMachine(object):
             hostname=self.hostname,
             domain=self.domain,
             nw_name=self.bridge or self.network,
-            nw_type=self.nw_type
-
+            nw_type=self.nw_type,
         )
 
-        result = ssh.command(
-            command,
-            self.provisioning_server,
-            connection_timeout=30
-        )
+        result = ssh.command(command, self.provisioning_server, connection_timeout=30)
         if result.return_code != 0:
-            raise VirtualMachineError(
-                u'Failed to run snap-guest: {0}'.format(result.stderr))
+            raise VirtualMachineError(u'Failed to run snap-guest: {0}'.format(result.stderr))
         else:
             self._created = True
             self.mac = [n.split('MAC:')[1].strip() for n in result.stdout if 'MAC:' in n][0]
@@ -240,7 +249,7 @@ class VirtualMachine(object):
                 u'virsh qemu-agent-command {0} '
                 '\'{{"execute":"guest-network-get-interfaces"}}\''.format(self.hostname),
                 ping_from_hostname,
-                connection_timeout=30
+                connection_timeout=30,
             )
             if qemu_ga_check.return_code != 0:
                 if 'guest agent is not connected' in qemu_ga_check.stderr:
@@ -251,14 +260,23 @@ class VirtualMachine(object):
                     break
             else:
                 ifaces = json.loads(qemu_ga_check.stdout[0])
-                mgmt_if = next((i for i in ifaces['return']
-                               if i['hardware-address'].lower() == self.mac.lower()), {})
+                mgmt_if = next(
+                    (
+                        i
+                        for i in ifaces['return']
+                        if i['hardware-address'].lower() == self.mac.lower()
+                    ),
+                    {},
+                )
                 try:
                     # get only the ipv4 addresses
-                    self.ip_addr = next(i['ip-address'] for i in mgmt_if['ip-addresses']
-                                        if i['ip-address-type'] == 'ipv4')
+                    self.ip_addr = next(
+                        i['ip-address']
+                        for i in mgmt_if['ip-addresses']
+                        if i['ip-address-type'] == 'ipv4'
+                    )
                     break
-                except(KeyError, StopIteration):
+                except (KeyError, StopIteration):
                     sleep(1)
                     continue
 
@@ -269,26 +287,24 @@ class VirtualMachine(object):
                 u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
                 u' done; exit 1'.format(self._target_image),
                 ping_from_hostname,
-                connection_timeout=30
+                connection_timeout=30,
             )
             if result.return_code != 0:
                 logger.error('Failed to obtain VM IP, reverting changes')
                 self.destroy()
-                raise VirtualMachineError(
-                    'Failed to fetch virtual machine IP address information')
+                raise VirtualMachineError('Failed to fetch virtual machine IP address information')
             output = ''.join(result.stdout)
             self.ip_addr = output.split('(')[1].split(')')[0]
         ssh_check = ssh.command(
             u'for i in {{1..60}}; do nc -vn {0} 22 <<< "" && exit 0; sleep 1;'
             u' done; exit 1'.format(self.ip_addr),
             self.provisioning_server,
-            connection_timeout=30
+            connection_timeout=30,
         )
         if ssh_check.return_code != 0:
             logger.error('Failed to SSH to the VM, reverting changes')
             self.destroy()
-            raise VirtualMachineError(
-                'Failed to connect to SSH port of the virtual machine')
+            raise VirtualMachineError('Failed to connect to SSH port of the virtual machine')
 
     def destroy(self):
         """Destroys the virtual machine on the provisioning server"""
@@ -302,24 +318,25 @@ class VirtualMachine(object):
             try:
                 self.unregister()
             except Exception as exp:
-                logger.error('Failed to unregister the host: {0}\n{1}'.format(
-                    self.hostname, exp.message))
+                logger.error(
+                    'Failed to unregister the host: {0}\n{1}'.format(self.hostname, exp.message)
+                )
 
         ssh.command(
             u'virsh destroy {0}'.format(self.target_image),
             hostname=self.provisioning_server,
-            connection_timeout=30
+            connection_timeout=30,
         )
         ssh.command(
             u'virsh undefine {0}'.format(self.target_image),
             hostname=self.provisioning_server,
-            connection_timeout=30
+            connection_timeout=30,
         )
         image_name = u'{0}.img'.format(self.target_image)
         ssh.command(
             u'rm {0}'.format(os.path.join(self.image_dir, image_name)),
             hostname=self.provisioning_server,
-            connection_timeout=30
+            connection_timeout=30,
         )
 
     def download_install_rpm(self, repo_url, package_name):
@@ -331,16 +348,11 @@ class VirtualMachine(object):
         :raises robottelo.vm.VirtualMachineError: If package wasn't installed.
 
         """
-        self.run(
-            u'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'
-            .format(package_name, repo_url)
-        )
+        self.run(u'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'.format(package_name, repo_url))
         self.run(u'rpm -i {0}.rpm'.format(package_name))
         result = self.run(u'rpm -q {0}'.format(package_name))
         if result.return_code != 0:
-            raise VirtualMachineError(
-                u'Failed to install {0} rpm.'.format(package_name)
-            )
+            raise VirtualMachineError(u'Failed to install {0} rpm.'.format(package_name))
 
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the virtual machine. Does
@@ -384,10 +396,10 @@ class VirtualMachine(object):
 name={0}
 baseurl={1}
 enabled=1
-gpgcheck=0'''.format(name, url)
-            self.run(
-                'echo "{0}" > /etc/yum.repos.d/{1}.repo'.format(content, name)
+gpgcheck=0'''.format(
+                name, url
             )
+            self.run('echo "{0}" > /etc/yum.repos.d/{1}.repo'.format(content, name))
 
     def install_katello_agent(self):
         """Installs katello agent on the virtual machine.
@@ -398,16 +410,13 @@ gpgcheck=0'''.format(name, url)
 
         """
         wait_for(
-            lambda: self.run('yum install -y katello-agent').return_code == 0,
-            timeout=100,
-            delay=2,
+            lambda: self.run('yum install -y katello-agent').return_code == 0, timeout=100, delay=2
         )
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
         gofer_check = self.run(
-            u'for i in {1..5}; do service goferd status '
-            u'&& exit 0; sleep 1; done; exit 1'
+            u'for i in {1..5}; do service goferd status ' u'&& exit 0; sleep 1; done; exit 1'
         )
         if gofer_check.return_code != 0:
             raise VirtualMachineError('katello-agent is not running')
@@ -437,8 +446,7 @@ gpgcheck=0'''.format(name, url)
         try:
             install_katello_ca(hostname=self.ip_addr)
         except AssertionError:
-            raise VirtualMachineError(
-                'Failed to download and install the katello-ca rpm')
+            raise VirtualMachineError('Failed to download and install the katello-ca rpm')
 
     def install_capsule_katello_ca(self, capsule=None):
         """Downloads and installs katello-ca rpm on the virtual machine.
@@ -448,20 +456,23 @@ gpgcheck=0'''.format(name, url)
         installed.
         """
         url = urlunsplit(('http', capsule, 'pub/', '', ''))
-        ca_url = urljoin(
-            url, 'katello-ca-consumer-latest.noarch.rpm')
-        ssh.command(
-            u'rpm -Uvh {0}'.format(ca_url),
-            self.ip_addr
-        )
-        result = ssh.command(
-            u'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
+        ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
+        ssh.command(u'rpm -Uvh {0}'.format(ca_url), self.ip_addr)
+        result = ssh.command(u'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install the katello-ca rpm')
 
-    def register_contenthost(self, org, activation_key=None, lce=None,
-                             force=True, releasever=None, username=None,
-                             password=None, auto_attach=False):
+    def register_contenthost(
+        self,
+        org,
+        activation_key=None,
+        lce=None,
+        force=True,
+        releasever=None,
+        username=None,
+        password=None,
+        auto_attach=False,
+    ):
         """Registers content host on foreman server using activation-key. This
         can be done in two ways: either by specifying organization name and
         activation key name or by specifying organization name and lifecycle
@@ -482,7 +493,7 @@ gpgcheck=0'''.format(name, url)
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
-        cmd = (u'subscription-manager register --org {0}'.format(org))
+        cmd = u'subscription-manager register --org {0}'.format(org)
         if activation_key is not None:
             cmd += u' --activationkey {0}'.format(activation_key)
         elif lce is not None:
@@ -491,9 +502,7 @@ gpgcheck=0'''.format(name, url)
                 password = settings.server.admin_password
 
             cmd += u' --environment {0} --username {1} --password {2}'.format(
-                lce,
-                username,
-                password,
+                lce, username, password
             )
             if auto_attach:
                 cmd += u' --auto-attach'
@@ -507,8 +516,7 @@ gpgcheck=0'''.format(name, url)
         if force:
             cmd += u' --force'
         result = self.run(cmd)
-        if (u'The system has been registered with ID' in
-                u''.join(result.stdout)):
+        if u'The system has been registered with ID' in u''.join(result.stdout):
             self._subscribed = True
         return result
 
@@ -533,12 +541,8 @@ gpgcheck=0'''.format(name, url)
         :param: str capsule: Capsule hostname
         :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't removed.
         """
-        ssh.command(
-            'yum erase -y $(rpm -qa |grep katello-ca-consumer)',
-            self.ip_addr
-        )
-        result = ssh.command(
-            'rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
+        ssh.command('yum erase -y $(rpm -qa |grep katello-ca-consumer)', self.ip_addr)
+        result = ssh.command('rpm -q katello-ca-consumer-{0}'.format(capsule), self.ip_addr)
         if result.return_code == 0:
             raise VirtualMachineError('Failed to remove the katello-ca rpm')
         rhsm_updates = [
@@ -549,8 +553,7 @@ gpgcheck=0'''.format(name, url)
         ]
         for command in rhsm_updates:
             result = ssh.command(
-                'sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command),
-                self.ip_addr
+                'sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command), self.ip_addr
             )
             if result.return_code != 0:
                 raise VirtualMachineError('Failed to reset the rhsm.conf')
@@ -578,8 +581,7 @@ gpgcheck=0'''.format(name, url)
         """
         if not self._created:
             raise VirtualMachineError(
-                'The virtual machine should be created before running any ssh '
-                'command'
+                'The virtual machine should be created before running any ssh ' 'command'
             )
 
         return ssh.command(cmd, hostname=self.ip_addr, timeout=timeout)
@@ -610,10 +612,7 @@ gpgcheck=0'''.format(name, url)
         # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests as they are huge(in GB's)
         # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
-        self.run(
-            'wget -O /etc/yum.repos.d/rhel.repo {0}'
-            .format(rhel_repo)
-        )
+        self.run('wget -O /etc/yum.repos.d/rhel.repo {0}'.format(rhel_repo))
 
     def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.
@@ -631,22 +630,18 @@ gpgcheck=0'''.format(name, url)
             'logdir = /var/log/puppetlabs/puppet\n'
             'rundir = /var/run/puppetlabs\n'
             'ssldir = /etc/puppetlabs/puppet/ssl\n'
-
             '[agent]\n'
             'pluginsync      = true\n'
             'report          = true\n'
             'ignoreschedules = true\n'
             'ca_server       = {0}\n'
             'environment     = production\n'
-            'server          = {1}\n'
-            .format(proxy_hostname, proxy_hostname))
+            'server          = {1}\n'.format(proxy_hostname, proxy_hostname)
+        )
         result = self.run(u'yum install puppet -y')
         if result.return_code != 0:
-            raise VirtualMachineError(
-                'Failed to install the puppet rpm')
-        self.run(
-            'echo "{0}" >> /etc/puppetlabs/puppet/puppet.conf'
-            .format(puppet_conf))
+            raise VirtualMachineError('Failed to install the puppet rpm')
+        self.run('echo "{0}" >> /etc/puppetlabs/puppet/puppet.conf'.format(puppet_conf))
         # This particular puppet run on client would populate a cert on
         # sat6 under the capsule --> certifcates or on capsule via cli "puppet
         # cert list", so that we sign it.
@@ -673,8 +668,7 @@ gpgcheck=0'''.format(name, url)
             policy_id = result.stdout[0]
         self.run(u'foreman_scap_client {0}'.format(policy_id))
         if result.return_code != 0:
-            raise VirtualMachineError(
-                'Failed to execute foreman_scap_client run.')
+            raise VirtualMachineError('Failed to execute foreman_scap_client run.')
 
     def configure_rhai_client(self, activation_key, org, rhel_distro):
         """ Configures a Red Hat Access Insights service on the system by
@@ -707,38 +701,33 @@ gpgcheck=0'''.format(name, url)
             missing_repos.append('RHEL')
         if missing_repos:
             raise VirtualMachineError(
-                'Missing {0} repository configuration for {1}.'
-                .format(' and '.join(missing_repos), rhel_distro)
+                'Missing {0} repository configuration for {1}.'.format(
+                    ' and '.join(missing_repos), rhel_distro
+                )
             )
 
         self.configure_rhel_repo(rhel_repo)
 
-        self.run(
-            'wget -O /etc/yum.repos.d/insights.repo {0}'.format(insights_repo))
+        self.run('wget -O /etc/yum.repos.d/insights.repo {0}'.format(insights_repo))
 
         # Install redhat-access-insights package
         package_name = 'insights-client'
         result = self.run('yum install -y {0}'.format(package_name))
         if result.return_code != 0:
-            raise VirtualMachineError(
-                'Unable to install redhat-access-insights package'
-            )
+            raise VirtualMachineError('Unable to install redhat-access-insights package')
 
         # Verify if package is installed by query it
         result = self.run('rpm -qi {0}'.format(package_name))
-        logger.info('Insights client rpm version: {0}'.format(
-            result.stdout))
+        logger.info('Insights client rpm version: {0}'.format(result.stdout))
         if result.return_code != 0:
-            raise VirtualMachineError(
-                'Unable to install redhat-access-insights package'
-            )
+            raise VirtualMachineError('Unable to install redhat-access-insights package')
 
         # Register client with Red Hat Access Insights
         result = self.run('insights-client --register')
         if result.return_code != 0:
             raise VirtualMachineError(
-                'Unable to register client to Access Insights through '
-                'Satellite')
+                'Unable to register client to Access Insights through ' 'Satellite'
+            )
 
     def patch_os_release_version(self, distro=DISTRO_RHEL7):
         """Patch VM OS release version.
@@ -749,12 +738,10 @@ gpgcheck=0'''.format(name, url)
         if distro == DISTRO_RHEL7:
             rh_product_os_releasever = REPOS['rhel7']['releasever']
         else:
-            raise VirtualMachineError(
-                'No distro package available to retrieve release version')
+            raise VirtualMachineError('No distro package available to retrieve release version')
         return self.run(
             "touch /etc/yum/vars/releasever "
-            "&& echo '{0}' > /etc/yum/vars/releasever"
-            .format(rh_product_os_releasever)
+            "&& echo '{0}' > /etc/yum/vars/releasever".format(rh_product_os_releasever)
         )
 
     def __enter__(self):

@@ -107,10 +107,7 @@ from robottelo.decorators.func_shared.redis_storage import RedisStorageHandler
 
 logger = logging.getLogger(__name__)
 
-_storage_handlers = {
-    'file': FileStorageHandler,
-    'redis': RedisStorageHandler
-}
+_storage_handlers = {'file': FileStorageHandler, 'redis': RedisStorageHandler}
 
 DEFAULT_STORAGE_HANDLER = 'file'
 # by default using the shared data is disabled
@@ -191,8 +188,7 @@ def _get_default_storage_handler():
     """Return the storage handler instance"""
     if DEFAULT_STORAGE_HANDLER not in _storage_handlers:
         raise SharedFunctionError(
-            'storage handler: "{0}" not supported'
-            .format(DEFAULT_STORAGE_HANDLER)
+            'storage handler: "{0}" not supported'.format(DEFAULT_STORAGE_HANDLER)
         )
     return _storage_handlers.get(DEFAULT_STORAGE_HANDLER)()
 
@@ -212,10 +208,18 @@ class _SharedFunction(object):
     launched and group all the necessary functionality
     """
 
-    def __init__(self, function_key, function, args=None, kwargs=None,
-                 retries=DEFAULT_CALL_RETRIES, storage_handler=None,
-                 timeout=SHARE_DEFAULT_TIMEOUT,
-                 inject=False, injected_kw='_inject'):
+    def __init__(
+        self,
+        function_key,
+        function,
+        args=None,
+        kwargs=None,
+        retries=DEFAULT_CALL_RETRIES,
+        storage_handler=None,
+        timeout=SHARE_DEFAULT_TIMEOUT,
+        inject=False,
+        injected_kw='_inject',
+    ):
 
         if storage_handler is None:
             storage_handler = _get_default_storage_handler()
@@ -275,12 +279,10 @@ class _SharedFunction(object):
             try:
                 logger.info(
                     'calling shared function: {0} - retry index: {1}'.format(
-                        self._function_key, retry_index)
+                        self._function_key, retry_index
+                    )
                 )
-                result = self._function(
-                    *self._function_args,
-                    **self._function_kwargs
-                )
+                result = self._function(*self._function_args, **self._function_kwargs)
                 break
             except Exception as err:
                 exp = err
@@ -292,8 +294,7 @@ class _SharedFunction(object):
         return result, exp, traceback_text
 
     def _has_result_expired(self, creation_datetime):
-        expire_datetime = creation_datetime + datetime.timedelta(
-            seconds=self._share_timeout)
+        expire_datetime = creation_datetime + datetime.timedelta(seconds=self._share_timeout)
 
         if datetime.datetime.utcnow() >= expire_datetime:
             return True
@@ -325,41 +326,45 @@ class _SharedFunction(object):
                 error_class_name = value.get('error_class_name')
                 pid = value['pid']
                 creation_datetime = datetime.datetime.strptime(
-                    value['creation_datetime'], _DATETIME_FORMAT)
+                    value['creation_datetime'], _DATETIME_FORMAT
+                )
 
-                if (state in [_STATE_READY, _STATE_FAILED]
-                        and not self._has_result_expired(creation_datetime)):
+                if state in [_STATE_READY, _STATE_FAILED] and not self._has_result_expired(
+                    creation_datetime
+                ):
                     call_function = False
                 else:
                     call_function = True
 
             if call_function is True:
                 result, exp, traceback_text = self._call_function()
-                creation_datetime = datetime.datetime.utcnow().strftime(
-                    _DATETIME_FORMAT)
+                creation_datetime = datetime.datetime.utcnow().strftime(_DATETIME_FORMAT)
                 if exp:
                     error = str(exp) or 'error occurred'
                     error_class_name = '{0}.{1}'.format(
-                        exp.__class__.__module__, exp.__class__.__name__)
-                    value = dict(state=_STATE_FAILED,
-                                 id=self.transaction,
-                                 result=None,
-                                 error=error,
-                                 error_class_name=error_class_name,
-                                 traceback=traceback_text,
-                                 pid=os.getpid(),
-                                 creation_datetime=creation_datetime
-                                 )
+                        exp.__class__.__module__, exp.__class__.__name__
+                    )
+                    value = dict(
+                        state=_STATE_FAILED,
+                        id=self.transaction,
+                        result=None,
+                        error=error,
+                        error_class_name=error_class_name,
+                        traceback=traceback_text,
+                        pid=os.getpid(),
+                        creation_datetime=creation_datetime,
+                    )
                 else:
                     error = None
                     result = self._encode_result_kwargs(result)
-                    value = dict(state=_STATE_READY,
-                                 id=self.transaction,
-                                 result=result,
-                                 error=error,
-                                 pid=os.getpid(),
-                                 creation_datetime=creation_datetime
-                                 )
+                    value = dict(
+                        state=_STATE_READY,
+                        id=self.transaction,
+                        result=result,
+                        error=error,
+                        pid=os.getpid(),
+                        creation_datetime=creation_datetime,
+                    )
                 self.storage.set(self.key, value)
 
         if call_function and exp:
@@ -385,8 +390,7 @@ class _SharedFunction(object):
                 except Exception as err:
                     exp = None
                     logger.error(
-                        'was not able to restore exception class {}'
-                        .format(error_class_name)
+                        'was not able to restore exception class {}'.format(error_class_name)
                     )
                     # log only a simple error, to not be confused with this
                     # exception
@@ -398,8 +402,7 @@ class _SharedFunction(object):
             # if was not able to restore the original exception raise this one
             raise SharedFunctionException(
                 'Error generated by process: {0} Exception: {1}'
-                ' error: {2}'
-                .format(pid, error_class_name, error)
+                ' error: {2}'.format(pid, error_class_name, error)
             )
 
         if not call_function and self._inject:
@@ -472,10 +475,10 @@ def _get_function_name(function, class_name=None, kwargs=None):
     return '.'.join(names)
 
 
-def _get_function_name_key(function_name, scope=None, scope_kwargs=None,
-                           scope_context=None):
-    scope_name = _get_scope_name(scope=scope, scope_kwargs=scope_kwargs,
-                                 scope_context=scope_context)
+def _get_function_name_key(function_name, scope=None, scope_kwargs=None, scope_context=None):
+    scope_name = _get_scope_name(
+        scope=scope, scope_kwargs=scope_kwargs, scope_context=scope_context
+    )
     if scope_name:
         function_name_key = '.'.join([scope_name, function_name])
     else:
@@ -483,10 +486,17 @@ def _get_function_name_key(function_name, scope=None, scope_kwargs=None,
     return function_name_key
 
 
-def shared(function_=None, scope=_get_default_scope, scope_context=None,
-           scope_kwargs=None, timeout=SHARE_DEFAULT_TIMEOUT,
-           retries=DEFAULT_CALL_RETRIES, function_kw=None,
-           inject=False, injected_kw='_injected'):
+def shared(
+    function_=None,
+    scope=_get_default_scope,
+    scope_context=None,
+    scope_kwargs=None,
+    timeout=SHARE_DEFAULT_TIMEOUT,
+    retries=DEFAULT_CALL_RETRIES,
+    function_kw=None,
+    inject=False,
+    injected_kw='_injected',
+):
     """Generic function sharing, share the results of any decorated function.
     Any parallel pytest xdist worker will wait for this function to finish
 
@@ -532,22 +542,18 @@ def shared(function_=None, scope=_get_default_scope, scope_context=None,
         function_kw = []
 
     def main_wrapper(func):
-
         @functools.wraps(func)
         def function_wrapper(*args, **kwargs):
-            function_kw_scope = {
-                key: kwargs.get(key) for key in function_kw}
+            function_kw_scope = {key: kwargs.get(key) for key in function_kw}
             function_name = _get_function_name(
-                func, class_name=class_name, kwargs=function_kw_scope)
+                func, class_name=class_name, kwargs=function_kw_scope
+            )
             if not ENABLED:
                 # if disabled call the function immediately
                 return func(*args, **kwargs)
 
             function_name_key = _get_function_name_key(
-                function_name,
-                scope=scope,
-                scope_kwargs=scope_kwargs,
-                scope_context=scope_context
+                function_name, scope=scope, scope_kwargs=scope_kwargs, scope_context=scope_context
             )
             shared_object = _SharedFunction(
                 function_name_key,
@@ -557,7 +563,7 @@ def shared(function_=None, scope=_get_default_scope, scope_context=None,
                 timeout=timeout,
                 retries=retries,
                 inject=inject,
-                injected_kw=injected_kw
+                injected_kw=injected_kw,
             )
 
             return shared_object()

@@ -59,16 +59,20 @@ def test_positive_end_to_end(session, oscap_content_path):
     org = entities.Organization().create()
     loc = entities.Location().create()
     with session:
-        session.oscapcontent.create({
-            'file_upload.title': title,
-            'file_upload.scap_file': oscap_content_path,
-            'organizations.resources.assigned': [org.name],
-            'locations.resources.assigned': [loc.name],
-        })
+        session.oscapcontent.create(
+            {
+                'file_upload.title': title,
+                'file_upload.scap_file': oscap_content_path,
+                'organizations.resources.assigned': [org.name],
+                'locations.resources.assigned': [loc.name],
+            }
+        )
         oscap_values = session.oscapcontent.read(title)
         assert oscap_values['file_upload']['title'] == title
-        assert oscap_values['file_upload'][
-            'uploaded_scap_file'] == oscap_content_path.rsplit('/', 1)[-1]
+        assert (
+            oscap_values['file_upload']['uploaded_scap_file']
+            == oscap_content_path.rsplit('/', 1)[-1]
+        )
         assert org.name in oscap_values['organizations']['resources']['assigned']
         assert loc.name in oscap_values['locations']['resources']['assigned']
         session.oscapcontent.update(title, {'file_upload.title': new_title})
@@ -106,14 +110,12 @@ def test_negative_create_with_same_name(session, oscap_content_path):
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=ANY_CONTEXT['location'])
-        session.oscapcontent.create({
-            'file_upload.title': content_name,
-            'file_upload.scap_file': oscap_content_path,
-        })
+        session.oscapcontent.create(
+            {'file_upload.title': content_name, 'file_upload.scap_file': oscap_content_path}
+        )
         assert session.oscapcontent.search(content_name)[0]['Title'] == content_name
         with pytest.raises(AssertionError) as context:
-            session.oscapcontent.create({
-                'file_upload.title': content_name,
-                'file_upload.scap_file': oscap_content_path,
-            })
+            session.oscapcontent.create(
+                {'file_upload.title': content_name, 'file_upload.scap_file': oscap_content_path}
+            )
         assert 'has already been taken' in str(context.value)

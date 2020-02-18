@@ -96,42 +96,39 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         """
         super(HostCollectionErrataInstallTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.env = make_lifecycle_environment({
-            'organization-id': cls.org['id']
-        })
-        cls.content_view = make_content_view({
-            'organization-id': cls.org['id']
-        })
-        cls.activation_key = make_activation_key({
-            'lifecycle-environment-id': cls.env['id'],
-            'organization-id': cls.org['id']
-        })
+        cls.env = make_lifecycle_environment({'organization-id': cls.org['id']})
+        cls.content_view = make_content_view({'organization-id': cls.org['id']})
+        cls.activation_key = make_activation_key(
+            {'lifecycle-environment-id': cls.env['id'], 'organization-id': cls.org['id']}
+        )
         # add subscription to Satellite Tools repo to activation key
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': cls.org['id'],
-            'content-view-id': cls.content_view['id'],
-            'lifecycle-environment-id': cls.env['id'],
-            'activationkey-id': cls.activation_key['id']
-        })
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': cls.org['id'],
+                'content-view-id': cls.content_view['id'],
+                'lifecycle-environment-id': cls.env['id'],
+                'activationkey-id': cls.activation_key['id'],
+            }
+        )
         # create custom repository and add subscription to activation key
-        setup_org_for_a_custom_repo({
-            'url': cls.CUSTOM_REPO_URL,
-            'organization-id': cls.org['id'],
-            'content-view-id': cls.content_view['id'],
-            'lifecycle-environment-id': cls.env['id'],
-            'activationkey-id': cls.activation_key['id']
-        })
+        setup_org_for_a_custom_repo(
+            {
+                'url': cls.CUSTOM_REPO_URL,
+                'organization-id': cls.org['id'],
+                'content-view-id': cls.content_view['id'],
+                'lifecycle-environment-id': cls.env['id'],
+                'activationkey-id': cls.activation_key['id'],
+            }
+        )
 
     def setUp(self):
         """Create and setup host collection, hosts and virtual machines."""
         super(HostCollectionErrataInstallTestCase, self).setUp()
         self.virtual_machines = []
-        self.host_collection = make_host_collection({
-            'organization-id': self.org['id']
-        })
+        self.host_collection = make_host_collection({'organization-id': self.org['id']})
         for _ in range(self.VIRTUAL_MACHINES_COUNT):
             # create VM
             virtual_machine = VirtualMachine(distro=DISTRO_RHEL7)
@@ -141,31 +138,31 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             virtual_machine.install_katello_ca()
             # register content host
             virtual_machine.register_contenthost(
-                self.org['name'],
-                activation_key=self.activation_key['name']
+                self.org['name'], activation_key=self.activation_key['name']
             )
             # enable red hat satellite repository
             virtual_machine.enable_repo(REPOS['rhst7']['id'])
             # install katello-agent
             virtual_machine.install_katello_agent()
             host = Host.info({'name': virtual_machine.hostname})
-            HostCollection.add_host({
-                'id': self.host_collection['id'],
+            HostCollection.add_host(
+                {
+                    'id': self.host_collection['id'],
+                    'organization-id': self.org['id'],
+                    'host-ids': host['id'],
+                }
+            )
+        ActivationKey.add_host_collection(
+            {
+                'id': self.activation_key['id'],
+                'host-collection-id': self.host_collection['id'],
                 'organization-id': self.org['id'],
-                'host-ids': host['id']
-            })
-        ActivationKey.add_host_collection({
-            'id': self.activation_key['id'],
-            'host-collection-id': self.host_collection['id'],
-            'organization-id': self.org['id']
-        })
+            }
+        )
         # install the custom package for each host
         for virtual_machine in self.virtual_machines:
-            virtual_machine.run(
-                'yum install -y {0}'.format(self.CUSTOM_PACKAGE)
-            )
-            result = virtual_machine.run(
-                'rpm -q {0}'.format(self.CUSTOM_PACKAGE))
+            virtual_machine.run('yum install -y {0}'.format(self.CUSTOM_PACKAGE))
+            result = virtual_machine.run('rpm -q {0}'.format(self.CUSTOM_PACKAGE))
             self.assertEqual(result.return_code, 0)
 
     def _is_errata_package_installed(self, virtual_machine):
@@ -174,8 +171,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :type virtual_machine: robottelo.vm.VirtualMachine
         :rtype: bool
         """
-        result = virtual_machine.run(
-            'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+        result = virtual_machine.run('rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
         return True if result.return_code == 0 else False
 
     @tier3
@@ -195,11 +191,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1457977
         """
-        install_task = HostCollection.erratum_install({
-            'id': self.host_collection['id'],
-            'organization-id': self.org['id'],
-            'errata': [self.CUSTOM_ERRATA_ID]
-        })
+        install_task = HostCollection.erratum_install(
+            {
+                'id': self.host_collection['id'],
+                'organization-id': self.org['id'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
         Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
@@ -221,11 +219,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1457977
         """
-        install_task = HostCollection.erratum_install({
-            'id': self.host_collection['id'],
-            'organization': self.org['name'],
-            'errata': [self.CUSTOM_ERRATA_ID]
-        })
+        install_task = HostCollection.erratum_install(
+            {
+                'id': self.host_collection['id'],
+                'organization': self.org['name'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
         Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
@@ -247,11 +247,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1457977
         """
-        install_task = HostCollection.erratum_install({
-            'id': self.host_collection['id'],
-            'organization-label': self.org['label'],
-            'errata': [self.CUSTOM_ERRATA_ID]
-        })
+        install_task = HostCollection.erratum_install(
+            {
+                'id': self.host_collection['id'],
+                'organization-label': self.org['label'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
         Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
@@ -273,11 +275,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1457977
         """
-        install_task = HostCollection.erratum_install({
-            'name': self.host_collection['name'],
-            'organization-id': self.org['id'],
-            'errata': [self.CUSTOM_ERRATA_ID]
-        })
+        install_task = HostCollection.erratum_install(
+            {
+                'name': self.host_collection['name'],
+                'organization-id': self.org['id'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
         Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
@@ -299,11 +303,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1457977
         """
-        install_task = HostCollection.erratum_install({
-            'name': self.host_collection['name'],
-            'organization': self.org['name'],
-            'errata': [self.CUSTOM_ERRATA_ID]
-        })
+        install_task = HostCollection.erratum_install(
+            {
+                'name': self.host_collection['name'],
+                'organization': self.org['name'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
         Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
@@ -325,11 +331,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1457977
         """
-        install_task = HostCollection.erratum_install({
-            'name': self.host_collection['name'],
-            'organization-label': self.org['label'],
-            'errata': [self.CUSTOM_ERRATA_ID]
-        })
+        install_task = HostCollection.erratum_install(
+            {
+                'name': self.host_collection['name'],
+                'organization-label': self.org['label'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
         Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
@@ -353,14 +361,10 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError) as context:
-            HostCollection.erratum_install({
-                'id': self.host_collection['id'],
-                'organization-id': self.org['id'],
-            })
-        self.assertIn(
-            "Error: Option '--errata' is required",
-            context.exception.stderr
-        )
+            HostCollection.erratum_install(
+                {'id': self.host_collection['id'], 'organization-id': self.org['id']}
+            )
+        self.assertIn("Error: Option '--errata' is required", context.exception.stderr)
 
     @tier3
     def test_negative_install_by_hc_name_without_errata_info(self):
@@ -381,14 +385,10 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError) as context:
-            HostCollection.erratum_install({
-                'name': self.host_collection['name'],
-                'organization-id': self.org['id'],
-            })
-        self.assertIn(
-            "Error: Option '--errata' is required",
-            context.exception.stderr
-        )
+            HostCollection.erratum_install(
+                {'name': self.host_collection['name'], 'organization-id': self.org['id']}
+            )
+        self.assertIn("Error: Option '--errata' is required", context.exception.stderr)
 
     @tier3
     def test_negative_install_without_hc_info(self):
@@ -409,10 +409,9 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError):
-            HostCollection.erratum_install({
-                'organization-id': self.org['id'],
-                'errata': [self.CUSTOM_ERRATA_ID]
-            })
+            HostCollection.erratum_install(
+                {'organization-id': self.org['id'], 'errata': [self.CUSTOM_ERRATA_ID]}
+            )
 
     @tier3
     def test_negative_install_by_hc_id_without_org_info(self):
@@ -432,14 +431,10 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError) as context:
-            HostCollection.erratum_install({
-                'id': self.host_collection['id'],
-                'errata': [self.CUSTOM_ERRATA_ID]
-            })
-        self.assertIn(
-            'Error: Could not find organization',
-            context.exception.stderr
-        )
+            HostCollection.erratum_install(
+                {'id': self.host_collection['id'], 'errata': [self.CUSTOM_ERRATA_ID]}
+            )
+        self.assertIn('Error: Could not find organization', context.exception.stderr)
 
     @tier3
     def test_negative_install_by_hc_name_without_org_info(self):
@@ -459,14 +454,10 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError) as context:
-            HostCollection.erratum_install({
-                'name': self.host_collection['name'],
-                'errata': [self.CUSTOM_ERRATA_ID]
-            })
-        self.assertIn(
-            'Error: Could not find organization',
-            context.exception.stderr
-        )
+            HostCollection.erratum_install(
+                {'name': self.host_collection['name'], 'errata': [self.CUSTOM_ERRATA_ID]}
+            )
+        self.assertIn('Error: Could not find organization', context.exception.stderr)
 
 
 class ErrataTestCase(CLITestCase):
@@ -485,58 +476,63 @@ class ErrataTestCase(CLITestCase):
            """
         super(ErrataTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.org_product = make_product(
-            options={'organization-id': cls.org['id']})
-        repo = make_repository({
-            'download-policy': 'immediate',
-            'organization-id': cls.org['id'],
-            'product-id': cls.org_product['id'],
-            'url': FAKE_6_YUM_REPO
-        })
+        cls.org_product = make_product(options={'organization-id': cls.org['id']})
+        repo = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': cls.org['id'],
+                'product-id': cls.org_product['id'],
+                'url': FAKE_6_YUM_REPO,
+            }
+        )
         Repository.synchronize({'id': repo['id']})
         cls.org_product_erratum_count = FAKE_6_YUM_ERRATUM_COUNT
         cls.org_product_errata_id = FAKE_2_ERRATA_ID
         # create an other org
         cls.errata_org = make_org()
-        cls.errata_org_product = make_product(
-            options={'organization-id': cls.errata_org['id']})
-        repo = make_repository({
-            'download-policy': 'immediate',
-            'organization-id': cls.errata_org['id'],
-            'product-id': cls.errata_org_product['id'],
-            'url': FAKE_1_YUM_REPO
-        })
+        cls.errata_org_product = make_product(options={'organization-id': cls.errata_org['id']})
+        repo = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': cls.errata_org['id'],
+                'product-id': cls.errata_org_product['id'],
+                'url': FAKE_1_YUM_REPO,
+            }
+        )
         Repository.synchronize({'id': repo['id']})
         cls.errata_org_product_erratum_count = FAKE_1_YUM_ERRATUM_COUNT
         cls.errata_org_product_errata_id = FAKE_1_ERRATA_ID
         # create org_multi, a new org with multi products
         cls.org_multi = make_org()
         cls.org_multi_product_small = make_product(
-            options={'organization-id': cls.org_multi['id']})
-        repo = make_repository({
-            'download-policy': 'immediate',
-            'organization-id': cls.org_multi['id'],
-            'product-id': cls.org_multi_product_small['id'],
-            'url': FAKE_2_YUM_REPO
-        })
+            options={'organization-id': cls.org_multi['id']}
+        )
+        repo = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': cls.org_multi['id'],
+                'product-id': cls.org_multi_product_small['id'],
+                'url': FAKE_2_YUM_REPO,
+            }
+        )
         Repository.synchronize({'id': repo['id']})
         cls.org_multi_product_small_erratum_count = FAKE_0_YUM_ERRATUM_COUNT
         cls.org_multi_product_small_errata_id = FAKE_0_ERRATA_ID
-        cls.org_multi_product_big = make_product(
-            options={'organization-id': cls.org_multi['id']})
-        repo = make_repository({
-            'download-policy': 'immediate',
-            'organization-id': cls.org_multi['id'],
-            'product-id': cls.org_multi_product_big['id'],
-            'url': FAKE_3_YUM_REPO
-        })
+        cls.org_multi_product_big = make_product(options={'organization-id': cls.org_multi['id']})
+        repo = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': cls.org_multi['id'],
+                'product-id': cls.org_multi_product_big['id'],
+                'url': FAKE_3_YUM_REPO,
+            }
+        )
         Repository.synchronize({'id': repo['id']})
         cls.org_multi_product_big_erratum_count = FAKE_3_YUM_ERRATUM_COUNT
         cls.org_multi_product_big_errata_id = FAKE_3_ERRATA_ID
 
     @staticmethod
-    def _get_sorted_erratum_ids_info(erratum_ids, sort_by='issued',
-                                     sort_reversed=False):
+    def _get_sorted_erratum_ids_info(erratum_ids, sort_by='issued', sort_reversed=False):
         """Query hammer for erratum ids info
 
         :param erratum_ids: a list of errata id
@@ -553,10 +549,10 @@ class ErrataTestCase(CLITestCase):
             raise Exception('Erratum ids length exceeded')
         erratum_info_list = []
         for errata_id in erratum_ids:
-            erratum_info_list.append(
-                Erratum.info(options={'id': errata_id}, output_format='json'))
+            erratum_info_list.append(Erratum.info(options={'id': errata_id}, output_format='json'))
         sorted_erratum_info_list = sorted(
-            erratum_info_list, key=itemgetter(sort_by), reverse=sort_reversed)
+            erratum_info_list, key=itemgetter(sort_by), reverse=sort_reversed
+        )
         return sorted_erratum_info_list
 
     @tier3
@@ -580,50 +576,32 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list({'order': sort_text, 'per-page': ERRATUM_MAX_IDS_INFO})
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field value in the same order as
                 # received from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -649,51 +627,38 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'organization-id': self.org['id'],
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list(
+                    {
+                        'organization-id': self.org['id'],
+                        'order': sort_text,
+                        'per-page': ERRATUM_MAX_IDS_INFO,
+                    }
+                )
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field value in the same order as
                 # received from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -719,51 +684,38 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'organization': self.org['name'],
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list(
+                    {
+                        'organization': self.org['name'],
+                        'order': sort_text,
+                        'per-page': ERRATUM_MAX_IDS_INFO,
+                    }
+                )
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field value in the same order as
                 # received from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -791,51 +743,38 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'organization-label': self.org['label'],
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list(
+                    {
+                        'organization-label': self.org['label'],
+                        'order': sort_text,
+                        'per-page': ERRATUM_MAX_IDS_INFO,
+                    }
+                )
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field value in the same order as
                 # received from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -861,51 +800,38 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'organization-id': self.org['id'],
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list(
+                    {
+                        'organization-id': self.org['id'],
+                        'order': sort_text,
+                        'per-page': ERRATUM_MAX_IDS_INFO,
+                    }
+                )
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field value in the same order as
                 # received from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -931,51 +857,38 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'organization': self.org['name'],
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list(
+                    {
+                        'organization': self.org['name'],
+                        'order': sort_text,
+                        'per-page': ERRATUM_MAX_IDS_INFO,
+                    }
+                )
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field value in the same order as
                 # received from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -1003,51 +916,38 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({
-                    'organization-label': self.org['label'],
-                    'order': sort_text,
-                    'per-page': ERRATUM_MAX_IDS_INFO
-                })
+                erratum_list = Erratum.list(
+                    {
+                        'organization-label': self.org['label'],
+                        'order': sort_text,
+                        'per-page': ERRATUM_MAX_IDS_INFO,
+                    }
+                )
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
                 # build a list of erratum id received from Erratum.list
-                erratum_ids = [
-                    errata['id']
-                    for errata in erratum_list
-                ]
+                erratum_ids = [errata['id'] for errata in erratum_list]
                 # build a list of errata-id field in the same order as received
                 # from Erratum.list
-                errata_ids = [
-                    errata['errata-id']
-                    for errata in erratum_list
-                ]
+                errata_ids = [errata['errata-id'] for errata in erratum_list]
                 # build a sorted more detailed erratum info list, that also
                 # contain the sort field
                 sorted_errata_info_list = self._get_sorted_erratum_ids_info(
-                    erratum_ids,
-                    sort_by=sort_field,
-                    sort_reversed=sort_reversed
+                    erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
                 )
                 # build a list of sort field (issued/updated) values in the
                 # same order as received from the detailed sorted erratum info
                 # list
-                sort_field_values = [
-                    errata[sort_field]
-                    for errata in sorted_errata_info_list
-                ]
+                sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
                 self.assertEqual(
-                    sort_field_values,
-                    sorted(sort_field_values, reverse=sort_reversed)
+                    sort_field_values, sorted(sort_field_values, reverse=sort_reversed)
                 )
                 # build a list of errata-id field value in the same order as
                 # received from the detailed sorted errata info list
-                sorted_errata_ids = [
-                    errata['errata-id']
-                    for errata in sorted_errata_info_list
-                ]
+                sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
@@ -1064,34 +964,22 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product id.
         """
-        org_product_erratum_list = Erratum.list({
-            'product-id': self.org_product['id'],
-            'per-page': 1000
-        })
-        org_product_errata_ids = {
-            errata['errata-id']
-            for errata in org_product_erratum_list
-            }
-        errata_org_product_erratum_list = Erratum.list({
-            'product-id': self.errata_org_product['id'],
-            'per-page': 1000
-        })
-        errata_org_product_errata_ids = {
-            errata['errata-id']
-            for errata in errata_org_product_erratum_list
-        }
-        self.assertEqual(
-            len(org_product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(errata_org_product_errata_ids),
-            self.errata_org_product_erratum_count
+        org_product_erratum_list = Erratum.list(
+            {'product-id': self.org_product['id'], 'per-page': 1000}
         )
+        org_product_errata_ids = {errata['errata-id'] for errata in org_product_erratum_list}
+        errata_org_product_erratum_list = Erratum.list(
+            {'product-id': self.errata_org_product['id'], 'per-page': 1000}
+        )
+        errata_org_product_errata_ids = {
+            errata['errata-id'] for errata in errata_org_product_erratum_list
+        }
+        self.assertEqual(len(org_product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(errata_org_product_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_product_errata_ids)
-        self.assertIn(
-            self.errata_org_product_errata_id, errata_org_product_errata_ids)
+        self.assertIn(self.errata_org_product_errata_id, errata_org_product_errata_ids)
         self.assertEqual(
-            org_product_errata_ids.intersection(errata_org_product_errata_ids),
-            set([])
+            org_product_errata_ids.intersection(errata_org_product_errata_ids), set([])
         )
 
     @tier3
@@ -1107,63 +995,39 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product id and Org id.
         """
-        product_erratum_list = Erratum.list({
-            'organization-id': self.org['id'],
-            'product-id': self.org_product['id'],
-            'per-page': 1000
-        })
-        product_errata_ids = {
-            errata['errata-id']
-            for errata in product_erratum_list
-        }
-        product_small_erratum_list = Erratum.list({
-            'organization-id': self.org_multi['id'],
-            'product-id': self.org_multi_product_small['id'],
-            'per-page': 1000
-        })
-        product_small_errata_ids = {
-            errata['errata-id']
-            for errata in product_small_erratum_list
-        }
-        product_big_erratum_list = Erratum.list({
-            'organization-id': self.org_multi['id'],
-            'product-id': self.org_multi_product_big['id'],
-            'per-page': 1000
-        })
-        product_big_errata_ids = {
-            errata['errata-id']
-            for errata in product_big_erratum_list
-        }
-        self.assertEqual(
-            len(product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(product_small_errata_ids),
-            self.org_multi_product_small_erratum_count
+        product_erratum_list = Erratum.list(
+            {
+                'organization-id': self.org['id'],
+                'product-id': self.org_product['id'],
+                'per-page': 1000,
+            }
         )
-        self.assertEqual(
-            len(product_big_errata_ids),
-            self.org_multi_product_big_erratum_count
+        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
+        product_small_erratum_list = Erratum.list(
+            {
+                'organization-id': self.org_multi['id'],
+                'product-id': self.org_multi_product_small['id'],
+                'per-page': 1000,
+            }
         )
+        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
+        product_big_erratum_list = Erratum.list(
+            {
+                'organization-id': self.org_multi['id'],
+                'product-id': self.org_multi_product_big['id'],
+                'per-page': 1000,
+            }
+        )
+        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
+        self.assertEqual(len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(product_small_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertEqual(len(product_big_errata_ids), self.org_multi_product_big_erratum_count)
         self.assertIn(self.org_product_errata_id, product_errata_ids)
-        self.assertIn(
-            self.org_multi_product_small_errata_id, product_small_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(
-            product_errata_ids.intersection(
-                product_small_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_errata_ids.intersection(
-                product_big_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_small_errata_ids.intersection(
-                product_big_errata_ids),
-            set([])
-        )
+        self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_product_id_and_org_name(self):
@@ -1178,62 +1042,39 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product id and Org name.
         """
-        product_erratum_list = Erratum.list({
-            'organization': self.org['name'],
-            'product-id': self.org_product['id'],
-            'per-page': 1000
-        })
-        product_errata_ids = {
-            errata['errata-id']
-            for errata in product_erratum_list
-        }
-        product_small_erratum_list = Erratum.list({
-            'organization': self.org_multi['name'],
-            'product-id': self.org_multi_product_small['id'],
-            'per-page': 1000
-        })
-        product_small_errata_ids = {
-            errata['errata-id']
-            for errata in product_small_erratum_list
-        }
-        product_big_erratum_list = Erratum.list({
-            'organization': self.org_multi['name'],
-            'product-id': self.org_multi_product_big['id'],
-            'per-page': 1000
-        })
-        product_big_errata_ids = {
-            errata['errata-id']
-            for errata in product_big_erratum_list
-        }
-        self.assertEqual(
-            len(product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(product_small_errata_ids),
-            self.org_multi_product_small_erratum_count
+        product_erratum_list = Erratum.list(
+            {
+                'organization': self.org['name'],
+                'product-id': self.org_product['id'],
+                'per-page': 1000,
+            }
         )
-        self.assertEqual(
-            len(product_big_errata_ids),
-            self.org_multi_product_big_erratum_count
+        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
+        product_small_erratum_list = Erratum.list(
+            {
+                'organization': self.org_multi['name'],
+                'product-id': self.org_multi_product_small['id'],
+                'per-page': 1000,
+            }
         )
+        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
+        product_big_erratum_list = Erratum.list(
+            {
+                'organization': self.org_multi['name'],
+                'product-id': self.org_multi_product_big['id'],
+                'per-page': 1000,
+            }
+        )
+        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
+        self.assertEqual(len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(product_small_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertEqual(len(product_big_errata_ids), self.org_multi_product_big_erratum_count)
         self.assertIn(self.org_product_errata_id, product_errata_ids)
-        self.assertIn(
-            self.org_multi_product_small_errata_id, product_small_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(
-            product_errata_ids.intersection(product_small_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_errata_ids.intersection(
-                product_big_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_small_errata_ids.intersection(
-                product_big_errata_ids),
-            set([])
-        )
+        self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_product_id_and_org_label(self):
@@ -1248,60 +1089,39 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product id and Org label
         """
-        product_erratum_list = Erratum.list({
-            'organization-label': self.org['label'],
-            'product-id': self.org_product['id'],
-            'per-page': 1000
-        })
-        product_errata_ids = {
-            errata['errata-id']
-            for errata in product_erratum_list
-        }
-        product_small_erratum_list = Erratum.list({
-            'organization-label': self.org_multi['label'],
-            'product-id': self.org_multi_product_small['id'],
-            'per-page': 1000
-        })
-        product_small_errata_ids = {
-            errata['errata-id']
-            for errata in product_small_erratum_list
-        }
-        product_big_erratum_list = Erratum.list({
-            'organization-label': self.org_multi['label'],
-            'product-id': self.org_multi_product_big['id'],
-            'per-page': 1000
-        })
-        product_big_errata_ids = {
-            errata['errata-id']
-            for errata in product_big_erratum_list
-        }
-        self.assertEqual(
-            len(product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(product_small_errata_ids),
-            self.org_multi_product_small_erratum_count
+        product_erratum_list = Erratum.list(
+            {
+                'organization-label': self.org['label'],
+                'product-id': self.org_product['id'],
+                'per-page': 1000,
+            }
         )
-        self.assertEqual(
-            len(product_big_errata_ids),
-            self.org_multi_product_big_erratum_count
+        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
+        product_small_erratum_list = Erratum.list(
+            {
+                'organization-label': self.org_multi['label'],
+                'product-id': self.org_multi_product_small['id'],
+                'per-page': 1000,
+            }
         )
+        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
+        product_big_erratum_list = Erratum.list(
+            {
+                'organization-label': self.org_multi['label'],
+                'product-id': self.org_multi_product_big['id'],
+                'per-page': 1000,
+            }
+        )
+        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
+        self.assertEqual(len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(product_small_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertEqual(len(product_big_errata_ids), self.org_multi_product_big_erratum_count)
         self.assertIn(self.org_product_errata_id, product_errata_ids)
-        self.assertIn(
-            self.org_multi_product_small_errata_id, product_small_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(
-            product_errata_ids.intersection(product_small_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_small_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
+        self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
 
     @tier3
     def test_negative_list_filter_by_product_name(self):
@@ -1322,10 +1142,7 @@ class ErrataTestCase(CLITestCase):
         :CaseLevel: System
         """
         with self.assertRaises(CLIReturnCodeError):
-            Erratum.list({
-                'product': self.org_product['name'],
-                'per-page': 1000
-            })
+            Erratum.list({'product': self.org_product['name'], 'per-page': 1000})
 
     @tier3
     def test_positive_list_filter_by_product_name_and_org_id(self):
@@ -1340,60 +1157,39 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product name and Org id.
         """
-        product_erratum_list = Erratum.list({
-            'organization-id': self.org['id'],
-            'product': self.org_product['name'],
-            'per-page': 1000
-        })
-        product_errata_ids = {
-            errata['errata-id']
-            for errata in product_erratum_list
-        }
-        product_small_erratum_list = Erratum.list({
-            'organization-id': self.org_multi['id'],
-            'product': self.org_multi_product_small['name'],
-            'per-page': 1000
-        })
-        product_small_errata_ids = {
-            errata['errata-id']
-            for errata in product_small_erratum_list
-        }
-        product_big_erratum_list = Erratum.list({
-            'organization-id': self.org_multi['id'],
-            'product': self.org_multi_product_big['name'],
-            'per-page': 1000
-        })
-        product_big_errata_ids = {
-            errata['errata-id']
-            for errata in product_big_erratum_list
-        }
-        self.assertEqual(
-            len(product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(product_small_errata_ids),
-            self.org_multi_product_small_erratum_count
+        product_erratum_list = Erratum.list(
+            {
+                'organization-id': self.org['id'],
+                'product': self.org_product['name'],
+                'per-page': 1000,
+            }
         )
-        self.assertEqual(
-            len(product_big_errata_ids),
-            self.org_multi_product_big_erratum_count
+        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
+        product_small_erratum_list = Erratum.list(
+            {
+                'organization-id': self.org_multi['id'],
+                'product': self.org_multi_product_small['name'],
+                'per-page': 1000,
+            }
         )
+        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
+        product_big_erratum_list = Erratum.list(
+            {
+                'organization-id': self.org_multi['id'],
+                'product': self.org_multi_product_big['name'],
+                'per-page': 1000,
+            }
+        )
+        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
+        self.assertEqual(len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(product_small_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertEqual(len(product_big_errata_ids), self.org_multi_product_big_erratum_count)
         self.assertIn(self.org_product_errata_id, product_errata_ids)
-        self.assertIn(
-            self.org_multi_product_small_errata_id, product_small_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(
-            product_errata_ids.intersection(product_small_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_small_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
+        self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_product_name_and_org_name(self):
@@ -1407,60 +1203,39 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product name and Org name.
         """
-        product_erratum_list = Erratum.list({
-            'organization': self.org['name'],
-            'product': self.org_product['name'],
-            'per-page': 1000
-        })
-        product_errata_ids = {
-            errata['errata-id']
-            for errata in product_erratum_list
-        }
-        product_small_erratum_list = Erratum.list({
-            'organization': self.org_multi['name'],
-            'product': self.org_multi_product_small['name'],
-            'per-page': 1000
-        })
-        product_small_errata_ids = {
-            errata['errata-id']
-            for errata in product_small_erratum_list
-        }
-        product_big_erratum_list = Erratum.list({
-            'organization': self.org_multi['name'],
-            'product': self.org_multi_product_big['name'],
-            'per-page': 1000
-        })
-        product_big_errata_ids = {
-            errata['errata-id']
-            for errata in product_big_erratum_list
-        }
-        self.assertEqual(
-            len(product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(product_small_errata_ids),
-            self.org_multi_product_small_erratum_count
+        product_erratum_list = Erratum.list(
+            {
+                'organization': self.org['name'],
+                'product': self.org_product['name'],
+                'per-page': 1000,
+            }
         )
-        self.assertEqual(
-            len(product_big_errata_ids),
-            self.org_multi_product_big_erratum_count
+        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
+        product_small_erratum_list = Erratum.list(
+            {
+                'organization': self.org_multi['name'],
+                'product': self.org_multi_product_small['name'],
+                'per-page': 1000,
+            }
         )
+        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
+        product_big_erratum_list = Erratum.list(
+            {
+                'organization': self.org_multi['name'],
+                'product': self.org_multi_product_big['name'],
+                'per-page': 1000,
+            }
+        )
+        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
+        self.assertEqual(len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(product_small_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertEqual(len(product_big_errata_ids), self.org_multi_product_big_erratum_count)
         self.assertIn(self.org_product_errata_id, product_errata_ids)
-        self.assertIn(
-            self.org_multi_product_small_errata_id, product_small_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(
-            product_errata_ids.intersection(product_small_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_small_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
+        self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_product_name_and_org_label(self):
@@ -1475,60 +1250,39 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by product name and Org label.
         """
-        product_erratum_list = Erratum.list({
-            'organization-label': self.org['label'],
-            'product': self.org_product['name'],
-            'per-page': 1000
-        })
-        product_errata_ids = {
-            errata['errata-id']
-            for errata in product_erratum_list
-        }
-        product_small_erratum_list = Erratum.list({
-            'organization-label': self.org_multi['label'],
-            'product': self.org_multi_product_small['name'],
-            'per-page': 1000
-        })
-        product_small_errata_ids = {
-            errata['errata-id']
-            for errata in product_small_erratum_list
-        }
-        product_big_erratum_list = Erratum.list({
-            'organization-label': self.org_multi['label'],
-            'product': self.org_multi_product_big['name'],
-            'per-page': 1000
-        })
-        product_big_errata_ids = {
-            errata['errata-id']
-            for errata in product_big_erratum_list
-        }
-        self.assertEqual(
-            len(product_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(product_small_errata_ids),
-            self.org_multi_product_small_erratum_count
+        product_erratum_list = Erratum.list(
+            {
+                'organization-label': self.org['label'],
+                'product': self.org_product['name'],
+                'per-page': 1000,
+            }
         )
-        self.assertEqual(
-            len(product_big_errata_ids),
-            self.org_multi_product_big_erratum_count
+        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
+        product_small_erratum_list = Erratum.list(
+            {
+                'organization-label': self.org_multi['label'],
+                'product': self.org_multi_product_small['name'],
+                'per-page': 1000,
+            }
         )
+        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
+        product_big_erratum_list = Erratum.list(
+            {
+                'organization-label': self.org_multi['label'],
+                'product': self.org_multi_product_big['name'],
+                'per-page': 1000,
+            }
+        )
+        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
+        self.assertEqual(len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(len(product_small_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertEqual(len(product_big_errata_ids), self.org_multi_product_big_erratum_count)
         self.assertIn(self.org_product_errata_id, product_errata_ids)
-        self.assertIn(
-            self.org_multi_product_small_errata_id, product_small_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(
-            product_errata_ids.intersection(product_small_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
-        self.assertEqual(
-            product_small_errata_ids.intersection(product_big_errata_ids),
-            set([])
-        )
+        self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_org_id(self):
@@ -1542,31 +1296,17 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by Org id.
         """
-        org_erratum_list = Erratum.list({
-            'organization-id': self.org['id'],
-            'per-page': 1000
-        })
-        org_errata_ids = {
-            errata['errata-id']
-            for errata in org_erratum_list
-        }
-        errata_org_erratum_list = Erratum.list({
-            'organization-id': self.errata_org['id'],
-            'per-page': 1000
-        })
-        errata_org_errata_ids = {
-            errata['errata-id']
-            for errata in errata_org_erratum_list
-        }
+        org_erratum_list = Erratum.list({'organization-id': self.org['id'], 'per-page': 1000})
+        org_errata_ids = {errata['errata-id'] for errata in org_erratum_list}
+        errata_org_erratum_list = Erratum.list(
+            {'organization-id': self.errata_org['id'], 'per-page': 1000}
+        )
+        errata_org_errata_ids = {errata['errata-id'] for errata in errata_org_erratum_list}
         self.assertEqual(len(org_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(errata_org_errata_ids), self.errata_org_product_erratum_count)
+        self.assertEqual(len(errata_org_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
-        self.assertEqual(
-            org_errata_ids.intersection(errata_org_errata_ids),
-            set([])
-        )
+        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_org_name(self):
@@ -1580,31 +1320,17 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by Org name.
         """
-        org_erratum_list = Erratum.list({
-            'organization': self.org['name'],
-            'per-page': 1000
-        })
-        org_errata_ids = {
-            errata['errata-id']
-            for errata in org_erratum_list
-        }
-        errata_org_erratum_list = Erratum.list({
-            'organization': self.errata_org['name'],
-            'per-page': 1000
-        })
-        errata_org_errata_ids = {
-            errata['errata-id']
-            for errata in errata_org_erratum_list
-        }
+        org_erratum_list = Erratum.list({'organization': self.org['name'], 'per-page': 1000})
+        org_errata_ids = {errata['errata-id'] for errata in org_erratum_list}
+        errata_org_erratum_list = Erratum.list(
+            {'organization': self.errata_org['name'], 'per-page': 1000}
+        )
+        errata_org_errata_ids = {errata['errata-id'] for errata in errata_org_erratum_list}
         self.assertEqual(len(org_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(errata_org_errata_ids), self.errata_org_product_erratum_count)
+        self.assertEqual(len(errata_org_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
-        self.assertEqual(
-            org_errata_ids.intersection(errata_org_errata_ids),
-            set([])
-        )
+        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set([]))
 
     @tier3
     def test_positive_list_filter_by_org_label(self):
@@ -1618,31 +1344,19 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Errata is filtered by Org label.
         """
-        org_erratum_list = Erratum.list({
-            'organization-label': self.org['label'],
-            'per-page': 1000
-        })
-        org_errata_ids = {
-            errata['errata-id']
-            for errata in org_erratum_list
-        }
-        errata_org_erratum_list = Erratum.list({
-            'organization-label': self.errata_org['label'],
-            'per-page': 1000
-        })
-        errata_org_errata_ids = {
-            errata['errata-id']
-            for errata in errata_org_erratum_list
-        }
+        org_erratum_list = Erratum.list(
+            {'organization-label': self.org['label'], 'per-page': 1000}
+        )
+        org_errata_ids = {errata['errata-id'] for errata in org_erratum_list}
+        errata_org_erratum_list = Erratum.list(
+            {'organization-label': self.errata_org['label'], 'per-page': 1000}
+        )
+        errata_org_errata_ids = {errata['errata-id'] for errata in errata_org_erratum_list}
         self.assertEqual(len(org_errata_ids), self.org_product_erratum_count)
-        self.assertEqual(
-            len(errata_org_errata_ids), self.errata_org_product_erratum_count)
+        self.assertEqual(len(errata_org_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
-        self.assertEqual(
-            org_errata_ids.intersection(errata_org_errata_ids),
-            set([])
-        )
+        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set([]))
 
     @run_in_one_thread
     @tier3
@@ -1661,37 +1375,33 @@ class ErrataTestCase(CLITestCase):
         org = make_org()
         with manifests.clone() as manifest:
             ssh.upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': org['id'],
-        })
-        RepositorySet.enable({
-            'name': REPOSET['rhva6'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-            'basearch': 'x86_64',
-        })
-        Repository.synchronize({
-            'name': REPOS['rhva6']['name'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel']
-        })
-        repository_info = Repository.info({
+        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+        RepositorySet.enable(
+            {
+                'name': REPOSET['rhva6'],
+                'organization-id': org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+                'basearch': 'x86_64',
+            }
+        )
+        Repository.synchronize(
+            {'name': REPOS['rhva6']['name'], 'organization-id': org['id'], 'product': PRDS['rhel']}
+        )
+        repository_info = Repository.info(
+            {
                 u'name': REPOS['rhva6']['name'],
                 u'organization-id': org['id'],
                 u'product': PRDS['rhel'],
-        })
+            }
+        )
         erratum = Erratum.list({'repository-id': repository_info['id']})
         errata_ids = [errata['errata-id'] for errata in erratum]
         self.assertIn(REAL_4_ERRATA_ID, errata_ids)
         for errata_cve in REAL_4_ERRATA_CVES:
             with self.subTest(errata_cve):
                 cve_erratum = Erratum.list({'cve': errata_cve})
-                cve_errata_ids = [
-                    cve_errata['errata-id']
-                    for cve_errata in cve_erratum
-                ]
+                cve_errata_ids = [cve_errata['errata-id'] for cve_errata in cve_erratum]
                 self.assertIn(REAL_4_ERRATA_ID, cve_errata_ids)
 
     @tier3
@@ -1733,19 +1443,23 @@ class ErrataTestCase(CLITestCase):
         role = make_role({'organization-ids': org['id']})
         # create a filter with the required permissions for role with product
         # one only
-        make_filter({
-            'permission-ids': user_required_permissions_ids,
-            'role-id': role['id'],
-            'search': 'name = {0}'.format(product['name'])
-        })
+        make_filter(
+            {
+                'permission-ids': user_required_permissions_ids,
+                'role-id': role['id'],
+                'search': 'name = {0}'.format(product['name']),
+            }
+        )
         # create a new user and assign him the created role permissions
-        user = make_user({
-            'admin': False,
-            'login': user_name,
-            'password': user_password,
-            'organization-ids': [org['id']],
-            'default-organization-id': org['id'],
-        })
+        user = make_user(
+            {
+                'admin': False,
+                'login': user_name,
+                'password': user_password,
+                'organization-ids': [org['id']],
+                'default-organization-id': org['id'],
+            }
+        )
         User.add_role({'id': user['id'], 'role-id': role['id']})
         # make sure the user is not admin and has only the permissions assigned
         user = User.info({'id': user['id']})
@@ -1760,40 +1474,27 @@ class ErrataTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             Org.with_user(user_name, user_password).info({'id': org['id']})
         self.assertIn(
-            'Missing one of the required permissions: view_organizations',
-            context.exception.stderr
+            'Missing one of the required permissions: view_organizations', context.exception.stderr
         )
         # try to get the erratum products list by organization id only
         # ensure that all products erratum are accessible by admin user
-        admin_org_erratum_info_list = Erratum.list({
-            'organization-id': org['id']})
-        admin_org_errata_ids = [
-            errata['errata-id']
-            for errata in admin_org_erratum_info_list
-        ]
-        self.assertIn(
-            self.org_multi_product_small_errata_id, admin_org_errata_ids)
-        self.assertIn(
-            self.org_multi_product_big_errata_id, admin_org_errata_ids)
-        org_erratum_count = (self.org_multi_product_small_erratum_count +
-                             self.org_multi_product_big_erratum_count)
+        admin_org_erratum_info_list = Erratum.list({'organization-id': org['id']})
+        admin_org_errata_ids = [errata['errata-id'] for errata in admin_org_erratum_info_list]
+        self.assertIn(self.org_multi_product_small_errata_id, admin_org_errata_ids)
+        self.assertIn(self.org_multi_product_big_errata_id, admin_org_errata_ids)
+        org_erratum_count = (
+            self.org_multi_product_small_erratum_count + self.org_multi_product_big_erratum_count
+        )
         self.assertEqual(len(admin_org_errata_ids), org_erratum_count)
         # ensure that the created user see only the erratum product that was
         # assigned in permissions
-        user_org_erratum_info_list = Erratum.with_user(
-            user_name, user_password).list({'organization-id': org['id']})
-        user_org_errata_ids = [
-            errata['errata-id']
-            for errata in user_org_erratum_info_list
-        ]
-        self.assertEqual(
-            len(user_org_errata_ids),
-            self.org_multi_product_small_erratum_count
+        user_org_erratum_info_list = Erratum.with_user(user_name, user_password).list(
+            {'organization-id': org['id']}
         )
-        self.assertIn(
-            self.org_multi_product_small_errata_id, user_org_errata_ids)
-        self.assertNotIn(
-            self.org_multi_product_big_errata_id, user_org_errata_ids)
+        user_org_errata_ids = [errata['errata-id'] for errata in user_org_erratum_info_list]
+        self.assertEqual(len(user_org_errata_ids), self.org_multi_product_small_erratum_count)
+        self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
+        self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
 
     @stubbed()
     @upgrade

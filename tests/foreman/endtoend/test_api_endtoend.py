@@ -107,19 +107,13 @@ API_PATHS = {
         u'/api/compliance/arf_reports/:id/download',
         u'/api/compliance/arf_reports/:id/download_html',
     ),
-    u'audits': (
-        u'/api/audits',
-        u'/api/audits/:id',
-    ),
+    u'audits': (u'/api/audits', u'/api/audits/:id'),
     u'auth_source_externals': (
         u'/api/auth_source_externals',
         u'/api/auth_source_externals/:id',
         u'/api/auth_source_externals/:id',
     ),
-    u'auth_source_internals': (
-        u'/api/auth_source_internals',
-        u'/api/auth_source_internals/:id',
-    ),
+    u'auth_source_internals': (u'/api/auth_source_internals', u'/api/auth_source_internals/:id'),
     u'auth_source_ldaps': (
         u'/api/auth_source_ldaps',
         u'/api/auth_source_ldaps',
@@ -128,9 +122,7 @@ API_PATHS = {
         u'/api/auth_source_ldaps/:id',
         u'/api/auth_source_ldaps/:id/test',
     ),
-    u'auth_sources': (
-        u'/api/auth_sources',
-    ),
+    u'auth_sources': (u'/api/auth_sources',),
     u'autosign': (
         u'/api/smart_proxies/:smart_proxy_id/autosign',
         u'/api/smart_proxies/:smart_proxy_id/autosign',
@@ -161,10 +153,7 @@ API_PATHS = {
         u'/katello/api/capsules/:id/content/sync',
         u'/katello/api/capsules/:id/content/sync',
     ),
-    u'capsules': (
-        u'/katello/api/capsules',
-        u'/katello/api/capsules/:id',
-    ),
+    u'capsules': (u'/katello/api/capsules', u'/katello/api/capsules/:id'),
     u'common_parameters': (
         u'/api/common_parameters',
         u'/api/common_parameters',
@@ -176,7 +165,7 @@ API_PATHS = {
         u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
         u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
         u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
-        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id'
+        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
     ),
     u'compute_profiles': (
         u'/api/compute_profiles',
@@ -204,7 +193,7 @@ API_PATHS = {
         u'/api/compute_resources/:id/available_zones',
         u'/api/compute_resources/:id/refresh_cache',
         u'/api/compute_resources/:id/storage_domains/:storage_domain_id',
-        u'/api/compute_resources/:id/storage_pods/:storage_pod_id'
+        u'/api/compute_resources/:id/storage_pods/:storage_pod_id',
     ),
     u'configs': (
         u'/foreman_virt_who_configure/api/v2/configs',
@@ -227,7 +216,6 @@ API_PATHS = {
         u'/api/config_reports/:id',
         u'/api/config_reports/:id',
         u'/api/hosts/:host_id/config_reports/last',
-
     ),
     u'config_templates': (
         u'/api/config_templates',
@@ -293,9 +281,7 @@ API_PATHS = {
         u'/katello/api/organizations/:organization_id/content_views',
         u'/katello/api/organizations/:organization_id/content_views',
     ),
-    u'content_view_histories': (
-        u'/katello/api/content_views/:id/history',
-    ),
+    u'content_view_histories': (u'/katello/api/content_views/:id/history',),
     u'content_view_versions': (
         u'/katello/api/content_view_versions',
         u'/katello/api/content_view_versions/:id',
@@ -306,13 +292,8 @@ API_PATHS = {
         u'/katello/api/content_view_versions/:id/republish_repositories',
         u'/katello/api/content_view_versions/incremental_update',
     ),
-    u'dashboard': (
-        u'/api/dashboard',
-    ),
-    u'debs': (
-        u'/katello/api/debs/:id',
-        u'/katello/api/debs/compare',
-    ),
+    u'dashboard': (u'/api/dashboard',),
+    u'debs': (u'/katello/api/debs/:id', u'/katello/api/debs/compare'),
     u'discovered_hosts': (
         u'/api/v2/discovered_hosts',
         u'/api/v2/discovered_hosts',
@@ -333,11 +314,7 @@ API_PATHS = {
         u'/api/v2/discovery_rules/:id',
         u'/api/v2/discovery_rules/:id',
     ),
-    u'disks': (
-        u'/bootdisk/api',
-        u'/bootdisk/api/generic',
-        u'/bootdisk/api/hosts/:host_id',
-    ),
+    u'disks': (u'/bootdisk/api', u'/bootdisk/api/generic', u'/bootdisk/api/hosts/:host_id'),
     u'docker_manifests': (
         u'/katello/api/docker_manifests/:id',
         u'/katello/api/docker_manifests/compare',
@@ -346,10 +323,7 @@ API_PATHS = {
         u'/katello/api/docker_manifest_lists/:id',
         u'/katello/api/docker_manifest_lists/compare',
     ),
-    u'docker_tags': (
-        u'/katello/api/docker_tags/compare',
-        u'/katello/api/docker_tags/:id',
-    ),
+    u'docker_tags': (u'/katello/api/docker_tags/compare', u'/katello/api/docker_tags/:id'),
     u'domains': (
         u'/api/domains',
         u'/api/domains',
@@ -378,13 +352,8 @@ API_PATHS = {
         u'/api/usergroups/:usergroup_id/external_usergroups/:id',
         u'/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
     ),
-    u'fact_values': (
-        u'/api/fact_values',
-    ),
-    u'file_units': (
-        u'/katello/api/files/compare',
-        u'/katello/api/files/:id',
-    ),
+    u'fact_values': (u'/api/fact_values',),
+    u'file_units': (u'/katello/api/files/compare', u'/katello/api/files/:id'),
     u'filters': (
         u'/api/filters',
         u'/api/filters',
@@ -418,10 +387,7 @@ API_PATHS = {
         u'/katello/api/gpg_keys/:id/content',
         u'/katello/api/gpg_keys/:id/content',
     ),
-    u'home': (
-        u'/api',
-        u'/api/status',
-    ),
+    u'home': (u'/api', u'/api/status'),
     u'host_autocomplete': (),
     u'host_classes': (
         u'/api/hosts/:host_id/puppetclass_ids',
@@ -438,12 +404,8 @@ API_PATHS = {
         u'/katello/api/host_collections/:id/copy',
         u'/katello/api/host_collections/:id/remove_hosts',
     ),
-    u'host_debs': (
-        u'/api/hosts/:host_id/debs',
-    ),
-    u'host_module_streams': (
-        u'/api/hosts/:host_id/module_streams',
-    ),
+    u'host_debs': (u'/api/hosts/:host_id/debs',),
+    u'host_module_streams': (u'/api/hosts/:host_id/module_streams',),
     u'host_subscriptions': (
         u'/api/hosts/:host_id/subscriptions',
         u'/api/hosts/:host_id/subscriptions',
@@ -455,9 +417,7 @@ API_PATHS = {
         u'/api/hosts/:host_id/subscriptions/product_content',
         u'/api/hosts/subscriptions',
     ),
-    u'host_tracer': (
-        u'/api/hosts/:host_id/traces',
-    ),
+    u'host_tracer': (u'/api/hosts/:host_id/traces',),
     u'hostgroup_classes': (
         u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
         u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
@@ -474,7 +434,7 @@ API_PATHS = {
         u'/api/hostgroups/:id/play_roles',
         u'/api/hostgroups/multiple_play_roles',
         u'/api/hostgroups/:id/ansible_roles',
-        u'/api/hostgroups/:id/assign_ansible_roles'
+        u'/api/hostgroups/:id/assign_ansible_roles',
     ),
     u'hosts': (
         u'/api/hosts',
@@ -498,7 +458,7 @@ API_PATHS = {
         u'/api/hosts/:id/ansible_roles',
         u'/api/hosts/:id/assign_ansible_roles',
         u'/api/hosts/:host_id/host_collections',
-        u'/api/hosts/:id/policies_enc'
+        u'/api/hosts/:id/policies_enc',
     ),
     u'hosts_bulk_actions': (
         u'/api/hosts/bulk/add_host_collections',
@@ -585,10 +545,7 @@ API_PATHS = {
         u'/api/locations/:id',
         u'/api/locations/:id',
     ),
-    u'mail_notifications': (
-        u'/api/mail_notifications',
-        u'/api/mail_notifications/:id',
-    ),
+    u'mail_notifications': (u'/api/mail_notifications', u'/api/mail_notifications/:id'),
     u'media': (
         u'/api/media',
         u'/api/media',
@@ -605,7 +562,7 @@ API_PATHS = {
     ),
     u'module_streams': (
         u'/katello/api/module_streams/compare',
-        u'/katello/api/module_streams/:id'
+        u'/katello/api/module_streams/:id',
     ),
     u'operatingsystems': (
         u'/api/operatingsystems',
@@ -652,10 +609,7 @@ API_PATHS = {
         u'/katello/api/package_groups/:id',
         u'/katello/api/package_groups/compare',
     ),
-    u'packages': (
-        u'/katello/api/packages/:id',
-        u'/katello/api/packages/compare'
-    ),
+    u'packages': (u'/katello/api/packages/:id', u'/katello/api/packages/compare'),
     u'parameters': (
         u'/api/hosts/:host_id/parameters',
         u'/api/hosts/:host_id/parameters',
@@ -675,15 +629,8 @@ API_PATHS = {
         u'/api/users/:user_id/personal_access_tokens/:id',
         u'/api/users/:user_id/personal_access_tokens/:id',
     ),
-    u'ping': (
-        u'/katello/api/ping',
-        u'/katello/api/status',
-        u'/api/ping',
-        u'/api/statuses',
-    ),
-    u'plugins': (
-        u'/api/plugins',
-    ),
+    u'ping': (u'/katello/api/ping', u'/katello/api/status', u'/api/ping', u'/api/statuses'),
+    u'plugins': (u'/api/plugins',),
     u'policies': (
         u'/api/compliance/policies',
         u'/api/compliance/policies',
@@ -734,9 +681,7 @@ API_PATHS = {
         u'/api/puppetclasses/:id',
         u'/api/puppetclasses/:id',
     ),
-    u'puppet_hosts': (
-        u'/api/hosts/:id/puppetrun',
-    ),
+    u'puppet_hosts': (u'/api/hosts/:id/puppetrun',),
     u'puppet_modules': (
         u'/katello/api/puppet_modules/compare',
         u'/katello/api/puppet_modules/:id',
@@ -752,7 +697,7 @@ API_PATHS = {
         u'/foreman_tasks/api/recurring_logics',
         u'/foreman_tasks/api/recurring_logics/:id',
         u'/foreman_tasks/api/recurring_logics/:id',
-        u'/foreman_tasks/api/recurring_logics/:id/cancel'
+        u'/foreman_tasks/api/recurring_logics/:id/cancel',
     ),
     u'remote_execution_features': (
         '/api/remote_execution_features',
@@ -821,11 +766,7 @@ API_PATHS = {
         u'/api/compliance/scap_contents/:id',
         u'/api/compliance/scap_contents/:id/xml',
     ),
-    u'settings': (
-        u'/api/settings',
-        u'/api/settings/:id',
-        u'/api/settings/:id',
-    ),
+    u'settings': (u'/api/settings', u'/api/settings/:id', u'/api/settings/:id'),
     u'smart_class_parameters': (
         u'/api/smart_class_parameters',
         u'/api/smart_class_parameters/:id',
@@ -847,23 +788,15 @@ API_PATHS = {
         u'/api/smart_variables/:id',
         u'/api/smart_variables/:id',
     ),
-    u'srpms': (
-        u'/katello/api/srpms/:id',
-        u'/katello/api/srpms/compare',
-    ),
+    u'srpms': (u'/katello/api/srpms/:id', u'/katello/api/srpms/compare'),
     u'ssh_keys': (
         u'/api/users/:user_id/ssh_keys',
         u'/api/users/:user_id/ssh_keys',
         u'/api/users/:user_id/ssh_keys/:id',
         u'/api/users/:user_id/ssh_keys/:id',
     ),
-    u'statistics': (
-        u'/api/statistics',
-    ),
-    u'subnet_disks': (
-        u'/bootdisk/api',
-        u'/bootdisk/api/subnets/:subnet_id',
-    ),
+    u'statistics': (u'/api/statistics',),
+    u'subnet_disks': (u'/bootdisk/api', u'/bootdisk/api/subnets/:subnet_id'),
     u'subnets': (
         u'/api/subnets',
         u'/api/subnets',
@@ -891,9 +824,7 @@ API_PATHS = {
         u'/katello/api/sync_plans',
         u'/katello/api/sync_plans/:id/sync',
     ),
-    u'sync': (
-        u'/katello/api/organizations/:organization_id/products/:product_id/sync',
-    ),
+    u'sync': (u'/katello/api/organizations/:organization_id/products/:product_id/sync',),
     u'tailoring_files': (
         u'/api/compliance/tailoring_files',
         u'/api/compliance/tailoring_files',
@@ -902,9 +833,7 @@ API_PATHS = {
         u'/api/compliance/tailoring_files/:id',
         u'/api/compliance/tailoring_files/:id/xml',
     ),
-    u'tasks': (
-        u'/api/orchestration/:id/tasks',
-    ),
+    u'tasks': (u'/api/orchestration/:id/tasks',),
     u'table_preferences': (
         u'/api/users/:user_id/table_preferences/:name',
         u'/api/users/:user_id/table_preferences/:name',
@@ -912,10 +841,7 @@ API_PATHS = {
         u'/api/users/:user_id/table_preferences',
         u'/api/users/:user_id/table_preferences/:name',
     ),
-    u'template': (
-        u'/api/templates/export',
-        u'/api/templates/import',
-    ),
+    u'template': (u'/api/templates/export', u'/api/templates/import'),
     u'template_combinations': (
         u'/api/config_templates/:config_template_id/template_combinations',
         u'/api/config_templates/:config_template_id/template_combinations',
@@ -930,18 +856,9 @@ API_PATHS = {
         '/api/templates/:template_id/template_inputs/:id',
         '/api/templates/:template_id/template_inputs/:id',
     ),
-    u'template_invocations': (
-        u'/api/job_invocations/:job_invocation_id/template_invocations',
-    ),
-    u'template_kinds': (
-        u'/api/template_kinds',
-    ),
-    u'trends': (
-        u'/api/trends',
-        u'/api/trends/:id',
-        u'/api/trends',
-        u'/api/trends/:id',
-    ),
+    u'template_invocations': (u'/api/job_invocations/:job_invocation_id/template_invocations',),
+    u'template_kinds': (u'/api/template_kinds',),
+    u'trends': (u'/api/trends', u'/api/trends/:id', u'/api/trends', u'/api/trends/:id'),
     u'upstream_subscriptions': (
         u'/katello/api/organizations/:organization_id/upstream_subscriptions',
         u'/katello/api/organizations/:organization_id/upstream_subscriptions',
@@ -961,13 +878,14 @@ API_PATHS = {
         u'/api/current_user',
         u'/api/users',
         u'/api/users/:id',
-        u'/api/users/:id'
+        u'/api/users/:id',
     ),
 }
 
 
 class AvailableURLsTestCase(TestCase):
     """Tests for ``api/v2``."""
+
     longMessage = True
     maxDiff = None
 
@@ -986,11 +904,7 @@ class AvailableURLsTestCase(TestCase):
             content-type
 
         """
-        response = client.get(
-            self.path,
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
+        response = client.get(self.path, auth=settings.server.get_credentials(), verify=False)
         self.assertEqual(response.status_code, http_client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -1005,20 +919,13 @@ class AvailableURLsTestCase(TestCase):
 
         """
         # Did the server give us any paths at all?
-        response = client.get(
-            self.path,
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
+        response = client.get(self.path, auth=settings.server.get_credentials(), verify=False)
         response.raise_for_status()
         # See below for an explanation of this transformation.
         api_paths = response.json()['links']
         for group, path_pairs in api_paths.items():
             api_paths[group] = list(path_pairs.values())
-        self.assertEqual(
-            frozenset(api_paths.keys()),
-            frozenset(API_PATHS.keys())
-        )
+        self.assertEqual(frozenset(api_paths.keys()), frozenset(API_PATHS.keys()))
         for group in api_paths.keys():
             self.assertItemsEqual(api_paths[group], API_PATHS[group], group)
         # noqa (line-too-long)
@@ -1076,9 +983,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         :expectedresults: 'Default Location' is found
 
         """
-        results = entities.Location().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_LOC)}
-        )
+        results = entities.Location().search(query={'search': 'name="{0}"'.format(DEFAULT_LOC)})
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
@@ -1120,7 +1025,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         services = response['services']
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),
-            u'Not all services seem to be up and running!'
+            u'Not all services seem to be up and running!',
         )
 
     @skip_if_not_set('compute_resources')
@@ -1173,44 +1078,36 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
                 upload_manifest(org.id, manifest.content)
 
         # step 2.3: Create a new lifecycle environment
-        le1 = entities.LifecycleEnvironment(
-            server_config,
-            organization=org
-        ).create()
+        le1 = entities.LifecycleEnvironment(server_config, organization=org).create()
 
         # step 2.4: Create a custom product
         prod = entities.Product(server_config, organization=org).create()
         repositories = []
 
-
         # step 2.5: Create custom YUM repository
         repo1 = entities.Repository(
-            server_config,
-            product=prod,
-            content_type=u'yum',
-            url=CUSTOM_RPM_REPO
+            server_config, product=prod, content_type=u'yum', url=CUSTOM_RPM_REPO
         ).create()
         repositories.append(repo1)
 
         # step 2.6: Create custom PUPPET repository
         repo2 = entities.Repository(
-            server_config,
-            product=prod,
-            content_type=u'puppet',
-            url=FAKE_0_PUPPET_REPO
+            server_config, product=prod, content_type=u'puppet', url=FAKE_0_PUPPET_REPO
         ).create()
         repositories.append(repo2)
 
         # step 2.7: Enable a Red Hat repository
         if self.fake_manifest_is_set:
-            repo3 = entities.Repository(id=enable_rhrepo_and_fetchid(
-                basearch='x86_64',
-                org_id=org.id,
-                product=PRDS['rhel'],
-                repo=REPOS['rhva6']['name'],
-                reposet=REPOSET['rhva6'],
-                releasever='6Server',
-            ))
+            repo3 = entities.Repository(
+                id=enable_rhrepo_and_fetchid(
+                    basearch='x86_64',
+                    org_id=org.id,
+                    product=PRDS['rhel'],
+                    repo=REPOS['rhva6']['name'],
+                    reposet=REPOSET['rhva6'],
+                    releasever='6Server',
+                )
+            )
             repositories.append(repo3)
 
         # step 2.8: Synchronize the three repositories
@@ -1218,10 +1115,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             repo.sync()
 
         # step 2.9: Create content view
-        content_view = entities.ContentView(
-            server_config,
-            organization=org
-        ).create()
+        content_view = entities.ContentView(server_config, organization=org).create()
 
         # step 2.10: Associate the YUM and Red Hat repositories to new content
         # view
@@ -1229,20 +1123,14 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         content_view.repository = repositories
         content_view = content_view.update(['repository'])
 
-
         # step 2.11: Add a PUPPET module to new content view
         puppet_mods = content_view.available_puppet_modules()
         self.assertGreater(len(puppet_mods['results']), 0)
         puppet_module = random.choice(puppet_mods['results'])
         puppet = entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            content_view=content_view,
-            name=puppet_module['name'],
+            author=puppet_module['author'], content_view=content_view, name=puppet_module['name']
         ).create()
-        self.assertEqual(
-            puppet.name,
-            puppet_module['name'],
-        )
+        self.assertEqual(puppet.name, puppet_module['name'])
 
         # step 2.12: Publish content view
         content_view.publish()
@@ -1261,26 +1149,19 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         # step 2.14: Create a new activation key
         activation_key_name = gen_string('alpha')
         activation_key = entities.ActivationKey(
-            name=activation_key_name,
-            environment=le1,
-            organization=org,
-            content_view=content_view,
+            name=activation_key_name, environment=le1, organization=org, content_view=content_view
         ).create()
 
         # step 2.15: Add the products to the activation key
         for sub in entities.Subscription(organization=org).search():
             if sub.name == DEFAULT_SUBSCRIPTION_NAME:
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': sub.id,
-                })
+                activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
                 break
         # step 2.15.1: Enable product content
         if self.fake_manifest_is_set:
-            activation_key.content_override(data={'content_override': {
-                u'content_label': AK_CONTENT_LABEL,
-                u'value': u'1',
-            }})
+            activation_key.content_override(
+                data={'content_override': {u'content_label': AK_CONTENT_LABEL, u'value': u'1'}}
+            )
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
@@ -1292,22 +1173,14 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             organization=org,
         ).create()
         # check that content view matches what we passed
-        self.assertEqual(
-            content_host.content_facet_attributes['content_view_id'],
-            content_view.id
-        )
+        self.assertEqual(content_host.content_facet_attributes['content_view_id'], content_view.id)
         # check that lifecycle environment matches
-        self.assertEqual(
-            content_host.content_facet_attributes['lifecycle_environment_id'],
-            le1.id
-        )
+        self.assertEqual(content_host.content_facet_attributes['lifecycle_environment_id'], le1.id)
 
         # step 2.16: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
-            url=u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            ),
+            url=u'qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname),
         ).create()
 
         # step 2.17: Create a new subnet
@@ -1318,11 +1191,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         # step 2.19: Create a new hostgroup and associate previous entities to
         # it
-        entities.HostGroup(
-            server_config,
-            domain=domain,
-            subnet=subnet
-        ).create()
+        entities.HostGroup(server_config, domain=domain, subnet=subnet).create()
 
         # step 2.20: Provision a client
         self.client_provisioning(activation_key_name, org.label)

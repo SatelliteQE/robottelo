@@ -137,9 +137,7 @@ def create_object(cli_object, options, values):
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
             u'Failed to create {0} with data:\n{1}\n{2}'.format(
-                cli_object.__name__,
-                json.dumps(options, indent=2, sort_keys=True),
-                err.msg,
+                cli_object.__name__, json.dumps(options, indent=2, sort_keys=True), err.msg
             )
         )
 
@@ -190,10 +188,11 @@ def make_activation_key(options=None):
     """
     # Organization Name, Label or ID is a required field.
     if (
-            not options or
-            not options.get('organization') and
-            not options.get('organization-label') and
-            not options.get('organization-id')):
+        not options
+        or not options.get('organization')
+        and not options.get('organization-label')
+        and not options.get('organization-id')
+    ):
         raise CLIFactoryError('Please provide a valid Organization.')
 
     args = {
@@ -230,10 +229,7 @@ def make_architecture(options=None):
         --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
                                       Comma separated list of values.
     """
-    args = {
-        u'name': gen_alphanumeric(),
-        u'operatingsystem-ids': None,
-    }
+    args = {u'name': gen_alphanumeric(), u'operatingsystem-ids': None}
 
     return create_object(Architecture, args, options)
 
@@ -323,7 +319,7 @@ def make_content_view_with_credentials(options=None, credentials=None):
         u'product': None,
         u'product-id': None,
         u'repositories': None,
-        u'repository-ids': None
+        u'repository-ids': None,
     }
 
     cv_cls = _entity_with_credentials(credentials, ContentView)
@@ -481,9 +477,7 @@ def make_discoveryrule(options=None):
     if not options:
         raise CLIFactoryError('Please provide required parameters')
     # Organizations fields is required
-    if not any(options.get(key) for key in [
-        'organizations', 'organization-ids'
-    ]):
+    if not any(options.get(key) for key in ['organizations', 'organization-ids']):
         raise CLIFactoryError('Please provide a valid organization field.')
     # Locations field is required
     if not any(options.get(key) for key in ['locations', 'location-ids']):
@@ -808,10 +802,9 @@ def make_product_wait(options=None, wait_for=5):
     except CLIFactoryError as err:
         sleep(wait_for)
         try:
-            product = Product.info({
-                'name': options.get('name'),
-                'organization-id': options.get('organization-id'),
-            })
+            product = Product.info(
+                {'name': options.get('name'), 'organization-id': options.get('organization-id')}
+            )
         except CLIReturnCodeError:
             raise err
         if not product:
@@ -837,9 +830,7 @@ def make_proxy(options=None):
         -h, --help                      print help
 
     """
-    args = {
-        u'name': gen_alphanumeric(),
-    }
+    args = {u'name': gen_alphanumeric()}
 
     if options is None or 'url' not in options:
         newport = get_available_capsule_port()
@@ -848,8 +839,7 @@ def make_proxy(options=None):
                 args['url'] = url
                 return create_object(Proxy, args, options)
         except CapsuleTunnelError as err:
-            raise CLIFactoryError(
-                'Failed to create ssh tunnel: {0}'.format(err))
+            raise CLIFactoryError('Failed to create ssh tunnel: {0}'.format(err))
     args['url'] = options['url']
     return create_object(Proxy, args, options)
 
@@ -1106,11 +1096,16 @@ def make_scap_policy(options=None):
     """
     # Assigning default values for attributes
     # SCAP ID and SCAP profile ID is a required field.
-    if not options and not options.get('scap-content-id') and not options.get(
-            'scap-content-profile-id') and not options.get('period') and not options.get(
-            'deploy-by'):
-        raise CLIFactoryError('Please provide a valid SCAP ID or'
-                              ' SCAP Profile ID or Period or Deploy by option')
+    if (
+        not options
+        and not options.get('scap-content-id')
+        and not options.get('scap-content-profile-id')
+        and not options.get('period')
+        and not options.get('deploy-by')
+    ):
+        raise CLIFactoryError(
+            'Please provide a valid SCAP ID or' ' SCAP Profile ID or Period or Deploy by option'
+        )
     args = {
         u'description': None,
         u'scap-content-id': None,
@@ -1245,8 +1240,9 @@ def make_sync_plan(options=None):
         u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         u'cron-expression': None,
     }
-    if (options.get('interval', args['interval']) == SYNC_INTERVAL['custom']
-            and not options.get('cron-expression')):
+    if options.get('interval', args['interval']) == SYNC_INTERVAL['custom'] and not options.get(
+        'cron-expression'
+    ):
         args['cron-expression'] = gen_choice(valid_cron_expressions())
     return create_object(SyncPlan, args, options)
 
@@ -1504,61 +1500,68 @@ def make_fake_host(options=None):
         except CLIReturnCodeError:
             options['location-id'] = make_location()['id']
     if not options.get('domain') and not options.get('domain-id'):
-        options['domain-id'] = make_domain({
-            'location-ids': options.get('location-id'),
-            'locations': options.get('location'),
-            'organization-ids': options.get('organization-id'),
-            'organizations': options.get('organization'),
-        })['id']
-    if not options.get('architecture') and not options.get('architecture-id'):
-        try:
-            options['architecture-id'] = Architecture.info({
-                'name': DEFAULT_ARCHITECTURE})['id']
-        except CLIReturnCodeError:
-            options['architecture-id'] = make_architecture()['id']
-    if (not options.get('operatingsystem') and
-            not options.get('operatingsystem-id')):
-        try:
-            options['operatingsystem-id'] = OperatingSys.list({
-                    'search': 'name="RedHat" AND major="{0}" OR major="{1}"'
-                              .format(
-                                   RHEL_6_MAJOR_VERSION,
-                                   RHEL_7_MAJOR_VERSION
-                              )
-            })[0]['id']
-        except IndexError:
-            options['operatingsystem-id'] = make_os({
-                'architecture-ids': options.get('architecture-id'),
-                'architectures': options.get('architecture'),
-                'partition-table-ids': options.get('partition-table-id'),
-                'partition-tables': options.get('partition-table'),
-            })['id']
-    if (not options.get('partition-table') and
-            not options.get('partition-table-id')):
-        try:
-            options['partition-table-id'] = PartitionTable.list({
-                'operatingsystem': options.get('operatingsystem'),
-                'operatingsystem-id': options.get('operatingsystem-id'),
-            })[0]['id']
-        except IndexError:
-            options['partition-table-id'] = make_partition_table({
+        options['domain-id'] = make_domain(
+            {
                 'location-ids': options.get('location-id'),
                 'locations': options.get('location'),
-                'operatingsystem-ids': options.get('operatingsystem-id'),
                 'organization-ids': options.get('organization-id'),
                 'organizations': options.get('organization'),
-            })['id']
+            }
+        )['id']
+    if not options.get('architecture') and not options.get('architecture-id'):
+        try:
+            options['architecture-id'] = Architecture.info({'name': DEFAULT_ARCHITECTURE})['id']
+        except CLIReturnCodeError:
+            options['architecture-id'] = make_architecture()['id']
+    if not options.get('operatingsystem') and not options.get('operatingsystem-id'):
+        try:
+            options['operatingsystem-id'] = OperatingSys.list(
+                {
+                    'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
+                        RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+                    )
+                }
+            )[0]['id']
+        except IndexError:
+            options['operatingsystem-id'] = make_os(
+                {
+                    'architecture-ids': options.get('architecture-id'),
+                    'architectures': options.get('architecture'),
+                    'partition-table-ids': options.get('partition-table-id'),
+                    'partition-tables': options.get('partition-table'),
+                }
+            )['id']
+    if not options.get('partition-table') and not options.get('partition-table-id'):
+        try:
+            options['partition-table-id'] = PartitionTable.list(
+                {
+                    'operatingsystem': options.get('operatingsystem'),
+                    'operatingsystem-id': options.get('operatingsystem-id'),
+                }
+            )[0]['id']
+        except IndexError:
+            options['partition-table-id'] = make_partition_table(
+                {
+                    'location-ids': options.get('location-id'),
+                    'locations': options.get('location'),
+                    'operatingsystem-ids': options.get('operatingsystem-id'),
+                    'organization-ids': options.get('organization-id'),
+                    'organizations': options.get('organization'),
+                }
+            )['id']
 
     # Finally, create a new medium (if none was passed)
     if not options.get('medium') and not options.get('medium-id'):
-        options['medium-id'] = make_medium({
-            'location-ids': options.get('location-id'),
-            'locations': options.get('location'),
-            'operatingsystems': options.get('operatingsystem'),
-            'operatingsystem-ids': options.get('operatingsystem-id'),
-            'organization-ids': options.get('organization-id'),
-            'organizations': options.get('organization'),
-        })['id']
+        options['medium-id'] = make_medium(
+            {
+                'location-ids': options.get('location-id'),
+                'locations': options.get('location'),
+                'operatingsystems': options.get('operatingsystem'),
+                'operatingsystem-ids': options.get('operatingsystem-id'),
+                'organization-ids': options.get('organization-id'),
+                'organizations': options.get('organization'),
+            }
+        )['id']
 
     return make_host(options)
 
@@ -1782,8 +1785,9 @@ def make_user(options=None):
         u'password': gen_alphanumeric(),
     }
     logger.debug(
-        'User "{0}" password not provided {1} was generated'
-        .format(args['login'], args['password'])
+        'User "{0}" password not provided {1} was generated'.format(
+            args['login'], args['password']
+        )
     )
 
     return create_object(User, args, options)
@@ -1833,11 +1837,7 @@ def make_usergroup_external(options=None):
         --user-group-id, --usergroup-id USER_GROUP_ID
     """
     # UserGroup Name or ID is a required field.
-    if (
-        not options or
-        not options.get('user-group') and
-        not options.get('user-group-id')
-    ):
+    if not options or not options.get('user-group') and not options.get('user-group-id'):
         raise CLIFactoryError('Please provide a valid UserGroup.')
 
     # Assigning default values for attributes
@@ -2699,10 +2699,11 @@ def make_lifecycle_environment(options=None):
     """
     # Organization Name, Label or ID is a required field.
     if (
-            not options or
-            'organization' not in options and
-            'organization-label' not in options and
-            'organization-id' not in options):
+        not options
+        or 'organization' not in options
+        and 'organization-label' not in options
+        and 'organization-id' not in options
+    ):
         raise CLIFactoryError('Please provide a valid Organization.')
 
     if not options.get('prior'):
@@ -2909,14 +2910,8 @@ def make_template_input(options=None):
                                         input type is variable
         -h, --help                      Print help
     """
-    if(
-            not options or
-            not options.get('input-type') or
-            not options.get('template-id')
-    ):
-        raise CLIFactoryError(
-            'Please provide valid template-id and input-type'
-        )
+    if not options or not options.get('input-type') or not options.get('template-id'):
+        raise CLIFactoryError('Please provide valid template-id and input-type')
 
     args = {
         u'advanced': None,
@@ -2989,10 +2984,7 @@ def make_smart_variable(options=None):
 
     """
     # Puppet class name or ID is a required field.
-    if (
-            not options or
-            'puppet-class' not in options and
-            'puppet-class-id' not in options):
+    if not options or 'puppet-class' not in options and 'puppet-class-id' not in options:
         raise CLIFactoryError('Please provide a valid Puppet class')
 
     # Assigning default values for attributes
@@ -3089,8 +3081,8 @@ def make_virt_who_config(options=None):
         u'organization-title': None,
         u'proxy': None,
         u'satellite-url': settings.server.hostname,
-        u'whitelist': None
-     }
+        u'whitelist': None,
+    }
     return create_object(VirtWhoConfig, args, options)
 
 
@@ -3105,43 +3097,39 @@ def activationkey_add_subscription_to_repo(options=None):
         subscription - subscription name
 
     """
-    if(
-            not options or
-            not options.get('organization-id') or
-            not options.get('activationkey-id') or
-            not options.get('subscription')):
+    if (
+        not options
+        or not options.get('organization-id')
+        or not options.get('activationkey-id')
+        or not options.get('subscription')
+    ):
         raise CLIFactoryError(
-            'Please provide valid organization, activation key and '
-            'subscription.'
+            'Please provide valid organization, activation key and ' 'subscription.'
         )
     # List the subscriptions in given org
     subscriptions = Subscription.list(
-        {u'organization-id': options['organization-id']},
-        per_page=False
+        {u'organization-id': options['organization-id']}, per_page=False
     )
     # Add subscription to activation-key
     if options['subscription'] not in (sub['name'] for sub in subscriptions):
         raise CLIFactoryError(
-            u'Subscription {0} not found in the given org'
-            .format(options['subscription'])
+            u'Subscription {0} not found in the given org'.format(options['subscription'])
         )
     for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
-            if (
-                    subscription['quantity'] != 'Unlimited' and
-                    int(subscription['quantity']) == 0):
-                raise CLIFactoryError(
-                    'All the subscriptions are already consumed')
+            if subscription['quantity'] != 'Unlimited' and int(subscription['quantity']) == 0:
+                raise CLIFactoryError('All the subscriptions are already consumed')
             try:
-                ActivationKey.add_subscription({
-                    u'id': options['activationkey-id'],
-                    u'subscription-id': subscription['id'],
-                    u'quantity': 1,
-                })
+                ActivationKey.add_subscription(
+                    {
+                        u'id': options['activationkey-id'],
+                        u'subscription-id': subscription['id'],
+                        u'quantity': 1,
+                    }
+                )
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(
-                    u'Failed to add subscription to activation key\n{0}'
-                    .format(err.msg)
+                    u'Failed to add subscription to activation key\n{0}'.format(err.msg)
                 )
 
 
@@ -3175,9 +3163,7 @@ def setup_org_for_a_custom_repo(options=None):
         Lifecycle Environment, Organization, Product and Repository
 
     """
-    if(
-            not options or
-            not options.get('url')):
+    if not options or not options.get('url'):
         raise CLIFactoryError('Please provide valid custom repo URL.')
     # Create new organization and lifecycle environment if needed
     if options.get('organization-id') is None:
@@ -3190,81 +3176,72 @@ def setup_org_for_a_custom_repo(options=None):
         env_id = options['lifecycle-environment-id']
     # Create custom product and repository
     custom_product = make_product({u'organization-id': org_id})
-    custom_repo = make_repository({
-        u'content-type': 'yum',
-        u'product-id': custom_product['id'],
-        u'url': options.get('url'),
-    })
+    custom_repo = make_repository(
+        {u'content-type': 'yum', u'product-id': custom_product['id'], u'url': options.get('url')}
+    )
     # Synchronize custom repository
     try:
         Repository.synchronize({'id': custom_repo['id']})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to synchronize repository\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({u'organization-id': org_id})['id']
     else:
         cv_id = options['content-view-id']
     try:
-        ContentView.add_repository({
-            u'id': cv_id,
-            u'organization-id': org_id,
-            u'repository-id': custom_repo['id'],
-        })
+        ContentView.add_repository(
+            {u'id': cv_id, u'organization-id': org_id, u'repository-id': custom_repo['id']}
+        )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to add repository to content view\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
     try:
         ContentView.publish({u'id': cv_id})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            u'Failed to publish new version of content view\n{0}'
-            .format(err.msg)
+            u'Failed to publish new version of content view\n{0}'.format(err.msg)
         )
     # Get the version id
     cvv = ContentView.info({u'id': cv_id})['versions'][-1]
     # Promote version to next env
     try:
-        ContentView.version_promote({
-            u'id': cvv['id'],
-            u'organization-id': org_id,
-            u'to-lifecycle-environment-id': env_id,
-        })
+        ContentView.version_promote(
+            {u'id': cvv['id'], u'organization-id': org_id, u'to-lifecycle-environment-id': env_id}
+        )
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            u'Failed to promote version to next environment\n{0}'
-            .format(err.msg)
+            u'Failed to promote version to next environment\n{0}'.format(err.msg)
         )
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
-        activationkey_id = make_activation_key({
-            u'content-view-id': cv_id,
-            u'lifecycle-environment-id': env_id,
-            u'organization-id': org_id,
-        })['id']
+        activationkey_id = make_activation_key(
+            {
+                u'content-view-id': cv_id,
+                u'lifecycle-environment-id': env_id,
+                u'organization-id': org_id,
+            }
+        )['id']
     else:
         activationkey_id = options['activationkey-id']
         # Given activation key may have no (or different) CV associated.
         # Associate activation key with CV just to be sure
         try:
-            ActivationKey.update({
-                u'content-view-id': cv_id,
-                u'id': activationkey_id,
-                u'organization-id': org_id,
-            })
+            ActivationKey.update(
+                {u'content-view-id': cv_id, u'id': activationkey_id, u'organization-id': org_id}
+            )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                u'Failed to associate activation-key with CV\n{0}'
-                .format(err.msg)
+                u'Failed to associate activation-key with CV\n{0}'.format(err.msg)
             )
     # Add subscription to activation-key
-    activationkey_add_subscription_to_repo({
-        u'activationkey-id': activationkey_id,
-        u'organization-id': org_id,
-        u'subscription': custom_product['name'],
-    })
+    activationkey_add_subscription_to_repo(
+        {
+            u'activationkey-id': activationkey_id,
+            u'organization-id': org_id,
+            u'subscription': custom_product['name'],
+        }
+    )
     return {
         u'activationkey-id': activationkey_id,
         u'content-view-id': cv_id,
@@ -3316,12 +3293,12 @@ def _setup_org_for_a_rh_repo(options=None):
 
     """
     if (
-            not options or
-            not options.get('product') or
-            not options.get('repository-set') or
-            not options.get('repository')):
-        raise CLIFactoryError(
-            'Please provide valid product, repository-set and repo.')
+        not options
+        or not options.get('product')
+        or not options.get('repository-set')
+        or not options.get('repository')
+    ):
+        raise CLIFactoryError('Please provide valid product, repository-set and repo.')
     # Create new organization and lifecycle environment if needed
     if options.get('organization-id') is None:
         org_id = make_org()['id']
@@ -3335,114 +3312,105 @@ def _setup_org_for_a_rh_repo(options=None):
     with manifests.clone() as manifest:
         upload_file(manifest.content, manifest.filename)
     try:
-        Subscription.upload({
-            u'file': manifest.filename,
-            u'organization-id': org_id,
-        })
+        Subscription.upload({u'file': manifest.filename, u'organization-id': org_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to upload manifest\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to upload manifest\n{0}'.format(err.msg))
     # Enable repo from Repository Set
     try:
-        RepositorySet.enable({
-            u'basearch': 'x86_64',
-            u'name': options['repository-set'],
-            u'organization-id': org_id,
-            u'product': options['product'],
-            u'releasever': options.get('releasever'),
-        })
+        RepositorySet.enable(
+            {
+                u'basearch': 'x86_64',
+                u'name': options['repository-set'],
+                u'organization-id': org_id,
+                u'product': options['product'],
+                u'releasever': options.get('releasever'),
+            }
+        )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to enable repository set\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to enable repository set\n{0}'.format(err.msg))
     # Fetch repository info
     try:
-        rhel_repo = Repository.info({
-            u'name': options['repository'],
-            u'organization-id': org_id,
-            u'product': options['product'],
-        })
+        rhel_repo = Repository.info(
+            {
+                u'name': options['repository'],
+                u'organization-id': org_id,
+                u'product': options['product'],
+            }
+        )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to fetch repository info\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to fetch repository info\n{0}'.format(err.msg))
     # Synchronize the RH repository
     try:
-        Repository.synchronize({
-            u'name': options['repository'],
-            u'organization-id': org_id,
-            u'product': options['product'],
-        })
+        Repository.synchronize(
+            {
+                u'name': options['repository'],
+                u'organization-id': org_id,
+                u'product': options['product'],
+            }
+        )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to synchronize repository\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({u'organization-id': org_id})['id']
     else:
         cv_id = options['content-view-id']
     try:
-        ContentView.add_repository({
-            u'id': cv_id,
-            u'organization-id': org_id,
-            u'repository-id': rhel_repo['id'],
-        })
+        ContentView.add_repository(
+            {u'id': cv_id, u'organization-id': org_id, u'repository-id': rhel_repo['id']}
+        )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to add repository to content view\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
     try:
         ContentView.publish({u'id': cv_id})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            u'Failed to publish new version of content view\n{0}'
-            .format(err.msg)
+            u'Failed to publish new version of content view\n{0}'.format(err.msg)
         )
     # Get the version id
     try:
         cvv = ContentView.info({u'id': cv_id})['versions'][-1]
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to fetch content view info\n{0}'.format(err.msg))
+        raise CLIFactoryError(u'Failed to fetch content view info\n{0}'.format(err.msg))
     # Promote version1 to next env
     try:
-        ContentView.version_promote({
-            u'id': cvv['id'],
-            u'organization-id': org_id,
-            u'to-lifecycle-environment-id': env_id,
-        })
+        ContentView.version_promote(
+            {u'id': cvv['id'], u'organization-id': org_id, u'to-lifecycle-environment-id': env_id}
+        )
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            u'Failed to promote version to next environment\n{0}'
-            .format(err.msg)
+            u'Failed to promote version to next environment\n{0}'.format(err.msg)
         )
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
-        activationkey_id = make_activation_key({
-            u'content-view-id': cv_id,
-            u'lifecycle-environment-id': env_id,
-            u'organization-id': org_id,
-        })['id']
+        activationkey_id = make_activation_key(
+            {
+                u'content-view-id': cv_id,
+                u'lifecycle-environment-id': env_id,
+                u'organization-id': org_id,
+            }
+        )['id']
     else:
         activationkey_id = options['activationkey-id']
         # Given activation key may have no (or different) CV associated.
         # Associate activation key with CV just to be sure
         try:
-            ActivationKey.update({
-                u'id': activationkey_id,
-                u'organization-id': org_id,
-                u'content-view-id': cv_id,
-            })
+            ActivationKey.update(
+                {u'id': activationkey_id, u'organization-id': org_id, u'content-view-id': cv_id}
+            )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                u'Failed to associate activation-key with CV\n{0}'
-                .format(err.msg)
+                u'Failed to associate activation-key with CV\n{0}'.format(err.msg)
             )
     # Add subscription to activation-key
-    activationkey_add_subscription_to_repo({
-        u'organization-id': org_id,
-        u'activationkey-id': activationkey_id,
-        u'subscription': options.get(
-            u'subscription', DEFAULT_SUBSCRIPTION_NAME),
-    })
+    activationkey_add_subscription_to_repo(
+        {
+            u'organization-id': org_id,
+            u'activationkey-id': activationkey_id,
+            u'subscription': options.get(u'subscription', DEFAULT_SUBSCRIPTION_NAME),
+        }
+    )
     return {
         u'activationkey-id': activationkey_id,
         u'content-view-id': cv_id,
@@ -3452,8 +3420,7 @@ def _setup_org_for_a_rh_repo(options=None):
     }
 
 
-def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False,
-                            force_use_cdn=False):
+def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use_cdn=False):
     """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
     instead of CDN's 'Satellite Capsule' and 'Satellite Tools' if
     ``settings.cdn == 0`` and URL for custom repositories is set in properties.
@@ -3485,19 +3452,19 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False,
             with manifests.clone() as manifest:
                 upload_file(manifest.content, manifest.filename)
             try:
-                Subscription.upload({
-                    u'file': manifest.filename,
-                    u'organization-id': result.get('organization-id'),
-                })
+                Subscription.upload(
+                    {u'file': manifest.filename, u'organization-id': result.get('organization-id')}
+                )
             except CLIReturnCodeError as err:
-                raise CLIFactoryError(
-                    u'Failed to upload manifest\n{0}'.format(err.msg))
+                raise CLIFactoryError(u'Failed to upload manifest\n{0}'.format(err.msg))
             # attach the default subscription to activation key
-            activationkey_add_subscription_to_repo({
-                'activationkey-id': result[u'activationkey-id'],
-                'organization-id': result[u'organization-id'],
-                'subscription': DEFAULT_SUBSCRIPTION_NAME,
-            })
+            activationkey_add_subscription_to_repo(
+                {
+                    'activationkey-id': result[u'activationkey-id'],
+                    'organization-id': result[u'organization-id'],
+                    'subscription': DEFAULT_SUBSCRIPTION_NAME,
+                }
+            )
         return result
 
 
@@ -3521,28 +3488,20 @@ def configure_env_for_provision(org=None, loc=None):
         loc = make_location()
 
     # Get a Library Lifecycle environment and the default CV for the org
-    lce = LifecycleEnvironment.info(
-        {u'name': u'Library', 'organization-id': org['id']}
-    )
-    cv = ContentView.info(
-        {u'name': u'Default Organization View', u'organization-id': org['id']}
-    )
+    lce = LifecycleEnvironment.info({u'name': u'Library', 'organization-id': org['id']})
+    cv = ContentView.info({u'name': u'Default Organization View', u'organization-id': org['id']})
 
     # Create puppet environment and associate organization and location
-    env = make_environment({
-        'location-ids': loc['id'],
-        'organization-ids': org['id'],
-    })
+    env = make_environment({'location-ids': loc['id'], 'organization-ids': org['id']})
 
     # get default capsule and associate location
-    puppet_proxy = Proxy.info({'id': Proxy.list({
-        u'search': settings.server.hostname
-    })[0]['id']})
-    Proxy.update({
-        'id': puppet_proxy['id'],
-        'locations': list(
-            set(puppet_proxy.get('locations') or []) | {loc['name']}),
-    })
+    puppet_proxy = Proxy.info({'id': Proxy.list({u'search': settings.server.hostname})[0]['id']})
+    Proxy.update(
+        {
+            'id': puppet_proxy['id'],
+            'locations': list(set(puppet_proxy.get('locations') or []) | {loc['name']}),
+        }
+    )
 
     # Network
     # Search for existing domain or create new otherwise. Associate org,
@@ -3551,148 +3510,154 @@ def configure_env_for_provision(org=None, loc=None):
     domain = Domain.list({'search': 'name={0}'.format(domain_name)})
     if len(domain) == 1:
         domain = Domain.info({'id': domain[0]['id']})
-        Domain.update({
-            'name': domain_name,
-            'locations': list(
-                set(domain.get('locations') or []) | {loc['name']}),
-            'organizations': list(
-                set(domain.get('organizations') or []) | {org['name']}),
-            'dns-id': puppet_proxy['id'],
-        })
+        Domain.update(
+            {
+                'name': domain_name,
+                'locations': list(set(domain.get('locations') or []) | {loc['name']}),
+                'organizations': list(set(domain.get('organizations') or []) | {org['name']}),
+                'dns-id': puppet_proxy['id'],
+            }
+        )
     else:
         # Create new domain
-        domain = make_domain({
-            'name': domain_name,
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-            'dns-id': puppet_proxy['id'],
-        })
+        domain = make_domain(
+            {
+                'name': domain_name,
+                'location-ids': loc['id'],
+                'organization-ids': org['id'],
+                'dns-id': puppet_proxy['id'],
+            }
+        )
     # Search if subnet is defined with given network. If so, just update its
     # relevant fields otherwise create new subnet
     network = settings.vlan_networking.subnet
     subnet = Subnet.list({'search': 'network={0}'.format(network)})
     if len(subnet) >= 1:
         subnet = Subnet.info({'id': subnet[0]['id']})
-        Subnet.update({
-            'name': subnet['name'],
-            'domains': list(
-                      set(subnet.get('domains') or []) | {domain['name']}),
-            'locations': list(
-                set(subnet.get('locations') or []) | {loc['name']}),
-            'organizations': list(
-                set(subnet.get('organizations') or []) | {org['name']}),
-            'dhcp-id': puppet_proxy['id'],
-            'dns-id': puppet_proxy['id'],
-            'tftp-id': puppet_proxy['id'],
-        })
+        Subnet.update(
+            {
+                'name': subnet['name'],
+                'domains': list(set(subnet.get('domains') or []) | {domain['name']}),
+                'locations': list(set(subnet.get('locations') or []) | {loc['name']}),
+                'organizations': list(set(subnet.get('organizations') or []) | {org['name']}),
+                'dhcp-id': puppet_proxy['id'],
+                'dns-id': puppet_proxy['id'],
+                'tftp-id': puppet_proxy['id'],
+            }
+        )
     else:
         # Create new subnet
-        subnet = make_subnet({
-            'name': gen_string('alpha'),
-            'network': network,
-            'mask': settings.vlan_networking.netmask,
-            'domain-ids': domain['id'],
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-            'dhcp-id': puppet_proxy['id'],
-            'dns-id': puppet_proxy['id'],
-            'tftp-id': puppet_proxy['id'],
-        })
+        subnet = make_subnet(
+            {
+                'name': gen_string('alpha'),
+                'network': network,
+                'mask': settings.vlan_networking.netmask,
+                'domain-ids': domain['id'],
+                'location-ids': loc['id'],
+                'organization-ids': org['id'],
+                'dhcp-id': puppet_proxy['id'],
+                'dns-id': puppet_proxy['id'],
+                'tftp-id': puppet_proxy['id'],
+            }
+        )
 
     # Get the Partition table entity
     ptable = PartitionTable.info({'name': DEFAULT_PTABLE})
 
     # Get the OS entity
-    os = OperatingSys.list({
-        'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
-            RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-    })[0]
+    os = OperatingSys.list(
+        {
+            'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
+                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+            )
+        }
+    )[0]
 
     # Get proper Provisioning templates and update with OS, Org, Location
     provisioning_template = Template.info({'name': DEFAULT_TEMPLATE})
     pxe_template = Template.info({'name': DEFAULT_PXE_TEMPLATE})
     for template in provisioning_template, pxe_template:
         if os['title'] not in template['operating-systems']:
-            Template.update({
-                'id': template['id'],
-                'locations': list(
-                    set(template.get('locations') or []) | {loc['name']}),
-                'operatingsystems': list(set(
-                    template.get('operating-systems') or []) | {os['title']}),
-                'organizations': list(
-                    set(template.get('organizations') or []) | {org['name']}),
-            })
+            Template.update(
+                {
+                    'id': template['id'],
+                    'locations': list(set(template.get('locations') or []) | {loc['name']}),
+                    'operatingsystems': list(
+                        set(template.get('operating-systems') or []) | {os['title']}
+                    ),
+                    'organizations': list(
+                        set(template.get('organizations') or []) | {org['name']}
+                    ),
+                }
+            )
 
     # Get the architecture entity
-    arch = Architecture.list(
-        {'search': 'name={0}'.format(DEFAULT_ARCHITECTURE)})[0]
+    arch = Architecture.list({'search': 'name={0}'.format(DEFAULT_ARCHITECTURE)})[0]
 
     os = OperatingSys.info({'id': os['id']})
     # Get the media and update its location
     medium = Medium.list({'search': 'path={0}'.format(settings.rhel7_os)})
     if medium:
         media = Medium.info({'id': medium[0]['id']})
-        Medium.update({
-            'id': media['id'],
-            'operatingsystems': list(
-                set(media.get('operating-systems') or []) | {os['title']}),
-            'locations': list(
-                set(media.get('locations') or []) | {loc['name']}),
-            'organizations': list(
-                set(media.get('organizations') or []) | {org['name']}),
-        })
+        Medium.update(
+            {
+                'id': media['id'],
+                'operatingsystems': list(
+                    set(media.get('operating-systems') or []) | {os['title']}
+                ),
+                'locations': list(set(media.get('locations') or []) | {loc['name']}),
+                'organizations': list(set(media.get('organizations') or []) | {org['name']}),
+            }
+        )
     else:
-        media = make_medium({
-            'location-ids': loc['id'],
-            'operatingsystem-ids': os['id'],
-            'organization-ids': org['id'],
-            'path': settings.rhel7_os
-        })
+        media = make_medium(
+            {
+                'location-ids': loc['id'],
+                'operatingsystem-ids': os['id'],
+                'organization-ids': org['id'],
+                'path': settings.rhel7_os,
+            }
+        )
 
     # Update the OS with found arch, ptable, templates and media
-    OperatingSys.update({
-        'id': os['id'],
-        'architectures': list(
-            set(os.get('architectures') or []) | {arch['name']}),
-        'media': list(
-            set(os.get('installation-media') or []) | {media['name']}),
-        'partition-tables': list(
-            set(os.get('partition-tables') or []) | {ptable['name']}),
-    })
+    OperatingSys.update(
+        {
+            'id': os['id'],
+            'architectures': list(set(os.get('architectures') or []) | {arch['name']}),
+            'media': list(set(os.get('installation-media') or []) | {media['name']}),
+            'partition-tables': list(set(os.get('partition-tables') or []) | {ptable['name']}),
+        }
+    )
     for template in (provisioning_template, pxe_template):
-        if '{} ({})'.format(template['name'], template['type']) not in os[
-                'templates']:
-            OperatingSys.update({
-                'id': os['id'],
-                'config-templates': list(
-                    set(os['templates']) | {template['name']}),
-            })
+        if '{} ({})'.format(template['name'], template['type']) not in os['templates']:
+            OperatingSys.update(
+                {
+                    'id': os['id'],
+                    'config-templates': list(set(os['templates']) | {template['name']}),
+                }
+            )
 
     # Create new hostgroup using proper entities
-    hostgroup = make_hostgroup({
-        'location-ids': loc['id'],
-        'environment-id': env['id'],
-        'lifecycle-environment-id': lce['id'],
-        'puppet-proxy-id': puppet_proxy['id'],
-        'puppet-ca-proxy-id': puppet_proxy['id'],
-        'content-view-id': cv['id'],
-        'domain-id': domain['id'],
-        'subnet-id': subnet['id'],
-        'organization-ids': org['id'],
-        'architecture-id': arch['id'],
-        'partition-table-id': ptable['id'],
-        'medium-id': media['id'],
-        'operatingsystem-id': os['id'],
-        'content-source-id': puppet_proxy['id'],
-    })
+    hostgroup = make_hostgroup(
+        {
+            'location-ids': loc['id'],
+            'environment-id': env['id'],
+            'lifecycle-environment-id': lce['id'],
+            'puppet-proxy-id': puppet_proxy['id'],
+            'puppet-ca-proxy-id': puppet_proxy['id'],
+            'content-view-id': cv['id'],
+            'domain-id': domain['id'],
+            'subnet-id': subnet['id'],
+            'organization-ids': org['id'],
+            'architecture-id': arch['id'],
+            'partition-table-id': ptable['id'],
+            'medium-id': media['id'],
+            'operatingsystem-id': os['id'],
+            'content-source-id': puppet_proxy['id'],
+        }
+    )
 
-    return {
-        'hostgroup': hostgroup,
-        'subnet': subnet,
-        'domain': domain,
-        'ptable': ptable,
-        'os': os
-    }
+    return {'hostgroup': hostgroup, 'subnet': subnet, 'domain': domain, 'ptable': ptable, 'os': os}
 
 
 def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
@@ -3712,21 +3677,17 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     if not organization_id:
         organization_id = make_org()['id']
     product = make_product({u'organization-id': organization_id})
-    repo = make_repository({
-        u'product-id': product['id'],
-        u'content-type': 'puppet',
-        u'url': repo_url,
-    })
+    repo = make_repository(
+        {u'product-id': product['id'], u'content-type': 'puppet', u'url': repo_url}
+    )
     # Synchronize repo via provided URL
     Repository.synchronize({'id': repo['id']})
     # Add selected module to Content View
     cv = make_content_view({u'organization-id': organization_id})
     for module in puppet_modules:
-        ContentView.puppet_module_add({
-            u'author': module['author'],
-            u'name': module['name'],
-            u'content-view-id': cv['id'],
-        })
+        ContentView.puppet_module_add(
+            {u'author': module['author'], u'name': module['name'], u'content-view-id': cv['id']}
+        )
     # CV publishing will automatically create Environment and
     # Puppet Class entities
     ContentView.publish({u'id': cv['id']})
@@ -3734,9 +3695,16 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
 
 
 def setup_virtual_machine(
-        vm, org_label, rh_repos_id=None, repos_label=None, product_label=None,
-        lce=None, activation_key=None, patch_os_release_distro=None,
-        install_katello_agent=True):
+    vm,
+    org_label,
+    rh_repos_id=None,
+    repos_label=None,
+    product_label=None,
+    lce=None,
+    activation_key=None,
+    patch_os_release_distro=None,
+    install_katello_agent=True,
+):
     """
     Setup a Virtual machine with basic components and tasks.
 
@@ -3769,15 +3737,14 @@ def setup_virtual_machine(
         for repo_label in repos_label:
             result = vm.run(
                 'yum-config-manager --enable {0}_{1}_{2}'.format(
-                    org_label,
-                    product_label,
-                    repo_label,
+                    org_label, product_label, repo_label
                 )
             )
             if result.return_code != 0:
                 raise CLIFactoryError(
                     'Failed to enable custom repository "{0}"\n{1}'.format(
-                        repos_label, result.stderr)
+                        repos_label, result.stderr
+                    )
                 )
     if install_katello_agent:
         vm.install_katello_agent()
@@ -3790,34 +3757,40 @@ def _get_capsule_vm_distro_repos(distro):
         # Red Hat Enterprise Linux 7 Server
         rh_product_arch = REPOS['rhel7']['arch']
         rh_product_releasever = REPOS['rhel7']['releasever']
-        rh_repos.append({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhel7'],
-            'repository': REPOS['rhel7']['name'],
-            'repository-id': REPOS['rhel7']['id'],
-            'releasever': rh_product_releasever,
-            'arch': rh_product_arch,
-            'cdn': True,
-        })
+        rh_repos.append(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhel7'],
+                'repository': REPOS['rhel7']['name'],
+                'repository-id': REPOS['rhel7']['id'],
+                'releasever': rh_product_releasever,
+                'arch': rh_product_arch,
+                'cdn': True,
+            }
+        )
         # Red Hat Software Collections (for 7 Server)
-        rh_repos.append({
-            'product': PRDS['rhscl'],
-            'repository-set': REPOSET['rhscl7'],
-            'repository': REPOS['rhscl7']['name'],
-            'repository-id': REPOS['rhscl7']['id'],
-            'releasever': rh_product_releasever,
-            'arch': rh_product_arch,
-            'cdn': True,
-        })
+        rh_repos.append(
+            {
+                'product': PRDS['rhscl'],
+                'repository-set': REPOSET['rhscl7'],
+                'repository': REPOS['rhscl7']['name'],
+                'repository-id': REPOS['rhscl7']['id'],
+                'releasever': rh_product_releasever,
+                'arch': rh_product_arch,
+                'cdn': True,
+            }
+        )
         # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
-        rh_repos.append({
-            'product': PRDS['rhsc'],
-            'repository-set': REPOSET['rhsc7'],
-            'repository': REPOS['rhsc7']['name'],
-            'repository-id': REPOS['rhsc7']['id'],
-            'url': settings.capsule_repo,
-            'cdn': bool(settings.cdn or not settings.capsule_repo),
-        })
+        rh_repos.append(
+            {
+                'product': PRDS['rhsc'],
+                'repository-set': REPOSET['rhsc7'],
+                'repository': REPOS['rhsc7']['name'],
+                'repository-id': REPOS['rhsc7']['id'],
+                'url': settings.capsule_repo,
+                'cdn': bool(settings.cdn or not settings.capsule_repo),
+            }
+        )
     else:
         raise CLIFactoryError('distro "{}" not supported'.format(distro))
 
@@ -3860,27 +3833,25 @@ def add_role_permissions(role_id, resource_permissions):
         permission_names = permission_data.get('permissions')
         if permission_names is None:
             raise CLIFactoryError(
-                'Permissions not provided for resource: {0}'
-                .format(resource_type)
+                'Permissions not provided for resource: {0}'.format(resource_type)
             )
         # ensure  that the required resource type is available
         if resource_type not in available_rc_permissions:
             raise CLIFactoryError(
-                'Resource "{0}" not in the list of available resources'
-                .format(resource_type)
+                'Resource "{0}" not in the list of available resources'.format(resource_type)
             )
         available_permission_names = [
             permission['name']
             for permission in available_rc_permissions[resource_type]
             if permission['name'] in permission_names
-            ]
+        ]
         # ensure that all the required permissions are available
-        missing_permissions = set(
-            permission_names).difference(set(available_permission_names))
+        missing_permissions = set(permission_names).difference(set(available_permission_names))
         if missing_permissions:
             raise CLIFactoryError(
-                'Permissions "{0}" are not available in Resource "{1}"'
-                .format(list(missing_permissions), resource_type)
+                'Permissions "{0}" are not available in Resource "{1}"'.format(
+                    list(missing_permissions), resource_type
+                )
             )
         # Create the current resource type role permissions
         options = {'role-id': role_id}
@@ -3889,7 +3860,8 @@ def add_role_permissions(role_id, resource_permissions):
 
 
 def setup_cdn_and_custom_repositories(
-        org_id, repos, download_policy='on_demand', synchronize=True):
+    org_id, repos, download_policy='on_demand', synchronize=True
+):
     """Setup cdn and custom repositories
 
     :param int org_id: The organization id
@@ -3907,34 +3879,35 @@ def setup_cdn_and_custom_repositories(
         if not cdn and not custom_repo_url:
             raise CLIFactoryError(u'Custom repository with url not supplied')
         if cdn:
-            RepositorySet.enable({
-                u'organization-id': org_id,
-                u'product': repo['product'],
-                u'name': repo['repository-set'],
-                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                u'releasever': repo.get('releasever'),
-            })
-            repo_info = Repository.info({
-                u'organization-id': org_id,
-                u'name': repo['repository'],
-                u'product': repo['product'],
-            })
+            RepositorySet.enable(
+                {
+                    u'organization-id': org_id,
+                    u'product': repo['product'],
+                    u'name': repo['repository-set'],
+                    u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                    u'releasever': repo.get('releasever'),
+                }
+            )
+            repo_info = Repository.info(
+                {
+                    u'organization-id': org_id,
+                    u'name': repo['repository'],
+                    u'product': repo['product'],
+                }
+            )
         else:
             if custom_product is None:
-                custom_product = make_product_wait({
+                custom_product = make_product_wait({'organization-id': org_id})
+            repo_info = make_repository(
+                {
+                    'product-id': custom_product['id'],
                     'organization-id': org_id,
-                })
-            repo_info = make_repository({
-                'product-id': custom_product['id'],
-                'organization-id': org_id,
-                'url': custom_repo_url,
-            })
+                    'url': custom_repo_url,
+                }
+            )
         if download_policy:
             # Set download policy
-            Repository.update({
-                'download-policy': download_policy,
-                'id': repo_info['id'],
-            })
+            Repository.update({'download-policy': download_policy, 'id': repo_info['id']})
         repos_info.append(repo_info)
     if synchronize:
         # Synchronize the repositories
@@ -3944,8 +3917,14 @@ def setup_cdn_and_custom_repositories(
 
 
 def setup_cdn_and_custom_repos_content(
-        org_id, lce_id=None, repos=None, upload_manifest=True,
-        download_policy='on_demand', rh_subscriptions=None, default_cv=False):
+    org_id,
+    lce_id=None,
+    repos=None,
+    upload_manifest=True,
+    download_policy='on_demand',
+    rh_subscriptions=None,
+    default_cv=False,
+):
     """Setup cdn and custom repositories, content view and activations key
 
     :param int org_id: The organization id
@@ -3969,81 +3948,81 @@ def setup_cdn_and_custom_repos_content(
     if upload_manifest:
         # Upload the organization manifest
         try:
-            manifests.upload_manifest_locked(org_id, manifests.clone(),
-                                             interface=manifests.INTERFACE_CLI)
+            manifests.upload_manifest_locked(
+                org_id, manifests.clone(), interface=manifests.INTERFACE_CLI
+            )
         except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to upload manifest\n{0}'.format(err.msg))
+            raise CLIFactoryError(u'Failed to upload manifest\n{0}'.format(err.msg))
 
     custom_product, repos_info = setup_cdn_and_custom_repositories(
-        org_id=org_id,
-        repos=repos,
-        download_policy=download_policy
+        org_id=org_id, repos=repos, download_policy=download_policy
     )
     if default_cv:
-        activation_key = make_activation_key({
-            u'organization-id': org_id,
-            u'lifecycle-environment': 'Library',
-        })
-        content_view = ContentView.info({
-            u'organization-id': org_id,
-            u'name': u'Default Organization View'
-        })
+        activation_key = make_activation_key(
+            {u'organization-id': org_id, u'lifecycle-environment': 'Library'}
+        )
+        content_view = ContentView.info(
+            {u'organization-id': org_id, u'name': u'Default Organization View'}
+        )
     else:
         # Create a content view
         content_view = make_content_view({u'organization-id': org_id})
         # Add repositories to content view
         for repo_info in repos_info:
-            ContentView.add_repository({
-                u'id': content_view['id'],
-                u'organization-id': org_id,
-                u'repository-id': repo_info['id'],
-            })
+            ContentView.add_repository(
+                {
+                    u'id': content_view['id'],
+                    u'organization-id': org_id,
+                    u'repository-id': repo_info['id'],
+                }
+            )
         # Publish the content view
         ContentView.publish({u'id': content_view['id']})
         # Get the latest content view version id
-        content_view_version = ContentView.info({
-            u'id': content_view['id']
-         })['versions'][-1]
+        content_view_version = ContentView.info({u'id': content_view['id']})['versions'][-1]
         # Promote content view version to lifecycle environment
-        ContentView.version_promote({
-            u'id': content_view_version['id'],
-            u'organization-id': org_id,
-            u'to-lifecycle-environment-id': lce_id,
-        })
+        ContentView.version_promote(
+            {
+                u'id': content_view_version['id'],
+                u'organization-id': org_id,
+                u'to-lifecycle-environment-id': lce_id,
+            }
+        )
         content_view = ContentView.info({u'id': content_view['id']})
-        activation_key = make_activation_key({
-            u'organization-id': org_id,
-            u'lifecycle-environment-id': lce_id,
-            u'content-view-id': content_view['id'],
-        })
+        activation_key = make_activation_key(
+            {
+                u'organization-id': org_id,
+                u'lifecycle-environment-id': lce_id,
+                u'content-view-id': content_view['id'],
+            }
+        )
     # Get organization subscriptions
-    subscriptions = Subscription.list({
-        u'organization-id': org_id},
-        per_page=False
-    )
+    subscriptions = Subscription.list({u'organization-id': org_id}, per_page=False)
     # Add subscriptions to activation-key
     needed_subscription_names = list(rh_subscriptions)
     if custom_product:
         needed_subscription_names.append(custom_product['name'])
     added_subscription_names = []
     for subscription in subscriptions:
-        if (subscription['name'] in needed_subscription_names
-                and subscription['name'] not in added_subscription_names):
-            ActivationKey.add_subscription({
-                u'id': activation_key['id'],
-                u'subscription-id': subscription['id'],
-                u'quantity': 1,
-            })
+        if (
+            subscription['name'] in needed_subscription_names
+            and subscription['name'] not in added_subscription_names
+        ):
+            ActivationKey.add_subscription(
+                {
+                    u'id': activation_key['id'],
+                    u'subscription-id': subscription['id'],
+                    u'quantity': 1,
+                }
+            )
             added_subscription_names.append(subscription['name'])
-            if (len(added_subscription_names)
-                    == len(needed_subscription_names)):
+            if len(added_subscription_names) == len(needed_subscription_names):
                 break
-    missing_subscription_names = set(
-        needed_subscription_names).difference(set(added_subscription_names))
+    missing_subscription_names = set(needed_subscription_names).difference(
+        set(added_subscription_names)
+    )
     if missing_subscription_names:
-        raise CLIFactoryError(
-            u'Missing subscriptions: {0}'.format(missing_subscription_names))
+        raise CLIFactoryError(u'Missing subscriptions: {0}'.format(missing_subscription_names))
     data = dict(
         activation_key=activation_key,
         content_view=content_view,
@@ -4051,10 +4030,7 @@ def setup_cdn_and_custom_repos_content(
         repos=repos_info,
     )
     if lce_id:
-        lce = LifecycleEnvironment.info({
-            'id': lce_id,
-            'organization-id': org_id,
-        })
+        lce = LifecycleEnvironment.info({'id': lce_id, 'organization-id': org_id})
         data['lce'] = lce
 
     return data
@@ -4078,25 +4054,18 @@ def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
     ssh_config_file_path = '{0}/config'.format(ssh_path)
     result = vm.run('touch {0}'.format(ssh_config_file_path))
     if result.return_code != 0:
-        raise CLIFactoryError(
-            u'Failed to create ssh config file:\n{}'
-            .format(result.stderr)
-        )
+        raise CLIFactoryError(u'Failed to create ssh config file:\n{}'.format(result.stderr))
     result = vm.run(
         'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
-        '\tIdentityFile {2}\n" >> {3}'
-        .format(host, user, ssh_key_file_path, ssh_config_file_path)
+        '\tIdentityFile {2}\n" >> {3}'.format(host, user, ssh_key_file_path, ssh_config_file_path)
     )
     if result.return_code != 0:
-        raise CLIFactoryError(
-            u'Failed to write to ssh config file:\n{}'.format(result.stderr))
+        raise CLIFactoryError(u'Failed to write to ssh config file:\n{}'.format(result.stderr))
     # add host entry to ssh known_hosts
-    result = vm.run(
-        'ssh-keyscan {0} >> {1}/known_hosts'.format(host, ssh_path))
+    result = vm.run('ssh-keyscan {0} >> {1}/known_hosts'.format(host, ssh_path))
     if result.return_code != 0:
         raise CLIFactoryError(
-            u'Failed to put hostname in ssh known_hosts files:\n{}'
-            .format(result.stderr)
+            u'Failed to put hostname in ssh known_hosts files:\n{}'.format(result.stderr)
         )
 
 
@@ -4109,21 +4078,25 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
     :param destination_key_name: The ssh key file name when copied to vm
     """
     destination_key_path = '/root/.ssh/{0}'.format(destination_key_name)
-    upload_file(
-        local_file=source_key_path,
-        remote_file=destination_key_path,
-        hostname=vm.ip_addr
-    )
+    upload_file(local_file=source_key_path, remote_file=destination_key_path, hostname=vm.ip_addr)
     result = vm.run('chmod 600 {0}'.format(destination_key_path))
     if result.return_code != 0:
-        raise CLIFactoryError(
-            u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
+        raise CLIFactoryError(u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
 
 
 def virt_who_hypervisor_config(
-        config_id, virt_who_vm, org_id=None, lce_id=None,
-        hypervisor_hostname=None, configure_ssh=False, hypervisor_user=None,
-        subscription_name=None, exec_one_shot=False, upload_manifest=True, extra_repos=None):
+    config_id,
+    virt_who_vm,
+    org_id=None,
+    lce_id=None,
+    hypervisor_hostname=None,
+    configure_ssh=False,
+    hypervisor_user=None,
+    subscription_name=None,
+    exec_one_shot=False,
+    upload_manifest=True,
+    extra_repos=None,
+):
     """
     Configure virtual machine as hypervisor virt-who service
 
@@ -4151,10 +4124,7 @@ def virt_who_hypervisor_config(
     if lce_id is None:
         lce = make_lifecycle_environment({'organization-id': org['id']})
     else:
-        lce = LifecycleEnvironment.info({
-            'id': lce_id,
-            'organization-id': org['id']
-        })
+        lce = LifecycleEnvironment.info({'id': lce_id, 'organization-id': org['id']})
     if extra_repos is None:
         extra_repos = []
     repos = [
@@ -4166,7 +4136,7 @@ def virt_who_hypervisor_config(
             'repository-id': REPOS['rhst7']['id'],
             'url': settings.sattools_repo['rhel7'],
             'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
-        },
+        }
     ]
     repos.extend(extra_repos)
     content_setup_data = setup_cdn_and_custom_repos_content(
@@ -4183,10 +4153,7 @@ def virt_who_hypervisor_config(
         org['label'],
         activation_key=activation_key['name'],
         patch_os_release_distro=DISTRO_RHEL7,
-        rh_repos_id=[
-            repo['repository-id']
-            for repo in repos if repo['cdn']
-        ],
+        rh_repos_id=[repo['repository-id'] for repo in repos if repo['cdn']],
         install_katello_agent=False,
     )
     # configure manually RHEL custom repo url as sync time is very big
@@ -4194,52 +4161,47 @@ def virt_who_hypervisor_config(
     rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
     rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
     if not rhel_repo_url:
-        raise ValueError('Settings option "{0}" is whether not set or does not exist'.format(
-            rhel_repo_option_name))
+        raise ValueError(
+            'Settings option "{0}" is whether not set or does not exist'.format(
+                rhel_repo_option_name
+            )
+        )
     virt_who_vm.configure_rhel_repo(rhel_repo_url)
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
-        hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(
-            gen_string('alpha').lower())
+        hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(gen_string('alpha').lower())
         # upload the ssh key
-        vm_upload_ssh_key(
-            virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
+        vm_upload_ssh_key(virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
         # setup the ssh config and known_hosts files
-        vm_setup_ssh_config(virt_who_vm, hypervisor_ssh_key_name,
-                            hypervisor_hostname, user=hypervisor_user)
+        vm_setup_ssh_config(
+            virt_who_vm, hypervisor_ssh_key_name, hypervisor_hostname, user=hypervisor_user
+        )
 
     # upload the virt-who config deployment script
     _, temp_virt_who_deploy_file_path = mkstemp(
-        suffix='-virt_who_deploy-{0}'.format(config_id),
-        dir=settings.tmp_dir,
+        suffix='-virt_who_deploy-{0}'.format(config_id), dir=settings.tmp_dir
     )
-    VirtWhoConfig.fetch({
-        'id': config_id,
-        'output': temp_virt_who_deploy_file_path
-    })
+    VirtWhoConfig.fetch({'id': config_id, 'output': temp_virt_who_deploy_file_path})
     download_file(
         remote_file=temp_virt_who_deploy_file_path,
         local_file=temp_virt_who_deploy_file_path,
-        hostname=settings.server.hostname
+        hostname=settings.server.hostname,
     )
     upload_file(
         local_file=temp_virt_who_deploy_file_path,
         remote_file=temp_virt_who_deploy_file_path,
-        hostname=virt_who_vm.ip_addr
+        hostname=virt_who_vm.ip_addr,
     )
     # ensure the virt-who config deploy script is executable
-    result = virt_who_vm.run('chmod +x {0}'.format(
-        temp_virt_who_deploy_file_path))
+    result = virt_who_vm.run('chmod +x {0}'.format(temp_virt_who_deploy_file_path))
     if result.return_code != 0:
         raise CLIFactoryError(
-            u'Failed to set deployment script as executable:\n{}'
-            .format(result.stderr)
+            u'Failed to set deployment script as executable:\n{}'.format(result.stderr)
         )
     # execute the deployment script
     result = virt_who_vm.run('{0}'.format(temp_virt_who_deploy_file_path))
     if result.return_code != 0:
-        raise CLIFactoryError(
-            u'Deployment script failure:\n{}'.format(result.stderr))
+        raise CLIFactoryError(u'Deployment script failure:\n{}'.format(result.stderr))
     # after this step, we should have virt-who service installed and started
     if exec_one_shot:
         # usually to be sure that the virt-who generated the report we need
@@ -4248,20 +4210,17 @@ def virt_who_hypervisor_config(
         result = virt_who_vm.run('service virt-who stop')
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Failed to stop the virt-who service:\n{}'
-                .format(result.stderr)
+                u'Failed to stop the virt-who service:\n{}'.format(result.stderr)
             )
         result = virt_who_vm.run('virt-who --one-shot', timeout=900)
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Failed when executing virt-who --one-shot:\n{}'
-                .format(result.stderr)
+                u'Failed when executing virt-who --one-shot:\n{}'.format(result.stderr)
             )
         result = virt_who_vm.run('service virt-who start')
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Failed to start the virt-who service:\n{}'
-                .format(result.stderr)
+                u'Failed to start the virt-who service:\n{}'.format(result.stderr)
             )
     # after this step the hypervisor as a content host should be created
     # do not confuse virt-who host with hypervisor host as they can be
@@ -4270,13 +4229,11 @@ def virt_who_hypervisor_config(
     # first report when started or with one shot command
     # the virt-who hypervisor will be registered to satellite with host name
     # like "virt-who-{hypervisor_hostname}-{organization_id}"
-    virt_who_hypervisor_hostname = (
-        'virt-who-{0}-{1}'.format(hypervisor_hostname, org['id']))
+    virt_who_hypervisor_hostname = 'virt-who-{0}-{1}'.format(hypervisor_hostname, org['id'])
     # find the registered virt-who hypervisor host
-    org_hosts = Host.list({
-        'organization-id': org['id'],
-        'search': 'name={0}'.format(virt_who_hypervisor_hostname)
-    })
+    org_hosts = Host.list(
+        {'organization-id': org['id'], 'search': 'name={0}'.format(virt_who_hypervisor_hostname)}
+    )
     # Note: if one shot command was executed the report is immediately
     # generated, and the server must have already registered the virt-who
     # hypervisor host
@@ -4287,30 +4244,27 @@ def virt_who_hypervisor_config(
         max_time = time.time() + 60
         while time.time() <= max_time:
             time.sleep(5)
-            org_hosts = Host.list({
-                'organization-id': org['id'],
-                'search': 'name={0}'.format(virt_who_hypervisor_hostname)
-            })
+            org_hosts = Host.list(
+                {
+                    'organization-id': org['id'],
+                    'search': 'name={0}'.format(virt_who_hypervisor_hostname),
+                }
+            )
             if org_hosts:
                 break
 
     if len(org_hosts) == 0:
-        raise CLIFactoryError(
-            u'Failed to find hypervisor host:\n{}'.format(result.stderr))
+        raise CLIFactoryError(u'Failed to find hypervisor host:\n{}'.format(result.stderr))
     virt_who_hypervisor_host = org_hosts[0]
     subscription_id = None
     if hypervisor_hostname and subscription_name:
-        subscriptions = Subscription.list({
-            u'organization-id': org_id},
-            per_page=False
-        )
+        subscriptions = Subscription.list({u'organization-id': org_id}, per_page=False)
         for subscription in subscriptions:
             if subscription['name'] == subscription_name:
                 subscription_id = subscription['id']
-                Host.subscription_attach({
-                    'host': virt_who_hypervisor_hostname,
-                    'subscription-id': subscription_id
-                })
+                Host.subscription_attach(
+                    {'host': virt_who_hypervisor_hostname, 'subscription-id': subscription_id}
+                )
                 break
     return {
         'subscription_id': subscription_id,
@@ -4384,8 +4338,7 @@ def make_http_proxy(options=None):
         'organization-ids': None,
         'organization-titles': None,
         'password': None,
-        'url': '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)),
+        'url': '{}:{}'.format(gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)),
         'username': None,
     }
 

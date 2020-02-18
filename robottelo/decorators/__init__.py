@@ -124,8 +124,7 @@ def skip_if_not_set(*options):
         invalid = options_set.difference(settings.all_features)
         raise ValueError(
             'Feature(s): "{0}" not found. Available ones are: "{1}".'.format(
-                ', '.join(invalid),
-                ', '.join(settings.all_features)
+                ', '.join(invalid), ', '.join(settings.all_features)
             )
         )
 
@@ -140,8 +139,7 @@ def skip_if_not_set(*options):
                     missing.append(option)
             if not missing:
                 return func(*args, **kwargs)
-            raise unittest2.SkipTest(
-                'Missing configuration for: {0}.'.format(', '.join(missing)))
+            raise unittest2.SkipTest('Missing configuration for: {0}.'.format(', '.join(missing)))
 
         return wrapper
 

@@ -36,7 +36,5 @@ for uid in uids:
     match = ':id: {0}'.format(uid)
     subst = ':id: {0}\n\n        :customerscenario: true'.format(uid)
     case_i = True
-    query_options['suggestor'] = regex_suggestor(
-        match, subst, ignore_case=True
-    )
+    query_options['suggestor'] = regex_suggestor(match, subst, ignore_case=True)
     run_interactive(query=Query(**query_options))

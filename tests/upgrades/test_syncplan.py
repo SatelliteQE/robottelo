@@ -39,6 +39,7 @@ class ScenarioSyncPlan(APITestCase):
     3. Post upgrade, verify the sync plan exists and performs same as pre-upgrade.
 
     """
+
     @pre_upgrade
     def test_pre_sync_plan_migration(self):
         """Pre-upgrade scenario that creates sync plan and assigns repo to sync plan
@@ -55,9 +56,7 @@ class ScenarioSyncPlan(APITestCase):
          """
         org = entities.Organization().create()
         sync_plan_name = "Test_Sync_plan_Migration_{0}".format(gen_string('alpha'))
-        sync_plan = entities.SyncPlan(
-            organization=org,
-            name=sync_plan_name).create()
+        sync_plan = entities.SyncPlan(organization=org, name=sync_plan_name).create()
         product = entities.Product(organization=org).create()
         entities.Repository(product=product).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -65,14 +64,16 @@ class ScenarioSyncPlan(APITestCase):
         product = product.read()
         self.assertEqual(product.sync_plan.id, sync_plan.id)
         sync_plan = sync_plan.read()
-        scenario_dict = {self.__class__.__name__: {
-            'sync_plan_name': sync_plan_name,
-            'interval': sync_plan.interval,
-            'sync_date': sync_plan.sync_date,
-            'product_id': product.id,
-            'sync_plan_id': sync_plan.id,
-            'org_id': org.id
-        }}
+        scenario_dict = {
+            self.__class__.__name__: {
+                'sync_plan_name': sync_plan_name,
+                'interval': sync_plan.interval,
+                'sync_date': sync_plan.sync_date,
+                'product_id': product.id,
+                'sync_plan_id': sync_plan.id,
+                'org_id': org.id,
+            }
+        }
         create_dict(scenario_dict)
 
     @post_upgrade(depend_on=test_pre_sync_plan_migration)
@@ -91,8 +92,9 @@ class ScenarioSyncPlan(APITestCase):
         beforeupgrade_data = get_entity_data(self.__class__.__name__)
         org = entities.Organization(id=beforeupgrade_data.get('org_id'))
         product = entities.Product(id=beforeupgrade_data.get("product_id")).read()
-        sync_plan = entities.SyncPlan(id=beforeupgrade_data.get("sync_plan_id"),
-                                      organization=org).read()
+        sync_plan = entities.SyncPlan(
+            id=beforeupgrade_data.get("sync_plan_id"), organization=org
+        ).read()
         self.assertEqual(product.sync_plan.id, sync_plan.id)
         self.assertEqual(sync_plan.name, beforeupgrade_data.get("sync_plan_name"))
         self.assertEqual(sync_plan.interval, beforeupgrade_data.get("interval"))
@@ -101,8 +103,7 @@ class ScenarioSyncPlan(APITestCase):
         sync_plan.interval = SYNC_INTERVAL['custom']
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
         self.assertEqual(
-            sync_plan.update(['interval', 'cron_expression']).interval,
-            SYNC_INTERVAL['custom']
+            sync_plan.update(['interval', 'cron_expression']).interval, SYNC_INTERVAL['custom']
         )
         # checking sync plan delete on upgraded satellite
         sync_plan.delete()
