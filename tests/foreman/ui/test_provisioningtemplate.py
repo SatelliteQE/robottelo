@@ -43,18 +43,16 @@ def template_data():
 def clone_setup(module_org, module_loc):
     name = gen_string('alpha')
     content = gen_string('alpha')
-    os_list = [
-        entities.OperatingSystem().create().title for _ in range(2)
-    ]
+    os_list = [entities.OperatingSystem().create().title for _ in range(2)]
     return {
         'pt': entities.ProvisioningTemplate(
             name=name,
             organization=[module_org],
             location=[module_loc],
             template=content,
-            snippet=False
-            ).create(),
-        'os_list': os_list
+            snippet=False,
+        ).create(),
+        'os_list': os_list,
     }
 
 
@@ -78,17 +76,20 @@ def test_positive_clone(session, clone_setup):
             clone_setup['pt'].name,
             {
                 'template.name': clone_name,
-                'association.applicable_os.assigned': clone_setup['os_list']
-            }
+                'association.applicable_os.assigned': clone_setup['os_list'],
+            },
         )
         pt = entities.ProvisioningTemplate().search(
             query={'search': 'name=={0}'.format(clone_name)}
         )
         assigned_oses = [os.read() for os in pt[0].read().operatingsystem]
-        assert pt, 'Template {0} expected to exist but is not included in the search'\
-                   'results'.format(clone_name)
+        assert pt, (
+            'Template {0} expected to exist but is not included in the search'
+            'results'.format(clone_name)
+        )
         assert set(clone_setup['os_list']) == set(
-            '{0} {1}'.format(os.name, os.major) for os in assigned_oses)
+            '{0} {1}'.format(os.name, os.major) for os in assigned_oses
+        )
 
 
 @tier2
@@ -107,39 +108,42 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     os = entities.OperatingSystem().create()
-    host_group = entities.HostGroup(
-        organization=[module_org], location=[module_loc]).create()
-    environment = entities.Environment(
-        organization=[module_org], location=[module_loc]).create()
+    host_group = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
+    environment = entities.Environment(organization=[module_org], location=[module_loc]).create()
     input_name = gen_string('alpha')
     variable_name = gen_string('alpha')
-    template_input = [{
-        'name': input_name,
-        'required': True,
-        'input_type': 'Variable',
-        'input_content.variable_name': variable_name,
-        'input_content.description': gen_string('alpha')
-    }]
-    combination = [{
-        'host_group': host_group.name, 'environment': environment.name}]
+    template_input = [
+        {
+            'name': input_name,
+            'required': True,
+            'input_type': 'Variable',
+            'input_content.variable_name': variable_name,
+            'input_content.description': gen_string('alpha'),
+        }
+    ]
+    combination = [{'host_group': host_group.name, 'environment': environment.name}]
     with session:
-        session.provisioningtemplate.create({
-            'template.name': name,
-            'template.default': True,
-            'template.template_editor.editor': template_data,
-            'template.audit_comment': gen_string('alpha'),
-            'inputs': template_input,
-            'type.snippet': False,
-            'type.template_type': 'iPXE template',
-            'association.applicable_os.assigned': [os.title],
-            'association.hg_environment_combination': combination,
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.provisioningtemplate.create(
+            {
+                'template.name': name,
+                'template.default': True,
+                'template.template_editor.editor': template_data,
+                'template.audit_comment': gen_string('alpha'),
+                'inputs': template_input,
+                'type.snippet': False,
+                'type.template_type': 'iPXE template',
+                'association.applicable_os.assigned': [os.title],
+                'association.hg_environment_combination': combination,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         assert entities.ProvisioningTemplate().search(
-            query={'search': 'name=={0}'.format(name)}), \
-            'Provisioning template {0} expected to exist but is not included in the search'\
+            query={'search': 'name=={0}'.format(name)}
+        ), (
+            'Provisioning template {0} expected to exist but is not included in the search'
             'results'.format(name)
+        )
         pt = session.provisioningtemplate.read(name)
         assert pt['template']['name'] == name
         assert pt['template']['default'] is True
@@ -151,29 +155,33 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
         assert pt['type']['snippet'] is False
         assert pt['type']['template_type'] == 'iPXE template'
         assert pt['association']['applicable_os']['assigned'][0] == os.title
-        assert pt[
-            'association']['hg_environment_combination'][0]['host_group'] == host_group.name
-        assert pt[
-            'association']['hg_environment_combination'][0]['environment'] == environment.name
+        assert pt['association']['hg_environment_combination'][0]['host_group'] == host_group.name
+        assert (
+            pt['association']['hg_environment_combination'][0]['environment'] == environment.name
+        )
         assert pt['locations']['resources']['assigned'][0] == module_loc.name
         assert pt['organizations']['resources']['assigned'][0] == module_org.name
         session.provisioningtemplate.update(
-            name,
-            {'template.name': new_name, 'type.snippet': True}
+            name, {'template.name': new_name, 'type.snippet': True}
         )
         updated_pt = entities.ProvisioningTemplate().search(
             query={'search': 'name=={0}'.format(new_name)}
         )
-        assert updated_pt, \
-            'Provisioning template {0} expected to exist but is not included in the search' \
+        assert updated_pt, (
+            'Provisioning template {0} expected to exist but is not included in the search'
             'results'.format(new_name)
+        )
         updated_pt = updated_pt[0].read()
-        assert updated_pt.snippet is True, \
-            'Snippet attribute not updated for Provisioning Template'
-        assert not updated_pt.template_kind, 'Snippet template should be None, but it is' \
-                                             '{0}'.format(updated_pt.template_kind)
+        assert (
+            updated_pt.snippet is True
+        ), 'Snippet attribute not updated for Provisioning Template'
+        assert not updated_pt.template_kind, 'Snippet template is {0}'.format(
+            updated_pt.template_kind
+        )
         session.provisioningtemplate.delete(new_name)
         assert not entities.ProvisioningTemplate().search(
-            query={'search': 'name=={0}'.format(new_name)}), \
-            'Provisioning template {0} expected to be removed but is included in the search '\
+            query={'search': 'name=={0}'.format(new_name)}
+        ), (
+            'Provisioning template {0} expected to be removed but is included in the search '
             'results'.format(new_name)
+        )

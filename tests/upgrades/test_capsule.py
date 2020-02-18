@@ -46,6 +46,7 @@ class Scenario_capsule_sync(APITestCase):
     4. Check if the repo/rpm is been synced to capsule.
 
     """
+
     @classmethod
     def setUpClass(cls):
         cls.sat_host = settings.server.hostname
@@ -58,8 +59,7 @@ class Scenario_capsule_sync(APITestCase):
         cls.activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
         cls.cv_name = 'Scenario_precapSync_' + cls.cls_name
         cls.org_id = '1'
-        cls.repo_url = 'http://{0}{1}'.format(
-            cls.sat_host, '/pub/preupgradeCapSync_repo/')
+        cls.repo_url = 'http://{0}{1}'.format(cls.sat_host, '/pub/preupgradeCapSync_repo/')
 
     @pre_upgrade
     def test_pre_user_scenario_capsule_sync(self):
@@ -76,25 +76,23 @@ class Scenario_capsule_sync(APITestCase):
 
          """
         ak = entities.ActivationKey(organization=self.org_id).search(
-            query={'search': 'name={}'.format(self.activation_key)})[0]
+            query={'search': 'name={}'.format(self.activation_key)}
+        )[0]
         ak_env = ak.environment.read()
-        product = entities.Product(
-            name=self.prod_name, organization=self.org_id).create()
+        product = entities.Product(name=self.prod_name, organization=self.org_id).create()
         create_repo(rpm1, self.repo_path)
         repo = entities.Repository(
-            product=product.id, name=self.repo_name,
-            url=self.repo_url).create()
+            product=product.id, name=self.repo_name, url=self.repo_url
+        ).create()
         repo.sync()
-        content_view = entities.ContentView(
-            name=self.cv_name, organization=self.org_id).create()
+        content_view = entities.ContentView(name=self.cv_name, organization=self.org_id).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
         promote(content_view.read().version[0], ak_env.id)
         self.assertEqual(content_view.read().environment[-1].id, ak_env.id)
 
-        global_dict = {self.__class__.__name__: {
-            'env_name': ak_env.name}}
+        global_dict = {self.__class__.__name__: {'env_name': ak_env.name}}
         create_dict(global_dict)
 
     @post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
@@ -115,19 +113,21 @@ class Scenario_capsule_sync(APITestCase):
 
          """
         env_name = get_entity_data(self.__class__.__name__)['env_name']
-        org_name = entities.Organization().search(
-            query={'search': 'id={}'.format(self.org_id)})[0].label
-        capsule = entities.SmartProxy().search(
-            query={'search': 'name={}'.format(self.cap_host)})[0]
-        call_entity_method_with_timeout(
-            entities.Capsule(id=capsule.id).content_sync, timeout=3600)
+        org_name = (
+            entities.Organization().search(query={'search': 'id={}'.format(self.org_id)})[0].label
+        )
+        capsule = entities.SmartProxy().search(query={'search': 'name={}'.format(self.cap_host)})[
+            0
+        ]
+        call_entity_method_with_timeout(entities.Capsule(id=capsule.id).content_sync, timeout=3600)
         result = execute(
             lambda: run(
                 '[ -f /var/lib/pulp/published/yum/http/repos/'
                 '{0}/{1}/{2}/custom/{3}/{4}/Packages/b/{5} ]; echo $?'.format(
-                    org_name, env_name, self.cv_name,
-                    self.prod_name, self.repo_name, self.rpm_name)),
-            host=self.cap_host
+                    org_name, env_name, self.cv_name, self.prod_name, self.repo_name, self.rpm_name
+                )
+            ),
+            host=self.cap_host,
         )[self.cap_host]
         self.assertEqual('0', result)
 
@@ -145,6 +145,7 @@ class Scenario_capsule_sync_2(APITestCase):
     4. Check if the repo/rpm is been synced to capsule.
 
     """
+
     @classmethod
     def setUpClass(cls):
         cls.cls_name = 'Scenario_capsule_sync_2'
@@ -157,8 +158,7 @@ class Scenario_capsule_sync_2(APITestCase):
         cls.activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
         cls.cv_name = 'Scenario_postcapSync_' + cls.cls_name
         cls.org_id = '1'
-        cls.repo_url = 'http://{0}{1}'.format(
-            cls.sat_host, '/pub/postupgradeCapSync_repo/')
+        cls.repo_url = 'http://{0}{1}'.format(cls.sat_host, '/pub/postupgradeCapSync_repo/')
 
     @post_upgrade
     def test_post_user_scenario_capsule_sync_2(self):
@@ -181,32 +181,38 @@ class Scenario_capsule_sync_2(APITestCase):
 
         """
         ak = entities.ActivationKey(organization=self.org_id).search(
-            query={'search': 'name={}'.format(self.activation_key)})[0]
+            query={'search': 'name={}'.format(self.activation_key)}
+        )[0]
         ak_env = ak.environment.read()
-        product = entities.Product(
-            name=self.prod_name, organization=self.org_id).create()
+        product = entities.Product(name=self.prod_name, organization=self.org_id).create()
         create_repo(rpm2, self.repo_path)
         repo = entities.Repository(
-            product=product.id, name=self.repo_name,
-            url=self.repo_url).create()
+            product=product.id, name=self.repo_name, url=self.repo_url
+        ).create()
         repo.sync()
-        content_view = entities.ContentView(
-            name=self.cv_name, organization=self.org_id).create()
+        content_view = entities.ContentView(name=self.cv_name, organization=self.org_id).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
         promote(content_view.read().version[0], ak_env.id)
         self.assertEqual(content_view.read().environment[-1].id, ak_env.id)
         wait_untill_capsule_sync(self.cap_host)
-        org_name = entities.Organization().search(
-            query={'search': 'id={}'.format(self.org_id)})[0].label
+        org_name = (
+            entities.Organization().search(query={'search': 'id={}'.format(self.org_id)})[0].label
+        )
         result = execute(
             lambda: run(
                 '[ -f /var/lib/pulp/published/yum/http/repos/'
                 '{0}/{1}/{2}/custom/{3}/{4}/Packages/c/{5} ]; echo $?'.format(
-                    org_name, ak_env.name, self.cv_name,
-                    self.prod_name, self.repo_name, self.rpm_name)),
-            host=self.cap_host
+                    org_name,
+                    ak_env.name,
+                    self.cv_name,
+                    self.prod_name,
+                    self.repo_name,
+                    self.rpm_name,
+                )
+            ),
+            host=self.cap_host,
         )[self.cap_host]
         self.assertEqual('0', result)
 
@@ -223,13 +229,16 @@ class Scenario_capsule_sync_3(APITestCase):
 
     BZ: 1746589
     """
+
     @classmethod
     def setUpClass(cls):
         cls.cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
         cls.org = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0]
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)}
+        )[0]
         cls.lc_env = entities.LifecycleEnvironment(organization=cls.org).search(
-            query={'search': 'name="{}"'.format('Dev')})[0]
+            query={'search': 'name="{}"'.format('Dev')}
+        )[0]
 
     @post_upgrade
     def test_post_user_scenario_capsule_sync_3(self):
@@ -248,9 +257,7 @@ class Scenario_capsule_sync_3(APITestCase):
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-            product=product,
-            content_type='puppet',
-            url=CUSTOM_PUPPET_REPO,
+            product=product, content_type='puppet', url=CUSTOM_PUPPET_REPO
         ).create()
         repo.sync()
         module = repo.puppet_modules()
@@ -269,11 +276,10 @@ class Scenario_capsule_sync_3(APITestCase):
         promote(content_view.read().version[0], self.lc_env.id)
 
         # Run a Capsule sync
-        capsule = entities.SmartProxy().search(
-            query={'search': 'name={}'.format(self.cap_host)})[0]
-        call_entity_method_with_timeout(
-            entities.Capsule(id=capsule.id).content_sync,
-            timeout=1500)
+        capsule = entities.SmartProxy().search(query={'search': 'name={}'.format(self.cap_host)})[
+            0
+        ]
+        call_entity_method_with_timeout(entities.Capsule(id=capsule.id).content_sync, timeout=1500)
         sync_status = entities.Capsule(id=capsule.id).content_get_sync()
         self.assertEqual(len(sync_status['active_sync_tasks']), 0)
         self.assertEqual(len(sync_status['last_failed_sync_tasks']), 0)

@@ -51,17 +51,21 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
     org = entities.Organization().create()
     loc = entities.Location().create()
     with session:
-        session.oscaptailoringfile.create({
-            'file_upload.name': name,
-            'file_upload.scap_file': oscap_tailoring_path,
-            'organizations.resources.assigned': [org.name],
-            'locations.resources.assigned': [loc.name],
-        })
+        session.oscaptailoringfile.create(
+            {
+                'file_upload.name': name,
+                'file_upload.scap_file': oscap_tailoring_path,
+                'organizations.resources.assigned': [org.name],
+                'locations.resources.assigned': [loc.name],
+            }
+        )
         assert session.oscaptailoringfile.search(name)[0]['Name'] == name
         tailroingfile_values = session.oscaptailoringfile.read(name)
         assert tailroingfile_values['file_upload']['name'] == name
-        assert tailroingfile_values['file_upload'][
-            'uploaded_scap_file'] == oscap_tailoring_path.rsplit('/', 1)[-1]
+        assert (
+            tailroingfile_values['file_upload']['uploaded_scap_file']
+            == oscap_tailoring_path.rsplit('/', 1)[-1]
+        )
         assert org.name in tailroingfile_values['organizations']['resources']['assigned']
         assert loc.name in tailroingfile_values['locations']['resources']['assigned']
         session.oscaptailoringfile.update(name, {'file_upload.name': new_name})

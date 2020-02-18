@@ -112,12 +112,8 @@ class ContentViewTestCase(APITestCase):
             },
             organization=org,
         ).create()
-        self.assertEqual(
-            host.content_facet_attributes['content_view_id'], content_view.id)
-        self.assertEqual(
-            host.content_facet_attributes['lifecycle_environment_id'],
-            lc_env.id
-        )
+        self.assertEqual(host.content_facet_attributes['content_view_id'], content_view.id)
+        self.assertEqual(host.content_facet_attributes['lifecycle_environment_id'], lc_env.id)
         self.assertEqual(content_view.read().content_host_count, 1)
 
     @tier2
@@ -141,9 +137,9 @@ class ContentViewTestCase(APITestCase):
         content_view.publish()
         promote(content_view.read().version[0], lc_env.id)
 
-        cloned_cv = entities.ContentView(id=content_view.copy(
-            data={u'name': gen_string('alpha', gen_integer(3, 30))}
-        )['id'])
+        cloned_cv = entities.ContentView(
+            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+        )
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], lc_env.id)
 
@@ -169,9 +165,9 @@ class ContentViewTestCase(APITestCase):
         content_view = entities.ContentView(organization=org).create()
         content_view.publish()
         promote(content_view.read().version[0], lc_env.id)
-        cloned_cv = entities.ContentView(id=content_view.copy(
-            data={u'name': gen_string('alpha', gen_integer(3, 30))}
-        )['id'])
+        cloned_cv = entities.ContentView(
+            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+        )
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], le_clone.id)
 
@@ -212,9 +208,7 @@ class ContentViewTestCase(APITestCase):
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
-        yum_repo = entities.Repository(product=product,
-                                       url=CUSTOM_MODULE_STREAM_REPO_2
-                                       ).create()
+        yum_repo = entities.Repository(product=product, url=CUSTOM_MODULE_STREAM_REPO_2).create()
         yum_repo.sync()
         content_view = entities.ContentView(organization=org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -242,16 +236,11 @@ class ContentViewTestCase(APITestCase):
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
         puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=product,
-            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet', product=product, url=FAKE_0_PUPPET_REPO
         ).create()
         puppet_repo.sync()
         with self.assertRaises(HTTPError):
-            entities.ContentView(
-                organization=org,
-                repository=[puppet_repo.id],
-            ).create()
+            entities.ContentView(organization=org, repository=[puppet_repo.id]).create()
 
     @tier2
     def test_negative_add_dupe_repos(self):
@@ -295,22 +284,16 @@ class ContentViewTestCase(APITestCase):
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
         puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=product,
-            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet', product=product, url=FAKE_0_PUPPET_REPO
         ).create()
         puppet_repo.sync()
 
         content_view = entities.ContentView(organization=org).create()
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
 
         self.assertEqual(len(content_view.read().puppet_module), 0)
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         self.assertEqual(len(content_view.read().puppet_module), 1)
 
@@ -344,9 +327,7 @@ class ContentViewTestCase(APITestCase):
         yum_sha512_repo.sync()
         repo_content = yum_sha512_repo.read()
         # Assert that the repository content was properly synced
-        self.assertEqual(
-            repo_content.content_counts['rpm'], CUSTOM_RPM_SHA_512_FEED_COUNT['rpm']
-        )
+        self.assertEqual(repo_content.content_counts['rpm'], CUSTOM_RPM_SHA_512_FEED_COUNT['rpm'])
         self.assertEqual(
             repo_content.content_counts['erratum'], CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
         )
@@ -355,12 +336,10 @@ class ContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         content_view.publish()
         content_view = content_view.read()
-        self.assertEqual(len(content_view.repository), 1,)
+        self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(len(content_view.version), 1)
         content_view_version = content_view.version[0].read()
-        self.assertEqual(
-            content_view_version.package_count, CUSTOM_RPM_SHA_512_FEED_COUNT['rpm']
-        )
+        self.assertEqual(content_view_version.package_count, CUSTOM_RPM_SHA_512_FEED_COUNT['rpm'])
         self.assertEqual(
             content_view_version.errata_counts['total'], CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
         )
@@ -427,10 +406,7 @@ class ContentViewCreateTestCase(APITestCase):
         for composite in (True, False):
             with self.subTest(composite):
                 self.assertEqual(
-                    composite,
-                    entities.ContentView(
-                        composite=composite
-                    ).create().composite,
+                    composite, entities.ContentView(composite=composite).create().composite
                 )
 
     @tier1
@@ -445,10 +421,7 @@ class ContentViewCreateTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                self.assertEqual(
-                    entities.ContentView(name=name).create().name,
-                    name
-                )
+                self.assertEqual(entities.ContentView(name=name).create().name, name)
 
     @tier1
     def test_positive_create_with_description(self):
@@ -462,12 +435,7 @@ class ContentViewCreateTestCase(APITestCase):
         """
         for desc in valid_data_list():
             with self.subTest(desc):
-                self.assertEqual(
-                    desc,
-                    entities.ContentView(
-                        description=desc
-                    ).create().description,
-                )
+                self.assertEqual(desc, entities.ContentView(description=desc).create().description)
 
     @tier1
     def test_positive_clone(self):
@@ -482,9 +450,9 @@ class ContentViewCreateTestCase(APITestCase):
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
 
-        cloned_cv = entities.ContentView(id=content_view.copy(
-            data={u'name': gen_string('alpha', gen_integer(3, 30))}
-        )['id']).read_json()
+        cloned_cv = entities.ContentView(
+            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+        ).read_json()
 
         # remove unique values before comparison
         cv_origin = content_view.read_json()
@@ -513,6 +481,7 @@ class ContentViewCreateTestCase(APITestCase):
 
 class ContentViewPublishPromoteTestCase(APITestCase):
     """Tests for publishing and promoting content views."""
+
     @classmethod
     def setUpClass(cls):  # noqa
         """Set up organization, product and repositories for tests."""
@@ -521,22 +490,16 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
         cls.yum_repo = entities.Repository(product=cls.product).create()
         cls.yum_repo.sync()
-        cls.swid_repo = entities.Repository(
-            product=cls.product,
-            url=CUSTOM_SWID_TAG_REPO
-        ).create()
+        cls.swid_repo = entities.Repository(product=cls.product, url=CUSTOM_SWID_TAG_REPO).create()
         cls.swid_repo.sync()
         cls.puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=cls.product.id,
-            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet', product=cls.product.id, url=FAKE_0_PUPPET_REPO
         ).create()
         cls.puppet_repo.sync()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             cls.puppet_repo.upload_content(files={'content': handle})
 
-    def add_content_views_to_composite(
-            self, composite_cv, cv_amount=1):
+    def add_content_views_to_composite(self, composite_cv, cv_amount=1):
         """Add necessary number of content views to the composite one
 
         :param composite_cv: Composite content view object
@@ -632,10 +595,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv)
         composite_cv.publish()
         self.assertEqual(len(composite_cv.read().version), 1)
@@ -655,10 +615,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
         composite_cv.publish()
         self.assertEqual(len(composite_cv.read().version), 1)
@@ -678,10 +635,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv)
 
         for i in range(random.randint(3, 5)):
@@ -703,10 +657,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
 
         for i in range(random.randint(3, 5)):
@@ -728,13 +679,9 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         content_view.publish()
         content_view = content_view.read()
@@ -757,15 +704,11 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
 
         # Assign a puppet module and check that it is referenced.
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         self.assertEqual(len(content_view.read().puppet_module), 1)
 
@@ -813,7 +756,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             content_view.name,
             content_view_version_info.version,
             self.product.name,
-            self.swid_repo.name
+            self.swid_repo.name,
         )
         result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
         assert result.return_code == 0
@@ -854,7 +797,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             lce.name,
             content_view.name,
             self.product.name,
-            self.swid_repo.name
+            self.swid_repo.name,
         )
         result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
         assert result.return_code == 0
@@ -882,10 +825,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             promote(content_view.version[0], lce.id)
 
         # Does it show up in the correct number of lifecycle environments?
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment),
-            REPEAT + 1,
-        )
+        self.assertEqual(len(content_view.read().version[0].read().environment), REPEAT + 1)
 
     @tier2
     def test_positive_promote_with_yum_multiple(self):
@@ -939,13 +879,9 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         content_view.publish()
         content_view = content_view.read()
@@ -976,13 +912,9 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         :CaseImportance: Medium
         """
         content_view = entities.ContentView(organization=self.org).create()
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         content_view.publish()
         content_view = content_view.read()
@@ -1023,23 +955,14 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         content_view.publish()
         content_view = content_view.read()
 
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         composite_cv.component = content_view.version  # list of one CV version
         composite_cv = composite_cv.update(['component'])
 
         # composite CV → CV version == CV → CV version
-        self.assertEqual(
-            composite_cv.component[0].id,
-            content_view.version[0].id,
-        )
+        self.assertEqual(composite_cv.component[0].id, content_view.version[0].id)
         # composite CV → CV version → CV == CV
-        self.assertEqual(
-            composite_cv.component[0].read().content_view.id,
-            content_view.id,
-        )
+        self.assertEqual(composite_cv.component[0].read().content_view.id, content_view.id)
 
     @tier2
     def test_negative_add_components_to_composite(self):
@@ -1060,10 +983,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         content_view.publish()
         content_view = content_view.read()
 
-        non_composite_cv = entities.ContentView(
-            composite=False,
-            organization=self.org,
-        ).create()
+        non_composite_cv = entities.ContentView(composite=False, organization=self.org).create()
         non_composite_cv.component = content_view.version  # list of one cvv
         with self.assertRaises(HTTPError):
             non_composite_cv.update(['component'])
@@ -1083,10 +1003,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv)
         composite_cv.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
@@ -1111,10 +1028,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
         composite_cv.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
@@ -1138,10 +1052,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv)
         composite_cv.publish()
         composite_cv = composite_cv.read()
@@ -1152,10 +1063,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             promote(composite_cv.version[0], lce.id)
         composite_cv = composite_cv.read()
         self.assertEqual(len(composite_cv.version), 1)
-        self.assertEqual(
-            envs_amount + 1,
-            len(composite_cv.version[0].read().environment),
-        )
+        self.assertEqual(envs_amount + 1, len(composite_cv.version[0].read().environment))
 
     @upgrade
     @tier2
@@ -1173,10 +1081,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(
-            composite=True,
-            organization=self.org,
-        ).create()
+        composite_cv = entities.ContentView(composite=True, organization=self.org).create()
         self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
         composite_cv.publish()
         composite_cv = composite_cv.read()
@@ -1187,10 +1092,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             promote(composite_cv.version[0], lce.id)
         composite_cv = composite_cv.read()
         self.assertEqual(len(composite_cv.version), 1)
-        self.assertEqual(
-            envs_amount + 1,
-            len(composite_cv.version[0].read().environment),
-        )
+        self.assertEqual(envs_amount + 1, len(composite_cv.version[0].read().environment))
 
     @tier2
     def test_positive_promote_out_of_sequence(self):
@@ -1277,9 +1179,8 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         org = self.org
         product = self.product
         repo = entities.Repository(
-            content_type='yum',
-            product=product,
-            url=CUSTOM_MODULE_STREAM_REPO_2).create()
+            content_type='yum', product=product, url=CUSTOM_MODULE_STREAM_REPO_2
+        ).create()
         repo.sync()
         content_view_1 = entities.ContentView(organization=org).create()
         content_view_2 = entities.ContentView(organization=org).create()
@@ -1288,15 +1189,11 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         for content_view, package in [(content_view_1, 'camel'), (content_view_2, 'cow')]:
             content_view.repository = [repo]
             content_view.update(['repository'])
-            content_view_info = apply_package_filter(content_view, repo,
-                                                     package, inclusion=False,)
+            content_view_info = apply_package_filter(content_view, repo, package, inclusion=False)
             assert content_view_info.package_count == 35
 
         # create composite content view with these two published content views
-        comp_content_view = entities.ContentView(
-            composite=True,
-            organization=org,
-        ).create()
+        comp_content_view = entities.ContentView(composite=True, organization=org).create()
         content_view_1 = content_view_1.read()
         content_view_2 = content_view_2.read()
         for content_view_version in [content_view_1.version[-1], content_view_2.version[-1]]:
@@ -1306,12 +1203,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         comp_content_view = comp_content_view.read()
         comp_content_view_info = comp_content_view.version[0].read()
         assert comp_content_view_info.package_count == 36
-        result = ssh.command('ls -R /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-                             '/1.0/custom/{}/{}/'.format(org.label,
-                                                         comp_content_view.label,
-                                                         product.label,
-                                                         repo.label,
-                                                         ))
+        result = ssh.command(
+            'ls -R /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/'.format(
+                org.label, comp_content_view.label, product.label, repo.label
+            )
+        )
         output = ' '.join(result.stdout)
         assert 'cow' in output
         assert 'camel' in output
@@ -1356,8 +1253,9 @@ class ContentViewUpdateTestCase(APITestCase):
         """
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                updated = entities.ContentView(
-                    id=self.content_view.id, name=new_name).update(['name'])
+                updated = entities.ContentView(id=self.content_view.id, name=new_name).update(
+                    ['name']
+                )
                 self.assertEqual(new_name, updated.name)
 
     @tier1
@@ -1374,9 +1272,7 @@ class ContentViewUpdateTestCase(APITestCase):
         for new_name in invalid_names_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.ContentView(
-                        id=self.content_view.id,
-                        name=new_name).update(['name'])
+                    entities.ContentView(id=self.content_view.id, name=new_name).update(['name'])
                 cv = entities.ContentView(id=self.content_view.id).read()
                 self.assertNotEqual(cv.name, new_name)
 
@@ -1395,9 +1291,7 @@ class ContentViewUpdateTestCase(APITestCase):
         :BZ: 1147100
         """
         with self.assertRaises(HTTPError):
-            entities.ContentView(
-                id=self.content_view.id,
-                label=gen_utf8(30)).update(['label'])
+            entities.ContentView(id=self.content_view.id, label=gen_utf8(30)).update(['label'])
 
 
 class ContentViewDeleteTestCase(APITestCase):
@@ -1434,8 +1328,7 @@ class ContentViewRedHatContent(APITestCase):
         cls.org = entities.Organization().create()
         with manifests.clone() as manifest:
             entities.Subscription().upload(
-                data={'organization_id': cls.org.id},
-                files={'content': manifest.content},
+                data={'organization_id': cls.org.id}, files={'content': manifest.content}
             )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
@@ -1465,10 +1358,7 @@ class ContentViewRedHatContent(APITestCase):
         content_view.repository = [self.repo]
         content_view = content_view.update(['repository'])
         self.assertEqual(len(content_view.repository), 1)
-        self.assertEqual(
-            content_view.repository[0].read().name,
-            REPOS['rhst7']['name'],
-        )
+        self.assertEqual(content_view.repository[0].read().name, REPOS['rhst7']['name'])
 
     @tier2
     def test_positive_add_rh_custom_spin(self):
@@ -1490,17 +1380,13 @@ class ContentViewRedHatContent(APITestCase):
 
         # content_view ← cv_filter
         cv_filter = entities.RPMContentViewFilter(
-            content_view=content_view,
-            inclusion='true',
-            name=gen_string('alphanumeric'),
+            content_view=content_view, inclusion='true', name=gen_string('alphanumeric')
         ).create()
         self.assertEqual(content_view.id, cv_filter.content_view.id)
 
         # content_view ← cv_filter ← cv_filter_rule
         cv_filter_rule = entities.ContentViewFilterRule(
-            content_view_filter=cv_filter,
-            name=gen_string('alphanumeric'),
-            version='1.0',
+            content_view_filter=cv_filter, name=gen_string('alphanumeric'), version='1.0'
         ).create()
         self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
 
@@ -1523,17 +1409,13 @@ class ContentViewRedHatContent(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertEqual(len(content_view.repository), 1)
 
-        cvf = entities.ErratumContentViewFilter(
-            content_view=content_view,
-        ).create()
+        cvf = entities.ErratumContentViewFilter(content_view=content_view).create()
         self.assertEqual(content_view.id, cvf.content_view.id)
 
         cv_filter_rule = entities.ContentViewFilterRule(
-            content_view_filter=cvf,
-            types=[FILTER_ERRATA_TYPE['enhancement']]
+            content_view_filter=cvf, types=[FILTER_ERRATA_TYPE['enhancement']]
         ).create()
-        self.assertEqual(
-            cv_filter_rule.types, [FILTER_ERRATA_TYPE['enhancement']])
+        self.assertEqual(cv_filter_rule.types, [FILTER_ERRATA_TYPE['enhancement']])
 
         cv_filter_rule.types = [FILTER_ERRATA_TYPE['bugfix']]
         cv_filter_rule = cv_filter_rule.update(['types'])
@@ -1574,9 +1456,7 @@ class ContentViewRedHatContent(APITestCase):
         content_view.repository = [self.repo]
         content_view = content_view.update(['repository'])
         entities.RPMContentViewFilter(
-            content_view=content_view,
-            inclusion='true',
-            name=gen_string('alphanumeric'),
+            content_view=content_view, inclusion='true', name=gen_string('alphanumeric')
         ).create()
         content_view.publish()
         self.assertEqual(len(content_view.read().version), 1)
@@ -1600,8 +1480,7 @@ class ContentViewRedHatContent(APITestCase):
 
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         promote(content_view.read().version[0], lce.id)
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment), 2)
+        self.assertEqual(len(content_view.read().version[0].read().environment), 2)
 
     @upgrade
     @tier2
@@ -1621,20 +1500,16 @@ class ContentViewRedHatContent(APITestCase):
         content_view.repository = [self.repo]
         content_view = content_view.update(['repository'])
         entities.RPMContentViewFilter(
-            content_view=content_view,
-            inclusion='true',
-            name=gen_string('alphanumeric'),
+            content_view=content_view, inclusion='true', name=gen_string('alphanumeric')
         ).create()
         content_view.publish()
 
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         promote(content_view.read().version[0], lce.id)
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment), 2)
+        self.assertEqual(len(content_view.read().version[0].read().environment), 2)
 
 
 class ContentViewRolesTestCase(APITestCase):
-
     @classmethod
     def setUpClass(cls):
         """Set up organization for tests."""
@@ -1669,17 +1544,10 @@ class ContentViewRolesTestCase(APITestCase):
         role = entities.Role().create()
         for res_type in ['Katello::ContentView', 'Katello::KTEnvironment']:
             permission = entities.Permission(resource_type=res_type).search()
-            entities.Filter(
-                organization=[self.org],
-                permission=permission,
-                role=role
-            ).create()
+            entities.Filter(organization=[self.org], permission=permission, role=role).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[self.org],
-            role=[role],
-            login=user_login,
-            password=user_password
+            organization=[self.org], role=[role], login=user_login, password=user_password
         ).create()
         content_view = entities.ContentView(organization=self.org).create()
         cfg = get_nailgun_config()
@@ -1690,8 +1558,7 @@ class ContentViewRolesTestCase(APITestCase):
         # Check Read functionality
         content_view = entities.ContentView(cfg, id=content_view.id).read()
         # Check Modify functionality
-        entities.ContentView(
-            cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+        entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
         # Publish the content view.
         content_view.publish()
         content_view = content_view.read()
@@ -1730,25 +1597,22 @@ class ContentViewRolesTestCase(APITestCase):
         role = entities.Role().create()
         entities.Filter(
             organization=[self.org],
-            permission=entities.Permission(
-                resource_type='Katello::ContentView').search(
-                filters={'name': 'view_content_views'}),
+            permission=entities.Permission(resource_type='Katello::ContentView').search(
+                filters={'name': 'view_content_views'}
+            ),
             role=role,
         ).create()
         # create read only products permissions and assign it to our role
         entities.Filter(
             organization=[self.org],
-            permission=entities.Permission(
-                resource_type='Katello::Product').search(
-                filters={'name': 'view_products'}),
+            permission=entities.Permission(resource_type='Katello::Product').search(
+                filters={'name': 'view_products'}
+            ),
             role=role,
         ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[self.org],
-            role=[role],
-            login=user_login,
-            password=user_password
+            organization=[self.org], role=[role], login=user_login, password=user_password
         ).create()
         # Create new content view entity using admin user
         content_view = entities.ContentView(organization=self.org).create()
@@ -1793,24 +1657,20 @@ class ContentViewRolesTestCase(APITestCase):
         role = entities.Role().create()
         entities.Filter(
             organization=[self.org],
-            permission=entities.Permission(
-                resource_type='Katello::ContentView').search(
-                filters={'name': 'view_content_views'}),
+            permission=entities.Permission(resource_type='Katello::ContentView').search(
+                filters={'name': 'view_content_views'}
+            ),
             role=role,
         ).create()
         # create environment permissions and assign it to our role
         entities.Filter(
             organization=[self.org],
-            permission=entities.Permission(
-                resource_type='Katello::KTEnvironment').search(),
+            permission=entities.Permission(resource_type='Katello::KTEnvironment').search(),
             role=role,
         ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[self.org],
-            role=[role],
-            login=user_login,
-            password=user_password
+            organization=[self.org], role=[role], login=user_login, password=user_password
         ).create()
         # Create new content view entity using admin user
         content_view = entities.ContentView(organization=self.org).create()
@@ -1823,9 +1683,9 @@ class ContentViewRolesTestCase(APITestCase):
         content_view = entities.ContentView(cfg, id=content_view.id).read()
         # Check that we cannot modify content view with custom user
         with self.assertRaises(HTTPError):
-            entities.ContentView(
-                cfg, id=content_view.id, name=gen_string('alpha')
-            ).update(['name'])
+            entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(
+                ['name']
+            )
         # Check that we cannot delete content view due read-only permission
         with self.assertRaises(HTTPError):
             content_view.delete()
@@ -1862,25 +1722,19 @@ class ContentViewRolesTestCase(APITestCase):
         # view_content_views
         role = entities.Role().create()
         cv_permissions_entities = entities.Permission(
-            resource_type='Katello::ContentView').search()
+            resource_type='Katello::ContentView'
+        ).search()
         user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
         user_cv_permissions.remove('view_content_views')
         user_cv_permissions_entities = [
-            entity
-            for entity in cv_permissions_entities
-            if entity.name in user_cv_permissions
+            entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
         ]
         entities.Filter(
-            organization=[self.org],
-            permission=user_cv_permissions_entities,
-            role=role,
+            organization=[self.org], permission=user_cv_permissions_entities, role=role
         ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[self.org],
-            role=[role],
-            login=user_login,
-            password=user_password
+            organization=[self.org], role=[role], login=user_login, password=user_password
         ).create()
         # Create new content view entity using admin user
         content_view = entities.ContentView(organization=self.org).create()
@@ -1907,23 +1761,15 @@ class OstreeContentViewTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.ostree_repo = entities.Repository(
-            product=cls.product,
-            content_type='ostree',
-            url=FEDORA27_OSTREE_REPO,
-            unprotected=False
+            product=cls.product, content_type='ostree', url=FEDORA27_OSTREE_REPO, unprotected=False
         ).create()
         cls.ostree_repo.sync()
         # Create new yum repository
-        cls.yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-            product=cls.product,
-        ).create()
+        cls.yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=cls.product).create()
         cls.yum_repo.sync()
         # Create new Puppet repository
         cls.puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type='puppet',
-            product=cls.product,
+            url=FAKE_0_PUPPET_REPO, content_type='puppet', product=cls.product
         ).create()
         cls.puppet_repo.sync()
         # Create new docker repository
@@ -1953,10 +1799,7 @@ class OstreeContentViewTestCase(APITestCase):
         content_view.repository = [self.ostree_repo]
         content_view = content_view.update(['repository'])
         self.assertEqual(len(content_view.repository), 1)
-        self.assertEqual(
-            content_view.repository[0].read().name,
-            self.ostree_repo.name
-        )
+        self.assertEqual(content_view.repository[0].read().name, self.ostree_repo.name)
 
     @tier2
     def test_positive_publish_custom_ostree(self):
@@ -1996,8 +1839,7 @@ class OstreeContentViewTestCase(APITestCase):
         content_view.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         promote(content_view.read().version[0], lce.id)
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment), 2)
+        self.assertEqual(len(content_view.read().version[0].read().environment), 2)
 
     @upgrade
     @tier2
@@ -2014,28 +1856,19 @@ class OstreeContentViewTestCase(APITestCase):
         :CaseImportance: High
         """
         content_view = entities.ContentView(organization=self.org).create()
-        content_view.repository = [
-            self.ostree_repo,
-            self.yum_repo,
-            self.docker_repo
-        ]
+        content_view.repository = [self.ostree_repo, self.yum_repo, self.docker_repo]
         content_view = content_view.update(['repository'])
         self.assertEqual(len(content_view.repository), 3)
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         self.assertEqual(len(content_view.read().puppet_module), 1)
         content_view.publish()
         self.assertEqual(len(content_view.read().version), 1)
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         promote(content_view.read().version[0], lce.id)
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment), 2)
+        self.assertEqual(len(content_view.read().version[0].read().environment), 2)
 
 
 @pytest.mark.skip_if_open("BZ:1625783")
@@ -2053,8 +1886,7 @@ class ContentViewRedHatOstreeContent(APITestCase):
         cls.org = entities.Organization().create()
         with manifests.clone() as manifest:
             entities.Subscription().upload(
-                data={'organization_id': cls.org.id},
-                files={'content': manifest.content},
+                data={'organization_id': cls.org.id}, files={'content': manifest.content}
             )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,
@@ -2085,10 +1917,7 @@ class ContentViewRedHatOstreeContent(APITestCase):
         content_view.repository = [self.repo]
         content_view = content_view.update(['repository'])
         self.assertEqual(len(content_view.repository), 1)
-        self.assertEqual(
-            content_view.repository[0].read().name,
-            REPOS['rhaht']['name'],
-        )
+        self.assertEqual(content_view.repository[0].read().name, REPOS['rhaht']['name'])
 
     @tier2
     def test_positive_publish_RH_ostree(self):
@@ -2128,8 +1957,7 @@ class ContentViewRedHatOstreeContent(APITestCase):
         content_view.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         promote(content_view.read().version[0], lce.id)
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment), 2)
+        self.assertEqual(len(content_view.read().version[0].read().environment), 2)
 
     @upgrade
     @tier2
@@ -2163,14 +1991,14 @@ class ContentViewRedHatOstreeContent(APITestCase):
         content_view.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         promote(content_view.read().version[0], lce.id)
-        self.assertEqual(
-            len(content_view.read().version[0].read().environment), 2)
+        self.assertEqual(len(content_view.read().version[0].read().environment), 2)
 
 
 class ContentViewFileRepoTestCase(APITestCase):
     """Specific tests for Content Views with File Repositories containing
     arbitrary files
     """
+
     @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):

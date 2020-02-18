@@ -41,10 +41,9 @@ class PingTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        result = ssh.command('hammer -u {0} -p {1} ping'.format(
-            self.foreman_user,
-            self.foreman_password
-        ))
+        result = ssh.command(
+            'hammer -u {0} -p {1} ping'.format(self.foreman_user, self.foreman_password)
+        )
         self.assertEqual(len(result.stderr), 0)
 
         status_count = 0
@@ -61,9 +60,9 @@ class PingTestCase(CLITestCase):
 
         if status_count == ok_count:
             self.assertEqual(
-                result.return_code, 0,
-                'Return code should be 0 if all services are ok')
+                result.return_code, 0, 'Return code should be 0 if all services are ok'
+            )
         else:
             self.assertNotEqual(
-                result.return_code, 0,
-                'Return code should not be 0 if any service is not ok')
+                result.return_code, 0, 'Return code should not be 0 if any service is not ok'
+            )

@@ -36,6 +36,7 @@ class scenario_positive_hostgroup(APITestCase):
 
     :expectedresults: Hostgroup should create, update, clone and delete successfully.
     """
+
     @classmethod
     def setUpClass(cls):
         cls.hostgroup_name = 'preupgrade_hostgroup'
@@ -43,9 +44,9 @@ class scenario_positive_hostgroup(APITestCase):
         cls.subnet_name = 'pre_upgrade_hostgrp_subnet'
         cls.os_name = 'pre_upgrade_hostgrp_os'
         cls.domain_name = 'pre_upgrade_hostgrp_domain'
-        cls.proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        cls.proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
 
     def setupScenario(self):
         """Create hostgroup and its dependant entities
@@ -53,27 +54,20 @@ class scenario_positive_hostgroup(APITestCase):
         self.org = entities.Organization().create()
         self.loc = entities.Location(organization=[self.org]).create()
         self.parent_hostgroup = entities.HostGroup(
-            location=[self.loc.id],
-            organization=[self.org.id],
-            name=self.parent_name
+            location=[self.loc.id], organization=[self.org.id], name=self.parent_name
         ).create()
         self.lc_env = entities.LifecycleEnvironment(
-            name=gen_string('alpha'),
-            organization=self.org,
+            name=gen_string('alpha'), organization=self.org
         ).create()
         self.domain = entities.Domain(name=self.domain_name).create()
         self.architecture = entities.Architecture().create()
         self.ptable = entities.PartitionTable().create()
         self.operatingsystem = entities.OperatingSystem(
-            architecture=[self.architecture],
-            ptable=[self.ptable],
-            name=self.os_name
+            architecture=[self.architecture], ptable=[self.ptable], name=self.os_name
         ).create()
         self.medium = entities.Media(operatingsystem=[self.operatingsystem]).create()
         self.subnet = entities.Subnet(
-            location=[self.loc],
-            organization=[self.org],
-            name=self.subnet_name
+            location=[self.loc], organization=[self.org], name=self.subnet_name
         ).create()
 
     @pre_upgrade
@@ -102,7 +96,7 @@ class scenario_positive_hostgroup(APITestCase):
             parent=self.parent_hostgroup,
             lifecycle_environment=self.lc_env,
             content_source=self.proxy,
-            root_pass='rootpass'
+            root_pass='rootpass',
         ).create()
         self.assertEqual(self.hostgroup_name, host_group.name)
 
@@ -122,21 +116,13 @@ class scenario_positive_hostgroup(APITestCase):
         :expectedresults: Hostgroup should update, clone and delete successfully.
         """
         # verify hostgroup is intact after upgrade
-        hostgrp = entities.HostGroup().search(query={
-            'search': 'name={0}'.format(self.hostgroup_name)
-        })
-        domain = entities.Domain().search(query={
-            'search': 'name={0}'.format(self.domain_name)
-        })
-        subnet = entities.Subnet().search(query={
-            'search': 'name={0}'.format(self.subnet_name)
-        })
-        parent = entities.HostGroup().search(query={
-            'search': 'name={0}'.format(self.parent_name)
-        })
-        os = entities.OperatingSystem().search(query={
-            'search': 'name={0}'.format(self.os_name)
-        })
+        hostgrp = entities.HostGroup().search(
+            query={'search': 'name={0}'.format(self.hostgroup_name)}
+        )
+        domain = entities.Domain().search(query={'search': 'name={0}'.format(self.domain_name)})
+        subnet = entities.Subnet().search(query={'search': 'name={0}'.format(self.subnet_name)})
+        parent = entities.HostGroup().search(query={'search': 'name={0}'.format(self.parent_name)})
+        os = entities.OperatingSystem().search(query={'search': 'name={0}'.format(self.os_name)})
         self.assertEqual(self.hostgroup_name, hostgrp[0].name)
         self.assertEqual(domain[0].id, hostgrp[0].domain.id)
         self.assertEqual(subnet[0].id, hostgrp[0].subnet.id)
@@ -165,9 +151,9 @@ class scenario_positive_hostgroup(APITestCase):
 
         # clone hostgroup
         hostgroup_cloned_name = gen_string('alpha')
-        hostgroup_cloned = entities.HostGroup(
-            id=hostgrp[0].id
-        ).clone(data={'name': hostgroup_cloned_name})
+        hostgroup_cloned = entities.HostGroup(id=hostgrp[0].id).clone(
+            data={'name': hostgroup_cloned_name}
+        )
         hostgroup_origin = hostgrp[0].read_json()
 
         # remove unset values before comparison

@@ -87,17 +87,12 @@ def parse_help(output):
     subcommands_section_state = 1
     options_section_state = 2
 
-    contents = {
-        'subcommands': [],
-        'options': [],
-    }
+    contents = {'subcommands': [], 'options': []}
     option_regex = re.compile(
         r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w-]+))?'
         r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>\w+))?\s+(?P<help>.*)$'
     )
-    subcommand_regex = re.compile(
-        r'^ (?P<name>[\w-]+)?\s+(?P<description>.*)$'
-    )
+    subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?\s+(?P<description>.*)$')
 
     for line in output:
         if len(line.strip()) == 0:
@@ -114,29 +109,28 @@ def parse_help(output):
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['subcommands'][-1]['description'] += (
-                    u' {0}'.format(match.group('description'))
+                contents['subcommands'][-1]['description'] += u' {0}'.format(
+                    match.group('description')
                 )
             else:
-                contents['subcommands'].append({
-                    u'name': match.group('name'),
-                    u'description': match.group('description'),
-                })
+                contents['subcommands'].append(
+                    {u'name': match.group('name'), u'description': match.group('description')}
+                )
         if state == options_section_state:
             match = option_regex.search(line)
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['options'][-1]['help'] += (
-                    u' {0}'.format(match.group('help'))
-                )
+                contents['options'][-1]['help'] += u' {0}'.format(match.group('help'))
             else:
-                contents['options'].append({
-                    u'name': match.group('name'),
-                    u'shortname': match.group('shortname'),
-                    u'value': match.group('value'),
-                    u'help': match.group('help'),
-                })
+                contents['options'].append(
+                    {
+                        u'name': match.group('name'),
+                        u'shortname': match.group('shortname'),
+                        u'value': match.group('value'),
+                        u'help': match.group('help'),
+                    }
+                )
 
     return contents
 
@@ -181,8 +175,7 @@ def get_line_indentation_level(line, tab_spaces=4, indentation_spaces=4):
         assert get_line_indentation_level('        level 2') == 2
 
     """
-    return get_line_indentation_spaces(
-        line, tab_spaces=tab_spaces)//indentation_spaces
+    return get_line_indentation_spaces(line, tab_spaces=tab_spaces) // indentation_spaces
 
 
 def parse_info(output):
@@ -207,8 +200,7 @@ def parse_info(output):
             # entity name like 'test::params::keys'
             if line.find(':') != -1 and not line.find('::') != -1:
                 key, value = line.lstrip().split(":", 1)
-            elif line.find('=>') != -1 and len(
-                    line.lstrip().split(" =>", 1)) == 2:
+            elif line.find('=>') != -1 and len(line.lstrip().split(" =>", 1)) == 2:
                 key, value = line.lstrip().split(" =>", 1)
             else:
                 key = value = None

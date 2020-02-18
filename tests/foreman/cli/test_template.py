@@ -62,10 +62,7 @@ class TemplateTestCase(CLITestCase):
         """
         template = make_template()
         updated_name = gen_string('alpha')
-        Template.update({
-            'id': template['id'],
-            'name': updated_name,
-        })
+        Template.update({'id': template['id'], 'name': updated_name})
         template = Template.info({'id': template['id']})
         self.assertEqual(updated_name, template['name'])
 
@@ -88,20 +85,22 @@ class TemplateTestCase(CLITestCase):
         password = gen_string('alpha')
         org = make_org()
         loc = make_location()
-        template = make_template({
-            'organization-ids': org['id'], 'location-ids': loc['id']})
+        template = make_template({'organization-ids': org['id'], 'location-ids': loc['id']})
         # Create user with Manager role
-        user = make_user({
-            'login': username,
-            'password': password,
-            'admin': False,
-            'organization-ids': org['id'],
-            'location-ids': loc['id'],
-        })
+        user = make_user(
+            {
+                'login': username,
+                'password': password,
+                'admin': False,
+                'organization-ids': org['id'],
+                'location-ids': loc['id'],
+            }
+        )
         User.add_role({'id': user['id'], 'role': "Manager"})
         # Update template name with that user
-        Template.with_user(username=username, password=password).update({
-            'id': template['id'], 'name': new_name})
+        Template.with_user(username=username, password=password).update(
+            {'id': template['id'], 'name': new_name}
+        )
         template = Template.info({'id': template['id']})
         self.assertEqual(new_name, template['name'])
 
@@ -131,10 +130,7 @@ class TemplateTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        new_template = make_template({
-            'locked': 'true',
-            'name': gen_string('alpha'),
-        })
+        new_template = make_template({'locked': 'true', 'name': gen_string('alpha')})
         self.assertEqual(new_template['locked'], 'yes')
 
     @tier2
@@ -149,10 +145,9 @@ class TemplateTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         new_org = make_org()
-        new_template = make_template({
-            'name': gen_string('alpha'),
-            'organization-ids': new_org['id'],
-        })
+        new_template = make_template(
+            {'name': gen_string('alpha'), 'organization-ids': new_org['id']}
+        )
         self.assertIn(new_org['name'], new_template['organizations'])
 
     @tier2
@@ -168,13 +163,13 @@ class TemplateTestCase(CLITestCase):
         """
         new_template = make_template()
         new_os = make_os()
-        Template.add_operatingsystem({
-            'id': new_template['id'],
-            'operatingsystem-id': new_os['id'],
-        })
+        Template.add_operatingsystem(
+            {'id': new_template['id'], 'operatingsystem-id': new_os['id']}
+        )
         new_template = Template.info({'id': new_template['id']})
         os_string = '{0} {1}.{2}'.format(
-            new_os['name'], new_os['major-version'], new_os['minor-version'])
+            new_os['name'], new_os['major-version'], new_os['minor-version']
+        )
         self.assertIn(os_string, new_template['operating-systems'])
 
     @tier2
@@ -193,19 +188,13 @@ class TemplateTestCase(CLITestCase):
         """
         template = make_template()
         new_os = make_os()
-        Template.add_operatingsystem({
-            'id': template['id'],
-            'operatingsystem-id': new_os['id'],
-        })
+        Template.add_operatingsystem({'id': template['id'], 'operatingsystem-id': new_os['id']})
         template = Template.info({'id': template['id']})
         os_string = '{0} {1}.{2}'.format(
             new_os['name'], new_os['major-version'], new_os['minor-version']
         )
         self.assertIn(os_string, template['operating-systems'])
-        Template.remove_operatingsystem({
-            'id': template['id'],
-            'operatingsystem-id': new_os['id']
-        })
+        Template.remove_operatingsystem({'id': template['id'], 'operatingsystem-id': new_os['id']})
         template = Template.info({'id': template['id']})
         self.assertNotIn(os_string, template['operating-systems'])
 
@@ -222,10 +211,7 @@ class TemplateTestCase(CLITestCase):
         """
         content = gen_string('alpha')
         name = gen_string('alpha')
-        template = make_template({
-            'content': content,
-            'name': name,
-        })
+        template = make_template({'content': content, 'name': name})
         self.assertEqual(template['name'], name)
         template_content = Template.dump({'id': template['id']})
         self.assertIn(content, template_content[0])
@@ -259,10 +245,7 @@ class TemplateTestCase(CLITestCase):
         """
         cloned_template_name = gen_string('alpha')
         template = make_template()
-        result = Template.clone({
-            'id': template['id'],
-            'new-name': cloned_template_name,
-        })
+        result = Template.clone({'id': template['id'], 'new-name': cloned_template_name})
         new_template = Template.info({'id': result[0]['id']})
         self.assertEqual(new_template['name'], cloned_template_name)
 

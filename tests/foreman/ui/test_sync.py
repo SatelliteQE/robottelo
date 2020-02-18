@@ -68,11 +68,9 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 
     :CaseImportance: Critical
     """
-    repo = entities.Repository(
-        url=FAKE_1_YUM_REPO, product=module_custom_product).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=module_custom_product).create()
     with session:
-        results = session.sync_status.synchronize([
-            (module_custom_product.name, repo.name)])
+        results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
 
@@ -90,10 +88,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 
     :CaseLevel: Integration
     """
-    repos = (
-        SatelliteCapsuleRepository(cdn=True),
-        RHELCloudFormsTools(cdn=True)
-    )
+    repos = (SatelliteCapsuleRepository(cdn=True), RHELCloudFormsTools(cdn=True))
     distros = [DISTRO_RHEL7, DISTRO_RHEL6]
     repo_collections = [
         RepositoryCollection(distro=distro, repositories=[repo])
@@ -139,8 +134,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
         unprotected=False,
     ).create()
     with session:
-        results = session.sync_status.synchronize([
-            (module_custom_product.name, repo.name)])
+        results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
 
@@ -176,8 +170,7 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
     )
     with session:
         session.organization.select(org_name=module_org_with_manifest.name)
-        results = session.sync_status.synchronize([
-            (PRDS['rhah'], REPOS['rhaht']['name'])])
+        results = session.sync_status.synchronize([(PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
 
@@ -199,10 +192,12 @@ def test_positive_sync_docker_via_sync_status(session, module_org):
     with session:
         session.repository.create(
             product.name,
-            {'name': repo_name,
-             'repo_type': REPO_TYPE['docker'],
-             'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
-             'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME}
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['docker'],
+                'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
+                'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME,
+            },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
         result = session.sync_status.synchronize([(product.name, repo_name)])

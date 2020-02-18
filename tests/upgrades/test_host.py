@@ -58,20 +58,21 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
         1. The host should be provisioned on GCE CR created in previous version
         2. The GCE CR attributes should be manipulated
     """
+
     @classmethod
     def setUpClass(cls):
         cls.fullhost = None
         cls.arch = entities.Architecture().search(query={'search': 'name=x86_64'})[0]
-        cls.os = entities.OperatingSystem().search(
-            query={'search': 'family=Redhat and major=7'})[0]
+        cls.os = entities.OperatingSystem().search(query={'search': 'family=Redhat and major=7'})[
+            0
+        ]
         download_gce_cert()
         cls.domain_name = settings.server.hostname.split('.', 1)[1]
 
     @classmethod
     def tearDownClass(cls):
         if cls.fullhost:
-            hst = entities.Host().search(
-                query={'search': 'name={}'.format(cls.fullhost)})
+            hst = entities.Host().search(query={'search': 'name={}'.format(cls.fullhost)})
             if hst:
                 entities.Host(id=hst[0].id).delete()
 
@@ -84,22 +85,32 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
         loc = entities.Location().create()
         with Session('gce_upgrade_tests') as session:
             # Compute Resource Create and Assertions
-            session.computeresource.create({
-                'name': cr_name,
-                'provider': FOREMAN_PROVIDERS['google'],
-                'provider_content.google_project_id': GCE_SETTINGS['project_id'],
-                'provider_content.client_email': GCE_SETTINGS['client_email'],
-                'provider_content.certificate_path': GCE_SETTINGS['cert_path'],
-                'provider_content.zone.value': GCE_SETTINGS['zone'],
-                'organizations.resources.assigned': [org.name],
-                'locations.resources.assigned': [loc.name]})
+            session.computeresource.create(
+                {
+                    'name': cr_name,
+                    'provider': FOREMAN_PROVIDERS['google'],
+                    'provider_content.google_project_id': GCE_SETTINGS['project_id'],
+                    'provider_content.client_email': GCE_SETTINGS['client_email'],
+                    'provider_content.certificate_path': GCE_SETTINGS['cert_path'],
+                    'provider_content.zone.value': GCE_SETTINGS['zone'],
+                    'organizations.resources.assigned': [org.name],
+                    'locations.resources.assigned': [loc.name],
+                }
+            )
         gce_cr = entities.AbstractComputeResource().search(
-            query={'search': 'name={}'.format(cr_name)})[0]
+            query={'search': 'name={}'.format(cr_name)}
+        )[0]
         gce_img = entities.Image(
-            architecture=self.arch, compute_resource=gce_cr, name='autoupgrade_gce_img',
-            operatingsystem=self.os, username='gceautou', uuid=LATEST_RHEL7_GCE_IMG_UUID).create()
-        create_dict({self.__class__.__name__: {
-            'org': org.name, 'loc': loc.name, 'cr_name': cr_name}})
+            architecture=self.arch,
+            compute_resource=gce_cr,
+            name='autoupgrade_gce_img',
+            operatingsystem=self.os,
+            username='gceautou',
+            uuid=LATEST_RHEL7_GCE_IMG_UUID,
+        ).create()
+        create_dict(
+            {self.__class__.__name__: {'org': org.name, 'loc': loc.name, 'cr_name': cr_name}}
+        )
         assert gce_cr.name == cr_name
         assert gce_img.name == 'autoupgrade_gce_img'
 
@@ -111,14 +122,19 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
         self.__class__.fullhost = '{}.{}'.format(hostname, self.domain_name).lower()
         preentities = get_entity_data(self.__class__.__name__)
         gce_cr = entities.GCEComputeResource().search(
-            query={'search': 'name={}'.format(preentities['cr_name'])})[0]
+            query={'search': 'name={}'.format(preentities['cr_name'])}
+        )[0]
         org = entities.Organization().search(
-            query={'search': 'name={}'.format(preentities['org'])})[0]
-        loc = entities.Location().search(
-            query={'search': 'name={}'.format(preentities['loc'])})[0]
+            query={'search': 'name={}'.format(preentities['org'])}
+        )[0]
+        loc = entities.Location().search(query={'search': 'name={}'.format(preentities['loc'])})[0]
         compute_attrs = {
-            'machine_type': 'g1-small', 'network': 'default', 'associate_external_ip': True,
-            'volumes_attributes': {'0': {'size_gb': '10'}}, 'image_id': LATEST_RHEL7_GCE_IMG_UUID}
+            'machine_type': 'g1-small',
+            'network': 'default',
+            'associate_external_ip': True,
+            'volumes_attributes': {'0': {'size_gb': '10'}},
+            'image_id': LATEST_RHEL7_GCE_IMG_UUID,
+        }
         # Host Provisioning Tests
         try:
             skip_yum_update_during_provisioning(template='Kickstart default finish')
@@ -130,21 +146,23 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
                 architecture=self.arch,
                 compute_resource=gce_cr,
                 domain=entities.Domain().search(
-                    query={'search': 'name={}'.format(self.domain_name)})[0],
+                    query={'search': 'name={}'.format(self.domain_name)}
+                )[0],
                 compute_attributes=compute_attrs,
                 operatingsystem=self.os,
-                provision_method='image'
+                provision_method='image',
             ).create()
         finally:
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
         wait_for(
-            lambda: entities.Host().search(
-                query={'search': 'name={}'.format(self.fullhost)}
-            )[0].build_status_label == 'Installed',
+            lambda: entities.Host()
+            .search(query={'search': 'name={}'.format(self.fullhost)})[0]
+            .build_status_label
+            == 'Installed',
             timeout=400,
             delay=15,
             silent_failure=True,
-            handle_exception=True
+            handle_exception=True,
         )
         assert gce_hst.name == self.fullhost
         gce_hst = entities.Host(id=gce_hst.id).read()

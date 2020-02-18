@@ -177,10 +177,7 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         location = make_location()
-        user = make_user({
-            'default-location-id': location['id'],
-            'location-ids': location['id'],
-        })
+        user = make_user({'default-location-id': location['id'], 'location-ids': location['id']})
         self.assertIn(location['name'], user['locations'])
         self.assertEqual(location['name'], user['default-location'])
 
@@ -196,10 +193,7 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         org = make_org()
-        user = make_user({
-            'default-organization-id': org['id'],
-            'organization-ids': org['id'],
-        })
+        user = make_user({'default-organization-id': org['id'], 'organization-ids': org['id']})
         self.assertIn(org['name'], user['organizations'])
         self.assertEqual(org['name'], user['default-organization'])
 
@@ -263,9 +257,10 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         invalid_names = (
-            '', 'space {0}'.format(gen_string('alpha')),
+            '',
+            'space {0}'.format(gen_string('alpha')),
             gen_string('alpha', 101),
-            gen_string('html')
+            gen_string('html'),
         )
         for invalid_name in invalid_names:
             with self.subTest(invalid_name):
@@ -276,10 +271,7 @@ class UserTestCase(CLITestCase):
                     'password': gen_string('alpha'),
                 }
                 self.logger.debug(str(options))
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not create the user:'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user:'):
                     User.create(options)
 
     @tier1
@@ -302,10 +294,7 @@ class UserTestCase(CLITestCase):
                     'mail': 'root@localhost',
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not create the user'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user'):
                     User.create(options)
 
     @tier1
@@ -328,10 +317,7 @@ class UserTestCase(CLITestCase):
                     'mail': 'root@localhost',
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not create the user'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user'):
                     User.create(options)
 
     @tier1
@@ -354,10 +340,7 @@ class UserTestCase(CLITestCase):
                     'mail': email,
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not create the user'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user'):
                     User.create(options)
 
     @tier1
@@ -370,15 +353,10 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(
-            CLIReturnCodeError,
-            u'Could not create the user:'
-        ):
-            User.create({
-                'auth-source-id': '',
-                'login': gen_string('alpha'),
-                'mail': 'root@localhost',
-            })
+        with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user:'):
+            User.create(
+                {'auth-source-id': '', 'login': gen_string('alpha'), 'mail': 'root@localhost'}
+            )
 
     @tier1
     def test_negative_create_with_blank_authorized_by_full(self):
@@ -392,16 +370,15 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(
-            CLIReturnCodeError,
-            u'Could not create the user:'
-        ):
-            User.create({
-                'auth-source-id': '',
-                'login': gen_string('alpha'),
-                'mail': 'root@localhost',
-                'password': gen_string('alpha'),
-            })
+        with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user:'):
+            User.create(
+                {
+                    'auth-source-id': '',
+                    'login': gen_string('alpha'),
+                    'mail': 'root@localhost',
+                    'password': gen_string('alpha'),
+                }
+            )
 
     @tier1
     def test_positive_update_to_non_admin(self):
@@ -415,10 +392,7 @@ class UserTestCase(CLITestCase):
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
-        User.update({
-            'id': user['id'],
-            'admin': '0',
-        })
+        User.update({'id': user['id'], 'admin': '0'})
         user = User.info({'id': user['id']})
         self.assertEqual(user['admin'], 'no')
 
@@ -484,10 +458,7 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(
-            CLIReturnCodeError,
-            u'Could not delete the user:'
-        ):
+        with self.assertRaisesRegex(CLIReturnCodeError, u'Could not delete the user:'):
             User.delete({'login': self.foreman_user})
         self.assertTrue(User.info({'login': self.foreman_user}))
 
@@ -504,14 +475,11 @@ class UserTestCase(CLITestCase):
         for login in valid_usernames_list():
             with self.subTest(login):
                 user = make_user({'login': login})
-                result = User.list({
-                    u'search': u'login = {0}'.format(login),
-                })
+                result = User.list({u'search': u'login = {0}'.format(login)})
                 self.assertEqual(len(result), 1)
                 # make sure user is in list result
                 self.assertEqual(
-                    {user['id'], user['login']},
-                    {result[0]['id'], result[0]['login']}
+                    {user['id'], user['login']}, {result[0]['id'], result[0]['login']}
                 )
 
     @tier1
@@ -527,13 +495,11 @@ class UserTestCase(CLITestCase):
         for firstname in valid_usernames_list():
             with self.subTest(firstname):
                 user = make_user({'firstname': firstname})
-                result = User.list({
-                    u'search': u'firstname = {0}'.format(firstname),
-                })
+                result = User.list({u'search': u'firstname = {0}'.format(firstname)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['id'], user['login'], user['name']},
-                    {result[0]['id'], result[0]['login'], result[0]['name']}
+                    {result[0]['id'], result[0]['login'], result[0]['name']},
                 )
 
     @tier1
@@ -549,13 +515,11 @@ class UserTestCase(CLITestCase):
         for lastname in valid_usernames_list():
             with self.subTest(lastname):
                 user = make_user({'lastname': lastname})
-                result = User.list({
-                    u'search': u'lastname = {0}'.format(lastname),
-                })
+                result = User.list({u'search': u'lastname = {0}'.format(lastname)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['id'], user['login'], user['name']},
-                    {result[0]['id'], result[0]['login'], result[0]['name']}
+                    {result[0]['id'], result[0]['login'], result[0]['name']},
                 )
 
     @tier1
@@ -572,18 +536,16 @@ class UserTestCase(CLITestCase):
             gen_string("alpha") + "@somemail.com",
             gen_string("alphanumeric", 10) + "@somemail.com",
             gen_string("numeric") + "@somemail.com",
-            gen_string("alphanumeric", 50) + "@somem.com"
+            gen_string("alphanumeric", 50) + "@somem.com",
         )
         for mail in valid_emails:
             with self.subTest(mail):
                 user = make_user({'mail': mail})
-                result = User.list({
-                    u'search': u'mail = {0}'.format(mail),
-                })
+                result = User.list({u'search': u'mail = {0}'.format(mail)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['email'], user['id'], user['login']},
-                    {result[0]['email'], result[0]['id'], result[0]['login']}
+                    {result[0]['email'], result[0]['id'], result[0]['login']},
                 )
 
     @tier1
@@ -600,18 +562,16 @@ class UserTestCase(CLITestCase):
         """
         valid_mails = (
             gen_string("latin1") + "@somemail.com",
-            gen_string("utf8") + "@somemail.com"
+            gen_string("utf8") + "@somemail.com",
         )
         for mail in valid_mails:
             with self.subTest(mail):
                 user = make_user({'mail': mail})
-                result = User.list({
-                    u'search': u'mail = {0}'.format(mail),
-                })
+                result = User.list({u'search': u'mail = {0}'.format(mail)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['email'], user['id'], user['login']},
-                    {result[0]['email'], result[0]['id'], result[0]['login']}
+                    {result[0]['email'], result[0]['id'], result[0]['login']},
                 )
 
     @stubbed()
@@ -688,8 +648,9 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         cls.stubbed_roles = {role['id']: role for role in roles_helper()}
         # Get all user roles except default one due to BZ 1518654
-        cls.all_user_roles = {role['id']: role for role in Role.list()
-                              if role['name'] != DEFAULT_ROLE}
+        cls.all_user_roles = {
+            role['id']: role for role in Role.list() if role['name'] != DEFAULT_ROLE
+        }
 
     @classmethod
     def tearDownClass(cls):
@@ -718,10 +679,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         for role_id, role in roles_dct.items():
             User.add_role({'login': user['login'], 'role-id': role_id})
             expected_role_names.add(role['name'])
-        self.assertItemsEqual(
-            expected_role_names,
-            User.info({'id': user['id']})['roles']
-        )
+        self.assertItemsEqual(expected_role_names, User.info({'id': user['id']})['roles'])
 
     @tier1
     def test_positive_update_firstname(self):
@@ -736,10 +694,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for new_firstname in valid_usernames_list():
             with self.subTest(new_firstname):
-                User.update({
-                    'firstname': new_firstname,
-                    'id': user['id'],
-                })
+                User.update({'firstname': new_firstname, 'id': user['id']})
                 result = User.info({'id': user['id']})
                 user_name = result['name'].split(' ')
                 self.assertEqual(user_name[0], new_firstname)
@@ -758,10 +713,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         include_list = [gen_string("alphanumeric", 100)]
         for new_login in valid_usernames_list() + include_list:
             with self.subTest(new_login):
-                User.update({
-                    'id': user['id'],
-                    'login': new_login,
-                })
+                User.update({'id': user['id'], 'login': new_login})
                 user = User.info({'id': user['id']})
                 self.assertEqual(user['login'], new_login)
 
@@ -778,10 +730,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for new_lastname in valid_usernames_list():
             with self.subTest(new_lastname):
-                User.update({
-                    'id': user['id'],
-                    'lastname': new_lastname,
-                })
+                User.update({'id': user['id'], 'lastname': new_lastname})
                 user = User.info({'id': user['id']})
                 last_name_after = user['name'].split(' ')
                 self.assertEqual(last_name_after[1], new_lastname)
@@ -799,11 +748,13 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for email in valid_emails_list():
             with self.subTest(email):
-                User.update({
-                    'id': user['id'],
-                    # escape to avoid bash syntax error
-                    'mail': email.replace('"', r'\"').replace('`', r'\`'),
-                })
+                User.update(
+                    {
+                        'id': user['id'],
+                        # escape to avoid bash syntax error
+                        'mail': email.replace('"', r'\"').replace('`', r'\`'),
+                    }
+                )
                 result = User.info({'id': user['id']})
                 self.assertEqual(result['email'], email)
 
@@ -820,10 +771,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for new_description in valid_data_list():
             with self.subTest(new_description):
-                User.update({
-                    'id': user['id'],
-                    'description': new_description,
-                })
+                User.update({'id': user['id'], 'description': new_description})
                 user = User.info({'id': user['id']})
                 self.assertEqual(user['description'], new_description)
 
@@ -841,10 +789,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for password in valid_usernames_list():
             with self.subTest(password):
-                User.update({
-                    'id': user['id'],
-                    'password': password,
-                })
+                User.update({'id': user['id'], 'password': password})
                 user = User.info({'id': user['id']})
                 self.assertTrue(user)
 
@@ -860,10 +805,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         """
         user = self.user
         self.assertEqual(user['admin'], 'no')
-        User.update({
-            'id': user['id'],
-            'admin': '1',
-        })
+        User.update({'id': user['id'], 'admin': '1'})
         user = User.info({'id': user['id']})
         self.assertEqual(user['admin'], 'yes')
 
@@ -879,10 +821,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         """
         user = self.user
         org = make_org()
-        User.update({
-            'id': user['id'],
-            'organization-ids': org['id'],
-        })
+        User.update({'id': user['id'], 'organization-ids': org['id']})
         user = User.info({'id': user['id']})
         self.assertEqual(org['name'], user['organizations'][0])
 
@@ -899,15 +838,9 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         orgs_amount = random.randint(3, 5)
         orgs = [make_org() for _ in range(orgs_amount)]
-        User.update({
-            'id': user['id'],
-            'organization-ids': [org['id'] for org in orgs],
-        })
+        User.update({'id': user['id'], 'organization-ids': [org['id'] for org in orgs]})
         user = User.info({'id': user['id']})
-        self.assertItemsEqual(
-            user['organizations'],
-            [org['name'] for org in orgs]
-        )
+        self.assertItemsEqual(user['organizations'], [org['name'] for org in orgs])
 
     @tier1
     def test_negative_update_username(self):
@@ -923,10 +856,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         for new_user_name in invalid_names_list():
             with self.subTest(new_user_name):
                 options = {'id': user['id'], 'login': new_user_name}
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the user:'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
                     User.update(options)
 
     @tier1
@@ -942,13 +872,8 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for invalid_firstname in invalid_names_list():
             with self.subTest(invalid_firstname):
-                options = {
-                    'firstname': invalid_firstname, 'login': user['login'],
-                }
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the user:'
-                ):
+                options = {'firstname': invalid_firstname, 'login': user['login']}
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
                     User.update(options)
                 updated_user = User.info({'id': user['id']})
                 self.assertEqual(updated_user['name'], user['name'])
@@ -966,14 +891,8 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for invalid_lastname in (gen_string('alpha', 51), gen_string('html')):
             with self.subTest(invalid_lastname):
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the user:'
-                ):
-                    User.update({
-                        'lastname': invalid_lastname,
-                        'login': user['login']
-                    })
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
+                    User.update({'lastname': invalid_lastname, 'login': user['login']})
 
     @tier1
     def test_negative_update_email(self):
@@ -988,14 +907,8 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for email in invalid_emails_list():
             with self.subTest(email):
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the user:'
-                ):
-                    User.update({
-                        'login': user['login'],
-                        'mail': email
-                    })
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
+                    User.update({'login': user['login'], 'mail': email})
 
     @tier2
     def test_positive_add_role(self):
@@ -1012,10 +925,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for role_id, role in self.stubbed_roles.items():
             with self.subTest(role['name']):
-                User.add_role({
-                    'login': user['login'],
-                    'role-id': role_id,
-                })
+                User.add_role({'login': user['login'], 'role-id': role_id})
                 user = User.info({'id': user['id']})
                 self.assertIn(role['name'], user['roles'])
 
@@ -1043,10 +953,7 @@ class UserWithCleanUpTestCase(CLITestCase):
             User.add_role({'login': user['login'], 'role-id': role_id})
             expected_role_names.add(role['name'])
 
-        self.assertItemsEqual(
-            expected_role_names,
-            User.info({'id': user['id']})['roles']
-        )
+        self.assertItemsEqual(expected_role_names, User.info({'id': user['id']})['roles'])
 
     @tier2
     @upgrade
@@ -1092,9 +999,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         make_user({'login': login, 'password': password})
         User.add_role({'login': login, 'role': 'System admin'})
-        result_before_login = User.list({
-            u'search': u'login = {0}'.format(login),
-        })
+        result_before_login = User.list({u'search': u'login = {0}'.format(login)})
 
         # this is because satellite uses the UTC timezone
         before_login_time = datetime.datetime.utcnow()
@@ -1102,14 +1007,13 @@ class UserWithCleanUpTestCase(CLITestCase):
         assert result_before_login[0]['last-login'] == ""
 
         Org.with_user(username=login, password=password).create({'name': org_name})
-        result_after_login = User.list({
-            u'search': u'login = {0}'.format(login),
-        })
+        result_after_login = User.list({u'search': u'login = {0}'.format(login)})
 
         # checking user last login should not be empty
         assert result_after_login[0]['last-login'] != ""
-        after_login_time = datetime.datetime.strptime(result_after_login[0]['last-login'],
-                                                      "%Y/%m/%d %H:%M:%S")
+        after_login_time = datetime.datetime.strptime(
+            result_after_login[0]['last-login'], "%Y/%m/%d %H:%M:%S"
+        )
         assert after_login_time > before_login_time
 
     @stubbed()

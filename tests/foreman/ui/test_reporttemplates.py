@@ -118,24 +118,28 @@ def test_positive_end_to_end(session, module_org, module_loc):
     new_name = gen_string('alpha')
     clone_name = gen_string('alpha')
     input_name = gen_string('alpha')
-    template_input = [{
-        'name': input_name,
-        'required': True,
-        'input_type': 'User input',
-        'input_content.description': gen_string('alpha')
-    }]
+    template_input = [
+        {
+            'name': input_name,
+            'required': True,
+            'input_type': 'User input',
+            'input_content.description': gen_string('alpha'),
+        }
+    ]
     with session:
         # CREATE report template
-        session.reporttemplate.create({
-            'template.name': name,
-            'template.default': True,
-            'template.template_editor.editor': content,
-            'template.audit_comment': gen_string('alpha'),
-            'inputs': template_input,
-            'type.snippet': False,
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.reporttemplate.create(
+            {
+                'template.name': name,
+                'template.default': True,
+                'template.template_editor.editor': content,
+                'template.audit_comment': gen_string('alpha'),
+                'inputs': template_input,
+                'type.snippet': False,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         # READ report template
         rt = session.reporttemplate.read(name)
         assert rt['template']['name'] == name
@@ -144,16 +148,15 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert rt['inputs'][0]['name'] == template_input[0]['name']
         assert rt['inputs'][0]['required'] is template_input[0]['required']
         assert rt['inputs'][0]['input_type'] == template_input[0]['input_type']
-        assert rt['inputs'][0]['input_content']['description'] == \
-            template_input[0]['input_content.description']
+        assert (
+            rt['inputs'][0]['input_content']['description']
+            == template_input[0]['input_content.description']
+        )
         assert rt['type']['snippet'] is False
         assert rt['locations']['resources']['assigned'][0] == module_loc.name
         assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # UPDATE report template
-        session.reporttemplate.update(
-            name,
-            {'template.name': new_name, 'type.snippet': True}
-        )
+        session.reporttemplate.update(name, {'template.name': new_name, 'type.snippet': True})
         rt = session.reporttemplate.read(new_name)
         assert rt['template']['name'] == new_name
         assert rt['type']['snippet'] is True
@@ -164,12 +167,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.unlock(new_name)
         assert session.reporttemplate.is_locked(new_name) is False
         # CLONE
-        session.reporttemplate.clone(
-            new_name,
-            {
-                'template.name': clone_name,
-            }
-        )
+        session.reporttemplate.clone(new_name, {'template.name': clone_name})
         rt = session.reporttemplate.read(clone_name)
         assert rt['template']['name'] == clone_name
         assert rt['template']['default'] is True
@@ -208,23 +206,32 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
     os_name = 'comma,' + gen_string('alpha')
     os = entities.OperatingSystem(name=os_name).create()
     host_cnt = 3
-    host_templates = [entities.Host(organization=module_org,
-                                    location=module_loc,
-                                    operatingsystem=os) for i in range(host_cnt)]
+    host_templates = [
+        entities.Host(organization=module_org, location=module_loc, operatingsystem=os)
+        for i in range(host_cnt)
+    ]
     for host_template in host_templates:
         host_template.create_missing()
     with session:
         # create multiple hosts to test filtering
         host_names = [create_fake_host(session, host_template) for host_template in host_templates]
         host_name = host_names[1]  # pick some that is not first and is not last
-        file_path = session.reporttemplate.generate("Registered hosts",
-                                                    values={'inputs': {'Hosts filter': host_name}})
+        file_path = session.reporttemplate.generate(
+            "Registered hosts", values={'inputs': {'Hosts filter': host_name}}
+        )
         with open(file_path) as csvfile:
             dreader = csv.DictReader(csvfile)
             res = next(dreader)
-            assert list(res.keys()) == ['Name', 'Ip', 'Operating System',
-                                        'Subscriptions', 'Applicable Errata', 'Owner',
-                                        'Kernel', 'Latest kernel available']
+            assert list(res.keys()) == [
+                'Name',
+                'Ip',
+                'Operating System',
+                'Subscriptions',
+                'Applicable Errata',
+                'Owner',
+                'Kernel',
+                'Latest kernel available',
+            ]
             assert res['Name'] == host_name
             # also tests comma in field contents
             assert res['Operating System'] == '{0} {1}'.format(os_name, os.major)

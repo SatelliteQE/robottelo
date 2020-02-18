@@ -31,41 +31,33 @@ def get_system(system_type):
     :raises: VirtWhoError: If wrong ``system_type`` specified.
     """
     if system_type == 'guest':
-        return{
+        return {
             'hostname': settings.virtwho.guest,
             'username': settings.virtwho.guest_username,
             'password': settings.virtwho.guest_password,
             'port': settings.virtwho.guest_port,
         }
     elif system_type == 'satellite':
-        return{
+        return {
             'hostname': settings.server.hostname,
             'username': settings.server.ssh_username,
             'password': settings.server.ssh_password,
         }
     else:
         raise VirtWhoError(
-            '"{}" system type is not supported. Please use one of {}'
-            .format(system_type, ('satellite', 'guest'))
+            '"{}" system type is not supported. Please use one of {}'.format(
+                system_type, ('satellite', 'guest')
+            )
         )
 
 
 def get_guest_info():
     """Return the guest_name, guest_uuid"""
     hypervisor_type = settings.virtwho.hypervisor_type
-    _, guest_name = runcmd(
-        'hostname',
-        system=get_system('guest')
-    )
-    _, guest_uuid = runcmd(
-        'dmidecode -s system-uuid',
-        system=get_system('guest')
-    )
-    if (not guest_uuid or not guest_name):
-        raise VirtWhoError(
-            'Failed to get the guest info for {}'
-            .format(hypervisor_type)
-        )
+    _, guest_name = runcmd('hostname', system=get_system('guest'))
+    _, guest_uuid = runcmd('dmidecode -s system-uuid', system=get_system('guest'))
+    if not guest_uuid or not guest_name:
+        raise VirtWhoError('Failed to get the guest info for {}'.format(hypervisor_type))
     # Different UUID for vcenter by dmidecode and vcenter MOB
     if hypervisor_type == 'esx':
         guest_uuid = guest_uuid.split('-')[-1]
@@ -83,10 +75,7 @@ def runcmd(cmd, system=None, timeout=None, output_format='base'):
     :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
-    result = ssh.command(
-        cmd, **system, timeout=timeout,
-        output_format=output_format
-    )
+    result = ssh.command(cmd, **system, timeout=timeout, output_format=output_format)
     ret = result.return_code
     stdout = result.stdout.strip()
     return ret, stdout
@@ -103,24 +92,23 @@ def register_system(system, activation_key=None, org='Default_Organization', env
     runcmd('subscription-manager clean', system)
     runcmd('rpm -qa | grep katello-ca-consumer | xargs rpm -e |sort', system)
     runcmd(
-        'rpm -ihv http://{}/pub/katello-ca-consumer-latest.noarch.rpm'
-        .format(settings.server.hostname), system
+        'rpm -ihv http://{}/pub/katello-ca-consumer-latest.noarch.rpm'.format(
+            settings.server.hostname
+        ),
+        system,
     )
     cmd = 'subscription-manager register --org={} '.format(org)
     if activation_key is not None:
         cmd += '--activationkey={}'.format(activation_key)
     else:
         cmd += '--username={} --password={} --environment={}'.format(
-            settings.server.admin_username,
-            settings.server.admin_password,
-            env)
+            settings.server.admin_username, settings.server.admin_password, env
+        )
     ret, stdout = runcmd(cmd, system)
     if ret == 0 or "system has been registered" in stdout:
         return True
     else:
-        raise VirtWhoError(
-            'Failed to register system: {}'.format(system)
-        )
+        raise VirtWhoError('Failed to register system: {}'.format(system))
 
 
 def virtwho_cleanup():
@@ -176,20 +164,14 @@ def get_configure_command(config_id, org=DEFAULT_ORG):
     :param str config_id: the unique id of the configure file you have created.
     :param str org: the satellite organization name.
     """
-    return (
-        "hammer virt-who-config deploy --id {} --organization '{}'"
-        .format(config_id, org)
-    )
+    return "hammer virt-who-config deploy --id {} --organization '{}'".format(config_id, org)
 
 
 def get_configure_file(config_id):
     """Return the configure file full name in /etc/virt-who.d
     :param str config_id: the unique id of the configure file you have created.
     """
-    return (
-        "/etc/virt-who.d/virt-who-config-{}.conf"
-        .format(config_id)
-    )
+    return "/etc/virt-who.d/virt-who-config-{}.conf".format(config_id)
 
 
 def get_configure_option(option, filename):
@@ -207,8 +189,7 @@ def get_configure_option(option, filename):
         return value
     else:
         raise VirtWhoError(
-            "option {} is not exist or not be enabled in {}"
-            .format(option, filename)
+            "option {} is not exist or not be enabled in {}".format(option, filename)
         )
 
 
@@ -244,10 +225,7 @@ def _get_hypervisor_mapping(logs):
     if hypervisor_name:
         return hypervisor_name, guest_name
     else:
-        raise VirtWhoError(
-            "Failed to get the hypervisor_name for guest {}"
-            .format(guest_name)
-        )
+        raise VirtWhoError("Failed to get the hypervisor_name for guest {}".format(guest_name))
 
 
 def deploy_validation():
@@ -276,10 +254,7 @@ def deploy_configure_by_command(command, debug=False):
     register_system(get_system('guest'))
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
-        raise VirtWhoError(
-            "Failed to deploy configure by {}"
-            .format(command)
-        )
+        raise VirtWhoError("Failed to deploy configure by {}".format(command))
     if debug:
         return deploy_validation()
 
@@ -290,12 +265,7 @@ def deploy_configure_by_script(script_content, debug=False):
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     script_filename = "/tmp/deploy_script.sh"
-    script_content = (
-        script_content
-        .replace('&amp;', '&')
-        .replace('&gt;', '>')
-        .replace('&lt;', '<')
-    )
+    script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
     virtwho_cleanup()
     register_system(get_system('guest'))
     with open(script_filename, 'w') as fp:
@@ -303,10 +273,7 @@ def deploy_configure_by_script(script_content, debug=False):
     ssh.upload_file(script_filename, script_filename)
     ret, stdout = runcmd('sh {}'.format(script_filename))
     if ret != 0 or 'Finished successfully' not in stdout:
-        raise VirtWhoError(
-            "Failed to deploy configure by {}"
-            .format(script_filename)
-        )
+        raise VirtWhoError("Failed to deploy configure by {}".format(script_filename))
     if debug:
         return deploy_validation()
 
@@ -328,12 +295,10 @@ def update_configure_option(option, value, config_file):
     :param value:  set the option to the value
     :param config_file: path of virt-who config file
     """
-    cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(
-        option, value, config_file)
+    cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(option, value, config_file)
     ret, output = runcmd(cmd)
     if ret != 0:
-        raise VirtWhoError(
-            "Failed to set option {0} value to {1}".format(option, value))
+        raise VirtWhoError("Failed to set option {0} value to {1}".format(option, value))
 
 
 def delete_configure_option(option, config_file):
@@ -342,8 +307,7 @@ def delete_configure_option(option, config_file):
     :param option: the option you want to delete
     :param config_file: path of virt-who config file
     """
-    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(
-        option, config_file)
+    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(option, config_file)
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError("Failed to delete option {}".format(option))
@@ -362,13 +326,9 @@ def add_configure_option(option, value, config_file):
         cmd = 'echo -e "\n{0}={1}" >> {2}'.format(option, value, config_file)
         ret, output = runcmd(cmd)
         if ret != 0:
-            raise VirtWhoError(
-                "Failed to add option {0}={1}".format(option, value))
+            raise VirtWhoError("Failed to add option {0}={1}".format(option, value))
     else:
-        raise VirtWhoError(
-            "option {} is already exist in {}"
-            .format(option, config_file)
-        )
+        raise VirtWhoError("option {} is already exist in {}".format(option, config_file))
 
 
 def hypervisor_json_create(hypervisors, guests):
@@ -381,13 +341,12 @@ def hypervisor_json_create(hypervisors, guests):
     for i in range(hypervisors):
         guest_list = []
         for c in range(guests):
-            guest_list.append({
-                "guestId": str(uuid.uuid4()),
-                "state": 1,
-                "attributes": {
-                    "active": 1,
-                    "virtWhoType": "esx"
+            guest_list.append(
+                {
+                    "guestId": str(uuid.uuid4()),
+                    "state": 1,
+                    "attributes": {"active": 1, "virtWhoType": "esx"},
                 }
-            })
+            )
         mapping[str(uuid.uuid4()).replace("-", ".")] = guest_list
     return mapping

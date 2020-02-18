@@ -41,10 +41,7 @@ class ArchitectureTestCase(APITestCase):
         """
         operating_sys = entities.OperatingSystem().create()
         arch = entities.Architecture(operatingsystem=[operating_sys]).create()
-        self.assertEqual(
-            {operating_sys.id},
-            {os.id for os in arch.operatingsystem},
-        )
+        self.assertEqual({operating_sys.id}, {os.id for os in arch.operatingsystem})
 
     @tier1
     def test_positive_create_with_name(self):
@@ -94,8 +91,7 @@ class ArchitectureTestCase(APITestCase):
 
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                entities.Architecture(
-                    id=arch.id, name=new_name).update(['name'])
+                entities.Architecture(id=arch.id, name=new_name).update(['name'])
                 updated = entities.Architecture(id=arch.id).read()
                 self.assertEqual(new_name, updated.name)
 
@@ -113,8 +109,7 @@ class ArchitectureTestCase(APITestCase):
         for new_name in invalid_names_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.Architecture(
-                        id=arch.id, name=new_name).update(['name'])
+                    entities.Architecture(id=arch.id, name=new_name).update(['name'])
                 arch = entities.Architecture(id=arch.id).read()
                 self.assertNotEqual(arch.name, new_name)
 

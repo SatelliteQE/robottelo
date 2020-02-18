@@ -16,12 +16,17 @@ LOCK_TIMEOUT = 7200
 class RedisStorageHandler(BaseStorageHandler):
     """Redis Key value storage handler"""
 
-    def __init__(self, host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB,
-                 password=REDIS_PASSWORD, lock_timeout=LOCK_TIMEOUT):
+    def __init__(
+        self,
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        db=REDIS_DB,
+        password=REDIS_PASSWORD,
+        lock_timeout=LOCK_TIMEOUT,
+    ):
 
         self._lock_timeout = lock_timeout
-        self._client = redis.StrictRedis(
-            host=host, port=port, db=db, password=password)
+        self._client = redis.StrictRedis(host=host, port=port, db=db, password=password)
 
     @property
     def client(self):
@@ -34,8 +39,7 @@ class RedisStorageHandler(BaseStorageHandler):
 
         lock_key = '{}.lock'.format(key)
         # If acquired the lock will be acquired until release
-        return self.client.lock(
-            lock_key, timeout=None, blocking_timeout=timeout)
+        return self.client.lock(lock_key, timeout=None, blocking_timeout=timeout)
 
     def when_lock_acquired(self, lock_object):
         # do nothing

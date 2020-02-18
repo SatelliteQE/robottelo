@@ -44,10 +44,7 @@ def test_positive_end_to_end(session, module_puppet_class):
     new_name = gen_string('alpha')
     with session:
         # Create new config group
-        session.configgroup.create({
-            'name': name,
-            'classes.assigned': [module_puppet_class.name],
-        })
+        session.configgroup.create({'name': name, 'classes.assigned': [module_puppet_class.name]})
         assert session.configgroup.search(name)[0]['Name'] == name
         values = session.configgroup.read(name)
         assert values['name'] == name

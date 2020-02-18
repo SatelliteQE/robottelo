@@ -25,6 +25,7 @@ from robottelo.api.entity_fixtures import module_provisioingtemplate  # noqa: F4
 from robottelo.api.entity_fixtures import module_puppet_environment  # noqa: F401
 from robottelo.api.entity_fixtures import module_smart_proxy  # noqa: F401
 from robottelo.api.entity_fixtures import module_subnet  # noqa: F401
+
 # TODO: load fixtures consistently without hanging imports here, entry_points or module inclusion
 
 
@@ -43,9 +44,7 @@ def log(message, level="DEBUG"):
     """
     now = datetime.datetime.utcnow()
     full_message = "{date} - conftest - {level} - {message}".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"),
-        level=level,
-        message=message
+        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
     )
     print(full_message)  # noqa
     with open('robottelo.log', 'a') as log_file:
@@ -73,7 +72,9 @@ def pytest_report_header(config):
             junit.add_global_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
-            shared_function_enabled, scope, storage))
+            shared_function_enabled, scope, storage
+        )
+    )
 
     return messages
 
@@ -103,26 +104,28 @@ def robottelo_logger(request, worker_id):
     a logfile named 'robottelo_gw{worker_id}.log' will be created.
     """
     logger = logging.getLogger('robottelo')
-    if (hasattr(request.session.config, '_reportportal_configured') and
-       request.session.config._reportportal_configured):
+    if (
+        hasattr(request.session.config, '_reportportal_configured')
+        and request.session.config._reportportal_configured
+    ):
         logging.setLoggerClass(RPLogger)
     if '{0}'.format(worker_id) not in [h.get_name() for h in logger.handlers]:
         if worker_id != 'master':
             formatter = logging.Formatter(
                 fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
-                    ' %(message)s'.format(worker_id),
-                datefmt='%Y-%m-%d %H:%M:%S'
+                ' %(message)s'.format(worker_id),
+                datefmt='%Y-%m-%d %H:%M:%S',
             )
-            handler = logging.FileHandler(
-                'robottelo_{0}.log'.format(worker_id)
-            )
+            handler = logging.FileHandler('robottelo_{0}.log'.format(worker_id))
             handler.set_name('{0}'.format(worker_id))
             handler.setFormatter(formatter)
             logger.addHandler(handler)
             # Nailgun HTTP logs should also be included in gw* logs
             logging.getLogger('nailgun').addHandler(handler)
-            if (hasattr(request.session.config, '_reportportal_configured') and
-               request.session.config._reportportal_configured):
+            if (
+                hasattr(request.session.config, '_reportportal_configured')
+                and request.session.config._reportportal_configured
+            ):
                 rp_handler = RPLogHandler(request.node.config.py_test_service)
                 rp_handler.set_name('{0}'.format(worker_id))
                 rp_handler.setFormatter(formatter)
@@ -202,9 +205,7 @@ def pytest_configure(config):
         config.addinivalue_line("markers", marker)
 
     # ignore warnings about dynamically added markers e.g: component markers
-    config.addinivalue_line(
-        'filterwarnings', 'ignore::pytest.PytestUnknownMarkWarning'
-    )
+    config.addinivalue_line('filterwarnings', 'ignore::pytest.PytestUnknownMarkWarning')
 
 
 def pytest_addoption(parser):

@@ -138,8 +138,7 @@ class PartitionTableTestCase(APITestCase):
             partition table returned
         """
         ptable = entities.PartitionTable().create()
-        result = entities.PartitionTable().search(
-            query={'search': ptable.name})
+        result = entities.PartitionTable().search(query={'search': ptable.name})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].id, ptable.id)
 
@@ -158,9 +157,9 @@ class PartitionTableTestCase(APITestCase):
         """
         org = entities.Organization().create()
         ptable = entities.PartitionTable(organization=[org]).create()
-        result = entities.PartitionTable().search(query={
-            'search': ptable.name, 'organization_id': org.id
-        })
+        result = entities.PartitionTable().search(
+            query={'search': ptable.name, 'organization_id': org.id}
+        )
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].read().organization[0].id, org.id)
 
@@ -248,9 +247,7 @@ class PartitionTableTestCase(APITestCase):
         :expectedresults: Partition table updated successfully and operating
             system was changed
         """
-        ptable = entities.PartitionTable(
-            os_family=OPERATING_SYSTEMS[0],
-        ).create()
+        ptable = entities.PartitionTable(os_family=OPERATING_SYSTEMS[0]).create()
         new_os_family = OPERATING_SYSTEMS[randint(1, 8)]
         ptable.os_family = new_os_family
         self.assertEqual(ptable.update(['os_family']).os_family, new_os_family)
@@ -287,7 +284,4 @@ class PartitionTableTestCase(APITestCase):
             with self.subTest(new_layout):
                 ptable.layout = new_layout
                 with self.assertRaises(HTTPError):
-                    self.assertNotEqual(
-                        ptable.update(['layout']).layout,
-                        new_layout
-                    )
+                    self.assertNotEqual(ptable.update(['layout']).layout, new_layout)

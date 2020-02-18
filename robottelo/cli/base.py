@@ -40,10 +40,7 @@ class CLIBaseError(Exception):
         """Include class name return_code, stderr and msg to improve logging
         """
         return u'{}(return_code={!r}, stderr={!r}, msg={!r}'.format(
-            type(self).__name__,
-            self.return_code,
-            self.stderr,
-            self.msg
+            type(self).__name__, self.return_code, self.stderr, self.msg
         )
 
 
@@ -123,14 +120,13 @@ class Base(object):
 
     @since: 27.Nov.2013
     """
+
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc
     command_requires_org = False  # True when command requires organization-id
 
     logger = logging.getLogger('robottelo')
-    _db_error_regex = re.compile(
-        r'.*INSERT INTO|.*SELECT .*FROM|.*violates foreign key'
-    )
+    _db_error_regex = re.compile(r'.*INSERT INTO|.*SELECT .*FROM|.*violates foreign key')
 
     @classmethod
     def _handle_response(cls, response, ignore_stderr=None):
@@ -150,10 +146,7 @@ class Base(object):
             full_msg = (
                 u'Command "{0} {1}" finished with return_code {2}\n'
                 'stderr contains following message:\n{3}'.format(
-                    cls.command_base,
-                    cls.command_sub,
-                    response.return_code,
-                    response.stderr
+                    cls.command_base, cls.command_sub, response.return_code, response.stderr
                 )
             )
             error_data = (response.return_code, response.stderr, full_msg)
@@ -161,11 +154,7 @@ class Base(object):
                 raise CLIDataBaseError(*error_data)
             raise CLIReturnCodeError(*error_data)
         if len(response.stderr) != 0 and not ignore_stderr:
-            cls.logger.warning(
-                u'stderr contains following message:\n{0}'.format(
-                    response.stderr
-                )
-            )
+            cls.logger.warning(u'stderr contains following message:\n{0}'.format(response.stderr))
         return response.stdout
 
     @classmethod
@@ -191,8 +180,7 @@ class Base(object):
         if options is None:
             options = {}
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         # Extract new object ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:
@@ -218,10 +206,7 @@ class Base(object):
     def delete(cls, options=None):
         """Deletes existing record."""
         cls.command_sub = 'delete'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
     def delete_parameter(cls, options=None):
@@ -274,9 +259,17 @@ class Base(object):
         return (username, password)
 
     @classmethod
-    def execute(cls, command, user=None, password=None, output_format=None,
-                timeout=None, ignore_stderr=None, return_raw_response=None,
-                connection_timeout=None):
+    def execute(
+        cls,
+        command,
+        user=None,
+        password=None,
+        output_format=None,
+        timeout=None,
+        ignore_stderr=None,
+        return_raw_response=None,
+        connection_timeout=None,
+    ):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
         time_hammer = False
@@ -287,8 +280,7 @@ class Base(object):
         cmd = u'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
             settings.locale,
             u'time -p' if time_hammer else '',
-            u'-u {0}'.format(user) if user is not None
-            else u'--interactive no',
+            u'-u {0}'.format(user) if user is not None else u'--interactive no',
             u'-p {0}'.format(password) if password is not None else '',
             u'--output={0}'.format(output_format) if output_format else u'',
             command,
@@ -302,10 +294,7 @@ class Base(object):
         if return_raw_response:
             return response
         else:
-            return cls._handle_response(
-                response,
-                ignore_stderr=ignore_stderr,
-            )
+            return cls._handle_response(response, ignore_stderr=ignore_stderr)
 
     @classmethod
     def exists(cls, options=None, search=None):
@@ -323,9 +312,7 @@ class Base(object):
             options = {}
 
         if search is not None and u'search' not in options:
-            options.update({
-                u'search': u'{0}=\\"{1}\\"'.format(search[0], search[1])
-            })
+            options.update({u'search': u'{0}=\\"{1}\\"'.format(search[0], search[1])})
 
         result = cls.list(options)
         if result:
@@ -342,11 +329,7 @@ class Base(object):
             options = {}
 
         if cls.command_requires_org and 'organization-id' not in options:
-            raise CLIError(
-                'organization-id option is required for {0}.info'.format(
-                    cls.__name__
-                )
-            )
+            raise CLIError('organization-id option is required for {0}.info'.format(cls.__name__))
 
         result = cls.execute(
             command=cls._construct_command(options),
@@ -373,14 +356,9 @@ class Base(object):
             options[u'per-page'] = 10000
 
         if cls.command_requires_org and 'organization-id' not in options:
-            raise CLIError(
-                'organization-id option is required for {0}.list'.format(
-                    cls.__name__
-                )
-            )
+            raise CLIError('organization-id option is required for {0}.list'.format(cls.__name__))
 
-        result = cls.execute(
-            cls._construct_command(options), output_format=output_format)
+        result = cls.execute(cls._construct_command(options), output_format=output_format)
 
         return result
 
@@ -392,8 +370,7 @@ class Base(object):
 
         cls.command_sub = 'puppet-classes'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -417,8 +394,7 @@ class Base(object):
 
         cls.command_sub = 'sc-params'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -459,6 +435,7 @@ class Base(object):
             password to be used when executing any cli command.
 
             """
+
             foreman_admin_username = username
             foreman_admin_password = password
 
@@ -481,10 +458,6 @@ class Base(object):
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += u' --{0}="{1}"'.format(key, val)
-        cmd = u'{0} {1} {2}'.format(
-            cls.command_base,
-            cls.command_sub,
-            tail.strip()
-        )
+        cmd = u'{0} {1} {2}'.format(cls.command_base, cls.command_sub, tail.strip())
 
         return cmd

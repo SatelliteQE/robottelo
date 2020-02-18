@@ -82,11 +82,9 @@ def test_positive_end_to_end_crud(session, module_org):
     cv.publish()
     with session:
         # Create activation key with content view and LCE assigned
-        session.activationkey.create({
-            'name': name,
-            'lce': {ENVIRONMENT: True},
-            'content_view': cv.name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {ENVIRONMENT: True}, 'content_view': cv.name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         # Verify content view and LCE are assigned
         ak_values = session.activationkey.read(name, widget_names='details')
@@ -119,8 +117,7 @@ def test_positive_end_to_end_register(session):
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[SatelliteToolsRepository()]
+        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
@@ -129,10 +126,7 @@ def test_positive_end_to_end_register(session):
         with session:
             session.organization.select(org.name)
             chost = session.contenthost.read(vm.hostname, widget_names='details')
-            assert (
-                    chost['details']['registered_by'] == 'Activation Key {}'
-                    .format(ak_name)
-            )
+            assert chost['details']['registered_by'] == 'Activation Key {}'.format(ak_name)
             ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
             assert len(ak_values['content_hosts']['table']) == 1
             assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
@@ -153,14 +147,11 @@ def test_positive_create_with_cv(session, module_org, cv_name):
     name = gen_string('alpha')
     env_name = gen_string('alpha')
     repo_id = create_sync_custom_repo(module_org.id)
-    cv_publish_promote(
-        cv_name, env_name, repo_id, module_org.id)
+    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-            'content_view': cv_name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv_name
@@ -190,19 +181,23 @@ def test_positive_search_scoped(session, module_org):
     repo_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'description': description,
-            'lce': {env_name: True},
-            'content_view': cv_name,
-        })
+        session.activationkey.create(
+            {
+                'name': name,
+                'description': description,
+                'lce': {env_name: True},
+                'content_view': cv_name,
+            }
+        )
         for query_type, query_value in [
             ('content_view', cv_name),
             ('environment', env_name),
-            ('description', description)
+            ('description', description),
         ]:
-            assert session.activationkey.search(
-                '{} = {}'.format(query_type, query_value))[0]['Name'] == name
+            assert (
+                session.activationkey.search('{} = {}'.format(query_type, query_value))[0]['Name']
+                == name
+            )
 
 
 @tier2
@@ -219,15 +214,11 @@ def test_positive_create_with_host_collection(session, module_org):
     name = gen_string('alpha')
     hc = entities.HostCollection(organization=module_org).create()
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {ENVIRONMENT: True},
-        })
+        session.activationkey.create({'name': name, 'lce': {ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_host_collection(name, hc.name)
         ak = session.activationkey.read(name, widget_names='host_collections')
-        assert ak[
-            'host_collections']['resources']['assigned'][0]['Name'] == hc.name
+        assert ak['host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
 
 @tier2
@@ -247,14 +238,11 @@ def test_positive_create_with_envs(session, module_org):
     # Helper function to create and sync custom repository
     repo_id = create_sync_custom_repo(module_org.id)
     # Helper function to create and promote CV to next env
-    cv_publish_promote(
-        cv_name, env_name, repo_id, module_org.id)
+    cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-            'content_view': cv_name
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['lce'][env_name][env_name]
@@ -287,21 +275,14 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
     create_role_permissions(roles[0], user_permissions)
     password = gen_string('alphanumeric')
     user = entities.User(
-        admin=False,
-        role=roles,
-        password=password,
-        organization=[module_org],
+        admin=False, role=roles, password=password, organization=[module_org]
     ).create()
     with Session(test_name, user=user.login, password=password) as session:
-        session.activationkey.create({
-            'name': ak_name,
-            'lce': {ENVIRONMENT: True},
-        })
+        session.activationkey.create({'name': ak_name, 'lce': {ENVIRONMENT: True}})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
-        assert ak[
-            'host_collections']['resources']['assigned'][0]['Name'] == hc.name
+        assert ak['host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
 
 @tier2
@@ -325,27 +306,19 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
         'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
         'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
     }
-    viewer_role = entities.Role().search(
-        query={'search': 'name="Viewer"'})[0]
+    viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
     create_role_permissions(roles[0], user_permissions)
     password = gen_string('alphanumeric')
     user = entities.User(
-        admin=False,
-        role=roles,
-        password=password,
-        organization=[module_org],
+        admin=False, role=roles, password=password, organization=[module_org]
     ).create()
     with Session(test_name, user=user.login, password=password) as session:
-        session.activationkey.create({
-            'name': ak_name,
-            'lce': {ENVIRONMENT: True},
-        })
+        session.activationkey.create({'name': ak_name, 'lce': {ENVIRONMENT: True}})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
-        assert ak[
-            'host_collections']['resources']['assigned'][0]['Name'] == hc.name
+        assert ak['host_collections']['resources']['assigned'][0]['Name'] == hc.name
         # remove Host Collection
         session.activationkey.remove_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
@@ -369,10 +342,7 @@ def test_positive_delete_with_env(session, module_org):
     repo_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-        })
+        session.activationkey.create({'name': name, 'lce': {env_name: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
         assert session.activationkey.search(name)[0]['Name'] != name
@@ -396,11 +366,9 @@ def test_positive_delete_with_cv(session, module_org):
     repo_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-            'content_view': cv_name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
         assert session.activationkey.search(name)[0]['Name'] != name
@@ -424,10 +392,7 @@ def test_positive_update_env(session, module_org):
     repo_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {ENVIRONMENT: True},
-        })
+        session.activationkey.create({'name': name, 'lce': {ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['lce'][env_name][ENVIRONMENT]
@@ -465,18 +430,15 @@ def test_positive_update_cv(session, module_org, cv2_name):
     repo2_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv2_name, env2_name, repo2_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {env1_name: True},
-            'content_view': cv1_name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env1_name: True}, 'content_view': cv1_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv1_name
-        session.activationkey.update(name, {'details': {
-            'lce': {env2_name: True},
-            'content_view': cv2_name,
-        }})
+        session.activationkey.update(
+            name, {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}}
+        )
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv2_name
 
@@ -512,8 +474,9 @@ def test_positive_update_rh_product(session):
         'releasever': DEFAULT_RELEASE_VERSION,
     }
     rh_repo2 = {
-        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
-                 'Server RPMs i386 6Server'),
+        'name': (
+            'Red Hat Enterprise Virtualization Agents for RHEL 6 ' 'Server RPMs i386 6Server'
+        ),
         'product': PRDS['rhel'],
         'reposet': REPOSET['rhva6'],
         'basearch': 'i386',
@@ -528,18 +491,15 @@ def test_positive_update_rh_product(session):
     cv_publish_promote(cv2_name, env2_name, repo2_id, org.id)
     with session:
         session.organization.select(org.name)
-        session.activationkey.create({
-            'name': name,
-            'lce': {env1_name: True},
-            'content_view': cv1_name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env1_name: True}, 'content_view': cv1_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv1_name
-        session.activationkey.update(name, {'details': {
-            'lce': {env2_name: True},
-            'content_view': cv2_name,
-        }})
+        session.activationkey.update(
+            name, {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}}
+        )
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view'] == cv2_name
 
@@ -576,16 +536,13 @@ def test_positive_add_rh_product(session):
     cv_publish_promote(cv_name, env_name, repo_id, org.id)
     with session:
         session.organization.select(org.name)
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-            'content_view': cv_name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, DEFAULT_SUBSCRIPTION_NAME)
         ak = session.activationkey.read(name, widget_names='subscriptions')
-        subs_name = ak[
-            'subscriptions']['resources']['assigned'][0]['Repository Name']
+        subs_name = ak['subscriptions']['resources']['assigned'][0]['Repository Name']
         assert subs_name == DEFAULT_SUBSCRIPTION_NAME
 
 
@@ -605,20 +562,16 @@ def test_positive_add_custom_product(session, module_org):
     env_name = gen_string('alpha')
     product_name = gen_string('alpha')
     # Helper function to create and promote CV to next environment
-    repo_id = create_sync_custom_repo(
-        org_id=module_org.id, product_name=product_name)
+    repo_id = create_sync_custom_repo(org_id=module_org.id, product_name=product_name)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-            'content_view': cv_name,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
         ak = session.activationkey.read(name, widget_names='subscriptions')
-        assigned_prod = ak[
-            'subscriptions']['resources']['assigned'][0]['Repository Name']
+        assigned_prod = ak['subscriptions']['resources']['assigned'][0]['Repository Name']
         assert assigned_prod == product_name
 
 
@@ -652,14 +605,8 @@ def test_positive_add_rh_and_custom_products(session):
     custom_product_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     org = entities.Organization().create()
-    product = entities.Product(
-        name=custom_product_name,
-        organization=org,
-    ).create()
-    repo = entities.Repository(
-        name=repo_name,
-        product=product,
-    ).create()
+    product = entities.Product(name=custom_product_name, organization=org).create()
+    repo = entities.Repository(name=repo_name, product=product).create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
     rhel_repo_id = enable_rhrepo_and_fetchid(
@@ -674,11 +621,9 @@ def test_positive_add_rh_and_custom_products(session):
         entities.Repository(id=repo_id).sync()
     with session:
         session.organization.select(org.name)
-        session.activationkey.create({
-            'name': name,
-            'lce': {ENVIRONMENT: True},
-            'content_view': DEFAULT_CV,
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {ENVIRONMENT: True}, 'content_view': DEFAULT_CV}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
             session.activationkey.add_subscription(name, subscription)
@@ -687,10 +632,7 @@ def test_positive_add_rh_and_custom_products(session):
             subscription['Repository Name']
             for subscription in ak['subscriptions']['resources']['assigned']
         ]
-        assert (
-            {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} ==
-            set(subscriptions)
-        )
+        assert {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(subscriptions)
 
 
 @run_in_one_thread
@@ -727,12 +669,10 @@ def test_positive_fetch_product_content(session):
         name=gen_string('alphanumeric').upper(),  # first letter is always
         # uppercase on product content page, workarounding it for
         # successful checks
-        product=custom_product).create()
-    custom_repo.sync()
-    cv = entities.ContentView(
-        organization=org,
-        repository=[rh_repo_id, custom_repo.id],
+        product=custom_product,
     ).create()
+    custom_repo.sync()
+    cv = entities.ContentView(organization=org, repository=[rh_repo_id, custom_repo.id]).create()
     cv.publish()
     ak = entities.ActivationKey(content_view=cv, organization=org).create()
     with session:
@@ -740,10 +680,7 @@ def test_positive_fetch_product_content(session):
         for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product.name):
             session.activationkey.add_subscription(ak.name, subscription)
         ak = session.activationkey.read(ak.name, widget_names='repository_sets')
-        reposets = [
-            reposet['Repository Name']
-            for reposet in ak['repository_sets']['table']
-        ]
+        reposets = [reposet['Repository Name'] for reposet in ak['repository_sets']['table']]
         assert {custom_repo.name, REPOSET['rhst7']} == set(reposets)
 
 
@@ -773,37 +710,28 @@ def test_positive_access_non_admin_user(session, test_name):
     env_name = random.choice(envs_list)
     cv = entities.ContentView(organization=org).create()
     cv.publish()
-    promote(
-        cv.read().version[0],
-        entities.LifecycleEnvironment(name=env_name).search()[0].id
-    )
+    promote(cv.read().version[0], entities.LifecycleEnvironment(name=env_name).search()[0].id)
     # Create new role
     role = entities.Role().create()
     # Create filter with predefined activation keys search criteria
     envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
     entities.Filter(
         organization=[org],
-        permission=entities.Permission(
-            name='view_activation_keys').search(),
+        permission=entities.Permission(name='view_activation_keys').search(),
         role=role,
-        search='name ~ {} and ({})'.format(ak_name, envs_condition)
+        search='name ~ {} and ({})'.format(ak_name, envs_condition),
     ).create()
 
     # Add permissions for Organization and Location
     entities.Filter(
-        permission=entities.Permission(
-            resource_type='Organization').search(),
-        role=role,
+        permission=entities.Permission(resource_type='Organization').search(), role=role
     ).create()
     entities.Filter(
-        permission=entities.Permission(
-            resource_type='Location').search(),
-        role=role,
+        permission=entities.Permission(resource_type='Location').search(), role=role
     ).create()
 
     # Create new user with a configured role
-    default_loc = entities.Location().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+    default_loc = entities.Location().search(query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
     entities.User(
@@ -820,21 +748,21 @@ def test_positive_access_non_admin_user(session, test_name):
         session.organization.select(org_name=org.name)
         session.location.select(DEFAULT_LOC)
         for name in [ak_name, non_searchable_ak_name]:
-            session.activationkey.create({
-                'name': name,
-                'lce': {env_name: True},
-                'content_view': cv.name
-            })
-            assert session.activationkey.read(
-                name, widget_names='details')['details']['lce'][env_name][env_name]
+            session.activationkey.create(
+                {'name': name, 'lce': {env_name: True}, 'content_view': cv.name}
+            )
+            assert session.activationkey.read(name, widget_names='details')['details']['lce'][
+                env_name
+            ][env_name]
 
-    with Session(
-            test_name, user=user_login, password=user_password) as session:
+    with Session(test_name, user=user_login, password=user_password) as session:
         session.organization.select(org.name)
         session.location.select(DEFAULT_LOC)
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        assert session.activationkey.search(
-            non_searchable_ak_name)[0]['Name'] != non_searchable_ak_name
+        assert (
+            session.activationkey.search(non_searchable_ak_name)[0]['Name']
+            != non_searchable_ak_name
+        )
 
 
 @tier2
@@ -851,19 +779,11 @@ def test_positive_remove_user(session, module_org, test_name):
     ak_name = gen_string('alpha')
     # Create user
     password = gen_string('alpha')
-    user = entities.User(
-        admin=True,
-        default_organization=module_org,
-        password=password,
-    ).create()
+    user = entities.User(admin=True, default_organization=module_org, password=password).create()
     # Create Activation Key using new user credentials
     with Session(test_name, user.login, password) as non_admin_session:
-        non_admin_session.activationkey.create({
-            'name': ak_name,
-            'lce': {ENVIRONMENT: True},
-        })
-        assert non_admin_session.activationkey.search(
-            ak_name)[0]['Name'] == ak_name
+        non_admin_session.activationkey.create({'name': ak_name, 'lce': {ENVIRONMENT: True}})
+        assert non_admin_session.activationkey.search(ak_name)[0]['Name'] == ak_name
     # Remove user and check that AK still exists
     user.delete()
     with session:
@@ -890,20 +810,16 @@ def test_positive_add_docker_repo_cv(session, module_org):
         url=DOCKER_REGISTRY_HUB,
     ).create()
     content_view = entities.ContentView(
-        composite=False,
-        organization=module_org,
-        repository=[repo],
+        composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
     cvv = content_view.read().version[0].read()
     promote(cvv, lce.id)
     ak_name = gen_string('alphanumeric')
     with session:
-        session.activationkey.create({
-            'name': ak_name,
-            'lce': {lce.name: True},
-            'content_view': content_view.name,
-        })
+        session.activationkey.create(
+            {'name': ak_name, 'lce': {lce.name: True}, 'content_view': content_view.name}
+        )
         ak = session.activationkey.read(ak_name, 'details')
         assert ak['details']['content_view'] == content_view.name
         assert ak['details']['lce'][lce.name][lce.name]
@@ -930,28 +846,22 @@ def test_positive_add_docker_repo_ccv(session, module_org):
         url=DOCKER_REGISTRY_HUB,
     ).create()
     content_view = entities.ContentView(
-        composite=False,
-        organization=module_org,
-        repository=[repo],
+        composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
     cvv = content_view.read().version[0].read()
     promote(cvv, lce.id)
     composite_cv = entities.ContentView(
-        component=[cvv],
-        composite=True,
-        organization=module_org,
+        component=[cvv], composite=True, organization=module_org
     ).create()
     composite_cv.publish()
     ccvv = composite_cv.read().version[0].read()
     promote(ccvv, lce.id)
     ak_name = gen_string('alphanumeric')
     with session:
-        session.activationkey.create({
-            'name': ak_name,
-            'lce': {lce.name: True},
-            'content_view': composite_cv.name,
-        })
+        session.activationkey.create(
+            {'name': ak_name, 'lce': {lce.name: True}, 'content_view': composite_cv.name}
+        )
         ak = session.activationkey.read(ak_name, 'details')
         assert ak['details']['content_view'] == composite_cv.name
         assert ak['details']['lce'][lce.name][lce.name]
@@ -975,9 +885,8 @@ def test_positive_add_host(session, module_org):
     """
     ak = entities.ActivationKey(
         environment=entities.LifecycleEnvironment(
-                name=ENVIRONMENT,
-                organization=module_org,
-            ).search()[0],
+            name=ENVIRONMENT, organization=module_org
+        ).search()[0],
         organization=module_org,
     ).create()
     with VirtualMachine(distro=DISTRO_RHEL6) as vm:
@@ -1017,11 +926,9 @@ def test_positive_delete_with_system(session):
     cv_publish_promote(cv_name, env_name, repo_id, org.id)
     with session:
         session.organization.select(org_name=org.name)
-        session.activationkey.create({
-            'name': name,
-            'lce': {env_name: True},
-            'content_view': cv_name
-        })
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
@@ -1053,13 +960,9 @@ def test_negative_usage_limit(session, module_org):
     name = gen_string('alpha')
     hosts_limit = '1'
     with session:
-        session.activationkey.create({
-            'name': name,
-            'lce': {ENVIRONMENT: True},
-        })
+        session.activationkey.create({'name': name, 'lce': {ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.update(
-            name, {'details.hosts_limit': hosts_limit})
+        session.activationkey.update(name, {'details.hosts_limit': hosts_limit})
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['hosts_limit'] == hosts_limit
     with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
@@ -1072,9 +975,7 @@ def test_negative_usage_limit(session, module_org):
             assert not vm2.subscribed
             assert len(result.stderr) > 0
             assert (
-                'Max Hosts ({0}) reached for activation key'
-                .format(hosts_limit)
-                in result.stderr
+                'Max Hosts ({0}) reached for activation key'.format(hosts_limit) in result.stderr
             )
 
 
@@ -1098,42 +999,33 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
     env_2_name = gen_string('alpha')
     product_1_name = gen_string('alpha')
     product_2_name = gen_string('alpha')
-    repo_1_id = create_sync_custom_repo(
-        org_id=module_org.id, product_name=product_1_name)
+    repo_1_id = create_sync_custom_repo(org_id=module_org.id, product_name=product_1_name)
     cv_publish_promote(cv_1_name, env_1_name, repo_1_id, module_org.id)
     repo_2_id = create_sync_custom_repo(
-        org_id=module_org.id,
-        product_name=product_2_name,
-        repo_url=FAKE_2_YUM_REPO,
+        org_id=module_org.id, product_name=product_2_name, repo_url=FAKE_2_YUM_REPO
     )
     cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
     with session:
         # Create 2 activation keys
         for key_name, env_name, cv_name, product_name in (
-                (key_1_name, env_1_name, cv_1_name, product_1_name),
-                (key_2_name, env_2_name, cv_2_name, product_2_name)):
-            session.activationkey.create({
-                'name': key_name,
-                'lce': {env_name: True},
-                'content_view': cv_name
-            })
-            assert (
-                session.activationkey.search(key_name)[0]['Name'] == key_name)
+            (key_1_name, env_1_name, cv_1_name, product_1_name),
+            (key_2_name, env_2_name, cv_2_name, product_2_name),
+        ):
+            session.activationkey.create(
+                {'name': key_name, 'lce': {env_name: True}, 'content_view': cv_name}
+            )
+            assert session.activationkey.search(key_name)[0]['Name'] == key_name
             session.activationkey.add_subscription(key_name, product_name)
             ak = session.activationkey.read(key_name, widget_names='subscriptions')
             subscriptions = [
                 subscription['Repository Name']
-                for subscription
-                in ak['subscriptions']['resources']['assigned']
+                for subscription in ak['subscriptions']['resources']['assigned']
             ]
             assert product_name in subscriptions
         # Create VM
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
-            vm.register_contenthost(
-                module_org.label,
-                '{0},{1}'.format(key_1_name, key_2_name),
-            )
+            vm.register_contenthost(module_org.label, '{0},{1}'.format(key_1_name, key_2_name))
             assert vm.subscribed
             # Assert the content-host association with activation keys
             for key_name in [key_1_name, key_2_name]:
@@ -1159,19 +1051,14 @@ def test_positive_host_associations(session):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    org_entities = setup_org_for_a_custom_repo({
-        'url': FAKE_1_YUM_REPO,
-        'organization-id': org.id,
-    })
-    ak1 = entities.ActivationKey(
-        id=org_entities['activationkey-id']).read()
+    org_entities = setup_org_for_a_custom_repo({'url': FAKE_1_YUM_REPO, 'organization-id': org.id})
+    ak1 = entities.ActivationKey(id=org_entities['activationkey-id']).read()
     ak2 = entities.ActivationKey(
         content_view=org_entities['content-view-id'],
         environment=org_entities['lifecycle-environment-id'],
         organization=org.id,
     ).create()
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm1, VirtualMachine(
-            distro=DISTRO_RHEL7) as vm2:
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm1, VirtualMachine(distro=DISTRO_RHEL7) as vm2:
         vm1.install_katello_ca()
         vm1.register_contenthost(org.label, ak1.name)
         assert vm1.subscribed
@@ -1220,44 +1107,34 @@ def test_positive_service_level_subscription_with_custom_product(session):
     """
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
-    entities_ids = setup_org_for_a_custom_repo({
-        'url': FAKE_1_YUM_REPO,
-        'organization-id': org.id,
-    })
+    entities_ids = setup_org_for_a_custom_repo({'url': FAKE_1_YUM_REPO, 'organization-id': org.id})
     product = entities.Product(id=entities_ids['product-id']).read()
-    activation_key = entities.ActivationKey(
-        id=entities_ids['activationkey-id']).read()
+    activation_key = entities.ActivationKey(id=entities_ids['activationkey-id']).read()
     # add the default RH subscription
-    subscription = entities.Subscription(organization=org).search(query={
-        'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
-    activation_key.add_subscriptions(data={
-        'quantity': 1,
-        'subscription_id': subscription.id,
-    })
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+    )[0]
+    activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     # ensure all the needed subscriptions are attached to activation key
     results = activation_key.subscriptions()['results']
-    assert (
-            {product.name, DEFAULT_SUBSCRIPTION_NAME} ==
-            {ak_subscription['name'] for ak_subscription in results}
-    )
+    assert {product.name, DEFAULT_SUBSCRIPTION_NAME} == {
+        ak_subscription['name'] for ak_subscription in results
+    }
     # Set the activation service_level to Premium
     activation_key.service_level = 'Premium'
     activation_key = activation_key.update(['service_level'])
     with VirtualMachine() as vm:
         vm.install_katello_ca()
-        vm.register_contenthost(
-            org.label, activation_key=activation_key.name)
+        vm.register_contenthost(org.label, activation_key=activation_key.name)
         assert vm.subscribed
         result = vm.run('subscription-manager list --consumed')
         assert result.return_code == 0
-        assert 'Subscription Name:   {0}'.format(product.name) in '\n'.join(
-            result.stdout)
+        assert 'Subscription Name:   {0}'.format(product.name) in '\n'.join(result.stdout)
         with session:
             session.organization.select(org.name)
             chost = session.contenthost.read(vm.hostname, widget_names='subscriptions')
             subscriptions = {
-                subs['Repository Name'] for subs
-                in chost['subscriptions']['resources']['assigned']
+                subs['Repository Name'] for subs in chost['subscriptions']['resources']['assigned']
             }
             assert product.name in subscriptions
 
@@ -1285,16 +1162,12 @@ def test_positive_delete_manifest(session):
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
     # Create activation key
-    activation_key = entities.ActivationKey(
-        organization=org,
-    ).create()
+    activation_key = entities.ActivationKey(organization=org).create()
     # Associate a manifest to the activation key
-    subscription = entities.Subscription(organization=org).search(query={
-        'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
-    activation_key.add_subscriptions(data={
-        'quantity': 1,
-        'subscription_id': subscription.id,
-    })
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+    )[0]
+    activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     with session:
         session.organization.select(org.name)
         # Verify subscription is assigned to activation key

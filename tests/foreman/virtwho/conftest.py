@@ -20,8 +20,11 @@ def module_org():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    default_org_id = nailgun.entities.Organization().search(
-        query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+    default_org_id = (
+        nailgun.entities.Organization()
+        .search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0]
+        .id
+    )
     return nailgun.entities.Organization(id=default_org_id).read()
 
 
@@ -32,8 +35,9 @@ def module_loc():
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    default_loc_id = nailgun.entities.Location().search(
-        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    default_loc_id = (
+        nailgun.entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    )
     return nailgun.entities.Location(id=default_loc_id).read()
 
 
@@ -54,8 +58,7 @@ def module_user(request, module_org, module_loc):
         admin=True,
         default_organization=module_org,
         default_location=module_loc,
-        description='created automatically by airgun for module "{}"'.format(
-            test_module_name),
+        description='created automatically by airgun for module "{}"'.format(test_module_name),
         login=login,
         password=password,
     ).create()
@@ -80,7 +83,7 @@ def test_name(request):
 
     """
     # test module name, e.g. 'test_activationkey'
-    name = [request.module.__name__, ]
+    name = [request.module.__name__]
     # test class name (if present), e.g. 'ActivationKeyTestCase'
     if request.instance:
         name.append(request.instance.__class__.__name__)

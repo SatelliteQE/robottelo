@@ -47,20 +47,10 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :expectedresults: The Subnet is created with parameter
         """
-        parameter = [
-            {'name': gen_string('alpha'), 'value': gen_string('alpha')}
-        ]
-        subnet = entities.Subnet(
-            subnet_parameters_attributes=parameter
-        ).create()
-        self.assertEqual(
-            subnet.subnet_parameters_attributes[0]['name'],
-            parameter[0]['name']
-        )
-        self.assertEqual(
-            subnet.subnet_parameters_attributes[0]['value'],
-            parameter[0]['value']
-        )
+        parameter = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
+        subnet = entities.Subnet(subnet_parameters_attributes=parameter).create()
+        self.assertEqual(subnet.subnet_parameters_attributes[0]['name'], parameter[0]['name'])
+        self.assertEqual(subnet.subnet_parameters_attributes[0]['value'], parameter[0]['value'])
 
     @tier1
     def test_positive_add_parameter(self):
@@ -82,9 +72,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             with self.subTest(name):
                 value = gen_string('utf8')
                 subnet_param = entities.Parameter(
-                    subnet=subnet.id,
-                    name=name,
-                    value=value
+                    subnet=subnet.id, name=name, value=value
                 ).create()
                 self.assertEqual(subnet_param.name, name)
                 self.assertEqual(subnet_param.value, value)
@@ -110,11 +98,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         name = gen_string('alpha')
         values = ', '.join(generate_strings_list())
         with self.subTest(name):
-            subnet_param = entities.Parameter(
-                name=name,
-                subnet=subnet.id,
-                value=values
-            ).create()
+            subnet_param = entities.Parameter(name=name, subnet=subnet.id, value=values).create()
             self.assertEqual(subnet_param.name, name)
             self.assertEqual(subnet_param.value, values)
 
@@ -138,16 +122,12 @@ class ParameterizedSubnetTestCase(APITestCase):
         valid_separators = [',', '/', '-', '|']
         valid_names = []
         for separator in valid_separators:
-            valid_names.append(
-                '{}'.format(separator).join(generate_strings_list())
-            )
+            valid_names.append('{}'.format(separator).join(generate_strings_list()))
         value = gen_string('utf8')
         for name in valid_names:
             with self.subTest(name):
                 subnet_param = entities.Parameter(
-                    name=name,
-                    subnet=subnet.id,
-                    value=value
+                    name=name, subnet=subnet.id, value=value
                 ).create()
                 self.assertEqual(subnet_param.name, name)
                 self.assertEqual(subnet_param.value, value)
@@ -178,10 +158,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         for name in invalid_values:
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
-                    entities.Parameter(
-                        name=name,
-                        subnet=subnet.id
-                    ).create()
+                    entities.Parameter(name=name, subnet=subnet.id).create()
 
     @tier1
     def test_negative_create_with_duplicated_parameters(self):
@@ -204,17 +181,10 @@ class ParameterizedSubnetTestCase(APITestCase):
         :CaseImportance: Low
         """
         subnet = entities.Subnet().create()
-        entities.Parameter(
-            name='duplicateParameter', subnet=subnet.id
-        ).create()
+        entities.Parameter(name='duplicateParameter', subnet=subnet.id).create()
         with self.assertRaises(HTTPError) as context:
-            entities.Parameter(
-                name='duplicateParameter', subnet=subnet.id
-            ).create()
-        self.assertRegexpMatches(
-            context.exception.response.text,
-            "Name has already been taken"
-        )
+            entities.Parameter(name='duplicateParameter', subnet=subnet.id).create()
+        self.assertRegexpMatches(context.exception.response.text, "Name has already been taken")
 
     @stubbed()
     @tier3
@@ -296,42 +266,32 @@ class ParameterizedSubnetTestCase(APITestCase):
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         org_subnet = entities.Subnet(
-            location=[loc],
-            organization=[org],
-            subnet_parameters_attributes=parameter,
+            location=[loc], organization=[org], subnet_parameters_attributes=parameter
         ).create()
+        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['name'], parameter[0]['name'])
         self.assertEqual(
-            org_subnet.subnet_parameters_attributes[0]['name'],
-            parameter[0]['name']
-        )
-        self.assertEqual(
-            org_subnet.subnet_parameters_attributes[0]['value'],
-            parameter[0]['value']
+            org_subnet.subnet_parameters_attributes[0]['value'], parameter[0]['value']
         )
         # Create host with above subnet
-        host = entities.Host(
-            location=loc,
-            organization=org,
-            subnet=org_subnet,
-        ).create()
+        host = entities.Host(location=loc, organization=org, subnet=org_subnet).create()
         self.assertEqual(host.subnet.read().name, org_subnet.name)
-        parameter_new_value = [{
-            'name': org_subnet.subnet_parameters_attributes[0]['name'],
-            'value': gen_string('alpha')
-        }]
+        parameter_new_value = [
+            {
+                'name': org_subnet.subnet_parameters_attributes[0]['name'],
+                'value': gen_string('alpha'),
+            }
+        ]
         host.host_parameters_attributes = parameter_new_value
         host = host.update(['host_parameters_attributes'])
         self.assertEqual(
-            host.host_parameters_attributes[0]['value'],
-            parameter_new_value[0]['value']
+            host.host_parameters_attributes[0]['value'], parameter_new_value[0]['value']
         )
         self.assertEqual(
             host.host_parameters_attributes[0]['name'],
-            org_subnet.subnet_parameters_attributes[0]['name']
+            org_subnet.subnet_parameters_attributes[0]['name'],
         )
         self.assertEqual(
-            org_subnet.read().subnet_parameters_attributes[0]['value'],
-            parameter[0]['value']
+            org_subnet.read().subnet_parameters_attributes[0]['value'], parameter[0]['value']
         )
 
     @tier1
@@ -350,23 +310,16 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
-        parameter = [{
-            'name': gen_string('alpha'), 'value': gen_string('alpha')
-        }]
-        subnet = entities.Subnet(
-            subnet_parameters_attributes=parameter).create()
-        update_parameter = [{
-            'name': gen_string('utf8'), 'value': gen_string('utf8')
-        }]
+        parameter = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
+        subnet = entities.Subnet(subnet_parameters_attributes=parameter).create()
+        update_parameter = [{'name': gen_string('utf8'), 'value': gen_string('utf8')}]
         subnet.subnet_parameters_attributes = update_parameter
         up_subnet = subnet.update(['subnet_parameters_attributes'])
         self.assertEqual(
-            up_subnet.subnet_parameters_attributes[0]['name'],
-            update_parameter[0]['name']
+            up_subnet.subnet_parameters_attributes[0]['name'], update_parameter[0]['name']
         )
         self.assertEqual(
-            up_subnet.subnet_parameters_attributes[0]['value'],
-            update_parameter[0]['value']
+            up_subnet.subnet_parameters_attributes[0]['value'], update_parameter[0]['value']
         )
 
     @tier1
@@ -390,9 +343,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         """
         subnet = entities.Subnet().create()
         sub_param = entities.Parameter(
-            name=gen_string('utf8'),
-            subnet=subnet.id,
-            value=gen_string('utf8')
+            name=gen_string('utf8'), subnet=subnet.id, value=gen_string('utf8')
         ).create()
         invalid_values = invalid_values_list() + ['name with space']
         for new_name in invalid_values:
@@ -442,9 +393,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The parameter should be deleted from subnet
         """
         subnet = entities.Subnet().create()
-        sub_param = entities.Parameter(
-            subnet=subnet.id
-        ).create()
+        sub_param = entities.Parameter(subnet=subnet.id).create()
         sub_param.delete()
         with self.assertRaises(HTTPError):
             sub_param.read()
@@ -525,19 +474,19 @@ class ParameterizedSubnetTestCase(APITestCase):
             organization=[org],
             ipam=u'DHCP',
             vlanid=gen_string('numeric', 3),
-            subnet_parameters_attributes=[parameter]).create()
-        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['name'],
-                         parameter['name'])
-        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['value'],
-                         parameter['value'])
+            subnet_parameters_attributes=[parameter],
+        ).create()
+        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['name'], parameter['name'])
+        self.assertEqual(org_subnet.subnet_parameters_attributes[0]['value'], parameter['value'])
         sub_param = entities.Parameter(
-            name=gen_string('alpha'),
-            subnet=org_subnet.id,
-            value=gen_string('alpha')).create()
+            name=gen_string('alpha'), subnet=org_subnet.id, value=gen_string('alpha')
+        ).create()
         org_subnet = entities.Subnet(id=org_subnet.id).read()
-        params_list = {param['name']: param['value']
-                       for param in org_subnet.subnet_parameters_attributes
-                       if param['name'] == sub_param.name}
+        params_list = {
+            param['name']: param['value']
+            for param in org_subnet.subnet_parameters_attributes
+            if param['name'] == sub_param.name
+        }
         self.assertEqual(params_list[sub_param.name], sub_param.value)
 
     @stubbed()

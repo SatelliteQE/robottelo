@@ -51,18 +51,20 @@ def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
         ipaddress = gen_ipaddr()
     if macaddress is None:
         macaddress = gen_mac(multicast=False)
-    return entities.DiscoveredHost().facts(json={
-        u'facts': {
-            u'name': name,
-            u'discovery_bootip': ipaddress,
-            u'discovery_bootif': macaddress,
-            u'interfaces': 'eth0',
-            u'ipaddress': ipaddress,
-            u'macaddress': macaddress,
-            u'macaddress_eth0': macaddress,
-            u'ipaddress_eth0': ipaddress,
+    return entities.DiscoveredHost().facts(
+        json={
+            u'facts': {
+                u'name': name,
+                u'discovery_bootip': ipaddress,
+                u'discovery_bootif': macaddress,
+                u'interfaces': 'eth0',
+                u'ipaddress': ipaddress,
+                u'macaddress': macaddress,
+                u'macaddress_eth0': macaddress,
+                u'ipaddress_eth0': ipaddress,
+            }
         }
-    })
+    )
 
 
 class HostNotDiscoveredException(Exception):
@@ -82,13 +84,15 @@ class DiscoveryTestCase(APITestCase):
         default_config = ServerConfig.get()
         for _ in range(30):
             discovered_host = entities.DiscoveredHost(user_config or default_config).search(
-                query={'search': 'name={}'.format(hostname)})
+                query={'search': 'name={}'.format(hostname)}
+            )
             if discovered_host:
                 break
             time.sleep(10)
         else:
             raise HostNotDiscoveredException(
-                "The host {} is not discovered within 300 seconds".format(hostname))
+                "The host {} is not discovered within 300 seconds".format(hostname)
+            )
         return discovered_host[0]
 
     @classmethod
@@ -108,24 +112,31 @@ class DiscoveryTestCase(APITestCase):
         # Build PXE default template to get default PXE file
         entities.ConfigTemplate().build_pxe_default()
         # let's just modify the timeouts to speed things up
-        ssh.command("sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
-                    "/var/lib/tftpboot/pxelinux.cfg/default")
-        ssh.command("sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' "
-                    "/var/lib/tftpboot/pxelinux.cfg/default")
+        ssh.command(
+            "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
+            "/var/lib/tftpboot/pxelinux.cfg/default"
+        )
+        ssh.command(
+            "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' "
+            "/var/lib/tftpboot/pxelinux.cfg/default"
+        )
         # Create Org and location
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
         # Get default settings values
         cls.discovery_loc = entities.Setting().search(
-            query={'search': 'name=discovery_location', 'per_page': '200'})[0]
+            query={'search': 'name=discovery_location', 'per_page': '200'}
+        )[0]
         cls.default_discovery_loc = cls.discovery_loc.value
 
         cls.discovery_org = entities.Setting().search(
-            query={'search': 'name=discovery_organization', 'per_page': '200'})[0]
+            query={'search': 'name=discovery_organization', 'per_page': '200'}
+        )[0]
         cls.default_discovery_org = cls.discovery_org.value
 
         cls.discovery_auto = entities.Setting().search(
-            query={'search': 'name=discovery_auto', 'per_page': '200'})[0]
+            query={'search': 'name=discovery_auto', 'per_page': '200'}
+        )[0]
         cls.default_discovery_auto = cls.discovery_auto.value
 
         # Update default org and location params to place discovered host
@@ -215,10 +226,8 @@ class DiscoveryTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 result = _create_discovered_host(name)
-                discovered_host = entities.DiscoveredHost(
-                    id=result['id']).read()
-                host_name = 'mac{0}'.format(
-                    discovered_host.mac.replace(':', ''))
+                discovered_host = entities.DiscoveredHost(id=result['id']).read()
+                host_name = 'mac{0}'.format(discovered_host.mac.replace(':', ''))
                 self.assertEqual(discovered_host.name, host_name)
 
     @stubbed()
@@ -258,26 +267,36 @@ class DiscoveryTestCase(APITestCase):
         if not self.configured_env:
             self.__class__.configured_env = configure_env_for_provision(
                 org={'id': self.org.id, 'name': self.org.name},
-                loc={'id': self.loc.id, 'name': self.loc.name})
+                loc={'id': self.loc.id, 'name': self.loc.name},
+            )
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
             discovered_host = self._assertdiscoveredhost(hostname)
             # Provision just discovered host
             discovered_host.hostgroup = entities.HostGroup(
-                id=self.configured_env['hostgroup']['id']).read()
+                id=self.configured_env['hostgroup']['id']
+            ).read()
             discovered_host.root_pass = gen_string('alphanumeric')
             discovered_host.update(['hostgroup', 'root_pass'])
             # Assertions
-            provisioned_host = entities.Host().search(query={'search': 'name={}.{}'.format(
-                discovered_host.name, self.configured_env['domain']['name'])})[0]
-            assert provisioned_host.subnet.read(
-                ).name == self.configured_env['subnet']['name']
-            assert provisioned_host.operatingsystem.read(
-                ).ptable[0].read().name == self.configured_env['ptable']['name']
-            assert provisioned_host.operatingsystem.read(
-                ).title == self.configured_env['os']['title']
+            provisioned_host = entities.Host().search(
+                query={
+                    'search': 'name={}.{}'.format(
+                        discovered_host.name, self.configured_env['domain']['name']
+                    )
+                }
+            )[0]
+            assert provisioned_host.subnet.read().name == self.configured_env['subnet']['name']
+            assert (
+                provisioned_host.operatingsystem.read().ptable[0].read().name
+                == self.configured_env['ptable']['name']
+            )
+            assert (
+                provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
+            )
             assert not entities.DiscoveredHost().search(
-                query={'search': 'name={}'.format(discovered_host.name)})
+                query={'search': 'name={}'.format(discovered_host.name)}
+            )
 
     @tier3
     def test_positive_provision_pxe_host_non_admin(self):
@@ -301,27 +320,36 @@ class DiscoveryTestCase(APITestCase):
         if not self.configured_env:
             self.__class__.configured_env = configure_env_for_provision(
                 org={'id': self.org.id, 'name': self.org.name},
-                loc={'id': self.loc.id, 'name': self.loc.name})
+                loc={'id': self.loc.id, 'name': self.loc.name},
+            )
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
             discovered_host = self._assertdiscoveredhost(hostname, nonadmin_config)
             # Provision just discovered host
             discovered_host.hostgroup = entities.HostGroup(
-                nonadmin_config, id=self.configured_env['hostgroup']['id']).read()
+                nonadmin_config, id=self.configured_env['hostgroup']['id']
+            ).read()
             discovered_host.root_pass = gen_string('alphanumeric')
             discovered_host.update(['hostgroup', 'root_pass'])
             # Assertions
             provisioned_host = entities.Host(nonadmin_config).search(
-                query={'search': 'name={}.{}'.format(
-                    discovered_host.name, self.configured_env['domain']['name'])})[0]
-            assert provisioned_host.subnet.read(
-            ).name == self.configured_env['subnet']['name']
-            assert provisioned_host.operatingsystem.read(
-            ).ptable[0].read().name == self.configured_env['ptable']['name']
-            assert provisioned_host.operatingsystem.read(
-            ).title == self.configured_env['os']['title']
+                query={
+                    'search': 'name={}.{}'.format(
+                        discovered_host.name, self.configured_env['domain']['name']
+                    )
+                }
+            )[0]
+            assert provisioned_host.subnet.read().name == self.configured_env['subnet']['name']
+            assert (
+                provisioned_host.operatingsystem.read().ptable[0].read().name
+                == self.configured_env['ptable']['name']
+            )
+            assert (
+                provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
+            )
             assert not entities.DiscoveredHost(nonadmin_config).search(
-                query={'search': 'name={}'.format(discovered_host.name)})
+                query={'search': 'name={}'.format(discovered_host.name)}
+            )
 
     @stubbed()
     @tier3

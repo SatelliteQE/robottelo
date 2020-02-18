@@ -41,11 +41,7 @@ def _init_counter_file():
     if not os.path.exists(tmp_root_path):
         os.mkdir(tmp_root_path)
 
-    _counter_file = tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix='.counter',
-        dir=tmp_root_path
-    )
+    _counter_file = tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path)
     _counter_file_name = _counter_file.name
     _counter_file.write('0'.encode('utf-8'))
     _counter_file.close()
@@ -74,13 +70,10 @@ def _get_function_name_string(name, class_name=None):
 
 
 def _get_function_lock_path(name, scope_context=None, class_name=None):
-    ls = [get_temp_dir(), TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR,
-          NAMESPACE_SCOPE]
+    ls = [get_temp_dir(), TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR, NAMESPACE_SCOPE]
     if scope_context:
         ls.append(scope_context)
-    ls.append('{0}.{1}'.format(_get_function_name_string(name, class_name),
-                               LOCK_FILE_NAME_EXT)
-              )
+    ls.append('{0}.{1}'.format(_get_function_name_string(name, class_name), LOCK_FILE_NAME_EXT))
     return os.path.join(*ls)
 
 
@@ -140,8 +133,7 @@ def simple_function_to_lock():
 def simple_with_locking_function(index=None):
     time.sleep(0.05)
     with locking_function(simple_locked_function):
-        with open(_get_function_lock_path('simple_locked_function'),
-                  'r') as rf:
+        with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
             content = rf.read()
 
     if index is not None:
@@ -153,9 +145,7 @@ def simple_with_locking_function(index=None):
 
 
 class SimpleClass(object):
-
     class SubClass(object):
-
         @classmethod
         @lock_function
         def simple_function_to_lock_cls(cls, file_path=None):
@@ -193,8 +183,9 @@ def simple_scoped_locking_function():
     """This function do nothing, when called the locking function must create
     a lock file
     """
-    with locking_function(simple_scoped_locking_function,
-                          scope=NAMESPACE_SCOPE_TEST_2, scope_context=SCOPE_2):
+    with locking_function(
+        simple_scoped_locking_function, scope=NAMESPACE_SCOPE_TEST_2, scope_context=SCOPE_2
+    ):
         pass
 
     return None
@@ -208,7 +199,6 @@ def simple_function_not_locked():
 
 
 class FuncLockerTestCase(TestCase):
-
     @classmethod
     def setUpClass(cls):
         _init_counter_file()
@@ -228,8 +218,7 @@ class FuncLockerTestCase(TestCase):
 
     def test_simple_with(self):
         with locking_function(simple_function_to_lock):
-            with open(_get_function_lock_path('simple_function_to_lock'),
-                      'r') as rf:
+            with open(_get_function_lock_path('simple_function_to_lock'), 'r') as rf:
                 content = rf.read()
 
             self.assertEqual(str(os.getpid()), content)
@@ -237,8 +226,7 @@ class FuncLockerTestCase(TestCase):
     def test_simple_with_lock_function(self):
         """lock a function that is already decorated by lock_function"""
         with locking_function(simple_locked_function):
-            with open(_get_function_lock_path('simple_locked_function'),
-                      'r') as rf:
+            with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
                 content = rf.read()
 
             self.assertEqual(str(os.getpid()), content)
@@ -246,8 +234,7 @@ class FuncLockerTestCase(TestCase):
     def test_locker_file_location_when_in_class(self):
         """Check the lock file location when lock function in class"""
 
-        file_path = _get_function_lock_path(
-            'simple_function_to_lock', class_name='SimpleClass')
+        file_path = _get_function_lock_path('simple_function_to_lock', class_name='SimpleClass')
         if os.path.exists(file_path):
             with open(file_path, 'r') as rf:
                 content = rf.read()
@@ -262,7 +249,8 @@ class FuncLockerTestCase(TestCase):
         self.assertEqual(str(os.getpid()), content)
 
         file_path = _get_function_lock_path(
-            'simple_function_to_lock_cls', class_name='SimpleClass')
+            'simple_function_to_lock_cls', class_name='SimpleClass'
+        )
         if os.path.exists(file_path):
             with open(file_path, 'r') as rf:
                 content = rf.read()
@@ -277,20 +265,19 @@ class FuncLockerTestCase(TestCase):
         self.assertEqual(str(os.getpid()), content)
 
         file_path = _get_function_lock_path(
-            'simple_function_to_lock_cls', class_name='SimpleClass')
+            'simple_function_to_lock_cls', class_name='SimpleClass'
+        )
         if os.path.exists(file_path):
             with open(file_path, 'r') as rf:
                 content = rf.read()
         else:
             content = ''
         self.assertNotEqual(str(os.getpid()), content)
-        _, content = SimpleClass.simple_function_to_lock_cls(
-            file_path=file_path)
+        _, content = SimpleClass.simple_function_to_lock_cls(file_path=file_path)
         self.assertEqual(str(os.getpid()), content)
 
         simple = SimpleClass()
-        file_path = _get_function_lock_path(
-            'simple_function_to_lock', class_name='SimpleClass')
+        file_path = _get_function_lock_path('simple_function_to_lock', class_name='SimpleClass')
         if os.path.exists(file_path):
             with open(file_path, 'r') as rf:
                 content = rf.read()
@@ -301,15 +288,15 @@ class FuncLockerTestCase(TestCase):
         self.assertEqual(os.getpid(), int(content))
         # subCalss
         file_path = _get_function_lock_path(
-            'simple_function_to_lock_cls', class_name='SimpleClass.SubClass')
+            'simple_function_to_lock_cls', class_name='SimpleClass.SubClass'
+        )
         if os.path.exists(file_path):
             with open(file_path, 'r') as rf:
                 content = rf.read()
         else:
             content = ''
         self.assertNotEqual(str(os.getpid()), content)
-        _, content = SimpleClass.SubClass.simple_function_to_lock_cls(
-            file_path=file_path)
+        _, content = SimpleClass.SubClass.simple_function_to_lock_cls(file_path=file_path)
 
         self.assertEqual(str(os.getpid()), content)
 
@@ -319,8 +306,7 @@ class FuncLockerTestCase(TestCase):
         else:
             content = ''
         self.assertNotEqual(str(os.getpid()), content)
-        with locking_function(
-                SimpleClass.SubClass.simple_function_to_lock_cls):
+        with locking_function(SimpleClass.SubClass.simple_function_to_lock_cls):
             with open(file_path, 'r') as rf:
                 content = rf.read()
 
@@ -341,7 +327,7 @@ class FuncLockerTestCase(TestCase):
         """
         pool_size = POOL_SIZE
         pool = self.pool
-        indexes = [index+1 for index in range(pool_size)]
+        indexes = [index + 1 for index in range(pool_size)]
         results = pool.map(simple_locked_function, indexes)
         self.assertEqual(len(results), pool_size)
         pids_set = {result[0] for result in results}
@@ -428,8 +414,7 @@ class FuncLockerTestCase(TestCase):
             TEMP_FUNC_LOCK_DIR,
             NAMESPACE_SCOPE_TEST,
             SCOPE,
-            '{}.simple_scoped_lock_function.lock'.format(
-                _this_module_name_string)
+            '{}.simple_scoped_lock_function.lock'.format(_this_module_name_string),
         )
         self.assertTrue(os.path.exists(lock_file_path))
 
@@ -442,8 +427,7 @@ class FuncLockerTestCase(TestCase):
             TEMP_FUNC_LOCK_DIR,
             NAMESPACE_SCOPE_TEST_2,
             SCOPE_2,
-            '{}.simple_scoped_locking_function.lock'.format(
-                _this_module_name_string)
+            '{}.simple_scoped_locking_function.lock'.format(_this_module_name_string),
         )
         self.assertTrue(os.path.exists(lock_file_path))
 

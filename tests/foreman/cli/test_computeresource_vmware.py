@@ -48,8 +48,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
         cls.vmware_img_pass = settings.vmware.image_password
         cls.vmware_vm_name = settings.vmware.vm_name
         cls.current_interface = (
-            VMWARE_CONSTANTS.get(
-                'network_interfaces') % settings.vlan_networking.bridge
+            VMWARE_CONSTANTS.get('network_interfaces') % settings.vlan_networking.bridge
         )
 
     @tier1
@@ -70,14 +69,16 @@ class VMWareComputeResourceTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource({
-            'name': cr_name,
-            'provider': FOREMAN_PROVIDERS['vmware'],
-            'server': self.vmware_server,
-            'user': self.vmware_username,
-            'password': self.vmware_password,
-            'datacenter': self.vmware_datacenter
-        })
+        vmware_cr = make_compute_resource(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'server': self.vmware_server,
+                'user': self.vmware_username,
+                'password': self.vmware_password,
+                'datacenter': self.vmware_datacenter,
+            }
+        )
         self.assertEquals(vmware_cr['name'], cr_name)
         self.assertEquals(vmware_cr['server'], self.vmware_server)
 
@@ -98,15 +99,17 @@ class VMWareComputeResourceTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource({
-            'name': cr_name,
-            'organization-ids': self.org['id'],
-            'provider': FOREMAN_PROVIDERS['vmware'],
-            'server': self.vmware_server,
-            'user': self.vmware_username,
-            'password': self.vmware_password,
-            'datacenter': self.vmware_datacenter
-        })
+        vmware_cr = make_compute_resource(
+            {
+                'name': cr_name,
+                'organization-ids': self.org['id'],
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'server': self.vmware_server,
+                'user': self.vmware_username,
+                'password': self.vmware_password,
+                'datacenter': self.vmware_datacenter,
+            }
+        )
         self.assertEquals(vmware_cr['name'], cr_name)
 
     @tier1
@@ -126,15 +129,17 @@ class VMWareComputeResourceTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource({
-            'name': cr_name,
-            'location-ids': self.loc['id'],
-            'provider': FOREMAN_PROVIDERS['vmware'],
-            'server': self.vmware_server,
-            'user': self.vmware_username,
-            'password': self.vmware_password,
-            'datacenter': self.vmware_datacenter
-        })
+        vmware_cr = make_compute_resource(
+            {
+                'name': cr_name,
+                'location-ids': self.loc['id'],
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'server': self.vmware_server,
+                'user': self.vmware_username,
+                'password': self.vmware_password,
+                'datacenter': self.vmware_datacenter,
+            }
+        )
         self.assertEquals(vmware_cr['name'], cr_name)
 
     @tier1
@@ -155,14 +160,16 @@ class VMWareComputeResourceTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource({
-            'name': cr_name,
-            'organization-ids': self.org['id'],
-            'location-ids': self.loc['id'],
-            'provider': FOREMAN_PROVIDERS['vmware'],
-            'server': self.vmware_server,
-            'user': self.vmware_username,
-            'password': self.vmware_password,
-            'datacenter': self.vmware_datacenter
-        })
+        vmware_cr = make_compute_resource(
+            {
+                'name': cr_name,
+                'organization-ids': self.org['id'],
+                'location-ids': self.loc['id'],
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'server': self.vmware_server,
+                'user': self.vmware_username,
+                'password': self.vmware_password,
+                'datacenter': self.vmware_datacenter,
+            }
+        )
         self.assertEquals(vmware_cr['name'], cr_name)

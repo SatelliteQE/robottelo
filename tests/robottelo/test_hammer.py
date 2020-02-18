@@ -19,23 +19,11 @@ class ParseCSVTestCase(unittest2.TestCase):
         self.assertEqual(
             hammer.parse_csv(output_lines),
             [
-                {
-                    u'header': u'header value 1',
-                    u'header-2': u'header with spaces value',
-                },
-                {
-                    u'header': u'MixEd CaSe ValUe',
-                    u'header-2': u'ALL CAPS VALUE',
-                },
-                {
-                    u'header': u'"double quote escaped value"',
-                    u'header-2': u', escaped value',
-                },
-                {
-                    u'header': u'unicode',
-                    u'header-2': u'chårs',
-                },
-            ]
+                {u'header': u'header value 1', u'header-2': u'header with spaces value'},
+                {u'header': u'MixEd CaSe ValUe', u'header-2': u'ALL CAPS VALUE'},
+                {u'header': u'"double quote escaped value"', u'header-2': u', escaped value'},
+                {u'header': u'unicode', u'header-2': u'chårs'},
+            ],
         )
 
 
@@ -89,7 +77,7 @@ class ParseJSONTestCase(unittest2.TestCase):
                     u'1': {
                         u'version': u'1.0',
                         u'id': u'1',
-                        u'published': u'2016-07-05 17:35:33 UTC'
+                        u'published': u'2016-07-05 17:35:33 UTC',
                     }
                 },
                 u'composite': False,
@@ -100,16 +88,11 @@ class ParseJSONTestCase(unittest2.TestCase):
                 u'components': {},
                 u'organization': u'Default Organization',
                 u'yum-repositories': {},
-                u'lifecycle-environments': {
-                    u'1': {
-                        u'id': u'1',
-                        u'name': u'Library'
-                    }
-                },
+                u'lifecycle-environments': {u'1': {u'id': u'1', u'name': u'Library'}},
                 u'id': u'1',
                 u'content-host-count': u'0',
-                u'name': u'Default Organization View'
-            }
+                u'name': u'Default Organization View',
+            },
         )
 
     def test_parsed_json_match_parsed_csv(self):
@@ -130,12 +113,12 @@ class ParseJSONTestCase(unittest2.TestCase):
         }
         """
 
-        csv_ouput_lines = [u"ID,Name,Organization,Content",
-                           u"160,QUWTHo0WzF,ANtbiU,qJxB1FX1UrssYiGGhRcZDF9eY8U"
-                           ]
+        csv_ouput_lines = [
+            u"ID,Name,Organization,Content",
+            u"160,QUWTHo0WzF,ANtbiU,qJxB1FX1UrssYiGGhRcZDF9eY8U",
+        ]
 
-        self.assertEqual(hammer.parse_json(json_output),
-                         hammer.parse_csv(csv_ouput_lines)[0])
+        self.assertEqual(hammer.parse_json(json_output), hammer.parse_csv(csv_ouput_lines)[0])
 
 
 class ParseHelpTestCase(unittest2.TestCase):
@@ -160,7 +143,6 @@ class ParseHelpTestCase(unittest2.TestCase):
             '                               server',
             ' gpg                           Manipulate GPG Key actions on the',
             '                               server',
-
             'Options:',
             ' --autocomplete LINE           Get list of possible endings',
             ' --name, --deprecation-name    An option with a deprecation name',
@@ -177,30 +159,14 @@ class ParseHelpTestCase(unittest2.TestCase):
             hammer.parse_help(output),
             {
                 'subcommands': [
-                    {
-                        'name': 'activation-key',
-                        'description': 'Manipulate activation keys.',
-                    },
-                    {
-                        'name': 'capsule',
-                        'description': 'Manipulate capsule',
-                    },
-                    {
-                        'name': 'compute-resource',
-                        'description': 'Manipulate compute resources.',
-                    },
+                    {'name': 'activation-key', 'description': 'Manipulate activation keys.'},
+                    {'name': 'capsule', 'description': 'Manipulate capsule'},
+                    {'name': 'compute-resource', 'description': 'Manipulate compute resources.'},
                     {
                         'name': 'content-host',
-                        'description': (
-                            'Manipulate content hosts on the server'
-                        ),
+                        'description': ('Manipulate content hosts on the server'),
                     },
-                    {
-                        'name': 'gpg',
-                        'description': (
-                            'Manipulate GPG Key actions on the server'
-                        ),
-                    },
+                    {'name': 'gpg', 'description': ('Manipulate GPG Key actions on the server')},
                 ],
                 'options': [
                     {
@@ -232,8 +198,7 @@ class ParseHelpTestCase(unittest2.TestCase):
                         'shortname': None,
                         'value': 'ADAPTER',
                         'help': (
-                            'Set output format. One of [base, table, silent, '
-                            'csv, yaml, json]'
+                            'Set output format. One of [base, table, silent, ' 'csv, yaml, json]'
                         ),
                     },
                     {
@@ -249,7 +214,7 @@ class ParseHelpTestCase(unittest2.TestCase):
                         'help': 'force reload of Apipie cache',
                     },
                 ],
-            }
+            },
         )
 
 
@@ -278,49 +243,23 @@ class ParseInfoTestCase(unittest2.TestCase):
                 'name': '4iv01o2u',
                 'major-version': '10',
                 'minor-version': '5',
-            }
+            },
         )
 
     def test_parse_numbered_list_attributes(self):
         """Can parse numbered list attributes"""
-        output = [
-            'Partition tables:',
-            ' 1) ptable1',
-            ' 2) ptable2',
-            ' 3) ptable3',
-            ' 4) ptable4',
-        ]
+        output = ['Partition tables:', ' 1) ptable1', ' 2) ptable2', ' 3) ptable3', ' 4) ptable4']
         self.assertDictEqual(
             hammer.parse_info(output),
-            {
-                'partition-tables': [
-                    'ptable1',
-                    'ptable2',
-                    'ptable3',
-                    'ptable4',
-                ],
-            }
+            {'partition-tables': ['ptable1', 'ptable2', 'ptable3', 'ptable4']},
         )
 
     def test_parse_list_attributes(self):
         """Can parse list attributes"""
-        output = [
-            'Partition tables:',
-            ' ptable1',
-            ' ptable2',
-            ' ptable3',
-            ' ptable4',
-        ]
+        output = ['Partition tables:', ' ptable1', ' ptable2', ' ptable3', ' ptable4']
         self.assertDictEqual(
             hammer.parse_info(output),
-            {
-                'partition-tables': [
-                    'ptable1',
-                    'ptable2',
-                    'ptable3',
-                    'ptable4',
-                ],
-            }
+            {'partition-tables': ['ptable1', 'ptable2', 'ptable3', 'ptable4']},
         )
 
     def test_parse_dict_attributes(self):
@@ -336,16 +275,10 @@ class ParseInfoTestCase(unittest2.TestCase):
             hammer.parse_info(output),
             {
                 'content': [
-                    {
-                        'repo-name': 'repo1',
-                        'url': '/custom/url1',
-                    },
-                    {
-                        'repo-name': 'repo2',
-                        'url': '/custom/url2',
-                    }
-                ],
-            }
+                    {'repo-name': 'repo1', 'url': '/custom/url1'},
+                    {'repo-name': 'repo2', 'url': '/custom/url2'},
+                ]
+            },
         )
 
     def test_parse_info(self):
@@ -375,24 +308,15 @@ class ParseInfoTestCase(unittest2.TestCase):
             {
                 'sync-state': 'not_synced',
                 'sync-plan-id': {},
-                'gpg': {
-                    'gpg-key-id': '1',
-                    'gpg-key': 'key name'
-                },
-                'organizations': [
-                    'Org 1',
-                    'Org 2',
-                ],
-                'locations': [
-                    'Loc 1',
-                    'Loc 2',
-                ],
+                'gpg': {'gpg-key-id': '1', 'gpg-key': 'key name'},
+                'organizations': ['Org 1', 'Org 2'],
+                'locations': ['Loc 1', 'Loc 2'],
                 'repositories': [
                     {'repo-id': '10', 'repo-name': 'repo1'},
                     {'repo-id': '20', 'repo-name': 'repo2'},
                     {'repo-id': '30', 'repo-name': 'repo3'},
                 ],
-            }
+            },
         )
 
     def test_parse(self):
@@ -470,7 +394,7 @@ class ParseInfoTestCase(unittest2.TestCase):
             '        Purpose Usage:',
             '        Purpose Role:',
             '        Purpose Addons:',
-            'Host Collections:'
+            'Host Collections:',
         ]
         self.assertEqual(
             hammer.parse_info(output),
@@ -484,14 +408,8 @@ class ParseInfoTestCase(unittest2.TestCase):
                 'installed-at': {},
                 'last-report': {},
                 'uptime-(seconds)': '67',
-                'status': {
-                    'global-status': 'Error'
-                },
-                'network': {
-                    'ipv4-address': 'ip1',
-                    'mac': 'mac1',
-                    'domain': 'domain1'
-                },
+                'status': {'global-status': 'Error'},
+                'network': {'ipv4-address': 'ip1', 'mac': 'mac1', 'domain': 'domain1'},
                 'network-interfaces': [
                     {
                         'id': '34',
@@ -499,76 +417,53 @@ class ParseInfoTestCase(unittest2.TestCase):
                         'type': 'interface (primary, provision)',
                         'mac-address': 'mac2',
                         'ipv4-address': 'ip2',
-                        'fqdn': 'name1.domain'
+                        'fqdn': 'name1.domain',
                     }
                 ],
                 'operating-system': {
                     'architecture': 'x86_64',
                     'operating-system': 'os1',
                     'build': 'no',
-                    'custom-partition-table': ''
+                    'custom-partition-table': '',
                 },
                 'parameters': {},
-                'all-parameters': {
-                    'enable-puppet5': 'true',
-                    'enable-epel': 'false'
-                },
+                'all-parameters': {'enable-puppet5': 'true', 'enable-epel': 'false'},
                 'additional-info': {
                     'owner': 'Anonymous Admin',
                     'owner-type': 'User',
                     'enabled': 'yes',
                     'model': 'Standard PC (i440FX + PIIX, 1996)',
-                    'comment': ''
+                    'comment': '',
                 },
                 'openscap-proxy': {},
                 'content-information': {
-                    'content-view': {
-                        'id': '38',
-                        'name': 'content view1'
-                    },
-                    'lifecycle-environment': {
-                        'id': '40',
-                        'name': 'lifecycle environment1'
-                    },
-                    'content-source': {
-                        'id': '',
-                        'name': ''
-                    },
-                    'kickstart-repository': {
-                        'id': '',
-                        'name': ''
-                    },
+                    'content-view': {'id': '38', 'name': 'content view1'},
+                    'lifecycle-environment': {'id': '40', 'name': 'lifecycle environment1'},
+                    'content-source': {'id': '', 'name': ''},
+                    'kickstart-repository': {'id': '', 'name': ''},
                     'applicable-packages': '0',
                     'upgradable-packages': '0',
-                    'applicable-errata': {
-                        'enhancement': '0',
-                        'bug-fix': '0',
-                        'security': '0'
-                    }
+                    'applicable-errata': {'enhancement': '0', 'bug-fix': '0', 'security': '0'},
                 },
                 'subscription-information': {
                     'uuid': 'uuid1',
                     'last-checkin': '2019-12-13 00:00:00 UTC',
-                    'release-version': '', 'autoheal': 'true',
+                    'release-version': '',
+                    'autoheal': 'true',
                     'registered-to': 'tier3',
                     'registered-at': '2019-12-13 00:00:00 UTC',
-                    'registered-by-activation-keys': [
-                        'ak1'
-                    ],
+                    'registered-by-activation-keys': ['ak1'],
                     'system-purpose': {
                         'service-level': '',
                         'purpose-usage': '',
                         'purpose-role': '',
-                        'purpose-addons': ''
-                    }
+                        'purpose-addons': '',
+                    },
                 },
-                'host-collections': {}
-            }
+                'host-collections': {},
+            },
         )
 
     def test_parse_json_list(self):
         """Can parse a list in json"""
-        self.assertEqual(
-            hammer.parse_json('["item1", "item2"]'),
-            ['item1', 'item2']
-        )
+        self.assertEqual(hammer.parse_json('["item1", "item2"]'), ['item1', 'item2'])

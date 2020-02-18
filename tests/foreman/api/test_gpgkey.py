@@ -72,8 +72,7 @@ class GPGKeyTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                gpg_key = entities.GPGKey(
-                    organization=self.org, name=name).create()
+                gpg_key = entities.GPGKey(organization=self.org, name=name).create()
                 self.assertEqual(name, gpg_key.name)
 
     @tier1
@@ -86,8 +85,7 @@ class GPGKeyTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        gpg_key = entities.GPGKey(
-            organization=self.org, content=self.key_content).create()
+        gpg_key = entities.GPGKey(organization=self.org, content=self.key_content).create()
         self.assertEqual(self.key_content, gpg_key.content)
 
     @tier1
@@ -162,8 +160,7 @@ class GPGKeyTestCase(APITestCase):
         :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(
-            organization=self.org,
-            content=read_data_file(VALID_GPG_KEY_BETA_FILE),
+            organization=self.org, content=read_data_file(VALID_GPG_KEY_BETA_FILE)
         ).create()
         gpg_key.content = self.key_content
         gpg_key = gpg_key.update(['content'])
@@ -214,8 +211,7 @@ class GPGKeyTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        gpg_key = entities.GPGKey(
-            organization=self.org, content=self.key_content).create()
+        gpg_key = entities.GPGKey(organization=self.org, content=self.key_content).create()
         gpg_key.content = ''
         with self.assertRaises(HTTPError):
             gpg_key.update(['content'])

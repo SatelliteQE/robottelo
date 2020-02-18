@@ -31,6 +31,7 @@ from robottelo.cli.base import Base
 
 class ActivationKey(Base):
     """Manipulates Katello's activation-key."""
+
     command_base = 'activation-key'
 
     @classmethod
@@ -67,10 +68,7 @@ class ActivationKey(Base):
     def product_content(cls, options=None):
         """List associated products"""
         cls.command_sub = 'product-content'
-        return cls.execute(
-            cls._construct_command(options),
-            output_format='csv'
-        )
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_host_collection(cls, options=None):
@@ -94,5 +92,4 @@ class ActivationKey(Base):
     def subscriptions(cls, options=None, output_format=None):
         """List associated subscriptions"""
         cls.command_sub = 'subscriptions'
-        return cls.execute(
-            cls._construct_command(options), output_format=output_format)
+        return cls.execute(cls._construct_command(options), output_format=output_format)

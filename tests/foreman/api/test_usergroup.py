@@ -83,7 +83,7 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup(user=users).create()
         self.assertEqual(
             sorted([user.login for user in users]),
-            sorted([user.read().login for user in user_group.user])
+            sorted([user.read().login for user in user_group.user]),
         )
 
     @tier1
@@ -118,7 +118,7 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup(role=roles).create()
         self.assertEqual(
             sorted([role.name for role in roles]),
-            sorted([role.read().name for role in user_group.role])
+            sorted([role.read().name for role in user_group.role]),
         )
 
     @tier1
@@ -135,9 +135,7 @@ class UserGroupTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 sub_user_group = entities.UserGroup(name=name).create()
-                user_group = entities.UserGroup(
-                    usergroup=[sub_user_group],
-                ).create()
+                user_group = entities.UserGroup(usergroup=[sub_user_group]).create()
                 self.assertEqual(len(user_group.usergroup), 1)
                 self.assertEqual(user_group.usergroup[0].read().name, name)
 
@@ -153,13 +151,11 @@ class UserGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        sub_user_groups = [
-            entities.UserGroup().create() for _ in range(randint(3, 5))]
+        sub_user_groups = [entities.UserGroup().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(usergroup=sub_user_groups).create()
         self.assertEqual(
             sorted([usergroup.name for usergroup in sub_user_groups]),
-            sorted(
-                [usergroup.read().name for usergroup in user_group.usergroup])
+            sorted([usergroup.read().name for usergroup in user_group.usergroup]),
         )
 
     @tier1
@@ -271,8 +267,7 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup().create()
         user_group.usergroup = [new_usergroup]
         user_group = user_group.update(['usergroup'])
-        self.assertEqual(
-            new_usergroup.name, user_group.usergroup[0].read().name)
+        self.assertEqual(new_usergroup.name, user_group.usergroup[0].read().name)
 
     @tier1
     def test_negative_update(self):

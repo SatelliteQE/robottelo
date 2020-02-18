@@ -43,8 +43,7 @@ class UserGroup(Base):
             --role-id ROLE_ID
         """
         cls.command_sub = 'add-role'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def add_user(cls, options=None):
@@ -60,8 +59,7 @@ class UserGroup(Base):
             --user-id USER_ID
         """
         cls.command_sub = 'add-user'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def add_user_group(cls, options=None):
@@ -77,8 +75,7 @@ class UserGroup(Base):
             --user-group-id USER_GROUP_ID
         """
         cls.command_sub = 'add-user-group'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_role(cls, options=None):
@@ -94,8 +91,7 @@ class UserGroup(Base):
             --role-id ROLE_ID
         """
         cls.command_sub = 'remove-role'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_user(cls, options=None):
@@ -111,8 +107,7 @@ class UserGroup(Base):
             --user-id USER_ID
         """
         cls.command_sub = 'remove-user'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_user_group(cls, options=None):
@@ -128,8 +123,7 @@ class UserGroup(Base):
             --user-group-id USER_GROUP_ID
         """
         cls.command_sub = 'remove-user-group'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
 
 class UserGroupExternal(Base):
@@ -146,26 +140,22 @@ class UserGroupExternal(Base):
         refresh        Refresh external user group
         update         Update external user group
     """
+
     command_base = 'user-group external'
 
     @classmethod
     def refresh(cls, options=None):
         cls.command_sub = 'refresh'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def create(cls, options=None):
         """Create external user group"""
         cls.command_sub = 'create'
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
         # External user group can only be fetched by specifying both id and
         # user group id it is linked to
         if len(result) > 0 and 'id' in result[0]:
-            info_options = {
-                'user-group-id': options.get('user-group-id'),
-                'id': result[0]['id'],
-            }
+            info_options = {'user-group-id': options.get('user-group-id'), 'id': result[0]['id']}
             result = cls.info(info_options)
         return result

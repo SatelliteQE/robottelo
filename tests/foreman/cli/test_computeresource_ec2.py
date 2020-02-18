@@ -67,15 +67,17 @@ class EC2ComputeResourceTestCase(CLITestCase):
         """
         cr_name = gen_string(str_type='alpha')
         cr_description = gen_string(str_type='alpha')
-        cr = make_compute_resource({
-            'name': cr_name,
-            'description': cr_description,
-            'provider': FOREMAN_PROVIDERS['ec2'],
-            'user': self.aws_access_key,
-            'password': self.aws_secret_key,
-            'region': EC2_REGION_CA_CENTRAL_1,
-            'organizations': self.org['name'],
-            'locations': self.loc['name'],
-        })
+        cr = make_compute_resource(
+            {
+                'name': cr_name,
+                'description': cr_description,
+                'provider': FOREMAN_PROVIDERS['ec2'],
+                'user': self.aws_access_key,
+                'password': self.aws_secret_key,
+                'region': EC2_REGION_CA_CENTRAL_1,
+                'organizations': self.org['name'],
+                'locations': self.loc['name'],
+            }
+        )
         self.assertEquals(cr['name'], cr_name)
         self.assertEquals(cr['region'], EC2_REGION_CA_CENTRAL_1)

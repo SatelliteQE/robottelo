@@ -149,30 +149,18 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         if self.fake_manifest_is_set:
             with manifests.clone() as manifest:
                 ssh.upload_file(manifest.content, manifest.filename)
-            Subscription.upload({
-                u'file': manifest.filename,
-                u'organization-id': org['id'],
-            })
+            Subscription.upload({u'file': manifest.filename, u'organization-id': org['id']})
 
         # step 2.3: Create a new lifecycle environment
         lifecycle_environment = self._create(
             user,
             LifecycleEnvironment,
-            {
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-                u'prior': u'Library',
-            }
+            {u'name': gen_alphanumeric(), u'organization-id': org['id'], u'prior': u'Library'},
         )
 
         # step 2.4: Create a custom product
         product = self._create(
-            user,
-            Product,
-            {
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-            }
+            user, Product, {u'name': gen_alphanumeric(), u'organization-id': org['id']}
         )
         repositories = []
 
@@ -186,7 +174,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'product-id': product['id'],
                 u'publish-via-http': u'true',
                 u'url': CUSTOM_RPM_REPO,
-            }
+            },
         )
         repositories.append(yum_repo)
 
@@ -200,111 +188,85 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'product-id': product['id'],
                 u'publish-via-http': u'true',
                 u'url': FAKE_0_PUPPET_REPO,
-            }
+            },
         )
         repositories.append(puppet_repo)
 
         # step 2.7: Enable a Red Hat repository
         if self.fake_manifest_is_set:
-            RepositorySet.enable({
-                u'basearch': 'x86_64',
-                u'name': REPOSET['rhva6'],
-                u'organization-id': org['id'],
-                u'product': PRDS['rhel'],
-                u'releasever': '6Server',
-            })
-            rhel_repo = Repository.info({
-                u'name': REPOS['rhva6']['name'],
-                u'organization-id': org['id'],
-                u'product': PRDS['rhel'],
-            })
+            RepositorySet.enable(
+                {
+                    u'basearch': 'x86_64',
+                    u'name': REPOSET['rhva6'],
+                    u'organization-id': org['id'],
+                    u'product': PRDS['rhel'],
+                    u'releasever': '6Server',
+                }
+            )
+            rhel_repo = Repository.info(
+                {
+                    u'name': REPOS['rhva6']['name'],
+                    u'organization-id': org['id'],
+                    u'product': PRDS['rhel'],
+                }
+            )
             repositories.append(rhel_repo)
 
         # step 2.8: Synchronize the three repositories
         for repo in repositories:
-            Repository.with_user(
-                user['login'],
-                user['password']
-            ).synchronize({u'id': repo['id']})
+            Repository.with_user(user['login'], user['password']).synchronize({u'id': repo['id']})
 
         # step 2.9: Create content view
         content_view = self._create(
-            user,
-            ContentView,
-            {
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-            }
+            user, ContentView, {u'name': gen_alphanumeric(), u'organization-id': org['id']}
         )
 
         # step 2.10: Associate the YUM and Red Hat repositories to new content
         # view
         repositories.remove(puppet_repo)
         for repo in repositories:
-            ContentView.add_repository({
-                u'id': content_view['id'],
-                u'organization-id': org['id'],
-                u'repository-id': repo['id'],
-            })
+            ContentView.add_repository(
+                {
+                    u'id': content_view['id'],
+                    u'organization-id': org['id'],
+                    u'repository-id': repo['id'],
+                }
+            )
 
         # step 2.11: Add a PUPPET module to new content view
-        result = PuppetModule.with_user(
-            user['login'],
-            user['password']
-        ).list({
-            u'repository-id': puppet_repo['id'],
-            u'per-page': False,
-        })
-        ContentView.with_user(
-            user['login'],
-            user['password']
-        ).puppet_module_add({
-            u'content-view-id': content_view['id'],
-            u'id': random.choice(result)['id'],
-        })
+        result = PuppetModule.with_user(user['login'], user['password']).list(
+            {u'repository-id': puppet_repo['id'], u'per-page': False}
+        )
+        ContentView.with_user(user['login'], user['password']).puppet_module_add(
+            {u'content-view-id': content_view['id'], u'id': random.choice(result)['id']}
+        )
 
         # step 2.12: Publish content view
-        ContentView.with_user(
-            user['login'],
-            user['password']
-        ).publish({u'id': content_view['id']})
+        ContentView.with_user(user['login'], user['password']).publish({u'id': content_view['id']})
 
         # step 2.13: Promote content view to the lifecycle environment
-        content_view = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).info({u'id': content_view['id']})
+        content_view = ContentView.with_user(user['login'], user['password']).info(
+            {u'id': content_view['id']}
+        )
         self.assertEqual(len(content_view['versions']), 1)
-        cv_version = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).version_info({
-            'id': content_view['versions'][0]['id'],
-        })
+        cv_version = ContentView.with_user(user['login'], user['password']).version_info(
+            {'id': content_view['versions'][0]['id']}
+        )
         self.assertEqual(len(cv_version['lifecycle-environments']), 1)
-        ContentView.with_user(
-            user['login'],
-            user['password']
-        ).version_promote({
-            u'id': cv_version['id'],
-            u'to-lifecycle-environment-id': lifecycle_environment['id'],
-        })
+        ContentView.with_user(user['login'], user['password']).version_promote(
+            {u'id': cv_version['id'], u'to-lifecycle-environment-id': lifecycle_environment['id']}
+        )
         # check that content view exists in lifecycle
-        content_view = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).info({u'id': content_view['id']})
+        content_view = ContentView.with_user(user['login'], user['password']).info(
+            {u'id': content_view['id']}
+        )
         self.assertEqual(len(content_view['versions']), 1)
-        cv_version = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).version_info({
-            'id': content_view['versions'][0]['id'],
-        })
+        cv_version = ContentView.with_user(user['login'], user['password']).version_info(
+            {'id': content_view['versions'][0]['id']}
+        )
         self.assertEqual(len(cv_version['lifecycle-environments']), 2)
         self.assertEqual(
-            cv_version['lifecycle-environments'][-1]['id'],
-            lifecycle_environment['id']
+            cv_version['lifecycle-environments'][-1]['id'], lifecycle_environment['id']
         )
 
         # step 2.14: Create a new activation key
@@ -316,68 +278,57 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'lifecycle-environment-id': lifecycle_environment['id'],
                 u'name': gen_alphanumeric(),
                 u'organization-id': org['id'],
-            }
+            },
         )
 
         # step 2.15: Add the products to the activation key
-        subscription_list = Subscription.with_user(
-            user['login'],
-            user['password']
-        ).list(
-            {u'organization-id': org['id']},
-            per_page=False
+        subscription_list = Subscription.with_user(user['login'], user['password']).list(
+            {u'organization-id': org['id']}, per_page=False
         )
         for subscription in subscription_list:
             if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
-                ActivationKey.with_user(
-                    user['login'],
-                    user['password']
-                ).add_subscription({
-                    u'id': activation_key['id'],
-                    u'quantity': 1,
-                    u'subscription-id': subscription['id'],
-                })
+                ActivationKey.with_user(user['login'], user['password']).add_subscription(
+                    {
+                        u'id': activation_key['id'],
+                        u'quantity': 1,
+                        u'subscription-id': subscription['id'],
+                    }
+                )
 
         # step 2.15.1: Enable product content
         if self.fake_manifest_is_set:
-            ActivationKey.with_user(
-                user['login'],
-                user['password']
-            ).content_override({
-                u'content-label': AK_CONTENT_LABEL,
-                u'id': activation_key['id'],
-                u'organization-id': org['id'],
-                u'value': '1',
-            })
+            ActivationKey.with_user(user['login'], user['password']).content_override(
+                {
+                    u'content-label': AK_CONTENT_LABEL,
+                    u'id': activation_key['id'],
+                    u'organization-id': org['id'],
+                    u'value': '1',
+                }
+            )
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host_name = gen_alphanumeric()
-        content_host = Host.with_user(
-            user['login'],
-            user['password']
-        ).subscription_register({
-            u'content-view-id': content_view['id'],
-            u'lifecycle-environment-id': lifecycle_environment['id'],
-            u'name': content_host_name,
-            u'organization-id': org['id'],
-        })
+        content_host = Host.with_user(user['login'], user['password']).subscription_register(
+            {
+                u'content-view-id': content_view['id'],
+                u'lifecycle-environment-id': lifecycle_environment['id'],
+                u'name': content_host_name,
+                u'organization-id': org['id'],
+            }
+        )
 
-        content_host = Host.with_user(
-            user['login'],
-            user['password']
-        ).info({'id': content_host['id']})
+        content_host = Host.with_user(user['login'], user['password']).info(
+            {'id': content_host['id']}
+        )
         # check that content view matches what we passed
         self.assertEqual(
-            content_host['content-information'][
-                'content-view']['name'],
-            content_view['name']
+            content_host['content-information']['content-view']['name'], content_view['name']
         )
         # check that lifecycle environment matches
         self.assertEqual(
-            content_host['content-information'][
-                'lifecycle-environment']['name'],
-            lifecycle_environment['name']
+            content_host['content-information']['lifecycle-environment']['name'],
+            lifecycle_environment['name'],
         )
 
         # step 2.16: Create a new libvirt compute resource
@@ -390,7 +341,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'url': u'qemu+ssh://root@{0}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
-            }
+            },
         )
 
         # step 2.17: Create a new subnet
@@ -401,7 +352,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'name': gen_alphanumeric(),
                 u'network': gen_ipaddr(ip3=True),
                 u'mask': u'255.255.255.0',
-            }
+            },
         )
 
         # step 2.18: Create a new domain
@@ -412,21 +363,16 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         host_group = self._create(
             user,
             HostGroup,
+            {u'domain-id': domain['id'], u'name': gen_alphanumeric(), u'subnet-id': subnet['id']},
+        )
+        HostGroup.with_user(user['login'], user['password']).update(
             {
-                u'domain-id': domain['id'],
-                u'name': gen_alphanumeric(),
-                u'subnet-id': subnet['id'],
+                'id': host_group['id'],
+                'organization-ids': org['id'],
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lifecycle_environment['id'],
             }
         )
-        HostGroup.with_user(
-            user['login'],
-            user['password']
-        ).update({
-            'id': host_group['id'],
-            'organization-ids': org['id'],
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': lifecycle_environment['id'],
-        })
 
         # step 2.20: Provision a client
         self.client_provisioning(activation_key['name'], org['label'])
@@ -443,7 +389,4 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         """
 
         # Create new entity as new user
-        return entity.with_user(
-            user['login'],
-            user['password']
-        ).create(attrs)
+        return entity.with_user(user['login'], user['password']).create(attrs)

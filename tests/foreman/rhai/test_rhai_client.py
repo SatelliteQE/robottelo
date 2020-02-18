@@ -29,15 +29,12 @@ from robottelo.vm import VirtualMachine
 
 @run_in_one_thread
 class RHAIClientTestCase(TestCase):
-
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):  # noqa
         super(RHAIClientTestCase, cls).setUpClass()
         # Create a new organization with prefix 'insights'
-        org = entities.Organization(
-            name='insights_{0}'.format(gen_string('alpha', 6))
-        ).create()
+        org = entities.Organization(name='insights_{0}'.format(gen_string('alpha', 6))).create()
 
         # Upload manifest
         with manifests.clone() as manifest:
@@ -61,10 +58,7 @@ class RHAIClientTestCase(TestCase):
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': subs.id,
-                })
+                activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subs.id})
                 break
         cls.org_label = org.label
         cls.ak_name = activation_key.name
@@ -81,11 +75,11 @@ class RHAIClientTestCase(TestCase):
             return zero on a successfully registered machine to RHAI service
         """
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
-            vm.configure_rhai_client(self.ak_name, self.org_label,
-                                     DISTRO_RHEL6)
-            test_connection = vm.run(
-                'redhat-access-insights --test-connection')
-            self.logger.info('Return code for --test-connection {0}'.format(
-                test_connection.return_code))
-            self.assertEqual(test_connection.return_code, 0,
-                             '--test-connection check was not successful')
+            vm.configure_rhai_client(self.ak_name, self.org_label, DISTRO_RHEL6)
+            test_connection = vm.run('redhat-access-insights --test-connection')
+            self.logger.info(
+                'Return code for --test-connection {0}'.format(test_connection.return_code)
+            )
+            self.assertEqual(
+                test_connection.return_code, 0, '--test-connection check was not successful'
+            )

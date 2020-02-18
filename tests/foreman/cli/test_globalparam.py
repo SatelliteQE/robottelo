@@ -38,12 +38,8 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (
-            gen_string('alpha', 10), gen_string('alpha', 10))
-        GlobalParameter().set({
-            'name': name,
-            'value': value,
-        })
+        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({'name': name, 'value': value})
 
     @tier1
     def test_positive_list_by_name(self):
@@ -57,12 +53,8 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (
-            gen_string('alpha', 10), gen_string('alpha', 10))
-        GlobalParameter().set({
-            'name': name,
-            'value': value,
-        })
+        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({'name': name, 'value': value})
         result = GlobalParameter().list({'search': name})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['value'], value)
@@ -80,12 +72,8 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (
-            gen_string('alpha', 10), gen_string('alpha', 10))
-        GlobalParameter().set({
-            'name': name,
-            'value': value,
-        })
+        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({'name': name, 'value': value})
         GlobalParameter().delete({'name': name})
         result = GlobalParameter().list({'search': name})
         self.assertEqual(len(result), 0)

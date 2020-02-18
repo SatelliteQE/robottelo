@@ -74,16 +74,16 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         org = entities.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = 'repo = Katello::Repository.find_by_id({0})'.format(custom_repo)
-        rake_username = '; repo.root.upstream_username = "{0}"'\
-            .format(self.upstream_username)
+        rake_username = '; repo.root.upstream_username = "{0}"'.format(self.upstream_username)
         rake_repo_save = '; repo.save!(validate: false)'
-        result = run("echo '{0}{1}{2}'|foreman-rake console"
-                     .format(rake_repo, rake_username, rake_repo_save))
+        result = run(
+            "echo '{0}{1}{2}'|foreman-rake console".format(
+                rake_repo, rake_username, rake_repo_save
+            )
+        )
         self.assertIn('true', result)
 
-        global_dict = {
-            self.__class__.__name__: {'repo_id': custom_repo}
-        }
+        global_dict = {self.__class__.__name__: {'repo_id': custom_repo}}
         create_dict(global_dict)
 
     @post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
@@ -105,8 +105,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']
         rake_repo = 'repo = Katello::RootRepository.find_by_id({0})'.format(repo_id)
         rake_username = '; repo.root.upstream_username'
-        result = run("echo '{0}{1}'|foreman-rake console".
-                     format(rake_repo, rake_username))
+        result = run("echo '{0}{1}'|foreman-rake console".format(rake_repo, rake_username))
         self.assertNotIn(self.upstream_username, result)
 
 
@@ -173,48 +172,49 @@ class Scenario_custom_repo_check(APITestCase):
 
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
-            'Packages/b/|grep {}'.format(org.label,
-                                         lce.name,
-                                         content_view.label,
-                                         product.label,
-                                         repo.label,
-                                         self.rpm1_name)
-
+            'Packages/b/|grep {}'.format(
+                org.label, lce.name, content_view.label, product.label, repo.label, self.rpm1_name
             )
+        )
 
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
         subscription = entities.Subscription(organization=org).search(
-            query={'search': 'name={}'.format(product.name)})[0]
-        ak = entities.ActivationKey(content_view=content_view,
-                                    organization=org.id,
-                                    environment=lce).create()
+            query={'search': 'name={}'.format(product.name)}
+        )[0]
+        ak = entities.ActivationKey(
+            content_view=content_view, organization=org.id, environment=lce
+        ).create()
         ak.add_subscriptions(data={'subscription_id': subscription.id})
 
         rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
 
-        host_location_update(client_container_name=client_container_name,
-                             logger_obj=self.logger, loc=loc)
-        status = execute(docker_execute_command,
-                         client_container_id,
-                         'subscription-manager identity',
-                         host=self.docker_vm)[self.docker_vm]
+        host_location_update(
+            client_container_name=client_container_name, logger_obj=self.logger, loc=loc
+        )
+        status = execute(
+            docker_execute_command,
+            client_container_id,
+            'subscription-manager identity',
+            host=self.docker_vm,
+        )[self.docker_vm]
         self.assertIn(org.name, status)
-        install_or_update_package(client_hostname=client_container_id,
-                                  package=self.rpm1_name)
+        install_or_update_package(client_hostname=client_container_id, package=self.rpm1_name)
 
-        scenario_dict = {self.__class__.__name__: {
-            'content_view_name': content_view.name,
-            'lce_id': lce.id,
-            'lce_name': lce.name,
-            'org_label': org.label,
-            'prod_label': product.label,
-            'rhel_client': rhel7_client,
-            'repo_name': repo.name,
-        }}
+        scenario_dict = {
+            self.__class__.__name__: {
+                'content_view_name': content_view.name,
+                'lce_id': lce.id,
+                'lce_name': lce.name,
+                'org_label': org.label,
+                'prod_label': product.label,
+                'rhel_client': rhel7_client,
+                'repo_name': repo.name,
+            }
+        }
         create_dict(scenario_dict)
 
     @post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
@@ -256,14 +256,10 @@ class Scenario_custom_repo_check(APITestCase):
 
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
-            'Packages/c/| grep {}'.format(org_label,
-                                          lce_name,
-                                          content_view.label,
-                                          prod_label,
-                                          repo.label,
-                                          self.rpm2_name)
+            'Packages/c/| grep {}'.format(
+                org_label, lce_name, content_view.label, prod_label, repo.label, self.rpm2_name
+            )
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
-        install_or_update_package(client_hostname=client_container_id,
-                                  package=self.rpm2_name)
+        install_or_update_package(client_hostname=client_container_id, package=self.rpm2_name)

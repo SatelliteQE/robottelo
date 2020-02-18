@@ -35,8 +35,7 @@ def test_positive_raised_callable_with_status_code():
     :meth:`robottelo.api.assert_api_not_raises` call.
     """
     with pytest.raises(AssertionError):
-        assert_api_not_raises(
-            HTTPError, fake_404_response, expected_value=404)
+        assert_api_not_raises(HTTPError, fake_404_response, expected_value=404)
 
 
 def test_positive_raised_context_manager_with_status_code():
@@ -87,8 +86,7 @@ def test_negative_wrong_status_code_callable():
     :meth:`robottelo.api.assert_api_not_raises` call.
     """
     with pytest.raises(HTTPError):
-        assert_api_not_raises(
-            HTTPError, fake_404_response, expected_value=405)
+        assert_api_not_raises(HTTPError, fake_404_response, expected_value=405)
 
 
 def test_negative_wrong_status_code_context_manager():
@@ -107,11 +105,7 @@ def test_negative_wrong_exception_and_status_code_callable():
     :meth:`robottelo.api.assert_api_not_raises` call.
     """
     with pytest.raises(HTTPError):
-        assert_api_not_raises(
-            ZeroDivisionError,
-            fake_404_response,
-            expected_value=405,
-        )
+        assert_api_not_raises(ZeroDivisionError, fake_404_response, expected_value=405)
 
 
 def test_negative_wrong_exception_and_status_code_context_manager():
@@ -130,11 +124,7 @@ def test_negative_wrong_exception_correct_status_code_callable():
     :meth:`robottelo.api.assert_api_not_raises` call.
     """
     with pytest.raises(HTTPError):
-        assert_api_not_raises(
-            ZeroDivisionError,
-            fake_404_response,
-            expected_value=404,
-        )
+        assert_api_not_raises(ZeroDivisionError, fake_404_response, expected_value=404)
 
 
 def test_negative_wrong_exc_correct_status_code_context_manager():
@@ -157,11 +147,7 @@ def test_positive_regex_raised_callable():
     pattern was found in exception message.
     """
     with pytest.raises(AssertionError):
-        assert_api_not_raises_regex(
-            HTTPError,
-            pattern,
-            fake_404_response,
-        )
+        assert_api_not_raises_regex(HTTPError, pattern, fake_404_response)
 
 
 def test_positive_regex_raised_context_manager():
@@ -182,11 +168,7 @@ def test_positive_regex_raised_callable_with_status_code():
     http_status_code altogether with regex pattern match expected ones.
     """
     with pytest.raises(AssertionError):
-        assert_api_not_raises_regex(
-            HTTPError,
-            pattern,
-            fake_404_response,
-            expected_value=404)
+        assert_api_not_raises_regex(HTTPError, pattern, fake_404_response, expected_value=404)
 
 
 def test_positive_regex_raised_context_manager_with_status_code():
@@ -196,8 +178,7 @@ def test_positive_regex_raised_context_manager_with_status_code():
     http_status_code altogether with regex pattern match expected ones.
     """
     with pytest.raises(AssertionError):
-        with assert_api_not_raises_regex(HTTPError, pattern,
-                                         expected_value=404):
+        with assert_api_not_raises_regex(HTTPError, pattern, expected_value=404):
             fake_404_response()
 
 
@@ -241,12 +222,7 @@ def test_negative_regex_wrong_status_code_callable():
     :meth:`robottelo.api.assert_api_not_raises_regex` call.
     """
     with pytest.raises(HTTPError):
-        assert_api_not_raises_regex(
-            HTTPError,
-            pattern,
-            fake_404_response,
-            expected_value=405,
-        )
+        assert_api_not_raises_regex(HTTPError, pattern, fake_404_response, expected_value=405)
 
 
 def test_negative_regex_wrong_status_code_context_manager():
@@ -255,11 +231,7 @@ def test_negative_regex_wrong_status_code_context_manager():
     :meth:`robottelo.api.assert_api_not_raises_regex` block.
     """
     with pytest.raises(HTTPError):
-        with assert_api_not_raises_regex(
-            HTTPError,
-            pattern,
-            expected_value=405,
-        ):
+        with assert_api_not_raises_regex(HTTPError, pattern, expected_value=405):
             fake_404_response()
 
 
@@ -270,10 +242,7 @@ def test_negative_regex_wrong_exception_and_status_code_callable():
     """
     with pytest.raises(HTTPError):
         assert_api_not_raises_regex(
-            ZeroDivisionError,
-            pattern,
-            fake_404_response,
-            expected_value=405,
+            ZeroDivisionError, pattern, fake_404_response, expected_value=405
         )
 
 
@@ -283,8 +252,7 @@ def test_negative_regex_wrong_exception_and_status_code_context_manager():
     :meth:`robottelo.api.assert_api_not_raises_regex` block.
     """
     with pytest.raises(HTTPError):
-        with assert_api_not_raises_regex(ZeroDivisionError, pattern,
-                                         expected_value=405):
+        with assert_api_not_raises_regex(ZeroDivisionError, pattern, expected_value=405):
             fake_404_response()
 
 
@@ -295,10 +263,7 @@ def test_negative_regex_wrong_exception_correct_status_code_callable():
     """
     with pytest.raises(HTTPError):
         assert_api_not_raises_regex(
-            ZeroDivisionError,
-            pattern,
-            fake_404_response,
-            expected_value=404,
+            ZeroDivisionError, pattern, fake_404_response, expected_value=404
         )
 
 
@@ -308,11 +273,7 @@ def test_negative_regex_wrong_exc_correct_status_code_context_manager():
     :meth:`robottelo.api.assert_api_not_raises_regex` block.
     """
     with pytest.raises(HTTPError):
-        with assert_api_not_raises_regex(
-            ZeroDivisionError,
-            pattern,
-            expected_value=404,
-        ):
+        with assert_api_not_raises_regex(ZeroDivisionError, pattern, expected_value=404):
             fake_404_response()
 
 
@@ -322,12 +283,7 @@ def test_negative_regex_wrong_pattern_correct_exc_status_code_callable():
     :meth:`robottelo.api.assert_api_not_raises_regex` call.
     """
     with pytest.raises(HTTPError):
-        assert_api_not_raises_regex(
-            HTTPError,
-            'foo',
-            fake_404_response,
-            expected_value=404,
-        )
+        assert_api_not_raises_regex(HTTPError, 'foo', fake_404_response, expected_value=404)
 
 
 def test_negative_regex_wrong_pattern_correct_exc_status_context_manager():
@@ -336,9 +292,7 @@ def test_negative_regex_wrong_pattern_correct_exc_status_context_manager():
     :meth:`robottelo.api.assert_api_not_raises_regex` block.
     """
     with pytest.raises(HTTPError):
-        with assert_api_not_raises_regex(
-            HTTPError, 'foo', expected_value=404
-        ):
+        with assert_api_not_raises_regex(HTTPError, 'foo', expected_value=404):
             fake_404_response()
 
 
@@ -348,12 +302,7 @@ def test_negative_regex_wrong_pattern_status_code_correct_exc_callable():
     :meth:`robottelo.api.assert_api_not_raises_regex` call.
     """
     with pytest.raises(HTTPError):
-        assert_api_not_raises_regex(
-            HTTPError,
-            'foo',
-            fake_404_response,
-            expected_value=405,
-        )
+        assert_api_not_raises_regex(HTTPError, 'foo', fake_404_response, expected_value=405)
 
 
 def test_negative_regex_wrong_pattern_status_code_correct_exc_manager():
@@ -362,9 +311,7 @@ def test_negative_regex_wrong_pattern_status_code_correct_exc_manager():
     :meth:`robottelo.api.assert_api_not_raises_regex` block.
     """
     with pytest.raises(HTTPError):
-        with assert_api_not_raises_regex(
-            HTTPError, 'foo', expected_value=405
-        ):
+        with assert_api_not_raises_regex(HTTPError, 'foo', expected_value=405):
             fake_404_response()
 
 
@@ -375,10 +322,7 @@ def test_negative_regex_wrong_pattern_exc_correct_status_code_callable():
     """
     with pytest.raises(HTTPError):
         assert_api_not_raises_regex(
-            ZeroDivisionError,
-            'foo',
-            fake_404_response,
-            expected_value=404,
+            ZeroDivisionError, 'foo', fake_404_response, expected_value=404
         )
 
 
@@ -388,9 +332,5 @@ def test_negative_regex_wrong_pattern_exc_correct_status_code_manager():
     :meth:`robottelo.api.assert_api_not_raises_regex` call.
     """
     with pytest.raises(HTTPError):
-        with assert_api_not_raises_regex(
-            ZeroDivisionError,
-            'foo',
-            expected_value=404,
-        ):
+        with assert_api_not_raises_regex(ZeroDivisionError, 'foo', expected_value=404):
             fake_404_response()

@@ -80,43 +80,37 @@ def valid_name_interval_create_tests():
 @filtered_datapoint
 def valid_name_interval_update_tests():
     """Returns a list of valid data for interval update tests."""
-    return[
-        {u'name': gen_string('alpha', 15),
-         u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('alphanumeric', 15),
-         u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('numeric', 15),
-         u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('latin1', 15),
-         u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('utf8', 15),
-         u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('html', 15),
-         u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('alpha', 15),
-         u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('alphanumeric', 15),
-         u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('numeric', 15),
-         u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('latin1', 15),
-         u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('utf8', 15),
-         u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('html', 15),
-         u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('alpha', 15),
-         u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('alphanumeric', 15),
-         u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('numeric', 15),
-         u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('latin1', 15),
-         u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('utf8', 15),
-         u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('html', 15),
-         u'interval': u'hourly', u'new-interval': u'weekly'},
+    return [
+        {u'name': gen_string('alpha', 15), u'interval': u'daily', u'new-interval': u'hourly'},
+        {
+            u'name': gen_string('alphanumeric', 15),
+            u'interval': u'daily',
+            u'new-interval': u'hourly',
+        },
+        {u'name': gen_string('numeric', 15), u'interval': u'daily', u'new-interval': u'hourly'},
+        {u'name': gen_string('latin1', 15), u'interval': u'daily', u'new-interval': u'hourly'},
+        {u'name': gen_string('utf8', 15), u'interval': u'daily', u'new-interval': u'hourly'},
+        {u'name': gen_string('html', 15), u'interval': u'daily', u'new-interval': u'hourly'},
+        {u'name': gen_string('alpha', 15), u'interval': u'weekly', u'new-interval': u'daily'},
+        {
+            u'name': gen_string('alphanumeric', 15),
+            u'interval': u'weekly',
+            u'new-interval': u'daily',
+        },
+        {u'name': gen_string('numeric', 15), u'interval': u'weekly', u'new-interval': u'daily'},
+        {u'name': gen_string('latin1', 15), u'interval': u'weekly', u'new-interval': u'daily'},
+        {u'name': gen_string('utf8', 15), u'interval': u'weekly', u'new-interval': u'daily'},
+        {u'name': gen_string('html', 15), u'interval': u'weekly', u'new-interval': u'daily'},
+        {u'name': gen_string('alpha', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
+        {
+            u'name': gen_string('alphanumeric', 15),
+            u'interval': u'hourly',
+            u'new-interval': u'weekly',
+        },
+        {u'name': gen_string('numeric', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
+        {u'name': gen_string('latin1', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
+        {u'name': gen_string('utf8', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
+        {u'name': gen_string('html', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
     ]
 
 
@@ -155,9 +149,9 @@ class SyncPlanTestCase(CLITestCase):
             wait_for_syncplan_tasks(repo_name=repo_name)
         wait_for_tasks(
             search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo_id),
-            max_tries=max_tries
+            ' and owner.login = foreman_admin'
+            ' and resource_id = {}'.format(repo_id),
+            max_tries=max_tries,
         )
 
     def validate_repo_content(self, repo, content_types, after_sync=True):
@@ -173,8 +167,7 @@ class SyncPlanTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         for content in content_types:
             if after_sync:
-                self.assertGreater(
-                    int(repo['content-counts'][content]), 0)
+                self.assertGreater(int(repo['content-counts'][content]), 0)
             else:
                 self.assertFalse(int(repo['content-counts'][content]))
 
@@ -220,15 +213,11 @@ class SyncPlanTestCase(CLITestCase):
         """
         for test_data in valid_name_interval_create_tests():
             with self.subTest(test_data):
-                new_sync_plan = self._make_sync_plan({
-                    u'interval': test_data['interval'],
-                    u'name': test_data['name'],
-                })
-                self.assertEqual(new_sync_plan['name'], test_data['name'])
-                self.assertEqual(
-                    new_sync_plan['interval'],
-                    test_data['interval']
+                new_sync_plan = self._make_sync_plan(
+                    {u'interval': test_data['interval'], u'name': test_data['name']}
                 )
+                self.assertEqual(new_sync_plan['name'], test_data['name'])
+                self.assertEqual(new_sync_plan['interval'], test_data['interval'])
 
     @tier1
     def test_negative_create_with_name(self):
@@ -242,10 +231,7 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name):
-                with self.assertRaisesRegex(
-                    CLIFactoryError,
-                    u'Could not create the sync plan:'
-                ):
+                with self.assertRaisesRegex(CLIFactoryError, u'Could not create the sync plan:'):
                     self._make_sync_plan({u'name': name})
 
     @tier2
@@ -259,10 +245,7 @@ class SyncPlanTestCase(CLITestCase):
         new_sync_plan = self._make_sync_plan()
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
-                SyncPlan.update({
-                    u'description': new_desc,
-                    u'id': new_sync_plan['id'],
-                })
+                SyncPlan.update({u'description': new_desc, u'id': new_sync_plan['id']})
                 result = SyncPlan.info({u'id': new_sync_plan['id']})
                 self.assertEqual(result['description'], new_desc)
 
@@ -278,14 +261,12 @@ class SyncPlanTestCase(CLITestCase):
         """
         for test_data in valid_name_interval_update_tests():
             with self.subTest(test_data):
-                new_sync_plan = self._make_sync_plan({
-                    u'interval': test_data['interval'],
-                    u'name': test_data['name'],
-                })
-                SyncPlan.update({
-                    u'id': new_sync_plan['id'],
-                    u'interval': test_data['new-interval'],
-                })
+                new_sync_plan = self._make_sync_plan(
+                    {u'interval': test_data['interval'], u'name': test_data['name']}
+                )
+                SyncPlan.update(
+                    {u'id': new_sync_plan['id'], u'interval': test_data['new-interval']}
+                )
                 result = SyncPlan.info({u'id': new_sync_plan['id']})
                 self.assertEqual(result['interval'], test_data['new-interval'])
 
@@ -305,36 +286,23 @@ class SyncPlanTestCase(CLITestCase):
         # Set the sync date to today/right now
         today = datetime.now()
         sync_plan_name = gen_string('alphanumeric')
-        new_sync_plan = self._make_sync_plan({
-            u'name': sync_plan_name,
-            u'sync-date': today.strftime("%Y-%m-%d %H:%M:%S"),
-        })
-        # Assert that sync date matches data passed
-        self.assertEqual(
-            new_sync_plan['start-date'],
-            today.strftime("%Y/%m/%d %H:%M:%S"),
+        new_sync_plan = self._make_sync_plan(
+            {u'name': sync_plan_name, u'sync-date': today.strftime("%Y-%m-%d %H:%M:%S")}
         )
+        # Assert that sync date matches data passed
+        self.assertEqual(new_sync_plan['start-date'], today.strftime("%Y/%m/%d %H:%M:%S"))
         # Set sync date 5 days in the future
         future_date = today + timedelta(days=5)
         # Update sync interval
-        SyncPlan.update({
-            u'id': new_sync_plan['id'],
-            u'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        SyncPlan.update(
+            {u'id': new_sync_plan['id'], u'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S")}
+        )
         # Fetch it
-        result = SyncPlan.info({
-            u'id': new_sync_plan['id'],
-        })
+        result = SyncPlan.info({u'id': new_sync_plan['id']})
         self.assertNotEqual(result['start-date'], new_sync_plan['start-date'])
         self.assertGreater(
-            datetime.strptime(
-                result['start-date'],
-                '%Y/%m/%d %H:%M:%S',
-            ),
-            datetime.strptime(
-                new_sync_plan['start-date'],
-                '%Y/%m/%d %H:%M:%S',
-            ),
+            datetime.strptime(result['start-date'], '%Y/%m/%d %H:%M:%S'),
+            datetime.strptime(new_sync_plan['start-date'], '%Y/%m/%d %H:%M:%S'),
             'Sync date was not updated',
         )
 
@@ -391,25 +359,20 @@ class SyncPlanTestCase(CLITestCase):
         """
         prod1 = gen_string('alpha')
         prod2 = gen_string('alpha')
-        sync_plan = self._make_sync_plan({
-            'enabled': 'false',
-            'organization-id': self.org['id'],
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        })
-        for prod_name in [prod1, prod2]:
-            product = make_product({
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'false',
                 'organization-id': self.org['id'],
-                'name': prod_name,
-            })
-            Product.set_sync_plan({
-                'id': product['id'],
-                'sync-plan-id': sync_plan['id'],
-            })
+                'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
+        for prod_name in [prod1, prod2]:
+            product = make_product({'organization-id': self.org['id'], 'name': prod_name})
+            Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         updated_plan = SyncPlan.info({'id': sync_plan['id']})
         self.assertEqual(len(updated_plan['products']), 2)
         self.assertEqual(
-            set(prod['name'] for prod in updated_plan['products']),
-            set([prod1, prod2])
+            set(prod['name'] for prod in updated_plan['products']), set([prod1, prod2])
         )
 
     @tier4
@@ -426,17 +389,16 @@ class SyncPlanTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'organization-id': self.org['id'],
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'organization-id': self.org['id'],
+                'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=2)
             # validate the error message once unstubbed (#3611)
@@ -473,36 +435,37 @@ class SyncPlanTestCase(CLITestCase):
         delay = 2 * 60
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'interval': 'hourly',
-            'organization-id': self.org['id'],
-            'sync-date': (
-              datetime.utcnow() - timedelta(seconds=interval - delay)
-            ).strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'interval': 'hourly',
+                'organization-id': self.org['id'],
+                'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
+            }
+        )
         # Associate sync plan with product
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/4, product['name']))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was not synced'.format(delay / 4, product['name'])
+        )
+        sleep(delay / 4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Wait until the first recurrence
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format((delay * 3/4), product['name']))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was synced'.format((delay * 3 / 4), product['name'])
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
-        self.validate_repo_content(
-            repo, ['errata', 'package-groups', 'packages'])
+        self.validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
 
     @tier4
     @upgrade
@@ -521,38 +484,39 @@ class SyncPlanTestCase(CLITestCase):
         delay = 2 * 60  # delay for sync date in seconds
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'organization-id': self.org['id'],
-            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
-                        .strftime("%Y-%m-%d %H:%M:%S"),
-            'cron-expression': ["*/4 * * * *"],
-        })
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'organization-id': self.org['id'],
+                'sync-date': (
+                    datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+                ).strftime("%Y-%m-%d %H:%M:%S"),
+                'cron-expression': ["*/4 * * * *"],
+            }
+        )
         # Verify product is not synced and doesn't have any content
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Associate sync plan with product
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/4, product['name']))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was not synced'.format(delay / 4, product['name'])
+        )
+        sleep(delay / 4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format((delay * 3/4), product['name']))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was synced'.format((delay * 3 / 4), product['name'])
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
-        self.validate_repo_content(
-            repo, ['errata', 'package-groups', 'packages'])
+        self.validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
 
     @tier4
     @upgrade
@@ -569,49 +533,47 @@ class SyncPlanTestCase(CLITestCase):
         :BZ: 1655595
         """
         delay = 2 * 60  # delay for sync date in seconds
-        products = [
-            make_product({'organization-id': self.org['id']})
-            for _ in range(3)
-        ]
+        products = [make_product({'organization-id': self.org['id']}) for _ in range(3)]
         repos = [
             make_repository({'product-id': product['id']})
             for product in products
             for _ in range(2)
         ]
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'organization-id': self.org['id'],
-            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
-                        .strftime("%Y-%m-%d %H:%M:%S"),
-            'cron-expression': ["*/4 * * * *"],
-        })
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'organization-id': self.org['id'],
+                'sync-date': (
+                    datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+                ).strftime("%Y-%m-%d %H:%M:%S"),
+                'cron-expression': ["*/4 * * * *"],
+            }
+        )
         # Verify products have not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo['id'], max_tries=1)
         # Associate sync plan with products
         for product in products:
-            Product.set_sync_plan({
-                'id': product['id'],
-                'sync-plan-id': sync_plan['id'],
-            })
+            Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check products'
-                         ' were not synced'.format(delay/4))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check products' ' were not synced'.format(delay / 4)
+        )
+        sleep(delay / 4)
         # Verify products has not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo['id'], max_tries=1)
         # Wait the rest of expected time
-        self.logger.info('Waiting {0} seconds to check products'
-                         ' were synced'.format(delay * 3/4))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check products' ' were synced'.format(delay * 3 / 4)
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         for repo in repos:
             self.validate_task_status(repo['id'], repo_name=repo['name'])
-            self.validate_repo_content(
-                repo, ['errata', 'package-groups', 'packages'])
+            self.validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
 
     @run_in_one_thread
     @tier4
@@ -634,52 +596,52 @@ class SyncPlanTestCase(CLITestCase):
         org = make_org()
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': org['id'],
-        })
-        RepositorySet.enable({
-            'name': REPOSET['rhva6'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-            'basearch': 'x86_64',
-        })
-        product = Product.info({
-            'name': PRDS['rhel'],
-            'organization-id': org['id'],
-        })
-        repo = Repository.info({
-            'name': REPOS['rhva6']['name'],
-            'product': product['name'],
-            'organization-id': org['id'],
-        })
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'interval': 'hourly',
-            'organization-id': org['id'],
-            'sync-date': (
-              datetime.utcnow() - timedelta(seconds=interval - delay)
-            ).strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+        RepositorySet.enable(
+            {
+                'name': REPOSET['rhva6'],
+                'organization-id': org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+                'basearch': 'x86_64',
+            }
+        )
+        product = Product.info({'name': PRDS['rhel'], 'organization-id': org['id']})
+        repo = Repository.info(
+            {
+                'name': REPOS['rhva6']['name'],
+                'product': product['name'],
+                'organization-id': org['id'],
+            }
+        )
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'interval': 'hourly',
+                'organization-id': org['id'],
+                'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
+            }
+        )
         # Associate sync plan with product
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/4, product['name']))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was not synced'.format(delay / 4, product['name'])
+        )
+        sleep(delay / 4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format((delay * 3/4), product['name']))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was synced'.format((delay * 3 / 4), product['name'])
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(repo, ['errata', 'packages'])
@@ -703,56 +665,56 @@ class SyncPlanTestCase(CLITestCase):
         org = make_org()
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': org['id'],
-        })
-        RepositorySet.enable({
-            'name': REPOSET['rhva6'],
-            'organization-id': org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-            'basearch': 'x86_64',
-        })
-        product = Product.info({
-            'name': PRDS['rhel'],
-            'organization-id': org['id'],
-        })
-        repo = Repository.info({
-            'name': REPOS['rhva6']['name'],
-            'product': product['name'],
-            'organization-id': org['id'],
-        })
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'organization-id': org['id'],
-            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay))
-                        .strftime("%Y-%m-%d %H:%M:%S"),
-            'cron-expression': ["*/4 * * * *"],
-        })
+        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+        RepositorySet.enable(
+            {
+                'name': REPOSET['rhva6'],
+                'organization-id': org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+                'basearch': 'x86_64',
+            }
+        )
+        product = Product.info({'name': PRDS['rhel'], 'organization-id': org['id']})
+        repo = Repository.info(
+            {
+                'name': REPOS['rhva6']['name'],
+                'product': product['name'],
+                'organization-id': org['id'],
+            }
+        )
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'organization-id': org['id'],
+                'sync-date': (
+                    datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+                ).strftime("%Y-%m-%d %H:%M:%S"),
+                'cron-expression': ["*/4 * * * *"],
+            }
+        )
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Associate sync plan with product
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/4, product['name']))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was not synced'.format(delay / 4, product['name'])
+        )
+        sleep(delay / 4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format((delay * 3/4), product['name']))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was synced'.format((delay * 3 / 4), product['name'])
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
         self.validate_repo_content(repo, ['errata', 'packages'])
@@ -773,36 +735,36 @@ class SyncPlanTestCase(CLITestCase):
         delay = 2 * 60
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        start_date = datetime.utcnow() - timedelta(days=1)\
-            + timedelta(seconds=delay)
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'interval': 'daily',
-            'organization-id': self.org['id'],
-            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        start_date = datetime.utcnow() - timedelta(days=1) + timedelta(seconds=delay)
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'interval': 'daily',
+                'organization-id': self.org['id'],
+                'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
         # Associate sync plan with product
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/4, product['name']))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was not synced'.format(delay / 4, product['name'])
+        )
+        sleep(delay / 4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Wait until the first recurrence
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format((delay * 3/4), product['name']))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was synced'.format((delay * 3 / 4), product['name'])
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
-        self.validate_repo_content(
-            repo, ['errata', 'package-groups', 'packages'])
+        self.validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
 
     @tier3
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
@@ -821,33 +783,33 @@ class SyncPlanTestCase(CLITestCase):
         delay = 2 * 60
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        start_date = datetime.utcnow() - timedelta(weeks=1)\
-            + timedelta(seconds=delay)
-        sync_plan = self._make_sync_plan({
-            'enabled': 'true',
-            'interval': 'weekly',
-            'organization-id': self.org['id'],
-            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        start_date = datetime.utcnow() - timedelta(weeks=1) + timedelta(seconds=delay)
+        sync_plan = self._make_sync_plan(
+            {
+                'enabled': 'true',
+                'interval': 'weekly',
+                'organization-id': self.org['id'],
+                'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
         # Associate sync plan with product
-        Product.set_sync_plan({
-            'id': product['id'],
-            'sync-plan-id': sync_plan['id'],
-        })
+        Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/4, product['name']))
-        sleep(delay/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was not synced'.format(delay / 4, product['name'])
+        )
+        sleep(delay / 4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
             self.validate_task_status(repo['id'], max_tries=1)
-        self.validate_repo_content(
-            repo, ['errata', 'packages'], after_sync=False)
+        self.validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
         # Wait until the first recurrence
-        self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format((delay * 3/4), product['name']))
-        sleep(delay * 3/4)
+        self.logger.info(
+            'Waiting {0} seconds to check product {1}'
+            ' was synced'.format((delay * 3 / 4), product['name'])
+        )
+        sleep(delay * 3 / 4)
         # Verify product was synced successfully
         self.validate_task_status(repo['id'], repo_name=repo['name'])
-        self.validate_repo_content(
-            repo, ['errata', 'package-groups', 'packages'])
+        self.validate_repo_content(repo, ['errata', 'package-groups', 'packages'])

@@ -43,10 +43,12 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Parameter is updated successfully
         """
-        login_text_id = [ele.id for ele in entities.Setting().search(query={
-            "per_page": 200,
-            'search': 'name="login_text"'
-        })][0]
+        login_text_id = [
+            ele.id
+            for ele in entities.Setting().search(
+                query={"per_page": 200, 'search': 'name="login_text"'}
+            )
+        ][0]
         login = entities.Setting(id=login_text_id).read()
         for login_text in valid_data_list():
             with self.subTest(login_text):
@@ -63,10 +65,12 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: login_text has empty value after update
         """
-        login_text_id = [ele.id for ele in entities.Setting().search(query={
-            "per_page": 200,
-            'search': 'name="login_text"'
-        })][0]
+        login_text_id = [
+            ele.id
+            for ele in entities.Setting().search(
+                query={"per_page": 200, 'search': 'name="login_text"'}
+            )
+        ][0]
         login = entities.Setting(id=login_text_id).read()
         login.value = ""
         login = login.update(['value'])
@@ -82,10 +86,12 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Parameter is updated
         """
-        login_text_id = [ele.id for ele in entities.Setting().search(query={
-            "per_page": 200,
-            'search': 'name="login_text"'
-        })][0]
+        login_text_id = [
+            ele.id
+            for ele in entities.Setting().search(
+                query={"per_page": 200, 'search': 'name="login_text"'}
+            )
+        ][0]
         login = entities.Setting(id=login_text_id).read()
         for login_text in generate_strings_list(1000):
             with self.subTest(login_text):
@@ -114,8 +120,12 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Hostname_prefix should be set without any text
         """
-        hostname_prefix_id = [ele.id for ele in entities.Setting().search(
-            query={"per_page": 200, 'search': 'name="discovery_prefix"'})][0]
+        hostname_prefix_id = [
+            ele.id
+            for ele in entities.Setting().search(
+                query={"per_page": 200, 'search': 'name="discovery_prefix"'}
+            )
+        ][0]
         prefix = entities.Setting(id=hostname_prefix_id).read()
         original_value = prefix.value
         prefix.value = ""
@@ -135,13 +145,18 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Default set prefix should be updated with new value
         """
-        hostname_prefix_id = [ele.id for ele in entities.Setting().search(
-            query={"per_page": 200, 'search': 'name="discovery_prefix"'})][0]
+        hostname_prefix_id = [
+            ele.id
+            for ele in entities.Setting().search(
+                query={"per_page": 200, 'search': 'name="discovery_prefix"'}
+            )
+        ][0]
         prefix = entities.Setting(id=hostname_prefix_id).read()
         original_value = prefix.value
         try:
             for discovery_prefix in generate_strings_list(
-                    exclude_types=['alphanumeric', 'numeric']):
+                exclude_types=['alphanumeric', 'numeric']
+            ):
                 prefix.value = discovery_prefix
                 prefix = prefix.update(['value'])
                 self.assertEqual(prefix.value, discovery_prefix)

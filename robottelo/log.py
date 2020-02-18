@@ -20,8 +20,7 @@ class LogFile(object):
 
         if not os.path.isdir(LOGS_DATA_DIR):
             os.makedirs(LOGS_DATA_DIR)
-        self.local_path = os.path.join(LOGS_DATA_DIR,
-                                       os.path.basename(remote_path))
+        self.local_path = os.path.join(LOGS_DATA_DIR, os.path.basename(remote_path))
         ssh.download_file(remote_path, self.local_path)
         with open(self.local_path) as file_:
             self.data = file_.readlines()

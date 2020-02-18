@@ -42,8 +42,7 @@ def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
         entity_mixins.TASK_TIMEOUT = original_task_timeout
 
 
-def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
-                              reposet, releasever):
+def enable_rhrepo_and_fetchid(basearch, org_id, product, repo, reposet, releasever):
     """Enable a RedHat Repository and fetches it's Id.
 
     :param str org_id: The organization Id.
@@ -65,8 +64,7 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
         payload['releasever'] = releasever
     payload['product_id'] = product.id
     r_set.enable(data=payload)
-    result = entities.Repository(name=repo).search(
-        query={'organization_id': org_id})
+    result = entities.Repository(name=repo).search(query={'organization_id': org_id})
     return result[0].id
 
 
@@ -82,10 +80,7 @@ def promote(content_view_version, environment_id, force=False):
     :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
 
     """
-    data = {
-        u'environment_id': environment_id,
-        u'force': True if force else False,
-    }
+    data = {u'environment_id': environment_id, u'force': True if force else False}
     return content_view_version.promote(data=data)
 
 
@@ -98,8 +93,7 @@ def upload_manifest(organization_id, manifest):
 
     """
     return entities.Subscription().upload(
-        data={'organization_id': organization_id},
-        files={'content': manifest},
+        data={'organization_id': organization_id}, files={'content': manifest}
     )
 
 
@@ -121,20 +115,14 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
         organization_id = entities.Organization().create().id
     # Create product and puppet modules repository
     product = entities.Product(organization=organization_id).create()
-    repo = entities.Repository(
-        product=product,
-        content_type='puppet',
-        url=repo_url
-    ).create()
+    repo = entities.Repository(product=product, content_type='puppet', url=repo_url).create()
     # Synchronize repo via provided URL
     repo.sync()
     # Add selected module to Content View
     cv = entities.ContentView(organization=organization_id).create()
     for module in puppet_modules:
         entities.ContentViewPuppetModule(
-            author=module['author'],
-            name=module['name'],
-            content_view=cv,
+            author=module['author'], name=module['name'], content_view=cv
         ).create()
     # CV publishing will automatically create Environment and
     # Puppet Class entities
@@ -142,8 +130,9 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     return cv.read()
 
 
-def delete_puppet_class(puppetclass_name, puppet_module=None,
-                        proxy_hostname=None, environment_name=None):
+def delete_puppet_class(
+    puppetclass_name, puppet_module=None, proxy_hostname=None, environment_name=None
+):
     """Removes puppet class entity and uninstall puppet module from Capsule if
     puppet module name and Capsule details provided.
 
@@ -161,27 +150,23 @@ def delete_puppet_class(puppetclass_name, puppet_module=None,
         query={'search': 'name = "{0}"'.format(puppetclass_name)}
     )
     # And all subclasses
-    puppet_classes.extend(entities.PuppetClass().search(
-        query={'search': 'name ~ "{0}::"'.format(puppetclass_name)})
+    puppet_classes.extend(
+        entities.PuppetClass().search(query={'search': 'name ~ "{0}::"'.format(puppetclass_name)})
     )
     for puppet_class in puppet_classes:
         # Search and remove puppet class from affected hostgroups
         for hostgroup in puppet_class.read().hostgroup:
-            hostgroup.delete_puppetclass(
-                data={'puppetclass_id': puppet_class.id}
-            )
+            hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
         # Search and remove puppet class from affected hosts
         for host in entities.Host().search(
-                query={'search': 'class={0}'.format(puppet_class.name)}):
-            host.delete_puppetclass(
-                data={'puppetclass_id': puppet_class.id}
-            )
+            query={'search': 'class={0}'.format(puppet_class.name)}
+        ):
+            host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
         # Remove puppet class entity
         puppet_class.delete()
     # And remove puppet module from the system if puppet_module name provided
     if puppet_module and proxy_hostname and environment_name:
-        ssh.command(
-            'puppet module uninstall --force {0}'.format(puppet_module))
+        ssh.command('puppet module uninstall --force {0}'.format(puppet_module))
         env = entities.Environment().search(
             query={'search': 'name="{0}"'.format(environment_name)}
         )[0]
@@ -189,19 +174,22 @@ def delete_puppet_class(puppetclass_name, puppet_module=None,
         proxy.import_puppetclasses(environment=env)
 
 
-def create_sync_custom_repo(org_id=None, product_name=None, repo_name=None,
-                            repo_url=None, repo_type=None,
-                            repo_unprotected=True, docker_upstream_name=None):
+def create_sync_custom_repo(
+    org_id=None,
+    product_name=None,
+    repo_name=None,
+    repo_url=None,
+    repo_type=None,
+    repo_unprotected=True,
+    docker_upstream_name=None,
+):
     """Create product/repo, sync it and returns repo_id"""
     if org_id is None:
         org_id = entities.Organization().create().id
     product_name = product_name or gen_string('alpha')
     repo_name = repo_name or gen_string('alpha')
     # Creates new product and repository via API's
-    product = entities.Product(
-        name=product_name,
-        organization=org_id,
-    ).create()
+    product = entities.Product(name=product_name, organization=org_id).create()
     repo = entities.Repository(
         name=repo_name,
         url=repo_url or FAKE_1_YUM_REPO,
@@ -227,8 +215,7 @@ def enable_sync_redhat_repo(rh_repo, org_id, timeout=1500):
         releasever=rh_repo['releasever'],
     )
     # Sync repository
-    call_entity_method_with_timeout(
-        entities.Repository(id=repo_id).sync, timeout=timeout)
+    call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=timeout)
     return repo_id
 
 
@@ -238,16 +225,10 @@ def cv_publish_promote(name=None, env_name=None, repo_id=None, org_id=None):
         org_id = entities.Organization().create().id
     # Create Life-Cycle content environment
     kwargs = {'name': env_name} if env_name is not None else {}
-    lce = entities.LifecycleEnvironment(
-        organization=org_id,
-        **kwargs
-    ).create()
+    lce = entities.LifecycleEnvironment(organization=org_id, **kwargs).create()
     # Create content view(CV)
     kwargs = {'name': name} if name is not None else {}
-    content_view = entities.ContentView(
-        organization=org_id,
-        **kwargs
-    ).create()
+    content_view = entities.ContentView(organization=org_id, **kwargs).create()
     # Associate YUM repo to created CV
     if repo_id is not None:
         content_view.repository = [entities.Repository(id=repo_id)]
@@ -311,16 +292,13 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     if loc is None:
         loc = entities.Location(organization=[org]).create()
     if settings.rhel7_os is None:
-        raise ImproperlyConfigured(
-            'settings file is not configured for rhel os')
+        raise ImproperlyConfigured('settings file is not configured for rhel os')
     # Create a new Life-Cycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product, Repository for custom RHEL6 contents
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
-        product=product,
-        url=settings.rhel7_os,
-        download_policy='immediate'
+        product=product, url=settings.rhel7_os, download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion
@@ -340,23 +318,18 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Search for existing organization puppet environment, otherwise create a
     # new one, associate organization and location where it is appropriate.
     environments = entities.Environment().search(
-        query=dict(search='organization_id={0}'.format(org.id)))
+        query=dict(search='organization_id={0}'.format(org.id))
+    )
     if len(environments) > 0:
         environment = environments[0].read()
         environment.location.append(loc)
         environment = environment.update(['location'])
     else:
-        environment = entities.Environment(
-            organization=[org],
-            location=[loc]
-        ).create()
+        environment = entities.Environment(organization=[org], location=[loc]).create()
 
     # Search for SmartProxy, and associate location
     proxy = entities.SmartProxy().search(
-        query={
-            u'search': u'name={0}'.format(
-                settings.server.hostname)
-        }
+        query={u'search': u'name={0}'.format(settings.server.hostname)}
     )
     proxy = proxy[0].read()
     proxy.location.append(loc)
@@ -366,11 +339,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(
-        query={
-            u'search': u'name="{0}"'.format(domain)
-        }
-    )
+    domain = entities.Domain().search(query={u'search': u'name="{0}"'.format(domain)})
     if len(domain) == 1:
         domain = domain[0].read()
         domain.location.append(loc)
@@ -378,19 +347,13 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         domain.dns = proxy
         domain = domain.update(['dns', 'location', 'organization'])
     else:
-        domain = entities.Domain(
-            dns=proxy,
-            location=[loc],
-            organization=[org],
-        ).create()
+        domain = entities.Domain(dns=proxy, location=[loc], organization=[org]).create()
 
     # Search if subnet is defined with given network.
     # If so, just update its relevant fields otherwise,
     # Create new subnet
     network = settings.vlan_networking.subnet
-    subnet = entities.Subnet().search(
-        query={u'search': u'network={0}'.format(network)}
-    )
+    subnet = entities.Subnet().search(query={u'search': u'network={0}'.format(network)})
     if len(subnet) == 1:
         subnet = subnet[0].read()
         subnet.domain = [domain]
@@ -401,16 +364,9 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         subnet.tftp = proxy
         subnet.discovery = proxy
         subnet.ipam = 'DHCP'
-        subnet = subnet.update([
-            'domain',
-            'discovery',
-            'dhcp',
-            'dns',
-            'location',
-            'organization',
-            'tftp',
-            'ipam'
-        ])
+        subnet = subnet.update(
+            ['domain', 'discovery', 'dhcp', 'dns', 'location', 'organization', 'tftp', 'ipam']
+        )
     else:
         # Create new subnet
         subnet = entities.Subnet(
@@ -423,7 +379,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             dhcp=proxy,
             tftp=proxy,
             discovery=proxy,
-            ipam='DHCP'
+            ipam='DHCP',
         ).create()
 
     # Search if Libvirt compute-resource already exists
@@ -436,12 +392,12 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             settings.compute_resources.libvirt_hostname
         )
         comp_res = [
-            res for res in entities.LibvirtComputeResource().search()
+            res
+            for res in entities.LibvirtComputeResource().search()
             if res.provider == 'Libvirt' and res.url == resource_url
         ]
         if len(comp_res) > 0:
-            computeresource = entities.LibvirtComputeResource(
-                id=comp_res[0].id).read()
+            computeresource = entities.LibvirtComputeResource(id=comp_res[0].id).read()
             computeresource.location.append(loc)
             computeresource.organization.append(org)
             computeresource.update(['location', 'organization'])
@@ -457,85 +413,82 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             ).create()
 
     # Get the Partition table ID
-    ptable = entities.PartitionTable().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
-        }
-    )[0].read()
+    ptable = (
+        entities.PartitionTable()
+        .search(query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+        .read()
+    )
     ptable.location.append(loc)
     ptable.organization.append(org)
     ptable = ptable.update(['location', 'organization'])
 
     # Get the OS ID
     if os is None:
-        os = entities.OperatingSystem().search(query={
-            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
-            .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-            })[0].read()
+        os = (
+            entities.OperatingSystem()
+            .search(
+                query={
+                    u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                        RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+                    )
+                }
+            )[0]
+            .read()
+        )
     else:
-        os = entities.OperatingSystem().search(query={
-            u'search': u'family="Redhat" '
-                       u'AND major="{0}" '
-                       u'AND minor="{1}")'
-            .format(
-                os.split(' ')[1].split('.')[0],
-                os.split(' ')[1].split('.')[1]
-            )
-        })[0].read()
+        os = (
+            entities.OperatingSystem()
+            .search(
+                query={
+                    u'search': u'family="Redhat" '
+                    u'AND major="{0}" '
+                    u'AND minor="{1}")'.format(
+                        os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
+                    )
+                }
+            )[0]
+            .read()
+        )
 
     # Get the Provisioning template_ID and update with OS, Org, Location
     provisioning_template = entities.ConfigTemplate().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)
-        }
+        query={u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.operatingsystem.append(os)
     provisioning_template.organization.append(org)
     provisioning_template.location.append(loc)
-    provisioning_template = provisioning_template.update([
-        'location',
-        'operatingsystem',
-        'organization'
-    ])
+    provisioning_template = provisioning_template.update(
+        ['location', 'operatingsystem', 'organization']
+    )
 
     # Get the PXE template ID and update with OS, Org, location
     pxe_template = entities.ConfigTemplate().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)
-        }
+        query={u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.operatingsystem.append(os)
     pxe_template.organization.append(org)
     pxe_template.location.append(loc)
-    pxe_template = pxe_template.update(
-        ['location', 'operatingsystem', 'organization']
-    )
+    pxe_template = pxe_template.update(['location', 'operatingsystem', 'organization'])
 
     # Get the arch ID
-    arch = entities.Architecture().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)
-        }
-    )[0].read()
+    arch = (
+        entities.Architecture()
+        .search(query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .read()
+    )
 
     # Update the OS to associate arch, ptable, templates
     os.architecture.append(arch)
     os.ptable.append(ptable)
     os.config_template.append(provisioning_template)
     os.config_template.append(pxe_template)
-    os = os.update([
-        'architecture',
-        'config_template',
-        'ptable',
-    ])
+    os = os.update(['architecture', 'config_template', 'ptable'])
     # kickstart_repository is the content view and lce bind repo
-    kickstart_repository = entities.Repository().search(query=dict(
-        content_view_id=content_view.id,
-        environment_id=lc_env.id,
-        name=repo.name
-    ))[0]
+    kickstart_repository = entities.Repository().search(
+        query=dict(content_view_id=content_view.id, environment_id=lc_env.id, name=repo.name)
+    )[0]
     # Create Hostgroup
     host_group = entities.HostGroup(
         architecture=arch,
@@ -599,32 +552,31 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
             for name in permissions_name:
                 result = entities.Permission(name=name).search()
                 if not result:
-                    raise entities.APIResponseError(
-                        'permission "{}" not found'.format(name))
+                    raise entities.APIResponseError('permission "{}" not found'.format(name))
                 if len(result) > 1:
                     raise entities.APIResponseError(
-                        'found more than one entity for permission'
-                        ' "{}"'.format(name)
+                        'found more than one entity for permission' ' "{}"'.format(name)
                     )
                 entity_permission = result[0]
                 if entity_permission.name != name:
                     raise entities.APIResponseError(
                         'the returned permission is different from the'
-                        ' requested one "{0} != {1}"'.format(
-                            entity_permission.name, name)
+                        ' requested one "{0} != {1}"'.format(entity_permission.name, name)
                     )
                 permissions_entities.append(entity_permission)
         else:
             if not permissions_name:
-                raise ValueError('resource type "{}" empty. You must select at'
-                                 ' least one permission'.format(resource_type))
+                raise ValueError(
+                    'resource type "{}" empty. You must select at'
+                    ' least one permission'.format(resource_type)
+                )
 
             resource_type_permissions_entities = entities.Permission(
-                resource_type=resource_type).search()
+                resource_type=resource_type
+            ).search()
             if not resource_type_permissions_entities:
                 raise entities.APIResponseError(
-                    'resource type "{}" permissions not found'.format(
-                        resource_type)
+                    'resource type "{}" permissions not found'.format(resource_type)
                 )
 
             permissions_entities = [
@@ -634,25 +586,16 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
             ]
             # ensure that all the requested permissions entities where
             # retrieved
-            permissions_entities_names = {
-                entity.name for entity in permissions_entities
-            }
-            not_found_names = set(permissions_name).difference(
-                permissions_entities_names)
+            permissions_entities_names = {entity.name for entity in permissions_entities}
+            not_found_names = set(permissions_name).difference(permissions_entities_names)
             if not_found_names:
                 raise entities.APIResponseError(
-                    'permissions names entities not found'
-                    ' "{}"'.format(not_found_names)
+                    'permissions names entities not found' ' "{}"'.format(not_found_names)
                 )
-        entities.Filter(
-            permission=permissions_entities,
-            role=role,
-            search=search
-        ).create()
+        entities.Filter(permission=permissions_entities, role=role, search=search).create()
 
 
-def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None,
-                   poll_timeout=None):
+def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None, poll_timeout=None):
     """Search for tasks by specified search query and poll them to ensure that
     task has finished.
 
@@ -676,8 +619,7 @@ def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None,
         else:
             time.sleep(search_rate)
     else:
-        raise AssertionError(
-            "No task was found using query '{}'".format(search_query))
+        raise AssertionError("No task was found using query '{}'".format(search_query))
     return tasks
 
 
@@ -691,14 +633,14 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     :param repo_name: If repo_backend_id can not be passed, pass the repo_name
     """
     if repo_name:
-        repo_backend_id = entities.Repository().search(query={
-                    'search': 'name="{0}"'.format(repo_name),
-                    'per_page': 1000,
-                })[0].backend_identifier
+        repo_backend_id = (
+            entities.Repository()
+            .search(query={'search': 'name="{0}"'.format(repo_name), 'per_page': 1000})[0]
+            .backend_identifier
+        )
     # Fetch the Pulp password
     pulp_pass = ssh.command(
-        'grep "^default_password" /etc/pulp/server.conf |'
-        ' awk \'{print $2}\''
+        'grep "^default_password" /etc/pulp/server.conf |' ' awk \'{print $2}\''
     ).stdout[0]
     # Set the Timeout value
     timeup = time.time() + int(timeout) * 60
@@ -706,13 +648,8 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     filtered_req = {
         'criteria': {
             'filters': {
-                'tags': {
-                    '$in': [
-                        "pulp:repository:{0}".format(repo_backend_id)]
-                },
-                'task_type': {
-                    '$in': ["pulp.server.managers.repo.sync.sync"]
-                }
+                'tags': {'$in': ["pulp:repository:{0}".format(repo_backend_id)]},
+                'task_type': {'$in': ["pulp.server.managers.repo.sync.sync"]},
             }
         }
     }
@@ -722,17 +659,19 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
                 'Pulp task with repo_id {0} not found'.format(repo_backend_id)
             )
         # Send request to pulp API to get the task info
-        req = request('POST',
-                      '{0}/pulp/api/v2/tasks/search/'.format(
-                          settings.server.get_url()),
-                      verify=False,
-                      auth=('admin', '{0}'.format(pulp_pass)),
-                      headers={'content-type': 'application/json'},
-                      data=filtered_req)
+        req = request(
+            'POST',
+            '{0}/pulp/api/v2/tasks/search/'.format(settings.server.get_url()),
+            verify=False,
+            auth=('admin', '{0}'.format(pulp_pass)),
+            headers={'content-type': 'application/json'},
+            data=filtered_req,
+        )
         # Check Status code of response
         if req.status_code != 200:
             raise entities.APIResponseError(
-                'Pulp task with repo_id {0} not found'.format(repo_backend_id))
+                'Pulp task with repo_id {0} not found'.format(repo_backend_id)
+            )
         # Check content of response
         # It is '[]' string for empty content when backend_identifier is wrong
         if len(req.content) > 2:
@@ -741,15 +680,14 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
             elif req.json()[0].get('error'):
                 raise AssertionError(
                     "Pulp task with repo_id {0} errored or not "
-                    "found: '{1}'".format(repo_backend_id,
-                                          req.json().get('error')
-                                          )
+                    "found: '{1}'".format(repo_backend_id, req.json().get('error'))
                 )
         time.sleep(2)
 
 
-def wait_for_errata_applicability_task(host_id, from_when, search_rate=1, max_tries=10,
-                                       poll_rate=None, poll_timeout=15):
+def wait_for_errata_applicability_task(
+    host_id, from_when, search_rate=1, max_tries=10, poll_rate=None, poll_timeout=15
+):
     """Search the generate applicability task for given host and make sure it finishes
 
     :param int host_id: Content host ID of the host where we are regenerating applicability.
@@ -771,18 +709,24 @@ def wait_for_errata_applicability_task(host_id, from_when, search_rate=1, max_tr
     for _ in range(max_tries):
         now = int(time.time())
         max_age = now - from_when + 1
-        search_query = '( label = Actions::Katello::Host::GenerateApplicability OR label = ' \
-            'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"' \
+        search_query = (
+            '( label = Actions::Katello::Host::GenerateApplicability OR label = '
+            'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"'
             % max_age
+        )
         tasks = entities.ForemanTask().search(query={'search': search_query})
         tasks_finished = 0
         for task in tasks:
-            if task.label == 'Actions::Katello::Host::GenerateApplicability' and \
-                  host_id in task.input['host_ids']:
+            if (
+                task.label == 'Actions::Katello::Host::GenerateApplicability'
+                and host_id in task.input['host_ids']
+            ):
                 task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                 tasks_finished += 1
-            elif task.label == 'Actions::Katello::Host::UploadPackageProfile' and \
-                    host_id == task.input['host']['id']:
+            elif (
+                task.label == 'Actions::Katello::Host::UploadPackageProfile'
+                and host_id == task.input['host']['id']
+            ):
                 task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                 tasks_finished += 1
         if tasks_finished > 0:
@@ -790,11 +734,11 @@ def wait_for_errata_applicability_task(host_id, from_when, search_rate=1, max_tr
         time.sleep(search_rate)
     else:
         raise AssertionError(
-            "No task was found using query '{}' for host '{}'".format(search_query, host_id))
+            "No task was found using query '{}' for host '{}'".format(search_query, host_id)
+        )
 
 
-def create_discovered_host(name=None, ip_address=None, mac_address=None,
-                           options=None):
+def create_discovered_host(name=None, ip_address=None, mac_address=None, options=None):
     """Creates a discovered host.
 
     :param str name: Name of discovered host.
@@ -812,15 +756,15 @@ def create_discovered_host(name=None, ip_address=None, mac_address=None,
     if options is None:
         options = {}
     facts = {
-            'name': name,
-            'discovery_bootip': ip_address,
-            'discovery_bootif': mac_address,
-            'interfaces': 'eth0',
-            'ipaddress': ip_address,
-            'ipaddress_eth0': ip_address,
-            'macaddress': mac_address,
-            'macaddress_eth0': mac_address,
-        }
+        'name': name,
+        'discovery_bootip': ip_address,
+        'discovery_bootif': mac_address,
+        'interfaces': 'eth0',
+        'ipaddress': ip_address,
+        'ipaddress_eth0': ip_address,
+        'macaddress': mac_address,
+        'macaddress_eth0': mac_address,
+    }
     facts.update(options)
     return entities.DiscoveredHost().facts(json={'facts': facts})
 
@@ -850,9 +794,7 @@ def check_create_os_with_title(os_title):
         os_name, _, os_version = os_title.partition(' ')
         os_version_major, os_version_minor = os_version.split('.')
         os = entities.OperatingSystem(
-            name=os_name,
-            major=os_version_major,
-            minor=os_version_minor,
+            name=os_name, major=os_version_major, minor=os_version_minor
         ).create()
     return os
 
@@ -862,12 +804,13 @@ def attach_custom_product_subscription(prod_name=None, host_name=None):
     :param str prod_name: custom product name
     :param str host_name: client host name
     """
-    host = entities.Host().search(
-        query={'search': '{0}'.format(host_name)})[0]
+    host = entities.Host().search(query={'search': '{0}'.format(host_name)})[0]
     product_subscription = entities.Subscription().search(
-        query={'search': 'name={0}'.format(prod_name)})[0]
+        query={'search': 'name={0}'.format(prod_name)}
+    )[0]
     entities.HostSubscription(host=host.id).add_subscriptions(
-        data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]})
+        data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]}
+    )
 
 
 class templateupdate:
@@ -882,7 +825,9 @@ class templateupdate:
         if not isinstance(self.temp, entities.ProvisioningTemplate):
             raise TypeError(
                 'The template should be of type entities.ProvisioningTemplate, {} given'.format(
-                    type(temp)))
+                    type(temp)
+                )
+            )
 
     def __enter__(self):
         """Unlocks template for update"""
@@ -906,11 +851,11 @@ def update_provisioning_template(name=None, old=None, new=None):
 
     :return boolean: True/False
     """
-    temp = entities.ProvisioningTemplate().search(
-        query={
-            'per_page': 1000,
-            'search': 'name="{}"'.format(name),
-        })[0].read()
+    temp = (
+        entities.ProvisioningTemplate()
+        .search(query={'per_page': 1000, 'search': 'name="{}"'.format(name)})[0]
+        .read()
+    )
     if old in temp.template:
         with templateupdate(temp):
             temp.template = temp.template.replace(old, new, 1)
@@ -933,13 +878,10 @@ def apply_package_filter(content_view, repo, package, inclusion=True):
     :return list : list of content view versions
     """
     cv_filter = entities.RPMContentViewFilter(
-        content_view=content_view,
-        inclusion=inclusion,
-        repository=[repo],
+        content_view=content_view, inclusion=inclusion, repository=[repo]
     ).create()
     cv_filter_rule = entities.ContentViewFilterRule(
-        content_view_filter=cv_filter,
-        name=package
+        content_view_filter=cv_filter, name=package
     ).create()
     assert cv_filter.id == cv_filter_rule.content_view_filter.id
     content_view.publish()
@@ -960,16 +902,9 @@ def create_org_admin_role(orgs, locs, name=None):
     :return dict: The object of ```nailgun.Role``` of Org Admin role.
     """
     name = gen_string('alpha') if not name else name
-    default_org_admin = entities.Role().search(
-        query={'search': u'name="Organization admin"'})
+    default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
     org_admin = entities.Role(id=default_org_admin[0].id).clone(
-        data={
-            'role': {
-                'name': name,
-                'organization_ids': orgs or [],
-                'location_ids': locs or []
-            }
-        }
+        data={'role': {'name': name, 'organization_ids': orgs or [], 'location_ids': locs or []}}
     )
     return entities.Role(id=org_admin['id']).read()
 
@@ -992,7 +927,7 @@ def create_org_admin_user(orgs, locs):
         password=user_passwd,
         organization=orgs,
         location=locs,
-        role=[org_admin.id]
+        role=[org_admin.id],
     ).create()
     user.passwd = user_passwd
     return user

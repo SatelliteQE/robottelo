@@ -58,8 +58,7 @@ class ArchitectureTestCase(CLITestCase):
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError) as raise_ctx:
                     Architecture.create({'name': name})
-                self.assert_error_msg(raise_ctx,
-                                      u'Could not create the architecture:')
+                self.assert_error_msg(raise_ctx, u'Could not create the architecture:')
 
     @tier1
     def test_positive_update_name(self):
@@ -74,10 +73,7 @@ class ArchitectureTestCase(CLITestCase):
         architecture = make_architecture()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                Architecture.update({
-                    'id': architecture['id'],
-                    'new-name': new_name,
-                })
+                Architecture.update({'id': architecture['id'], 'new-name': new_name})
                 architecture = Architecture.info({'id': architecture['id']})
                 self.assertEqual(architecture['name'], new_name)
 
@@ -95,12 +91,8 @@ class ArchitectureTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    Architecture.update({
-                        'id': architecture['id'],
-                        'new-name': new_name,
-                    })
-                self.assert_error_msg(raise_ctx,
-                                      u'Could not update the architecture:')
+                    Architecture.update({'id': architecture['id'], 'new-name': new_name})
+                self.assert_error_msg(raise_ctx, u'Could not update the architecture:')
                 result = Architecture.info({'id': architecture['id']})
                 self.assertEqual(architecture['name'], result['name'])
 
@@ -137,5 +129,4 @@ class ArchitectureTestCase(CLITestCase):
             with self.subTest(entity_id):
                 with self.assertRaises(CLIReturnCodeError) as raise_ctx:
                     Architecture.delete({'id': entity_id})
-                self.assert_error_msg(raise_ctx,
-                                      "Could not delete the architecture")
+                self.assert_error_msg(raise_ctx, "Could not delete the architecture")

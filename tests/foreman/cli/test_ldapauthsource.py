@@ -70,33 +70,30 @@ class LDAPAuthSourceTestCase(CLITestCase):
         """
         for server_name in generate_strings_list():
             with self.subTest(server_name):
-                auth = make_ldap_auth_source({
-                    u'name': server_name,
-                    u'onthefly-register': 'true',
-                    u'host': self.ldap_hostname,
-                    u'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
-                    u'attr-login': LDAP_ATTR['login_ad'],
-                    u'attr-firstname': LDAP_ATTR['firstname'],
-                    u'attr-lastname': LDAP_ATTR['surname'],
-                    u'attr-mail': LDAP_ATTR['mail'],
-                    u'account': self.ldap_user_name,
-                    u'account-password': self.ldap_user_passwd,
-                    u'base-dn': self.base_dn,
-                    u'groups-base': self.group_base_dn,
-                })
+                auth = make_ldap_auth_source(
+                    {
+                        u'name': server_name,
+                        u'onthefly-register': 'true',
+                        u'host': self.ldap_hostname,
+                        u'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
+                        u'attr-login': LDAP_ATTR['login_ad'],
+                        u'attr-firstname': LDAP_ATTR['firstname'],
+                        u'attr-lastname': LDAP_ATTR['surname'],
+                        u'attr-mail': LDAP_ATTR['mail'],
+                        u'account': self.ldap_user_name,
+                        u'account-password': self.ldap_user_passwd,
+                        u'base-dn': self.base_dn,
+                        u'groups-base': self.group_base_dn,
+                    }
+                )
                 self.assertEqual(auth['server']['name'], server_name)
                 self.assertEqual(auth['server']['server'], self.ldap_hostname)
                 self.assertEqual(auth['server']['server-type'], LDAP_SERVER_TYPE['CLI']['ad'])
                 new_name = gen_string('alpha')
-                LDAPAuthSource.update({
-                    u'name': server_name,
-                    u'new-name': new_name
-                })
+                LDAPAuthSource.update({u'name': server_name, u'new-name': new_name})
                 updated_auth = LDAPAuthSource.info({u'id': auth['server']['id']})
                 self.assertEqual(updated_auth['server']['name'], new_name)
-                LDAPAuthSource.delete({
-                    u'name': new_name
-                })
+                LDAPAuthSource.delete({u'name': new_name})
                 with self.assertRaises(CLIReturnCodeError):
                     LDAPAuthSource.info({'name': new_name})
 
@@ -106,18 +103,24 @@ class IPAAuthSourceTestCase(CLITestCase):
     """Implements FreeIPA ldap auth feature tests in CLI"""
 
     def _add_user_in_IPA_usergroup(self, member_username, member_group):
-        ssh.command('echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
-                    hostname=self.ldap_ipa_hostname)
-        ssh.command('ipa group-add-member {} --users={}'.format(member_group,
-                                                                member_username),
-                    hostname=self.ldap_ipa_hostname)
+        ssh.command(
+            'echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
+            hostname=self.ldap_ipa_hostname,
+        )
+        ssh.command(
+            'ipa group-add-member {} --users={}'.format(member_group, member_username),
+            hostname=self.ldap_ipa_hostname,
+        )
 
     def _remove_user_in_IPA_usergroup(self, member_username, member_group):
-        ssh.command('echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
-                    hostname=self.ldap_ipa_hostname)
-        result = ssh.command('ipa group-remove-member {} --users={}'.format(member_group,
-                                                                            member_username),
-                             hostname=self.ldap_ipa_hostname)
+        ssh.command(
+            'echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
+            hostname=self.ldap_ipa_hostname,
+        )
+        result = ssh.command(
+            'ipa group-remove-member {} --users={}'.format(member_group, member_username),
+            hostname=self.ldap_ipa_hostname,
+        )
         if result.return_code != 0:
             raise AssertionError('failed to remove the user from user-group')
 
@@ -160,33 +163,30 @@ class IPAAuthSourceTestCase(CLITestCase):
         """
         for server_name in generate_strings_list():
             with self.subTest(server_name):
-                auth = make_ldap_auth_source({
-                    u'name': server_name,
-                    u'onthefly-register': 'true',
-                    u'host': self.ldap_ipa_hostname,
-                    u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
-                    u'attr-login': LDAP_ATTR['login'],
-                    u'attr-firstname': LDAP_ATTR['firstname'],
-                    u'attr-lastname': LDAP_ATTR['surname'],
-                    u'attr-mail': LDAP_ATTR['mail'],
-                    u'account': self.ldap_ipa_user_name,
-                    u'account-password': self.ldap_ipa_user_passwd,
-                    u'base-dn': self.ipa_base_dn,
-                    u'groups-base': self.ipa_base_dn,
-                })
+                auth = make_ldap_auth_source(
+                    {
+                        u'name': server_name,
+                        u'onthefly-register': 'true',
+                        u'host': self.ldap_ipa_hostname,
+                        u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                        u'attr-login': LDAP_ATTR['login'],
+                        u'attr-firstname': LDAP_ATTR['firstname'],
+                        u'attr-lastname': LDAP_ATTR['surname'],
+                        u'attr-mail': LDAP_ATTR['mail'],
+                        u'account': self.ldap_ipa_user_name,
+                        u'account-password': self.ldap_ipa_user_passwd,
+                        u'base-dn': self.ipa_base_dn,
+                        u'groups-base': self.ipa_base_dn,
+                    }
+                )
                 self.assertEqual(auth['server']['name'], server_name)
                 self.assertEqual(auth['server']['server'], self.ldap_ipa_hostname)
                 self.assertEqual(auth['server']['server-type'], LDAP_SERVER_TYPE['CLI']['ipa'])
                 new_name = gen_string('alpha')
-                LDAPAuthSource.update({
-                    u'name': server_name,
-                    u'new-name': new_name
-                })
+                LDAPAuthSource.update({u'name': server_name, u'new-name': new_name})
                 updated_auth = LDAPAuthSource.info({u'id': auth['server']['id']})
                 self.assertEqual(updated_auth['server']['name'], new_name)
-                LDAPAuthSource.delete({
-                    u'name': new_name
-                })
+                LDAPAuthSource.delete({u'name': new_name})
                 with self.assertRaises(CLIReturnCodeError):
                     LDAPAuthSource.info({'name': new_name})
 
@@ -208,47 +208,49 @@ class IPAAuthSourceTestCase(CLITestCase):
         member_group = 'foreman_group'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source_name = gen_string('alpha')
-        auth_source = make_ldap_auth_source({
-            u'name': auth_source_name,
-            u'onthefly-register': 'true',
-            u'usergroup-sync': 'false',
-            u'host': self.ldap_ipa_hostname,
-            u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
-            u'attr-login': LDAP_ATTR['login'],
-            u'attr-firstname': LDAP_ATTR['firstname'],
-            u'attr-lastname': LDAP_ATTR['surname'],
-            u'attr-mail': LDAP_ATTR['mail'],
-            u'account': ldap_ipa_user_name,
-            u'account-password': self.ldap_ipa_user_passwd,
-            u'base-dn': self.ipa_base_dn,
-            u'groups-base': ipa_group_base_dn,
-        })
+        auth_source = make_ldap_auth_source(
+            {
+                u'name': auth_source_name,
+                u'onthefly-register': 'true',
+                u'usergroup-sync': 'false',
+                u'host': self.ldap_ipa_hostname,
+                u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                u'attr-login': LDAP_ATTR['login'],
+                u'attr-firstname': LDAP_ATTR['firstname'],
+                u'attr-lastname': LDAP_ATTR['surname'],
+                u'attr-mail': LDAP_ATTR['mail'],
+                u'account': ldap_ipa_user_name,
+                u'account-password': self.ldap_ipa_user_passwd,
+                u'base-dn': self.ipa_base_dn,
+                u'groups-base': ipa_group_base_dn,
+            }
+        )
         auth_source = LDAPAuthSource.info({u'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
         self._add_user_in_IPA_usergroup(member_username, member_group)
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': auth_source['server']['id'],
-            'user-group-id': user_group['id'],
-            'name': member_group,
-        })
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': auth_source['server']['id'],
+                'user-group-id': user_group['id'],
+                'name': member_group,
+            }
+        )
         UserGroup.add_role({'id': user_group['id'], 'role-id': viewer_role['id']})
         assert ext_user_group['auth-source'] == auth_source['server']['name']
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
-        result = Auth.with_user(username=member_username,
-                                password=self.ldap_ipa_user_passwd).status()
+        result = Auth.with_user(
+            username=member_username, password=self.ldap_ipa_user_passwd
+        ).status()
         assert LOGEDIN_MSG.format(member_username) in result[0][u'message']
         with self.assertRaises(CLIReturnCodeError) as error:
             Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
         assert 'Missing one of the required permissions' in error.exception.message
         with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
-                'user-group-id': user_group['id'],
-                'name': member_group
-            })
+            UserGroupExternal.refresh({'user-group-id': user_group['id'], 'name': member_group})
         list = Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
         assert len(list) > 1
         user_group = UserGroup.info({'id': user_group['id']})
@@ -258,10 +260,7 @@ class IPAAuthSourceTestCase(CLITestCase):
         # Removing User in IPA UserGroup
         self._remove_user_in_IPA_usergroup(member_username, member_group)
         with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
-                'user-group-id': user_group['id'],
-                'name': member_group
-            })
+            UserGroupExternal.refresh({'user-group-id': user_group['id'], 'name': member_group})
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
         with self.assertRaises(CLIReturnCodeError) as error:
@@ -286,41 +285,45 @@ class IPAAuthSourceTestCase(CLITestCase):
         member_group = 'foreman_group'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source_name = gen_string('alpha')
-        auth_source = make_ldap_auth_source({
-            u'name': auth_source_name,
-            u'onthefly-register': 'true',
-            u'usergroup-sync': 'true',
-            u'host': self.ldap_ipa_hostname,
-            u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
-            u'attr-login': LDAP_ATTR['login'],
-            u'attr-firstname': LDAP_ATTR['firstname'],
-            u'attr-lastname': LDAP_ATTR['surname'],
-            u'attr-mail': LDAP_ATTR['mail'],
-            u'account': ldap_ipa_user_name,
-            u'account-password': self.ldap_ipa_user_passwd,
-            u'base-dn': self.ipa_base_dn,
-            u'groups-base': ipa_group_base_dn,
-        })
+        auth_source = make_ldap_auth_source(
+            {
+                u'name': auth_source_name,
+                u'onthefly-register': 'true',
+                u'usergroup-sync': 'true',
+                u'host': self.ldap_ipa_hostname,
+                u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                u'attr-login': LDAP_ATTR['login'],
+                u'attr-firstname': LDAP_ATTR['firstname'],
+                u'attr-lastname': LDAP_ATTR['surname'],
+                u'attr-mail': LDAP_ATTR['mail'],
+                u'account': ldap_ipa_user_name,
+                u'account-password': self.ldap_ipa_user_passwd,
+                u'base-dn': self.ipa_base_dn,
+                u'groups-base': ipa_group_base_dn,
+            }
+        )
         auth_source = LDAPAuthSource.info({u'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
         self._add_user_in_IPA_usergroup(member_username, member_group)
         viewer_role = Role.info({'name': 'Viewer'})
         user_group = make_usergroup()
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': auth_source['server']['id'],
-            'user-group-id': user_group['id'],
-            'name': member_group,
-        })
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': auth_source['server']['id'],
+                'user-group-id': user_group['id'],
+                'name': member_group,
+            }
+        )
         UserGroup.add_role({'id': user_group['id'], 'role-id': viewer_role['id']})
         assert ext_user_group['auth-source'] == auth_source['server']['name']
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
-        result = Auth.with_user(username=member_username,
-                                password=self.ldap_ipa_user_passwd).status()
+        result = Auth.with_user(
+            username=member_username, password=self.ldap_ipa_user_passwd
+        ).status()
         assert LOGEDIN_MSG.format(member_username) in result[0][u'message']
-        list = Role.with_user(username=member_username,
-                              password=self.ldap_ipa_user_passwd).list()
+        list = Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
         assert len(list) > 1
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 1

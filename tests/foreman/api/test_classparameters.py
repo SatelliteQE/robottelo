@@ -37,40 +37,22 @@ from robottelo.test import APITestCase
 def valid_sc_parameters_data():
     """Returns a list of valid smart class parameter types and values"""
     return [
-        {
-            u'sc_type': 'string',
-            u'value': gen_string('utf8'),
-        },
-        {
-            u'sc_type': 'boolean',
-            u'value': choice(['0', '1']),
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': gen_integer(min_value=1000),
-        },
-        {
-            u'sc_type': 'real',
-            u'value': -123.0,
-        },
+        {u'sc_type': 'string', u'value': gen_string('utf8')},
+        {u'sc_type': 'boolean', u'value': choice(['0', '1'])},
+        {u'sc_type': 'integer', u'value': gen_integer(min_value=1000)},
+        {u'sc_type': 'real', u'value': -123.0},
         {
             u'sc_type': 'array',
             u'value': "['{0}', '{1}', '{2}']".format(
-                gen_string('alpha'), gen_integer(), gen_boolean()),
+                gen_string('alpha'), gen_integer(), gen_boolean()
+            ),
         },
         {
             u'sc_type': 'hash',
-            u'value': '{{"{0}": "{1}"}}'.format(
-                gen_string('alpha'), gen_string('alpha')),
+            u'value': '{{"{0}": "{1}"}}'.format(gen_string('alpha'), gen_string('alpha')),
         },
-        {
-            u'sc_type': 'yaml',
-            u'value': 'name=>XYZ',
-        },
-        {
-            u'sc_type': 'json',
-            u'value': '{"name": "XYZ"}',
-        },
+        {u'sc_type': 'yaml', u'value': 'name=>XYZ'},
+        {u'sc_type': 'json', u'value': '{"name": "XYZ"}'},
     ]
 
 
@@ -78,34 +60,13 @@ def valid_sc_parameters_data():
 def invalid_sc_parameters_data():
     """Returns a list of invalid smart class parameter types and values"""
     return [
-        {
-            u'sc_type': 'boolean',
-            u'value': gen_string('alphanumeric'),
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': gen_string('utf8'),
-        },
-        {
-            u'sc_type': 'real',
-            u'value': gen_string('alpha'),
-        },
-        {
-            u'sc_type': 'array',
-            u'value': '0',
-        },
-        {
-            u'sc_type': 'hash',
-            u'value': 'a:test',
-        },
-        {
-            u'sc_type': 'yaml',
-            u'value': '{a:test}',
-        },
-        {
-            u'sc_type': 'json',
-            u'value': gen_string('alpha'),
-        },
+        {u'sc_type': 'boolean', u'value': gen_string('alphanumeric')},
+        {u'sc_type': 'integer', u'value': gen_string('utf8')},
+        {u'sc_type': 'real', u'value': gen_string('alpha')},
+        {u'sc_type': 'array', u'value': '0'},
+        {u'sc_type': 'hash', u'value': 'a:test'},
+        {u'sc_type': 'yaml', u'value': '{a:test}'},
+        {u'sc_type': 'json', u'value': gen_string('alpha')},
     ]
 
 
@@ -121,24 +82,24 @@ class SmartClassParametersTestCase(APITestCase):
         be able to work with unique entity for each specific test.
         """
         super(SmartClassParametersTestCase, cls).setUpClass()
-        cls.puppet_modules = [
-            {'author': 'robottelo', 'name': 'api_test_classparameters'},
-        ]
+        cls.puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
         cls.org = entities.Organization().create()
-        cv = publish_puppet_module(
-            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
-        cls.env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cv.name)}
-        )[0].read()
-        cls.puppet_class = entities.PuppetClass().search(query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
-                cls.puppet_modules[0]['name'], cls.env.name)
-        })[0]
-        cls.sc_params_list = entities.SmartClassParameters().search(
+        cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
+        cls.env = (
+            entities.Environment()
+            .search(query={'search': u'content_view="{0}"'.format(cv.name)})[0]
+            .read()
+        )
+        cls.puppet_class = entities.PuppetClass().search(
             query={
-                'search': 'puppetclass="{0}"'.format(cls.puppet_class.name),
-                'per_page': 1000
-            })
+                'search': u'name = "{0}" and environment = "{1}"'.format(
+                    cls.puppet_modules[0]['name'], cls.env.name
+                )
+            }
+        )[0]
+        cls.sc_params_list = entities.SmartClassParameters().search(
+            query={'search': 'puppetclass="{0}"'.format(cls.puppet_class.name), 'per_page': 1000}
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -152,8 +113,7 @@ class SmartClassParametersTestCase(APITestCase):
         """
         super(SmartClassParametersTestCase, self).setUp()
         if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please "
-                            "update puppet module.")
+            raise Exception("Not enough smart class parameters. Please " "update puppet module.")
 
     @tier1
     @upgrade
@@ -180,24 +140,20 @@ class SmartClassParametersTestCase(APITestCase):
                 sc_param.override = True
                 sc_param.parameter_type = data['sc_type']
                 sc_param.default_value = data['value']
-                sc_param.update(
-                    ['override', 'parameter_type', 'default_value']
-                )
+                sc_param.update(['override', 'parameter_type', 'default_value'])
                 sc_param = sc_param.read()
                 if data['sc_type'] == 'boolean':
                     self.assertEqual(
-                        sc_param.default_value,
-                        True if data['value'] == '1' else False
+                        sc_param.default_value, True if data['value'] == '1' else False
                     )
                 elif data['sc_type'] == 'array':
-                    string_list = [
-                        str(element) for element in sc_param.default_value]
+                    string_list = [str(element) for element in sc_param.default_value]
                     self.assertEqual(str(string_list), data['value'])
                 elif data['sc_type'] in ('json', 'hash'):
                     self.assertEqual(
                         sc_param.default_value,
                         # convert string to dict
-                        json.loads(data['value'])
+                        json.loads(data['value']),
                     )
                 else:
                     self.assertEqual(sc_param.default_value, data['value'])
@@ -230,13 +186,10 @@ class SmartClassParametersTestCase(APITestCase):
                     sc_param.override = True
                     sc_param.parameter_type = test_data['sc_type']
                     sc_param.default_value = test_data['value']
-                    sc_param.update(
-                        ['override', 'parameter_type', 'default_value'])
-                self.assertNotEqual(
-                    sc_param.read().default_value, test_data['value'])
+                    sc_param.update(['override', 'parameter_type', 'default_value'])
+                self.assertNotEqual(sc_param.read().default_value, test_data['value'])
                 self.assertRegexpMatches(
-                    context.exception.response.text,
-                    "Validation failed: Default value is invalid"
+                    context.exception.response.text, "Validation failed: Default value is invalid"
                 )
 
     @tier1
@@ -262,16 +215,12 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.default_value = True
         sc_param.override = True
         sc_param.required = True
-        sc_param.update(
-            ['parameter_type', 'default_value', 'override', 'required']
-        )
+        sc_param.update(['parameter_type', 'default_value', 'override', 'required'])
         sc_param = sc_param.read()
         self.assertEqual(sc_param.required, True)
         self.assertEqual(sc_param.default_value, True)
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=False,
+            smart_class_parameter=sc_param, match='domain=example.com', value=False
         ).create()
         sc_param.update(['override', 'required'])
         sc_param = sc_param.read()
@@ -300,13 +249,10 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.update(['override', 'required'])
         with self.assertRaises(HTTPError) as context:
             entities.OverrideValue(
-                smart_class_parameter=sc_param,
-                match='domain=example.com',
-                value='',
+                smart_class_parameter=sc_param, match='domain=example.com', value=''
             ).create()
         self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Value can't be blank"
+            context.exception.response.text, "Validation failed: Value can't be blank"
         )
 
     @tier1
@@ -333,13 +279,9 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.validator_type = 'regexp'
         sc_param.validator_rule = '[0-9]'
         with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override', 'default_value',
-                'validator_type', 'validator_rule'
-            ])
+            sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Default value is invalid"
+            context.exception.response.text, "Validation failed: Default value is invalid"
         )
         self.assertNotEqual(sc_param.read().default_value, value)
 
@@ -369,9 +311,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.default_value = value
         sc_param.validator_type = 'regexp'
         sc_param.validator_rule = '[0-9]'
-        sc_param.update(
-            ['override', 'default_value', 'validator_type', 'validator_rule']
-        )
+        sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         sc_param = sc_param.read()
         self.assertEqual(sc_param.default_value, value)
         self.assertEqual(sc_param.validator_type, 'regexp')
@@ -379,13 +319,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         # validate matcher value
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=test.com',
-            value=gen_string('numeric'),
+            smart_class_parameter=sc_param, match='domain=test.com', value=gen_string('numeric')
         ).create()
-        sc_param.update(
-            ['override', 'default_value', 'validator_type', 'validator_rule']
-        )
+        sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         self.assertEqual(sc_param.read().default_value, value)
 
     @tier1
@@ -406,24 +342,16 @@ class SmartClassParametersTestCase(APITestCase):
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value='myexample',
+            smart_class_parameter=sc_param, match='domain=example.com', value='myexample'
         ).create()
         sc_param.override = True
         sc_param.default_value = 50
         sc_param.validator_type = 'list'
         sc_param.validator_rule = '25, example, 50'
         with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override',
-                'default_value',
-                'validator_type',
-                'validator_rule',
-            ])
+            sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         self.assertRegexpMatches(
-            context.exception.response.text,
-            "Validation failed: Lookup values is invalid"
+            context.exception.response.text, "Validation failed: Lookup values is invalid"
         )
         self.assertNotEqual(sc_param.read().default_value, 50)
 
@@ -445,17 +373,13 @@ class SmartClassParametersTestCase(APITestCase):
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=30,
+            smart_class_parameter=sc_param, match='domain=example.com', value=30
         ).create()
         sc_param.override = True
         sc_param.default_value = 'example'
         sc_param.validator_type = 'list'
         sc_param.validator_rule = 'test, example, 30'
-        sc_param.update(
-            ['override', 'default_value', 'validator_type', 'validator_rule']
-        )
+        sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         self.assertEqual(sc_param.read().default_value, 'example')
 
     @tier1
@@ -480,14 +404,11 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.default_value = True
         sc_param.update(['override', 'parameter_type', 'default_value'])
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=False,
+            smart_class_parameter=sc_param, match='domain=example.com', value=False
         ).create()
         sc_param = sc_param.read()
         self.assertEqual(sc_param.override_values[0]['value'], False)
-        self.assertEqual(
-            sc_param.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(sc_param.override_values[0]['match'], 'domain=example.com')
 
     @tier1
     def test_negative_validate_matcher_and_default_value(self):
@@ -509,9 +430,7 @@ class SmartClassParametersTestCase(APITestCase):
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=gen_string('alpha'),
+            smart_class_parameter=sc_param, match='domain=example.com', value=gen_string('alpha')
         ).create()
         with self.assertRaises(HTTPError) as context:
             sc_param.parameter_type = 'boolean'
@@ -519,8 +438,7 @@ class SmartClassParametersTestCase(APITestCase):
             sc_param.update(['parameter_type', 'default_value'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Default value is invalid, "
-            "Lookup values is invalid"
+            "Validation failed: Default value is invalid, " "Lookup values is invalid",
         )
 
     @tier1
@@ -553,10 +471,8 @@ class SmartClassParametersTestCase(APITestCase):
             use_puppet_default=True,
         ).create()
         sc_param = sc_param.read()
-        self.assertEqual(
-            sc_param.override_values[0]['use_puppet_default'], True)
-        self.assertEqual(
-            sc_param.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(sc_param.override_values[0]['use_puppet_default'], True)
+        self.assertEqual(sc_param.override_values[0]['match'], 'domain=example.com')
         self.assertEqual(sc_param.override_values[0]['value'], value)
         override.delete()
         self.assertEqual(len(sc_param.read().override_values), 0)
@@ -577,17 +493,12 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
         sc_param.parameter_type = 'array'
-        sc_param.default_value = "[{0}, {1}]".format(
-            gen_string('alpha'), gen_string('alpha'))
+        sc_param.default_value = "[{0}, {1}]".format(gen_string('alpha'), gen_string('alpha'))
         sc_param.merge_overrides = True
         sc_param.merge_default = True
-        sc_param.update([
-            'override',
-            'parameter_type',
-            'default_value',
-            'merge_overrides',
-            'merge_default',
-        ])
+        sc_param.update(
+            ['override', 'parameter_type', 'default_value', 'merge_overrides', 'merge_default']
+        )
         sc_param = sc_param.read()
         self.assertEqual(sc_param.merge_overrides, True)
         self.assertEqual(sc_param.merge_default, True)
@@ -612,28 +523,16 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.merge_overrides = True
         sc_param.merge_default = True
         with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override',
-                'parameter_type',
-                'default_value',
-                'merge_overrides',
-            ])
+            sc_param.update(['override', 'parameter_type', 'default_value', 'merge_overrides'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Merge overrides can only be set for "
-            "array or hash"
+            "Validation failed: Merge overrides can only be set for " "array or hash",
         )
         with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override',
-                'parameter_type',
-                'default_value',
-                'merge_default',
-            ])
+            sc_param.update(['override', 'parameter_type', 'default_value', 'merge_default'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Merge default can only be set when merge "
-            "overrides is set"
+            "Validation failed: Merge default can only be set when merge " "overrides is set",
         )
         sc_param = sc_param.read()
         self.assertEqual(sc_param.merge_overrides, False)
@@ -657,17 +556,12 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
         sc_param.parameter_type = 'array'
-        sc_param.default_value = "[{0}, {1}]".format(
-            gen_string('alpha'), gen_string('alpha'))
+        sc_param.default_value = "[{0}, {1}]".format(gen_string('alpha'), gen_string('alpha'))
         sc_param.merge_overrides = True
         sc_param.avoid_duplicates = True
-        sc_param.update([
-            'override',
-            'parameter_type',
-            'default_value',
-            'merge_overrides',
-            'avoid_duplicates',
-        ])
+        sc_param.update(
+            ['override', 'parameter_type', 'default_value', 'merge_overrides', 'avoid_duplicates']
+        )
         self.assertEqual(sc_param.read().avoid_duplicates, True)
 
     @tier1
@@ -693,16 +587,11 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.default_value = gen_string('alpha')
         sc_param.avoid_duplicates = True
         with self.assertRaises(HTTPError) as context:
-            sc_param.update([
-                'override',
-                'parameter_type',
-                'default_value',
-                'avoid_duplicates'
-            ])
+            sc_param.update(['override', 'parameter_type', 'default_value', 'avoid_duplicates'])
         self.assertRegexpMatches(
             context.exception.response.text,
             "Validation failed: Avoid duplicates can only be set for arrays "
-            "that have merge_overrides set to true"
+            "that have merge_overrides set to true",
         )
         self.assertEqual(sc_param.read().avoid_duplicates, False)
 
@@ -734,26 +623,16 @@ class SmartClassParametersTestCase(APITestCase):
         hostgroup_name = gen_string('alpha')
         match = 'hostgroup={0}'.format(hostgroup_name)
         match_value = gen_string('alpha')
-        hostgroup = entities.HostGroup(
-            name=hostgroup_name,
-            environment=self.env,
-        ).create()
-        hostgroup.add_puppetclass(
-            data={'puppetclass_id': self.puppet_class.id})
+        hostgroup = entities.HostGroup(name=hostgroup_name, environment=self.env).create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})
         entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match=match,
-            value=match_value,
+            smart_class_parameter=sc_param, match=match, value=match_value
         ).create()
         sc_param = sc_param.read()
         self.assertEqual(sc_param.override_values[0]['match'], match)
         self.assertEqual(sc_param.override_values[0]['value'], match_value)
         hostgroup.delete()
         self.assertEqual(len(sc_param.read().override_values), 0)
-        hostgroup = entities.HostGroup(
-            name=hostgroup_name,
-            environment=self.env,
-        ).create()
-        hostgroup.add_puppetclass(
-            data={'puppetclass_id': self.puppet_class.id})
+        hostgroup = entities.HostGroup(name=hostgroup_name, environment=self.env).create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})
         self.assertEqual(len(sc_param.read().override_values), 0)

@@ -40,11 +40,9 @@ def test_positive_end_to_end(session):
     fact_name = 'cpu'
     with session:
         # Create new trend
-        session.trend.create({
-            'trendable_type': TREND_TYPES['facts'],
-            'trendable_id': fact_name,
-            'name': name,
-        })
+        session.trend.create(
+            {'trendable_type': TREND_TYPES['facts'], 'trendable_id': fact_name, 'name': name}
+        )
         assert session.trend.search(name)
         # Update trend
         session.trend.update(name, fact_name, new_name)

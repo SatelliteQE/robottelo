@@ -58,14 +58,14 @@ def shared_counter_with_scope_context(value=0, increment_by=1):
 @shared
 def simple_shared_counter_increment(index=1, increment_by=1):
     """a simple shared function each time called increment index"""
-    return {'index': index+increment_by}
+    return {'index': index + increment_by}
 
 
 @shared
 def simple_shared_counter_increment_process(index=1):
     """a simple shared function each time called increment index by a new
     generated value"""
-    return {'index': index+gen_integer(min_value=1, max_value=100)}
+    return {'index': index + gen_integer(min_value=1, max_value=100)}
 
 
 @shared(timeout=SIMPLE_TIMEOUT_VALUE)
@@ -75,7 +75,7 @@ def simple_shared_counter_increment_timeout(index=1):
     note: this shared function sleep for 2 seconds, and have expire time 1
         second, as a result it should always return a new value
     """
-    return {'index': index+1}
+    return {'index': index + 1}
 
 
 @shared(timeout=SIMPLE_TIMEOUT_VALUE)
@@ -85,7 +85,7 @@ def simple_shared_counter_increment_process_timeout(index=1):
     note: this shared function sleep for 2 seconds, and have expire time 1
         second, as a result it should always return a new value
     """
-    return {'index': index+1}
+    return {'index': index + 1}
 
 
 @shared(inject=True, injected_kw='_injected')
@@ -124,26 +124,26 @@ def simple_shared_with_inject_kw_none(index=None):
 def simple_shared_counter_with_exception(index=0):
     """Raise division by 0 error"""
     index /= 0
-    return {'index': index+1}
+    return {'index': index + 1}
 
 
 @shared
 def basic_shared_counter(index=0, increment_by=1):
     """used with use_shared_data=False """
-    return index+increment_by
+    return index + increment_by
 
 
 @shared(function_kw=['prefix', 'suffix'])
-def basic_shared_counter_string(
-        prefix='', suffix='', counter=0, increment_by=1):
+def basic_shared_counter_string(prefix='', suffix='', counter=0, increment_by=1):
     """basic function that increment a counter and return a string with
     prefix
     """
-    return '{0}_{1}_{2}'.format(prefix, counter+increment_by, suffix)
+    return '{0}_{1}_{2}'.format(prefix, counter + increment_by, suffix)
 
 
 class NotRestorableException(Exception):
     """ this exception is not restorable as need mote args"""
+
     def __init__(self, msg, details):
         self.msg = msg
         self.details = details
@@ -156,7 +156,6 @@ def simple_shared_counter_with_exception_not_restored(index=0):
 
 
 class FunctionSharedTestCase(TestCase):
-
     @classmethod
     def initiate_namespace_scope(cls):
         # each_time generate a new name space
@@ -184,11 +183,9 @@ class FunctionSharedTestCase(TestCase):
         enable_shared_function(False)
         value = gen_integer(min_value=1, max_value=10000)
         increment_by = gen_integer(min_value=1, max_value=10000)
-        new_value = basic_shared_counter(
-            index=value, increment_by=increment_by)
-        self.assertEqual(new_value, value+increment_by)
-        second_new_value = basic_shared_counter(
-            index=new_value, increment_by=increment_by)
+        new_value = basic_shared_counter(index=value, increment_by=increment_by)
+        self.assertEqual(new_value, value + increment_by)
+        second_new_value = basic_shared_counter(index=new_value, increment_by=increment_by)
         self.assertEqual(second_new_value, new_value + increment_by)
 
     def test_shared_counter_file_path(self):
@@ -197,8 +194,7 @@ class FunctionSharedTestCase(TestCase):
             get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
-            '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name,
-                      'shared_counter'])
+            '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name, 'shared_counter']),
         )
         self.assertFalse(os.path.exists(expected_shared_file_path))
         value = gen_integer(min_value=1, max_value=10000)
@@ -207,7 +203,7 @@ class FunctionSharedTestCase(TestCase):
         self.assertEqual(counter_value, value + increment_by)
         counter_value_shared = shared_counter(
             value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000)
+            increment_by=gen_integer(min_value=1, max_value=10000),
         )
         self.assertEqual(counter_value_shared, counter_value)
         self.assertTrue(os.path.exists(expected_shared_file_path))
@@ -218,19 +214,24 @@ class FunctionSharedTestCase(TestCase):
             get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
-            '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, 'shared_counter',
-                      _this_module_name, 'shared_counter_with_scope_context']
-                     )
+            '.'.join(
+                [
+                    self.scope,
+                    _NAMESPACE_SCOPE_KEY_TYPE,
+                    'shared_counter',
+                    _this_module_name,
+                    'shared_counter_with_scope_context',
+                ]
+            ),
         )
         self.assertFalse(os.path.exists(expected_shared_file_path))
         value = gen_integer(min_value=1, max_value=10000)
         increment_by = gen_integer(min_value=1, max_value=10000)
-        counter_value = shared_counter_with_scope_context(
-            value=value, increment_by=increment_by)
+        counter_value = shared_counter_with_scope_context(value=value, increment_by=increment_by)
         self.assertEqual(counter_value, value + increment_by)
         counter_value_shared = shared_counter_with_scope_context(
             value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000)
+            increment_by=gen_integer(min_value=1, max_value=10000),
         )
         self.assertEqual(counter_value_shared, counter_value)
         self.assertTrue(os.path.exists(expected_shared_file_path))
@@ -241,19 +242,23 @@ class FunctionSharedTestCase(TestCase):
             get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
-            '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name,
-                      'MainCounter.shared_counter']
-                     )
+            '.'.join(
+                [
+                    self.scope,
+                    _NAMESPACE_SCOPE_KEY_TYPE,
+                    _this_module_name,
+                    'MainCounter.shared_counter',
+                ]
+            ),
         )
         self.assertFalse(os.path.exists(expected_shared_file_path))
         value = gen_integer(min_value=1, max_value=10000)
         increment_by = gen_integer(min_value=1, max_value=10000)
-        counter_value = MainCounter.shared_counter(value=value,
-                                                   increment_by=increment_by)
+        counter_value = MainCounter.shared_counter(value=value, increment_by=increment_by)
         self.assertEqual(counter_value, value + increment_by)
         counter_value_shared = MainCounter.shared_counter(
             value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000)
+            increment_by=gen_integer(min_value=1, max_value=10000),
         )
         self.assertEqual(counter_value_shared, counter_value)
         self.assertTrue(os.path.exists(expected_shared_file_path))
@@ -264,19 +269,25 @@ class FunctionSharedTestCase(TestCase):
             get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
-            '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name,
-                      'MainCounter.SubCounter.shared_counter']
-                     )
+            '.'.join(
+                [
+                    self.scope,
+                    _NAMESPACE_SCOPE_KEY_TYPE,
+                    _this_module_name,
+                    'MainCounter.SubCounter.shared_counter',
+                ]
+            ),
         )
         self.assertFalse(os.path.exists(expected_shared_file_path))
         value = gen_integer(min_value=1, max_value=10000)
         increment_by = gen_integer(min_value=1, max_value=10000)
         counter_value = MainCounter.SubCounter.shared_counter(
-            value=value, increment_by=increment_by)
+            value=value, increment_by=increment_by
+        )
         self.assertEqual(counter_value, value + increment_by)
         counter_value_shared = MainCounter.SubCounter.shared_counter(
             value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000)
+            increment_by=gen_integer(min_value=1, max_value=10000),
         )
         self.assertEqual(counter_value_shared, counter_value)
         self.assertTrue(os.path.exists(expected_shared_file_path))
@@ -287,8 +298,7 @@ class FunctionSharedTestCase(TestCase):
         index_increment_by = gen_integer(min_value=1, max_value=100)
         index_expected_value = index_value + index_increment_by
         result = simple_shared_counter_increment(
-            index=index_value,
-            increment_by=index_increment_by
+            index=index_value, increment_by=index_increment_by
         )
         self.assertIsInstance(result, dict)
         self.assertIn('index', result)
@@ -300,8 +310,7 @@ class FunctionSharedTestCase(TestCase):
         self.assertNotEqual(index_increment_by, index_increment_by_2)
         # call the counter function a second time
         result = simple_shared_counter_increment(
-            index=index_value_2,
-            increment_by=index_increment_by_2
+            index=index_value_2, increment_by=index_increment_by_2
         )
         self.assertIsInstance(result, dict)
         self.assertIn('index', result)
@@ -311,8 +320,7 @@ class FunctionSharedTestCase(TestCase):
         """The counter should never change when calling second time, even in
         multiprocess calls"""
         pool_size = self.pool_size
-        args = [gen_integer(min_value=1, max_value=10000)
-                for _ in range(pool_size)]
+        args = [gen_integer(min_value=1, max_value=10000) for _ in range(pool_size)]
         results = self.pool.map(simple_shared_counter_increment_process, args)
 
         self.assertEqual(len(results), pool_size)
@@ -334,7 +342,7 @@ class FunctionSharedTestCase(TestCase):
         self.assertIsInstance(result, dict)
         self.assertIn('index', result)
         result_value = result['index']
-        self.assertEqual(result_value, counter_value+1)
+        self.assertEqual(result_value, counter_value + 1)
 
         second_counter_value = gen_integer(min_value=1, max_value=10000)
         # be sure they are diffrent
@@ -349,13 +357,12 @@ class FunctionSharedTestCase(TestCase):
         self.assertEqual(second_result_value, result_value)
 
         # sleep to reach timeout
-        time.sleep(SIMPLE_TIMEOUT_VALUE+1)
+        time.sleep(SIMPLE_TIMEOUT_VALUE + 1)
 
         timeout_counter_value = gen_integer(min_value=1, max_value=10000)
         # be sure they are diffrent
         self.assertNotEqual(counter_value, timeout_counter_value)
-        timeout_result = simple_shared_counter_increment_timeout(
-            timeout_counter_value)
+        timeout_result = simple_shared_counter_increment_timeout(timeout_counter_value)
         self.assertIsInstance(timeout_result, dict)
         self.assertIn('index', timeout_result)
         timeout_result_value = timeout_result['index']
@@ -366,11 +373,9 @@ class FunctionSharedTestCase(TestCase):
         """The shared function should loose it's results after timeout, even
         in multiprocess calls"""
         pool_size = self.pool_size
-        counter_values = [gen_integer(min_value=1, max_value=10000)
-                          for _ in range(pool_size)]
-        expected_values = [val+1 for val in counter_values]
-        results = self.pool.map(
-            simple_shared_counter_increment_process_timeout, counter_values)
+        counter_values = [gen_integer(min_value=1, max_value=10000) for _ in range(pool_size)]
+        expected_values = [val + 1 for val in counter_values]
+        results = self.pool.map(simple_shared_counter_increment_process_timeout, counter_values)
         self.assertEqual(len(results), pool_size)
         # all the results values should be equal and in expected values
         # we do not know which function got the first results
@@ -380,19 +385,16 @@ class FunctionSharedTestCase(TestCase):
         self.assertIn(first_result_value, expected_values)
 
         # sleep to reach timeout
-        time.sleep(SIMPLE_TIMEOUT_VALUE+1)
+        time.sleep(SIMPLE_TIMEOUT_VALUE + 1)
         # now after the expire time the counter value should change
-        second_counter_values = [gen_integer(min_value=1, max_value=10000)
-                                 for _ in range(pool_size)]
+        second_counter_values = [
+            gen_integer(min_value=1, max_value=10000) for _ in range(pool_size)
+        ]
         # assert that counter values are diffrent
-        self.assertEqual(
-            set(counter_values).intersection(second_counter_values),
-            set()
-        )
-        expected_values = [val+1 for val in second_counter_values]
+        self.assertEqual(set(counter_values).intersection(second_counter_values), set())
+        expected_values = [val + 1 for val in second_counter_values]
         results = self.pool.map(
-            simple_shared_counter_increment_process_timeout,
-            second_counter_values
+            simple_shared_counter_increment_process_timeout, second_counter_values
         )
         self.assertEqual(len(results), pool_size)
         # all the results values should be equal and in expected values
@@ -419,8 +421,7 @@ class FunctionSharedTestCase(TestCase):
 
     def test_simple_shared_injected_multiprocess(self):
         """Test shared with inject with injected_kw in multiprocess calls"""
-        counter_values = [gen_integer(min_value=2, max_value=10000)
-                          for _ in range(self.pool_size)]
+        counter_values = [gen_integer(min_value=2, max_value=10000) for _ in range(self.pool_size)]
 
         # inject function must use kwargs to be injected
         results = []
@@ -433,7 +434,8 @@ class FunctionSharedTestCase(TestCase):
                 self.pool.apply_async(
                     simple_shared_counter_with_inject_multiprocess,
                     kwds=dict(index=value),
-                    callback=_put_result)
+                    callback=_put_result,
+                )
             self.pool.close()
             self.pool.join()
 
@@ -472,12 +474,10 @@ class FunctionSharedTestCase(TestCase):
         with self.assertRaises(ZeroDivisionError):
             simple_shared_counter_with_exception(counter_value)
 
-        counter_values = [gen_integer(min_value=2, max_value=10000)
-                          for _ in range(self.pool_size)]
+        counter_values = [gen_integer(min_value=2, max_value=10000) for _ in range(self.pool_size)]
 
         with self.assertRaises(ZeroDivisionError):
-            self.pool.map(
-                simple_shared_counter_with_exception, counter_values)
+            self.pool.map(simple_shared_counter_with_exception, counter_values)
 
     def test_simple_shared_with_exception_not_restored(self):
         """Test when exception raise that cannot be restored, a
@@ -490,14 +490,10 @@ class FunctionSharedTestCase(TestCase):
         with self.assertRaises(SharedFunctionException):
             simple_shared_counter_with_exception_not_restored(counter_value)
 
-        counter_values = [gen_integer(min_value=2, max_value=10000)
-                          for _ in range(self.pool_size)]
+        counter_values = [gen_integer(min_value=2, max_value=10000) for _ in range(self.pool_size)]
 
         with self.assertRaises(SharedFunctionException):
-            self.pool.map(
-                simple_shared_counter_with_exception_not_restored,
-                counter_values
-            )
+            self.pool.map(simple_shared_counter_with_exception_not_restored, counter_values)
 
     def test_function_kw_scope(self):
         """Test that function kw is using the correct scope from argument.
@@ -513,12 +509,14 @@ class FunctionSharedTestCase(TestCase):
         for prefix, suffix in zip(prefixes, suffixes):
             counter_value = gen_integer(min_value=2, max_value=10000)
             inc_string = basic_shared_counter_string(
-                prefix=prefix, suffix=suffix, counter=counter_value)
+                prefix=prefix, suffix=suffix, counter=counter_value
+            )
             self.assertTrue(inc_string.startswith(prefix))
             self.assertTrue(inc_string.endswith(suffix))
             # call the shared function a second time with an other value
             counter_value = gen_integer(min_value=2, max_value=10000)
             # note inverted order of kwargs
             inc_string_2 = basic_shared_counter_string(
-                suffix=suffix, prefix=prefix, counter=counter_value)
+                suffix=suffix, prefix=prefix, counter=counter_value
+            )
             self.assertEqual(inc_string, inc_string_2)

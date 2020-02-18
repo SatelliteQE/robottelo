@@ -137,8 +137,7 @@ class SubscriptionsTestCase(APITestCase):
             upload_manifest(orgs[0].id, manifest.content)
             with self.assertRaises(TaskFailedError):
                 upload_manifest(orgs[1].id, manifest.content)
-        self.assertEqual(
-            len(entities.Subscription(organization=orgs[1]).search()), 0)
+        self.assertEqual(len(entities.Subscription(organization=orgs[1]).search()), 0)
 
     @tier2
     def test_positive_delete_manifest_as_another_user(self):
@@ -156,35 +155,29 @@ class SubscriptionsTestCase(APITestCase):
         org = entities.Organization().create()
         user1_password = gen_string('alphanumeric')
         user1 = entities.User(
-            admin=True,
-            password=user1_password,
-            organization=[org],
-            default_organization=org,
+            admin=True, password=user1_password, organization=[org], default_organization=org
         ).create()
         sc1 = ServerConfig(
             auth=(user1.login, user1_password),
             url='https://{}'.format(settings.server.hostname),
-            verify=False
+            verify=False,
         )
         user2_password = gen_string('alphanumeric')
         user2 = entities.User(
-            admin=True,
-            password=user2_password,
-            organization=[org],
-            default_organization=org,
+            admin=True, password=user2_password, organization=[org], default_organization=org
         ).create()
         sc2 = ServerConfig(
             auth=(user2.login, user2_password),
             url='https://{}'.format(settings.server.hostname),
-            verify=False
+            verify=False,
         )
         # use the first admin to upload a manifest
         with manifests.clone() as manifest:
             entities.Subscription(sc1, organization=org).upload(
-                data={'organization_id': org.id},
-                files={'content': manifest.content},
+                data={'organization_id': org.id}, files={'content': manifest.content}
             )
         # try to search and delete the manifest with another admin
         entities.Subscription(sc2, organization=org).delete_manifest(
-            data={'organization_id': org.id})
+            data={'organization_id': org.id}
+        )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))

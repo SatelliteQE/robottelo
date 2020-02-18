@@ -39,8 +39,7 @@ from robottelo.test import CLITestCase
 def valid_addr_pools():
     """Returns a list of valid address pools"""
     return [
-        [gen_integer(min_value=1, max_value=255),
-         gen_integer(min_value=1, max_value=255)],
+        [gen_integer(min_value=1, max_value=255), gen_integer(min_value=1, max_value=255)],
         [gen_integer(min_value=1, max_value=255)] * 2,
         [1, 255],
     ]
@@ -52,8 +51,10 @@ def invalid_addr_pools():
     return [
         {u'from': gen_integer(min_value=1, max_value=255)},
         {u'to': gen_integer(min_value=1, max_value=255)},
-        {u'from': gen_integer(min_value=128, max_value=255),
-         u'to': gen_integer(min_value=1, max_value=127)},
+        {
+            u'from': gen_integer(min_value=128, max_value=255),
+            u'to': gen_integer(min_value=1, max_value=127),
+        },
         {u'from': 256, u'to': 257},
     ]
 
@@ -67,7 +68,7 @@ def invalid_missing_attributes():
         {u'network': ''},
         {u'mask': '256.0.0.0'},
         {u'mask': ''},
-        {u'mask': '255.0.255.0'}
+        {u'mask': '255.0.255.0'},
     ]
 
 
@@ -99,16 +100,18 @@ class SubnetTestCase(CLITestCase):
         domains = [make_domain() for _ in range(domains_amount)]
         gateway = gen_ipaddr(ip3=True)
         ipam_type = SUBNET_IPAM_TYPES['dhcp']
-        subnet = make_subnet({
-            u'name': name,
-            u'from': from_ip,
-            u'mask': mask,
-            u'network': network,
-            u'to': to_ip,
-            u'domain-ids': [domain['id'] for domain in domains],
-            u'gateway': gateway,
-            u'ipam': ipam_type
-        })
+        subnet = make_subnet(
+            {
+                u'name': name,
+                u'from': from_ip,
+                u'mask': mask,
+                u'network': network,
+                u'to': to_ip,
+                u'domain-ids': [domain['id'] for domain in domains],
+                u'gateway': gateway,
+                u'ipam': ipam_type,
+            }
+        )
         # Check if Subnet can be listed
         subnets_ids = [subnet_['id'] for subnet_ in Subnet.list()]
         self.assertIn(subnet['id'], subnets_ids)
@@ -130,16 +133,18 @@ class SubnetTestCase(CLITestCase):
         ip_from = re.sub(r'\d+$', str(pool[0]), new_network)
         ip_to = re.sub(r'\d+$', str(pool[1]), new_network)
         ipam_type = SUBNET_IPAM_TYPES['internal']
-        Subnet.update({
-            u'new-name': new_name,
-            u'from': ip_from,
-            u'id': subnet['id'],
-            u'to': ip_to,
-            u'mask': new_mask,
-            u'network': new_network,
-            u'ipam': ipam_type,
-            u'domain-ids': ""  # delete domains needed for subnet delete
-        })
+        Subnet.update(
+            {
+                u'new-name': new_name,
+                u'from': ip_from,
+                u'id': subnet['id'],
+                u'to': ip_to,
+                u'mask': new_mask,
+                u'network': new_network,
+                u'ipam': ipam_type,
+                u'domain-ids': "",  # delete domains needed for subnet delete
+            }
+        )
         subnet = Subnet.info({u'id': subnet['id']})
         self.assertEqual(subnet['name'], new_name)
         self.assertEqual(subnet['start-of-ip-range'], ip_from)
@@ -165,10 +170,7 @@ class SubnetTestCase(CLITestCase):
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
-                with self.assertRaisesRegex(
-                    CLIFactoryError,
-                    u'Could not create the subnet:'
-                ):
+                with self.assertRaisesRegex(CLIFactoryError, u'Could not create the subnet:'):
                     make_subnet(options)
 
     @tier2
@@ -192,10 +194,7 @@ class SubnetTestCase(CLITestCase):
                     opts[key] = re.sub(r'\d+$', str(val), network)
                 with self.assertRaises(CLIFactoryError) as raise_ctx:
                     make_subnet(opts)
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Could not create the subnet:'
-                )
+                self.assert_error_msg(raise_ctx, u'Could not create the subnet:')
 
     @tier2
     def test_negative_update_attributes(self):
@@ -211,10 +210,7 @@ class SubnetTestCase(CLITestCase):
         for options in invalid_missing_attributes():
             with self.subTest(options):
                 options['id'] = subnet['id']
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the subnet:'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the subnet:'):
                     Subnet.update(options)
                     # check - subnet is not updated
                     result = Subnet.info({u'id': subnet['id']})
@@ -238,10 +234,7 @@ class SubnetTestCase(CLITestCase):
                 # generate pool range from network address
                 for key, val in options.items():
                     opts[key] = re.sub(r'\d+$', str(val), subnet['network-addr'])
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the subnet:'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the subnet:'):
                     Subnet.update(opts)
                 # check - subnet is not updated
                 result = Subnet.info({u'id': subnet['id']})

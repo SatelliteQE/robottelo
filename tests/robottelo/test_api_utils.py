@@ -9,14 +9,8 @@ class UtilsTestCase(TestCase):
 
     def test_one_to_one_names(self):
         """Test :func:`robottelo.api.utils.one_to_one_names`."""
-        self.assertEqual(
-            utils.one_to_one_names('person'),
-            {'person_name', 'person_id'},
-        )
+        self.assertEqual(utils.one_to_one_names('person'), {'person_name', 'person_id'})
 
     def test_one_to_many_names(self):
         """Test :func:`robottelo.api.utils.one_to_many_names`."""
-        self.assertEqual(
-            utils.one_to_many_names('person'),
-            {'person', 'person_ids', 'people'},
-        )
+        self.assertEqual(utils.one_to_many_names('person'), {'person', 'person_ids', 'people'})

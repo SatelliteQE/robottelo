@@ -29,6 +29,7 @@ def filtered_datapoint(func):
     If run_one_datapoint=true, return a random data.
 
     """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         """Perform smoke test attribute check"""
@@ -52,6 +53,7 @@ def filtered_datapoint(func):
         if settings.run_one_datapoint:
             dataset = [random.choice(dataset)]
         return dataset
+
     return func_wrapper
 
 
@@ -62,15 +64,11 @@ def parametrized(data):
     :param dict data: dictionary with parametrized test names as dict keys and
         parametrized arguments as dict values
     """
-    return {
-        'ids': list(data.keys()),
-        'argvalues': list(data.values()),
-    }
+    return {'ids': list(data.keys()), 'argvalues': list(data.values())}
 
 
 @filtered_datapoint
-def generate_strings_list(length=None, exclude_types=None,
-                          min_length=3, max_length=30):
+def generate_strings_list(length=None, exclude_types=None, min_length=3, max_length=30):
     """Generates a list of different input strings.
 
     :param int length: Specifies the length of the strings to be
@@ -86,10 +84,7 @@ def generate_strings_list(length=None, exclude_types=None,
     if length is None:
         length = gen_integer(min_length, max_length)
 
-    strings = {
-        str_type: gen_string(str_type, length)
-        for str_type in STRING_TYPES
-    }
+    strings = {str_type: gen_string(str_type, length) for str_type in STRING_TYPES}
 
     # Handle No bug_id, If some entity doesn't support a str_type.
     # Remove str_type from dictionary only if bug is open.
@@ -111,8 +106,7 @@ def add_uppercase_char_into_string(text=None, length=10):
     if text is None:
         text = gen_string('alpha', length)
     st_chars = list(text)
-    st_chars[random.randint(0, len(st_chars) - 1)] = random.choice(
-        string.ascii_uppercase)
+    st_chars[random.randint(0, len(st_chars) - 1)] = random.choice(string.ascii_uppercase)
     return ''.join(st_chars)
 
 
@@ -152,10 +146,7 @@ def invalid_boolean_strings(list_len=10):
     def not_boolean_str(s):
         return s not in ('true', 'false')
 
-    return [
-        gen_alpha(validator=not_boolean_str, default='notboolean')
-        for _ in range(list_len)
-    ]
+    return [gen_alpha(validator=not_boolean_str, default='notboolean') for _ in range(list_len)]
 
 
 def xdist_adapter(argvalues):
@@ -178,21 +169,13 @@ def xdist_adapter(argvalues):
     :param argvalues: to be passed to parametrize
     :return: dict
     """
-    return {
-        'argvalues': argvalues,
-        'ids': [str(index) for index in range(len(argvalues))]
-    }
+    return {'argvalues': argvalues, 'ids': [str(index) for index in range(len(argvalues))]}
 
 
 @filtered_datapoint
 def invalid_id_list():
     """Generates a list of invalid IDs."""
-    return [
-        gen_string('alpha'),
-        None,
-        u'',
-        -1,
-    ]
+    return [gen_string('alpha'), None, u'', -1]
 
 
 @filtered_datapoint
@@ -226,7 +209,7 @@ def invalid_domain_names(interface=None):
         'empty': '\0',
         'whitespace': ' ',
         'tab': '\t',
-        'toolong': gen_string('alphanumeric', 300)
+        'toolong': gen_string('alphanumeric', 300),
     }
 
 
@@ -236,7 +219,7 @@ def invalid_usernames_list():
         '',
         'space {0}'.format(gen_string('alpha')),
         gen_string('alpha', 101),
-        gen_string('html')
+        gen_string('html'),
     ]
 
 
@@ -253,9 +236,7 @@ def invalid_values_list(interface=None):
 
     """
     if interface not in ['api', 'cli', 'ui', None]:
-        raise InvalidArgumentError(
-            'Valid interface values are {0}'.format('api, cli, ui only')
-        )
+        raise InvalidArgumentError('Valid interface values are {0}'.format('api, cli, ui only'))
     if interface == 'ui':
         return ['', ' '] + invalid_names_list()
     else:  # interface = api or cli or None
@@ -289,14 +270,15 @@ def valid_data_list(interface=None):
 @filtered_datapoint
 def valid_docker_repository_names():
     """Generates a list of valid names for Docker repository."""
-    names = [gen_string('alphanumeric', random.randint(1, 255)),
-             gen_string('alpha', random.randint(1, 255)),
-             gen_string('cjk', random.randint(1, 85)),
-             gen_string('latin1', random.randint(1, 255)),
-             gen_string('numeric', random.randint(1, 255)),
-             gen_string('utf8', random.randint(1, 85)),
-             gen_string('html', random.randint(1, 85))
-             ]
+    names = [
+        gen_string('alphanumeric', random.randint(1, 255)),
+        gen_string('alpha', random.randint(1, 255)),
+        gen_string('cjk', random.randint(1, 85)),
+        gen_string('latin1', random.randint(1, 255)),
+        gen_string('numeric', random.randint(1, 255)),
+        gen_string('utf8', random.randint(1, 85)),
+        gen_string('html', random.randint(1, 85)),
+    ]
     return names
 
 
@@ -308,14 +290,8 @@ def valid_emails_list():
         u'{0}@example.com'.format(gen_string('alphanumeric')),
         u'{0}@example.com'.format(gen_string('numeric')),
         u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
-        u'{0}+{1}@example.com'.format(
-            gen_string('alphanumeric'),
-            gen_string('alphanumeric'),
-        ),
-        u'{0}.{1}@example.com'.format(
-            gen_string('alphanumeric'),
-            gen_string('alphanumeric'),
-        ),
+        u'{0}+{1}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
+        u'{0}.{1}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
         u'"():;"@example.com',
         u'!#$%&*+-/=?^`{|}~@example.com',
     ]
@@ -324,11 +300,11 @@ def valid_emails_list():
 @filtered_datapoint
 def valid_environments_list():
     """Returns a list of valid environment names"""
-    return[
+    return [
         gen_string('alpha'),
         gen_string('numeric'),
         gen_string('alphanumeric'),
-        gen_string('alphanumeric', 255)
+        gen_string('alphanumeric', 255),
     ]
 
 
@@ -346,11 +322,8 @@ def valid_hosts_list(domain_length=10):
     :return: Returns the valid host names list
     """
     return [
-        gen_string(
-            'alphanumeric', random.randint(1, (255 - 6 - domain_length))
-        ).lower(),
-        gen_string(
-            'alpha', random.randint(1, (255 - 6 - domain_length))).lower(),
+        gen_string('alphanumeric', random.randint(1, (255 - 6 - domain_length))).lower(),
+        gen_string('alpha', random.randint(1, (255 - 6 - domain_length))).lower(),
         gen_string('numeric', random.randint(1, (255 - 6 - domain_length))),
     ]
 
@@ -433,11 +406,7 @@ def valid_org_names_list():
 @filtered_datapoint
 def valid_usernames_list():
     """Returns a list of valid user names."""
-    return generate_strings_list(
-        exclude_types=['html'],
-        min_length=1,
-        max_length=50
-    )
+    return generate_strings_list(exclude_types=['html'], min_length=1, max_length=50)
 
 
 @filtered_datapoint
@@ -478,78 +447,23 @@ def valid_http_credentials(url_encoded=False):
     :return: A list of dictionaries with user and password credentials
     """
     credentials = [
-        {
-            u'login': 'admin',
-            u'pass': 'changeme',
-            u'quote': False,
-            u'http_valid': True,
-        },
-        {
-            u'login': '@dmin',
-            u'pass': 'changeme',
-            u'quote': True,
-            u'http_valid': True,
-        },
-        {
-            u'login': 'adm/n',
-            u'pass': 'changeme',
-            u'quote': False,
-            u'http_valid': True,
-        },
-        {
-            u'login': 'admin2',
-            u'pass': 'ch@ngeme',
-            u'quote': True,
-            u'http_valid': True,
-        },
-        {
-            u'login': 'admin3',
-            u'pass': 'chan:eme',
-            u'quote': False,
-            u'http_valid': True,
-        },
-        {
-            u'login': 'admin4',
-            u'pass': 'chan/eme',
-            u'quote': True,
-            u'http_valid': True,
-        },
-        {
-            u'login': 'admin5',
-            u'pass': 'ch@n:eme',
-            u'quote': True,
-            u'http_valid': True,
-        },
-        {
-            u'login': '0',
-            u'pass': 'mypassword',
-            u'quote': False,
-            u'http_valid': True,
-        },
+        {u'login': 'admin', u'pass': 'changeme', u'quote': False, u'http_valid': True},
+        {u'login': '@dmin', u'pass': 'changeme', u'quote': True, u'http_valid': True},
+        {u'login': 'adm/n', u'pass': 'changeme', u'quote': False, u'http_valid': True},
+        {u'login': 'admin2', u'pass': 'ch@ngeme', u'quote': True, u'http_valid': True},
+        {u'login': 'admin3', u'pass': 'chan:eme', u'quote': False, u'http_valid': True},
+        {u'login': 'admin4', u'pass': 'chan/eme', u'quote': True, u'http_valid': True},
+        {u'login': 'admin5', u'pass': 'ch@n:eme', u'quote': True, u'http_valid': True},
+        {u'login': '0', u'pass': 'mypassword', u'quote': False, u'http_valid': True},
         {
             u'login': '0123456789012345678901234567890123456789',
             u'pass': 'changeme',
             u'quote': False,
             u'http_valid': True,
         },
-        {
-            u'login': 'admin',
-            u'pass': '',
-            u'quote': False,
-            u'http_valid': False,
-        },
-        {
-            u'login': '',
-            u'pass': 'mypassword',
-            u'quote': False,
-            u'http_valid': False,
-        },
-        {
-            u'login': '',
-            u'pass': '',
-            u'quote': False,
-            u'http_valid': False,
-        },
+        {u'login': 'admin', u'pass': '', u'quote': False, u'http_valid': False},
+        {u'login': '', u'pass': 'mypassword', u'quote': False, u'http_valid': False},
+        {u'login': '', u'pass': '', u'quote': False, u'http_valid': False},
         {
             u'login': gen_string('alpha', gen_integer(1, 512)),
             u'pass': gen_string('alpha'),
@@ -567,16 +481,19 @@ def valid_http_credentials(url_encoded=False):
             u'pass': gen_string('utf8'),
             u'quote': True,
             u'http_valid': False,
-            u'encoding': 'utf8'
+            u'encoding': 'utf8',
         },
     ]
     if url_encoded:
-        return [{
+        return [
+            {
                 u'login': quote_plus(cred['login'].encode('utf-8'), ''),
                 u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
                 u'http_valid': cred['http_valid'],
                 u'original_encoding': cred.get('encoding', 'latin-1'),
-                } for cred in credentials]
+            }
+            for cred in credentials
+        ]
     else:
         return credentials
 
@@ -589,14 +506,17 @@ def invalid_http_credentials(url_encoded=False):
     """
     credentials = [
         {u'login': gen_string('alpha', 1024), u'pass': ''},
-        {u'login': gen_string('alpha', 512),
-         u'pass': gen_string('alpha', 512)},
+        {u'login': gen_string('alpha', 512), u'pass': gen_string('alpha', 512)},
         {u'login': gen_string('utf8', 256), u'pass': gen_string('utf8', 256)},
     ]
     if url_encoded:
-        return [{u'login': quote_plus(cred['login'].encode('utf-8'), ''),
-                 u'pass': quote_plus(cred['pass'].encode('utf-8'), '')}
-                for cred in credentials]
+        return [
+            {
+                u'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
+            }
+            for cred in credentials
+        ]
     else:
         return credentials
 
@@ -612,19 +532,17 @@ def invalid_docker_upstream_names():
         gen_string('alphanumeric', 256).lower(),
         u'{0}/{1}'.format(
             add_uppercase_char_into_string(gen_string('alphanumeric', 4)),
-            gen_string('alphanumeric', 3)
+            gen_string('alphanumeric', 3),
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 4),
             add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 127).lower(),
-            gen_string('alphanumeric', 128).lower()
+            gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 128).lower()
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 128).lower(),
-            gen_string('alphanumeric', 127).lower()
+            gen_string('alphanumeric', 128).lower(), gen_string('alphanumeric', 127).lower()
         ),
         # not allowed non alphanumeric character
         u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
@@ -653,12 +571,10 @@ def valid_docker_upstream_names():
         gen_string('alphanumeric', 1).lower(),
         gen_string('alphanumeric', 255).lower(),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 1).lower(),
-            gen_string('alphanumeric', 1).lower(),
+            gen_string('alphanumeric', 1).lower(), gen_string('alphanumeric', 1).lower()
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 127).lower(),
-            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 127).lower()
         ),
         # allowed non alphanumeric character
         u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
@@ -673,10 +589,7 @@ def valid_docker_upstream_names():
 
 @filtered_datapoint
 def valid_url_list():
-    return [
-        gen_url(scheme="http"),
-        gen_url(scheme="https"),
-    ]
+    return [gen_url(scheme="http"), gen_url(scheme="https")]
 
 
 @filtered_datapoint
@@ -691,5 +604,5 @@ def valid_cron_expressions():
         "0 2 * * 1-5",
         # At 15 minutes past the hour, between 01:00 AM and 05:59 AM,
         # on day 2 of the month
-        "15 1-5 2 * *"
+        "15 1-5 2 * *",
     ]

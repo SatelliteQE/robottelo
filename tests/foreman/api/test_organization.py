@@ -78,8 +78,7 @@ class OrganizationTestCase(APITestCase):
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        self.assertEqual(
-            http_client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
+        self.assertEqual(http_client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
 
     @tier1
     def test_positive_create_with_name_and_description(self):
@@ -94,10 +93,7 @@ class OrganizationTestCase(APITestCase):
         """
         for name in valid_org_data_list():
             with self.subTest(name):
-                org = entities.Organization(
-                    name=name,
-                    description=name,
-                ).create()
+                org = entities.Organization(name=name, description=name).create()
                 self.assertEqual(org.name, name)
                 self.assertEqual(org.description, name)
 
@@ -145,9 +141,7 @@ class OrganizationTestCase(APITestCase):
         :CaseImportance: Critical
         """
         org = entities.Organization().create()
-        orgs = entities.Organization().search(
-            query={u'search': u'name="{0}"'.format(org.name)}
-        )
+        orgs = entities.Organization().search(query={u'search': u'name="{0}"'.format(org.name)})
         self.assertEqual(len(orgs), 1)
         self.assertEqual(orgs[0].id, org.id)
         self.assertEqual(orgs[0].name, org.name)
@@ -171,8 +165,7 @@ class OrganizationTestCase(APITestCase):
         with self.assertRaises(HTTPError) as err:
             org.create()
         self.assertEqual(err.exception.response.status_code, 404)
-        self.assertIn(
-            'Route overriden by Katello', err.exception.response.text)
+        self.assertIn('Route overriden by Katello', err.exception.response.text)
 
     @tier2
     def test_default_org_id_check(self):
@@ -186,8 +179,9 @@ class OrganizationTestCase(APITestCase):
 
         :CaseImportance: Low
         """
-        default_org_id = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        default_org_id = (
+            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        )
         self.assertEqual(default_org_id, 1)
 
 
@@ -299,9 +293,9 @@ class OrganizationUpdateTestCase(APITestCase):
         :CaseLevel: Integration
         """
         # Every Satellite has a built-in smart proxy, so let's find it
-        smart_proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })
+        smart_proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )
         # Check that proxy is found and unpack it from the list
         self.assertGreater(len(smart_proxy), 0)
         smart_proxy = smart_proxy[0]
@@ -343,7 +337,4 @@ class OrganizationUpdateTestCase(APITestCase):
         for attrs in dataset:
             with self.subTest(attrs):
                 with self.assertRaises(HTTPError):
-                    entities.Organization(
-                        id=self.organization.id,
-                        **attrs
-                    ).update(attrs.keys())
+                    entities.Organization(id=self.organization.id, **attrs).update(attrs.keys())

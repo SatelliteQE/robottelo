@@ -28,8 +28,7 @@ from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import is_open
 
-PUPPET_MODULES = [
-    {'author': 'robottelo', 'name': 'ui_test_variables'}]
+PUPPET_MODULES = [{'author': 'robottelo', 'name': 'ui_test_variables'}]
 
 
 @fixture(scope='module')
@@ -39,61 +38,68 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    default_loc_id = entities.Location().search(
-        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    default_loc_id = (
+        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    )
     return entities.Location(id=default_loc_id).read()
 
 
 @fixture(scope='module')
 def content_view(module_org):
-    return publish_puppet_module(
-        PUPPET_MODULES, CUSTOM_PUPPET_REPO, module_org)
+    return publish_puppet_module(PUPPET_MODULES, CUSTOM_PUPPET_REPO, module_org)
 
 
 @fixture(scope='module')
 def puppet_env(content_view, module_org):
     return entities.Environment().search(
-        query={'search': u'content_view="{0}" and organization_id={1}'.format(
-            content_view.name, module_org.id)}
+        query={
+            'search': u'content_view="{0}" and organization_id={1}'.format(
+                content_view.name, module_org.id
+            )
+        }
     )[0]
 
 
 @fixture(scope='module')
 def puppet_class(puppet_env):
-    puppet_class_entity = entities.PuppetClass().search(query={
-        'search': u'name = "{0}" and environment = "{1}"'.format(
-            PUPPET_MODULES[0]['name'], puppet_env.name)})[0]
+    puppet_class_entity = entities.PuppetClass().search(
+        query={
+            'search': u'name = "{0}" and environment = "{1}"'.format(
+                PUPPET_MODULES[0]['name'], puppet_env.name
+            )
+        }
+    )[0]
     # We need to have at least one variable created to unblock WebUI for Smart
     # Variable interface page
-    if len(entities.SmartVariable(
-            puppetclass=puppet_class_entity).search({'puppetclass'})) == 0:
+    if len(entities.SmartVariable(puppetclass=puppet_class_entity).search({'puppetclass'})) == 0:
         entities.SmartVariable(puppetclass=puppet_class_entity).create()
     return puppet_class_entity
 
 
 @fixture(scope='module')
 def puppet_subclasses(puppet_env):
-    return entities.PuppetClass().search(query={
-        'search': u'name ~ "{0}::" and environment = "{1}"'.format(
-            PUPPET_MODULES[0]['name'], puppet_env.name)
-         })
+    return entities.PuppetClass().search(
+        query={
+            'search': u'name ~ "{0}::" and environment = "{1}"'.format(
+                PUPPET_MODULES[0]['name'], puppet_env.name
+            )
+        }
+    )
 
 
 @fixture(scope='module')
-def module_host(
-        module_org, module_loc, content_view, puppet_env, puppet_class):
+def module_host(module_org, module_loc, content_view, puppet_env, puppet_class):
     lce = entities.LifecycleEnvironment().search(
-        query={
-            'search': 'organization_id="{0}" and name="{1}"'.format(
-                module_org.id, ENVIRONMENT)
-        })[0]
+        query={'search': 'organization_id="{0}" and name="{1}"'.format(module_org.id, ENVIRONMENT)}
+    )[0]
     host = entities.Host(
         organization=module_org,
         location=module_loc,
         content_facet_attributes={
             'content_view_id': content_view.id,
             'lifecycle_environment_id': lce.id,
-        }).create()
+        },
+    ).create()
     host.environment = puppet_env
     host.update(['environment'])
     host.add_puppetclass(data={'puppetclass_id': puppet_class.id})
@@ -107,7 +113,8 @@ def domain(module_host):
 
 @tier2
 def test_positive_create_matcher_attribute_priority_override_from_attribute(
-        session, puppet_class, module_host, domain):
+    session, puppet_class, module_host, domain
+):
     """Matcher Value set on Attribute Priority for Host - alternate
     priority. Override from attribute
 
@@ -143,29 +150,32 @@ def test_positive_create_matcher_attribute_priority_override_from_attribute(
     variable_new_value = gen_string('numeric').lstrip('0')
 
     with session:
-        session.smartvariable.create({
-            'variable.key': variable_name,
-            'variable.puppet_class': puppet_class.name,
-            'variable.default_value': gen_string('alpha'),
-            'variable.prioritize_attribute_order.order': '\n'.join(
-                ['domain', 'hostgroup', 'os', 'fqdn'] + fake_order_items),
-            'variable.matchers': [
-                {
-                    'Attribute type': {
-                        'matcher_attribute_type': 'fqdn',
-                        'matcher_attribute_value': module_host.name
+        session.smartvariable.create(
+            {
+                'variable.key': variable_name,
+                'variable.puppet_class': puppet_class.name,
+                'variable.default_value': gen_string('alpha'),
+                'variable.prioritize_attribute_order.order': '\n'.join(
+                    ['domain', 'hostgroup', 'os', 'fqdn'] + fake_order_items
+                ),
+                'variable.matchers': [
+                    {
+                        'Attribute type': {
+                            'matcher_attribute_type': 'fqdn',
+                            'matcher_attribute_value': module_host.name,
+                        },
+                        'Value': override_value,
                     },
-                    'Value': override_value
-                },
-                {
-                    'Attribute type': {
-                        'matcher_attribute_type': 'domain',
-                        'matcher_attribute_value': domain.name
+                    {
+                        'Attribute type': {
+                            'matcher_attribute_type': 'domain',
+                            'matcher_attribute_value': domain.name,
+                        },
+                        'Value': override_value2,
                     },
-                    'Value': override_value2
-                }
-            ]
-        })
+                ],
+            }
+        )
         assert session.smartvariable.search(variable_name)[0]['Variable'] == variable_name
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         output_scp = output['parameters'][variable_name]
@@ -173,12 +183,11 @@ def test_positive_create_matcher_attribute_priority_override_from_attribute(
 
         # update matcher from attribute
         session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            variable_name,
-            dict(value=variable_new_value)
+            module_host.name, variable_name, dict(value=variable_new_value)
         )
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, variable_name)
+            module_host.name, variable_name
+        )
         assert host_smart_variable_value['value'] == variable_new_value
         values = session.smartvariable.read(variable_name)
         assert len(values['variable']['matchers']['table']) == 2
@@ -232,40 +241,44 @@ def test_positive_create_matcher_prioritize_and_delete(session, puppet_class, mo
     override_value = '[80, 90]'
     override_value2 = '[90, 100]'
     with session:
-        session.smartvariable.create({
-            'variable.key': name,
-            'variable.puppet_class': puppet_class.name,
-            'variable.default_value': '[20]',
-            'variable.parameter_type': 'array',
-            'variable.prioritize_attribute_order.merge_overrides': True,
-            'variable.prioritize_attribute_order.merge_default': True,
-            'variable.prioritize_attribute_order.avoid_duplicates': True,
-            'variable.matchers': [
-                {
-                    'Attribute type': {
-                        'matcher_attribute_type': 'fqdn',
-                        'matcher_attribute_value': module_host.name
+        session.smartvariable.create(
+            {
+                'variable.key': name,
+                'variable.puppet_class': puppet_class.name,
+                'variable.default_value': '[20]',
+                'variable.parameter_type': 'array',
+                'variable.prioritize_attribute_order.merge_overrides': True,
+                'variable.prioritize_attribute_order.merge_default': True,
+                'variable.prioritize_attribute_order.avoid_duplicates': True,
+                'variable.matchers': [
+                    {
+                        'Attribute type': {
+                            'matcher_attribute_type': 'fqdn',
+                            'matcher_attribute_value': module_host.name,
+                        },
+                        'Value': override_value,
                     },
-                    'Value': override_value
-                },
-                {
-                    'Attribute type': {
-                        'matcher_attribute_type': 'domain',
-                        'matcher_attribute_value': domain.name
+                    {
+                        'Attribute type': {
+                            'matcher_attribute_type': 'domain',
+                            'matcher_attribute_value': domain.name,
+                        },
+                        'Value': override_value2,
                     },
-                    'Value': override_value2
-                }
-            ]
-        })
+                ],
+            }
+        )
         assert session.smartvariable.search(name)[0]['Variable'] == name
         output = yaml.load(session.host.read_yaml_output(module_host.name))
         assert output['parameters'][name] == [20, 80, 90, 100]
         host_values = session.host.read(module_host.name, widget_names='parameters')
-        smart_variable = next((
-            item
-            for item in host_values['parameters']['puppet_class_parameters']
-            if item['Name'] == name
-        ))
+        smart_variable = next(
+            (
+                item
+                for item in host_values['parameters']['puppet_class_parameters']
+                if item['Name'] == name
+            )
+        )
         if not is_open('BZ:1745938'):
             assert smart_variable['Puppet Class'] == puppet_class.name
             assert smart_variable['Value']['value'] == [20, 80, 90, 100]
@@ -314,31 +327,32 @@ def test_positive_impact_update_delete_attribute(session, module_host, puppet_en
     hostgroup = entities.HostGroup(name=hostgroup_name, environment=puppet_env).create()
     hostgroup.add_puppetclass(data={'puppetclass_id': puppet_class.id})
     with session:
-        session.smartvariable.create({
-            'variable.key': variable_name,
-            'variable.puppet_class': puppet_class.name,
-            'variable.matchers': [
-                {
-                    'Attribute type': {
-                        'matcher_attribute_type': 'hostgroup',
-                        'matcher_attribute_value': hostgroup_name
-                    },
-                    'Value': gen_string('alpha')
-                },
-            ]
-        })
+        session.smartvariable.create(
+            {
+                'variable.key': variable_name,
+                'variable.puppet_class': puppet_class.name,
+                'variable.matchers': [
+                    {
+                        'Attribute type': {
+                            'matcher_attribute_type': 'hostgroup',
+                            'matcher_attribute_value': hostgroup_name,
+                        },
+                        'Value': gen_string('alpha'),
+                    }
+                ],
+            }
+        )
         values = session.smartvariable.search(variable_name)
         assert values[0]['Variable'] == variable_name
         assert values[0]['Number of Overrides'] == '1'
 
         # update
         session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            variable_name,
-            dict(value=variable_value, overridden=True)
+            module_host.name, variable_name, dict(value=variable_value, overridden=True)
         )
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, variable_name)
+            module_host.name, variable_name
+        )
         assert host_smart_variable_value['value'] == variable_value
         assert host_smart_variable_value['overridden'] is True
         values = session.smartvariable.search(variable_name)
@@ -392,15 +406,18 @@ def test_positive_hidden_value_in_attribute(session, module_host, puppet_class):
     variable_default_value = gen_string('alpha')
     host_override_value = gen_string('alpha')
     with session:
-        session.smartvariable.create({
-            'variable.key': variable_name,
-            'variable.puppet_class': puppet_class.name,
-            'variable.default_value': variable_default_value,
-            'variable.hidden': True,
-        })
+        session.smartvariable.create(
+            {
+                'variable.key': variable_name,
+                'variable.puppet_class': puppet_class.name,
+                'variable.default_value': variable_default_value,
+                'variable.hidden': True,
+            }
+        )
         assert session.smartvariable.search(variable_name)[0]['Variable'] == variable_name
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, variable_name)
+            module_host.name, variable_name
+        )
         assert host_smart_variable_value['hidden'] is True
         assert host_smart_variable_value['overridden'] is False
         assert host_smart_variable_value['value'] == variable_default_value
@@ -408,10 +425,11 @@ def test_positive_hidden_value_in_attribute(session, module_host, puppet_class):
         session.host.set_puppet_class_parameter_value(
             module_host.name,
             variable_name,
-            dict(value=host_override_value, overridden=True, hidden=False)
+            dict(value=host_override_value, overridden=True, hidden=False),
         )
         host_smart_variable_value = session.host.get_puppet_class_parameter_value(
-            module_host.name, variable_name)
+            module_host.name, variable_name
+        )
         assert host_smart_variable_value['hidden'] is True
         assert host_smart_variable_value['overridden'] is True
         assert host_smart_variable_value['value'] == host_override_value
@@ -422,16 +440,16 @@ def test_positive_hidden_value_in_attribute(session, module_host, puppet_class):
         host_matcher = [
             matcher
             for matcher in values['variable']['matchers']['table']
-            if (matcher['Attribute type']['matcher_attribute_type'] == 'fqdn'
-                and matcher['Attribute type']['matcher_attribute_value'] == module_host.name)
+            if (
+                matcher['Attribute type']['matcher_attribute_type'] == 'fqdn'
+                and matcher['Attribute type']['matcher_attribute_value'] == module_host.name
+            )
         ][0]
         assert host_matcher['Value']['value'] == host_override_value
         assert host_matcher['Value']['hidden'] is True
         # Unhide
         session.host.set_puppet_class_parameter_value(
-            module_host.name,
-            variable_name,
-            dict(overridden=True, hidden=False)
+            module_host.name, variable_name, dict(overridden=True, hidden=False)
         )
         values = session.smartvariable.read(variable_name)
         assert values['variable']['key'] == variable_name

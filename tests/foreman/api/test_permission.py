@@ -39,6 +39,7 @@ from robottelo.test import APITestCase
 
 class PermissionTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
+
     @classmethod
     def setUpClass(cls):
         super(PermissionTestCase, cls).setUpClass()
@@ -59,9 +60,7 @@ class PermissionTestCase(APITestCase):
             cls.permissions[None].remove('destroy_arf_reports')
             cls.permissions[None].remove('view_arf_reports')
             cls.permissions[None].remove('create_arf_reports')
-        result = ssh.command(
-            'rpm -qa | grep rubygem-foreman_remote_execution'
-        )
+        result = ssh.command('rpm -qa | grep rubygem-foreman_remote_execution')
         if result.return_code != 0:
             cls.permissions.pop('JobInvocation')
             cls.permissions.pop('JobTemplate')
@@ -71,8 +70,7 @@ class PermissionTestCase(APITestCase):
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())
         #: e.g. ['view_architectures', 'create_architectures', …]
-        cls.permission_names = list(
-            chain.from_iterable(cls.permissions.values()))
+        cls.permission_names = list(chain.from_iterable(cls.permissions.values()))
 
     @tier1
     def test_positive_search_by_name(self):
@@ -88,11 +86,10 @@ class PermissionTestCase(APITestCase):
         failures = {}
         for permission_name in self.permission_names:
             results = entities.Permission(name=permission_name).search()
-            if (len(results) != 1 or
-                    len(results) == 1 and results[0].name != permission_name):
+            if len(results) != 1 or len(results) == 1 and results[0].name != permission_name:
                 failures[permission_name] = {
                     'length': len(results),
-                    'returned_names': [result.name for result in results]
+                    'returned_names': [result.name for result in results],
                 }
 
         if failures:
@@ -113,8 +110,7 @@ class PermissionTestCase(APITestCase):
         for resource_type in self.permission_resource_types:
             if resource_type is None:
                 continue
-            perm_group = entities.Permission(
-                resource_type=resource_type).search()
+            perm_group = entities.Permission(resource_type=resource_type).search()
             permissions = {perm.name for perm in perm_group}
             expected_permissions = set(self.permissions[resource_type])
             added = tuple(permissions - expected_permissions)
@@ -147,8 +143,7 @@ class PermissionTestCase(APITestCase):
         expected_resource_types = set(self.permission_resource_types)
 
         added_resource_types = tuple(resource_types - expected_resource_types)
-        removed_resource_types = tuple(
-            expected_resource_types - resource_types)
+        removed_resource_types = tuple(expected_resource_types - resource_types)
         added_names = tuple(names - expected_names)
         removed_names = tuple(expected_names - names)
 
@@ -181,24 +176,19 @@ def _permission_name(entity, which_perm):
     :raise: ``LookupError`` if a relevant permission cannot be found, or if
         multiple results are found.
     """
-    pattern = {
-        'create': '^create_',
-        'delete': '^destroy_',
-        'read': '^view_',
-        'update': '^edit_',
-    }[which_perm]
+    pattern = {'create': '^create_', 'delete': '^destroy_', 'read': '^view_', 'update': '^edit_'}[
+        which_perm
+    ]
     perm_names = []
-    permissions = (PERMISSIONS.get(entity.__name__) or
-                   PERMISSIONS.get('Katello::{0}'.format(entity.__name__)))
+    permissions = PERMISSIONS.get(entity.__name__) or PERMISSIONS.get(
+        'Katello::{0}'.format(entity.__name__)
+    )
     for permission in permissions:
         match = re.match(pattern, permission)
         if match is not None:
             perm_names.append(permission)
     if len(perm_names) != 1:
-        raise LookupError(
-            'Could not find the requested permission. Found: {0}'
-            .format(perm_names)
-        )
+        raise LookupError('Could not find the requested permission. Found: {0}'.format(perm_names))
     return perm_names[0]
 
 
@@ -287,18 +277,12 @@ class UserRoleTestCase(APITestCase):
 
         :BZ: 1464137
         """
-        for entity_cls in (
-                entities.Architecture,
-                entities.Domain,
-                entities.ActivationKey):
+        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
             with self.subTest(entity_cls):
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg).create()
-                self.give_user_permission(
-                    _permission_name(entity_cls, 'create')
-                )
-                entity = self.set_taxonomies(
-                    entity_cls(self.cfg), self.org, self.loc)
+                self.give_user_permission(_permission_name(entity_cls, 'create'))
+                entity = self.set_taxonomies(entity_cls(self.cfg), self.org, self.loc)
                 # Entities with both org and loc require
                 # additional permissions to set them.
                 fields = set(['organization', 'location'])
@@ -321,10 +305,7 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (
-                entities.Architecture,
-                entities.Domain,
-                entities.ActivationKey):
+        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
             with self.subTest(entity_cls):
                 entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
                 entity = entity.create()
@@ -347,18 +328,13 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (
-                entities.Architecture,
-                entities.Domain,
-                entities.ActivationKey):
+        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
             with self.subTest(entity_cls):
                 entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
                 entity = entity.create()
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg, id=entity.id).delete()
-                self.give_user_permission(
-                    _permission_name(entity_cls, 'delete')
-                )
+                self.give_user_permission(_permission_name(entity_cls, 'delete'))
                 entity_cls(self.cfg, id=entity.id).delete()
                 with self.assertRaises(HTTPError):
                     entity.read()  # As admin user
@@ -378,24 +354,14 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (
-                entities.Architecture,
-                entities.Domain,
-                entities.ActivationKey
-        ):
+        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
             with self.subTest(entity_cls):
                 entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
                 entity = entity.create()
                 name = entity.get_fields()['name'].gen_value()
                 with self.assertRaises(HTTPError):
-                    entity_cls(self.cfg, id=entity.id, name=name).update(
-                        ['name']
-                    )
-                self.give_user_permission(
-                    _permission_name(entity_cls, 'update')
-                )
+                    entity_cls(self.cfg, id=entity.id, name=name).update(['name'])
+                self.give_user_permission(_permission_name(entity_cls, 'update'))
                 # update() calls read() under the hood, which triggers
                 # permission error
-                entity_cls(self.cfg, id=entity.id, name=name).update_json(
-                    ['name']
-                )
+                entity_cls(self.cfg, id=entity.id, name=name).update_json(['name'])
