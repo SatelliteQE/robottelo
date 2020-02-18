@@ -2569,8 +2569,8 @@ class HostSubscriptionTestCase(CLITestCase):
             activation_key=activation_key, enable_repo=True, auto_attach=True)
         self.assertTrue(self.client.subscribed)
         host = Host.info({'name': self.client.hostname})
-        # Assert sytem purpose values are set in the host as expected
-        self.assertEqual(
+        # Assert system purpose values are set in the host as expected
+        self.assertCountEqual(
             host['subscription-information']['system-purpose']['purpose-addons'],
             "test-addon1, test-addon2")
         self.assertEqual(
@@ -2611,6 +2611,7 @@ class HostSubscriptionTestCase(CLITestCase):
             'host-id': host['id'],
         }, output_format='json')
         self.assertGreater(len(host_subscriptions), 0)
+        self.assertEqual(self.subscription_name, host_subscriptions[0]['name'])
         # Unregister host
         Host.subscription_unregister({'host': self.client.hostname})
         with self.assertRaises(CLIReturnCodeError):
