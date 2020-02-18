@@ -56,9 +56,12 @@ from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
 from robottelo.constants import FAKE_0_INC_UPD_URL
 from robottelo.constants import FAKE_0_PUPPET_REPO
 from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants import FAKE_10_YUM_REPO
+from robottelo.constants import FAKE_11_YUM_REPO
 from robottelo.constants import FAKE_1_PUPPET_REPO
 from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_4_ERRATA_ID
 from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 from robottelo.constants import FEDORA27_OSTREE_REPO
@@ -4068,3 +4071,75 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
         assert package[1]['Name'] == package_name
         assert package[1]['Version'] == '5.21'
         session.settings.update('name = {}'.format(property_name), conserve_param_value)
+
+
+@tier2
+def test_positive_depsolve_with_module_errata(session, module_org):
+    """Allowing users to filter module streams in content views.  This test case does not test
+    against RHEL8 repos because it is known that RHEL8 filtering with depsolving creates
+    inconsistent results.  The custom repo used in this test case has consistent results based
+    on filtering and thus why it's used.
+
+    :id: 59f9ed09-fe32-4e52-9fb9-6fa2d22eeb26
+
+    :setup:
+        1. Create custom repo and sync
+        2. Add custom repos to a CV and turn depsolving = true.
+        3. Create an inclusion filter for module stream.
+        4. Create an exclusion filter for packages for all packages.
+        5. Publish CV
+
+    :expectedresults: Content view result should have 4 packages, 1 errata,
+        and 1 Module Streams associated with the CV
+
+    :CaseImportance: High
+    """
+    cv_name = gen_string('alpha')
+    repo_name_1 = gen_string('alpha')
+    repo_name_2 = gen_string('alpha')
+    include_filter_name = gen_string('alpha')
+    exclude_filter_name = gen_string('alpha')
+    all_packages = '*'
+    ms_name = 'walrus'
+    ms_version = '0.71'
+    rpm_pack = ['shark', 'stork', 'walrus', 'whale']
+    mod_stream = 'walrus'
+    create_sync_custom_repo(module_org.id, repo_name=repo_name_1, repo_url=FAKE_10_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo_name_2, repo_url=FAKE_11_YUM_REPO)
+    content = '4 Packages 1 Errata ( 1 0 0 ) 1 Module Streams'
+    with session:
+        session.contentview.create({'name': cv_name, 'solve_dependencies': True})
+        session.contentview.add_yum_repo(cv_name, repo_name_1)
+        session.contentview.add_yum_repo(cv_name, repo_name_2)
+        session.contentviewfilter.create(
+            cv_name,
+            {
+                'name': include_filter_name,
+                'content_type': FILTER_CONTENT_TYPE['modulemd'],
+                'inclusion_type': FILTER_TYPE['include'],
+            },
+        )
+        session.contentviewfilter.add_module_stream(
+            cv_name, include_filter_name, 'name = {} and stream = {}'.format(ms_name, ms_version)
+        )
+        session.contentviewfilter.create(
+            cv_name,
+            {
+                'name': exclude_filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package'],
+                'inclusion_type': FILTER_TYPE['exclude'],
+            },
+        )
+        session.contentviewfilter.add_package_rule(
+            cv_name, exclude_filter_name, all_packages, '', ('All Versions')
+        )
+        result = session.contentview.publish(cv_name)
+        assert result['Content'] == content
+        result = session.contentview.read_version(cv_name, VERSION)
+        assert len(result['rpm_packages']['table']) == 4
+        assert len(result['module_streams']['table']) == 1
+        assert len(result['errata']['table']) == 1
+        for items in result['rpm_packages']['table']:
+            assert items['Name'] in rpm_pack
+        assert result['module_streams']['table'][0]['Name'] == mod_stream
+        assert result['errata']['table'][0]['Errata ID'] == FAKE_4_ERRATA_ID
