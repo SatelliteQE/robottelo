@@ -400,6 +400,44 @@ def test_positive_remove_package_group(session, vm):
 
 
 @tier3
+def test_actions_katello_host_package_update_timeout(session, vm):
+    """Check that Actions::Katello::Host::Package::Update task will time
+    out if goferd does not respond while attempting to update a package.
+
+    :id: 26f3ea2a-509a-4f3f-b5d7-d34b29ceb2cc
+
+    :BZ: 1651852
+
+    :expectedresults: Update task times out and error message is displayed.
+
+    :CaseLevel: System
+    """
+    # Install fake package with older version
+    vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    # Remove gofer to break communications on package status
+    vm.run('rpm -e --nodeps gofer')
+    # Attempt to update fake package, check for warning
+    with session:
+        result = session.contenthost.execute_package_action(
+            vm.hostname,
+            'Package Update',
+            FAKE_1_CUSTOM_PACKAGE_NAME,
+        )
+        assert result['result'] == 'warning'
+        # Install gofer using CLI
+        vm.run('yum install gofer -y && systemctl restart goferd')
+        # Try again to update fake package, check for success
+        result = session.contenthost.execute_package_action(
+            vm.hostname,
+            'Package Update',
+            FAKE_1_CUSTOM_PACKAGE_NAME,
+        )
+        assert result['result'] == 'success'
+        packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
+        assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+
+
+@tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
     """Search for host's errata by non-admin user with enough permissions
 
