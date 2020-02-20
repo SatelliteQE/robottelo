@@ -441,16 +441,20 @@ def test_positive_gen_entitlements_reports_multiple_formats(session, content_set
             with open(result_json) as json_file:
                 data_json = json.load(json_file)
             assert any(entitlement['Name'] == vm.hostname for entitlement in data_json)
-            for entitlement in data_json:
-                assert any(entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME)
+            assert any(
+                entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+                for entitlement in data_json
+            )
             result_yaml = session.reporttemplate.generate(
                 "Entitlements", values={'output_format': 'YAML'}
             )
             with open(result_yaml) as yaml_file:
                 data_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
             assert any(entitlement['Name'] == vm.hostname for entitlement in data_yaml)
-            for entitlement in data_yaml:
-                assert any(entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME)
+            assert any(
+                entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+                for entitlement in data_yaml
+            )
             result_csv = session.reporttemplate.generate(
                 "Entitlements", values={'output_format': 'CSV'}
             )
