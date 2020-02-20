@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
@@ -38,6 +39,52 @@ from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
 
 
+@pytest.fixture(scope='class')
+def setup_content(request):
+    """"""
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_repo = entities.Repository(
+        product=entities.Product(organization=org).create(),
+    ).create()
+    custom_repo.sync()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    cv = entities.ContentView(
+        organization=org,
+        repository=[rh_repo_id, custom_repo.id],
+    ).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    promote(cvv, lce.id)
+    ak = entities.ActivationKey(
+        content_view=cv,
+        max_hosts=100,
+        organization=org,
+        environment=lce,
+        auto_attach=True
+    ).create()
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
+    ak.add_subscriptions(data={
+        'quantity': 1,
+        'subscription_id': subscription.id,
+    })
+    request.cls.org_setup = org
+    request.cls.ak_setup = ak
+
+
+@pytest.mark.usefixtures("setup_content")
 class ReportTemplateTestCase(APITestCase):
     """Tests for ``katello/api/v2/report_templates``."""
 
@@ -156,7 +203,10 @@ class ReportTemplateTestCase(APITestCase):
         template = '<%= "value=\\"" %><%= input(\'{0}\') %><%= "\\"" %>'.format(input_name)
         entities.Host(name=host_name).create()
         rt = entities.ReportTemplate(name=template_name, template=template).create()
-        entities.TemplateInput(name=input_name, input_type="user", template=rt.id).create()
+        entities.TemplateInput(name=input_name,
+                               input_type="user",
+                               template=rt.id,
+                               ).create()
         ti = entities.TemplateInput(template=rt.id).search()[0].read()
         self.assertEquals(input_name, ti.name)
         res = rt.generate(data={"input_values": {input_name: input_value}})
@@ -200,11 +250,8 @@ class ReportTemplateTestCase(APITestCase):
         self.assertTrue(rt.locked)
         # 3. Clone template, check cloned data
         rt.clone(data={'name': template_clone_name})
-        cloned_rt = (
-            entities.ReportTemplate()
-            .search(query={'search': u'name="{}"'.format(template_clone_name)})[0]
-            .read()
-        )
+        cloned_rt = entities.ReportTemplate().search(
+                  query={'search': u'name="{}"'.format(template_clone_name)})[0].read()
         self.assertEquals(template_clone_name, cloned_rt.name)
         self.assertEquals(template1, cloned_rt.template)
         # 4. Try to delete template
@@ -212,14 +259,8 @@ class ReportTemplateTestCase(APITestCase):
             with self.assertRaises(HTTPError):
                 rt.delete()
             # In BZ1680458, exception is thrown but template is deleted anyway
-            self.assertNotEquals(
-                0,
-                len(
-                    entities.ReportTemplate().search(
-                        query={'search': u'name="{}"'.format(template_name)}
-                    )
-                ),
-            )
+            self.assertNotEquals(0, len(entities.ReportTemplate().search(
+                query={'search': u'name="{}"'.format(template_name)})))
         # 5. Try to edit template
         with self.assertRaises(HTTPError):
             entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
@@ -235,14 +276,8 @@ class ReportTemplateTestCase(APITestCase):
         self.assertEquals(template2, rt.template)
         # 8. Delete template
         rt.delete()
-        self.assertEquals(
-            0,
-            len(
-                entities.ReportTemplate().search(
-                    query={'search': u'name="{}"'.format(template_name)}
-                )
-            ),
-        )
+        self.assertEquals(0, len(entities.ReportTemplate().search(
+            query={'search': u'name="{}"'.format(template_name)})))
 
     @tier2
     @stubbed()
@@ -448,46 +483,12 @@ class ReportTemplateTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        org = entities.Organization().create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        rh_repo_id = enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhst7']['name'],
-            reposet=REPOSET['rhst7'],
-            releasever=None,
-        )
-        rh_repo = entities.Repository(id=rh_repo_id).read()
-        rh_repo.sync()
-        custom_repo = entities.Repository(
-            product=entities.Product(organization=org).create()
-        ).create()
-        custom_repo.sync()
-        lce = entities.LifecycleEnvironment(organization=org).create()
-        cv = entities.ContentView(
-            organization=org, repository=[rh_repo_id, custom_repo.id]
-        ).create()
-        cv.publish()
-        cvv = cv.read().version[0].read()
-        promote(cvv, lce.id)
-        ak = entities.ActivationKey(
-            content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
-        ).create()
-        subscription = entities.Subscription(organization=org).search(
-            query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
-        )[0]
-        ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
-            vm.register_contenthost(org.label, ak.name)
+            vm.register_contenthost(self.org_setup.label, self.ak_setup.name)
             assert vm.subscribed
-            rt = (
-                entities.ReportTemplate()
-                .search(query={'search': u'name="Entitlements"'})[0]
-                .read()
-            )
-            res = rt.generate(data={"organization_id": org.id, "report_format": "json"})
+            rt = entities.ReportTemplate().search(
+                query={'search': u'name="Entitlements"'})[0].read()
+            res = rt.generate(data={"organization_id": self.org_setup.id, "report_format": "json"})
             assert res[0]['Name'] == vm.hostname
             assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
