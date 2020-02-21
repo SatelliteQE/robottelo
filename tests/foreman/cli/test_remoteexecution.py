@@ -157,6 +157,7 @@ class TestRemoteExecution():
         search = Task.list_tasks({"search": 'id={0}'.format(task["id"])})
         assert search[0]["action"] == task["action"]
 
+    @pytest.mark.skip_if_open('BZ:1804685')
     @tier3
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup, fixture_org):
         """Run default job template as effective user on a host by ip
