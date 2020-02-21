@@ -41,7 +41,6 @@ from robottelo.vm import VirtualMachine
 
 @pytest.fixture(scope='class')
 def setup_content(request):
-    """"""
     org = entities.Organization().create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
@@ -84,7 +83,6 @@ def setup_content(request):
     request.cls.ak_setup = ak
 
 
-@pytest.mark.usefixtures("setup_content")
 class ReportTemplateTestCase(APITestCase):
     """Tests for ``katello/api/v2/report_templates``."""
 
@@ -467,6 +465,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier3
+    @pytest.mark.usefixtures("setup_content")
     def test_positive_generate_entitlements_report(self):
         """Generate a report using the Entitlements template.
 

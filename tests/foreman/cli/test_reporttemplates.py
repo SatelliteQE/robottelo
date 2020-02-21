@@ -782,5 +782,9 @@ class ReportTemplateTestCase(CLITestCase):
                 'id': 115,
                 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]
             })
-            assert vm.hostname in data_csv[1]
-            assert self.setup_subs_id[0]['name'] in data_csv[1]
+            for item in data_csv:
+                if vm.hostname == item:
+                    assert vm.hostname in data_csv
+            for item in data_csv:
+                if self.setup_subs_id[0]['name'] == item:
+                    assert self.setup_subs_id[0]['name'] in data_csv
