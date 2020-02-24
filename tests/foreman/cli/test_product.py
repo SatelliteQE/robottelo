@@ -311,11 +311,10 @@ class ProductTestCase(CLITestCase):
         repo_a2 = Repository.info({'id': repo_a2['id']})
         repo_b1 = Repository.info({'id': repo_b1['id']})
         repo_b2 = Repository.info({'id': repo_b2['id']})
-        # Update following assert statements when BZ#1777713 is fixed.
-        assert repo_a1['product']['http-proxy-policy'] == "use_selected_http_proxy"
-        assert repo_a2['product']['http-proxy-policy'] == "use_selected_http_proxy"
-        assert repo_b1['product']['http-proxy-policy'] == "use_selected_http_proxy"
-        assert repo_b2['product']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_a1['http-proxy']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_a2['http-proxy']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_b1['http-proxy']['http-proxy-policy'] == "use_selected_http_proxy"
+        assert repo_b2['http-proxy']['http-proxy-policy'] == "use_selected_http_proxy"
         assert repo_a1['http-proxy']['id'] == http_proxy_b['id']
         assert repo_a2['http-proxy']['id'] == http_proxy_b['id']
         assert repo_b1['http-proxy']['id'] == http_proxy_b['id']
@@ -338,11 +337,10 @@ class ProductTestCase(CLITestCase):
         repo_a2 = Repository.info({'id': repo_a2['id']})
         repo_b1 = Repository.info({'id': repo_b1['id']})
         repo_b2 = Repository.info({'id': repo_b2['id']})
-        # Update following assert statements when BZ#1777713 is fixed.
-        assert repo_a1['product']['http-proxy-policy'] == "none"
-        assert repo_a2['product']['http-proxy-policy'] == "none"
-        assert repo_b1['product']['http-proxy-policy'] == "none"
-        assert repo_b2['product']['http-proxy-policy'] == "none"
+        assert repo_a1['http-proxy']['http-proxy-policy'] == "none"
+        assert repo_a2['http-proxy']['http-proxy-policy'] == "none"
+        assert repo_b1['http-proxy']['http-proxy-policy'] == "none"
+        assert repo_b2['http-proxy']['http-proxy-policy'] == "none"
         # verify that proxy fqdn is not present in log during sync.
         Product.synchronize({
             'id': product_a['id'],
