@@ -460,9 +460,12 @@ def test_positive_gen_entitlements_reports_multiple_formats(session, content_set
             )
             with open(result_csv) as csv_file:
                 data_csv = csv.DictReader(csv_file)
-                res = next(data_csv)
-            assert res['Name'] == vm.hostname
-            assert res['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+                items = list(data_csv)
+            assert any(entitlement['Name'] == vm.hostname for entitlement in items)
+            assert any(
+                entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+                for entitlement in items
+            )
             result_html = session.reporttemplate.generate(
                 "Entitlements", values={'output_format': 'HTML'}
             )
