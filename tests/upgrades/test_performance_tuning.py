@@ -93,13 +93,13 @@ class ScenarioPerformanceTuning(TestCase):
     """The test class contains pre-upgrade and post-upgrade scenarios to test
     Performance Tuning utility
 
-    Test Steps:
+    Test Steps::
 
-    1. Before Satellite upgrade, we will apply the medium tune size.
-    2. Once the size get apply we will wait for post upgrade test case to check
-    whether the size is same or not.
-    3. In post upgrade we will check whether satellite installer was able to change
-    the size or not
+        1. Before Satellite upgrade, we will apply the medium tune size.
+        2. Once the size get apply we will wait for post upgrade test case to check
+            whether the size is same or not.
+        3. In post upgrade we will check whether satellite installer was able to change
+            the size or not
 
     :expectedresults: The performance parameter should not be changed after upgrade.
     """
@@ -165,7 +165,7 @@ class ScenarioPerformanceTuning(TestCase):
             1. Collect the current tuning state from satellite.yaml file.
             2. Compare it with the expected value.
             3. If Expected value get match then this scenario would be passed.
-            1. Run satellite-installer --tuning medium --disable-system-checks.
+            4. Run satellite-installer --tuning medium --disable-system-checks.
 
         :expectedresults: Medium tuning parameter should be applied.
 
@@ -198,16 +198,16 @@ class ScenarioCustomFileCheck(TestCase):
     """The test class contains pre-upgrade and post-upgrade scenarios to test
        Custom-hiera.yaml files default content.
 
-       Test Steps:
+        Test Steps:
 
-       1. Before Satellite upgrade, we will collect the custom-hiera file details.
-       2. And after that we will compare it with the default customer-hiera.yaml
-       file.
-       3. If some changes happens in the custom-hiera.yaml file then we mark the test
-       case fail.
-       4- We will perform the same step1 and step2 after post upgrade too.
+        1. Before Satellite upgrade, we will collect the custom-hiera file details.
+        2. And after that we will compare it with the default customer-hiera.yaml
+            file.
+        3. If some changes happens in the custom-hiera.yaml file then we mark the test
+            case fail.
+        4. We will perform the same step1 and step2 after post upgrade too.
 
-      :expectedresults: Custom-hiera.yaml file should not be changed after upgrade.
+        :expectedresults: Custom-hiera.yaml file should not be changed after upgrade.
     """
 
     @pre_upgrade
@@ -221,7 +221,7 @@ class ScenarioCustomFileCheck(TestCase):
             1. Collect the custom-hiera.yaml file from current setup.
             2. Compare it with default custom-hiera.yaml file.
             3. If the content of both the file have same then sceanrio would be
-            passed.
+                passed.
 
         expectedresults: Content of default custom-hiera file should be same.
 

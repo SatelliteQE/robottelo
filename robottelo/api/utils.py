@@ -745,7 +745,7 @@ def create_discovered_host(name=None, ip_address=None, mac_address=None, options
     :param str ip_address: A valid ip address.
     :param str mac_address: A valid mac address.
     :param dict options: additional facts to add to discovered host
-    :returns: dict of ``entities.DiscoveredHost`` facts.
+    :return: dict of ``entities.DiscoveredHost`` facts.
     """
     if name is None:
         name = gen_string('alpha')

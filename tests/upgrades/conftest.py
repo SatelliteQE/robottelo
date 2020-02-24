@@ -1,19 +1,21 @@
 """
 This module is intended to be used for upgrade tests, that have two run stages,
 
-    First stage: pre_upgrade
+    First stage: pre_upgrade::
+
         The test marked as pre_upgrade will be run the tests can save data, to be restored later in
         post upgrade stage.
 
         pytest -m "pre_upgrade" tests/foreman/upgrade
 
-    Second stage: post_upgrade
+    Second stage: post_upgrade::
+
         The test marked as post upgrade will be run, any saved data in dependent pre_upgrade stage
         can be restored, if a dependent test fail, the post upgrade test will be skipped
 
         pytest -m "post_upgrade" tests/foreman/upgrade
 
-    Example upgrade test module content: file test_upgrade.py
+    Example upgrade test module content: file test_upgrade.py::
 
         import pytest
 
@@ -149,9 +151,9 @@ def get_entity_data(scenario_name):
     """Fetches the dictionary of entities from the disk depending on the
     Scenario name (class name in which test is defined)
 
-    :param str scenario_name : The name of the class for which the data is
+    :param str scenario_name: The name of the class for which the data is
         to fetched
-    :returns dict entity_data : Returns a dictionary of entities
+    :returns dict entity_data: Returns a dictionary of entities
     """
     with open('scenario_entities') as pref:
         entity_data = json.load(pref)
@@ -188,7 +190,7 @@ def _save_test_data(test_node_id, value):
 def save_test_data(request):
     """A fixture to allow saving test data
 
-    Usage:
+    Usage::
 
         @pre_upgrade
         def test_something_pre_upgrade(save_test_data):
@@ -204,7 +206,7 @@ def save_test_data(request):
 def pre_upgrade_data(request):
     """A fixture to allow restoring the saved data in pre_upgrade stage
 
-     Usage:
+     Usage::
 
         @post_upgrade(depend_on=test_something_pre_upgrade)
         def test_something_post_upgrade(pre_upgrade_data):
@@ -229,7 +231,7 @@ def pytest_addoption(parser):
     """This will add an option to the runner to be able to customize the location of the failed
     tests file.
 
-    Usage:
+    Usage::
 
         pytest --pre_upgrade_tests_file file_location
 

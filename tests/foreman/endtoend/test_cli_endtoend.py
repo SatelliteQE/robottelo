@@ -381,7 +381,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         """Creates a Foreman entity and returns it.
 
         :param dict user: A python dictionary representing a User
-        :param obj entity: A valid CLI entity.
+        :param object entity: A valid CLI entity.
         :param dict attrs: A python dictionary with attributes to use when
             creating entity.
         :return: A ``dict`` representing the Foreman entity.

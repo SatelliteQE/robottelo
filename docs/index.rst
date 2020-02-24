@@ -319,13 +319,13 @@ Miscellany
     code_standards
     reviewing_PRs
     features/index
-    api/index
+    autoapi/index
 
 Want to contribute? Before submitting code, read through the :doc:`committing
 guide </committing>` and **Robottelo** :doc:`code standards </code_standards>`.
 Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
-for that too! Finally, the :doc:`API reference </api/index>` covers individual
-functions, classes, methods and modules.
+for that too! Finally, the :doc:`API reference </autoapi/index>` covers
+individual functions, classes, methods and modules.
 
 **Robottelo** is compatible with Python 3.6+.
 

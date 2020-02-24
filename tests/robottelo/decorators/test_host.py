@@ -8,7 +8,7 @@ from robottelo.decorators import host
 
 
 class SkipIfOSIsUnavailableTestCase(unittest2.TestCase):
-    """Tests for :func:`robottelo.decorators.host.skip_if_host_is` when host
+    """Tests for :func:`robottelo.decorators.host.skip_if_os` when host
     version isn't available
     """
 
@@ -64,7 +64,7 @@ class SkipIfOSIsUnavailableTestCase(unittest2.TestCase):
 
 
 class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
-    """Tests for :func:`robottelo.decorators.host.skip_if_host_is` when host
+    """Tests for :func:`robottelo.decorators.host.skip_if_os` when host
     version is available and equals to 'RHEL7.1'
     """
 

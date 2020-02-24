@@ -178,7 +178,7 @@ def get_sftp_session(hostname=None, username=None, password=None, key_filename=N
         it is ``None`` ``hostname`` from configuration's ``server`` section
         will be used.
     :param str username: The username to use when connecting.If it is ``None``
-        `ssh_username`` from configuration's ``server`` section will be used.
+        ``ssh_username`` from configuration's ``server`` section will be used.
     :param str password: The password to use when connecting. If it is
         ``None``  ``ssh_password`` from configuration's ``server`` section
         will be used. Should be applied only in case ``key_filename`` is not
@@ -291,7 +291,7 @@ def upload_files(local_dir, remote_dir, file_search="*.txt", hostname=None, key_
 
     :param local_dir: all files from local path to be uploaded.
     :param remote_dir: a remote path where the uploaded files will be
-           placed.
+        placed.
     :param file_search: filter only files contains the type extension
     :param hostname: target machine hostname. If not provided will be used the
         ``server.hostname`` from the configuration.
@@ -312,6 +312,7 @@ def upload_files(local_dir, remote_dir, file_search="*.txt", hostname=None, key_
 
 def _upload_file(sftp, local_file, remote_file):
     """ Upload a file using existent sftp session
+
     :param sftp: sftp session object
     :param local_file: either a file path or a file-like object to be uploaded.
     :param remote_file: a remote file path where the uploaded file will be

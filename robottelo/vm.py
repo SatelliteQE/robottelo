@@ -382,6 +382,7 @@ class VirtualMachine(object):
         Each ``kwargs`` item will result in one repository file created. Where
         the key is the repository filename and repository name, and the value
         is the repository URL.
+
         For example::
 
             create_custom_repo(custom_repo='http://repourl.domain.com/path')

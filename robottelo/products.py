@@ -15,7 +15,7 @@ Working with generic repos.
 
 Generic repos has no way to guess the custom repo url in case of
 settings.cdn = false , that why the GenericRHRepo without custom url always
-return cdn repo data:
+return cdn repo data::
 
     sat_repo = GenericRHRepository(key=PRODUCT_KEY_SAT_TOOLS)
     print(sat_repo.cdn) >> True
@@ -836,7 +836,7 @@ class RepositoryCollection(object):
 
     @staticmethod
     def setup_activation_key(org_id, content_view_id, lce_id, subscription_names=None):
-        # type: (int, int, int, Optional[List[str]], Optional[str]) -> Dict
+        # type: (int, int, int, Optional[List[str]]) -> Dict
         """Create activation and associate content-view, lifecycle environment and subscriptions"""
         if subscription_names is None:
             subscription_names = []

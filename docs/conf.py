@@ -7,6 +7,18 @@ http://sphinx-doc.org/config.html
 import os
 import sys
 
+
+def skip_data(app, what, name, obj, skip, options):
+    """Skip double generating docs for robottelo.decorators.func_shared.shared"""
+    if what == 'function' and name == 'robottelo.decorators.func_shared.shared':
+        return True
+    return None
+
+
+def setup(app):
+    app.connect("autoapi-skip-member", skip_data)
+
+
 # Add the Robottelo root directory to the system path. This allows references
 # such as :mod:`robottelo` to be processed correctly.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
@@ -24,27 +36,36 @@ release = version
 
 # General configuration -------------------------------------------------------
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode']
+extensions = ['autoapi.extension', 'sphinx.ext.autodoc', 'sphinx.ext.viewcode']
+autoapi_dirs = ['../robottelo']
 source_suffix = '.rst'
 master_doc = 'index'
 exclude_patterns = ['_build', 'pytest/*']
 nitpicky = True
 nitpick_ignore = [
-    ('py:obj', 'bool'),
-    ('py:obj', 'dict'),
-    ('py:obj', 'int'),
-    ('py:obj', 'list'),
-    ('py:obj', 'sequence'),
-    ('py:obj', 'str'),
-    ('py:obj', 'tuple'),
     ('py:class', 'bool'),
+    ('py:class', 'callable'),
     ('py:class', 'dict'),
+    ('py:class', 'Exception'),
     ('py:class', 'int'),
     ('py:class', 'list'),
-    ('py:class', 'sequence'),
+    ('py:class', 'object'),
+    ('py:class', 'set'),
     ('py:class', 'str'),
     ('py:class', 'tuple'),
+    ('py:class', 'json.JSONEncoder'),
+    ('py:class', 'nailgun.entities.ActivationKey'),
+    ('py:class', 'nailgun.entities.Organization'),
+    ('py:class', 'nailgun.entities.Environment'),
+    ('py:class', 'nailgun.entities.Product'),
     ('py:class', 'nailgun.entities.Role'),
+    ('py:class', 'nailgun.entities.Repository'),
+    ('py:class', 'paramiko.SSHClient'),
+    ('py:class', 'unittest2.case.TestCase'),
+    ('py:class', 'unittest2.TestCase'),
+    ('py:mod', 'tests'),
+    ('py:mod', 'tests.foreman'),
+    ('py:mod', 'tests.foreman.cli'),
 ]
 autodoc_default_options = {'members': None, 'undoc-members': None}
 

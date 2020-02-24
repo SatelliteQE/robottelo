@@ -20,7 +20,7 @@ def _csv_reader(output):
     unicode.
 
     :param output: can be any object which supports the iterator protocol and
-    returns a unicode string each time its next() method is called.
+        returns a unicode string each time its next() method is called.
     :return: generator that will yield a list of unicode string values.
 
     """

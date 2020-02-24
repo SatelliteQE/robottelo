@@ -12,6 +12,7 @@ sauceclient==1.0.0
 
 # For generating documentation.
 sphinx
+sphinx-autoapi
 
 # For running UI tests within a docker browser
 docker-py
