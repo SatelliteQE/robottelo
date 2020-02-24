@@ -318,6 +318,19 @@ class UserTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.User(lastname=invalid_name).create()
 
+    @tier1
+    def test_negative_create_with_blank_authorized_by(self):
+        """Create User with blank authorized by
+
+        :id: 1fe2d1e3-728c-4d89-97ae-3890e904f413
+
+        :expectedresults: User is not created. Appropriate error shown.
+
+        :CaseImportance: Critical
+        """
+        with self.assertRaises(HTTPError):
+            entities.User(auth_source='').create()
+
 
 class UserRoleTestCase(APITestCase):
     """Test associations between users and roles."""
