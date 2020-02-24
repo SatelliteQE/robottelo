@@ -27,6 +27,7 @@ def _parse_entry(entry):
 
 def get_system(system_type):
     """Return a dict account for ssh connect.
+
     :param str system_type: The type of the system, should be one of
         ('satellite', 'guest').
     :raises: VirtWhoError: If wrong ``system_type`` specified.
@@ -69,6 +70,7 @@ def get_guest_info():
 
 def runcmd(cmd, system=None, timeout=600, output_format='base'):
     """Return the retcode and stdout.
+
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
@@ -84,6 +86,7 @@ def runcmd(cmd, system=None, timeout=600, output_format='base'):
 
 def register_system(system, activation_key=None, org='Default_Organization', env='Library'):
     """Return True if the system is registered to satellite successfully.
+
     :param dict system: system account used by ssh to connect and register.
     :param str activation_key: the activation key will be used to register.
     :param str org: Which organization will be used to register.
@@ -181,6 +184,7 @@ def get_configure_file(config_id):
 
 def get_configure_option(option, filename):
     """Return the option's value for the specific file.
+
     :param str option: the option name in the configuration file
     :param str filename: the configuration file, it could be:
         /etc/sysconfig/virt-who
@@ -251,6 +255,7 @@ def deploy_validation():
 
 def deploy_configure_by_command(command, debug=False, org='Default_Organization'):
     """Deploy and run virt-who servcie by the hammer command.
+
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.

@@ -1,6 +1,7 @@
+from fauxfactory import gen_string
+
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.datafactory import gen_string
 
 
 def create_fake_host(

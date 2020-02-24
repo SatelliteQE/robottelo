@@ -50,7 +50,7 @@ class Scenario_yum_plugins_count(APITestCase):
         5. Create a content host, register and install katello-agent on it.
         6. Upgrade Satellite/Capsule.
         7. Create Product, custom tools repo, sync them.
-        8  Attached custom subscription to content host.
+        8. Attached custom subscription to content host.
         9. Upgrade Katello-agent and restart goferd.
         10. Verifying the loaded yum plugins count.
 

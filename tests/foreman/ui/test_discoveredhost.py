@@ -97,7 +97,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
     :param int retries: The polling retries.
     :param int iteration_sleep: time to wait after each retry iteration.
     :param bool expect_reachable: Whether we expect the host to be reachable.
-    :return bool
+    :return: bool
     """
     operator = '&&'
     if not expect_reachable:

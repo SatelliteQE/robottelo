@@ -497,7 +497,7 @@ def shared(
     inject=False,
     injected_kw='_injected',
 ):
-    """Generic function sharing, share the results of any decorated function.
+    r"""Generic function sharing, share the results of any decorated function.
     Any parallel pytest xdist worker will wait for this function to finish
 
     :type function_: callable
@@ -523,7 +523,7 @@ def shared(
         storage scope, that way we should have diffrent stored values for
         diffrent kw values.
     :param inject: whether to recall the function with injecting the result as
-        **kwargs
+        \**kwargs
     :param injected_kw: the kw arg to set to True to inform the function that
         the kwargs was injected from a saved storage
     """

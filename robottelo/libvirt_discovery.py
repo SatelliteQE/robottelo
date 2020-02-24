@@ -100,7 +100,7 @@ class LibvirtGuest(object):
         """Creates a virtual machine on the libvirt server using
         virt-install
 
-        :raises robottelo.vm.LibvirtGuestError: Whenever a virtual guest
+        :raises robottelo.libvirt_discovery.LibvirtGuestError: Whenever a virtual guest
             could not be executed.
         """
         if self._created:
