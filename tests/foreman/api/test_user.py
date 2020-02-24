@@ -405,7 +405,7 @@ class SshKeyInUserTestCase(APITestCase):
         cls.data_keys = json.loads(read_data_file('sshkeys.json'))
 
     @tier1
-    def test_positive_create_ssh_key(self):
+    def test_positive_CRD_ssh_key(self):
         """SSH Key can be added to User
 
         :id: d00905f6-3a70-4e2f-a5ae-fcac18274bb7
@@ -414,33 +414,23 @@ class SshKeyInUserTestCase(APITestCase):
 
             1. Create new user with all the details
             2. Add SSH key to the above user
+            3. Info the above ssh key in user
+            4. Delete ssh key in user
 
         :expectedresults: SSH key should be added to user
 
         :CaseImportance: Critical
         """
-        ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(user=self.user, name=ssh_name, key=ssh_key).create()
-        self.assertEqual(ssh_name, user_sshkey.name)
-        self.assertEqual(ssh_key, user_sshkey.key)
-
-    @tier1
-    def test_positive_create_ssh_key_super_admin(self):
-        """SSH Key can be added to Super Admin user
-
-        :id: 397eea22-759c-4cd4-bda1-0e7835566c72
-
-        :expectedresults: SSH Key should be added to Super Admin user
-
-        :CaseImportance: Critical
-        """
-        user = entities.User().search(query={'search': 'login="admin"'})[0]
+        user = entities.User().create()
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
         user_sshkey = entities.SSHKey(user=user, name=ssh_name, key=ssh_key).create()
         self.assertEqual(ssh_name, user_sshkey.name)
         self.assertEqual(ssh_key, user_sshkey.key)
+        user_sshkey.delete()
+        result = entities.SSHKey(user=user).search()
+        self.assertEqual(len(result), 0)
+
 
     @tier1
     def test_negative_create_ssh_key(self):
@@ -548,30 +538,6 @@ class SshKeyInUserTestCase(APITestCase):
         user_sshkeys = entities.SSHKey(user=user).search()
         self.assertEqual(len(user_sshkeys), 4)
 
-    @tier1
-    @upgrade
-    def test_positive_delete_ssh_key(self):
-        """Satellite Admin can delete ssh key from user
-
-        :id: 37da9052-83a7-440d-b24c-9d4458f011e3
-
-        :steps:
-
-            1. Create new user with all the details
-            2. Add SSH Key to above user
-            3. Delete the ssh-key from user
-
-        :expectedresults: SSH key should be deleted from user
-
-        :CaseImportance: Critical
-        """
-        user = entities.User().create()
-        sshkey_name = gen_string('alpha')
-        sshkey = entities.SSHKey(user=user, name=sshkey_name, key=self.gen_ssh_rsakey()).create()
-        sshkey.delete()
-        result = entities.SSHKey(user=user).search()
-        self.assertEqual(len(result), 0)
-
     @tier2
     @upgrade
     def test_positive_ssh_key_in_host_enc(self):
@@ -603,53 +569,6 @@ class SshKeyInUserTestCase(APITestCase):
         )
         host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
         self.assertEqual(sshkey_updated_for_host, host_enc_key[0])
-
-    @tier2
-    def test_positive_list_users_ssh_key(self):
-        """Satellite lists users ssh keys
-
-        :id: 8098e74a-d81e-4410-b744-435901bd70c0
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add SSH key in above user
-            3. List all the ssh keys of above user
-
-        :expectedresults: Satellite should list all the SSH keys of user
-
-        :CaseLevel: Integration
-        """
-        user = entities.User().create()
-        for i in range(2):
-            entities.SSHKey(
-                user=user, name=gen_string('alpha'), key=self.gen_ssh_rsakey()
-            ).create()
-        result = entities.SSHKey(user=user).search()
-        self.assertEqual(len(result), 2)
-
-    @tier1
-    def test_positive_info_users_ssh_key(self):
-        """Satellite returns info of user ssh key
-
-        :id: 27c526b6-1008-47f8-98ac-4b2eb9b3d65e
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add SSH key in above user
-            3. Info the above ssh key in user
-
-        :expectedresults: Satellite should return information of SSH keys of
-            user
-
-        :CaseImportance: Critical
-        """
-        ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(user=self.user, name=ssh_name, key=ssh_key).create()
-        self.assertEqual(ssh_name, user_sshkey.name)
-        self.assertEqual(ssh_key, user_sshkey.key)
 
 
 @run_in_one_thread

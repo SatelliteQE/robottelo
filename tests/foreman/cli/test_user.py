@@ -22,10 +22,12 @@ When testing email validation [1] and [2] should be taken into consideration.
 :Upstream: No
 """
 import datetime
+import json
 import random
-
+import paramiko
 import pytest
 from fauxfactory import gen_string
+from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location
@@ -47,6 +49,7 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
+from robottelo.ssh import get_connection
 from robottelo.test import CLITestCase
 
 
@@ -927,113 +930,80 @@ class UserWithCleanUpTestCase(CLITestCase):
 
 class SshKeyInUserTestCase(CLITestCase):
     """Implements the SSH Key in User Tests
-    :CaseAutomation: notautomated
     """
+    
+    def gen_ssh_rsakey(self):
+        """Generates RSA type ssh key using ssh module
 
-    @stubbed()
+        :return: string type well formatted RSA key
+        """
+        return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
+
+    @classmethod
+    def setUpClass(cls):
+        """Create an user and import different keys from data json file"""
+        super(SshKeyInUserTestCase, cls).setUpClass()
+        cls.user = entities.User().create()
+
+
     @tier1
-    def test_positive_create_ssh_key(self):
-        """SSH Key can be added to new User
+    def test_positive_CRD_ssh_key(self):
+        """SSH Key can be added to a User, listed and deletd
 
         :id: 57304fca-8e0d-454a-be31-34423345c8b2
 
-        :expectedresults: SSH key should be added to new user
+        :expectedresults: SSH key should be added to new user,
+                          listed and deleted
 
         :CaseImportance: Critical
         """
+        ssh_name = gen_string('alpha')
+        ssh_key = self.gen_ssh_rsakey()
+        User.ssh_key_add({
+            'user': self.user.login,
+            'key': ssh_key,
+            'name': ssh_name,
+        })
+        result = User.ssh_key_list({'user-id': self.user.id})
+        self.assertIn(ssh_name, [i['name'] for i in result])
+        result = User.ssh_key_info({
+                                    'user-id': self.user.id,
+                                    'name': ssh_name
+                                    })
+        self.assertEqual(ssh_key, result[0]['public-key'])
+        result = User.ssh_key_delete({
+                                    'user-id': self.user.id,
+                                    'name': ssh_name
+                                    })
+        result = User.ssh_key_list({'user-id': self.user.id})
+        self.assertNotIn(ssh_name, [i['name'] for i in result])
 
-    @stubbed()
+
     @tier1
-    def test_positive_add_ssh_key_from_file(self):
-        """SSH Key can be added to User from ssh pub file
-
-        :id: 8b43dbf3-7ead-4d00-97ce-cec24f29ce44
-
-        :expectedresults: SSH key should be added to user from ssh pub file
-
-        :CaseImportance: Critical
-        """
-
-    @stubbed()
-    @tier1
-    def test_positive_create_ssh_key_super_admin(self):
-        """SSH Key can be added to Super Admin user
+    def test_positive_create_ssh_key_super_admin_from_file(self):
+        """SSH Key can be added to Super Admin user from file
 
         :id: b865d0ae-6317-475c-a6da-600615b71eeb
 
         :expectedresults: SSH Key should be added to Super Admin user
+                          from ssh pub file
 
         :CaseImportance: Critical
         """
-
-    @stubbed()
-    @tier1
-    def test_positive_create_multiple_ssh_key_types(self):
-        """Multiple types of ssh keys can be added to user
-
-        :id: 7afc4ad6-d3f0-4155-9de0-b24c417ca54a
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add multiple types of supported ssh keys, type includes
-                rsa, dsa, ed25519, ecdsa
-
-        :expectedresults: Multiple types of supported ssh keys can be added to
-            user
-        """
-
-    @stubbed()
-    @tier1
-    def test_positive_delete_ssh_key(self):
-        """Satellite Admin can delete ssh key from user
-
-        :id: 75ebdba2-0f6c-4862-8546-22a37fc71062
-
-        :steps:
-
-            1. Create new user with all the details
-            2. Add SSH Key to above user
-            3. Delete the ssh-key from user
-
-        :expectedresults: SSH key should be deleted from admin user
-
-        :CaseImportance: Critical
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_list_users_ssh_key(self):
-        """Satellite lists users ssh keys
-
-        :id: 3fb375ef-c07e-4363-874c-94440858bbc2
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add SSH key in above user
-            3. List all the ssh keys of above user
-
-        :expectedresults: Satellite should list all the SSH keys of user
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier1
-    def test_positive_info_users_ssh_key(self):
-        """Satellite returns info of user ssh key
-
-        :id: 0992fce7-0e79-4b7b-b8b7-d9b2818cc073
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add SSH key in above user
-            3. Info the above ssh key in user
-
-        :expectedresults: Satellite should return information of SSH keys of
-            user
-
-        :CaseImportance: Critical
-        """
+        ssh_name = gen_string('alpha')
+        ssh_key = self.gen_ssh_rsakey()
+        with get_connection() as connection:
+            result = connection.run('''echo '{}' > test_key.pub'''.format(ssh_key))
+        self.assertEqual(result.return_code, 0, 'key file not created')
+        User.ssh_key_add({
+            'user': 'admin',
+            'key-file': 'test_key.pub',
+            'name': ssh_name,
+        })
+        result = User.ssh_key_list({'user': 'admin'})
+        self.assertIn(ssh_name, [i['name'] for i in result])
+        result = User.ssh_key_info({
+                                    'user': 'admin',
+                                    'name': ssh_name
+                                    })
+        self.assertEqual(ssh_key, result[0]['public-key'])
