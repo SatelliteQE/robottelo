@@ -46,11 +46,9 @@ def module_smart_proxy(module_location):
 
 
 @pytest.fixture(scope='module')
-def module_domain(module_org, module_location, module_smart_proxy):
+def module_domain(module_org, module_location):
     return entities.Domain(
-        dns=module_smart_proxy,
-        location=[module_location],
-        organization=[module_org]
+        location=[module_location], organization=[module_org]
     ).create()
 
 
