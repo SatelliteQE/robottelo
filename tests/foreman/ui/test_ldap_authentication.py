@@ -14,8 +14,9 @@
 
 :Upstream: No
 """
-import os
 import json
+import os
+
 import decorator
 import pyotp
 from airgun.session import Session
@@ -24,14 +25,15 @@ from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 from pytest import skip
+
 from robottelo import ssh
 from robottelo.api.utils import create_role_permissions
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import CERT_PATH
-from robottelo.constants import KEY_CLOAK_CLI
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
+from robottelo.constants import KEY_CLOAK_CLI
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.constants import PERMISSIONS
@@ -254,7 +256,6 @@ def update_or_revert_rhsso_settings_in_satellite(action=None):
         'oidc_jwks_url': '{}/auth/realms/{}/protocol/openid-connect/certs'.format(
             settings.rhsso.host_url, settings.rhsso.realm
         )
-
     }
     if action == 'update':
         for setting_name, setting_value in rhhso_settings.items():
