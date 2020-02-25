@@ -40,11 +40,10 @@ class User(Base):
     def remove_role(cls, options=None):
         """Remove a role from user."""
         cls.command_sub = 'remove-role'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def ssh_key_add(cls, options=None):
+    def ssh_keys_add(cls, options=None):
         """
         Usage:
         hammer user ssh-keys add [OPTIONS]
@@ -64,38 +63,34 @@ class User(Base):
 
         """
         cls.command_sub = 'ssh-keys add'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def ssh_key_delete(cls, options=None):
+    def ssh_keys_delete(cls, options=None):
         """
         Usage:
         hammer user ssh-keys delete [OPTIONS]
 
         """
         cls.command_sub = 'ssh-keys delete'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def ssh_key_list(cls, options=None):
+    def ssh_keys_list(cls, options=None):
         """
         Usage:
         hammer user ssh-keys list [OPTIONS]
 
         """
         cls.command_sub = 'ssh-keys list'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def ssh_key_info(cls, options=None):
+    def ssh_keys_info(cls, options=None):
         """
         Usage:
         hammer user ssh-keys info [OPTIONS]
 
         """
         cls.command_sub = 'ssh-keys info'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
