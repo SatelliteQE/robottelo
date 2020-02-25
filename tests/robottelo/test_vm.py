@@ -11,8 +11,6 @@ from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
 
-from unittest.mock import call
-from unittest.mock import patch
 
 class VirtualMachineTestCase(unittest2.TestCase):
     """Tests for :class:`robottelo.vm.VirtualMachine`."""
