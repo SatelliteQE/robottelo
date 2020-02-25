@@ -2542,6 +2542,85 @@ class HostSubscriptionTestCase(CLITestCase):
                 'host-id': host['id'],
             })
 
+    @tier3
+    def test_syspurpose_end_to_end(self):
+        """Create a host with system purpose values set by activation key.
+
+        :id: b88e9b6c-2348-49ce-b5e9-a2b9f0abed3f
+
+        :expectedresults: host is registered and system purpose values are correct.
+
+        :CaseLevel: System
+        """
+        # Create an activation key with test values
+        activation_key = make_activation_key({
+            u'purpose-addons': "test-addon1, test-addon2",
+            u'purpose-role': "test-role",
+            u'purpose-usage': "test-usage",
+            u'service-level': "Self-Support",
+            u'lifecycle-environment-id': self.env['id'],
+            u'organization-id': self.org['id'],
+            u'content-view-id': self.content_view['id'],
+        })
+        # Register a host using the activation key
+        self._register_client(
+            activation_key=activation_key, enable_repo=True, auto_attach=True)
+        self.assertTrue(self.client.subscribed)
+        host = Host.info({'name': self.client.hostname})
+        # Assert system purpose values are set in the host as expected
+        self.assertCountEqual(
+            host['subscription-information']['system-purpose']['purpose-addons'],
+            "test-addon1, test-addon2")
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['purpose-role'],
+            "test-role")
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['purpose-usage'],
+            "test-usage")
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['service-level'],
+            "Self-Support")
+        # Change system purpose values in the host
+        Host.update({
+            u'purpose-addons': "test-addon3",
+            u'purpose-role': "test-role2",
+            u'purpose-usage': "test-usage2",
+            u'service-level': "Self-Support2",
+            u'id': host['id'],
+        })
+        host = Host.info({'id': host['id']})
+        # Assert system purpose values have been updated in the host as expected
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['purpose-addons'],
+            "test-addon3")
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['purpose-role'],
+            "test-role2")
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['purpose-usage'],
+            "test-usage2")
+        self.assertEqual(
+            host['subscription-information']['system-purpose']['service-level'],
+            "Self-Support2")
+        # Assert subscriptions present
+        host_subscriptions = ActivationKey.subscriptions({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'host-id': host['id'],
+        }, output_format='json')
+        self.assertGreater(len(host_subscriptions), 0)
+        self.assertEqual(self.subscription_name, host_subscriptions[0]['name'])
+        # Unregister host
+        Host.subscription_unregister({'host': self.client.hostname})
+        with self.assertRaises(CLIReturnCodeError):
+            # raise error that the host was not registered by
+            # subscription-manager register
+            ActivationKey.subscriptions({
+                'organization-id': self.org['id'],
+                'id': activation_key['id'],
+                'host-id': host['id'],
+            })
+
 
 class HostErrataTestCase(CLITestCase):
     """Tests for errata's host sub command"""
