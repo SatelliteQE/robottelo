@@ -71,7 +71,7 @@ def valid_sync_dates():
 @filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
-    return [u'hourly', u'daily', u'weekly', u'custom cron']
+    return ['hourly', 'daily', 'weekly', 'custom cron']
 
 
 class SyncPlanTestCase(APITestCase):
@@ -666,7 +666,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
-            interval=u'hourly',
+            interval='hourly',
             sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -827,7 +827,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=org,
             enabled=True,
-            interval=u'hourly',
+            interval='hourly',
             sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
         # Associate sync plan with product
@@ -887,7 +887,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         else:
             sync_date = (datetime.utcnow() + timedelta(seconds=delay),)
         sync_plan = entities.SyncPlan(
-            organization=org, enabled=True, interval=u'hourly', sync_date=sync_date
+            organization=org, enabled=True, interval='hourly', sync_date=sync_date
         ).create()
         # Create and Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -935,7 +935,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         )
         # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
-            organization=self.org, enabled=True, interval=u'daily', sync_date=start_date
+            organization=self.org, enabled=True, interval='daily', sync_date=start_date
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
@@ -980,7 +980,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         )
         # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
-            organization=self.org, enabled=True, interval=u'weekly', sync_date=start_date
+            organization=self.org, enabled=True, interval='weekly', sync_date=start_date
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time

@@ -135,8 +135,8 @@ class CapsuleVirtualMachine(VirtualMachine):
 
         # add the capsule reverse record to the satellite hosts file
         ssh.command(
-            u'sed -i \'/{0}/d\' /etc/hosts &&'
-            u' echo "{1} {0}" >> /etc/hosts'.format(self._capsule_hostname, self.ip_addr),
+            'sed -i \'/{0}/d\' /etc/hosts &&'
+            ' echo "{1} {0}" >> /etc/hosts'.format(self._capsule_hostname, self.ip_addr),
             hostname=settings.server.hostname,
         )
         if self.distro[:-1] == DISTRO_RHEL7:
@@ -240,7 +240,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         result = self.run('rpm -q satellite-capsule')
         if result.return_code != 0:
             raise CapsuleVirtualMachineError(
-                u'Failed to install satellite-capsule package\n{}'.format(result.stderr)
+                'Failed to install satellite-capsule package\n{}'.format(result.stderr)
             )
         cert_file_path = '/root/{0}-certs.tar'.format(self.hostname)
         certs_gen = ssh.command(
@@ -250,7 +250,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         )
         if certs_gen.return_code != 0:
             raise CapsuleVirtualMachineError(
-                u'Unable to generate certificate\n{}'.format(certs_gen.stderr)
+                'Unable to generate certificate\n{}'.format(certs_gen.stderr)
             )
         # copy the certificate to capsule vm
         _, temporary_local_cert_file_path = mkstemp(suffix='-certs.tar')
@@ -277,7 +277,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             _, log_path = mkstemp(prefix='capsule_external-', suffix='.log')
             download_file('/var/log/foreman-installer/capsule.log', log_path, self.ip_addr)
             raise CapsuleVirtualMachineError(
-                result.return_code, result.stderr, u'foreman installer failed at capsule host'
+                result.return_code, result.stderr, 'foreman installer failed at capsule host'
             )
 
         # manually start pulp_celerybeat service if BZ1446930 is open
@@ -319,7 +319,7 @@ class CapsuleVirtualMachine(VirtualMachine):
            resume.
         """
         result = ssh.command(
-            u'virsh suspend {0}'.format(self._target_image),
+            'virsh suspend {0}'.format(self._target_image),
             hostname=self.provisioning_server,
             timeout=timeout,
             connection_timeout=connection_timeout,
@@ -347,7 +347,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         Note: This operation is immediate
         """
         result = ssh.command(
-            u'virsh resume {0}'.format(self._target_image),
+            'virsh resume {0}'.format(self._target_image),
             hostname=self.provisioning_server,
             timeout=timeout,
             connection_timeout=connection_timeout,

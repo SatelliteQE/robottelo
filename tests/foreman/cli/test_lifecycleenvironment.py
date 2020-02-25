@@ -57,7 +57,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         # List available lifecycle environments using default Table
         # output
-        cmd = u'lifecycle-environment list --organization-id="%s"'
+        cmd = 'lifecycle-environment list --organization-id="%s"'
         result = LifecycleEnvironment.execute(cmd % self.org['id'], None, None, False)
         self.assertGreater(len(result), 0)
 
@@ -322,7 +322,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         result = LifecycleEnvironment.paths(
             {'organization-id': org['id'], 'permission-type': 'readable'}
         )
-        self.assertIn(u'Library >> {0}'.format(lc_env['name']), u''.join(result))
+        self.assertIn('Library >> {0}'.format(lc_env['name']), ''.join(result))
 
 
 class LifeCycleEnvironmentPaginationTestCase(CLITestCase):

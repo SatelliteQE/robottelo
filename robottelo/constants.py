@@ -565,22 +565,22 @@ DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
 
 LANGUAGES = {
-    u'Català': u'ca',
-    u'Deutsch': u'de',
-    u'English (United States)': u'en',
-    u'English (United Kingdom)': u'en_GB',
-    u'Español': u'es',
-    u'Français': u'fr',
-    u'Galego': u'gl',
-    u'it': u'it',
-    u'日本語': u'ja',
-    u'한국어': u'ko',
-    u'pl': u'pl',
-    u'Português (Brasil)': u'pt_BR',
-    u'Русский': u'ru',
-    u'sv_SE': u'sv_SE',
-    u'简体中文': u'zh_CN',
-    u'zh_TW': u'zh_TW',
+    'Català': 'ca',
+    'Deutsch': 'de',
+    'English (United States)': 'en',
+    'English (United Kingdom)': 'en_GB',
+    'Español': 'es',
+    'Français': 'fr',
+    'Galego': 'gl',
+    'it': 'it',
+    '日本語': 'ja',
+    '한국어': 'ko',
+    'pl': 'pl',
+    'Português (Brasil)': 'pt_BR',
+    'Русский': 'ru',
+    'sv_SE': 'sv_SE',
+    '简体中文': 'zh_CN',
+    'zh_TW': 'zh_TW',
 }
 
 SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Infrastructure Subscription'
@@ -588,11 +588,11 @@ SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
 TIMEZONES = [
-    u'(GMT+00:00) UTC',
-    u'(GMT-10:00) Hawaii',
-    u'(GMT+02:00) Kyiv',
-    u'(GMT+08:00) Hong Kong',
-    u'(GMT-07:00) Arizona',
+    '(GMT+00:00) UTC',
+    '(GMT-10:00) Hawaii',
+    '(GMT+02:00) Kyiv',
+    '(GMT+08:00) Hong Kong',
+    '(GMT-07:00) Arizona',
 ]
 
 FILTER_CONTENT_TYPE = {
@@ -629,66 +629,66 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
     'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
 
-DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
-DOCKER_UPSTREAM_NAME = u'busybox'
-DOCKER_RH_REGISTRY_UPSTREAM_NAME = u'openshift3/ose-metrics-hawkular-openshift-agent'
-CUSTOM_FILE_REPO = u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
-CUSTOM_LOCAL_FOLDER = u'/var/www/html/myrepo/'
-CUSTOM_LOCAL_FILE = u'/var/www/html/myrepo/test.txt'
+DOCKER_REGISTRY_HUB = 'https://registry-1.docker.io'
+DOCKER_UPSTREAM_NAME = 'busybox'
+DOCKER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
+CUSTOM_FILE_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
+CUSTOM_LOCAL_FOLDER = '/var/www/html/myrepo/'
+CUSTOM_LOCAL_FILE = '/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 
 CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
 
-CUSTOM_RPM_REPO = u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
+CUSTOM_RPM_REPO = 'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 
 CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with-sha-512/'
 
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 
-CUSTOM_MODULE_STREAM_REPO_1 = u'https://partha.fedorapeople.org/test-repos/pteradactyl/'
-CUSTOM_MODULE_STREAM_REPO_2 = u'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
-CUSTOM_SWID_TAG_REPO = u'https://partha.fedorapeople.org/test-repos/swid-zoo/'
-CUSTOM_REPODATA_PATH = u'/var/lib/pulp/published/yum/https/repos'
-CERT_PATH = u"/etc/pki/ca-trust/source/anchors/"
-FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
-FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
-FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
-FAKE_3_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo01'
-FAKE_4_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo02'
-FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
-FAKE_7_YUM_REPO = u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
-FAKE_8_YUM_REPO = u'https://abalakht.fedorapeople.org/test_repos/lots_files/'
-FAKE_9_YUM_REPO = u'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
-FAKE_YUM_DRPM_REPO = u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
-FAKE_YUM_SRPM_REPO = u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
+CUSTOM_MODULE_STREAM_REPO_1 = 'https://partha.fedorapeople.org/test-repos/pteradactyl/'
+CUSTOM_MODULE_STREAM_REPO_2 = 'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
+CUSTOM_SWID_TAG_REPO = 'https://partha.fedorapeople.org/test-repos/swid-zoo/'
+CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
+CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
+FAKE_0_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo/'
+FAKE_1_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo3/'
+FAKE_2_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo2/'
+FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
+FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
+FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
+FAKE_6_YUM_REPO = 'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
+FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
+FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
+FAKE_9_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
+FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
+FAKE_YUM_SRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
 FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
-FAKE_YUM_MIXED_REPO = u'https://pondrejk.fedorapeople.org/test_repos/mixed/'
+FAKE_YUM_MIXED_REPO = 'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
-CUSTOM_PUPPET_REPO = u'http://omaciel.fedorapeople.org/bagoftricks'
-FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
-FAKE_1_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet01'
-FAKE_2_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet02'
-FAKE_3_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet03'
-FAKE_4_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet04'
-FAKE_5_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet05'
-FAKE_6_PUPPET_REPO = u'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
-FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
-FAKE_8_PUPPET_REPO = u'https://omaciel.fedorapeople.org/f4cb00ed/'
+CUSTOM_PUPPET_REPO = 'http://omaciel.fedorapeople.org/bagoftricks'
+FAKE_0_PUPPET_REPO = 'http://davidd.fedorapeople.org/repos/random_puppet/'
+FAKE_1_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet01'
+FAKE_2_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet02'
+FAKE_3_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet03'
+FAKE_4_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet04'
+FAKE_5_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet05'
+FAKE_6_PUPPET_REPO = 'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
+FAKE_7_PUPPET_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
+FAKE_8_PUPPET_REPO = 'https://omaciel.fedorapeople.org/f4cb00ed/'
 # Fedora's OSTree repo changed to a single repo at
 #   https://kojipkgs.fedoraproject.org/compose/ostree/repo/
 # With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
 # We will use the archived versions for now, but probably need to revisit this.
-FEDORA26_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
-FEDORA27_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
-REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
+FEDORA26_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
+FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
+REPO_DISCOVERY_URL = 'http://omaciel.fedorapeople.org/'
 FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
 FAKE_0_INC_UPD_NEW_PACKAGE = 'pulp-test-package-0.3.1-1.fc11.x86_64.rpm'
 FAKE_0_INC_UPD_OLD_UPDATEFILE = 'updateinfo.xml'
 FAKE_0_INC_UPD_NEW_UPDATEFILE = 'updateinfo_v2.xml'
-INVALID_URL = u'http://username:password@@example.com/repo'
+INVALID_URL = 'http://username:password@@example.com/repo'
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
 FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
 FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
@@ -761,7 +761,7 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_0_PUPPET_MODULE = 'httpd'
 
-FAKE_PULP_REMOTE_FILEREPO = u'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
+FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
 
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
     'https://repos.fedorapeople.org/pulp/pulp' '/fixtures/rpm-string-version-updateinfo/'
@@ -897,7 +897,7 @@ PERMISSIONS = {
         'edit_scap_contents',
         'view_scap_contents',
     ],
-    'ForemanTasks::Task': [u'edit_foreman_tasks', u'view_foreman_tasks'],
+    'ForemanTasks::Task': ['edit_foreman_tasks', 'view_foreman_tasks'],
     'JobInvocation': ['view_job_invocations', 'create_job_invocations', 'cancel_job_invocations'],
     'JobTemplate': [
         'view_job_templates',
@@ -1629,16 +1629,16 @@ BOOKMARK_ENTITIES = [
     {'name': 'Settings', 'controller': 'settings', 'skip_for_ui': True},
 ]
 
-STRING_TYPES = [u'alpha', u'numeric', u'alphanumeric', u'latin1', u'utf8', u'cjk', u'html']
+STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
 BACKUP_FILES = [
-    u'candlepin.dump',
-    u'config_files.tar.gz',
-    u'config.snar',
-    u'foreman.dump',
-    u'mongo_dump',
-    u'pulp_data.tar',
-    u'pulp.snar',
+    'candlepin.dump',
+    'config_files.tar.gz',
+    'config.snar',
+    'foreman.dump',
+    'mongo_dump',
+    'pulp_data.tar',
+    'pulp.snar',
 ]
 
 REAL_4_ERRATA_DETAILS = [
@@ -1688,27 +1688,27 @@ TOOLS_ERRATA_TABLE_DETAILS = [
 ]
 
 BACKUP_FILES = [
-    u'config_files.tar.gz',
-    u'.config.snar',
-    u'metadata.yml',
-    u'mongo_data.tar.gz',
-    u'.mongo.snar',
-    u'pgsql_data.tar.gz',
-    u'.postgres.snar',
-    u'pulp_data.tar',
-    u'.pulp.snar',
+    'config_files.tar.gz',
+    '.config.snar',
+    'metadata.yml',
+    'mongo_data.tar.gz',
+    '.mongo.snar',
+    'pgsql_data.tar.gz',
+    '.postgres.snar',
+    'pulp_data.tar',
+    '.pulp.snar',
 ]
 
 HOT_BACKUP_FILES = [
-    u'candlepin.dump',
-    u'config_files.tar.gz',
-    u'.config.snar',
-    u'foreman.dump',
-    u'metadata.yml',
-    u'mongo_dump',
-    u'pulp_data.tar',
-    u'.pulp.snar',
-    u'pg_globals.dump',
+    'candlepin.dump',
+    'config_files.tar.gz',
+    '.config.snar',
+    'foreman.dump',
+    'metadata.yml',
+    'mongo_dump',
+    'pulp_data.tar',
+    '.pulp.snar',
+    'pg_globals.dump',
 ]
 
 VMWARE_CONSTANTS = {

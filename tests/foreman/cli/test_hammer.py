@@ -178,9 +178,9 @@ class HammerTestCase(CLITestCase):
         """
         default_org = make_org()
         default_product_name = gen_string('alpha')
-        make_product({u'name': default_product_name, u'organization-id': default_org['id']})
+        make_product({'name': default_product_name, 'organization-id': default_org['id']})
         try:
-            Defaults.add({u'param-name': 'organization_id', u'param-value': default_org['id']})
+            Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
             # Verify --organization-id is not required to pass if defaults are set
             result = ssh.command('hammer product list')
             self.assertEqual(result.return_code, 0)
@@ -193,6 +193,6 @@ class HammerTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             self.assertTrue(default_product_name in "".join(result.stdout))
         finally:
-            Defaults.delete({u'param-name': 'organization_id'})
+            Defaults.delete({'param-name': 'organization_id'})
             result = ssh.command('hammer defaults list')
             self.assertTrue(default_org['id'] not in "".join(result.stdout))

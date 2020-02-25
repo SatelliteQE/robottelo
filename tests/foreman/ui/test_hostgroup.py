@@ -52,7 +52,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     description = gen_string('alpha')
     architecture = entities.Architecture().create()
     os = entities.OperatingSystem(architecture=[architecture]).create()
-    os_name = u'{0} {1}'.format(os.name, os.major)
+    os_name = '{0} {1}'.format(os.name, os.major)
     domain = entities.Domain(organization=[module_org], location=[module_loc]).create()
     with session:
         # Create host group with some data
@@ -162,7 +162,7 @@ def test_create_with_puppet_class(session, module_org, module_loc):
         entities.Environment()
         .search(
             query={
-                'search': u'content_view="{0}" and organization_id={1}'.format(
+                'search': 'content_view="{0}" and organization_id={1}'.format(
                     cv.name, module_org.id
                 )
             }

@@ -1821,7 +1821,7 @@ def test_positive_delete_version_with_ak(session):
     cv.publish()
     cvv = cv.read().version[0].read()
     lc_env = entities.LifecycleEnvironment(organization=org).create()
-    cvv.promote(data={u'environment_id': lc_env.id})
+    cvv.promote(data={'environment_id': lc_env.id})
     ak = entities.ActivationKey(
         name=gen_string('alphanumeric'), environment=lc_env.id, organization=org, content_view=cv
     ).create()
@@ -2971,18 +2971,18 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     cv_name = content_view.name
     # Get the Partition table ID
     ptable = entities.PartitionTable().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)}
+        query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)}
     )[0]
     # Get the arch ID
     arch = (
         entities.Architecture()
-        .search(query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .search(query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
         .read()
     )
     # Get the OS ID
     os = entities.OperatingSystem().search(
         query={
-            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+            'search': 'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
                 RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
             )
         }

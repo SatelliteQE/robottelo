@@ -49,9 +49,9 @@ def _create_repository(product, name=None, upstream_name=None):
     if name is None:
         name = choice(generate_strings_list(15, ['numeric', 'html']))
     if upstream_name is None:
-        upstream_name = u'busybox'
+        upstream_name = 'busybox'
     return entities.Repository(
-        content_type=u'docker',
+        content_type='docker',
         docker_upstream_name=upstream_name,
         name=name,
         product=product,
@@ -108,7 +108,7 @@ class DockerRepositoryTestCase(APITestCase):
                     entities.Product(organization=self.org).create(), upstream_name=upstream_name
                 )
                 self.assertEqual(repo.docker_upstream_name, upstream_name)
-                self.assertEqual(repo.content_type, u'docker')
+                self.assertEqual(repo.content_type, 'docker')
 
     @tier1
     def test_negative_create_with_invalid_upstream_name(self):
@@ -211,7 +211,7 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        new_upstream_name = u'fedora/ssh'
+        new_upstream_name = 'fedora/ssh'
         repo = _create_repository(entities.Product(organization=self.org).create())
         self.assertNotEqual(repo.docker_upstream_name, new_upstream_name)
 
@@ -272,7 +272,7 @@ class DockerRepositoryTestCase(APITestCase):
         products = [entities.Product(organization=self.org).create() for _ in range(randint(2, 5))]
         for product in products:
             repo = _create_repository(product)
-            self.assertEqual(repo.content_type, u'docker')
+            self.assertEqual(repo.content_type, 'docker')
             repos.append(repo)
 
         # Delete a random repository
@@ -347,8 +347,8 @@ class DockerContentViewTestCase(APITestCase):
         )
 
         for repo in repos + content_view.repository:
-            self.assertEqual(repo.content_type, u'docker')
-            self.assertEqual(repo.docker_upstream_name, u'busybox')
+            self.assertEqual(repo.content_type, 'docker')
+            self.assertEqual(repo.docker_upstream_name, 'busybox')
 
     @tier2
     def test_positive_add_synced_docker_repo(self):

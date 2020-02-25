@@ -32,8 +32,8 @@ from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
-TEMPLATE_FILE = u'template_file.txt'
-TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
+TEMPLATE_FILE = 'template_file.txt'
+TEMPLATE_FILE_EMPTY = 'template_file_empty.txt'
 
 
 class JobTemplateTestCase(CLITestCase):
@@ -60,12 +60,12 @@ class JobTemplateTestCase(CLITestCase):
         template_name = gen_string('alpha', 7)
         make_job_template(
             {
-                u'organizations': self.organization['name'],
-                u'name': template_name,
-                u'file': TEMPLATE_FILE,
+                'organizations': self.organization['name'],
+                'name': template_name,
+                'file': TEMPLATE_FILE,
             }
         )
-        self.assertIsNotNone(JobTemplate.info({u'name': template_name}))
+        self.assertIsNotNone(JobTemplate.info({'name': template_name}))
 
     @tier1
     def test_negative_create_job_template_with_invalid_name(self):
@@ -80,14 +80,12 @@ class JobTemplateTestCase(CLITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name):
-                with self.assertRaisesRegex(
-                    CLIFactoryError, u'Could not create the job template:'
-                ):
+                with self.assertRaisesRegex(CLIFactoryError, 'Could not create the job template:'):
                     make_job_template(
                         {
-                            u'organizations': self.organization['name'],
-                            u'name': name,
-                            u'file': TEMPLATE_FILE,
+                            'organizations': self.organization['name'],
+                            'name': name,
+                            'file': TEMPLATE_FILE,
                         }
                     )
 
@@ -104,17 +102,17 @@ class JobTemplateTestCase(CLITestCase):
         template_name = gen_string('alpha', 7)
         make_job_template(
             {
-                u'organizations': self.organization['name'],
-                u'name': template_name,
-                u'file': TEMPLATE_FILE,
+                'organizations': self.organization['name'],
+                'name': template_name,
+                'file': TEMPLATE_FILE,
             }
         )
-        with self.assertRaisesRegex(CLIFactoryError, u'Could not create the job template:'):
+        with self.assertRaisesRegex(CLIFactoryError, 'Could not create the job template:'):
             make_job_template(
                 {
-                    u'organizations': self.organization['name'],
-                    u'name': template_name,
-                    u'file': TEMPLATE_FILE,
+                    'organizations': self.organization['name'],
+                    'name': template_name,
+                    'file': TEMPLATE_FILE,
                 }
             )
 
@@ -129,12 +127,12 @@ class JobTemplateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
-        with self.assertRaisesRegex(CLIFactoryError, u'Could not create the job template:'):
+        with self.assertRaisesRegex(CLIFactoryError, 'Could not create the job template:'):
             make_job_template(
                 {
-                    u'organizations': self.organization['name'],
-                    u'name': template_name,
-                    u'file': TEMPLATE_FILE_EMPTY,
+                    'organizations': self.organization['name'],
+                    'name': template_name,
+                    'file': TEMPLATE_FILE_EMPTY,
                 }
             )
 
@@ -152,14 +150,14 @@ class JobTemplateTestCase(CLITestCase):
         template_name = gen_string('alpha', 7)
         make_job_template(
             {
-                u'organizations': self.organization['name'],
-                u'name': template_name,
-                u'file': TEMPLATE_FILE,
+                'organizations': self.organization['name'],
+                'name': template_name,
+                'file': TEMPLATE_FILE,
             }
         )
-        JobTemplate.delete({u'name': template_name})
+        JobTemplate.delete({'name': template_name})
         with self.assertRaises(CLIReturnCodeError):
-            JobTemplate.info({u'name': template_name})
+            JobTemplate.info({'name': template_name})
 
     @run_in_one_thread
     @tier2
@@ -177,21 +175,21 @@ class JobTemplateTestCase(CLITestCase):
         location = make_location()
         make_job_template(
             {
-                u'organizations': self.organization['name'],
-                u'name': template_name,
-                u'file': TEMPLATE_FILE,
+                'organizations': self.organization['name'],
+                'name': template_name,
+                'file': TEMPLATE_FILE,
             }
         )
         templates = JobTemplate.list({'organization-id': self.organization['id']})
         self.assertGreaterEqual(len(templates), 1)
-        Defaults.add({u'param-name': 'organization_id', u'param-value': self.organization['id']})
-        Defaults.add({u'param-name': 'location_id', u'param-value': location['id']})
+        Defaults.add({'param-name': 'organization_id', 'param-value': self.organization['id']})
+        Defaults.add({'param-name': 'location_id', 'param-value': location['id']})
         try:
             templates = JobTemplate.list()
             self.assertGreaterEqual(len(templates), 1)
         finally:
-            Defaults.delete({u'param-name': 'organization_id'})
-            Defaults.delete({u'param-name': 'location_id'})
+            Defaults.delete({'param-name': 'organization_id'})
+            Defaults.delete({'param-name': 'location_id'})
 
     @tier2
     def test_positive_view_dump(self):
@@ -205,10 +203,10 @@ class JobTemplateTestCase(CLITestCase):
         template_name = gen_string('alpha', 7)
         make_job_template(
             {
-                u'organizations': self.organization['name'],
-                u'name': template_name,
-                u'file': TEMPLATE_FILE,
+                'organizations': self.organization['name'],
+                'name': template_name,
+                'file': TEMPLATE_FILE,
             }
         )
-        dumped_content = JobTemplate.dump({u'name': template_name})
+        dumped_content = JobTemplate.dump({'name': template_name})
         self.assertGreater(len(dumped_content), 0)

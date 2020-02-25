@@ -56,22 +56,22 @@ class VirtWhoConfigTestCase(CLITestCase):
 
     def _make_virtwho_configure(self):
         args = {
-            u'debug': 1,
-            u'interval': '60',
-            u'hypervisor-id': 'hostname',
-            u'hypervisor-type': self.hypervisor_type,
-            u'hypervisor-server': self.hypervisor_server,
-            u'organization-id': 1,
-            u'filtering-mode': 'none',
-            u'satellite-url': self.satellite_url,
+            'debug': 1,
+            'interval': '60',
+            'hypervisor-id': 'hostname',
+            'hypervisor-type': self.hypervisor_type,
+            'hypervisor-server': self.hypervisor_server,
+            'organization-id': 1,
+            'filtering-mode': 'none',
+            'satellite-url': self.satellite_url,
         }
         if self.hypervisor_type == 'libvirt':
-            args[u'hypervisor-username'] = self.hypervisor_username
+            args['hypervisor-username'] = self.hypervisor_username
         elif self.hypervisor_type == 'kubevirt':
-            args[u'kubeconfig'] = self.hypervisor_config_file
+            args['kubeconfig'] = self.hypervisor_config_file
         else:
-            args[u'hypervisor-username'] = self.hypervisor_username
-            args[u'hypervisor-password'] = self.hypervisor_password
+            args['hypervisor-username'] = self.hypervisor_username
+            args['hypervisor-password'] = self.hypervisor_password
         return args
 
     @tier2

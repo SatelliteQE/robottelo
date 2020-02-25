@@ -1390,9 +1390,9 @@ class ErrataTestCase(CLITestCase):
         )
         repository_info = Repository.info(
             {
-                u'name': REPOS['rhva6']['name'],
-                u'organization-id': org['id'],
-                u'product': PRDS['rhel'],
+                'name': REPOS['rhva6']['name'],
+                'organization-id': org['id'],
+                'product': PRDS['rhel'],
             }
         )
         erratum = Erratum.list({'repository-id': repository_info['id']})

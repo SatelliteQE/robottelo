@@ -567,7 +567,7 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
     """
     login = gen_string('alpha')
     password = gen_string('alpha')
-    viewer_role = entities.Role().search(query={'search': u'name="Viewer"'})
+    viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})
     default_loc_id = (
         entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
     )

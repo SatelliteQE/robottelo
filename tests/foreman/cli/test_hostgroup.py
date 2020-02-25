@@ -64,7 +64,7 @@ class HostGroupTestCase(CLITestCase):
             {'author': 'robottelo', 'name': 'generic_2'},
         ]
         cls.cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cls.cv['name'])})[0]
         cls.puppet_classes = [
             Puppet.info({'name': mod['name'], 'puppet-environment': cls.env['name']})
             for mod in puppet_modules

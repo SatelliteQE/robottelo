@@ -26,9 +26,9 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
         Mocking get_host_os_version to define host version to 'Not Available'
         so it emulates an error when trying to fetch it through ssh
         """
-        down_versions = u'6 6.1 6.1.1'.split()
-        up_versions = u'7.1.1 7.2 7.2.1'.split()
-        cls._up_and_down_versions = tuple(u'RHEL' + v for v in chain(down_versions, up_versions))
+        down_versions = '6 6.1 6.1.1'.split()
+        up_versions = '7.1.1 7.2 7.2.1'.split()
+        cls._up_and_down_versions = tuple('RHEL' + v for v in chain(down_versions, up_versions))
         cls._get_host_os_patcher = mock.patch('robottelo.decorators.host.get_host_os_version')
         cls._get_host_mock = cls._get_host_os_patcher.start()
         cls._get_host_mock.return_value = 'Not Available'
@@ -71,7 +71,7 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
 
 class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
     """Tests for :func:`robottelo.decorators.host.skip_if_host_is` when host
-    version is available and equals to u'RHEL7.1'
+    version is available and equals to 'RHEL7.1'
     """
 
     @classmethod
@@ -80,7 +80,7 @@ class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
         RHEL7.1.0
         """
         super(SkipIfOSTestCase, cls).setUpClass()
-        cls._host_version = u'RHEL7.1.0'
+        cls._host_version = 'RHEL7.1.0'
         cls._get_host_mock.return_value = cls._host_version
 
     def test_skipping_with_patch_version(self):
@@ -110,7 +110,7 @@ class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
         omits minor and patch
         """
 
-        @host.skip_if_os(u'RHEL7')
+        @host.skip_if_os('RHEL7')
         def dummy():
             return True
 

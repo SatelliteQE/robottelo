@@ -154,9 +154,9 @@ class OperatingSystemTestCase(CLITestCase):
         ptable = make_partition_table()
         operating_system = make_os(
             {
-                u'architecture-ids': architecture['id'],
-                u'medium-ids': medium['id'],
-                u'partition-table-ids': ptable['id'],
+                'architecture-ids': architecture['id'],
+                'medium-ids': medium['id'],
+                'partition-table-ids': ptable['id'],
             }
         )
 
@@ -371,7 +371,7 @@ class OperatingSystemTestCase(CLITestCase):
         os_list_before_default = OperatingSys.list()
         self.assertTrue(len(os_list_before_default) > 0)
         try:
-            Defaults.add({u'param-name': 'organization', u'param-value': DEFAULT_ORG})
+            Defaults.add({'param-name': 'organization', 'param-value': DEFAULT_ORG})
             result = ssh.command('hammer defaults list')
             self.assertEqual(result.return_code, 0)
             self.assertTrue(DEFAULT_ORG in "".join(result.stdout))
@@ -379,7 +379,7 @@ class OperatingSystemTestCase(CLITestCase):
             self.assertTrue(len(os_list_after_default) > 0)
 
         finally:
-            Defaults.delete({u'param-name': 'organization'})
+            Defaults.delete({'param-name': 'organization'})
             result = ssh.command('hammer defaults list')
             self.assertEqual(result.return_code, 0)
             self.assertTrue(DEFAULT_ORG not in "".join(result.stdout))

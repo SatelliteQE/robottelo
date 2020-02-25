@@ -59,7 +59,7 @@ def content_view(module_org):
 def puppet_env(content_view, module_org):
     return entities.Environment().search(
         query={
-            'search': u'content_view="{0}" and organization_id={1}'.format(
+            'search': 'content_view="{0}" and organization_id={1}'.format(
                 content_view.name, module_org.id
             )
         }
@@ -70,7 +70,7 @@ def puppet_env(content_view, module_org):
 def puppet_class(puppet_env):
     puppet_class_entity = entities.PuppetClass().search(
         query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
+            'search': 'name = "{0}" and environment = "{1}"'.format(
                 PUPPET_MODULES[0]['name'], puppet_env.name
             )
         }
@@ -128,27 +128,21 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
     desc = gen_string('alpha')
     validation_value = gen_string('numeric')
     data_list = [
-        {u'sc_type': 'string', u'value': gen_string('alphanumeric')},
-        {u'sc_type': 'boolean', u'value': choice(['true', 'false'])},
-        {u'sc_type': 'integer', u'value': gen_string('numeric', 5).lstrip('0')},
-        {u'sc_type': 'real', u'value': str(uniform(-1000, 1000))},
+        {'sc_type': 'string', 'value': gen_string('alphanumeric')},
+        {'sc_type': 'boolean', 'value': choice(['true', 'false'])},
+        {'sc_type': 'integer', 'value': gen_string('numeric', 5).lstrip('0')},
+        {'sc_type': 'real', 'value': str(uniform(-1000, 1000))},
         {
-            u'sc_type': 'array',
-            u'value': u'["{0}","{1}","{2}"]'.format(
+            'sc_type': 'array',
+            'value': '["{0}","{1}","{2}"]'.format(
                 gen_string('alpha'), gen_string('numeric').lstrip('0'), gen_string('html')
             ),
         },
+        {'sc_type': 'hash', 'value': '{0}: {1}'.format(gen_string('alpha'), gen_string('alpha'))},
+        {'sc_type': 'yaml', 'value': '{0}: {1}'.format(gen_string('alpha'), gen_string('alpha'))},
         {
-            u'sc_type': 'hash',
-            u'value': '{0}: {1}'.format(gen_string('alpha'), gen_string('alpha')),
-        },
-        {
-            u'sc_type': 'yaml',
-            u'value': '--- {0}=>{1}'.format(gen_string('alpha'), gen_string('alpha')),
-        },
-        {
-            u'sc_type': 'json',
-            u'value': u'{{"{0}":"{1}","{2}":"{3}"}}'.format(
+            'sc_type': 'json',
+            'value': '{{"{0}":"{1}","{2}":"{3}"}}'.format(
                 gen_string('alpha'),
                 gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),

@@ -110,7 +110,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     tools_cv = tools_cv.read()  # Published CV with new version
     # Promote CV
     cvv = entities.ContentViewVersion(id=max([cvv.id for cvv in tools_cv.version])).read()
-    cvv.promote(data={u'environment_id': environment.id, u'force': False})
+    cvv.promote(data={'environment_id': environment.id, 'force': False})
     tools_ak = entities.ActivationKey(
         name=ak_name, content_view=tools_cv, organization=org.id, environment=environment
     ).create()
@@ -128,7 +128,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     tools_ak.add_subscriptions(data={'subscription_id': tools_subscription.id})
     if sat_state == 'pre':
         tools_ak.content_override(
-            data={'content_override': {u'content_label': tools_content, u'value': u'1'}}
+            data={'content_override': {'content_label': tools_content, 'value': '1'}}
         )
     tools_ak.add_subscriptions(data={'subscription_id': rhel_subscription.id})
     return tools_ak
@@ -173,7 +173,7 @@ def update_product_subscription_in_ak(product, yum_repo, ak, org):
         .environment
     )
     cvv = entities.ContentViewVersion(id=max([cvv.id for cvv in cv.version])).read()
-    cvv.promote(data={u'environment_id': environment.id, u'force': False})
+    cvv.promote(data={'environment_id': environment.id, 'force': False})
     subscription = entities.Subscription(organization=org).search(
         query={'search': 'name={}'.format(product.name)}
     )[0]

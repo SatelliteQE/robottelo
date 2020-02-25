@@ -109,9 +109,9 @@ class TestGPGKey(CLITestCase):
         """
         name = gen_string('utf8')
         gpg_key = make_gpg_key(
-            {u'key': VALID_GPG_KEY_FILE_PATH, u'name': name, u'organization-id': self.org['id']}
+            {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': self.org['id']}
         )
-        gpg_key = GPGKey.info({u'name': gpg_key['name'], u'organization-id': self.org['id']})
+        gpg_key = GPGKey.info({'name': gpg_key['name'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], name)
 
     # Positive Create

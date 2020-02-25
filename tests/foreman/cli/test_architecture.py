@@ -58,7 +58,7 @@ class ArchitectureTestCase(CLITestCase):
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError) as raise_ctx:
                     Architecture.create({'name': name})
-                self.assert_error_msg(raise_ctx, u'Could not create the architecture:')
+                self.assert_error_msg(raise_ctx, 'Could not create the architecture:')
 
     @tier1
     def test_positive_update_name(self):
@@ -92,7 +92,7 @@ class ArchitectureTestCase(CLITestCase):
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError) as raise_ctx:
                     Architecture.update({'id': architecture['id'], 'new-name': new_name})
-                self.assert_error_msg(raise_ctx, u'Could not update the architecture:')
+                self.assert_error_msg(raise_ctx, 'Could not update the architecture:')
                 result = Architecture.info({'id': architecture['id']})
                 self.assertEqual(architecture['name'], result['name'])
 

@@ -173,7 +173,7 @@ def get_host_info(hostname=None):
         raise HostInfoError('Not able to cat /etc/redhat-release "{0}"'.format(result.stderr))
     match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout[0])
     if match is None:
-        raise HostInfoError(u'Not able to parse release string "{0}"'.format(result.stdout[0]))
+        raise HostInfoError('Not able to parse release string "{0}"'.format(result.stdout[0]))
     groups = match.groupdict()
     return (
         groups['distro'],
@@ -199,7 +199,7 @@ def get_nailgun_config(user=None):
 def escape_search(term):
     """Wraps a search term in " and escape term's " and \\ characters"""
     strip_term = term.strip()
-    return u'"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
+    return '"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
 
 
 def update_dictionary(default, updates):
@@ -250,11 +250,11 @@ def install_katello_ca(hostname=None):
     :raises: AssertionError: If katello-ca wasn't installed.
 
     """
-    ssh.command(u'rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()), hostname)
+    ssh.command('rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()), hostname)
     # Not checking the return_code here, as rpm could be installed before
     # and installation may fail
     result = ssh.command(
-        u'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
+        'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
     )
     # Checking the return_code here to verify katello-ca rpm is actually
     # present in the system
@@ -407,7 +407,7 @@ def default_url_on_new_port(oldport, newport):
     domain = settings.server.hostname
 
     with ssh.get_connection() as connection:
-        command = (u'ncat -kl -p {0} -c "ncat {1} {2}"').format(newport, domain, oldport)
+        command = ('ncat -kl -p {0} -c "ncat {1} {2}"').format(newport, domain, oldport)
         logger.debug('Creating tunnel: {0}'.format(command))
         transport = connection.get_transport()
         channel = transport.open_session()
@@ -416,7 +416,7 @@ def default_url_on_new_port(oldport, newport):
         # if exit_status appears until command_timeout, throw error
         if channel.exit_status_ready():
             if channel.recv_exit_status() != 0:
-                stderr = u''
+                stderr = ''
                 while channel.recv_stderr_ready():
                     stderr += channel.recv_stderr(1)
                 logger.debug('Tunnel failed: {0}'.format(stderr))
@@ -688,8 +688,7 @@ def host_provisioning_check(ip_addr):
     :return: ssh command return code and stdout
     """
     result = ssh.command(
-        u'for i in {{1..60}}; do ping -c1 {0} && exit 0; sleep 20;'
-        u' done; exit 1'.format(ip_addr)
+        'for i in {{1..60}}; do ping -c1 {0} && exit 0; sleep 20; done; exit 1'.format(ip_addr)
     )
     if result.return_code != 0:
         raise ProvisioningCheckError(

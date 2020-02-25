@@ -327,14 +327,14 @@ class ConfigTemplateTestCase(APITestCase):
         template_origin = template.read_json()
 
         # remove unique keys
-        unique_keys = (u'updated_at', u'created_at', u'id', u'name')
+        unique_keys = ('updated_at', 'created_at', 'id', 'name')
         for key in unique_keys:
             del template_origin[key]
 
         for name in valid_data_list():
             with self.subTest(name):
                 new_template = entities.ConfigTemplate(
-                    id=template.clone(data={u'name': name})['id']
+                    id=template.clone(data={'name': name})['id']
                 ).read_json()
                 for key in unique_keys:
                     del new_template[key]

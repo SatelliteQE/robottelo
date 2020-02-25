@@ -68,7 +68,7 @@ class ReportTemplateTestCase(APITestCase):
         for name in valid_data_list():
             rt = entities.ReportTemplate(name=name, template=template1).create()
         # List
-        res = entities.ReportTemplate().search(query={'search': u'name="{}"'.format(name)})
+        res = entities.ReportTemplate().search(query={'search': 'name="{}"'.format(name)})
         self.assertIn(name, list(map(lambda x: x.name, res)))
         # Read
         rt = entities.ReportTemplate(id=rt.id).read()
@@ -102,7 +102,7 @@ class ReportTemplateTestCase(APITestCase):
         """
         host_name = gen_string('alpha').lower()
         entities.Host(name=host_name).create()
-        rt = entities.ReportTemplate().search(query={'search': u'name="Host statuses"'})[0].read()
+        rt = entities.ReportTemplate().search(query={'search': 'name="Host statuses"'})[0].read()
         res = rt.generate()
         self.assertIn("Service Level", res)
         self.assertIn(host_name, res)
@@ -127,7 +127,7 @@ class ReportTemplateTestCase(APITestCase):
         host2_name = gen_string('alpha').lower()
         entities.Host(name=host1_name).create()
         entities.Host(name=host2_name).create()
-        rt = entities.ReportTemplate().search(query={'search': u'name="Host statuses"'})[0].read()
+        rt = entities.ReportTemplate().search(query={'search': 'name="Host statuses"'})[0].read()
         res = rt.generate(data={"input_values": {"hosts": host2_name}})
         self.assertIn("Service Level", res)
         self.assertNotIn(host1_name, res)
@@ -202,7 +202,7 @@ class ReportTemplateTestCase(APITestCase):
         rt.clone(data={'name': template_clone_name})
         cloned_rt = (
             entities.ReportTemplate()
-            .search(query={'search': u'name="{}"'.format(template_clone_name)})[0]
+            .search(query={'search': 'name="{}"'.format(template_clone_name)})[0]
             .read()
         )
         self.assertEquals(template_clone_name, cloned_rt.name)
@@ -216,7 +216,7 @@ class ReportTemplateTestCase(APITestCase):
                 0,
                 len(
                     entities.ReportTemplate().search(
-                        query={'search': u'name="{}"'.format(template_name)}
+                        query={'search': 'name="{}"'.format(template_name)}
                     )
                 ),
             )
@@ -239,7 +239,7 @@ class ReportTemplateTestCase(APITestCase):
             0,
             len(
                 entities.ReportTemplate().search(
-                    query={'search': u'name="{}"'.format(template_name)}
+                    query={'search': 'name="{}"'.format(template_name)}
                 )
             ),
         )
@@ -484,9 +484,7 @@ class ReportTemplateTestCase(APITestCase):
             vm.register_contenthost(org.label, ak.name)
             assert vm.subscribed
             rt = (
-                entities.ReportTemplate()
-                .search(query={'search': u'name="Entitlements"'})[0]
-                .read()
+                entities.ReportTemplate().search(query={'search': 'name="Entitlements"'})[0].read()
             )
             res = rt.generate(data={"organization_id": org.id, "report_format": "json"})
             assert res[0]['Name'] == vm.hostname

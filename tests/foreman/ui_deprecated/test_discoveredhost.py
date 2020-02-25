@@ -191,7 +191,7 @@
 #                 element = locators['discoveredhosts.fetch_interfaces']
 #                 host_interfaces = self.discoveredhosts.fetch_fact_value(
 #                     hostname, element)
-#                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
+#                 self.assertEqual('eth0,eth1,lo', host_interfaces)
 #     @stubbed()
 #     @tier3
 #     def test_positive_pxe_less_multi_nic_with_dhcp_interactively(self):
@@ -239,7 +239,7 @@
 #                 element = locators['discoveredhosts.fetch_interfaces']
 #                 host_interfaces = self.discoveredhosts.fetch_fact_value(
 #                     hostname, element)
-#                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
+#                 self.assertEqual('eth0,eth1,lo', host_interfaces)
 #     @tier3
 #     def test_custom_facts_discovery(self):
 #         """Check if defined custom facts are displayed under host's facts
@@ -262,7 +262,7 @@
 #                 element = locators['discoveredhosts.fetch_custom_fact']
 #                 custom_fact = self.discoveredhosts.fetch_fact_value(
 #                     hostname, element)
-#                 self.assertEqual(u'somevalue', custom_fact)
+#                 self.assertEqual('somevalue', custom_fact)
 #     @tier3
 #     def test_positive_provision_from_facts(self):
 #         """Provision the selected discovered host from facts page by
@@ -381,7 +381,7 @@
 #                 element = locators['discoveredhosts.fetch_interfaces']
 #                 host_interfaces = self.discoveredhosts.fetch_fact_value(
 #                     hostname, element)
-#                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
+#                 self.assertEqual('eth0,eth1,lo', host_interfaces)
 #     @tier3
 #     def test_positive_refresh_facts_pxe_less(self):
 #         """Refresh the facts of pxe-less discovered host by adding a new NIC.
@@ -407,7 +407,7 @@
 #                 element = locators['discoveredhosts.fetch_interfaces']
 #                 host_interfaces = self.discoveredhosts.fetch_fact_value(
 #                     hostname, element)
-#                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
+#                 self.assertEqual('eth0,eth1,lo', host_interfaces)
 #     @stubbed()
 #     @tier3
 #     def test_positive_auto_provision_host_with_rule(self):
@@ -478,7 +478,7 @@
 #                         self.discoveredhosts.search(host_name))
 #                     # Check that host shouldn't list under all hosts
 #                     self.assertIsNone(self.hosts.search(
-#                         u'{0}.{1}'.format(host_name, self.config_env['domain'])
+#                         '{0}.{1}'.format(host_name, self.config_env['domain'])
 #                     ))
 #                     # Check that host still listed under discovered hosts
 #                     self.assertIsNotNone(
@@ -552,7 +552,7 @@
 #                 hostnames = [host_1_name, host_2_name]
 #                 for hostname in hostnames:
 #                     self.assertIsNotNone(self.hosts.search(
-#                         u'{0}.{1}'.format(
+#                         '{0}.{1}'.format(
 #                             hostname, self.config_env['domain'])))
 #                     # Check that provisioned host is not in the list of
 #                     # discovered hosts anymore
@@ -583,7 +583,7 @@
 #                 element = locators['discoveredhosts.fetch_bios']
 #                 host_bios = self.discoveredhosts.fetch_fact_value(
 #                     hostname, element)
-#                 self.assertEqual(u'Seabios', host_bios)
+#                 self.assertEqual('Seabios', host_bios)
 #     @tier3
 #     def test_negative_add_fact(self):
 #         """Add a new fact column with invalid fact to display on
@@ -597,7 +597,7 @@
 #             'discovered_host' page after successful discovery and shows 'N/A'
 #         """
 #         param_value = 'test'
-#         expected_value = u'N/A'
+#         expected_value = 'N/A'
 #         with Session(self) as session:
 #             session.nav.go_to_select_org(self.org_name)
 #             # To show new fact column 'Interfaces' on Discovered Hosts page
@@ -692,7 +692,7 @@
 #                     org=self.org_name,
 #                     loc=self.loc.name)
 #                 self.assertIsNotNone(self.hosts.search(
-#                     u'{0}.{1}'.format(host_name, self.config_env['domain'])))
+#                     '{0}.{1}'.format(host_name, self.config_env['domain'])))
 #                 # Check that provisioned host is not in the list of discovered
 #                 # hosts anymore
 #                 self.assertIsNone(self.discoveredhosts.search(host_name))

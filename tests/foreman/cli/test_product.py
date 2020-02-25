@@ -72,18 +72,18 @@ class ProductTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         desc = valid_data_list()[0]
-        gpg_key = make_gpg_key({u'organization-id': self.org['id']})
+        gpg_key = make_gpg_key({'organization-id': self.org['id']})
         name = valid_data_list()[0]
         label = valid_labels_list()[0]
-        sync_plan = make_sync_plan({u'organization-id': self.org['id']})
+        sync_plan = make_sync_plan({'organization-id': self.org['id']})
         product = make_product(
             {
-                u'description': desc,
-                u'gpg-key-id': gpg_key['id'],
-                u'label': label,
-                u'name': name,
-                u'organization-id': self.org['id'],
-                u'sync-plan-id': sync_plan['id'],
+                'description': desc,
+                'gpg-key-id': gpg_key['id'],
+                'label': label,
+                'name': name,
+                'organization-id': self.org['id'],
+                'sync-plan-id': sync_plan['id'],
             }
         )
         self.assertEqual(product['name'], name)
@@ -95,19 +95,19 @@ class ProductTestCase(CLITestCase):
 
         # update
         desc = valid_data_list()[0]
-        new_gpg_key = make_gpg_key({u'organization-id': self.org['id']})
-        new_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
+        new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        new_sync_plan = make_sync_plan({'organization-id': self.org['id']})
         new_prod_name = gen_string('alpha', 8)
         Product.update(
             {
-                u'description': desc,
-                u'id': product['id'],
-                u'gpg-key-id': new_gpg_key['id'],
-                u'sync-plan-id': new_sync_plan['id'],
-                u'name': new_prod_name,
+                'description': desc,
+                'id': product['id'],
+                'gpg-key-id': new_gpg_key['id'],
+                'sync-plan-id': new_sync_plan['id'],
+                'name': new_prod_name,
             }
         )
-        product = Product.info({u'id': product['id'], u'organization-id': self.org['id']})
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['name'], new_prod_name)
         self.assertEqual(product['description'], desc)
         self.assertEqual(product['gpg']['gpg-key-id'], new_gpg_key['id'])
@@ -127,14 +127,14 @@ class ProductTestCase(CLITestCase):
         Product.remove_sync_plan({'id': product['id']})
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(len(product['sync-plan-id']), 0)
-        Product.delete({u'id': product['id']})
+        Product.delete({'id': product['id']})
         wait_for_tasks(
             search_query='label = Actions::Katello::Product::Destroy'
             ' and resource_id = {}'.format(product['id']),
             max_tries=10,
         )
         with self.assertRaises(CLIReturnCodeError):
-            Product.info({u'id': product['id'], u'organization-id': self.org['id']})
+            Product.info({'id': product['id'], 'organization-id': self.org['id']})
 
     @tier2
     def test_negative_create_with_name(self):
@@ -149,7 +149,7 @@ class ProductTestCase(CLITestCase):
         for invalid_name in invalid_values_list():
             with self.subTest(invalid_name):
                 with self.assertRaises(CLIFactoryError):
-                    make_product({u'name': invalid_name, u'organization-id': self.org['id']})
+                    make_product({'name': invalid_name, 'organization-id': self.org['id']})
 
     @tier2
     def test_negative_create_with_label(self):
@@ -171,9 +171,9 @@ class ProductTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_product(
                         {
-                            u'label': invalid_label,
-                            u'name': product_name,
-                            u'organization-id': self.org['id'],
+                            'label': invalid_label,
+                            'name': product_name,
+                            'organization-id': self.org['id'],
                         }
                     )
 
@@ -194,15 +194,15 @@ class ProductTestCase(CLITestCase):
         default_org = self.org
         non_default_org = make_org()
         default_product = make_product(
-            {u'name': default_product_name, u'organization-id': default_org['id']}
+            {'name': default_product_name, 'organization-id': default_org['id']}
         )
         non_default_product = make_product(
-            {u'name': non_default_product_name, u'organization-id': non_default_org['id']}
+            {'name': non_default_product_name, 'organization-id': non_default_org['id']}
         )
         for product in (default_product, non_default_product):
             make_repository({'product-id': product['id'], 'url': FAKE_0_YUM_REPO})
 
-        Defaults.add({u'param-name': 'organization_id', u'param-value': default_org['id']})
+        Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
         result = ssh.command('hammer defaults list')
         self.assertTrue(default_org['id'] in "".join(result.stdout))
         try:
@@ -213,13 +213,13 @@ class ProductTestCase(CLITestCase):
             self.assertTrue(default_product_name in "".join(result.stdout))
 
             # verify that defaults setting should not affect other entities
-            product_list = Product.list({u'organization-id': non_default_org['id']})
+            product_list = Product.list({'organization-id': non_default_org['id']})
             self.assertEquals(non_default_product_name, product_list[0]['name'])
-            repository_list = Repository.list({u'organization-id': non_default_org['id']})
+            repository_list = Repository.list({'organization-id': non_default_org['id']})
             self.assertEquals(non_default_product_name, repository_list[0]['product'])
 
         finally:
-            Defaults.delete({u'param-name': 'organization_id'})
+            Defaults.delete({'param-name': 'organization_id'})
             result = ssh.command('hammer defaults list')
             self.assertTrue(default_org['id'] not in "".join(result.stdout))
 
@@ -259,8 +259,8 @@ class ProductTestCase(CLITestCase):
         proxy_fqdn = http_proxy_b['url'].split(":")[1].strip("//")
         repo_fqdn = FAKE_0_YUM_REPO.split("/")[2]
         # Create products and repositories
-        product_a = make_product({u'organization-id': self.org['id']})
-        product_b = make_product({u'organization-id': self.org['id']})
+        product_a = make_product({'organization-id': self.org['id']})
+        product_b = make_product({'organization-id': self.org['id']})
         repo_a1 = make_repository(
             {'product-id': product_a['id'], 'url': FAKE_0_YUM_REPO, 'http-proxy-policy': 'none'}
         )

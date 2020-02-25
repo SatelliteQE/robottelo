@@ -392,7 +392,7 @@
 #         )
 #         cls.os_name = cls.config_env['os']
 #         subnet = entities.Subnet().search(
-#             query={u'search': u'name={0}'.format(cls.config_env['subnet'])}
+#             query={'search': 'name={0}'.format(cls.config_env['subnet'])}
 #         )
 #         if len(subnet) == 1:
 #             subnet = subnet[0].read()
@@ -402,7 +402,7 @@
 #         """Delete the host to free the resources"""
 #         super(RhevComputeResourceHostTestCase, self).tearDown()
 #         hosts = entities.Host().search(
-#             query={u'search': u'organization={0}'.format(self.org_name)})
+#             query={'search': 'organization={0}'.format(self.org_name)})
 #         for host in hosts:
 #             host.delete()
 #     @upgrade

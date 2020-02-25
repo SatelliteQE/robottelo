@@ -11,7 +11,7 @@ setup(
     version='0.1.0',
     description='Robottelo is a test suite which exercises The Foreman.',
     long_description=README,
-    author=u'Satellite QE Team',
+    author='Satellite QE Team',
     url='https://github.com/SatelliteQE/robottelo',
     packages=find_packages(exclude=['tests*']),
     package_data={'': ['LICENSE']},

@@ -157,16 +157,16 @@ def module_host_template(module_org, module_loc):
 @pytest.fixture(scope='module')
 def default_partition_table():
     # Get the Partition table ID
-    return entities.PartitionTable().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)}
-    )[0]
+    return entities.PartitionTable().search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[
+        0
+    ]
 
 
 @pytest.fixture(scope='module')
 def default_architecture():
     # Get the architecture ID
     return entities.Architecture().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)}
+        query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)}
     )[0]
 
 
@@ -180,8 +180,8 @@ def module_environment(module_org, module_loc):
 def module_os(default_architecture, default_partition_table, module_org, module_loc):
     # Get the OS ID
     os = entities.OperatingSystem().search(
-        query={u'search': u'name="RedHat" AND major="7"'}
-    ) or entities.OperatingSystem().search(query={u'search': u'name="RedHat" AND major="6"'})
+        query={'search': 'name="RedHat" AND major="7"'}
+    ) or entities.OperatingSystem().search(query={'search': 'name="RedHat" AND major="6"'})
     os = os[0].read()
     # Get the templates and update with OS, Org, Location
     templates = []
@@ -195,7 +195,7 @@ def module_os(default_architecture, default_partition_table, module_org, module_
     ]:
         template = (
             entities.ConfigTemplate()
-            .search(query={u'search': u'name="{}"'.format(template_name)})[0]
+            .search(query={'search': 'name="{}"'.format(template_name)})[0]
             .read()
         )
         template.operatingsystem.append(os)
@@ -228,7 +228,7 @@ def module_proxy(module_org, module_loc):
     # Search for SmartProxy, and associate organization/location
     proxy = (
         entities.SmartProxy()
-        .search(query={u'search': u'name={0}'.format(settings.server.hostname)})[0]
+        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
         .read()
     )
     proxy.location.append(module_loc)
@@ -242,9 +242,7 @@ def module_libvirt_resource(module_org, module_loc):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
     # Create new compute-resource with 'libvirt' provider.
-    resource_url = u'qemu+ssh://root@{0}/system'.format(
-        settings.compute_resources.libvirt_hostname
-    )
+    resource_url = 'qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname)
     comp_res = [
         res
         for res in entities.LibvirtComputeResource().search()
@@ -261,11 +259,11 @@ def module_libvirt_resource(module_org, module_loc):
             provider=FOREMAN_PROVIDERS['libvirt'],
             url=resource_url,
             set_console_password=False,
-            display_type=u'VNC',
+            display_type='VNC',
             location=[module_loc],
             organization=[module_org],
         ).create()
-    return u'{0} (Libvirt)'.format(computeresource.name)
+    return '{0} (Libvirt)'.format(computeresource.name)
 
 
 @pytest.fixture(scope='module')
@@ -273,7 +271,7 @@ def module_libvirt_domain(module_org, module_loc, module_proxy):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(query={u'search': u'name="{0}"'.format(domain)})
+    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(domain)})
     if len(domain) > 0:
         domain = domain[0].read()
         domain.location.append(module_loc)
@@ -293,7 +291,7 @@ def module_libvirt_subnet(module_org, module_loc, module_libvirt_domain, module_
     # If so, just update its relevant fields otherwise,
     # Create new subnet
     network = settings.vlan_networking.subnet
-    subnet = entities.Subnet().search(query={u'search': u'network={0}'.format(network)})
+    subnet = entities.Subnet().search(query={'search': 'network={0}'.format(network)})
     if len(subnet) > 0:
         subnet = subnet[0].read()
         subnet.domain.append(module_libvirt_domain)
@@ -343,7 +341,7 @@ def module_repository(os_path, module_product):
 
 @pytest.fixture(scope='module')
 def module_libvirt_media(module_org, module_loc, os_path, module_os):
-    media = entities.Media().search(query={u'search': u'path="{0}"'.format(os_path)})
+    media = entities.Media().search(query={'search': 'path="{0}"'.format(os_path)})
     if len(media) > 0:
         # Media with this path already exist, make sure it is correct
         media = media[0].read()
@@ -467,7 +465,7 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
         # check host presence on the dashboard
         dashboard_values = session.dashboard.read('NewHosts')['hosts']
         displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
-        os_name = u'{0} {1}'.format(
+        os_name = '{0} {1}'.format(
             module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
         )
         assert os_name in displayed_host['Operating System']
@@ -491,7 +489,7 @@ def test_positive_read_from_details_page(session, module_host_template):
 
     :CaseLevel: System
     """
-    os_name = u'{0} {1}'.format(
+    os_name = '{0} {1}'.format(
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
     )
     interface_id = gen_string('alpha')
@@ -535,7 +533,7 @@ def test_positive_read_from_edit_page(session, module_host_template):
 
     :CaseLevel: System
     """
-    os_name = u'{0} {1}'.format(
+    os_name = '{0} {1}'.format(
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
     )
     interface_id = gen_string('alpha')
@@ -627,7 +625,7 @@ def test_positive_create_with_puppet_class(session, module_host_template, module
         entities.Environment()
         .search(
             query={
-                'search': u'content_view="{0}" and organization_id={1}'.format(
+                'search': 'content_view="{0}" and organization_id={1}'.format(
                     cv.name, module_org.id
                 )
             }
@@ -786,7 +784,7 @@ def test_positive_create_with_inherited_params(session):
     loc_param = dict(name=gen_string('alphanumeric'), value=gen_string('alphanumeric'))
     host_template = entities.Host(organization=org, location=loc)
     host_template.create_missing()
-    host_name = u'{0}.{1}'.format(host_template.name, host_template.domain.name)
+    host_name = '{0}.{1}'.format(host_template.name, host_template.domain.name)
     with session:
         session.organization.update(org.name, {'parameters.resources': org_param})
         session.location.update(loc.name, {'parameters.resources': loc_param})
@@ -1552,7 +1550,7 @@ def test_positive_provision_end_to_end(
                 'additional_information.comment': 'Libvirt provision using valid data',
             }
         )
-        name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        name = '{0}.{1}'.format(hostname, module_libvirt_domain.name)
         assert session.host.search(name)[0]['Name'] == name
         wait_for(
             lambda: session.host.get_details(name)['properties']['properties_table']['Build']
@@ -1616,7 +1614,7 @@ def test_positive_delete_libvirt(
                 'additional_information.comment': 'Delete host that provisioned on Libvirt',
             }
         )
-        name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        name = '{0}.{1}'.format(hostname, module_libvirt_domain.name)
         assert session.host.search(name)[0]['Name'] == name
         message = session.host.delete(name)
         assert (
@@ -1773,7 +1771,7 @@ def test_positive_gce_provision_end_to_end(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    hostname = u'{0}.{1}'.format(name, gce_domain.name)
+    hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
     with Session('gce_tests') as session:
@@ -1854,7 +1852,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    hostname = u'{0}.{1}'.format(name, gce_domain.name)
+    hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', random.choice([8, 15]))
     with Session('gce_tests') as session:

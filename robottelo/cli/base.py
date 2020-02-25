@@ -39,7 +39,7 @@ class CLIBaseError(Exception):
     def __repr__(self):
         """Include class name return_code, stderr and msg to improve logging
         """
-        return u'{}(return_code={!r}, stderr={!r}, msg={!r}'.format(
+        return '{}(return_code={!r}, stderr={!r}, msg={!r}'.format(
             type(self).__name__, self.return_code, self.stderr, self.msg
         )
 
@@ -144,7 +144,7 @@ class Base(object):
         """
         if response.return_code != 0:
             full_msg = (
-                u'Command "{0} {1}" finished with return_code {2}\n'
+                'Command "{0} {1}" finished with return_code {2}\n'
                 'stderr contains following message:\n{3}'.format(
                     cls.command_base, cls.command_sub, response.return_code, response.stderr
                 )
@@ -154,7 +154,7 @@ class Base(object):
                 raise CLIDataBaseError(*error_data)
             raise CLIReturnCodeError(*error_data)
         if len(response.stderr) != 0 and not ignore_stderr:
-            cls.logger.warning(u'stderr contains following message:\n{0}'.format(response.stderr))
+            cls.logger.warning('stderr contains following message:\n{0}'.format(response.stderr))
         return response.stdout
 
     @classmethod
@@ -188,12 +188,12 @@ class Base(object):
 
             # Fetch new object
             # Some Katello obj require the organization-id for subcommands
-            info_options = {u'id': obj_id}
+            info_options = {'id': obj_id}
             if cls.command_requires_org:
                 if 'organization-id' not in options:
                     tmpl = 'organization-id option is required for {0}.create'
                     raise CLIError(tmpl.format(cls.__name__))
-                info_options[u'organization-id'] = options[u'organization-id']
+                info_options['organization-id'] = options['organization-id']
 
             new_obj = cls.info(info_options)
             # stdout should be a dictionary containing the object
@@ -277,12 +277,12 @@ class Base(object):
             time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        cmd = u'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
+        cmd = 'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
             settings.locale,
-            u'time -p' if time_hammer else '',
-            u'-u {0}'.format(user) if user is not None else u'--interactive no',
-            u'-p {0}'.format(password) if password is not None else '',
-            u'--output={0}'.format(output_format) if output_format else u'',
+            'time -p' if time_hammer else '',
+            '-u {0}'.format(user) if user is not None else '--interactive no',
+            '-p {0}'.format(password) if password is not None else '',
+            '--output={0}'.format(output_format) if output_format else '',
             command,
         )
         response = ssh.command(
@@ -311,8 +311,8 @@ class Base(object):
         if options is None:
             options = {}
 
-        if search is not None and u'search' not in options:
-            options.update({u'search': u'{0}=\\"{1}\\"'.format(search[0], search[1])})
+        if search is not None and 'search' not in options:
+            options.update({'search': '{0}=\\"{1}\\"'.format(search[0], search[1])})
 
         result = cls.list(options)
         if result:
@@ -353,7 +353,7 @@ class Base(object):
             options = {}
 
         if 'per-page' not in options and per_page:
-            options[u'per-page'] = 10000
+            options['per-page'] = 10000
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise CLIError('organization-id option is required for {0}.list'.format(cls.__name__))
@@ -444,7 +444,7 @@ class Base(object):
     @classmethod
     def _construct_command(cls, options=None):
         """Build a hammer cli command based on the options passed"""
-        tail = u''
+        tail = ''
 
         if options is None:
             options = {}
@@ -453,11 +453,11 @@ class Base(object):
             if val is None:
                 continue
             if val is True:
-                tail += u' --{0}'.format(key)
+                tail += ' --{0}'.format(key)
             elif val is not False:
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
-                tail += u' --{0}="{1}"'.format(key, val)
-        cmd = u'{0} {1} {2}'.format(cls.command_base, cls.command_sub, tail.strip())
+                tail += ' --{0}="{1}"'.format(key, val)
+        cmd = '{0} {1} {2}'.format(cls.command_base, cls.command_sub, tail.strip())
 
         return cmd

@@ -49,25 +49,25 @@ class OstreeBranchTestCase(CLITestCase):
         credentials = cls.get_user_credentials()
         cls.org = make_org_with_credentials(credentials=credentials)
         cls.product = make_product_with_credentials(
-            {u'organization-id': cls.org['id']}, credentials
+            {'organization-id': cls.org['id']}, credentials
         )
         # Create new custom ostree repo
         cls.ostree_repo = make_repository_with_credentials(
             {
-                u'product-id': cls.product['id'],
-                u'content-type': u'ostree',
-                u'publish-via-http': u'false',
-                u'url': FEDORA27_OSTREE_REPO,
+                'product-id': cls.product['id'],
+                'content-type': 'ostree',
+                'publish-via-http': 'false',
+                'url': FEDORA27_OSTREE_REPO,
             },
             credentials,
         )
         Repository.with_user(*credentials).synchronize({'id': cls.ostree_repo['id']})
         cls.cv = make_content_view(
-            {u'organization-id': cls.org['id'], u'repository-ids': [cls.ostree_repo['id']]},
+            {'organization-id': cls.org['id'], 'repository-ids': [cls.ostree_repo['id']]},
             credentials,
         )
-        ContentView.with_user(*credentials).publish({u'id': cls.cv['id']})
-        cls.cv = ContentView.with_user(*credentials).info({u'id': cls.cv['id']})
+        ContentView.with_user(*credentials).publish({'id': cls.cv['id']})
+        cls.cv = ContentView.with_user(*credentials).info({'id': cls.cv['id']})
 
     @classmethod
     def get_user_credentials(cls):

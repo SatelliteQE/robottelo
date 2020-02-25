@@ -37,7 +37,7 @@ class PuppetClassTestCase(CLITestCase):
         cls.puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
         cls.org = make_org()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': u'content_view="{0}"'.format(cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
         cls.puppet = Puppet.info(
             {'name': cls.puppet_modules[0]['name'], 'environment': cls.env['name']}
         )
@@ -51,7 +51,7 @@ class PuppetClassTestCase(CLITestCase):
 
         :expectedresults: Smart class parameters listed for the class.
         """
-        class_sc_parameters = Puppet.sc_params({u'puppet-class': self.puppet['name']})
+        class_sc_parameters = Puppet.sc_params({'puppet-class': self.puppet['name']})
         self.assertGreater(len(class_sc_parameters), 0)
 
     @tier2
@@ -64,5 +64,5 @@ class PuppetClassTestCase(CLITestCase):
         :expectedresults: Smart variables listed for the class.
         """
         make_smart_variable({'puppet-class': self.puppet['name']})
-        class_smart_variables = Puppet.smart_variables({u'puppet-class': self.puppet['name']})
+        class_smart_variables = Puppet.smart_variables({'puppet-class': self.puppet['name']})
         self.assertGreater(len(class_smart_variables), 0)

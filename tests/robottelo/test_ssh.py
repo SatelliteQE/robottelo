@@ -242,7 +242,7 @@ class SSHTestCase(TestCase):
 
         with ssh.get_connection() as connection:
             ret = ssh.execute_command('ls -la', connection)
-            self.assertEqual(ret.stdout, [u'ls -la'])
+            self.assertEqual(ret.stdout, ['ls -la'])
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
@@ -257,7 +257,7 @@ class SSHTestCase(TestCase):
 
         with ssh.get_connection() as connection:
             ret = ssh.execute_command('ls -la', connection, output_format='base')
-            self.assertEqual(ret.stdout, u'ls -la')
+            self.assertEqual(ret.stdout, 'ls -la')
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
@@ -271,7 +271,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('ls -la')
-        self.assertEqual(ret.stdout, [u'ls -la'])
+        self.assertEqual(ret.stdout, ['ls -la'])
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
@@ -285,7 +285,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('ls -la', output_format='base')
-        self.assertEqual(ret.stdout, u'ls -la')
+        self.assertEqual(ret.stdout, 'ls -la')
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
@@ -299,7 +299,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('a,b,c\n1,2,3', output_format='csv')
-        self.assertEqual(ret.stdout, [{u'a': u'1', u'b': u'2', u'c': u'3'}])
+        self.assertEqual(ret.stdout, [{'a': '1', 'b': '2', 'c': '3'}])
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
@@ -313,7 +313,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('{"a": 1, "b": true}', output_format='json')
-        self.assertEqual(ret.stdout, {u'a': u'1', u'b': True})
+        self.assertEqual(ret.stdout, {'a': '1', 'b': True})
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     def test_call_paramiko_client(self):

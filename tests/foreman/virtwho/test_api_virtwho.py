@@ -47,22 +47,22 @@ class VirtWhoConfigApiTestCase(APITestCase):
 
     def _make_virtwho_configure(self):
         args = {
-            u'debug': 1,
-            u'interval': '60',
-            u'hypervisor_id': 'hostname',
-            u'hypervisor_type': self.hypervisor_type,
-            u'hypervisor_server': self.hypervisor_server,
-            u'organization_id': self.org.id,
-            u'filtering_mode': 'none',
-            u'satellite_url': self.satellite_url,
+            'debug': 1,
+            'interval': '60',
+            'hypervisor_id': 'hostname',
+            'hypervisor_type': self.hypervisor_type,
+            'hypervisor_server': self.hypervisor_server,
+            'organization_id': self.org.id,
+            'filtering_mode': 'none',
+            'satellite_url': self.satellite_url,
         }
         if self.hypervisor_type == 'libvirt':
-            args[u'hypervisor_username'] = self.hypervisor_username
+            args['hypervisor_username'] = self.hypervisor_username
         elif self.hypervisor_type == 'kubevirt':
-            args[u'kubeconfig'] = self.hypervisor_config_file
+            args['kubeconfig'] = self.hypervisor_config_file
         else:
-            args[u'hypervisor_username'] = self.hypervisor_username
-            args[u'hypervisor_password'] = self.hypervisor_password
+            args['hypervisor_username'] = self.hypervisor_username
+            args['hypervisor_password'] = self.hypervisor_password
         return args
 
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):

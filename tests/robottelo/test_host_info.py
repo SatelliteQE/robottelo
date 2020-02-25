@@ -44,29 +44,27 @@ class GetHostOsVersionTestCase(TestCase):
         2 is minor
         3 is patch
         """
-        self.assert_rhel_version(u'Red Hat Enterprise Linux Server release 6 (Maipo)', u'RHEL6')
+        self.assert_rhel_version('Red Hat Enterprise Linux Server release 6 (Maipo)', 'RHEL6')
 
     def test_rhel_minor_version_parsing(self):
         """Check if can parse minor versions"""
-        self.assert_rhel_version(
-            u'Red Hat Enterprise Linux Server release 7.2 (Maipo)', u'RHEL7.2'
-        )
+        self.assert_rhel_version('Red Hat Enterprise Linux Server release 7.2 (Maipo)', 'RHEL7.2')
 
     def test_rhel_patch_version_parsing(self):
         """Check if can parse patch versions"""
         self.assert_rhel_version(
-            u'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)', u'RHEL7.2.1'
+            'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)', 'RHEL7.2.1'
         )
 
     def test_cache(self):
         """Check get_host_os_version() calls are cached"""
         self._command.return_value.stdout = [
-            u'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)'
+            'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)'
         ]
-        self.assertEqual(u'RHEL7.2.1', host_info.get_host_os_version())
+        self.assertEqual('RHEL7.2.1', host_info.get_host_os_version())
         self._command.assert_called_once_with('cat /etc/redhat-release')
-        self._command.return_value.stdout = [u'Doesnt matter because because its cached']
-        self.assertEqual(u'RHEL7.2.1', host_info.get_host_os_version())
+        self._command.return_value.stdout = ['Doesnt matter because because its cached']
+        self.assertEqual('RHEL7.2.1', host_info.get_host_os_version())
         # if called more than once cache didn't worked
         self._command.assert_called_once_with('cat /etc/redhat-release')
 
@@ -76,7 +74,7 @@ class GetHostOsVersionTestCase(TestCase):
         """
         cmd = SSHCommandResult(
             stdout=[],
-            stderr=u'bash: generate: command not found\n',
+            stderr='bash: generate: command not found\n',
             return_code=127,
             output_format=None,
         )
@@ -85,19 +83,19 @@ class GetHostOsVersionTestCase(TestCase):
         os_version = host_info.get_host_os_version.__wrapped__()
         self.assertEqual('Not Available', os_version)
         self._command.assert_called_once_with('cat /etc/redhat-release')
-        logger.warning.assert_called_once_with(u'Host version not available: %r' % cmd)
+        logger.warning.assert_called_once_with('Host version not available: %r' % cmd)
 
     @mock.patch('robottelo.host_info.LOGGER')
     def test_command_parsing_error(self, logger):
         """Test return not available on Fedora machines
         It can be changed to handle other OS if needed
         """
-        cmd = SSHCommandResult(stdout=[u'Fedora release 23 (Twenty Three)'], return_code=0)
+        cmd = SSHCommandResult(stdout=['Fedora release 23 (Twenty Three)'], return_code=0)
         self._command.return_value = cmd
         os_version = host_info.get_host_os_version.__wrapped__()
         self.assertEqual('Not Available', os_version)
         self._command.assert_called_once_with('cat /etc/redhat-release')
-        logger.warning.assert_called_once_with(u'Host version not available: %r' % cmd)
+        logger.warning.assert_called_once_with('Host version not available: %r' % cmd)
 
 
 class GetHostSatVersionTestCase(TestCase):
@@ -105,9 +103,7 @@ class GetHostSatVersionTestCase(TestCase):
 
     SSH_RESULT_ERROR = SSHCommandResult(
         stdout=[],
-        stderr=(
-            u'grep: /usr/share/foreman/lib/satellite/version.rb: No such ' u'file or directory'
-        ),
+        stderr=('grep: /usr/share/foreman/lib/satellite/version.rb: No such file or directory'),
         return_code=127,
         output_format=None,
     )
@@ -133,18 +129,18 @@ class GetHostSatVersionTestCase(TestCase):
 
     def test_sat_6_dot_2(self):
         """Check if can parse major 6.2.x versions"""
-        self.assert_sat_version(u'satellite-6.2.0-21.1.el7sat.noarch', u'6.2')
+        self.assert_sat_version('satellite-6.2.0-21.1.el7sat.noarch', '6.2')
 
     def test_sat_6_dot_1(self):
         """Check if can parse major 6.2.x versions"""
         ssh_result_success = mock.Mock()
         ssh_result_success.return_code = 0
-        ssh_result_success.stdout = [u'  VERSION = "6.1.8"']
+        ssh_result_success.stdout = ['  VERSION = "6.1.8"']
 
         self._command.side_effect = (self.SSH_RESULT_ERROR, ssh_result_success)
         sat_version = host_info.get_host_sat_version.__wrapped__()
 
-        self.assertEqual(u"6.1", sat_version)
+        self.assertEqual("6.1", sat_version)
         calls = [
             call(host_info._SAT_6_2_VERSION_COMMAND),
             call(host_info._SAT_6_1_VERSION_COMMAND),
@@ -153,11 +149,11 @@ class GetHostSatVersionTestCase(TestCase):
 
     def test_cache(self):
         """Check get_host_sat_version() calls are cached"""
-        self._command.return_value.stdout = [u'  SATELLITE_SHORT_VERSION = "6.2"']
-        self.assertEqual(u'6.2', host_info.get_host_sat_version())
+        self._command.return_value.stdout = ['  SATELLITE_SHORT_VERSION = "6.2"']
+        self.assertEqual('6.2', host_info.get_host_sat_version())
         self._command.assert_called_once_with(host_info._SAT_6_2_VERSION_COMMAND)
-        self._command.return_value.stdout = [u'Doesnt matter because because its cached']
-        self.assertEqual(u'6.2', host_info.get_host_sat_version())
+        self._command.return_value.stdout = ['Doesnt matter because because its cached']
+        self.assertEqual('6.2', host_info.get_host_sat_version())
         # if called more than once cache didn't worked
         self._command.assert_called_once_with(host_info._SAT_6_2_VERSION_COMMAND)
 
@@ -175,7 +171,7 @@ class GetHostSatVersionTestCase(TestCase):
         ]
         self._command.assert_has_calls(calls)
         logger.warning.assert_called_once_with(
-            u'Host Satellite version not available: %r' % self.SSH_RESULT_ERROR
+            'Host Satellite version not available: %r' % self.SSH_RESULT_ERROR
         )
 
 
@@ -187,7 +183,7 @@ class SatVersionDependentValuesTestCase(TestCase):
         self.dct_6_1 = {'id': 'rhel-7-server-satellite-tools-6.1-rpms'}
         self.dct_6_2 = {'id': 'rhel-7-server-satellite-tools-6.2-rpms'}
         self.sat_dep_values = host_info.SatVersionDependentValues(
-            {u"6.1": self.dct_6_1}, {u"6.2": self.dct_6_2}
+            {"6.1": self.dct_6_1}, {"6.2": self.dct_6_2}
         )
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
@@ -195,19 +191,19 @@ class SatVersionDependentValuesTestCase(TestCase):
         """Test __init__ and check the is no call to get os Satellite version
         """
         self.assertEqual(
-            {u"6.1": self.dct_6_1, u"6.2": self.dct_6_2}, self.sat_dep_values._versioned_values
+            {"6.1": self.dct_6_1, "6.2": self.dct_6_2}, self.sat_dep_values._versioned_values
         )
         self.assertFalse(get_host_sat_version.called)
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
     def test_getitem(self, get_host_sat_version):
         """Check __getitem__ returns values dependent on Satellite version"""
-        get_host_sat_version.return_value = u'6.1'
-        self.assertEqual(self.dct_6_1[u'id'], self.sat_dep_values[u'id'])
+        get_host_sat_version.return_value = '6.1'
+        self.assertEqual(self.dct_6_1['id'], self.sat_dep_values['id'])
         self.assertTrue(get_host_sat_version.called)
 
-        get_host_sat_version.return_value = u'6.2'
-        self.assertEqual(self.dct_6_2[u'id'], self.sat_dep_values[u'id'])
+        get_host_sat_version.return_value = '6.2'
+        self.assertEqual(self.dct_6_2['id'], self.sat_dep_values['id'])
 
 
 class SatVersionDepCommonValuesTestCase(SatVersionDependentValuesTestCase):
@@ -218,36 +214,36 @@ class SatVersionDepCommonValuesTestCase(SatVersionDependentValuesTestCase):
         super(SatVersionDepCommonValuesTestCase, self).setUp()
         self.common = {}
         self.sat_dep_values = host_info.SatVersionDependentValues(
-            {u"6.1": self.dct_6_1}, {u"6.2": self.dct_6_2}, common=self.common
+            {"6.1": self.dct_6_1}, {"6.2": self.dct_6_2}, common=self.common
         )
 
     def assert_missing(self):
         """ Check common missing is handled by common dct"""
-        self.assertRaises(KeyError, operator.getitem, self.sat_dep_values, u'missing')
-        self.common[u'missing'] = u'fallback'
-        self.assertEqual(u'fallback', self.sat_dep_values[u'missing'])
-        self.common.pop(u'missing')
+        self.assertRaises(KeyError, operator.getitem, self.sat_dep_values, 'missing')
+        self.common['missing'] = 'fallback'
+        self.assertEqual('fallback', self.sat_dep_values['missing'])
+        self.common.pop('missing')
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
     def test_common_dct(self, get_host_sat_version):
         """Check common dct handle missing keys"""
 
-        get_host_sat_version.return_value = u'6.1'
-        self.assertEqual(self.dct_6_1[u'id'], self.sat_dep_values[u'id'])
+        get_host_sat_version.return_value = '6.1'
+        self.assertEqual(self.dct_6_1['id'], self.sat_dep_values['id'])
         self.assertTrue(get_host_sat_version.called)
         self.assert_missing()
 
-        get_host_sat_version.return_value = u'6.2'
-        self.assertEqual(self.dct_6_2[u'id'], self.sat_dep_values[u'id'])
+        get_host_sat_version.return_value = '6.2'
+        self.assertEqual(self.dct_6_2['id'], self.sat_dep_values['id'])
         self.assert_missing()
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
     def test_common_dct_override(self, get_host_sat_version):
         """Check common is overridden by version dct """
-        get_host_sat_version.return_value = u'6.1'
-        self.common[u'missing'] = u'fallback'
-        self.assertEqual(u'fallback', self.sat_dep_values[u'missing'])
-        self.dct_6_1[u'missing'] = u'override'
-        self.assertEqual(u'override', self.sat_dep_values[u'missing'])
-        self.dct_6_1.pop(u'missing')
-        self.assertEqual(u'fallback', self.sat_dep_values[u'missing'])
+        get_host_sat_version.return_value = '6.1'
+        self.common['missing'] = 'fallback'
+        self.assertEqual('fallback', self.sat_dep_values['missing'])
+        self.dct_6_1['missing'] = 'override'
+        self.assertEqual('override', self.sat_dep_values['missing'])
+        self.dct_6_1.pop('missing')
+        self.assertEqual('fallback', self.sat_dep_values['missing'])

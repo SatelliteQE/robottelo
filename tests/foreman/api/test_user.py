@@ -422,7 +422,7 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        user = entities.User().search(query={'search': u'login="admin"'})[0]
+        user = entities.User().search(query={'search': 'login="admin"'})[0]
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
         user_sshkey = entities.SSHKey(user=user, name=ssh_name, key=ssh_key).create()
@@ -674,7 +674,7 @@ class ActiveDirectoryUserTestCase(APITestCase):
 
     def tearDown(self):
         for user in entities.User().search(
-            query={'search': u'login={}'.format(self.ldap_user_name)}
+            query={'search': 'login={}'.format(self.ldap_user_name)}
         ):
             user.delete()
         super(ActiveDirectoryUserTestCase, self).tearDown()
@@ -740,7 +740,7 @@ class ActiveDirectoryUserTestCase(APITestCase):
         :CaseLevel: System
         """
         role_name = gen_string('alpha')
-        default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
+        default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
             data={
                 'role': {
@@ -755,7 +755,7 @@ class ActiveDirectoryUserTestCase(APITestCase):
         )
         with self.assertRaises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(query={'search': u'login={}'.format(self.ldap_user_name)})[0]
+        user = entities.User().search(query={'search': 'login={}'.format(self.ldap_user_name)})[0]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
         with self.assertNotRaises(HTTPError):
@@ -809,7 +809,7 @@ class FreeIPAUserTestCase(APITestCase):
         ).create()
 
     def tearDown(self):
-        for user in entities.User().search(query={'search': u'login={}'.format(self.username)}):
+        for user in entities.User().search(query={'search': 'login={}'.format(self.username)}):
             user.delete()
         super(FreeIPAUserTestCase, self).tearDown()
 
@@ -856,7 +856,7 @@ class FreeIPAUserTestCase(APITestCase):
         :CaseLevel: System
         """
         role_name = gen_string('alpha')
-        default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
+        default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
             data={
                 'role': {
@@ -871,7 +871,7 @@ class FreeIPAUserTestCase(APITestCase):
         )
         with self.assertRaises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(query={'search': u'login={}'.format(self.username)})[0]
+        user = entities.User().search(query={'search': 'login={}'.format(self.username)})[0]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
         with self.assertNotRaises(HTTPError):

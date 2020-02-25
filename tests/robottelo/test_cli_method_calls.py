@@ -37,7 +37,7 @@ def test_cli_org_method_called(mocker, command_sub):
     """
     execute = mocker.patch('robottelo.cli.org.Org.execute')
     construct = mocker.patch('robottelo.cli.org.Org._construct_command')
-    options = {u'foo': u'bar'}
+    options = {'foo': 'bar'}
     assert execute.return_value == getattr(Org, command_sub.replace('-', '_'))(options)
     assert command_sub == Org.command_sub
     assert construct.called_once_with(options)
@@ -51,7 +51,7 @@ def test_cli_proxy_method_called(mocker, command_sub):
     """
     execute = mocker.patch('robottelo.cli.proxy.Proxy.execute')
     construct = mocker.patch('robottelo.cli.proxy.Proxy._construct_command')
-    options = {u'foo': u'bar'}
+    options = {'foo': 'bar'}
     assert execute.return_value == getattr(Proxy, command_sub.replace('-', '_'))(options)
     assert command_sub == Proxy.command_sub
     assert construct.called_once_with(options)
@@ -67,7 +67,7 @@ def test_cli_repository_method_called(mocker, command_sub):
     """
     execute = mocker.patch('robottelo.cli.repository.Repository.execute')
     construct = mocker.patch('robottelo.cli.repository.Repository._construct_command')
-    options = {u'foo': u'bar'}
+    options = {'foo': 'bar'}
     assert execute.return_value == getattr(Repository, command_sub.replace('-', '_'))(options)
     assert command_sub == Repository.command_sub
     assert construct.called_once_with(options)
@@ -78,7 +78,7 @@ def test_cli_repository_method_called(mocker, command_sub):
 def test_cli_repository_info_and_create(mocker, command_sub):
     """Check Repository info and create are called"""
     execute = mocker.patch('robottelo.cli.base.Base.{0}'.format(command_sub))
-    options = {u'foo': u'bar'}
+    options = {'foo': 'bar'}
     assert execute.return_value == getattr(Repository, command_sub.replace('-', '_'))(options)
 
 
@@ -93,7 +93,7 @@ def test_cli_subscription_method_called(mocker, command_sub):
     # avoid BZ call in `upload` method
     execute = mocker.patch('robottelo.cli.subscription.Subscription.execute')
     construct = mocker.patch('robottelo.cli.subscription.Subscription._construct_command')
-    options = {u'foo': u'bar'}
+    options = {'foo': 'bar'}
     assert execute.return_value == getattr(Subscription, command_sub.replace('-', '_'))(options)
     assert command_sub == Subscription.command_sub
     assert construct.called_once_with(options)

@@ -37,22 +37,22 @@ from robottelo.test import APITestCase
 def valid_sc_parameters_data():
     """Returns a list of valid smart class parameter types and values"""
     return [
-        {u'sc_type': 'string', u'value': gen_string('utf8')},
-        {u'sc_type': 'boolean', u'value': choice(['0', '1'])},
-        {u'sc_type': 'integer', u'value': gen_integer(min_value=1000)},
-        {u'sc_type': 'real', u'value': -123.0},
+        {'sc_type': 'string', 'value': gen_string('utf8')},
+        {'sc_type': 'boolean', 'value': choice(['0', '1'])},
+        {'sc_type': 'integer', 'value': gen_integer(min_value=1000)},
+        {'sc_type': 'real', 'value': -123.0},
         {
-            u'sc_type': 'array',
-            u'value': "['{0}', '{1}', '{2}']".format(
+            'sc_type': 'array',
+            'value': "['{0}', '{1}', '{2}']".format(
                 gen_string('alpha'), gen_integer(), gen_boolean()
             ),
         },
         {
-            u'sc_type': 'hash',
-            u'value': '{{"{0}": "{1}"}}'.format(gen_string('alpha'), gen_string('alpha')),
+            'sc_type': 'hash',
+            'value': '{{"{0}": "{1}"}}'.format(gen_string('alpha'), gen_string('alpha')),
         },
-        {u'sc_type': 'yaml', u'value': 'name=>XYZ'},
-        {u'sc_type': 'json', u'value': '{"name": "XYZ"}'},
+        {'sc_type': 'yaml', 'value': 'name=>XYZ'},
+        {'sc_type': 'json', 'value': '{"name": "XYZ"}'},
     ]
 
 
@@ -60,13 +60,13 @@ def valid_sc_parameters_data():
 def invalid_sc_parameters_data():
     """Returns a list of invalid smart class parameter types and values"""
     return [
-        {u'sc_type': 'boolean', u'value': gen_string('alphanumeric')},
-        {u'sc_type': 'integer', u'value': gen_string('utf8')},
-        {u'sc_type': 'real', u'value': gen_string('alpha')},
-        {u'sc_type': 'array', u'value': '0'},
-        {u'sc_type': 'hash', u'value': 'a:test'},
-        {u'sc_type': 'yaml', u'value': '{a:test}'},
-        {u'sc_type': 'json', u'value': gen_string('alpha')},
+        {'sc_type': 'boolean', 'value': gen_string('alphanumeric')},
+        {'sc_type': 'integer', 'value': gen_string('utf8')},
+        {'sc_type': 'real', 'value': gen_string('alpha')},
+        {'sc_type': 'array', 'value': '0'},
+        {'sc_type': 'hash', 'value': 'a:test'},
+        {'sc_type': 'yaml', 'value': '{a:test}'},
+        {'sc_type': 'json', 'value': gen_string('alpha')},
     ]
 
 
@@ -87,12 +87,12 @@ class SmartClassParametersTestCase(APITestCase):
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = (
             entities.Environment()
-            .search(query={'search': u'content_view="{0}"'.format(cv.name)})[0]
+            .search(query={'search': 'content_view="{0}"'.format(cv.name)})[0]
             .read()
         )
         cls.puppet_class = entities.PuppetClass().search(
             query={
-                'search': u'name = "{0}" and environment = "{1}"'.format(
+                'search': 'name = "{0}" and environment = "{1}"'.format(
                     cls.puppet_modules[0]['name'], cls.env.name
                 )
             }

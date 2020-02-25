@@ -109,26 +109,26 @@ def parse_help(output):
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['subcommands'][-1]['description'] += u' {0}'.format(
+                contents['subcommands'][-1]['description'] += ' {0}'.format(
                     match.group('description')
                 )
             else:
                 contents['subcommands'].append(
-                    {u'name': match.group('name'), u'description': match.group('description')}
+                    {'name': match.group('name'), 'description': match.group('description')}
                 )
         if state == options_section_state:
             match = option_regex.search(line)
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['options'][-1]['help'] += u' {0}'.format(match.group('help'))
+                contents['options'][-1]['help'] += ' {0}'.format(match.group('help'))
             else:
                 contents['options'].append(
                     {
-                        u'name': match.group('name'),
-                        u'shortname': match.group('shortname'),
-                        u'value': match.group('value'),
-                        u'help': match.group('help'),
+                        'name': match.group('name'),
+                        'shortname': match.group('shortname'),
+                        'value': match.group('value'),
+                        'help': match.group('help'),
                     }
                 )
 

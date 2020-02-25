@@ -378,7 +378,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
         )
         assert session.host.search(rhev_data['vm_name']) is not None
     # disassociate the host so the corresponding VM doesn't get removed from the CR on host delete
-    entities.Host().search(query={'search': u'name~{}'.format(rhev_data['vm_name'])})[
+    entities.Host().search(query={'search': 'name~{}'.format(rhev_data['vm_name'])})[
         0
     ].disassociate()
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()

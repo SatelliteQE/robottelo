@@ -1290,15 +1290,15 @@ class SystemAdminTestCases(CLITestCase):
             username=system_admin_1['login'], password=common_pass
         ).create(
             {
-                u'auth-source-id': 1,
-                u'firstname': gen_string('alpha'),
-                u'lastname': gen_string('alpha'),
-                u'login': gen_string('alpha'),
-                u'mail': '{0}@example.com'.format(gen_string('alpha')),
-                u'password': common_pass,
-                u'organizations': org['name'],
-                u'role-ids': role['id'],
-                u'locations': location['name'],
+                'auth-source-id': 1,
+                'firstname': gen_string('alpha'),
+                'lastname': gen_string('alpha'),
+                'login': gen_string('alpha'),
+                'mail': '{0}@example.com'.format(gen_string('alpha')),
+                'password': common_pass,
+                'organizations': org['name'],
+                'role-ids': role['id'],
+                'locations': location['name'],
             }
         )
         # Create the Org Admin user
@@ -1312,15 +1312,15 @@ class SystemAdminTestCases(CLITestCase):
         )
         org_admin = User.with_user(username=system_admin['login'], password=common_pass).create(
             {
-                u'auth-source-id': 1,
-                u'firstname': gen_string('alpha'),
-                u'lastname': gen_string('alpha'),
-                u'login': gen_string('alpha'),
-                u'mail': '{0}@example.com'.format(gen_string('alpha')),
-                u'password': common_pass,
-                u'organizations': org['name'],
-                u'role-ids': org_role['id'],
-                u'location-ids': location['id'],
+                'auth-source-id': 1,
+                'firstname': gen_string('alpha'),
+                'lastname': gen_string('alpha'),
+                'login': gen_string('alpha'),
+                'mail': '{0}@example.com'.format(gen_string('alpha')),
+                'password': common_pass,
+                'organizations': org['name'],
+                'role-ids': org_role['id'],
+                'location-ids': location['id'],
             }
         )
         # Assert if the cloning was successful

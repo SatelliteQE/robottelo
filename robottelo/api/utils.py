@@ -80,7 +80,7 @@ def promote(content_view_version, environment_id, force=False):
     :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
 
     """
-    data = {u'environment_id': environment_id, u'force': True if force else False}
+    data = {'environment_id': environment_id, 'force': True if force else False}
     return content_view_version.promote(data=data)
 
 
@@ -329,7 +329,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Search for SmartProxy, and associate location
     proxy = entities.SmartProxy().search(
-        query={u'search': u'name={0}'.format(settings.server.hostname)}
+        query={'search': 'name={0}'.format(settings.server.hostname)}
     )
     proxy = proxy[0].read()
     proxy.location.append(loc)
@@ -339,7 +339,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(query={u'search': u'name="{0}"'.format(domain)})
+    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(domain)})
     if len(domain) == 1:
         domain = domain[0].read()
         domain.location.append(loc)
@@ -353,7 +353,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # If so, just update its relevant fields otherwise,
     # Create new subnet
     network = settings.vlan_networking.subnet
-    subnet = entities.Subnet().search(query={u'search': u'network={0}'.format(network)})
+    subnet = entities.Subnet().search(query={'search': 'network={0}'.format(network)})
     if len(subnet) == 1:
         subnet = subnet[0].read()
         subnet.domain = [domain]
@@ -388,7 +388,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # compute boolean is added to not block existing test's that depend on
     # Libvirt resource and use this same functionality to all CR's.
     if compute is False:
-        resource_url = u'qemu+ssh://root@{0}/system'.format(
+        resource_url = 'qemu+ssh://root@{0}/system'.format(
             settings.compute_resources.libvirt_hostname
         )
         comp_res = [
@@ -404,10 +404,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         else:
             # Create Libvirt compute-resource
             entities.LibvirtComputeResource(
-                provider=u'libvirt',
+                provider='libvirt',
                 url=resource_url,
                 set_console_password=False,
-                display_type=u'VNC',
+                display_type='VNC',
                 location=[loc.id],
                 organization=[org.id],
             ).create()
@@ -415,7 +415,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Get the Partition table ID
     ptable = (
         entities.PartitionTable()
-        .search(query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+        .search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[0]
         .read()
     )
     ptable.location.append(loc)
@@ -428,7 +428,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             entities.OperatingSystem()
             .search(
                 query={
-                    u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                    'search': 'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
                         RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
                     )
                 }
@@ -440,9 +440,9 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             entities.OperatingSystem()
             .search(
                 query={
-                    u'search': u'family="Redhat" '
-                    u'AND major="{0}" '
-                    u'AND minor="{1}")'.format(
+                    'search': 'family="Redhat" '
+                    'AND major="{0}" '
+                    'AND minor="{1}")'.format(
                         os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
                     )
                 }
@@ -452,7 +452,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Get the Provisioning template_ID and update with OS, Org, Location
     provisioning_template = entities.ConfigTemplate().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)}
+        query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.operatingsystem.append(os)
@@ -464,7 +464,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Get the PXE template ID and update with OS, Org, location
     pxe_template = entities.ConfigTemplate().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
+        query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.operatingsystem.append(os)
@@ -475,7 +475,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Get the arch ID
     arch = (
         entities.Architecture()
-        .search(query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .search(query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
         .read()
     )
 
@@ -902,7 +902,7 @@ def create_org_admin_role(orgs, locs, name=None):
     :return dict: The object of ```nailgun.Role``` of Org Admin role.
     """
     name = gen_string('alpha') if not name else name
-    default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
+    default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
     org_admin = entities.Role(id=default_org_admin[0].id).clone(
         data={'role': {'name': name, 'organization_ids': orgs or [], 'location_ids': locs or []}}
     )

@@ -651,18 +651,18 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         cls.ldap_hostname = settings.ldap.hostname
         cls.auth = make_ldap_auth_source(
             {
-                u'name': gen_string('alpha'),
-                u'onthefly-register': 'true',
-                u'host': cls.ldap_hostname,
-                u'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
-                u'attr-login': LDAP_ATTR['login_ad'],
-                u'attr-firstname': LDAP_ATTR['firstname'],
-                u'attr-lastname': LDAP_ATTR['surname'],
-                u'attr-mail': LDAP_ATTR['mail'],
-                u'account': cls.ldap_user_name,
-                u'account-password': cls.ldap_user_passwd,
-                u'base-dn': cls.base_dn,
-                u'groups-base': cls.group_base_dn,
+                'name': gen_string('alpha'),
+                'onthefly-register': 'true',
+                'host': cls.ldap_hostname,
+                'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
+                'attr-login': LDAP_ATTR['login_ad'],
+                'attr-firstname': LDAP_ATTR['firstname'],
+                'attr-lastname': LDAP_ATTR['surname'],
+                'attr-mail': LDAP_ATTR['mail'],
+                'account': cls.ldap_user_name,
+                'account-password': cls.ldap_user_passwd,
+                'base-dn': cls.base_dn,
+                'groups-base': cls.group_base_dn,
             }
         )
 
@@ -682,7 +682,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
     @skip_if_not_set('ldap')
     def tearDownClass(cls):
         """Delete the AD auth-source afterwards"""
-        LDAPAuthSource.delete({u'id': cls.auth[u'server'][u'id']})
+        LDAPAuthSource.delete({'id': cls.auth['server']['id']})
         super(ActiveDirectoryUserGroupTestCase, cls).tearDownClass()
 
     @tier2
@@ -848,18 +848,18 @@ class FreeIPAUserGroupTestCase(CLITestCase):
         cls.ldap_hostname = settings.ipa.hostname_ipa
         cls.auth = make_ldap_auth_source(
             {
-                u'name': gen_string('alpha'),
-                u'onthefly-register': 'true',
-                u'host': cls.ldap_hostname,
-                u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
-                u'attr-login': LDAP_ATTR['login'],
-                u'attr-firstname': LDAP_ATTR['firstname'],
-                u'attr-lastname': LDAP_ATTR['surname'],
-                u'attr-mail': LDAP_ATTR['mail'],
-                u'account': cls.ldap_user_name,
-                u'account-password': cls.ldap_user_passwd,
-                u'base-dn': cls.base_dn,
-                u'groups-base': cls.group_base_dn,
+                'name': gen_string('alpha'),
+                'onthefly-register': 'true',
+                'host': cls.ldap_hostname,
+                'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                'attr-login': LDAP_ATTR['login'],
+                'attr-firstname': LDAP_ATTR['firstname'],
+                'attr-lastname': LDAP_ATTR['surname'],
+                'attr-mail': LDAP_ATTR['mail'],
+                'account': cls.ldap_user_name,
+                'account-password': cls.ldap_user_passwd,
+                'base-dn': cls.base_dn,
+                'groups-base': cls.group_base_dn,
             }
         )
 
@@ -879,7 +879,7 @@ class FreeIPAUserGroupTestCase(CLITestCase):
     @skip_if_not_set('ipa')
     def tearDownClass(cls):
         """Delete the IPA auth-source afterwards"""
-        LDAPAuthSource.delete({u'id': cls.auth[u'server'][u'id']})
+        LDAPAuthSource.delete({'id': cls.auth['server']['id']})
         super(FreeIPAUserGroupTestCase, cls).tearDownClass()
 
     @tier1

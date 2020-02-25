@@ -142,7 +142,7 @@ class BookmarkTestCase(APITestCase):
                                 controller=entity['controller'], name=name, public=False
                             ).create()
                         result = entities.Bookmark().search(
-                            query={'search': u'name="{0}"'.format(name)}
+                            query={'search': 'name="{0}"'.format(name)}
                         )
                         self.assertEqual(len(result), 0)
 
@@ -169,7 +169,7 @@ class BookmarkTestCase(APITestCase):
                     entities.Bookmark(
                         controller=entity['controller'], name=name, query=''
                     ).create()
-                result = entities.Bookmark().search(query={'search': u'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 0)
 
     @tier1
@@ -199,7 +199,7 @@ class BookmarkTestCase(APITestCase):
                 entities.Bookmark(controller=entity['controller'], name=name).create()
                 with self.assertRaises(HTTPError):
                     entities.Bookmark(controller=entity['controller'], name=name).create()
-                result = entities.Bookmark().search(query={'search': u'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 1)
 
     @tier1
@@ -228,7 +228,7 @@ class BookmarkTestCase(APITestCase):
                     entities.Bookmark(
                         controller=entity['controller'], name=name, public=None
                     ).create()
-                result = entities.Bookmark().search(query={'search': u'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 0)
 
     # UPDATE TESTS

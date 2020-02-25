@@ -56,7 +56,7 @@ class SmartVariablesTestCase(CLITestCase):
         cls.org = make_org()
         cls.loc = make_location()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': u'content_view="{0}"'.format(cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
         Environment.update(
             {
                 'name': cls.env['name'],
@@ -156,7 +156,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         # Update name and puppet class
         new_name = valid_data_list()[0]
-        new_puppet = Puppet.info({u'name': choice(self.puppet_subclasses)['name']})
+        new_puppet = Puppet.info({'name': choice(self.puppet_subclasses)['name']})
         SmartVariable.update(
             {
                 'id': smart_variable['id'],

@@ -48,7 +48,7 @@ class EnvironmentTestCase(CLITestCase):
         # Setup for puppet class related tests
         puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
         cls.cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, cls.org.id)
-        cls.env = Environment.list({'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cls.cv['name'])})[0]
         cls.puppet_class = Puppet.info(
             {'name': puppet_modules[0]['name'], 'environment': cls.env['name']}
         )
@@ -204,7 +204,7 @@ class EnvironmentTestCase(CLITestCase):
         sc_params_list = SmartClassParameter.list(
             {
                 'environment': self.env['name'],
-                'search': u'puppetclass="{0}"'.format(self.puppet_class['name']),
+                'search': 'puppetclass="{0}"'.format(self.puppet_class['name']),
             }
         )
         scp_id = choice(sc_params_list)['id']

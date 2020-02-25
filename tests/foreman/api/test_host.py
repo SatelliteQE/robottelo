@@ -67,7 +67,7 @@ class HostTestCase(APITestCase):
             entities.Environment()
             .search(
                 query={
-                    'search': u'content_view="{0}" and organization_id={1}'.format(
+                    'search': 'content_view="{0}" and organization_id={1}'.format(
                         cls.cv.name, cls.org.id
                     )
                 }
@@ -87,7 +87,7 @@ class HostTestCase(APITestCase):
         )
         cls.puppet_classes = entities.PuppetClass().search(
             query={
-                'search': u'name ~ "{0}" and environment = "{1}"'.format('generic_1', cls.env.name)
+                'search': 'name ~ "{0}" and environment = "{1}"'.format('generic_1', cls.env.name)
             }
         )
         # Compute Resource related entities
@@ -110,7 +110,7 @@ class HostTestCase(APITestCase):
         response = client.get(
             entities.Host().path(),
             auth=settings.server.get_credentials(),
-            data={u'search': query},
+            data={'search': query},
             verify=False,
         )
         self.assertEqual(response.status_code, http_client.OK)
@@ -131,7 +131,7 @@ class HostTestCase(APITestCase):
         response = client.get(
             entities.Host().path(),
             auth=settings.server.get_credentials(),
-            data={u'per_page': per_page},
+            data={'per_page': per_page},
             verify=False,
         )
         self.assertEqual(response.status_code, http_client.OK)
@@ -1118,7 +1118,7 @@ class HostTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     host.update(['name'])
                 self.assertNotEqual(
-                    host.read().name, u'{0}.{1}'.format(new_name, host.domain.read().name).lower()
+                    host.read().name, '{0}.{1}'.format(new_name, host.domain.read().name).lower()
                 )
 
     @tier1
