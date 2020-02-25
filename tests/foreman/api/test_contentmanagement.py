@@ -50,6 +50,7 @@ from robottelo.constants import REPOSET
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import tier4
@@ -562,6 +563,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(lce_repo_path, hostname=self.capsule_ip), get_repo_files(cvv_repo_path)
         )
 
+    @stubbed()
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
