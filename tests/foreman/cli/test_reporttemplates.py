@@ -773,15 +773,12 @@ class ReportTemplateTestCase(CLITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
             assert vm.subscribed
-            scheduled_csv = ReportTemplate.schedule({
-                'id': 115,
-                'organization': self.setup_org['name'],
-                'report-format': 'csv'
-            })
-            data_csv = ReportTemplate.report_data({
-                'id': 115,
-                'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]
-            })
+            scheduled_csv = ReportTemplate.schedule(
+                {'id': 115, 'organization': self.setup_org['name'], 'report-format': 'csv'}
+            )
+            data_csv = ReportTemplate.report_data(
+                {'id': 115, 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]}
+            )
             for item in data_csv:
                 if vm.hostname == item:
                     assert vm.hostname in data_csv
