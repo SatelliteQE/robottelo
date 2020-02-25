@@ -1148,7 +1148,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         # step 2.15.1: Enable product content
         if self.fake_manifest_is_set:
             activation_key.content_override(
-                data={'content_override': {'content_label': AK_CONTENT_LABEL, 'value': '1'}}
+                data={'content_overrides': {'content_label': AK_CONTENT_LABEL, 'value': '1'}}
             )
 
         # BONUS: Create a content host and associate it with promoted

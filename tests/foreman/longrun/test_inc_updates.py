@@ -168,7 +168,7 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Enable product content in activation key
         rhel_6_partial_ak.content_override(
-            data={'content_override': {'content_label': REPOS['rhst6']['id'], 'value': '1'}}
+            data={'content_overrides': {'content_label': REPOS['rhst6']['id'], 'value': '1'}}
         )
 
         # Create client machine and register it to satellite with
