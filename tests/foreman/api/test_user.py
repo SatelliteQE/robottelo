@@ -175,6 +175,23 @@ class UserTestCase(APITestCase):
                 self.assertEqual(user.login, login)
 
     @tier1
+    def test_negative_update_username(self):
+        """Update a user and provide new login.
+
+        :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
+
+        :expectedresults: The user's ``login`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for login in invalid_usernames_list():
+            with self.subTest(login):
+                with self.assertRaises(HTTPError):
+                    user.login = login
+                    user = user.update(['login'])
+
+    @tier1
     def test_positive_update_firstname(self):
         """Update a user and provide new firstname.
 
@@ -212,9 +229,9 @@ class UserTestCase(APITestCase):
     def test_positive_update_email(self):
         """Update a user and provide new email.
 
-        :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
+        :id: 3ae70631-7cee-4a4a-9c2f-b428273f1311
 
-        :expectedresults: The user's ``email`` attribute is updated.
+        :expectedresults: The user's ``mail`` attribute is updated.
 
         :CaseImportance: Critical
         """
@@ -224,6 +241,23 @@ class UserTestCase(APITestCase):
                 user.mail = mail
                 user = user.update(['mail'])
                 self.assertEqual(user.mail, mail)
+
+    @tier1
+    def test_negative_update_email(self):
+        """Update a user and provide new email.
+
+        :id: 0631dce1-694c-4815-971d-26ff1934da98
+
+        :expectedresults: The user's ``mail`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for mail in invalid_emails_list():
+            with self.subTest(mail):
+                with self.assertRaises(HTTPError):
+                    user.mail = mail
+                    user = user.update(['mail'])
 
     @tier1
     def test_positive_update_description(self):
@@ -430,7 +464,6 @@ class SshKeyInUserTestCase(APITestCase):
         user_sshkey.delete()
         result = entities.SSHKey(user=user).search()
         self.assertEqual(len(result), 0)
-
 
     @tier1
     def test_negative_create_ssh_key(self):
