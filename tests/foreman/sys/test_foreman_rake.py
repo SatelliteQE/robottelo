@@ -13,11 +13,9 @@
 :Upstream: No
 """
 from robottelo import ssh
-from robottelo.decorators import (
-        destructive,
-        run_in_one_thread,
-        tier3,
-)
+from robottelo.decorators import destructive
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier3
 
 
 @destructive
