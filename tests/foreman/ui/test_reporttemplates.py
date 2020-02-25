@@ -68,29 +68,23 @@ def content_setup(module_org):
     rh_repo.sync()
     custom_product = entities.Product(organization=module_org).create()
     custom_repo = entities.Repository(
-        name=gen_string('alphanumeric').upper(),
-        product=custom_product).create()
+        name=gen_string('alphanumeric').upper(), product=custom_product
+    ).create()
     custom_repo.sync()
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     cv = entities.ContentView(
-        organization=module_org,
-        repository=[rh_repo_id, custom_repo.id],
+        organization=module_org, repository=[rh_repo_id, custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     promote(cvv, lce.id)
     ak = entities.ActivationKey(
-        content_view=cv,
-        organization=module_org,
-        environment=lce,
-        auto_attach=True
+        content_view=cv, organization=module_org, environment=lce, auto_attach=True
     ).create()
     subscription = entities.Subscription(organization=module_org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)})[0]
-    ak.add_subscriptions(data={
-        'quantity': 1,
-        'subscription_id': subscription.id,
-    })
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+    )[0]
+    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     return module_org, ak
 
 
@@ -472,7 +466,8 @@ def test_positive_gen_entitlements_reports_multiple_formats(session, content_set
             with open(result_html) as html_file:
                 parser = etree.HTMLParser()
                 tree = etree.parse(html_file, parser)
-                tree_result = etree.tostring(tree.getroot(),
-                                             pretty_print=True, method='html').decode()
+                tree_result = etree.tostring(
+                    tree.getroot(), pretty_print=True, method='html'
+                ).decode()
             assert vm.hostname in tree_result
             assert DEFAULT_SUBSCRIPTION_NAME in tree_result
