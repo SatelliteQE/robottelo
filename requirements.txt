@@ -24,7 +24,7 @@ widgetastic.patternfly==1.2.2
 wrapanapi==3.2.0
 urllib3==1.25.3
 PyYAML==5.1.2
-tenacity==6.0.0
+tenacity==6.1.0
 pyotp==2.3.0
 
 # Get airgun, nailgun and upgrade from master
