@@ -2334,9 +2334,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self._host_subscription_register()
         host = Host.info({'name': self.client.hostname})
         self.client.register_contenthost(
-            self.org['name'],
-            consumerid=host['subscription-information']['uuid'],
-            force=False,
+            self.org['name'], consumerid=host['subscription-information']['uuid'], force=False,
         )
         client_status = self.client.subscription_manager_status()
         self.assertIn(SM_OVERALL_STATUS['current'], client_status.stdout)

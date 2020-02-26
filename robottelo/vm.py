@@ -521,9 +521,7 @@ gpgcheck=0'''.format(
                 password = settings.server.admin_password
 
             cmd += u' --consumerid {0} --username {1} --password {2}'.format(
-                consumerid,
-                username,
-                password,
+                consumerid, username, password,
             )
             if auto_attach:
                 cmd += u' --auto-attach'
