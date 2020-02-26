@@ -24,7 +24,7 @@ def _gen_mac_for_libvirt():
     for _ in range(0, 10):
         mac = gen_mac(multicast=False, locally=True)
         if not mac.startswith(u'fe'):
-            return(mac)
+            return mac
         mac = None
     if not mac:
         raise ValueError('Unable to generate a valid MAC address')
@@ -48,8 +48,16 @@ class LibvirtGuest(object):
     """
 
     def __init__(
-            self, cpu=1, ram=1024, boot_iso=False, extra_nic=False,
-            libvirt_server=None, image_dir=None, mac=None, bridge=None):
+        self,
+        cpu=1,
+        ram=1024,
+        boot_iso=False,
+        extra_nic=False,
+        libvirt_server=None,
+        image_dir=None,
+        mac=None,
+        bridge=None,
+    ):
         self.cpu = cpu
         self.ram = ram
         if libvirt_server is None:
@@ -119,8 +127,7 @@ class LibvirtGuest(object):
             # Required for PXE-less host discovery, where we boot the host
             # with bootable discovery ISO
             self.boot_iso_name = settings.discovery.discovery_iso
-            boot_iso_dir = u'{0}/{1}'.format(
-                self.image_dir, self.boot_iso_name)
+            boot_iso_dir = u'{0}/{1}'.format(self.image_dir, self.boot_iso_name)
             command_args.append('--cdrom={0}'.format(boot_iso_dir))
 
         if self.extra_nic:
@@ -133,8 +140,8 @@ class LibvirtGuest(object):
                 self._domain = self.libvirt_server.split('.', 1)[1]
             except IndexError:
                 raise LibvirtGuestError(
-                    u"Failed to fetch domain from libvirt server: {0} "
-                    .format(self.libvirt_server))
+                    u"Failed to fetch domain from libvirt server: {0} ".format(self.libvirt_server)
+                )
 
         self.hostname = u'{0}.{1}'.format(self.guest_name, self._domain)
         command = u' '.join(command_args).format(
@@ -143,14 +150,13 @@ class LibvirtGuest(object):
             vm_name=self.hostname,
             vm_ram=self.ram,
             vm_cpu=self.cpu,
-            image_name=u'{0}/{1}.img'.format(self.image_dir, self.hostname)
+            image_name=u'{0}/{1}.img'.format(self.image_dir, self.hostname),
         )
 
         result = ssh.command(command, self.libvirt_server)
 
         if result.return_code != 0:
-            raise LibvirtGuestError(
-                u'Failed to run virt-install: {0}'.format(result.stderr))
+            raise LibvirtGuestError(u'Failed to run virt-install: {0}'.format(result.stderr))
 
         self._created = True
 
@@ -159,26 +165,18 @@ class LibvirtGuest(object):
         if not self._created:
             return
 
-        ssh.command(
-            u'virsh destroy {0}'.format(self.hostname),
-            hostname=self.libvirt_server
-        )
-        ssh.command(
-            u'virsh undefine {0}'.format(self.hostname),
-            hostname=self.libvirt_server
-        )
+        ssh.command(u'virsh destroy {0}'.format(self.hostname), hostname=self.libvirt_server)
+        ssh.command(u'virsh undefine {0}'.format(self.hostname), hostname=self.libvirt_server)
         image_name = u'{0}.img'.format(self.hostname)
         ssh.command(
             u'rm {0}'.format(os.path.join(self.image_dir, image_name)),
-            hostname=self.libvirt_server
+            hostname=self.libvirt_server,
         )
 
     def attach_nic(self):
         """Add a new NIC to existing host"""
         if not self._created:
-            raise LibvirtGuestError(
-                'The virtual guest should be created before updating it'
-            )
+            raise LibvirtGuestError('The virtual guest should be created before updating it')
         nic_mac = _gen_mac_for_libvirt()
         command_args = [
             'virsh attach-interface',
@@ -190,17 +188,15 @@ class LibvirtGuest(object):
             '--live',
         ]
         command = u' '.join(command_args).format(
-            vm_name=self.hostname,
-            vm_bridge=self.bridge,
-            vm_mac=nic_mac,
+            vm_name=self.hostname, vm_bridge=self.bridge, vm_mac=nic_mac
         )
 
         result = ssh.command(command, self.libvirt_server)
 
         if result.return_code != 0:
             raise LibvirtGuestError(
-                u'Failed to run virsh attach-interface: {0}'
-                .format(result.stderr))
+                u'Failed to run virsh attach-interface: {0}'.format(result.stderr)
+            )
 
     def __enter__(self):
         self.create()

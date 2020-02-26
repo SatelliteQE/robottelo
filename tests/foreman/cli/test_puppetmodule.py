@@ -35,15 +35,15 @@ class PuppetModuleTestCase(CLITestCase):
     def setUpClass(cls):
         super(PuppetModuleTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.product = make_product({
-            u'organization-id': cls.org['id']
-        })
-        cls.repo = make_repository({
-            u'organization-id': cls.org['id'],
-            u'product-id': cls.product['id'],
-            u'content-type': u'puppet',
-            u'url': FAKE_0_PUPPET_REPO,
-        })
+        cls.product = make_product({u'organization-id': cls.org['id']})
+        cls.repo = make_repository(
+            {
+                u'organization-id': cls.org['id'],
+                u'product-id': cls.product['id'],
+                u'content-type': u'puppet',
+                u'url': FAKE_0_PUPPET_REPO,
+            }
+        )
         Repository.synchronize({'id': cls.repo['id']})
 
     @tier1
@@ -74,14 +74,9 @@ class PuppetModuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        return_value = PuppetModule.list({
-            'organization-id': self.org['id'],
-        })
+        return_value = PuppetModule.list({'organization-id': self.org['id']})
         for i in range(len(return_value)):
-            result = PuppetModule.info(
-                {'id': return_value[i]['id']},
-                output_format='json'
-            )
+            result = PuppetModule.info({'id': return_value[i]['id']}, output_format='json')
             self.assertEqual(result['id'], return_value[i]['id'])
 
     @tier2
@@ -100,19 +95,17 @@ class PuppetModuleTestCase(CLITestCase):
         # Verify that number of synced modules is correct
         repo1 = Repository.info({'id': self.repo['id']})
         repo_content_count = repo1['content-counts']['puppet-modules']
-        modules_num = len(
-            PuppetModule.list({'repository-id': repo1['id']}))
+        modules_num = len(PuppetModule.list({'repository-id': repo1['id']}))
         self.assertEqual(repo_content_count, str(modules_num))
         # Create and sync second repo
-        repo2 = make_repository({
-            u'organization-id': self.org['id'],
-            u'product-id': self.product['id'],
-            u'content-type': u'puppet',
-            u'url': FAKE_1_PUPPET_REPO,
-        })
+        repo2 = make_repository(
+            {
+                u'organization-id': self.org['id'],
+                u'product-id': self.product['id'],
+                u'content-type': u'puppet',
+                u'url': FAKE_1_PUPPET_REPO,
+            }
+        )
         Repository.synchronize({'id': repo2['id']})
         # Verify that number of modules from the first repo has not changed
-        self.assertEqual(
-            modules_num,
-            len(PuppetModule.list({'repository-id': repo1['id']}))
-        )
+        self.assertEqual(modules_num, len(PuppetModule.list({'repository-id': repo1['id']})))

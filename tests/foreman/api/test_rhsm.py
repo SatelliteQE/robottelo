@@ -44,11 +44,7 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
         :CaseImportance: Critical
         """
         path = '{0}/rhsm'.format(settings.server.get_url())
-        response = client.get(
-            path,
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
+        response = client.get(path, auth=settings.server.get_credentials(), verify=False)
         self.assertEqual(response.status_code, http_client.OK)
         self.assertIn('application/json', response.headers['content-type'])
         self.assertIsInstance(response.json(), list)

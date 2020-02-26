@@ -47,12 +47,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
     host_template.create_missing()
     with session:
         # Create new hardware model
-        session.hardwaremodel.create({
-            'name': name,
-            'hardware_model': model,
-            'vendor_class': vendor_class,
-            'info': info,
-        })
+        session.hardwaremodel.create(
+            {'name': name, 'hardware_model': model, 'vendor_class': vendor_class, 'info': info}
+        )
         assert session.hardwaremodel.search(name)[0]['Name'] == name
         hm_values = session.hardwaremodel.read(name)
         assert hm_values['name'] == name
@@ -61,9 +58,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert hm_values['info'] == info
         # Create host with associated hardware model
         host_name = create_fake_host(
-            session,
-            host_template,
-            extra_values={'additional_information.hardware_model': name}
+            session, host_template, extra_values={'additional_information.hardware_model': name}
         )
         host_values = session.host.read(host_name, 'additional_information')
         assert host_values['additional_information']['hardware_model'] == name
@@ -75,8 +70,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # Make an attempt to delete hardware model that associated with host
         with raises(AssertionError) as context:
             session.hardwaremodel.delete(new_name)
-        assert "error: '{} is used by {}'".format(
-            new_name, host_name) in str(context.value)
+        assert "error: '{} is used by {}'".format(new_name, host_name) in str(context.value)
         session.host.update(host_name, {'additional_information.hardware_model': ''})
         # Delete hardware model
         session.hardwaremodel.delete(new_name)

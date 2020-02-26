@@ -61,28 +61,40 @@ class HostTestCase(APITestCase):
         cls.cv = publish_puppet_module(
             [{'author': 'robottelo', 'name': 'generic_1'}],
             CUSTOM_PUPPET_REPO,
-            organization_id=cls.org.id
+            organization_id=cls.org.id,
         )
-        cls.env = entities.Environment().search(query={
-            'search': u'content_view="{0}" and organization_id={1}'.format(
-                cls.cv.name, cls.org.id)})[0].read()
+        cls.env = (
+            entities.Environment()
+            .search(
+                query={
+                    'search': u'content_view="{0}" and organization_id={1}'.format(
+                        cls.cv.name, cls.org.id
+                    )
+                }
+            )[0]
+            .read()
+        )
         cls.env.location.append(cls.loc)
         cls.env.update(['location'])
-        cls.lce = entities.LifecycleEnvironment().search(query={
-            'search': 'name={0} and organization_id={1}'.format(
-                ENVIRONMENT, cls.org.id)
-        })[0].read()
-        cls.puppet_classes = entities.PuppetClass().search(query={
-            'search': u'name ~ "{0}" and environment = "{1}"'.format(
-                'generic_1', cls.env.name)
-        })
+        cls.lce = (
+            entities.LifecycleEnvironment()
+            .search(
+                query={
+                    'search': 'name={0} and organization_id={1}'.format(ENVIRONMENT, cls.org.id)
+                }
+            )[0]
+            .read()
+        )
+        cls.puppet_classes = entities.PuppetClass().search(
+            query={
+                'search': u'name ~ "{0}" and environment = "{1}"'.format('generic_1', cls.env.name)
+            }
+        )
         # Compute Resource related entities
         cls.compresource_libvirt = entities.LibvirtComputeResource(
-            organization=[cls.org],
-            location=[cls.loc],
+            organization=[cls.org], location=[cls.loc]
         ).create()
-        cls.image = entities.Image(
-            compute_resource=cls.compresource_libvirt).create()
+        cls.image = entities.Image(compute_resource=cls.compresource_libvirt).create()
 
     @tier1
     def test_positive_get_search(self):
@@ -141,7 +153,8 @@ class HostTestCase(APITestCase):
                     entities.Host(owner_type=owner_type).create()
                 self.assertEqual(context.exception.response.status_code, 422)
                 self.assertRegexpMatches(
-                    context.exception.response.text, "owner must be specified")
+                    context.exception.response.text, "owner must be specified"
+                )
 
     @tier1
     def test_positive_update_owner_type(self):
@@ -157,12 +170,10 @@ class HostTestCase(APITestCase):
         :BZ: 1210001
         """
         owners = {
-            'User': entities.User(
-                organization=[self.org], location=[self.loc]).create(),
+            'User': entities.User(organization=[self.org], location=[self.loc]).create(),
             'Usergroup': entities.UserGroup().create(),
         }
-        host = entities.Host(
-            organization=self.org, location=self.loc).create()
+        host = entities.Host(organization=self.org, location=self.loc).create()
         for owner_type in owners:
             with self.subTest(owner_type):
                 host.owner_type = owner_type
@@ -184,10 +195,7 @@ class HostTestCase(APITestCase):
         for name in valid_hosts_list():
             with self.subTest(name):
                 host = entities.Host(name=name).create()
-                self.assertEqual(
-                    host.name,
-                    '{0}.{1}'.format(name, host.domain.read().name)
-                )
+                self.assertEqual(host.name, '{0}.{1}'.format(name, host.domain.read().name))
 
     @tier1
     def test_positive_create_with_ip(self):
@@ -220,10 +228,7 @@ class HostTestCase(APITestCase):
         content_view = content_view.read()
         promote(content_view.version[0], environment_id=lce.id)
         loc = entities.Location(organization=[org]).create()
-        hostgroup = entities.HostGroup(
-            location=[loc],
-            organization=[org],
-        ).create()
+        hostgroup = entities.HostGroup(location=[loc], organization=[org]).create()
         host = entities.Host(
             hostgroup=hostgroup,
             location=loc,
@@ -250,21 +255,15 @@ class HostTestCase(APITestCase):
         :BZ: 1391656
         """
         hostgroup = entities.HostGroup(
-            content_view=self.cv,
-            lifecycle_environment=self.lce,
-            organization=[self.org],
+            content_view=self.cv, lifecycle_environment=self.lce, organization=[self.org]
         ).create()
-        host = entities.Host(
-            hostgroup=hostgroup,
-            organization=self.org,
-        ).create()
+        host = entities.Host(hostgroup=hostgroup, organization=self.org).create()
         self.assertEqual(
             host.content_facet_attributes['lifecycle_environment_id'],
-            hostgroup.lifecycle_environment.id
+            hostgroup.lifecycle_environment.id,
         )
         self.assertEqual(
-            host.content_facet_attributes['content_view_id'],
-            hostgroup.content_view.id
+            host.content_facet_attributes['content_view_id'], hostgroup.content_view.id
         )
 
     @tier2
@@ -286,30 +285,24 @@ class HostTestCase(APITestCase):
         org_param = entities.Parameter(organization=org).create()
         loc = entities.Location().create()
         loc_param = entities.Parameter(location=loc).create()
-        host = entities.Host(
-            location=loc,
-            organization=org,
-        ).create()
+        host = entities.Host(location=loc, organization=org).create()
         # get global parameters
-        glob_param_list = {(param.name, param.value) for param
-                           in entities.CommonParameter().search()}
+        glob_param_list = {
+            (param.name, param.value) for param in entities.CommonParameter().search()
+        }
         # if there are no global parameters, create one
         if len(glob_param_list) == 0:
             param_name = gen_string('alpha')
             param_global_value = gen_string('numeric')
-            entities.CommonParameter(
-                name=param_name,
-                value=param_global_value
-            ).create()
-            glob_param_list = {(param.name, param.value) for param
-                               in entities.CommonParameter().search()}
+            entities.CommonParameter(name=param_name, value=param_global_value).create()
+            glob_param_list = {
+                (param.name, param.value) for param in entities.CommonParameter().search()
+            }
         self.assertEqual(len(host.all_parameters), 2 + len(glob_param_list))
-        innerited_params = {(org_param.name, org_param.value),
-                            (loc_param.name, loc_param.value)}
+        innerited_params = {(org_param.name, org_param.value), (loc_param.name, loc_param.value)}
         expected_params = innerited_params.union(glob_param_list)
         self.assertEqual(
-            expected_params,
-            {(param['name'], param['value']) for param in host.all_parameters}
+            expected_params, {(param['name'], param['value']) for param in host.all_parameters}
         )
 
     @tier1
@@ -322,9 +315,9 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         host = entities.Host(puppet_proxy=proxy).create()
         self.assertEqual(host.puppet_proxy.read().name, proxy.name)
 
@@ -339,9 +332,9 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         host = entities.Host(puppet_ca_proxy=proxy).create()
         self.assertEqual(host.puppet_ca_proxy.read().name, proxy.name)
 
@@ -361,7 +354,7 @@ class HostTestCase(APITestCase):
         ).create()
         self.assertEqual(
             {puppet_class.id for puppet_class in host.puppetclass},
-            {puppet_class.id for puppet_class in self.puppet_classes}
+            {puppet_class.id for puppet_class in self.puppet_classes},
         )
 
     @tier2
@@ -376,15 +369,8 @@ class HostTestCase(APITestCase):
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-        subnet = entities.Subnet(
-            location=[loc],
-            organization=[org],
-        ).create()
-        host = entities.Host(
-            location=loc,
-            organization=org,
-            subnet=subnet,
-        ).create()
+        subnet = entities.Subnet(location=[loc], organization=[org]).create()
+        host = entities.Host(location=loc, organization=org, subnet=subnet).create()
         self.assertEqual(host.subnet.read().name, subnet.name)
 
     @tier2
@@ -400,14 +386,9 @@ class HostTestCase(APITestCase):
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-        compresource = entities.LibvirtComputeResource(
-            location=[loc],
-            organization=[org],
-        ).create()
+        compresource = entities.LibvirtComputeResource(location=[loc], organization=[org]).create()
         host = entities.Host(
-            compute_resource=compresource,
-            location=loc,
-            organization=org,
+            compute_resource=compresource, location=loc, organization=org
         ).create()
         self.assertEqual(host.compute_resource.read().name, compresource.name)
 
@@ -435,13 +416,9 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        user = entities.User(
-            organization=[self.org], location=[self.loc]).create()
+        user = entities.User(organization=[self.org], location=[self.loc]).create()
         host = entities.Host(
-            owner=user,
-            owner_type='User',
-            organization=self.org,
-            location=self.loc,
+            owner=user, owner_type='User', organization=self.org, location=self.loc
         ).create()
         self.assertEqual(host.owner.read(), user)
 
@@ -458,20 +435,10 @@ class HostTestCase(APITestCase):
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         role = entities.Role().create()
-        user = entities.User(
-            location=[loc],
-            organization=[org],
-            role=[role],
-        ).create()
-        usergroup = entities.UserGroup(
-            role=[role],
-            user=[user],
-        ).create()
+        user = entities.User(location=[loc], organization=[org], role=[role]).create()
+        usergroup = entities.UserGroup(role=[role], user=[user]).create()
         host = entities.Host(
-            location=loc,
-            organization=org,
-            owner=usergroup,
-            owner_type='Usergroup',
+            location=loc, organization=org, owner=usergroup, owner_type='Usergroup'
         ).create()
         self.assertEqual(host.owner.read().name, usergroup.name)
 
@@ -568,14 +535,10 @@ class HostTestCase(APITestCase):
             content_facet_attributes={
                 'content_view_id': self.cv.id,
                 'lifecycle_environment_id': self.lce.id,
-            }
+            },
         ).create()
-        self.assertEqual(
-            host.content_facet_attributes['content_view_id'], self.cv.id)
-        self.assertEqual(
-            host.content_facet_attributes['lifecycle_environment_id'],
-            self.lce.id
-        )
+        self.assertEqual(host.content_facet_attributes['content_view_id'], self.cv.id)
+        self.assertEqual(host.content_facet_attributes['lifecycle_environment_id'], self.lce.id)
 
     @tier1
     def test_positive_create_with_host_parameters(self):
@@ -587,20 +550,12 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        parameters = [{
-            'name': gen_string('alpha'), 'value': gen_string('alpha')
-        }]
+        parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
-            host_parameters_attributes=parameters,
+            organization=self.org, location=self.loc, host_parameters_attributes=parameters
         ).create()
-        self.assertEqual(
-            host.host_parameters_attributes[0]['name'], parameters[0]['name'])
-        self.assertEqual(
-            host.host_parameters_attributes[0]['value'],
-            parameters[0]['value']
-        )
+        self.assertEqual(host.host_parameters_attributes[0]['name'], parameters[0]['name'])
+        self.assertEqual(host.host_parameters_attributes[0]['value'], parameters[0]['value'])
         self.assertIn('id', host.host_parameters_attributes[0])
 
     @tier2
@@ -672,10 +627,7 @@ class HostTestCase(APITestCase):
             with self.subTest(new_name):
                 host.name = new_name
                 host = host.update(['name'])
-                self.assertEqual(
-                    host.name,
-                    '{0}.{1}'.format(new_name, host.domain.read().name)
-                )
+                self.assertEqual(host.name, '{0}.{1}'.format(new_name, host.domain.read().name))
 
     @tier1
     def test_positive_update_mac(self):
@@ -705,8 +657,7 @@ class HostTestCase(APITestCase):
         """
         host = entities.Host().create()
         new_domain = entities.Domain(
-            location=[host.location],
-            organization=[host.organization],
+            location=[host.location], organization=[host.organization]
         ).create()
         host.domain = new_domain
         host = host.update(['domain'])
@@ -724,8 +675,7 @@ class HostTestCase(APITestCase):
         """
         host = entities.Host().create()
         new_env = entities.Environment(
-            location=[host.location],
-            organization=[host.organization],
+            location=[host.location], organization=[host.organization]
         ).create()
         host.environment = new_env
         host = host.update(['environment'])
@@ -742,9 +692,7 @@ class HostTestCase(APITestCase):
         :CaseLevel: Integration
         """
         host = entities.Host().create()
-        new_arch = entities.Architecture(
-            operatingsystem=[host.operatingsystem],
-        ).create()
+        new_arch = entities.Architecture(operatingsystem=[host.operatingsystem]).create()
         host.architecture = new_arch
         host = host.update(['architecture'])
         self.assertEqual(host.architecture.read().name, new_arch.name)
@@ -761,8 +709,7 @@ class HostTestCase(APITestCase):
         """
         host = entities.Host().create()
         new_os = entities.OperatingSystem(
-            architecture=[host.architecture],
-            ptable=[host.ptable],
+            architecture=[host.architecture], ptable=[host.ptable]
         ).create()
         medium = entities.Media(id=host.medium.id).read()
         medium.operatingsystem.append(new_os)
@@ -826,10 +773,7 @@ class HostTestCase(APITestCase):
         content_view = content_view.read()
         promote(content_view.version[0], environment_id=lce.id)
         loc = entities.Location(organization=[org]).create()
-        hostgroup = entities.HostGroup(
-            location=[loc],
-            organization=[org],
-        ).create()
+        hostgroup = entities.HostGroup(location=[loc], organization=[org]).create()
         host = entities.Host(
             hostgroup=hostgroup,
             location=loc,
@@ -840,8 +784,7 @@ class HostTestCase(APITestCase):
             },
         ).create()
         new_hostgroup = entities.HostGroup(
-            location=[host.location],
-            organization=[host.organization],
+            location=[host.location], organization=[host.organization]
         ).create()
         host.hostgroup = new_hostgroup
         host.content_facet_attributes = {
@@ -862,9 +805,9 @@ class HostTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host = entities.Host().create()
-        new_proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        new_proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         host.puppet_proxy = new_proxy
         host = host.update(['puppet_proxy'])
         self.assertEqual(host.puppet_proxy.read().name, new_proxy.name)
@@ -880,9 +823,9 @@ class HostTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host = entities.Host().create()
-        new_proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        new_proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         host.puppet_ca_proxy = new_proxy
         host = host.update(['puppet_ca_proxy'])
         self.assertEqual(host.puppet_ca_proxy.read().name, new_proxy.name)
@@ -904,7 +847,7 @@ class HostTestCase(APITestCase):
         host = host.update(['environment', 'puppetclass'])
         self.assertEqual(
             {puppet_class.id for puppet_class in host.puppetclass},
-            {puppet_class.id for puppet_class in self.puppet_classes}
+            {puppet_class.id for puppet_class in self.puppet_classes},
         )
 
     @tier2
@@ -919,19 +862,9 @@ class HostTestCase(APITestCase):
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-        old_subnet = entities.Subnet(
-            location=[loc],
-            organization=[org],
-        ).create()
-        host = entities.Host(
-            location=loc,
-            organization=org,
-            subnet=old_subnet,
-        ).create()
-        new_subnet = entities.Subnet(
-            location=[loc],
-            organization=[org],
-        ).create()
+        old_subnet = entities.Subnet(location=[loc], organization=[org]).create()
+        host = entities.Host(location=loc, organization=org, subnet=old_subnet).create()
+        new_subnet = entities.Subnet(location=[loc], organization=[org]).create()
         host.subnet = new_subnet
         host = host.update(['subnet'])
         self.assertEqual(host.subnet.read().name, new_subnet.name)
@@ -949,22 +882,17 @@ class HostTestCase(APITestCase):
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         compute_resource = entities.LibvirtComputeResource(
-            location=[loc],
-            organization=[org],
+            location=[loc], organization=[org]
         ).create()
         host = entities.Host(
-            compute_resource=compute_resource,
-            location=loc,
-            organization=org,
+            compute_resource=compute_resource, location=loc, organization=org
         ).create()
         new_compresource = entities.LibvirtComputeResource(
-            location=[host.location],
-            organization=[host.organization],
+            location=[host.location], organization=[host.organization]
         ).create()
         host.compute_resource = new_compresource
         host = host.update(['compute_resource'])
-        self.assertEqual(
-            host.compute_resource.read().name, new_compresource.name)
+        self.assertEqual(host.compute_resource.read().name, new_compresource.name)
 
     @tier2
     def test_positive_update_model(self):
@@ -992,16 +920,11 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        user = entities.User(
-            organization=[self.org], location=[self.loc]).create()
+        user = entities.User(organization=[self.org], location=[self.loc]).create()
         host = entities.Host(
-            owner=user,
-            owner_type='User',
-            organization=self.org,
-            location=self.loc,
+            owner=user, owner_type='User', organization=self.org, location=self.loc
         ).create()
-        new_user = entities.User(
-            organization=[self.org], location=[self.loc]).create()
+        new_user = entities.User(organization=[self.org], location=[self.loc]).create()
         host.owner = new_user
         host = host.update(['owner'])
         self.assertEqual(host.owner.read(), new_user)
@@ -1019,25 +942,12 @@ class HostTestCase(APITestCase):
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         role = entities.Role().create()
-        user = entities.User(
-            location=[loc],
-            organization=[org],
-            role=[role],
-        ).create()
-        usergroup = entities.UserGroup(
-            role=[role],
-            user=[user],
-        ).create()
+        user = entities.User(location=[loc], organization=[org], role=[role]).create()
+        usergroup = entities.UserGroup(role=[role], user=[user]).create()
         host = entities.Host(
-            location=loc,
-            organization=org,
-            owner=usergroup,
-            owner_type='Usergroup',
+            location=loc, organization=org, owner=usergroup, owner_type='Usergroup'
         ).create()
-        new_usergroup = entities.UserGroup(
-            role=[role],
-            user=[user],
-        ).create()
+        new_usergroup = entities.UserGroup(role=[role], user=[user]).create()
         host.owner = new_usergroup
         host = host.update(['owner'])
         self.assertEqual(host.owner.read().name, new_usergroup.name)
@@ -1127,9 +1037,7 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        host = entities.Host(
-            compute_profile=entities.ComputeProfile().create(),
-        ).create()
+        host = entities.Host(compute_profile=entities.ComputeProfile().create()).create()
         new_cprofile = entities.ComputeProfile().create()
         host.compute_profile = new_cprofile
         host = host.update(['compute_profile'])
@@ -1152,12 +1060,8 @@ class HostTestCase(APITestCase):
             'lifecycle_environment_id': self.lce.id,
         }
         host = host.update(['content_facet_attributes'])
-        self.assertEqual(
-            host.content_facet_attributes['content_view_id'], self.cv.id)
-        self.assertEqual(
-            host.content_facet_attributes['lifecycle_environment_id'],
-            self.lce.id
-        )
+        self.assertEqual(host.content_facet_attributes['content_view_id'], self.cv.id)
+        self.assertEqual(host.content_facet_attributes['lifecycle_environment_id'], self.lce.id)
 
     @tier1
     def test_positive_update_host_parameters(self):
@@ -1169,19 +1073,13 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        parameters = [{
-            'name': gen_string('alpha'), 'value': gen_string('alpha')
-        }]
+        parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
         host = entities.Host(organization=self.org, location=self.loc).create()
         self.assertEqual(host.host_parameters_attributes, [])
         host.host_parameters_attributes = parameters
         host = host.update(['host_parameters_attributes'])
-        self.assertEqual(
-            host.host_parameters_attributes[0]['name'], parameters[0]['name'])
-        self.assertEqual(
-            host.host_parameters_attributes[0]['value'],
-            parameters[0]['value']
-        )
+        self.assertEqual(host.host_parameters_attributes[0]['name'], parameters[0]['name'])
+        self.assertEqual(host.host_parameters_attributes[0]['value'], parameters[0]['value'])
         self.assertIn('id', host.host_parameters_attributes[0])
 
     @tier2
@@ -1196,9 +1094,7 @@ class HostTestCase(APITestCase):
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
-            compute_resource=self.compresource_libvirt,
+            organization=self.org, location=self.loc, compute_resource=self.compresource_libvirt
         ).create()
         self.assertIsNone(host.image)
         host.image = self.image
@@ -1222,9 +1118,7 @@ class HostTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     host.update(['name'])
                 self.assertNotEqual(
-                    host.read().name,
-                    u'{0}.{1}'
-                    .format(new_name, host.domain.read().name).lower()
+                    host.read().name, u'{0}.{1}'.format(new_name, host.domain.read().name).lower()
                 )
 
     @tier1
@@ -1261,8 +1155,7 @@ class HostTestCase(APITestCase):
         host.architecture = new_arch
         with self.assertRaises(HTTPError):
             host = host.update(['architecture'])
-        self.assertNotEqual(
-            host.read().architecture.read().name, new_arch.name)
+        self.assertNotEqual(host.read().architecture.read().name, new_arch.name)
 
     @tier2
     def test_negative_update_os(self):
@@ -1277,14 +1170,12 @@ class HostTestCase(APITestCase):
         """
         host = entities.Host().create()
         new_os = entities.OperatingSystem(
-            architecture=[host.architecture],
-            ptable=[host.ptable],
+            architecture=[host.architecture], ptable=[host.ptable]
         ).create()
         host.operatingsystem = new_os
         with self.assertRaises(HTTPError):
             host = host.update(['operatingsystem'])
-        self.assertNotEqual(
-            host.read().operatingsystem.read().name, new_os.name)
+        self.assertNotEqual(host.read().operatingsystem.read().name, new_os.name)
 
     @tier3
     def test_positive_read_content_source_id(self):
@@ -1302,9 +1193,11 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        proxy = entities.SmartProxy().search(
-            query={'url': 'https://{0}:9090'.format(settings.server.hostname)}
-        )[0].read()
+        proxy = (
+            entities.SmartProxy()
+            .search(query={'url': 'https://{0}:9090'.format(settings.server.hostname)})[0]
+            .read()
+        )
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         content_view = entities.ContentView(organization=self.org).create()
         content_view.publish()
@@ -1317,7 +1210,7 @@ class HostTestCase(APITestCase):
                 'content_source_id': proxy.id,
                 'content_view_id': content_view.id,
                 'lifecycle_environment_id': lce.id,
-            }
+            },
         ).create()
         content_facet_attributes = getattr(host, 'content_facet_attributes')
         self.assertIsNotNone(content_facet_attributes)
@@ -1341,8 +1234,9 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        proxy = entities.SmartProxy().search(query={
-            'url': 'https://{0}:9090'.format(settings.server.hostname)})[0]
+        proxy = entities.SmartProxy().search(
+            query={'url': 'https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         content_view = entities.ContentView(organization=self.org).create()
         content_view.publish()
@@ -1354,7 +1248,7 @@ class HostTestCase(APITestCase):
             content_facet_attributes={
                 'content_view_id': content_view.id,
                 'lifecycle_environment_id': lce.id,
-            }
+            },
         ).create()
         host.content_facet_attributes['content_source_id'] = proxy.id
         # we need to ensure that content_source_id is returned by PUT request,
@@ -1386,8 +1280,7 @@ class HostTestCase(APITestCase):
         host_parameters_attributes = []
         for _ in range(2):
             host_parameters_attributes.append(
-                dict(name=gen_string('alpha'),
-                     value=gen_string('alphanumeric'))
+                dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
             )
         host = entities.Host(
             organization=self.org,
@@ -1398,41 +1291,23 @@ class HostTestCase(APITestCase):
                 'content_view_id': self.cv.id,
                 'lifecycle_environment_id': self.lce.id,
             },
-            host_parameters_attributes=host_parameters_attributes
+            host_parameters_attributes=host_parameters_attributes,
         ).create()
         host_enc_info = host.enc()
         self.assertEqual(
             {puppet_class.name for puppet_class in self.puppet_classes},
-            set(host_enc_info['data']['classes'])
+            set(host_enc_info['data']['classes']),
         )
-        self.assertEqual(
-            host_enc_info['data']['environment'],
-            self.env.name
-        )
+        self.assertEqual(host_enc_info['data']['environment'], self.env.name)
         self.assertIn('parameters', host_enc_info['data'])
         host_enc_parameters = host_enc_info['data']['parameters']
-        self.assertEqual(
-            host_enc_parameters['organization'],
-            self.org.name
-        )
-        self.assertEqual(
-            host_enc_parameters['location'],
-            self.loc.name
-        )
-        self.assertEqual(
-            host_enc_parameters['content_view'],
-            self.cv.name
-        )
-        self.assertEqual(
-            host_enc_parameters['lifecycle_environment'],
-            self.lce.name
-        )
+        self.assertEqual(host_enc_parameters['organization'], self.org.name)
+        self.assertEqual(host_enc_parameters['location'], self.loc.name)
+        self.assertEqual(host_enc_parameters['content_view'], self.cv.name)
+        self.assertEqual(host_enc_parameters['lifecycle_environment'], self.lce.name)
         for param in host_parameters_attributes:
             self.assertIn(param['name'], host_enc_parameters)
-            self.assertEqual(
-                host_enc_parameters[param['name']],
-                param['value']
-            )
+            self.assertEqual(host_enc_parameters[param['name']], param['value'])
 
     @tier2
     @stubbed()
@@ -1673,9 +1548,9 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         host = entities.Host(puppet_proxy=proxy).create().read_json()
         self.assertIn('puppet_proxy_name', host)
         self.assertEqual(proxy.name, host['puppet_proxy_name'])
@@ -1693,9 +1568,9 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
         host = entities.Host(puppet_ca_proxy=proxy).create().read_json()
         self.assertIn('puppet_ca_proxy_name', host)
         self.assertEqual(proxy.name, host['puppet_ca_proxy_name'])
@@ -1718,8 +1593,7 @@ class HostTestCase(APITestCase):
         host = entities.Host().create()
         # adding org id as GET parameter for correspondence with BZ
         query = entities.Host()
-        query._meta['api_path'] += '?organization_id={}'.format(
-            host.organization.id)
+        query._meta['api_path'] += '?organization_id={}'.format(host.organization.id)
         results = query.search()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].id, host.id)
@@ -1747,8 +1621,7 @@ class HostInterfaceTestCase(APITestCase):
         """
         for name in valid_interfaces_list():
             with self.subTest(name):
-                interface = entities.Interface(
-                    host=self.host, name=name).create()
+                interface = entities.Interface(host=self.host, name=name).create()
                 self.assertEqual(interface.name, name)
 
     @tier1
@@ -1833,8 +1706,7 @@ class HostInterfaceTestCase(APITestCase):
         """
         host = entities.Host().create()
         primary_interface = next(
-            interface for interface in host.interface
-            if interface.read().primary
+            interface for interface in host.interface if interface.read().primary
         )
         with self.assertRaises(HTTPError):
             primary_interface.delete()

@@ -58,10 +58,7 @@ def _format_commands_diff(commands_diff):
     for key, value in sorted(commands_diff.items()):
         if key == 'hammer':
             continue
-        output.write('{}{}\n'.format(
-            key,
-            ' (new command)' if value['added_command'] else ''
-        ))
+        output.write('{}{}\n'.format(key, ' (new command)' if value['added_command'] else ''))
         if value.get('added_subcommands'):
             output.write('  Added subcommands:\n')
             for subcommand in value.get('added_subcommands'):
@@ -89,6 +86,7 @@ class HammerCommandsTestCase(CLITestCase):
     are present.
 
     """
+
     def __init__(self, *args, **kwargs):
         super(HammerCommandsTestCase, self).__init__(*args, **kwargs)
         self.differences = {}
@@ -98,31 +96,24 @@ class HammerCommandsTestCase(CLITestCase):
         options are present.
 
         """
-        raw_output = ssh.command(
-            'hammer full-help', output_format='plain').stdout
+        raw_output = ssh.command('hammer full-help', output_format='plain').stdout
         commands = re.split('.*\n(?=hammer.*\n^[-]+)', raw_output, flags=re.M)
         commands.pop(0)  # remove "Hammer CLI help" line
         for raw_command in commands:
             raw_command = raw_command.splitlines()
             command = raw_command.pop(0).replace(' >', '')
             output = hammer.parse_help(raw_command)
-            command_options = set([
-                option['name'] for option in output['options']])
-            command_subcommands = set(
-                [subcommand['name'] for subcommand in output['subcommands']]
-            )
+            command_options = set([option['name'] for option in output['options']])
+            command_subcommands = set([subcommand['name'] for subcommand in output['subcommands']])
             expected = _fetch_command_info(command)
             expected_options = set()
             expected_subcommands = set()
 
             if expected is not None:
-                expected_options = set(
-                    [option['name'] for option in expected['options']]
+                expected_options = set([option['name'] for option in expected['options']])
+                expected_subcommands = set(
+                    [subcommand['name'] for subcommand in expected['subcommands']]
                 )
-                expected_subcommands = set([
-                    subcommand['name']
-                    for subcommand in expected['subcommands']
-                ])
             if is_open('BZ:1666687'):
                 cmds = ['hammer report-template create', 'hammer report-template update']
                 if command in cmds:
@@ -131,16 +122,11 @@ class HammerCommandsTestCase(CLITestCase):
                     command_options.add('output')
             added_options = tuple(command_options - expected_options)
             removed_options = tuple(expected_options - command_options)
-            added_subcommands = tuple(
-                command_subcommands - expected_subcommands)
-            removed_subcommands = tuple(
-                expected_subcommands - command_subcommands)
+            added_subcommands = tuple(command_subcommands - expected_subcommands)
+            removed_subcommands = tuple(expected_subcommands - command_subcommands)
 
-            if (added_options or added_subcommands or removed_options or
-                    removed_subcommands):
-                diff = {
-                    'added_command': expected is None,
-                }
+            if added_options or added_subcommands or removed_options or removed_subcommands:
+                diff = {'added_command': expected is None}
                 if added_options:
                     diff['added_options'] = added_options
                 if removed_options:
@@ -165,13 +151,12 @@ class HammerCommandsTestCase(CLITestCase):
         self.maxDiff = None
         self._traverse_command_tree()
         if self.differences:
-            self.fail(
-                '\n' + _format_commands_diff(self.differences)
-            )
+            self.fail('\n' + _format_commands_diff(self.differences))
 
 
 class HammerTestCase(CLITestCase):
     """Tests related to hammer sub options. """
+
     @tier1
     @upgrade
     @run_in_one_thread
@@ -193,15 +178,9 @@ class HammerTestCase(CLITestCase):
         """
         default_org = make_org()
         default_product_name = gen_string('alpha')
-        make_product({
-            u'name': default_product_name,
-            u'organization-id': default_org['id']
-        })
+        make_product({u'name': default_product_name, u'organization-id': default_org['id']})
         try:
-            Defaults.add({
-                u'param-name': 'organization_id',
-                u'param-value': default_org['id'],
-            })
+            Defaults.add({u'param-name': 'organization_id', u'param-value': default_org['id']})
             # Verify --organization-id is not required to pass if defaults are set
             result = ssh.command('hammer product list')
             self.assertEqual(result.return_code, 0)

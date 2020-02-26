@@ -31,42 +31,15 @@ from robottelo.test import APITestCase
 def _valid_sc_parameters_data():
     """Returns a list of valid smart class parameter types and values"""
     return [
-        {
-            u'sc_type': 'string',
-            u'value': '\u6120\U000201fc\u3a07\U0002b2cf\u45b9\u7d3c\U00026dea',
-        },
-        {
-            u'sc_type': 'boolean',
-            u'value': '1',
-        },
-        {
-            u'sc_type': 'boolean',
-            u'value': '0',
-        },
-        {
-            u'sc_type': 'integer',
-            u'value': 4541321256269544184,
-        },
-        {
-            u'sc_type': 'real',
-            u'value': -123.0,
-        },
-        {
-            u'sc_type': 'array',
-            u'value': "['JkKAxzCvIw', '343532124', 'False']"
-        },
-        {
-            u'sc_type': 'hash',
-            u'value': '{"SAEasshgd": "ASDFDdsss"}'
-        },
-        {
-            u'sc_type': 'yaml',
-            u'value': 'name=>XYZ',
-        },
-        {
-            u'sc_type': 'json',
-            u'value': '{"name": "XYZ"}',
-        },
+        {u'sc_type': 'string', u'value': '\u6120\U000201fc\u3a07\U0002b2cf\u45b9\u7d3c\U00026dea'},
+        {u'sc_type': 'boolean', u'value': '1'},
+        {u'sc_type': 'boolean', u'value': '0'},
+        {u'sc_type': 'integer', u'value': 4541321256269544184},
+        {u'sc_type': 'real', u'value': -123.0},
+        {u'sc_type': 'array', u'value': "['JkKAxzCvIw', '343532124', 'False']"},
+        {u'sc_type': 'hash', u'value': '{"SAEasshgd": "ASDFDdsss"}'},
+        {u'sc_type': 'yaml', u'value': 'name=>XYZ'},
+        {u'sc_type': 'json', u'value': '{"name": "XYZ"}'},
     ]
 
 
@@ -92,26 +65,25 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
         Read all available smart class parameters for imported puppet class to
         be able to work with unique entity for each specific test.
         """
-        self.puppet_modules = [
-            {'author': 'robottelo', 'name': 'api_test_classparameters'},
-        ]
+        self.puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
         self.org = entities.Organization().create()
-        cv = publish_puppet_module(
-            self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
-        self.env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cv.name)}
-        )[0].read()
-        self.puppet_class = entities.PuppetClass().search(query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
-                self.puppet_modules[0]['name'], self.env.name)
-        })[0]
-        self.sc_params_list = entities.SmartClassParameters().search(
+        cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
+        self.env = (
+            entities.Environment()
+            .search(query={'search': u'content_view="{0}"'.format(cv.name)})[0]
+            .read()
+        )
+        self.puppet_class = entities.PuppetClass().search(
             query={
-                'search': 'puppetclass="{0}"'.format(self.puppet_class.name),
-                'per_page': 1000
-            })
-        scenario_ents = {self.__class__.__name__: {
-            'puppet_class': self.puppet_class.name}}
+                'search': u'name = "{0}" and environment = "{1}"'.format(
+                    self.puppet_modules[0]['name'], self.env.name
+                )
+            }
+        )[0]
+        self.sc_params_list = entities.SmartClassParameters().search(
+            query={'search': 'puppetclass="{0}"'.format(self.puppet_class.name), 'per_page': 1000}
+        )
+        scenario_ents = {self.__class__.__name__: {'puppet_class': self.puppet_class.name}}
         create_dict(scenario_ents)
 
     def _validate_value(self, data, sc_param):
@@ -122,19 +94,15 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
         :param sc_param: The Actual Value of parameter
         """
         if data['sc_type'] == 'boolean':
-            self.assertEqual(
-                sc_param.default_value,
-                True if data['value'] == '1' else False
-            )
+            self.assertEqual(sc_param.default_value, True if data['value'] == '1' else False)
         elif data['sc_type'] == 'array':
-            string_list = [
-                str(element) for element in sc_param.default_value]
+            string_list = [str(element) for element in sc_param.default_value]
             self.assertEqual(str(string_list), data['value'])
         elif data['sc_type'] in ('json', 'hash'):
             self.assertEqual(
                 sc_param.default_value,
                 # convert string to dict
-                json.loads(data['value'])
+                json.loads(data['value']),
             )
         else:
             self.assertEqual(sc_param.default_value, data['value'])
@@ -154,16 +122,14 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
         self.setupScenario()
         for count in range(1, 10):
             with self.subTest(count):
-                data = _valid_sc_parameters_data()[count-1]
-                sc_param = entities.SmartClassParameters().search(query={
-                  'search': 'parameter="api_classparameters_scp_00{}"'.format(
-                        count)})[0]
+                data = _valid_sc_parameters_data()[count - 1]
+                sc_param = entities.SmartClassParameters().search(
+                    query={'search': 'parameter="api_classparameters_scp_00{}"'.format(count)}
+                )[0]
                 sc_param.override = True
                 sc_param.parameter_type = data['sc_type']
                 sc_param.default_value = data['value']
-                sc_param.update(
-                    ['override', 'parameter_type', 'default_value']
-                )
+                sc_param.update(['override', 'parameter_type', 'default_value'])
                 sc_param = sc_param.read()
                 self.assertEqual(sc_param.parameter_type, data['sc_type'])
                 self._validate_value(data, sc_param)
@@ -179,10 +145,10 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
         """
         for count in range(1, 10):
             with self.subTest(count):
-                data = _valid_sc_parameters_data()[count-1]
-                sc_param = entities.SmartClassParameters().search(query={
-                   'search': 'parameter="api_classparameters_scp_00{}"'.format(
-                        count)})[0]
+                data = _valid_sc_parameters_data()[count - 1]
+                sc_param = entities.SmartClassParameters().search(
+                    query={'search': 'parameter="api_classparameters_scp_00{}"'.format(count)}
+                )[0]
                 self.assertEqual(sc_param.parameter_type, data['sc_type'])
                 self._validate_value(data, sc_param)
         puppet_class = get_entity_data(self.__class__.__name__)['puppet_class']

@@ -57,10 +57,8 @@ def module_org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
-            name='remote_execution_connect_by_ip',
-            value='Yes',
-            organization=org.id
-        ).create()
+        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+    ).create()
     return org
 
 
@@ -82,23 +80,18 @@ def module_repos_collection(module_org, module_lce):
             SatelliteToolsRepository(),
             YumRepository(url=FAKE_1_YUM_REPO),
             YumRepository(url=FAKE_6_YUM_REPO),
-        ]
+        ],
     )
-    repos_collection.setup_content(
-        module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection
 
 
 @fixture(scope='module')
 def module_repos_collection_module_stream(module_org, module_lce):
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8,
-        repositories=[
-            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)
-        ]
+        distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
     )
-    repos_collection.setup_content(
-        module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection
 
 
@@ -122,13 +115,15 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
         clients = [client1, client2]
         for client in clients:
             module_repos_collection_module_stream.setup_virtual_machine(
-                client,
-                install_katello_agent=False
+                client, install_katello_agent=False
             )
             add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)
-        smart_proxy = entities.SmartProxy().search(
-            query={'search': 'name={0}'.format(settings.server.hostname)})[0].read()
+        smart_proxy = (
+            entities.SmartProxy()
+            .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+            .read()
+        )
         smart_proxy.location.append(entities.Location(id=module_loc.id))
         smart_proxy.update(['location'])
         yield clients
@@ -137,28 +132,20 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
 @fixture
 def vm_host_collection(module_org, vm_content_hosts):
     host_ids = [
-        entities.Host().search(query={
-            'search': 'name={0}'.format(host.hostname)})[0].id
+        entities.Host().search(query={'search': 'name={0}'.format(host.hostname)})[0].id
         for host in vm_content_hosts
     ]
-    host_collection = entities.HostCollection(
-        host=host_ids,
-        organization=module_org,
-    ).create()
+    host_collection = entities.HostCollection(host=host_ids, organization=module_org).create()
     return host_collection
 
 
 @fixture
 def vm_host_collection_module_stream(module_org, vm_content_hosts_module_stream):
     host_ids = [
-        entities.Host().search(query={
-            'search': 'name={0}'.format(host.hostname)})[0].id
+        entities.Host().search(query={'search': 'name={0}'.format(host.hostname)})[0].id
         for host in vm_content_hosts_module_stream
     ]
-    host_collection = entities.HostCollection(
-        host=host_ids,
-        organization=module_org,
-    ).create()
+    host_collection = entities.HostCollection(host=host_ids, organization=module_org).create()
     return host_collection
 
 
@@ -170,8 +157,8 @@ def _run_remote_command_on_content_hosts(command, vm_clients):
 
 
 def _is_package_installed(
-        vm_clients, package_name, expect_installed=True, retries=10,
-        iteration_sleep=15):
+    vm_clients, package_name, expect_installed=True, retries=10, iteration_sleep=15
+):
     """Check whether package name was installed on the list of Virtual Machines
     clients.
     """
@@ -181,8 +168,7 @@ def _is_package_installed(
         installed = len(vm_clients)
     for vm_client in vm_clients:
         for ind in range(retries):
-            result = vm_client.run(
-                'rpm -q {0}'.format(package_name))
+            result = vm_client.run('rpm -q {0}'.format(package_name))
             if result.return_code == 0 and expect_installed:
                 installed += 1
                 break
@@ -203,8 +189,7 @@ def _is_package_installed(
 def _install_package_with_assertion(vm_clients, package_name):
     """Install package in Virtual machine clients and assert installed"""
     for client in vm_clients:
-        result = client.run(
-            'yum install -y {0}'.format(package_name))
+        result = client.run('yum install -y {0}'.format(package_name))
         assert result.return_code == 0
     assert _is_package_installed(vm_clients, package_name)
 
@@ -235,14 +220,16 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
     # Note: if sat-tools is not cdn it must be already in repos_urls
     for repo in repos_collection:
         if isinstance(repo, SatelliteToolsRepository) and repo.cdn:
-            repos_urls.append(rh_sat_tools_url_template.format(
-                hostname=settings.server.hostname,
-                org_label=repos_collection.organization['label'],
-                lce=lce,
-                content_view=content_view,
-                major_version=repo.distro_major_version,
-                product_version=repo.repo_data['version'],
-            ))
+            repos_urls.append(
+                rh_sat_tools_url_template.format(
+                    hostname=settings.server.hostname,
+                    org_label=repos_collection.organization['label'],
+                    lce=lce,
+                    content_view=content_view,
+                    major_version=repo.distro_major_version,
+                    product_version=repo.repo_data['version'],
+                )
+            )
     return repos_urls
 
 
@@ -262,16 +249,12 @@ def test_positive_end_to_end(session, module_org, module_loc):
     hc_name = gen_string('alpha')
     new_name = gen_string('alpha')
     description = gen_string('alpha')
-    host = entities.Host(
-        organization=module_org, location=module_loc).create()
+    host = entities.Host(organization=module_org, location=module_loc).create()
     with session:
         # Create new host collection
-        session.hostcollection.create({
-            'name': hc_name,
-            'unlimited_hosts': False,
-            'max_hosts': 2,
-            'description': description
-        })
+        session.hostcollection.create(
+            {'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 2, 'description': description}
+        )
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)
         hc_values = session.hostcollection.read(hc_name, widget_names=['details', 'hosts'])
@@ -283,8 +266,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
         # View host collection on dashboard
         values = session.dashboard.read('HostCollections')
-        assert [hc_name, '1'] in [[coll['Name'], coll['Content Hosts']]
-                                  for coll in values['collections']]
+        assert [hc_name, '1'] in [
+            [coll['Name'], coll['Content Hosts']] for coll in values['collections']
+        ]
 
         # Update host collection with new name
         session.hostcollection.update(hc_name, {'details.name': new_name})
@@ -310,24 +294,23 @@ def test_negative_install_via_remote_execution(session, module_org, module_loc):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(
-            organization=module_org, location=module_loc).create())
+        hosts.append(entities.Host(organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
-        host=[host.id for host in hosts],
-        organization=module_org,
+        host=[host.id for host in hosts], organization=module_org
     ).create()
     with session:
         job_values = session.hostcollection.manage_packages(
             host_collection.name,
             packages=FAKE_0_CUSTOM_PACKAGE_NAME,
             action='install',
-            action_via='via remote execution'
+            action_via='via remote execution',
         )
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
         assert int(job_values['total_hosts']) == len(hosts)
-        assert ({host.name for host in hosts}
-                == {host['Host'] for host in job_values['hosts_table']})
+        assert {host.name for host in hosts} == {
+            host['Host'] for host in job_values['hosts_table']
+        }
 
 
 @tier2
@@ -346,11 +329,9 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(
-            organization=module_org, location=module_loc).create())
+        hosts.append(entities.Host(organization=module_org, location=module_loc).create())
     host_collection = entities.HostCollection(
-        host=[host.id for host in hosts],
-        organization=module_org,
+        host=[host.id for host in hosts], organization=module_org
     ).create()
     with session:
         job_values = session.hostcollection.manage_packages(
@@ -362,8 +343,9 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
         assert int(job_values['total_hosts']) == len(hosts)
-        assert ({host.name for host in hosts}
-                == {host['Host'] for host in job_values['hosts_table']})
+        assert {host.name for host in hosts} == {
+            host['Host'] for host in job_values['hosts_table']
+        }
 
 
 @upgrade
@@ -387,10 +369,7 @@ def test_positive_add_host(session):
     host = entities.Host(
         organization=org,
         location=loc,
-        content_facet_attributes={
-            'content_view_id': cv.id,
-            'lifecycle_environment_id': lce.id,
-        },
+        content_facet_attributes={'content_view_id': cv.id, 'lifecycle_environment_id': lce.id},
     ).create()
     with session:
         session.organization.select(org_name=org.name)
@@ -399,15 +378,12 @@ def test_positive_add_host(session):
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, host.name)
         hc_values = session.hostcollection.read(hc_name, widget_names='hosts')
-        assert (
-            hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
-        )
+        assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
 
 
 @tier3
 @upgrade
-def test_positive_install_package(
-        session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_install_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Install a package to hosts inside host collection remotely
 
     :id: eead8392-0ffc-4062-b045-5d0252670775
@@ -420,18 +396,14 @@ def test_positive_install_package(
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
-            vm_host_collection.name,
-            packages=FAKE_0_CUSTOM_PACKAGE_NAME,
-            action='install'
+            vm_host_collection.name, packages=FAKE_0_CUSTOM_PACKAGE_NAME, action='install'
         )
-        assert _is_package_installed(
-            vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
+        assert _is_package_installed(vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
 
 @tier3
 @upgrade
-def test_positive_remove_package(
-        session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Remove a package from hosts inside host collection remotely
 
     :id: 488fa88d-d0ef-4108-a050-96fb621383df
@@ -445,20 +417,15 @@ def test_positive_remove_package(
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
-            vm_host_collection.name,
-            packages=FAKE_0_CUSTOM_PACKAGE_NAME,
-            action='remove'
+            vm_host_collection.name, packages=FAKE_0_CUSTOM_PACKAGE_NAME, action='remove'
         )
         assert not _is_package_installed(
-            vm_content_hosts,
-            FAKE_0_CUSTOM_PACKAGE_NAME,
-            expect_installed=False
+            vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME, expect_installed=False
         )
 
 
 @tier3
-def test_positive_upgrade_package(
-        session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Upgrade a package on hosts inside host collection remotely
 
     :id: 5a6fff0a-686f-419b-a773-4d03713e47e9
@@ -472,17 +439,14 @@ def test_positive_upgrade_package(
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
-            vm_host_collection.name,
-            packages=FAKE_1_CUSTOM_PACKAGE_NAME,
-            action='update'
+            vm_host_collection.name, packages=FAKE_1_CUSTOM_PACKAGE_NAME, action='update'
         )
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
 @tier3
 @upgrade
-def test_positive_install_package_group(
-        session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_install_package_group(session, module_org, vm_content_hosts, vm_host_collection):
     """Install a package group to hosts inside host collection remotely
 
     :id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
@@ -505,8 +469,7 @@ def test_positive_install_package_group(
 
 
 @tier3
-def test_positive_remove_package_group(
-        session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm_host_collection):
     """Remove a package group from hosts inside host collection remotely
 
     :id: 458897dc-9836-481a-b777-b147d64836f2
@@ -517,8 +480,7 @@ def test_positive_remove_package_group(
     :CaseLevel: System
     """
     for client in vm_content_hosts:
-        result = client.run('yum groups install -y {0}'.format(
-            FAKE_0_CUSTOM_PACKAGE_GROUP_NAME))
+        result = client.run('yum groups install -y {0}'.format(FAKE_0_CUSTOM_PACKAGE_GROUP_NAME))
         assert result.return_code == 0
     for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
         assert _is_package_installed(vm_content_hosts, package)
@@ -531,17 +493,12 @@ def test_positive_remove_package_group(
             action='remove',
         )
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            assert not _is_package_installed(
-                vm_content_hosts,
-                package,
-                expect_installed=False
-            )
+            assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
 
 
 @tier3
 @upgrade
-def test_positive_install_errata(
-        session, module_org, vm_content_hosts, vm_host_collection):
+def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_collection):
     """Install an errata to the hosts inside host collection remotely
 
     :id: 69c83000-0b46-4735-8c03-e9e0b48af0fb
@@ -555,15 +512,16 @@ def test_positive_install_errata(
     with session:
         session.organization.select(org_name=module_org.name)
         task_values = session.hostcollection.install_errata(
-            vm_host_collection.name, FAKE_2_ERRATA_ID)
+            vm_host_collection.name, FAKE_2_ERRATA_ID
+        )
         assert task_values['result'] == 'success'
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
 @tier3
 def test_positive_change_assigned_content(
-        session, module_org, module_lce, vm_content_hosts, vm_host_collection,
-        module_repos_collection):
+    session, module_org, module_lce, vm_content_hosts, vm_host_collection, module_repos_collection
+):
     """Change Assigned Life cycle environment and content view of host
     collection
 
@@ -609,8 +567,7 @@ def test_positive_change_assigned_content(
     """
     new_lce_name = gen_string('alpha')
     new_cv_name = gen_string('alpha')
-    new_lce = entities.LifecycleEnvironment(
-        name=new_lce_name, organization=module_org).create()
+    new_lce = entities.LifecycleEnvironment(name=new_lce_name, organization=module_org).create()
     content_view = entities.ContentView(
         id=module_repos_collection.setup_content_data['content_view']['id']
     ).read()
@@ -627,27 +584,25 @@ def test_positive_change_assigned_content(
     # /{product_name}/{repo_name}
     repo_line_start_with = 'Repo URL:  '
     expected_repo_urls = _get_content_repository_urls(
-        module_repos_collection, module_lce, content_view)
+        module_repos_collection, module_lce, content_view
+    )
     for client in vm_content_hosts:
         result = client.run("subscription-manager repos")
         assert result.return_code == 0
         client_repo_urls = [
-            line.split(' ')[-1]
-            for line in result.stdout
-            if line.startswith(repo_line_start_with)
+            line.split(' ')[-1] for line in result.stdout if line.startswith(repo_line_start_with)
         ]
         assert len(client_repo_urls) > 0
         assert set(expected_repo_urls) == set(client_repo_urls)
     with session:
         session.organization.select(org_name=module_org.name)
         task_values = session.hostcollection.change_assigned_content(
-            vm_host_collection.name,
-            new_lce.name,
-            new_content_view.name
+            vm_host_collection.name, new_lce.name, new_content_view.name
         )
         assert task_values['result'] == 'success'
         expected_repo_urls = _get_content_repository_urls(
-            module_repos_collection, new_lce, new_content_view)
+            module_repos_collection, new_lce, new_content_view
+        )
         for client in vm_content_hosts:
             result = client.run("subscription-manager refresh")
             assert result.return_code == 0
@@ -690,18 +645,19 @@ def test_negative_hosts_limit(session, module_org, module_loc):
     promote(cv.read().version[0], lce.id)
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(
-            organization=module_org,
-            location=module_loc,
-            content_facet_attributes={
-                'content_view_id': cv.id,
-                'lifecycle_environment_id': lce.id,
-            },
-        ).create())
+        hosts.append(
+            entities.Host(
+                organization=module_org,
+                location=module_loc,
+                content_facet_attributes={
+                    'content_view_id': cv.id,
+                    'lifecycle_environment_id': lce.id,
+                },
+            ).create()
+        )
     assert len(hosts) == 2
     with session:
-        session.hostcollection.create({
-            'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 1})
+        session.hostcollection.create({'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 1})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, hosts[0].name)
         with raises(AssertionError) as context:
@@ -714,7 +670,8 @@ def test_negative_hosts_limit(session, module_org, module_loc):
 @tier3
 @upgrade
 def test_positive_install_module_stream(
-        session, vm_content_hosts_module_stream, vm_host_collection_module_stream):
+    session, vm_content_hosts_module_stream, vm_host_collection_module_stream
+):
     """Install a module-stream to hosts inside host collection remotely
 
     :id: e5d882e0-3520-4cb6-8629-ef4c18692868
@@ -733,14 +690,13 @@ def test_positive_install_module_stream(
     """
     with session:
         _run_remote_command_on_content_hosts(
-            'dnf -y upload-profile',
-            vm_content_hosts_module_stream
+            'dnf -y upload-profile', vm_content_hosts_module_stream
         )
         result = session.hostcollection.manage_module_streams(
             vm_host_collection_module_stream.name,
             action_type="Install",
             module_name=FAKE_3_CUSTOM_PACKAGE_NAME,
-            stream_version="0"
+            stream_version="0",
         )
         assert result['overview']['job_status'] == 'Success'
         assert result['overview']['job_status_progress'] == '100%'
@@ -751,7 +707,8 @@ def test_positive_install_module_stream(
 @tier3
 @upgrade
 def test_positive_install_modular_errata(
-        session, vm_content_hosts_module_stream, vm_host_collection_module_stream):
+    session, vm_content_hosts_module_stream, vm_host_collection_module_stream
+):
     """Install Modular Errata generated from module streams.
 
     :id: 8d6fb447-af86-4084-a147-7910f0cecdef
@@ -771,22 +728,18 @@ def test_positive_install_modular_errata(
         stream = "0"
         version = "20180704111719"
         _module_install_command = 'dnf -y module install {}:{}:{}'.format(
-            FAKE_4_CUSTOM_PACKAGE_NAME,
-            stream,
-            version
+            FAKE_4_CUSTOM_PACKAGE_NAME, stream, version
         )
         _run_remote_command_on_content_hosts(
-            _module_install_command,
-            vm_content_hosts_module_stream
+            _module_install_command, vm_content_hosts_module_stream
         )
         _run_remote_command_on_content_hosts(
-            'dnf -y upload-profile',
-            vm_content_hosts_module_stream
+            'dnf -y upload-profile', vm_content_hosts_module_stream
         )
         result = session.hostcollection.install_errata(
             vm_host_collection_module_stream.name,
             FAKE_0_MODULAR_ERRATA_ID,
-            install_via='via remote execution'
+            install_via='via remote execution',
         )
         assert result['job_status'] == 'Success'
         assert result['job_status_progress'] == '100%'

@@ -15,8 +15,7 @@ def test_positive_raised_callable_with_status_code():
     a pure pytest call.
     """
     with pytest.raises(AssertionError):
-        assert_cli_not_raises(
-            CLIReturnCodeError, fake_128_return_code, expected_value=128)
+        assert_cli_not_raises(CLIReturnCodeError, fake_128_return_code, expected_value=128)
 
 
 def test_positive_raised_context_manager_with_status_code():
@@ -35,8 +34,7 @@ def test_negative_wrong_status_code_callable():
     pure pytest call.
     """
     with pytest.raises(CLIReturnCodeError):
-        assert_cli_not_raises(
-            CLIReturnCodeError, fake_128_return_code, expected_value=129)
+        assert_cli_not_raises(CLIReturnCodeError, fake_128_return_code, expected_value=129)
 
 
 def test_negative_wrong_status_code_context_manager():
@@ -61,8 +59,7 @@ def test_regex_positive_raised_callable_with_status_code():
     """
     with pytest.raises(AssertionError):
         assert_cli_not_raises_regex(
-            CLIReturnCodeError, pattern, fake_128_return_code,
-            expected_value=128,
+            CLIReturnCodeError, pattern, fake_128_return_code, expected_value=128
         )
 
 
@@ -73,8 +70,7 @@ def test_regex_positive_raised_context_manager_with_status_code():
     cli_return_code altogether with regex pattern match expected ones.
     """
     with pytest.raises(AssertionError):
-        with assert_cli_not_raises_regex(CLIReturnCodeError, pattern,
-                                         expected_value=128):
+        with assert_cli_not_raises_regex(CLIReturnCodeError, pattern, expected_value=128):
             fake_128_return_code()
 
 
@@ -85,10 +81,7 @@ def test_regex_negative_wrong_status_code_callable():
     """
     with pytest.raises(CLIReturnCodeError):
         assert_cli_not_raises_regex(
-            CLIReturnCodeError,
-            pattern,
-            fake_128_return_code,
-            expected_value=129,
+            CLIReturnCodeError, pattern, fake_128_return_code, expected_value=129
         )
 
 
@@ -98,9 +91,5 @@ def test_regex_negative_wrong_status_code_context_manager():
     `robottelo.cli.assertions.assert_cli_not_raises_regex` block.
     """
     with pytest.raises(CLIReturnCodeError):
-        with assert_cli_not_raises_regex(
-            CLIReturnCodeError,
-            pattern,
-            expected_value=129,
-        ):
+        with assert_cli_not_raises_regex(CLIReturnCodeError, pattern, expected_value=129):
             fake_128_return_code()

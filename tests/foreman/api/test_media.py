@@ -51,10 +51,7 @@ class MediaTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                media = entities.Media(
-                    organization=[self.org],
-                    name=name,
-                ).create()
+                media = entities.Media(organization=[self.org], name=name).create()
                 self.assertEqual(media.name, name)
 
     @tier1
@@ -68,10 +65,7 @@ class MediaTestCase(APITestCase):
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
-                media = entities.Media(
-                    organization=[self.org],
-                    os_family=os_family,
-                ).create()
+                media = entities.Media(organization=[self.org], os_family=os_family).create()
                 self.assertEqual(media.os_family, os_family)
 
     @tier2
@@ -85,10 +79,7 @@ class MediaTestCase(APITestCase):
         :CaseLevel: Integration
         """
         location = entities.Location().create()
-        media = entities.Media(
-            organization=[self.org],
-            location=[location],
-        ).create()
+        media = entities.Media(organization=[self.org], location=[location]).create()
         self.assertEqual(media.location[0].read().name, location.name)
 
     @tier2
@@ -102,10 +93,7 @@ class MediaTestCase(APITestCase):
         :CaseLevel: Integration
         """
         os = entities.OperatingSystem().create()
-        media = entities.Media(
-            organization=[self.org],
-            operatingsystem=[os],
-        ).create()
+        media = entities.Media(organization=[self.org], operatingsystem=[os]).create()
         self.assertEqual(os.read().medium[0].read().name, media.name)
 
     @tier1
@@ -161,8 +149,7 @@ class MediaTestCase(APITestCase):
         media = entities.Media(organization=[self.org]).create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                media = entities.Media(
-                    id=media.id, name=new_name).update(['name'])
+                media = entities.Media(id=media.id, name=new_name).update(['name'])
                 self.assertEqual(media.name, new_name)
 
     @tier2
@@ -192,12 +179,8 @@ class MediaTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
-        media = entities.Media(
-            organization=[self.org],
-            os_family=OPERATING_SYSTEMS[0],
-        ).create()
-        new_os_family = OPERATING_SYSTEMS[
-            random.randint(1, len(OPERATING_SYSTEMS)-1)]
+        media = entities.Media(organization=[self.org], os_family=OPERATING_SYSTEMS[0]).create()
+        new_os_family = OPERATING_SYSTEMS[random.randint(1, len(OPERATING_SYSTEMS) - 1)]
         media.os_family = new_os_family
         self.assertEqual(media.update(['os_family']).os_family, new_os_family)
 
@@ -230,8 +213,7 @@ class MediaTestCase(APITestCase):
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
-            entities.Media(
-                id=media.id, path_='NON_EXISTENT_URL').update(['path_'])
+            entities.Media(id=media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
     @tier1
     def test_negative_update_os_family(self):
@@ -245,8 +227,7 @@ class MediaTestCase(APITestCase):
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
-            entities.Media(
-                id=media.id, os_family='NON_EXISTENT_OS').update(['os_family'])
+            entities.Media(id=media.id, os_family='NON_EXISTENT_OS').update(['os_family'])
 
     @tier1
     @upgrade
@@ -261,10 +242,7 @@ class MediaTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                media = entities.Media(
-                    organization=[self.org],
-                    name=name,
-                ).create()
+                media = entities.Media(organization=[self.org], name=name).create()
                 media.delete()
                 with self.assertRaises(HTTPError):
                     media.read()

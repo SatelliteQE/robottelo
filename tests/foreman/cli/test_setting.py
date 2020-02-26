@@ -62,9 +62,7 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Hostname_prefix should be set without any text
         """
         Settings.set({'name': "discovery_prefix", 'value': ""})
-        discovery_prefix = Settings.list({
-            'search': 'name=discovery_prefix'
-        })[0]
+        discovery_prefix = Settings.list({'search': 'name=discovery_prefix'})[0]
         self.assertEqual('', discovery_prefix['value'])
 
     @tier2
@@ -76,13 +74,8 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Default set prefix should be updated with new value
         """
         hostname_prefix_value = gen_string('alpha')
-        Settings.set({
-            'name': "discovery_prefix",
-            'value': hostname_prefix_value
-        })
-        discovery_prefix = Settings.list({
-            'search': 'name=discovery_prefix'
-        })[0]
+        Settings.set({'name': "discovery_prefix", 'value': hostname_prefix_value})
+        discovery_prefix = Settings.list({'search': 'name=discovery_prefix'})[0]
         self.assertEqual(hostname_prefix_value, discovery_prefix['value'])
 
     @stubbed()
@@ -231,14 +224,11 @@ class SettingTestCase(CLITestCase):
             with self.subTest(email):
                 # The email must be escaped because some characters to not fail
                 # the parsing of the generated shell command
-                escaped_email = email.replace(
-                    '"', r'\"').replace('`', r'\`')
-                Settings.set({
-                    'name': "email_reply_address",
-                    'value': escaped_email})
-                email_reply_address = Settings.list({
-                    'search': 'name=email_reply_address'
-                }, output_format='json')[0]
+                escaped_email = email.replace('"', r'\"').replace('`', r'\`')
+                Settings.set({'name': "email_reply_address", 'value': escaped_email})
+                email_reply_address = Settings.list(
+                    {'search': 'name=email_reply_address'}, output_format='json'
+                )[0]
                 self.assertEqual(email_reply_address['value'], email)
 
     @tier2
@@ -258,10 +248,7 @@ class SettingTestCase(CLITestCase):
         for email in invalid_emails_list():
             with self.subTest(email):
                 with self.assertRaises(CLIReturnCodeError):
-                    Settings.set({
-                        'name': 'email_reply_address',
-                        'value': email
-                    })
+                    Settings.set({'name': 'email_reply_address', 'value': email})
 
     @tier2
     def test_positive_update_email_subject_prefix(self):
@@ -276,17 +263,9 @@ class SettingTestCase(CLITestCase):
         :CaseImportance: Low
         """
         email_subject_prefix_value = gen_string('alpha')
-        Settings.set({
-            'name': "email_subject_prefix",
-            'value': email_subject_prefix_value
-        })
-        email_subject_prefix = Settings.list({
-            'search': 'name=email_subject_prefix'
-        })[0]
-        self.assertEqual(
-            email_subject_prefix_value,
-            email_subject_prefix['value']
-        )
+        Settings.set({'name': "email_subject_prefix", 'value': email_subject_prefix_value})
+        email_subject_prefix = Settings.list({'search': 'name=email_subject_prefix'})[0]
+        self.assertEqual(email_subject_prefix_value, email_subject_prefix['value'])
 
     @stubbed()
     @tier2
@@ -320,8 +299,7 @@ class SettingTestCase(CLITestCase):
         """
         for value in ['true', 'false']:
             Settings.set({'name': 'send_welcome_email', 'value': value})
-            host_value = Settings.list(
-              {'search': 'name=send_welcome_email'})[0]['value']
+            host_value = Settings.list({'search': 'name=send_welcome_email'})[0]['value']
             assert value == host_value
 
     @tier2
@@ -389,20 +367,18 @@ def test_negative_update_send_welcome_email(value):
 @run_in_one_thread
 class BruteForceLogin(CLITestCase):
     """automate brute force protection limit configurable function"""
+
     @classmethod
     def setUpClass(cls):
         super(BruteForceLogin, cls).setUpClass()
-        cls.host_value = Settings.list({
-            'search': 'name=failed_login_attempts_limit'})[0]['value']
+        cls.host_value = Settings.list({'search': 'name=failed_login_attempts_limit'})[0]['value']
 
     @classmethod
     def tearDownClass(cls):
         super(BruteForceLogin, cls).tearDownClass()
         # reset failed_login_attempts_limit value
         sleep(301)
-        Settings.set({
-            u'name': u'failed_login_attempts_limit',
-            u'value': cls.host_value})
+        Settings.set({u'name': u'failed_login_attempts_limit', u'value': cls.host_value})
 
     @pytest.mark.skip_if_open("BZ:1778599")
     @tier3
@@ -431,24 +407,19 @@ class BruteForceLogin(CLITestCase):
          :BZ: 1778599
          """
         result = ssh.command(
-            'hammer -u {0} -p {1} user list'
-            .format(self.foreman_user, self.foreman_password))
+            'hammer -u {0} -p {1} user list'.format(self.foreman_user, self.foreman_password)
+        )
         self.assertEqual(result.return_code, 0)
-        Settings.set({
-            u'name': u'failed_login_attempts_limit',
-            u'value': '5'
-        })
+        Settings.set({u'name': u'failed_login_attempts_limit', u'value': '5'})
         for i in range(5):
-            output = ssh.command(
-                'hammer -u {0} -p BAD_PASS user list'.format(
-                    self.foreman_user))
+            output = ssh.command('hammer -u {0} -p BAD_PASS user list'.format(self.foreman_user))
             self.assertEqual(output.return_code, 129)
         result = ssh.command(
-            'hammer -u {0} -p {1} user list'
-            .format(self.foreman_user, self.foreman_password))
+            'hammer -u {0} -p {1} user list'.format(self.foreman_user, self.foreman_password)
+        )
         self.assertEqual(result.return_code, 129)
         sleep(301)
         result = ssh.command(
-            'hammer -u {0} -p {1} user list'
-            .format(self.foreman_user, self.foreman_password))
+            'hammer -u {0} -p {1} user list'.format(self.foreman_user, self.foreman_password)
+        )
         self.assertEqual(result.return_code, 0)

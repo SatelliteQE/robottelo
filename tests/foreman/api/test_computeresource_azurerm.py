@@ -82,12 +82,14 @@ class TestAzureRMComputeResourceTestCase:
         # Delete CR
         compresource.delete()
         assert not entities.AzureRMComputeResource().search(
-            query={'search': 'name={}'.format(new_cr_name)})
+            query={'search': 'name={}'.format(new_cr_name)}
+        )
 
     @upgrade
     @tier2
     def test_positive_create_finish_template_image(
-            self, module_architecture, module_azurerm_cr, module_azurerm_finishimg):
+        self, module_architecture, module_azurerm_cr, module_azurerm_finishimg
+    ):
         """ Finish template image along with username is being added in AzureRM CR
 
         :id: 78facb19-4b27-454b-abc5-2c69c0a6c28a
@@ -110,10 +112,9 @@ class TestAzureRMComputeResourceTestCase:
 
     @upgrade
     @tier2
-    def test_positive_create_cloud_init_image(self,
-                                              module_azurerm_cloudimg,
-                                              module_azurerm_cr,
-                                              module_architecture):
+    def test_positive_create_cloud_init_image(
+        self, module_azurerm_cloudimg, module_azurerm_cr, module_architecture
+    ):
         """Cloud Init template image along with username is being added in AzureRM CR
 
         :id: 05ea1b20-0dfe-4af3-b1b7-a82604aa1e79
@@ -154,6 +155,7 @@ class TestAzureRMHostProvisioningTestCase:
     """ AzureRM Host Provisioning Tests
 
     """
+
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
         """
@@ -186,20 +188,24 @@ class TestAzureRMHostProvisioningTestCase:
                     "public_ip": "Dynamic",
                     "private_ip": "false",
                     "network": nw_id,
-                }}}
+                }
+            }
+        }
 
     @pytest.fixture(scope='class')
-    def class_host_ft(self,
-                      azurermclient,
-                      module_azurerm_finishimg,
-                      module_azurerm_cr,
-                      module_architecture,
-                      module_domain,
-                      module_location,
-                      module_org,
-                      module_os,
-                      module_smart_proxy,
-                      module_puppet_environment):
+    def class_host_ft(
+        self,
+        azurermclient,
+        module_azurerm_finishimg,
+        module_azurerm_cr,
+        module_architecture,
+        module_domain,
+        module_location,
+        module_org,
+        module_os,
+        module_smart_proxy,
+        module_puppet_environment,
+    ):
         """
         Provisions the host on AzureRM using Finish template
         Later in tests this host will be used to perform assertions
@@ -290,10 +296,11 @@ class TestAzureRMHostProvisioningTestCase:
 
 
 @run_in_one_thread
-class TestAzureRMHostUDProvisioningTestCase:
+class TestAzureRM_UserData_Provisioning:
     """ AzureRM UserData Host Provisioning Tests
 
     """
+
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
         """
@@ -327,20 +334,24 @@ class TestAzureRMHostUDProvisioningTestCase:
                     "public_ip": "Dynamic",
                     "private_ip": "false",
                     "network": nw_id,
-                }}}
+                }
+            }
+        }
 
     @pytest.fixture(scope='class')
-    def class_host_ud(self,
-                      azurermclient,
-                      module_azurerm_cloudimg,
-                      module_azurerm_cr,
-                      module_architecture,
-                      module_domain,
-                      module_location,
-                      module_org,
-                      module_os,
-                      module_smart_proxy,
-                      module_puppet_environment):
+    def class_host_ud(
+        self,
+        azurermclient,
+        module_azurerm_cloudimg,
+        module_azurerm_cr,
+        module_architecture,
+        module_domain,
+        module_location,
+        module_org,
+        module_os,
+        module_smart_proxy,
+        module_puppet_environment,
+    ):
         """
         Provisions the host on AzureRM using Userdata template
         Later in tests this host will be used to perform assertions

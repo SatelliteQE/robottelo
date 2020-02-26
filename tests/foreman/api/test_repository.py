@@ -87,13 +87,12 @@ class RepositoryTestCase(APITestCase):
         """Create an organization and product which can be re-used in tests."""
         super(RepositoryTestCase, cls).setUpClass()
         http_proxy_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+        )
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15),
-            url=http_proxy_url,
-            organization=[cls.org.id]
+            name=gen_string('alpha', 15), url=http_proxy_url, organization=[cls.org.id]
         ).create()
 
     @tier1
@@ -108,8 +107,7 @@ class RepositoryTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                repo = entities.Repository(
-                    product=self.product, name=name).create()
+                repo = entities.Repository(product=self.product, name=name).create()
                 self.assertEqual(name, repo.name)
 
     @tier2
@@ -126,18 +124,15 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         http_proxy_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+        )
         http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15),
-            url=http_proxy_url,
-            organization=[self.org.id]
+            name=gen_string('alpha', 15), url=http_proxy_url, organization=[self.org.id]
         ).create()
         proxy_fqdn = re.split(r'[:]', http_proxy.url)[1].strip("//")
         # no http_proxy
         repo_a = entities.Repository(
-            url=FAKE_2_YUM_REPO,
-            product=self.product,
-            http_proxy_policy='none',
+            url=FAKE_2_YUM_REPO, product=self.product, http_proxy_policy='none'
         ).create()
         assert repo_a.http_proxy_policy == 'none'
         repo_a.sync()
@@ -151,9 +146,7 @@ class RepositoryTestCase(APITestCase):
         assert repo_b.http_proxy_policy == 'global_default_http_proxy'
         # Update to selected_http_proxy
         repo_b = entities.Repository(
-            id=repo_b.id,
-            http_proxy_policy='use_selected_http_proxy',
-            http_proxy_id=http_proxy.id
+            id=repo_b.id, http_proxy_policy='use_selected_http_proxy', http_proxy_id=http_proxy.id
         ).update()
         assert repo_b.http_proxy_policy == 'use_selected_http_proxy'
         assert repo_b.http_proxy_id == http_proxy.id
@@ -173,8 +166,7 @@ class RepositoryTestCase(APITestCase):
         """
         for label in valid_labels_list():
             with self.subTest(label):
-                repo = entities.Repository(
-                    product=self.product, label=label).create()
+                repo = entities.Repository(product=self.product, label=label).create()
                 self.assertEqual(repo.label, label)
                 self.assertNotEqual(repo.name, label)
 
@@ -189,9 +181,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-            url=FAKE_2_YUM_REPO,
+            product=self.product, content_type='yum', url=FAKE_2_YUM_REPO
         ).create()
         self.assertEqual(repo.content_type, 'yum')
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
@@ -207,9 +197,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='puppet',
-            url=FAKE_0_PUPPET_REPO,
+            product=self.product, content_type='puppet', url=FAKE_0_PUPPET_REPO
         ).create()
         self.assertEqual(repo.content_type, 'puppet')
 
@@ -228,9 +216,7 @@ class RepositoryTestCase(APITestCase):
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 repo = entities.Repository(
-                    product=self.product,
-                    content_type='yum',
-                    url=url_encoded,
+                    product=self.product, content_type='yum', url=url_encoded
                 ).create()
                 self.assertEqual(repo.content_type, 'yum')
                 self.assertEqual(repo.url, url_encoded)
@@ -249,9 +235,7 @@ class RepositoryTestCase(APITestCase):
         for policy in DOWNLOAD_POLICIES:
             with self.subTest(policy):
                 repo = entities.Repository(
-                    product=self.product,
-                    content_type='yum',
-                    download_policy=policy
+                    product=self.product, content_type='yum', download_policy=policy
                 ).create()
                 self.assertEqual(repo.download_policy, policy)
 
@@ -271,10 +255,7 @@ class RepositoryTestCase(APITestCase):
             query={'search': 'name=default_download_policy'}
         )
         self.assertTrue(default_dl_policy)
-        repo = entities.Repository(
-            product=self.product,
-            content_type='yum'
-        ).create()
+        repo = entities.Repository(product=self.product, content_type='yum').create()
         self.assertEqual(repo.download_policy, default_dl_policy[0].value)
 
     @tier1
@@ -290,10 +271,7 @@ class RepositoryTestCase(APITestCase):
 
         :BZ: 1732056
         """
-        repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-        ).create()
+        repo = entities.Repository(product=self.product, content_type='yum').create()
         self.assertEqual(repo.download_policy, 'immediate')
         repo.download_policy = 'on_demand'
         repo = repo.update(['download_policy'])
@@ -311,9 +289,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-            download_policy='immediate'
+            product=self.product, content_type='yum', download_policy='immediate'
         ).create()
         repo.download_policy = 'background'
         repo = repo.update(['download_policy'])
@@ -331,9 +307,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-            download_policy='on_demand'
+            product=self.product, content_type='yum', download_policy='on_demand'
         ).create()
         repo.download_policy = 'immediate'
         repo = repo.update(['download_policy'])
@@ -351,9 +325,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-            download_policy='on_demand'
+            product=self.product, content_type='yum', download_policy='on_demand'
         ).create()
         repo.download_policy = 'background'
         repo = repo.update(['download_policy'])
@@ -371,9 +343,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-            download_policy='background'
+            product=self.product, content_type='yum', download_policy='background'
         ).create()
         repo.download_policy = 'immediate'
         repo = repo.update(['download_policy'])
@@ -391,9 +361,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(
-            product=self.product,
-            content_type='yum',
-            download_policy='background'
+            product=self.product, content_type='yum', download_policy='background'
         ).create()
         repo.download_policy = 'on_demand'
         repo = repo.update(['download_policy'])
@@ -414,9 +382,7 @@ class RepositoryTestCase(APITestCase):
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 repo = entities.Repository(
-                    product=self.product,
-                    content_type='puppet',
-                    url=url_encoded,
+                    product=self.product, content_type='puppet', url=url_encoded
                 ).create()
                 self.assertEqual(repo.content_type, 'puppet')
                 self.assertEqual(repo.url, url_encoded)
@@ -435,9 +401,7 @@ class RepositoryTestCase(APITestCase):
         for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
                 repo = entities.Repository(
-                    product=self.product,
-                    checksum_type=checksum_type,
-                    download_policy='immediate',
+                    product=self.product, checksum_type=checksum_type, download_policy='immediate'
                 ).create()
                 self.assertEqual(checksum_type, repo.checksum_type)
 
@@ -454,9 +418,7 @@ class RepositoryTestCase(APITestCase):
         for checksum_type in CHECKSUM_TYPE['sha1'], CHECKSUM_TYPE['sha256']:
             with self.subTest(checksum_type):
                 repo = entities.Repository(
-                    product=self.product,
-                    checksum_type=checksum_type,
-                    download_policy='background',
+                    product=self.product, checksum_type=checksum_type, download_policy='background'
                 ).create()
                 self.assertEqual(checksum_type, repo.checksum_type)
 
@@ -472,8 +434,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for unprotected in True, False:
-            repo = entities.Repository(
-                product=self.product, unprotected=unprotected).create()
+            repo = entities.Repository(product=self.product, unprotected=unprotected).create()
             self.assertEqual(repo.unprotected, unprotected)
 
     @tier2
@@ -487,13 +448,9 @@ class RepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         gpg_key = entities.GPGKey(
-            content=read_data_file(VALID_GPG_KEY_FILE),
-            organization=self.org,
+            content=read_data_file(VALID_GPG_KEY_FILE), organization=self.org
         ).create()
-        repo = entities.Repository(
-            gpg_key=gpg_key,
-            product=self.product,
-        ).create()
+        repo = entities.Repository(gpg_key=gpg_key, product=self.product).create()
         # Verify that the given GPG key ID is used.
         self.assertEqual(gpg_key.id, repo.gpg_key.id)
 
@@ -530,11 +487,9 @@ class RepositoryTestCase(APITestCase):
         products = (self.product, entities.Product(organization=org).create())
         # Create repositories within different organizations/products
         for product in products:
-            repo = entities.Repository(
-                url=url, product=product, content_type='puppet').create()
+            repo = entities.Repository(url=url, product=product, content_type='puppet').create()
             repo.sync()
-            self.assertGreaterEqual(
-                repo.read().content_counts['puppet_module'], 1)
+            self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
 
     @tier1
     def test_negative_create_name(self):
@@ -606,8 +561,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         # get a list of valid credentials without quoting them
-        for cred in [creds for creds in valid_http_credentials()
-                     if creds['quote'] is True]:
+        for cred in [creds for creds in valid_http_credentials() if creds['quote'] is True]:
             with self.subTest(cred):
                 url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
                 with self.assertRaises(HTTPError):
@@ -643,9 +597,7 @@ class RepositoryTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.Repository(
-                product=self.product,
-                content_type='yum',
-                download_policy=gen_string('alpha', 5)
+                product=self.product, content_type='yum', download_policy=gen_string('alpha', 5)
             ).create()
 
     @tier1
@@ -661,10 +613,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
-            repo = entities.Repository(
-                product=self.product,
-                content_type='yum'
-            ).create()
+            repo = entities.Repository(product=self.product, content_type='yum').create()
             repo.download_policy = gen_string('alpha', 5)
             repo.update(['download_policy'])
 
@@ -680,17 +629,14 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        non_yum_repo_types = [
-            repo_type for repo_type in REPO_TYPE.keys()
-            if repo_type != 'yum'
-        ]
+        non_yum_repo_types = [repo_type for repo_type in REPO_TYPE.keys() if repo_type != 'yum']
         for content_type in non_yum_repo_types:
             with self.subTest(content_type):
                 with self.assertRaises(HTTPError):
                     entities.Repository(
                         product=self.product,
                         content_type=content_type,
-                        download_policy='on_demand'
+                        download_policy='on_demand',
                     ).create()
 
     @tier1
@@ -705,8 +651,7 @@ class RepositoryTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.Repository(
-                checksum_type=gen_string('alpha'),
-                download_policy='immediate'
+                checksum_type=gen_string('alpha'), download_policy='immediate'
             ).create()
 
     @tier1
@@ -722,7 +667,8 @@ class RepositoryTestCase(APITestCase):
         for checksum_type in 'sha1', 'sha256':
             with self.assertRaises(HTTPError):
                 entities.Repository(
-                    checksum_type=checksum_type, download_policy='on_demand').create()
+                    checksum_type=checksum_type, download_policy='on_demand'
+                ).create()
 
     @tier1
     def test_negative_update_checksum_with_on_demand_policy(self):
@@ -737,7 +683,8 @@ class RepositoryTestCase(APITestCase):
         """
         for checksum_type in 'sha1', 'sha256':
             repo = entities.Repository(
-                checksum_type=checksum_type, download_policy='immediate').create()
+                checksum_type=checksum_type, download_policy='immediate'
+            ).create()
             with self.assertRaises(HTTPError):
                 repo.download_policy = 'on_demand'
                 repo.update(['download_policy'])
@@ -771,9 +718,7 @@ class RepositoryTestCase(APITestCase):
         """
         for checksum_type in 'sha1', 'sha256':
             repo = entities.Repository(
-                product=self.product,
-                checksum_type=checksum_type,
-                download_policy='immediate'
+                product=self.product, checksum_type=checksum_type, download_policy='immediate'
             ).create()
             updated_checksum = 'sha256' if checksum_type == 'sha1' else 'sha1'
             repo.checksum_type = updated_checksum
@@ -805,8 +750,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        repo = entities.Repository(
-            product=self.product, unprotected=False).create()
+        repo = entities.Repository(product=self.product, unprotected=False).create()
         repo.unprotected = True
         repo = repo.update(['unprotected'])
         self.assertEqual(repo.unprotected, True)
@@ -823,18 +767,13 @@ class RepositoryTestCase(APITestCase):
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
-            content=read_data_file(VALID_GPG_KEY_FILE),
-            organization=self.org,
+            content=read_data_file(VALID_GPG_KEY_FILE), organization=self.org
         ).create()
-        repo = entities.Repository(
-            gpg_key=gpg_key_1,
-            product=self.product,
-        ).create()
+        repo = entities.Repository(gpg_key=gpg_key_1, product=self.product).create()
 
         # Update the repo and make it point to a new GPG key.
         gpg_key_2 = entities.GPGKey(
-            content=read_data_file(VALID_GPG_KEY_BETA_FILE),
-            organization=self.org,
+            content=read_data_file(VALID_GPG_KEY_BETA_FILE), organization=self.org
         ).create()
         repo.gpg_key = gpg_key_2
         repo = repo.update(['gpg_key'])
@@ -873,8 +812,9 @@ class RepositoryTestCase(APITestCase):
         repo = entities.Repository(product=self.product).create()
 
         # upload srpm
-        entities.ContentUpload(repository=repo).upload(filepath=get_data_file(SRPM_TO_UPLOAD),
-                                                       content_type='srpm')
+        entities.ContentUpload(repository=repo).upload(
+            filepath=get_data_file(SRPM_TO_UPLOAD), content_type='srpm'
+        )
         self.assertEqual(repo.read().content_counts['srpm'], 1)
         srpm_detail = entities.Srpms().search(query={'repository_id': repo.id})
         self.assertEqual(len(srpm_detail), 1)
@@ -894,10 +834,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
+        repo = entities.Repository(product=self.product, url=FAKE_YUM_SRPM_REPO).create()
         repo.sync()
         self.assertEqual(repo.read().content_counts['srpm'], 3)
         self.assertEqual(len(entities.Srpms().search(query={'repository_id': repo.id})), 3)
@@ -920,15 +857,12 @@ class RepositoryTestCase(APITestCase):
         """
         # Create repository and synchronize it
         repo = entities.Repository(
-            url=FAKE_2_YUM_REPO,
-            content_type='yum',
-            product=self.product,
+            url=FAKE_2_YUM_REPO, content_type='yum', product=self.product
         ).create()
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
         # Find repo packages and remove them
-        packages = entities.Package(repository=repo).search(
-            query={'per_page': 1000})
+        packages = entities.Package(repository=repo).search(query={'per_page': 1000})
         repo.remove_content(data={'ids': [package.id for package in packages]})
         self.assertEqual(repo.read().content_counts['rpm'], 0)
 
@@ -982,7 +916,8 @@ class RepositoryTestCase(APITestCase):
         # get auth repos with credentials containing unquoted special chars
         auth_repos = [
             repo.format(cred['login'], cred['pass'])
-            for cred in valid_http_credentials() if cred['quote']
+            for cred in valid_http_credentials()
+            if cred['quote']
             for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
         ]
 
@@ -1041,14 +976,13 @@ class RepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
-        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
-                      if cred['http_valid']]:
+        for creds in [
+            cred for cred in valid_http_credentials(url_encoded=True) if cred['http_valid']
+        ]:
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 repo = entities.Repository(
-                    product=self.product,
-                    content_type='yum',
-                    url=url_encoded,
+                    product=self.product, content_type='yum', url=url_encoded
                 ).create()
                 # Assertion that repo is not yet synced
                 self.assertEqual(repo.content_counts['rpm'], 0)
@@ -1068,16 +1002,13 @@ class RepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
-        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
-                      if not cred['http_valid']]:
-            url_encoded = url.format(
-                creds['login'], creds['pass']
-            )
+        for creds in [
+            cred for cred in valid_http_credentials(url_encoded=True) if not cred['http_valid']
+        ]:
+            url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 repo = entities.Repository(
-                    product=self.product,
-                    content_type='yum',
-                    url=url_encoded,
+                    product=self.product, content_type='yum', url=url_encoded
                 ).create()
                 # Try to synchronize it
                 with self.assertRaises(TaskFailedError):
@@ -1095,22 +1026,20 @@ class RepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         url = FAKE_7_PUPPET_REPO
-        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
-                      if cred['http_valid']]:
+        for creds in [
+            cred for cred in valid_http_credentials(url_encoded=True) if cred['http_valid']
+        ]:
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 repo = entities.Repository(
-                    product=self.product,
-                    content_type='puppet',
-                    url=url_encoded,
+                    product=self.product, content_type='puppet', url=url_encoded
                 ).create()
                 # Assertion that repo is not yet synced
                 self.assertEqual(repo.content_counts['puppet_module'], 0)
                 # Synchronize it
                 repo.sync()
                 # Verify it has finished
-                self.assertEqual(
-                    repo.read().content_counts['puppet_module'], 1)
+                self.assertEqual(repo.read().content_counts['puppet_module'], 1)
 
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
@@ -1127,15 +1056,12 @@ class RepositoryTestCase(APITestCase):
         """
         # Create repository and synchronize it
         repo = entities.Repository(
-            url=FAKE_2_YUM_REPO,
-            content_type='yum',
-            product=self.product,
+            url=FAKE_2_YUM_REPO, content_type='yum', product=self.product
         ).create()
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
         # Find repo packages and remove them
-        packages = entities.Package(repository=repo).search(
-            query={'per_page': 1000})
+        packages = entities.Package(repository=repo).search(query={'per_page': 1000})
         repo.remove_content(data={'ids': [package.id for package in packages]})
         self.assertEqual(repo.read().content_counts['rpm'], 0)
         # Re-synchronize repository
@@ -1157,15 +1083,12 @@ class RepositoryTestCase(APITestCase):
         """
         # Create repository and synchronize it
         repo = entities.Repository(
-            url=FAKE_1_PUPPET_REPO,
-            content_type='puppet',
-            product=self.product,
+            url=FAKE_1_PUPPET_REPO, content_type='puppet', product=self.product
         ).create()
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
         # Find repo packages and remove them
-        modules = entities.PuppetModule(repository=[repo]).search(
-            query={'per_page': 1000})
+        modules = entities.PuppetModule(repository=[repo]).search(query={'per_page': 1000})
         repo.remove_content(data={'ids': [module.id for module in modules]})
         self.assertEqual(repo.read().content_counts['puppet_module'], 0)
         # Re-synchronize repository
@@ -1184,8 +1107,7 @@ class RepositoryTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                repo = entities.Repository(
-                    product=self.product, name=name).create()
+                repo = entities.Repository(product=self.product, name=name).create()
                 repo.delete()
                 with self.assertRaises(HTTPError):
                     repo.read()
@@ -1202,9 +1124,7 @@ class RepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         repo = entities.Repository(
-            url=FAKE_2_YUM_REPO,
-            content_type='yum',
-            product=self.product,
+            url=FAKE_2_YUM_REPO, content_type='yum', product=self.product
         ).create()
         repo.sync()
         # Check that there is at least one package
@@ -1227,9 +1147,7 @@ class RepositoryTestCase(APITestCase):
         :BZ: 1316681
         """
         repo = entities.Repository(
-            url=FAKE_1_PUPPET_REPO,
-            content_type='puppet',
-            product=self.product,
+            url=FAKE_1_PUPPET_REPO, content_type='puppet', product=self.product
         ).create()
         repo.sync()
         # Check that there is at least one puppet module
@@ -1252,9 +1170,7 @@ class RepositoryTestCase(APITestCase):
         """
         # Create and sync first repo
         repo1 = entities.Repository(
-            product=self.product,
-            content_type='puppet',
-            url=FAKE_0_PUPPET_REPO,
+            product=self.product, content_type='puppet', url=FAKE_0_PUPPET_REPO
         ).create()
         repo1.sync()
         # Verify that number of synced modules is correct
@@ -1263,9 +1179,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(content_count, modules_num)
         # Create and sync second repo
         repo2 = entities.Repository(
-            product=self.product,
-            content_type='puppet',
-            url=FAKE_1_PUPPET_REPO,
+            product=self.product, content_type='puppet', url=FAKE_1_PUPPET_REPO
         ).create()
         repo2.sync()
         # Verify that number of modules from the first repo has not changed
@@ -1297,24 +1211,22 @@ class RepositoryTestCase(APITestCase):
             unprotected=False,
         ).create()
         repository.sync()
-        repo_data_file_url = urljoin(
-            repository.full_path, 'repodata/repomd.xml')
+        repo_data_file_url = urljoin(repository.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
-        self.assertTrue(repo_data_file_url.startswith(
-            'https://{0}'.format(settings.server.hostname)))
+        self.assertTrue(
+            repo_data_file_url.startswith('https://{0}'.format(settings.server.hostname))
+        )
         # try to access repository data without organization debug certificate
         with self.assertRaises(SSLError):
             client.get(repo_data_file_url, verify=False)
         # get the organization debug certificate
         cert_content = self.org.download_debug_certificate()
         # save the organization debug certificate to file
-        cert_file_path = '{0}/{1}.pem'.format(
-            tempfile.gettempdir(), self.org.label)
+        cert_file_path = '{0}/{1}.pem'.format(tempfile.gettempdir(), self.org.label)
         with open(cert_file_path, 'w') as cert_file:
             cert_file.write(cert_content)
         # access repository data with organization debug certificate
-        response = client.get(
-            repo_data_file_url, cert=cert_file_path, verify=False)
+        response = client.get(repo_data_file_url, cert=cert_file_path, verify=False)
         self.assertEqual(response.status_code, 200)
 
     @tier1
@@ -1452,8 +1364,7 @@ class DockerRepositoryTestCase(APITestCase):
                     url=DOCKER_REGISTRY_HUB,
                 ).create()
                 self.assertEqual(repo.name, name)
-                self.assertEqual(
-                    repo.docker_upstream_name, u'busybox')
+                self.assertEqual(repo.docker_upstream_name, u'busybox')
                 self.assertEqual(repo.content_type, u'docker')
 
     @tier1
@@ -1476,8 +1387,7 @@ class DockerRepositoryTestCase(APITestCase):
             url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
-        self.assertGreaterEqual(
-            repo.read().content_counts['docker_manifest'], 1)
+        self.assertGreaterEqual(repo.read().content_counts['docker_manifest'], 1)
 
     @tier1
     def test_positive_update_name(self):
@@ -1491,9 +1401,7 @@ class DockerRepositoryTestCase(APITestCase):
 
         :BZ: 1194476
         """
-        repository = entities.Repository(
-            content_type='docker'
-        ).create()
+        repository = entities.Repository(content_type='docker').create()
         # The only data provided with the PUT request is a name. No other
         # information about the repository (such as its URL) is provided.
         new_name = gen_string('alpha')
@@ -1527,8 +1435,7 @@ class DockerRepositoryTestCase(APITestCase):
             upstream_password=settings.docker.private_registry_password,
         ).create()
         repo.sync()
-        self.assertGreaterEqual(
-            repo.read().content_counts['docker_manifest'], 1)
+        self.assertGreaterEqual(repo.read().content_counts['docker_manifest'], 1)
 
     @tier2
     def test_negative_synchronize_private_registry_wrong_password(self):
@@ -1646,12 +1553,12 @@ class DockerRepositoryTestCase(APITestCase):
         tags = ['latest']
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-                content_type='docker',
-                docker_tags_whitelist=tags,
-                docker_upstream_name='alpine',
-                name=gen_string('alphanumeric', 10),
-                product=product,
-                url=DOCKER_REGISTRY_HUB,
+            content_type='docker',
+            docker_tags_whitelist=tags,
+            docker_upstream_name='alpine',
+            name=gen_string('alphanumeric', 10),
+            product=product,
+            url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
         repo = repo.read()
@@ -1671,11 +1578,11 @@ class DockerRepositoryTestCase(APITestCase):
         tags = ['latest']
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-                content_type='docker',
-                docker_upstream_name='alpine',
-                name=gen_string('alphanumeric', 10),
-                product=product,
-                url=DOCKER_REGISTRY_HUB,
+            content_type='docker',
+            docker_upstream_name='alpine',
+            name=gen_string('alphanumeric', 10),
+            product=product,
+            url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
         repo = repo.read()
@@ -1701,12 +1608,12 @@ class DockerRepositoryTestCase(APITestCase):
         tags = ['latest', gen_string('alpha')]
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-                content_type='docker',
-                docker_tags_whitelist=tags,
-                docker_upstream_name='alpine',
-                name=gen_string('alphanumeric', 10),
-                product=product,
-                url=DOCKER_REGISTRY_HUB,
+            content_type='docker',
+            docker_tags_whitelist=tags,
+            docker_upstream_name='alpine',
+            name=gen_string('alphanumeric', 10),
+            product=product,
+            url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
         repo = repo.read()
@@ -1725,12 +1632,12 @@ class DockerRepositoryTestCase(APITestCase):
         tags = [gen_string('alpha') for _ in range(3)]
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-                content_type='docker',
-                docker_tags_whitelist=tags,
-                docker_upstream_name='alpine',
-                name=gen_string('alphanumeric', 10),
-                product=product,
-                url=DOCKER_REGISTRY_HUB,
+            content_type='docker',
+            docker_tags_whitelist=tags,
+            docker_upstream_name='alpine',
+            name=gen_string('alphanumeric', 10),
+            product=product,
+            url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
         repo = repo.read()
@@ -1763,7 +1670,7 @@ class OstreeRepositoryTestCase(APITestCase):
             product=self.product,
             content_type='ostree',
             url=FEDORA27_OSTREE_REPO,
-            unprotected=False
+            unprotected=False,
         ).create()
         self.assertEqual(repo.content_type, 'ostree')
 
@@ -1781,7 +1688,7 @@ class OstreeRepositoryTestCase(APITestCase):
             product=self.product,
             content_type='ostree',
             url=FEDORA27_OSTREE_REPO,
-            unprotected=False
+            unprotected=False,
         ).create()
         new_name = gen_string('alpha')
         repo.name = new_name
@@ -1802,7 +1709,7 @@ class OstreeRepositoryTestCase(APITestCase):
             product=self.product,
             content_type='ostree',
             url=FEDORA27_OSTREE_REPO,
-            unprotected=False
+            unprotected=False,
         ).create()
         new_url = FEDORA26_OSTREE_REPO
         repo.url = new_url
@@ -1824,7 +1731,7 @@ class OstreeRepositoryTestCase(APITestCase):
             product=self.product,
             content_type='ostree',
             url=FEDORA27_OSTREE_REPO,
-            unprotected=False
+            unprotected=False,
         ).create()
         repo.delete()
         with self.assertRaises(HTTPError):
@@ -1857,8 +1764,7 @@ class OstreeRepositoryTestCase(APITestCase):
             releasever=None,
             basearch=None,
         )
-        call_entity_method_with_timeout(
-            entities.Repository(id=repo_id).sync, timeout=1500)
+        call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=1500)
 
 
 class SRPMRepositoryTestCase(APITestCase):
@@ -1883,24 +1789,27 @@ class SRPMRepositoryTestCase(APITestCase):
         :expectedresults: srpms can be listed in organization, content view, Lifecycle env
         """
         repo = entities.Repository(product=self.product).create()
-        entities.ContentUpload(repository=repo).upload(filepath=get_data_file(SRPM_TO_UPLOAD),
-                                                       content_type='srpm')
+        entities.ContentUpload(repository=repo).upload(
+            filepath=get_data_file(SRPM_TO_UPLOAD), content_type='srpm'
+        )
         cv = entities.ContentView(organization=self.org).create()
         cv.repository = [repo]
         cv.update(['repository'])
         cv.publish()
         self.assertEqual(cv.repository[0].read().content_counts['srpm'], 1)
         self.assertGreaterEqual(
-            len(entities.Srpms().search(query={'organization_id': self.org.id})), 1)
+            len(entities.Srpms().search(query={'organization_id': self.org.id})), 1
+        )
 
         cv = cv.read()
         self.assertEqual(
-            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})),
-            1)
+            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})), 1
+        )
 
         promote(cv.version[0], self.lce.id)
         self.assertGreaterEqual(
-            len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1)
+            len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1
+        )
 
     @upgrade
     @tier2
@@ -1912,10 +1821,7 @@ class SRPMRepositoryTestCase(APITestCase):
 
         :expectedresults: srpms can be listed in organization, content view, Lifecycle env
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-        ).create()
+        repo = entities.Repository(product=self.product, url=FAKE_YUM_SRPM_REPO).create()
         repo.sync()
         cv = entities.ContentView(organization=self.org).create()
         cv.repository = [repo]
@@ -1923,12 +1829,13 @@ class SRPMRepositoryTestCase(APITestCase):
         cv.publish()
         self.assertEqual(cv.repository[0].read().content_counts['srpm'], 3)
         self.assertGreaterEqual(
-            len(entities.Srpms().search(query={'organization_id': self.org.id})), 3)
+            len(entities.Srpms().search(query={'organization_id': self.org.id})), 3
+        )
 
         cv = cv.read()
         self.assertGreaterEqual(
-            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})),
-            3)
+            len(entities.Srpms().search(query={'content_view_version_id': cv.version[0].id})), 3
+        )
 
         promote(cv.version[0], self.lce.id)
         self.assertEqual(len(entities.Srpms().search(query={'environment_id': self.lce.id})), 3)
@@ -1953,18 +1860,12 @@ class DRPMRepositoryTestCase(APITestCase):
 
         :expectedresults: drpms can be listed in repository
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_DRPM_REPO,
-        ).create()
+        repo = entities.Repository(product=self.product, url=FAKE_YUM_DRPM_REPO).create()
         repo.sync()
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/drpms/ | grep .drpm'
-            .format(
-                self.org.label,
-                self.product.label,
-                repo.label,
+            '/custom/{}/{}/drpms/ | grep .drpm'.format(
+                self.org.label, self.product.label, repo.label
             )
         )
         self.assertEqual(result.return_code, 0)
@@ -1979,10 +1880,7 @@ class DRPMRepositoryTestCase(APITestCase):
 
         :expectedresults: drpms can be listed in content view
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_DRPM_REPO,
-        ).create()
+        repo = entities.Repository(product=self.product, url=FAKE_YUM_DRPM_REPO).create()
         repo.sync()
         cv = entities.ContentView(organization=self.org).create()
         cv.repository = [repo]
@@ -1990,12 +1888,8 @@ class DRPMRepositoryTestCase(APITestCase):
         cv.publish()
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/drpms/ | grep .drpm'
-            .format(
-                self.org.label,
-                cv.label,
-                self.product.label,
-                repo.label,
+            '/1.0/custom/{}/{}/drpms/ | grep .drpm'.format(
+                self.org.label, cv.label, self.product.label, repo.label
             )
         )
         self.assertEqual(result.return_code, 0)
@@ -2013,10 +1907,7 @@ class DRPMRepositoryTestCase(APITestCase):
             lifecycle environment
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_DRPM_REPO,
-        ).create()
+        repo = entities.Repository(product=self.product, url=FAKE_YUM_DRPM_REPO).create()
         repo.sync()
         cv = entities.ContentView(organization=self.org).create()
         cv.repository = [repo]
@@ -2026,13 +1917,8 @@ class DRPMRepositoryTestCase(APITestCase):
         promote(cv.version[0], lce.id)
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}'
-            '/drpms/ | grep .drpm'
-            .format(
-                self.org.label,
-                lce.name,
-                cv.label,
-                self.product.label,
-                repo.label,
+            '/drpms/ | grep .drpm'.format(
+                self.org.label, lce.name, cv.label, self.product.label, repo.label
             )
         )
         self.assertEqual(result.return_code, 0)
@@ -2067,9 +1953,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         :expectedresults: SRPM content is ignored during sync.
         """
         repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_DUPLICATE_REPO,
-            ignorable_content=['srpm']
+            product=self.product, url=FAKE_YUM_SRPM_DUPLICATE_REPO, ignorable_content=['srpm']
         ).create()
         repo.sync()
         repo = repo.read()
@@ -2084,10 +1968,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         :expectedresults: SRPM content is not ignored during the sync. No
             exceptions to be raised.
         """
-        repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_DUPLICATE_REPO,
-        ).create()
+        repo = entities.Repository(product=self.product, url=FAKE_YUM_SRPM_DUPLICATE_REPO).create()
         repo.sync()
         repo = repo.read()
         self.assertEqual(repo.content_counts['srpm'], 2)
@@ -2101,9 +1982,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         :expectedresults: SRPM content is ignore during the sync.
         """
         repo = entities.Repository(
-            product=self.product,
-            url=FAKE_YUM_SRPM_REPO,
-            ignorable_content=['srpm']
+            product=self.product, url=FAKE_YUM_SRPM_REPO, ignorable_content=['srpm']
         ).create()
         repo.sync()
         repo = repo.read()
@@ -2113,6 +1992,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
 
 class FileRepositoryTestCase(APITestCase):
     """Specific tests for File Repositories"""
+
     @stubbed()
     @tier1
     def test_positive_upload_file_to_file_repo(self):
@@ -2274,9 +2154,11 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         """
         # First we want to confirm the provided token is > 255 charaters
         registry_config = settings.container_repo.long_pass_registry
-        self.assertGreater(len(registry_config['registry_password']), 255,
-                           msg='Please use a longer (>255) token for '
-                               'long_pass_test_registry')
+        self.assertGreater(
+            len(registry_config['registry_password']),
+            255,
+            msg='Please use a longer (>255) token for ' 'long_pass_test_registry',
+        )
 
         product = entities.Product(organization=self.org).create()
         for reponame in registry_config['repos_to_sync']:
@@ -2288,16 +2170,14 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                     product=product,
                     url=registry_config['registry_url'],
                     upstream_username=registry_config['registry_username'],
-                    upstream_password=registry_config['registry_password']
+                    upstream_password=registry_config['registry_password'],
                 ).create()
                 self.assertEqual(repo.name, reponame)
                 self.assertEqual(repo.docker_upstream_name, reponame)
                 self.assertEqual(repo.content_type, u'docker')
-                self.assertEqual(repo.upstream_username,
-                                 registry_config['registry_username'])
+                self.assertEqual(repo.upstream_username, registry_config['registry_username'])
                 repo.sync()
-                self.assertGreater(
-                    repo.read().content_counts['docker_manifest'], 1)
+                self.assertGreater(repo.read().content_counts['docker_manifest'], 1)
 
     @tier2
     def test_positive_multi_registry(self):
@@ -2310,8 +2190,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         for config in settings.container_repo.multi_registry_test_configs:
             product_name = config['label']
             with self.subTest(product_name):
-                product = entities.Product(organization=self.org,
-                                           name=product_name).create()
+                product = entities.Product(organization=self.org, name=product_name).create()
 
                 for repo_name in config['repos_to_sync']:
                     repo = entities.Repository(
@@ -2322,13 +2201,11 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                         url=config['registry_url'],
                         upstream_username=config['registry_username'],
                         upstream_password=config['registry_password'],
-                        docker_tags_whitelist=['latest']
+                        docker_tags_whitelist=['latest'],
                     ).create()
                     self.assertEqual(repo.name, repo_name)
                     self.assertEqual(repo.docker_upstream_name, repo_name)
                     self.assertEqual(repo.content_type, u'docker')
-                    self.assertEqual(repo.upstream_username,
-                                     config['registry_username'])
+                    self.assertEqual(repo.upstream_username, config['registry_username'])
                     repo.sync()
-                    self.assertGreaterEqual(
-                        repo.read().content_counts['docker_manifest'], 1)
+                    self.assertGreaterEqual(repo.read().content_counts['docker_manifest'], 1)

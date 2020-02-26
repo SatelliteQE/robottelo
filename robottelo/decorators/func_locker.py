@@ -155,13 +155,11 @@ def _get_function_name(function, class_name=None):
     return '.'.join(names)
 
 
-def _get_function_name_lock_path(function_name, scope=None, scope_kwargs=None,
-                                 scope_context=None):
+def _get_function_name_lock_path(function_name, scope=None, scope_kwargs=None, scope_context=None):
     """Return the path of the file to lock"""
     return os.path.join(
-        _get_scope_path(scope, scope_kwargs=scope_kwargs,
-                        scope_context=scope_context),
-        '{0}.{1}'.format(function_name, LOCK_FILE_NAME_EXT)
+        _get_scope_path(scope, scope_kwargs=scope_kwargs, scope_context=scope_context),
+        '{0}.{1}'.format(function_name, LOCK_FILE_NAME_EXT),
     )
 
 
@@ -185,8 +183,7 @@ def _check_deadlock(lock_file_path, process_id):
 
         if lock_file_content and lock_file_content == process_id:
             raise FunctionLockerError(
-                'recursion detected: the function file already '
-                'locked by the same process'
+                'recursion detected: the function file already ' 'locked by the same process'
             )
 
 
@@ -199,8 +196,13 @@ def _write_content(handler, content):
     handler.flush()
 
 
-def lock_function(function=None, scope=_get_default_scope, scope_context=None,
-                  scope_kwargs=None, timeout=LOCK_DEFAULT_TIMEOUT):
+def lock_function(
+    function=None,
+    scope=_get_default_scope,
+    scope_context=None,
+    scope_kwargs=None,
+    timeout=LOCK_DEFAULT_TIMEOUT,
+):
     """Generic function locker, lock any decorated function. Any parallel
      pytest xdist worker will wait for this function to finish
 
@@ -238,21 +240,18 @@ def lock_function(function=None, scope=_get_default_scope, scope_context=None,
         def function_wrapper(*args, **kwargs):
             function_name = _get_function_name(func, class_name=class_name)
             lock_file_path = _get_function_name_lock_path(
-                function_name,
-                scope=scope,
-                scope_kwargs=scope_kwargs,
-                scope_context=scope_context
-                )
+                function_name, scope=scope, scope_kwargs=scope_kwargs, scope_context=scope_context
+            )
             process_id = str(os.getpid())
             # to prevent dead lock when recursively calling this function
             # check if the same process is trying to acquire the lock
             _check_deadlock(lock_file_path, process_id)
 
-            with file_lock(lock_file_path, remove=False,
-                           timeout=timeout) as handler:
+            with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
                 logger.info(
-                    'process id: {0} lock function using file path: {1}'
-                    .format(process_id, lock_file_path)
+                    'process id: {0} lock function using file path: {1}'.format(
+                        process_id, lock_file_path
+                    )
                 )
                 # write the process id that locked this function
                 _write_content(handler, process_id)
@@ -277,8 +276,13 @@ def lock_function(function=None, scope=_get_default_scope, scope_context=None,
 
 
 @contextmanager
-def locking_function(function, scope=_get_default_scope, scope_context=None,
-                     scope_kwargs=None, timeout=LOCK_DEFAULT_TIMEOUT):
+def locking_function(
+    function,
+    scope=_get_default_scope,
+    scope_context=None,
+    scope_kwargs=None,
+    timeout=LOCK_DEFAULT_TIMEOUT,
+):
     """Lock a function in combination with a scope and scope_context.
     Any parallel pytest xdist worker will wait for this function to finish.
 
@@ -296,15 +300,11 @@ def locking_function(function, scope=_get_default_scope, scope_context=None,
     :param timeout: the time in seconds to wait for acquiring the lock
     """
     if not getattr(function, '__function_locked__', False):
-        raise FunctionLockerError(
-            'Cannot ensure locking when using a non locked function')
+        raise FunctionLockerError('Cannot ensure locking when using a non locked function')
     class_name = getattr(function, '__class_name__', None)
     function_name = _get_function_name(function, class_name=class_name)
     lock_file_path = _get_function_name_lock_path(
-        function_name,
-        scope=scope,
-        scope_kwargs=scope_kwargs,
-        scope_context=scope_context
+        function_name, scope=scope, scope_kwargs=scope_kwargs, scope_context=scope_context
     )
     process_id = str(os.getpid())
     # to prevent dead lock when recursively calling this function
@@ -313,8 +313,9 @@ def locking_function(function, scope=_get_default_scope, scope_context=None,
 
     with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
         logger.info(
-            'process id: {0} - lock function name:{1}  - using file path: {2}'
-            .format(process_id, function_name, lock_file_path)
+            'process id: {0} - lock function name:{1}  - using file path: {2}'.format(
+                process_id, function_name, lock_file_path
+            )
         )
         # write the process id that locked this function
         _write_content(handler, process_id)

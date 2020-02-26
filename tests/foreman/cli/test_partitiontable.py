@@ -110,10 +110,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         ptable = make_partition_table()
         for new_name in generate_strings_list(length=randint(4, 30)):
             with self.subTest(new_name):
-                PartitionTable.update({
-                    'id': ptable['id'],
-                    'new-name': new_name,
-                })
+                PartitionTable.update({'id': ptable['id'], 'new-name': new_name})
                 ptable = PartitionTable.info({'id': ptable['id']})
                 self.assertEqual(ptable['name'], new_name)
 
@@ -159,10 +156,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         """
         ptable = make_partition_table()
         os = make_os()
-        PartitionTable.add_operating_system({
-            'id': ptable['id'],
-            'operatingsystem-id': os['id'],
-        })
+        PartitionTable.add_operating_system({'id': ptable['id'], 'operatingsystem-id': os['id']})
         ptable = PartitionTable.info({'id': ptable['id']})
         self.assertIn(os['title'], ptable['operating-systems'])
 
@@ -179,10 +173,9 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         """
         ptable = make_partition_table()
         os = make_os()
-        PartitionTable.add_operating_system({
-            'name': ptable['name'],
-            'operatingsystem': os['title'],
-        })
+        PartitionTable.add_operating_system(
+            {'name': ptable['name'], 'operatingsystem': os['title']}
+        )
         ptable = PartitionTable.info({'name': ptable['name']})
         self.assertIn(os['title'], ptable['operating-systems'])
 
@@ -200,15 +193,11 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         """
         ptable = make_partition_table()
         os = make_os()
-        PartitionTable.add_operating_system({
-            'id': ptable['id'],
-            'operatingsystem-id': os['id'],
-        })
+        PartitionTable.add_operating_system({'id': ptable['id'], 'operatingsystem-id': os['id']})
         ptable = PartitionTable.info({'id': ptable['id']})
-        PartitionTable.remove_operating_system({
-            'id': ptable['id'],
-            'operatingsystem-id': os['id'],
-        })
+        PartitionTable.remove_operating_system(
+            {'id': ptable['id'], 'operatingsystem-id': os['id']}
+        )
         ptable = PartitionTable.info({'id': ptable['id']})
         self.assertNotIn(os['title'], ptable['operating-systems'])
 
@@ -227,14 +216,12 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         """
         ptable = make_partition_table()
         os = make_os()
-        PartitionTable.add_operating_system({
-            'name': ptable['name'],
-            'operatingsystem': os['title'],
-        })
+        PartitionTable.add_operating_system(
+            {'name': ptable['name'], 'operatingsystem': os['title']}
+        )
         ptable = PartitionTable.info({'name': ptable['name']})
-        PartitionTable.remove_operating_system({
-            'name': ptable['name'],
-            'operatingsystem': os['title'],
-        })
+        PartitionTable.remove_operating_system(
+            {'name': ptable['name'], 'operatingsystem': os['title']}
+        )
         ptable = PartitionTable.info({'name': ptable['name']})
         self.assertNotIn(os['title'], ptable['operating-systems'])

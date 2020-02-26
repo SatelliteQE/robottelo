@@ -35,23 +35,23 @@ from robottelo.test import CLITestCase
 def valid_create_params():
     """Returns a list of valid domain create parameters"""
     return [
-        {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-         u'description': gen_string(str_type='alpha')},
-        {u'name': gen_string(str_type='utf8'),
-         u'description': gen_string(str_type='utf8')},
-        {u'name': gen_string(str_type='numeric'),
-         u'description': gen_string(str_type='numeric')},
-        {u'name': gen_string(str_type='utf8', length=255),
-         u'description': gen_string(str_type='utf8', length=255)},
+        {
+            u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
+            u'description': gen_string(str_type='alpha'),
+        },
+        {u'name': gen_string(str_type='utf8'), u'description': gen_string(str_type='utf8')},
+        {u'name': gen_string(str_type='numeric'), u'description': gen_string(str_type='numeric')},
+        {
+            u'name': gen_string(str_type='utf8', length=255),
+            u'description': gen_string(str_type='utf8', length=255),
+        },
     ]
 
 
 @filtered_datapoint
 def invalid_create_params():
     """Returns a list of invalid domain create parameters"""
-    params = [
-        {u'name': gen_string(str_type='utf8', length=256)},
-    ]
+    params = [{u'name': gen_string(str_type='utf8', length=256)}]
     return params
 
 
@@ -59,24 +59,23 @@ def invalid_create_params():
 def valid_update_params():
     """Returns a list of valid domain update parameters"""
     return [
-        {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-         u'description': gen_string(str_type='alpha')},
-        {u'name': gen_string(str_type='utf8'),
-         u'description': gen_string(str_type='utf8')},
-        {u'name': gen_string(str_type='numeric'),
-         u'description': gen_string(str_type='numeric')},
-        {u'name': gen_string(str_type='utf8', length=255),
-         u'description': gen_string(str_type='utf8', length=255)},
+        {
+            u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
+            u'description': gen_string(str_type='alpha'),
+        },
+        {u'name': gen_string(str_type='utf8'), u'description': gen_string(str_type='utf8')},
+        {u'name': gen_string(str_type='numeric'), u'description': gen_string(str_type='numeric')},
+        {
+            u'name': gen_string(str_type='utf8', length=255),
+            u'description': gen_string(str_type='utf8', length=255),
+        },
     ]
 
 
 @filtered_datapoint
 def invalid_update_params():
     """Returns a list of invalid domain update parameters"""
-    params = [
-        {u'name': ''},
-        {u'name': gen_string(str_type='utf8', length=256)},
-    ]
+    params = [{u'name': ''}, {u'name': gen_string(str_type='utf8', length=256)}]
     return params
 
 
@@ -84,14 +83,10 @@ def invalid_update_params():
 def valid_set_params():
     """Returns a list of valid domain set parameters"""
     return [
-        {'name': gen_string(str_type='utf8'),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8', length=255),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8'),
-         'value': gen_string(str_type='utf8', length=255)},
-        {'name': gen_string(str_type='utf8'),
-         'value': ''},
+        {'name': gen_string(str_type='utf8'), 'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=255), 'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8'), 'value': gen_string(str_type='utf8', length=255)},
+        {'name': gen_string(str_type='utf8'), 'value': ''},
     ]
 
 
@@ -99,12 +94,12 @@ def valid_set_params():
 def invalid_set_params():
     """Returns a list of invalid domain set parameters"""
     return [
-        {'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-         'value': gen_string(str_type='utf8')},
-        {'name': '',
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8', length=256),
-         'value': gen_string(str_type='utf8')},
+        {
+            'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'value': gen_string(str_type='utf8'),
+        },
+        {'name': '', 'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=256), 'value': gen_string(str_type='utf8')},
     ]
 
 
@@ -112,12 +107,9 @@ def invalid_set_params():
 def valid_delete_params():
     """Returns a list of valid domain delete parameters"""
     return [
-        {'name': gen_string(str_type='utf8'),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8', length=255),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8'),
-         'value': ''},
+        {'name': gen_string(str_type='utf8'), 'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=255), 'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8'), 'value': ''},
     ]
 
 
@@ -139,12 +131,14 @@ class DomainTestCase(CLITestCase):
         options = valid_create_params()[0]
         location = make_location()
         org = make_org()
-        domain = make_domain({
-            u'name': options['name'],
-            u'description': options['description'],
-            u'location-ids': location['id'],
-            u'organization-ids': org['id']
-            })
+        domain = make_domain(
+            {
+                u'name': options['name'],
+                u'description': options['description'],
+                u'location-ids': location['id'],
+                u'organization-ids': org['id'],
+            }
+        )
         self.assertEqual(domain['name'], options['name'])
         self.assertEqual(domain['description'], options['description'])
         self.assertIn(location['name'], domain['locations'])
@@ -157,7 +151,7 @@ class DomainTestCase(CLITestCase):
         domain = Domain.info({'id': domain['id']})
         parameter = {
             # Satellite applies lower to parameter's name
-            parameter_options['name'].lower(): parameter_options['value'],
+            parameter_options['name'].lower(): parameter_options['value']
         }
         self.assertDictEqual(parameter, domain['parameters'])
 
@@ -170,10 +164,7 @@ class DomainTestCase(CLITestCase):
             self.assertEqual(domain[key], val)
 
         # delete parameter
-        Domain.delete_parameter({
-            u'name': parameter_options['name'],
-            u'domain-id': domain['id'],
-        })
+        Domain.delete_parameter({u'name': parameter_options['name'], u'domain-id': domain['id']})
         # check - parameter not set
         domain = Domain.info({'name': domain['name']})
         self.assertEqual(len(domain['parameters']), 0)
@@ -214,17 +205,10 @@ class DomainTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         with self.assertRaises(CLIFactoryError) as context:
-            make_domain({
-                'name': gen_string('alpha'),
-                'dns-id': -1,
-            })
+            make_domain({'name': gen_string('alpha'), 'dns-id': -1})
         valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
         exception_string = str(context.exception)
-        messages = [
-            message
-            for message in valid_messages
-            if message in exception_string
-        ]
+        messages = [message for message in valid_messages if message in exception_string]
         self.assertGreater(len(messages), 0)
 
     @tier2

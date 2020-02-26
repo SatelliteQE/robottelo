@@ -43,8 +43,7 @@ class ForemanHooksTestCase(TestCase):
         cls.script_path = "{}/logger.sh".format(HOOKS_DIR)
         ssh.command(
             '''printf '#!/bin/sh\necho "$(date): Executed $1 hook'''
-            + ''' on object $2" > {0}' > {1}'''.format(
-                LOGS_DIR, cls.script_path)
+            + ''' on object $2" > {0}' > {1}'''.format(LOGS_DIR, cls.script_path)
         )
         ssh.command("chmod 774 {}".format(cls.script_path))
         ssh.command("chown foreman:foreman {}".format(cls.script_path))

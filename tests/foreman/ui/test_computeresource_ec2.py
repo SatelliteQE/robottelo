@@ -40,8 +40,9 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    default_loc_id = entities.Location().search(
-        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    default_loc_id = (
+        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    )
     return entities.Location(id=default_loc_id).read()
 
 
@@ -61,7 +62,8 @@ def module_ec2_settings():
 
 @tier2
 def test_positive_default_end_to_end_with_custom_profile(
-        session, module_org, module_loc, module_ec2_settings):
+    session, module_org, module_loc, module_ec2_settings
+):
     """Create EC2 compute resource with default properties and apply it's basic functionality.
 
     :id: 33f80a8f-2ecf-4f15-b0c3-aab5fe0ac8d3
@@ -88,35 +90,42 @@ def test_positive_default_end_to_end_with_custom_profile(
     new_org = entities.Organization().create()
     new_loc = entities.Location().create()
     with session:
-        session.computeresource.create({
-            'name': cr_name,
-            'description': cr_description,
-            'provider': FOREMAN_PROVIDERS['ec2'],
-            'provider_content.access_key': module_ec2_settings['access_key'],
-            'provider_content.secret_key': module_ec2_settings['secret_key'],
-            'provider_content.region.value': module_ec2_settings['region'],
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'description': cr_description,
+                'provider': FOREMAN_PROVIDERS['ec2'],
+                'provider_content.access_key': module_ec2_settings['access_key'],
+                'provider_content.secret_key': module_ec2_settings['secret_key'],
+                'provider_content.region.value': module_ec2_settings['region'],
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == cr_description
-        assert (cr_values['organizations']['resources']['assigned']
-                == [module_org.name])
-        assert (cr_values['locations']['resources']['assigned']
-                == [module_loc.name])
-        session.computeresource.edit(cr_name, {
-            'name': new_cr_name,
-            'organizations.resources.assigned': [new_org.name],
-            'locations.resources.assigned': [new_loc.name],
-        })
+        assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        session.computeresource.edit(
+            cr_name,
+            {
+                'name': new_cr_name,
+                'organizations.resources.assigned': [new_org.name],
+                'locations.resources.assigned': [new_loc.name],
+            },
+        )
         assert not session.computeresource.search(cr_name)
         cr_values = session.computeresource.read(new_cr_name)
         assert cr_values['name'] == new_cr_name
-        assert (set(cr_values['organizations']['resources']['assigned'])
-                == {module_org.name, new_org.name})
-        assert (set(cr_values['locations']['resources']['assigned'])
-                == {module_loc.name, new_loc.name})
+        assert set(cr_values['organizations']['resources']['assigned']) == {
+            module_org.name,
+            new_org.name,
+        }
+        assert set(cr_values['locations']['resources']['assigned']) == {
+            module_loc.name,
+            new_loc.name,
+        }
         session.computeresource.update_computeprofile(
             new_cr_name,
             COMPUTE_PROFILE_LARGE,
@@ -125,18 +134,23 @@ def test_positive_default_end_to_end_with_custom_profile(
                 'provider_content.availability_zone': module_ec2_settings['availability_zone'],
                 'provider_content.subnet': module_ec2_settings['subnet'],
                 'provider_content.security_groups.assigned': module_ec2_settings[
-                    'security_groups'],
+                    'security_groups'
+                ],
                 'provider_content.managed_ip': module_ec2_settings['managed_ip'],
-            }
+            },
         )
         cr_profile_values = session.computeresource.read_computeprofile(
-            new_cr_name, COMPUTE_PROFILE_LARGE)
+            new_cr_name, COMPUTE_PROFILE_LARGE
+        )
         assert cr_profile_values['breadcrumb'] == 'Edit {0}'.format(COMPUTE_PROFILE_LARGE)
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_LARGE
         assert cr_profile_values['compute_resource'] == '{0} ({1}-{2})'.format(
-            new_cr_name, module_ec2_settings['region'], FOREMAN_PROVIDERS['ec2'])
-        assert (cr_profile_values['provider_content']['managed_ip']
-                == module_ec2_settings['managed_ip'])
+            new_cr_name, module_ec2_settings['region'], FOREMAN_PROVIDERS['ec2']
+        )
+        assert (
+            cr_profile_values['provider_content']['managed_ip']
+            == module_ec2_settings['managed_ip']
+        )
         assert cr_profile_values['provider_content']['flavor'] == AWS_EC2_FLAVOR_T2_MICRO
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)
@@ -161,12 +175,14 @@ def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
     """
     cr_name = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': cr_name,
-            'provider': FOREMAN_PROVIDERS['ec2'],
-            'provider_content.access_key': module_ec2_settings['access_key'],
-            'provider_content.secret_key': module_ec2_settings['secret_key'],
-            'provider_content.region.value': EC2_REGION_CA_CENTRAL_1
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['ec2'],
+                'provider_content.access_key': module_ec2_settings['access_key'],
+                'provider_content.secret_key': module_ec2_settings['secret_key'],
+                'provider_content.region.value': EC2_REGION_CA_CENTRAL_1,
+            }
+        )
         cr_values = session.computeresource.read(cr_name, widget_names='name')
         assert cr_values['name'] == cr_name

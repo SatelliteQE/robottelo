@@ -45,6 +45,7 @@ class Scenario_manifest_refresh(APITestCase):
     5. Delete the manifest.
 
     """
+
     @classmethod
     def setUpClass(cls):
         cls.org_name = 'preupgrade_subscription_org'
@@ -66,10 +67,11 @@ class Scenario_manifest_refresh(APITestCase):
         org = entities.Organization(name=self.org_name).create()
         upload_manifest(self.manifest_url['default'], org.name)
         history = entities.Subscription(organization=org).manifest_history(
-            data={'organization_id': org.id})
+            data={'organization_id': org.id}
+        )
         self.assertEqual(
-            "{0} file imported successfully.".format(org.name),
-            history[0]['statusMessage'])
+            "{0} file imported successfully.".format(org.name), history[0]['statusMessage']
+        )
         sub = entities.Subscription(organization=org)
         sub.refresh_manifest(data={'organization_id': org.id})
         self.assertGreater(len(sub.search()), 0)
@@ -88,16 +90,15 @@ class Scenario_manifest_refresh(APITestCase):
         :expectedresults:
             1. The manifest should refresh and delete successfully.
          """
-        org = entities.Organization().search(query={
-            'search': 'name={0}'.format(self.org_name)})[0]
+        org = entities.Organization().search(query={'search': 'name={0}'.format(self.org_name)})[0]
         sub = entities.Subscription(organization=org)
         sub.refresh_manifest(data={'organization_id': org.id})
         self.assertGreater(len(sub.search()), 0)
         delete_manifest(self.org_name)
         history = entities.Subscription(organization=org).manifest_history(
-            data={'organization_id': org.id})
-        self.assertEqual("Subscriptions deleted by foreman_admin",
-                         history[0]['statusMessage'])
+            data={'organization_id': org.id}
+        )
+        self.assertEqual("Subscriptions deleted by foreman_admin", history[0]['statusMessage'])
 
 
 class Scenario_contenthost_subscription_autoattach_check(APITestCase):
@@ -142,31 +143,37 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         manifests.upload_manifest_locked(org.id, interface=manifests.INTERFACE_API)
-        act_key = entities.ActivationKey(auto_attach=False, organization=org.id,
-                                         environment=org.library.id).create()
-        rhel7_client = dockerize(
-            ak_name=act_key.name, distro='rhel7', org_label=org.label)
+        act_key = entities.ActivationKey(
+            auto_attach=False, organization=org.id, environment=org.library.id
+        ).create()
+        rhel7_client = dockerize(ak_name=act_key.name, distro='rhel7', org_label=org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
         client_container_name = [key for key in rhel7_client.keys()][0]
-        host_location_update(client_container_name=client_container_name,
-                             logger_obj=self.logger, loc=loc)
+        host_location_update(
+            client_container_name=client_container_name, logger_obj=self.logger, loc=loc
+        )
 
         wait_for(
-            lambda: org.name in execute(docker_execute_command, client_container_id,
-                                        'subscription-manager identity',
-                                        host=self.docker_vm)[self.docker_vm],
+            lambda: org.name
+            in execute(
+                docker_execute_command,
+                client_container_id,
+                'subscription-manager identity',
+                host=self.docker_vm,
+            )[self.docker_vm],
             timeout=100,
             delay=2,
-            logger=self.logger
+            logger=self.logger,
         )
-        status = execute(docker_execute_command, client_container_id,
-                         'subscription-manager identity',
-                         host=self.docker_vm)[self.docker_vm]
+        status = execute(
+            docker_execute_command,
+            client_container_id,
+            'subscription-manager identity',
+            host=self.docker_vm,
+        )[self.docker_vm]
         self.assertIn(org.name, status)
 
-        global_dict = {
-            self.__class__.__name__: {'client_container_id': client_container_id}
-        }
+        global_dict = {self.__class__.__name__: {'client_container_id': client_container_id}}
         create_dict(global_dict)
 
     @post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
@@ -183,7 +190,10 @@ class Scenario_contenthost_subscription_autoattach_check(APITestCase):
             1. Pre-upgrade content host should get Subscribed.
          """
         client_container_id = get_entity_data(self.__class__.__name__)['client_container_id']
-        subscription = execute(docker_execute_command, client_container_id,
-                               'subscription-manager attach --auto',
-                               host=self.docker_vm)[self.docker_vm]
+        subscription = execute(
+            docker_execute_command,
+            client_container_id,
+            'subscription-manager attach --auto',
+            host=self.docker_vm,
+        )[self.docker_vm]
         self.assertIn('Subscribed', subscription)

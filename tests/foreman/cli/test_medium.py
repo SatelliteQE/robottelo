@@ -30,19 +30,12 @@ from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
-OSES = [
-    'Archlinux',
-    'Debian',
-    'Gentoo',
-    'Redhat',
-    'Solaris',
-    'Suse',
-    'Windows',
-]
+OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']
 
 
 class MediumTestCase(CLITestCase):
     """Test class for Medium CLI"""
+
     @tier1
     def test_positive_create_with_name(self):
         """Check if Medium can be created
@@ -120,10 +113,7 @@ class MediumTestCase(CLITestCase):
         """
         medium = make_medium()
         os = make_os()
-        Medium.add_operating_system({
-            'id': medium['id'],
-            'operatingsystem-id': os['id'],
-        })
+        Medium.add_operating_system({'id': medium['id'], 'operatingsystem-id': os['id']})
 
     @tier2
     @upgrade
@@ -139,16 +129,10 @@ class MediumTestCase(CLITestCase):
         """
         medium = make_medium()
         os = make_os()
-        Medium.add_operating_system({
-            'id': medium['id'],
-            'operatingsystem-id': os['id'],
-        })
+        Medium.add_operating_system({'id': medium['id'], 'operatingsystem-id': os['id']})
         medium = Medium.info({'id': medium['id']})
         self.assertIn(os['title'], medium['operating-systems'])
-        Medium.remove_operating_system({
-            'id': medium['id'],
-            'operatingsystem-id': os['id'],
-        })
+        Medium.remove_operating_system({'id': medium['id'], 'operatingsystem-id': os['id']})
         medium = Medium.info({'id': medium['id']})
         self.assertNotIn(os['name'], medium['operating-systems'])
 
@@ -165,9 +149,6 @@ class MediumTestCase(CLITestCase):
         """
         new_name = gen_alphanumeric(6)
         medium = make_medium()
-        Medium.update({
-            'name': medium['name'],
-            'new-name': new_name,
-        })
+        Medium.update({'name': medium['name'], 'new-name': new_name})
         medium = Medium.info({'id': medium['id']})
         self.assertEqual(medium['name'], new_name)

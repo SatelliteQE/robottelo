@@ -75,9 +75,10 @@ def test_vm_install_package(value, module_org, module_lce):
             SatelliteToolsRepository(cdn=cdn),
             YumRepository(url=FAKE_0_YUM_REPO),
             DockerRepository(url=DOCKER_REGISTRY_HUB, upstream_name=DOCKER_UPSTREAM_NAME),
-            PuppetRepository(url=CUSTOM_PUPPET_REPO,
-                             modules=[dict(name='generic_1', author='robottelo')])
-        ]
+            PuppetRepository(
+                url=CUSTOM_PUPPET_REPO, modules=[dict(name='generic_1', author='robottelo')]
+            ),
+        ],
     )
     # this will create repositories , content view and activation key
     repos_collection.setup_content(module_org['id'], module_lce['id'], upload_manifest=True)

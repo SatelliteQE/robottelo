@@ -43,10 +43,7 @@ def module_product(module_org):
 @fixture(scope='module')
 def module_yum_repo(module_product):
     yum_repo = entities.Repository(
-        name=gen_string('alpha'),
-        product=module_product,
-        content_type='yum',
-        url=FAKE_0_YUM_REPO,
+        name=gen_string('alpha'), product=module_product, content_type='yum', url=FAKE_0_YUM_REPO
     ).create()
     yum_repo.sync()
     return yum_repo
@@ -55,10 +52,7 @@ def module_yum_repo(module_product):
 @fixture(scope='module')
 def module_yum_repo2(module_product):
     yum_repo = entities.Repository(
-        name=gen_string('alpha'),
-        product=module_product,
-        content_type='yum',
-        url=FAKE_3_YUM_REPO,
+        name=gen_string('alpha'), product=module_product, content_type='yum', url=FAKE_3_YUM_REPO
     ).create()
     yum_repo.sync()
     return yum_repo
@@ -94,18 +88,17 @@ def test_positive_search_in_repo(session, module_org, module_yum_repo):
     """
     with session:
         session.organization.select(org_name=module_org.name)
-        assert session.package.search(
-            'name = bear', repository=module_yum_repo.name
-        )[0]['RPM'].startswith('bear')
-        assert session.package.search(
-            'name = cheetah', repository=module_yum_repo.name
-        )[0]['RPM'].startswith('cheetah')
+        assert session.package.search('name = bear', repository=module_yum_repo.name)[0][
+            'RPM'
+        ].startswith('bear')
+        assert session.package.search('name = cheetah', repository=module_yum_repo.name)[0][
+            'RPM'
+        ].startswith('cheetah')
 
 
 @tier2
 @upgrade
-def test_positive_search_in_multiple_repos(
-        session, module_org, module_yum_repo, module_yum_repo2):
+def test_positive_search_in_multiple_repos(session, module_org, module_yum_repo, module_yum_repo2):
     """Create product with two different yum repositories assigned to it.
     Search for packages inside of these repositories. Make sure that unique
     packages present in corresponding repos.
@@ -121,24 +114,18 @@ def test_positive_search_in_multiple_repos(
     """
     with session:
         session.organization.select(org_name=module_org.name)
-        assert session.package.search(
-            'name = tiger')[0]['RPM'].startswith('tiger')
-        assert session.package.search(
-            'name = Lizard')[0]['RPM'].startswith('Lizard')
+        assert session.package.search('name = tiger')[0]['RPM'].startswith('tiger')
+        assert session.package.search('name = Lizard')[0]['RPM'].startswith('Lizard')
         # First repository
-        assert session.package.search(
-            'name = tiger', repository=module_yum_repo.name
-        )[0]['RPM'].startswith('tiger')
-        assert not session.package.search(
-            'name = Lizard', repository=module_yum_repo.name
-        )
+        assert session.package.search('name = tiger', repository=module_yum_repo.name)[0][
+            'RPM'
+        ].startswith('tiger')
+        assert not session.package.search('name = Lizard', repository=module_yum_repo.name)
         # Second repository
-        assert session.package.search(
-            'name = Lizard', repository=module_yum_repo2.name
-        )[0]['RPM'].startswith('Lizard')
-        assert not session.package.search(
-            'name = tiger', repository=module_yum_repo2.name
-        )
+        assert session.package.search('name = Lizard', repository=module_yum_repo2.name)[0][
+            'RPM'
+        ].startswith('Lizard')
+        assert not session.package.search('name = tiger', repository=module_yum_repo2.name)
 
 
 @tier2
@@ -165,17 +152,18 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
             'url': 'http://tstrachota.fedorapeople.org',
             'size': '2.39 KB (2452 Bytes)',
             'filename': 'gorilla-0.62-1.noarch.rpm',
-            'checksum': ('ffd511be32adbf91fa0b3f54f23cd1c02add50578344'
-                         'ff8de44cea4f4ab5aa37'),
+            'checksum': ('ffd511be32adbf91fa0b3f54f23cd1c02add50578344' 'ff8de44cea4f4ab5aa37'),
             'checksum_type': 'sha256',
             'source_rpm': 'gorilla-0.62-1.src.rpm',
             'build_host': 'smqe-ws15',
             'build_time': '1331831364',
         }
-        all_package_details = session.package.read(
-            'gorilla', repository=module_yum_repo.name)['details']
+        all_package_details = session.package.read('gorilla', repository=module_yum_repo.name)[
+            'details'
+        ]
         package_details = {
-            key: value for key, value in all_package_details.items()
+            key: value
+            for key, value in all_package_details.items()
             if key in expected_package_details
         }
         assert expected_package_details == package_details
@@ -183,8 +171,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
 
 @tier2
 @upgrade
-def test_positive_check_custom_package_details(
-        session, module_org, module_yum_repo):
+def test_positive_check_custom_package_details(session, module_org, module_yum_repo):
     """Upload custom rpm package to repository. Search for package
     and then open it. Check that package details are available
 
@@ -202,20 +189,17 @@ def test_positive_check_custom_package_details(
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'filename = {0}'.format(RPM_TO_UPLOAD),
-            repository=module_yum_repo.name
+            'filename = {0}'.format(RPM_TO_UPLOAD), repository=module_yum_repo.name
         )[0]['RPM'] == RPM_TO_UPLOAD.replace('.rpm', '')
         repo_details = session.package.read(
-            RPM_TO_UPLOAD.split('-')[0],
-            repository=module_yum_repo.name
+            RPM_TO_UPLOAD.split('-')[0], repository=module_yum_repo.name
         )['details']
         assert repo_details['filename'] == RPM_TO_UPLOAD
 
 
 @tier2
 @upgrade
-def test_positive_rh_repo_search_and_check_file_list(
-        session, module_org, module_rh_repo):
+def test_positive_rh_repo_search_and_check_file_list(session, module_org, module_rh_repo):
     """Synchronize one of RH repos (for example Satellite Tools). Search
     for packages inside of it and open one of the packages and check list of
     files inside of it.
@@ -230,15 +214,12 @@ def test_positive_rh_repo_search_and_check_file_list(
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'name = {0}'.format('puppet-agent'),
-            repository=module_rh_repo.name,
+            'name = {0}'.format('puppet-agent'), repository=module_rh_repo.name
         )[0]['RPM'].startswith('puppet-agent')
         assert session.package.search(
-            'name = {0}'.format('katello-host-tools'),
-            repository=module_rh_repo.name
+            'name = {0}'.format('katello-host-tools'), repository=module_rh_repo.name
         )[0]['RPM'].startswith('katello-host-tools')
-        package_details = session.package.read(
-            'tracer-common', repository=module_rh_repo.name)
+        package_details = session.package.read('tracer-common', repository=module_rh_repo.name)
         assert {
             '/etc/bash_completion.d/tracer',
             '/usr/share/locale/cs/LC_MESSAGES/tracer.mo',

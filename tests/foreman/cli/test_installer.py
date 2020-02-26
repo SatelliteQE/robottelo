@@ -22,6 +22,7 @@ from robottelo.test import CLITestCase
 
 class InstallerTestCase(CLITestCase):
     """Test class for installer"""
+
     # Notes for installer testing:
     # Perhaps there is a convenient log analyzer library out there
     # that can parse logs? It would be better (and possibly less

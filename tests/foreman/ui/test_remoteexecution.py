@@ -47,17 +47,12 @@ def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
     assert vm_client.subscribed
     add_remote_execution_ssh_key(vm_client.ip_addr)
     if subnet_id is not None:
-        Host.update({
-            'name': vm_client.hostname,
-            'subnet-id': subnet_id,
-        })
+        Host.update({'name': vm_client.hostname, 'subnet-id': subnet_id})
     if by_ip:
         # connect to host by ip
-        Host.set_parameter({
-            'host': vm_client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        })
+        Host.set_parameter(
+            {'host': vm_client.hostname, 'name': 'remote_execution_connect_by_ip', 'value': 'True'}
+        )
 
 
 @fixture(scope='module')
@@ -68,8 +63,11 @@ def module_org():
 @fixture(scope='module')
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
-    smart_proxy = entities.SmartProxy().search(
-        query={'search': 'name={0}'.format(settings.server.hostname)})[0].read()
+    smart_proxy = (
+        entities.SmartProxy()
+        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .read()
+    )
     smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])
     return location
@@ -113,7 +111,7 @@ def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip
                 'template_content.command': 'ls',
                 'advanced_options.execution_order': 'Randomized',
                 'schedule': 'Execute now',
-            }
+            },
         )
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['execution_order'] == 'Execution order: randomized'
@@ -144,17 +142,15 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
     hostname = module_vm_client_by_ip.hostname
     job_template_name = gen_string('alpha')
     with session:
-        session.jobtemplate.create({
-            'template.name': job_template_name,
-            'template.template_editor.rendering_options': 'Editor',
-            'template.template_editor.editor': '<%= input("command") %>',
-            'job.provider_type': 'SSH',
-            'inputs': [{
-                'name': 'command',
-                'required': True,
-                'input_type': 'User input',
-            }],
-        })
+        session.jobtemplate.create(
+            {
+                'template.name': job_template_name,
+                'template.template_editor.rendering_options': 'Editor',
+                'template.template_editor.editor': '<%= input("command") %>',
+                'job.provider_type': 'SSH',
+                'inputs': [{'name': 'command', 'required': True, 'input_type': 'User input'}],
+            }
+        )
         assert session.jobtemplate.search(job_template_name)[0]['Name'] == job_template_name
         assert session.host.search(hostname)[0]['Name'] == hostname
         job_status = session.host.schedule_remote_job(
@@ -164,7 +160,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
                 'job_template': job_template_name,
                 'template_content.command': 'ls',
                 'schedule': 'Execute now',
-            }
+            },
         )
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
@@ -207,26 +203,28 @@ def test_positive_run_job_in_manual_mode_by_ip(session, module_vm_client_by_ip):
            sleep 10;
            echo "$(date): really done"'''
     with session:
-        session.jobtemplate.create({
-            'template.name': job_template_name,
-            'template.template_editor.rendering_options': 'Editor',
-            'template.template_editor.editor': template,
-            'job.provider_type': 'SSH',
-            'inputs': [{
-                'name': 'command',
-                'required': True,
-                'input_type': 'User input',
-            }],
-        })
+        session.jobtemplate.create(
+            {
+                'template.name': job_template_name,
+                'template.template_editor.rendering_options': 'Editor',
+                'template.template_editor.editor': template,
+                'job.provider_type': 'SSH',
+                'inputs': [{'name': 'command', 'required': True, 'input_type': 'User input'}],
+            }
+        )
         assert session.jobtemplate.search(job_template_name)[0]['Name'] == job_template_name
         assert session.host.search(hostname)[0]['Name'] == hostname
 
         job_status, _ = wait_for(
-            lambda: session.host.schedule_remote_job([hostname],
-                                                     {'job_category': 'Miscellaneous',
-                                                      'job_template': job_template_name,
-                                                      'template_content.command': command,
-                                                      'schedule': 'Execute now', }),
+            lambda: session.host.schedule_remote_job(
+                [hostname],
+                {
+                    'job_category': 'Miscellaneous',
+                    'job_template': job_template_name,
+                    'template_content.command': command,
+                    'schedule': 'Execute now',
+                },
+            ),
             timeout=50,
             delay=1,
         )
@@ -258,7 +256,8 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
     :CaseLevel: System
     """
     with VirtualMachine(distro=DISTRO_DEFAULT) as client_1, VirtualMachine(
-            distro=DISTRO_DEFAULT) as client_2:
+        distro=DISTRO_DEFAULT
+    ) as client_2:
         vm_clients = [client_1, client_2]
         host_names = [client.hostname for client in vm_clients]
         for client in vm_clients:
@@ -266,7 +265,8 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
             update_vm_host_location(client, location_id=module_loc.id)
         with session:
             hosts = session.host.search(
-                ' or '.join(['name="{0}"'.format(hostname) for hostname in host_names]))
+                ' or '.join(['name="{0}"'.format(hostname) for hostname in host_names])
+            )
             assert set(host['Name'] for host in hosts) == set(host_names)
             job_status = session.host.schedule_remote_job(
                 host_names,
@@ -275,13 +275,16 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
                     'job_template': 'Run Command - SSH Default',
                     'template_content.command': 'ls',
                     'schedule': 'Execute now',
-                }
+                },
             )
             assert job_status['overview']['job_status'] == 'Success'
-            assert (set(host_job['Host'] for host_job in job_status['overview']['hosts_table'])
-                    == set(host_names))
-            assert all(host_job['Status'] == 'success'
-                       for host_job in job_status['overview']['hosts_table'])
+            assert set(
+                host_job['Host'] for host_job in job_status['overview']['hosts_table']
+            ) == set(host_names)
+            assert all(
+                host_job['Status'] == 'success'
+                for host_job in job_status['overview']['hosts_table']
+            )
 
 
 @tier3
@@ -333,7 +336,7 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
         # sleep 3/4 of the left time
-        time.sleep(job_left_time * 3/4)
+        time.sleep(job_left_time * 3 / 4)
         job_status = session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
@@ -343,14 +346,18 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         assert job_left_time > 0
         wait_for(
             lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
-                        'overview']['hosts_table'][0]['Status'] == 'running',
+                'overview'
+            ]['hosts_table'][0]['Status']
+            == 'running',
             timeout=(job_left_time + 30),
             delay=1,
         )
         # wait the job to change status to "success"
         wait_for(
             lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
-                        'overview']['hosts_table'][0]['Status'] == 'success',
+                'overview'
+            ]['hosts_table'][0]['Status']
+            == 'success',
             timeout=30,
             delay=1,
         )

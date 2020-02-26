@@ -71,32 +71,27 @@ def setup_content(request):
     new_repo = make_repository({u'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})
     content_view = make_content_view({'organization-id': org['id']})
-    ContentView.add_repository({
-        u'id': content_view['id'],
-        u'organization-id': org['id'],
-        u'repository-id': new_repo['id'],
-    })
+    ContentView.add_repository(
+        {
+            u'id': content_view['id'],
+            u'organization-id': org['id'],
+            u'repository-id': new_repo['id'],
+        }
+    )
     ContentView.publish({'id': content_view['id']})
     env = make_lifecycle_environment({'organization-id': org['id']})
     cvv = ContentView.info({'id': content_view['id']})['versions'][0]
-    ContentView.version_promote({
-        'id': cvv['id'],
-        'to-lifecycle-environment-id': env['id'],
-    })
-    new_ak = make_activation_key({
-        'lifecycle-environment-id': env['id'],
-        'content-view': content_view['name'],
-        'organization-id': org['id'],
-        'auto-attach': False,
-    })
-    subs_id = Subscription.list(
-        {'organization-id': org['id']},
-        per_page=False
+    ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
+    new_ak = make_activation_key(
+        {
+            'lifecycle-environment-id': env['id'],
+            'content-view': content_view['name'],
+            'organization-id': org['id'],
+            'auto-attach': False,
+        }
     )
-    ActivationKey.add_subscription({
-        'id': new_ak['id'],
-        'subscription-id': subs_id[0]['id'],
-    })
+    subs_id = Subscription.list({'organization-id': org['id']}, per_page=False)
+    ActivationKey.add_subscription({'id': new_ak['id'], 'subscription-id': subs_id[0]['id']})
     request.cls.setup_org = org
     request.cls.setup_new_ak = new_ak
     request.cls.setup_subs_id = subs_id
@@ -136,8 +131,7 @@ class ReportTemplateTestCase(CLITestCase):
         self.assertGreater(len([i for i in base if 'info' and 'report template' in i]), 0)
         self.assertGreater(len([i for i in base if 'generate' and 'report' in i]), 0)
         base = Base().execute('report-template create --help')
-        self.assertGreater(
-            len([i for i in base if 'hammer report-template create' in i]), 0)
+        self.assertGreater(len([i for i in base if 'hammer report-template create' in i]), 0)
         self.assertGreater(len([i for i in base if '--audit-comment' in i]), 0)
         self.assertGreater(len([i for i in base if '--interactive' in i]), 0)
 
@@ -177,8 +171,7 @@ class ReportTemplateTestCase(CLITestCase):
         tmp_name = gen_string('alpha')
         tmp_report_template = make_report_template({'name': tmp_name})
         result_list = ReportTemplate.list()
-        self.assertIn(
-            name, [rt['name'] for rt in result_list])
+        self.assertIn(name, [rt['name'] for rt in result_list])
 
         # info
         result = ReportTemplate.info({'id': report_template['id']})
@@ -186,10 +179,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         # update
         new_name = gen_string('alpha')
-        result = ReportTemplate.update({
-            'name': report_template['name'],
-            'new-name': new_name
-        })
+        result = ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
         self.assertEqual(result[0]['name'], new_name)
         rt_list = ReportTemplate.list()
         self.assertNotIn(name, [rt['name'] for rt in rt_list])
@@ -227,35 +217,24 @@ class ReportTemplateTestCase(CLITestCase):
         result_list = ReportTemplate.list()
         self.assertIn('Host statuses', [rt['name'] for rt in result_list])
 
-        rt_host_statuses = ReportTemplate.info({
-            'name': 'Host statuses'
-        })
-        result_no_filter = ReportTemplate.generate({
-            'name': rt_host_statuses['name'],
-        })
+        rt_host_statuses = ReportTemplate.info({'name': 'Host statuses'})
+        result_no_filter = ReportTemplate.generate({'name': rt_host_statuses['name']})
 
-        self.assertIn(
-            host1['name'],
-            [item.split(',')[0] for item in result_no_filter]
-        )
-        self.assertIn(
-            host2['name'],
-            [item.split(',')[0] for item in result_no_filter]
-        )
+        self.assertIn(host1['name'], [item.split(',')[0] for item in result_no_filter])
+        self.assertIn(host2['name'], [item.split(',')[0] for item in result_no_filter])
 
-        result = ReportTemplate.generate({
-            'name': rt_host_statuses['name'],
-            'inputs': (rt_host_statuses['template-inputs'][0]['name']
-                       + "=" + 'name={0}'.format(host1['name']))
-        })
-        self.assertIn(
-            host1['name'],
-            [item.split(',')[0] for item in result]
+        result = ReportTemplate.generate(
+            {
+                'name': rt_host_statuses['name'],
+                'inputs': (
+                    rt_host_statuses['template-inputs'][0]['name']
+                    + "="
+                    + 'name={0}'.format(host1['name'])
+                ),
+            }
         )
-        self.assertNotIn(
-            host2['name'],
-            [item.split(',')[0] for item in result]
-        )
+        self.assertIn(host1['name'], [item.split(',')[0] for item in result])
+        self.assertNotIn(host2['name'], [item.split(',')[0] for item in result])
 
     @tier2
     def test_positive_lock_and_unlock_report(self):
@@ -276,25 +255,13 @@ class ReportTemplateTestCase(CLITestCase):
         """
         name = gen_string('alpha')
         report_template = make_report_template({'name': name})
-        ReportTemplate.update({
-            'name': report_template['name'],
-            'locked': 1
-        })
+        ReportTemplate.update({'name': report_template['name'], 'locked': 1})
         new_name = gen_string('alpha')
         with self.assertRaises(CLIReturnCodeError):
-            ReportTemplate.update({
-                'name': report_template['name'],
-                'new-name': new_name
-            })
+            ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
 
-        ReportTemplate.update({
-            'name': report_template['name'],
-            'locked': 0
-        })
-        result = ReportTemplate.update({
-            'name': report_template['name'],
-            'new-name': new_name
-        })
+        ReportTemplate.update({'name': report_template['name'], 'locked': 0})
+        result = ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
         self.assertEqual(result[0]['name'], new_name)
 
     @tier2
@@ -316,16 +283,11 @@ class ReportTemplateTestCase(CLITestCase):
         name = gen_string('alpha')
         report_template = make_report_template({'name': name})
         ti_name = gen_string('alpha')
-        template_input = make_template_input({
-            'name': ti_name,
-            'input-type': 'user',
-            'template-id': report_template['id'],
-        })
-        result = ReportTemplate.info({
-            'name': report_template['name']
-        })
-        self.assertEqual(result['template-inputs'][0]['name'],
-                         template_input['name'])
+        template_input = make_template_input(
+            {'name': ti_name, 'input-type': 'user', 'template-id': report_template['id']}
+        )
+        result = ReportTemplate.info({'name': report_template['name']})
+        self.assertEqual(result['template-inputs'][0]['name'], template_input['name'])
 
     @tier2
     def test_positive_dump_report(self):
@@ -345,10 +307,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
         name = gen_string('alpha')
         content = gen_string('alpha')
-        report_template = make_report_template({
-            'name': name,
-            'content': content,
-        })
+        report_template = make_report_template({'name': name, 'content': content})
         result = ReportTemplate.dump({'id': report_template['id']})
         self.assertIn(content, result)
 
@@ -370,19 +329,10 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
         name = gen_string('alpha')
-        report_template = make_report_template({
-            'name': name
-        })
-        ReportTemplate.update({
-            'name': report_template['name'],
-            'locked': 1,
-            'default': 1,
-        })
+        report_template = make_report_template({'name': name})
+        ReportTemplate.update({'name': report_template['name'], 'locked': 1, 'default': 1})
         new_name = gen_string('alpha')
-        ReportTemplate.clone({
-            'id': report_template['id'],
-            'new-name': new_name,
-        })
+        ReportTemplate.clone({'id': report_template['id'], 'new-name': new_name})
         result_list = ReportTemplate.list()
         self.assertIn(new_name, [rt['name'] for rt in result_list])
         result_info = ReportTemplate.info({'id': report_template['id']})
@@ -411,29 +361,29 @@ class ReportTemplateTestCase(CLITestCase):
         architecture = make_architecture()
         partition_table = make_partition_table()
         medium = make_medium()
-        os = make_os({
-            'name': os_name,
-            'architecture-ids': architecture['id'],
-            'medium-ids': medium['id'],
-            'partition-table-ids': partition_table['id'],
-        })
+        os = make_os(
+            {
+                'name': os_name,
+                'architecture-ids': architecture['id'],
+                'medium-ids': medium['id'],
+                'partition-table-ids': partition_table['id'],
+            }
+        )
 
         host_name = gen_string('alpha')
-        host = make_fake_host({
-            'name': host_name,
-            'architecture-id': architecture['id'],
-            'medium-id': medium['id'],
-            'operatingsystem-id': os['id'],
-            'partition-table-id': partition_table['id']
-        })
+        host = make_fake_host(
+            {
+                'name': host_name,
+                'architecture-id': architecture['id'],
+                'medium-id': medium['id'],
+                'operatingsystem-id': os['id'],
+                'partition-table-id': partition_table['id'],
+            }
+        )
 
-        report_template = make_report_template({
-            'content': REPORT_TEMPLATE_FILE,
-        })
+        report_template = make_report_template({'content': REPORT_TEMPLATE_FILE})
 
-        result = ReportTemplate.generate({
-            'name': report_template['name'],
-        })
+        result = ReportTemplate.generate({'name': report_template['name']})
         self.assertIn('Name,Operating System', result)  # verify header of custom template
         self.assertIn(
             '{0},"{1}"'.format(host['name'], host['operating-system']['operating-system']), result
@@ -543,10 +493,7 @@ class ReportTemplateTestCase(CLITestCase):
         name = gen_string('alpha')
         report_template = make_report_template({'name': name})
 
-        ReportTemplate.update({
-            'name': report_template['name'],
-            'locked': 1
-        })
+        ReportTemplate.update({'name': report_template['name'], 'locked': 1})
 
         with self.assertRaises(CLIReturnCodeError):
             ReportTemplate.delete({'name': report_template['name']})
@@ -571,10 +518,9 @@ class ReportTemplateTestCase(CLITestCase):
         report_template = make_report_template({'name': name})
 
         with self.assertRaises(CLIReturnCodeError):
-            ReportTemplate.schedule({
-                'name': report_template['name'],
-                'mail-to': gen_string('alpha')
-            })
+            ReportTemplate.schedule(
+                {'name': report_template['name'], 'mail-to': gen_string('alpha')}
+            )
 
     @tier3
     def test_negative_nonauthor_of_report_cant_download_it(self):
@@ -601,114 +547,81 @@ class ReportTemplateTestCase(CLITestCase):
         loc = Location.info({'name': DEFAULT_LOC})
         org = Org.info({'name': DEFAULT_ORG})
 
-        user1 = make_user({
+        user1 = make_user(
+            {
                 'login': uname_viewer,
                 'password': password,
                 'organization-ids': org['id'],
-                'location-ids': loc['id']
-        })
+                'location-ids': loc['id'],
+            }
+        )
 
-        user2 = make_user({
+        user2 = make_user(
+            {
                 'login': uname_viewer2,
                 'password': password,
                 'organization-ids': org['id'],
-                'location-ids': loc['id']
-        })
+                'location-ids': loc['id'],
+            }
+        )
 
         role = make_role()
         # Pick permissions by its resource type
         permissions_org = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'Organization'})
+            for permission in Filter.available_permissions({'resource-type': 'Organization'})
         ]
         permissions_loc = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'Location'})
+            for permission in Filter.available_permissions({'resource-type': 'Location'})
         ]
         permissions_rt = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'ReportTemplate'})
+            for permission in Filter.available_permissions({'resource-type': 'ReportTemplate'})
         ]
         permissions_pt = [
             permission['name']
             for permission in Filter.available_permissions(
-                {'resource-type': 'ProvisioningTemplate'})
+                {'resource-type': 'ProvisioningTemplate'}
+            )
         ]
         permissions_jt = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'JobTemplate'})
+            for permission in Filter.available_permissions({'resource-type': 'JobTemplate'})
         ]
         # Assign filters to created role
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permissions_org,
-        })
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permissions_loc,
-        })
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permissions_rt,
-        })
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permissions_pt,
-        })
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permissions_jt,
-        })
-        User.add_role({
-            'login': user1['login'],
-            'role-id': role['id'],
-        })
-        User.add_role({
-            'login': user2['login'],
-            'role-id': role['id'],
-        })
+        make_filter({'role-id': role['id'], 'permissions': permissions_org})
+        make_filter({'role-id': role['id'], 'permissions': permissions_loc})
+        make_filter({'role-id': role['id'], 'permissions': permissions_rt})
+        make_filter({'role-id': role['id'], 'permissions': permissions_pt})
+        make_filter({'role-id': role['id'], 'permissions': permissions_jt})
+        User.add_role({'login': user1['login'], 'role-id': role['id']})
+        User.add_role({'login': user2['login'], 'role-id': role['id']})
 
         name = gen_string('alpha')
         content = gen_string('alpha')
 
         report_template = ReportTemplate.with_user(
-            username=user1['login'],
-            password=password
-        ).create({
-            'name': name,
-            'organization-id': org['id'],
-            'location-id': loc['id'],
-            'file': content
-        })
+            username=user1['login'], password=password
+        ).create(
+            {'name': name, 'organization-id': org['id'], 'location-id': loc['id'], 'file': content}
+        )
 
-        schedule = ReportTemplate.with_user(
-            username=user1['login'],
-            password=password
-        ).schedule({
-            'name': report_template['name'],
-        })
+        schedule = ReportTemplate.with_user(username=user1['login'], password=password).schedule(
+            {'name': report_template['name']}
+        )
 
         report_data = ReportTemplate.with_user(
-            username=user1['login'],
-            password=password
-        ).report_data({
-            'id': report_template['name'],
-            'job-id': schedule[0].split("Job ID: ", 1)[1]
-        })
+            username=user1['login'], password=password
+        ).report_data(
+            {'id': report_template['name'], 'job-id': schedule[0].split("Job ID: ", 1)[1]}
+        )
 
         self.assertIn(content, report_data)
         with self.assertRaises(CLIReturnCodeError):
-            ReportTemplate.with_user(
-                username=user2['login'],
-                password=password
-            ).report_data({
-                'id': report_template['name'],
-                'job-id': schedule[0].split("Job ID: ", 1)[1],
-            })
+            ReportTemplate.with_user(username=user2['login'], password=password).report_data(
+                {'id': report_template['name'], 'job-id': schedule[0].split("Job ID: ", 1)[1]}
+            )
 
     @tier2
     @pytest.mark.skip_if_open('BZ:1750924')
@@ -735,15 +648,9 @@ class ReportTemplateTestCase(CLITestCase):
         host_name = gen_string('alpha')
         host = make_fake_host({'name': host_name})
 
-        result = ReportTemplate.generate({
-            'name': 'Host statuses',
-            'organization': DEFAULT_ORG
-        })
+        result = ReportTemplate.generate({'name': 'Host statuses', 'organization': DEFAULT_ORG})
 
-        self.assertIn(
-            host['name'],
-            [item.split(',')[0] for item in result]
-        )
+        self.assertIn(host['name'], [item.split(',')[0] for item in result])
 
     @tier2
     @pytest.mark.skip_if_open('BZ:1782807')
@@ -780,35 +687,27 @@ class ReportTemplateTestCase(CLITestCase):
         loc = Location.info({'name': DEFAULT_LOC})
         org = Org.info({'name': DEFAULT_ORG})
 
-        user = make_user({
+        user = make_user(
+            {
                 'login': login,
                 'password': password,
                 'organization-ids': org['id'],
-                'location-ids': loc['id']
-        })
+                'location-ids': loc['id'],
+            }
+        )
 
-        User.add_role({
-            'login': user['login'],
-            'role': 'Ansible Tower Inventory Reader',
-        })
+        User.add_role({'login': user['login'], 'role': 'Ansible Tower Inventory Reader'})
 
         host_name = gen_string('alpha').lower()
         host = make_fake_host({'name': host_name})
 
-        schedule = ReportTemplate.with_user(
-            username=user['login'],
-            password=password
-        ).schedule({
-            'name': template_name,
-        })
+        schedule = ReportTemplate.with_user(username=user['login'], password=password).schedule(
+            {'name': template_name}
+        )
 
         report_data = ReportTemplate.with_user(
-            username=user['login'],
-            password=password
-        ).report_data({
-            'id': template_name,
-            'job-id': schedule[0].split("Job ID: ", 1)[1]
-        })
+            username=user['login'], password=password
+        ).report_data({'id': template_name, 'job-id': schedule[0].split("Job ID: ", 1)[1]})
 
         assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
 
@@ -833,27 +732,21 @@ class ReportTemplateTestCase(CLITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
             assert vm.subscribed
-            result_html = ReportTemplate.generate({
-                'organization': self.setup_org['name'],
-                'id': 115,
-                'report-format': 'html'
-            })
+            result_html = ReportTemplate.generate(
+                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'html'}
+            )
             assert vm.hostname in result_html[2]
             assert self.setup_subs_id[0]['name'] in result_html[2]
-            result_yaml = ReportTemplate.generate({
-                'organization': self.setup_org['name'],
-                'id': 115,
-                'report-format': 'yaml'
-            })
+            result_yaml = ReportTemplate.generate(
+                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'yaml'}
+            )
             for entry in result_yaml:
                 if '-Name:' in entry:
                     assert vm.hostname in entry
                 elif 'Subscription Name:' in entry:
                     assert self.setup_subs_id[0]['name'] in entry
-            result_csv = ReportTemplate.generate({
-                'organization': self.setup_org['name'],
-                'id': 115,
-                'report-format': 'csv'
-            })
+            result_csv = ReportTemplate.generate(
+                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'csv'}
+            )
             assert vm.hostname in result_csv[1]
             assert self.setup_subs_id[0]['name'] in result_csv[1]

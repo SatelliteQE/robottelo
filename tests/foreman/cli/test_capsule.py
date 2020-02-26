@@ -58,15 +58,14 @@ class CapsuleTestCase(CLITestCase):
 
        """
         # Create a random proxy
-        with self.assertRaisesRegex(
-            CLIFactoryError,
-            u'Could not create the proxy:'
-        ):
-            make_proxy({
-                u'url': u'http://{0}:{1}'.format(
-                    gen_string('alpha', 6),
-                    gen_string('numeric', 4)),
-            })
+        with self.assertRaisesRegex(CLIFactoryError, u'Could not create the proxy:'):
+            make_proxy(
+                {
+                    u'url': u'http://{0}:{1}'.format(
+                        gen_string('alpha', 6), gen_string('numeric', 4)
+                    )
+                }
+            )
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -124,11 +123,7 @@ class CapsuleTestCase(CLITestCase):
             with self.subTest(new_name):
                 newport = get_available_capsule_port()
                 with default_url_on_new_port(9090, newport) as url:
-                    Proxy.update({
-                        u'id': proxy['id'],
-                        u'name': new_name,
-                        u'url': url,
-                    })
+                    Proxy.update({u'id': proxy['id'], u'name': new_name, u'url': url})
                     proxy = Proxy.info({u'id': proxy['id']})
                     self.assertEqual(proxy['name'], new_name)
 

@@ -36,6 +36,7 @@ class MockStdout(object):
 
 class MockSSHClient(object):
     """A mock ``paramiko.SSHClient`` object."""
+
     def __init__(self):
         """Set several debugging counters to 0.
 
@@ -59,9 +60,19 @@ class MockSSHClient(object):
         self.set_missing_host_key_policy_ += 1
 
     def connect(
-            self, hostname, port=22, username=None, password=None, pkey=None,
-            key_filename=None, timeout=None, allow_agent=True,
-            look_for_keys=True, compress=False, sock=None):
+        self,
+        hostname,
+        port=22,
+        username=None,
+        password=None,
+        pkey=None,
+        key_filename=None,
+        timeout=None,
+        allow_agent=True,
+        look_for_keys=True,
+        compress=False,
+        sock=None,
+    ):
         """"A stub method that records some of the parameters passed in.
 
         When this method is called, the following arguments are recorded as
@@ -83,15 +94,12 @@ class MockSSHClient(object):
         self.close_ += 1
 
     def exec_command(self, cmd, *args, **kwargs):
-        return (
-            self.ret_code,
-            MockStdout(cmd, self.ret_code),
-            MockStdout('', self.ret_code)
-        )
+        return (self.ret_code, MockStdout(cmd, self.ret_code), MockStdout('', self.ret_code))
 
 
 class SSHTestCase(TestCase):
     """Tests for module ``robottelo.ssh``."""
+
     @mock.patch('robottelo.ssh.settings')
     def test_get_connection_key(self, settings):
         """Test method ``get_connection`` using key file to connect to the
@@ -105,9 +113,7 @@ class SSHTestCase(TestCase):
         """
         ssh._call_paramiko_sshclient = MockSSHClient
 
-        key_filename = os.path.join(
-            os.path.abspath(__name__), 'data', 'test_dsa.key'
-        )
+        key_filename = os.path.join(os.path.abspath(__name__), 'data', 'test_dsa.key')
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = key_filename
@@ -155,26 +161,32 @@ class SSHTestCase(TestCase):
 
     def test_valid_ssh_pub_keys(self):
         valid_keys = (
-            ("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDuMCPmX7iBXAxH5oLznswA5cc"
-             "fV/FABwIWnYl0OYRkDhv3mu9Eogk4H6sCguq4deJtRkwg2C3yEmsNYfBWYu4y5Rk"
-             "I4TH/k3N161wn91nBxs/+wqoN3g9tUuWrf98PG4NnYvmZU67RuiSUNXpgLEPfo8j"
-             "MKkJ5veKu++DmHdpfqFB9ljWEfWz+kAAKgwo251VRDaKwFsb91LbLFpqn9rfMJUB"
-             "hOn+Uebfd0TrHzw08gbVmvfAn61isvFVhvIJBTjNSWsBIm8SuCvhH+inYOwttfE8"
-             "FGeR1KSp9Xl0PCYDK0BwvQO3qwD+nehsEUR/FJUXm1IZPc8fi17ieGgPOnrgf"
-             " user@new-host"),
-            ("ssh-dss AAAAB3NzaC1kc3MAAACBAMzXU0Jl0fRCKy5B7R8KVKMLJYuhVPagBSi7"
-             "UxRAiVHOHzscQzt5wrgRqknuQ9/xIAVAMUVy3ND5zBLkqKwGm9DKGeYEv7xxDi6Z"
-             "z5QjsI9oSSqFSMauDxgl+foC4QPrIlUvb9ez5bVg6aJHKJEngDo+lvfVROgQOvTx"
-             "I9IXn7oLAAAAFQCz4jDBOnTjkWXgw8sT46HM1jK4SwAAAIAS2BvUlEevY+2YOiqD"
-             "SRy9Dhr+/bWLuLl7oUTEnxPhCyo8paaU0fJO1w3BUsbO3Rg4sBgXChRNyg7iKriB"
-             "WbPH6EK1e6IcYv8wUdobB3wg+RJlYU2cq7V8HcPJh+hfAGfMD6UnTDLg+P5SCEW7"
-             "Ag+knZNwfKv9IAtd0W86EFdVWwAAAIEAkj5boIRqLiUGbRipEzWzZbWMis2S8Ji2"
-             "oR6fUD/h6bZ5ta8nEWApri5OQExK7upelTjSR+MHEDRmeepchkTX0LOjBkZgsPyb"
-             "6nEpQUQUJAuns8yAnhsKuEuZmlAGwXOSKiD/KRyJu4KjbbV4oyKXU1fF70zPLmOT"
-             "fyvserP5qyo= user@new-host"),
-            ("ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAy"
-             "NTYAAABBBPWuLEsYvplkL6XR5wbxzXyzw8tLE/JjLXlzUgxv4LhJN4iufXLPSOvj"
-             "sk0ek1TE059poyy5ps+GU2DkisSUVYA= user@new-host")
+            (
+                "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDuMCPmX7iBXAxH5oLznswA5cc"
+                "fV/FABwIWnYl0OYRkDhv3mu9Eogk4H6sCguq4deJtRkwg2C3yEmsNYfBWYu4y5Rk"
+                "I4TH/k3N161wn91nBxs/+wqoN3g9tUuWrf98PG4NnYvmZU67RuiSUNXpgLEPfo8j"
+                "MKkJ5veKu++DmHdpfqFB9ljWEfWz+kAAKgwo251VRDaKwFsb91LbLFpqn9rfMJUB"
+                "hOn+Uebfd0TrHzw08gbVmvfAn61isvFVhvIJBTjNSWsBIm8SuCvhH+inYOwttfE8"
+                "FGeR1KSp9Xl0PCYDK0BwvQO3qwD+nehsEUR/FJUXm1IZPc8fi17ieGgPOnrgf"
+                " user@new-host"
+            ),
+            (
+                "ssh-dss AAAAB3NzaC1kc3MAAACBAMzXU0Jl0fRCKy5B7R8KVKMLJYuhVPagBSi7"
+                "UxRAiVHOHzscQzt5wrgRqknuQ9/xIAVAMUVy3ND5zBLkqKwGm9DKGeYEv7xxDi6Z"
+                "z5QjsI9oSSqFSMauDxgl+foC4QPrIlUvb9ez5bVg6aJHKJEngDo+lvfVROgQOvTx"
+                "I9IXn7oLAAAAFQCz4jDBOnTjkWXgw8sT46HM1jK4SwAAAIAS2BvUlEevY+2YOiqD"
+                "SRy9Dhr+/bWLuLl7oUTEnxPhCyo8paaU0fJO1w3BUsbO3Rg4sBgXChRNyg7iKriB"
+                "WbPH6EK1e6IcYv8wUdobB3wg+RJlYU2cq7V8HcPJh+hfAGfMD6UnTDLg+P5SCEW7"
+                "Ag+knZNwfKv9IAtd0W86EFdVWwAAAIEAkj5boIRqLiUGbRipEzWzZbWMis2S8Ji2"
+                "oR6fUD/h6bZ5ta8nEWApri5OQExK7upelTjSR+MHEDRmeepchkTX0LOjBkZgsPyb"
+                "6nEpQUQUJAuns8yAnhsKuEuZmlAGwXOSKiD/KRyJu4KjbbV4oyKXU1fF70zPLmOT"
+                "fyvserP5qyo= user@new-host"
+            ),
+            (
+                "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAy"
+                "NTYAAABBBPWuLEsYvplkL6XR5wbxzXyzw8tLE/JjLXlzUgxv4LhJN4iufXLPSOvj"
+                "sk0ek1TE059poyy5ps+GU2DkisSUVYA= user@new-host"
+            ),
         )
         for key in valid_keys:
             self.assertTrue(ssh.is_ssh_pub_key(key))
@@ -244,8 +256,7 @@ class SSHTestCase(TestCase):
         settings.ssh_client.connection_timeout = 10
 
         with ssh.get_connection() as connection:
-            ret = ssh.execute_command(
-                'ls -la', connection, output_format='base')
+            ret = ssh.execute_command('ls -la', connection, output_format='base')
             self.assertEqual(ret.stdout, u'ls -la')
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
@@ -306,7 +317,4 @@ class SSHTestCase(TestCase):
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     def test_call_paramiko_client(self):
-        self.assertIsInstance(
-            ssh._call_paramiko_sshclient(),
-            (paramiko.SSHClient, MockSSHClient)
-        )
+        self.assertIsInstance(ssh._call_paramiko_sshclient(), (paramiko.SSHClient, MockSSHClient))

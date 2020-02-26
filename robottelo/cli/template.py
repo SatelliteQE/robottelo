@@ -38,8 +38,7 @@ class Template(Base):
         """Returns list of types of templates."""
         cls.command_sub = 'kinds'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         kinds = []
         if result:
@@ -52,8 +51,7 @@ class Template(Base):
         """Adds operating system, requires "id" and "operatingsystem-id"."""
         cls.command_sub = 'add-operatingsystem'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -62,8 +60,7 @@ class Template(Base):
         """Remove operating system, requires "id" and "operatingsystem-id"."""
         cls.command_sub = 'remove-operatingsystem'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -71,12 +68,10 @@ class Template(Base):
     def clone(cls, options=None):
         """Clone provided provisioning template"""
         cls.command_sub = 'clone'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def build_pxe_default(cls, options=None):
         """Build PXE default template"""
         cls.command_sub = 'build-pxe-default'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

@@ -41,10 +41,7 @@ def is_open_bz(issue, data=None):
         return True
 
     # BZ is CLOSED/WONTFIX so considered not fixed yet, BZ is open
-    if (
-        bz['status'] in CLOSED_STATUSES
-        and bz['resolution'] in WONTFIX_RESOLUTIONS
-    ):
+    if bz['status'] in CLOSED_STATUSES and bz['resolution'] in WONTFIX_RESOLUTIONS:
         return True
 
     # BZ is CLOSED with a resolution in (ERRATA, CURRENT_RELEASE, ...)
@@ -77,10 +74,7 @@ def should_deselect_bz(issue, data=None):
 
     bz = follow_duplicates(bz)
 
-    return (
-        bz['status'] in CLOSED_STATUSES
-        and bz['resolution'] in WONTFIX_RESOLUTIONS
-    )
+    return bz['status'] in CLOSED_STATUSES and bz['resolution'] in WONTFIX_RESOLUTIONS
 
 
 def follow_duplicates(bz):
@@ -98,9 +92,7 @@ def extract_min_version(bz):
             bz["version"] = Version(tmversion.group('version'))
         else:
             flag_versions = [
-                VERSION_RE.search(flag['name'])
-                for flag in bz['flags']
-                if flag['status'] == '+'
+                VERSION_RE.search(flag['name']) for flag in bz['flags'] if flag['status'] == '+'
             ]
             versions = [
                 Version(flag_version.group('version'))
@@ -135,12 +127,8 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
         cached_data {dict} -- Cached data previous loaded from API
     """
     bz_data = get_data_bz(
-        [
-            item.partition(':')[-1]
-            for item in collected_data
-            if item.startswith('BZ:')
-        ],
-        cached_data=cached_data
+        [item.partition(':')[-1] for item in collected_data if item.startswith('BZ:')],
+        cached_data=cached_data,
     )
     for data in bz_data:
         # If BZ is CLOSED/DUPLICATE collect the duplicate
@@ -159,10 +147,7 @@ def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
     cached_data = cached_data or {}
     if bz["resolution"] == "DUPLICATE":
         # Collect duplicates
-        bz["dupe_data"] = get_single_bz(
-            bz["dupe_of"],
-            cached_data=cached_data
-        )
+        bz["dupe_data"] = get_single_bz(bz["dupe_of"], cached_data=cached_data)
         dupe_key = f"BZ:{bz['dupe_of']}"
         # Store Duplicate also in the main collection for caching
         if dupe_key not in collected_data:
@@ -183,8 +168,7 @@ def collect_clones(bz, collected_data, cached_data=None):  # pragma: no cover
 
     if clones:
         bz["clones"] = get_data_bz(
-            [str(clone_num) for clone_num in clones],
-            cached_data=cached_data
+            [str(clone_num) for clone_num in clones], cached_data=cached_data
         )
         for clone_data in bz["clones"]:
             # Store Clones also in the main collection for caching
@@ -226,11 +210,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         LOGGER.debug(f"Using cached data for {set(bz_numbers)}")
         if not all([f'BZ:{number}' in cached_data for number in bz_numbers]):
             LOGGER.debug("There are BZs out of cache.")
-        return [
-            item['data']
-            for _, item in cached_data.items()
-            if 'data' in item
-        ]
+        return [item['data'] for _, item in cached_data.items() if 'data' in item]
 
     # Ensure API key is set
     if not settings.bugzilla.api_key:
@@ -302,5 +282,5 @@ def get_default_bz(number):  # pragma: no cover
         "resolution": "",
         "clone_ids": [],
         "cf_clone_of": "",
-        "error": "missing bugzilla api_key"
+        "error": "missing bugzilla api_key",
     }

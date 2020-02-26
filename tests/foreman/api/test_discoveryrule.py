@@ -53,12 +53,9 @@ class DiscoveryRuleTestCase(APITestCase):
             'Organization = Default_Organization',
         ]
         self.discovery_rule = entities.DiscoveryRule(
-            hostgroup=self.hostgroup,
-            search_=gen_choice(searches),
+            hostgroup=self.hostgroup, search_=gen_choice(searches)
         )
-        self.discovery_rule._fields['hostname'].default = (
-            'myhost-<%= rand(99999) %>'
-        )
+        self.discovery_rule._fields['hostname'].default = 'myhost-<%= rand(99999) %>'
 
     @tier1
     def test_positive_create_with_name(self):
@@ -77,10 +74,7 @@ class DiscoveryRuleTestCase(APITestCase):
                 self.discovery_rule.name = name
                 discovery_rule = self.discovery_rule.create()
                 self.assertEqual(self.discovery_rule.name, discovery_rule.name)
-                self.assertEqual(
-                    self.discovery_rule.search_,
-                    discovery_rule.search_,
-                )
+                self.assertEqual(self.discovery_rule.search_, discovery_rule.search_)
 
     @tier2
     def test_positive_create_with_org_loc(self):
@@ -96,10 +90,7 @@ class DiscoveryRuleTestCase(APITestCase):
         loc = entities.Location().create()
         hostgroup = entities.HostGroup(organization=[org]).create()
         discovery_rule = entities.DiscoveryRule(
-            hostgroup=hostgroup,
-            search_='cpu_count = 1',
-            organization=[org],
-            location=[loc],
+            hostgroup=hostgroup, search_='cpu_count = 1', organization=[org], location=[loc]
         ).create()
         self.assertEqual(org.name, discovery_rule.organization[0].read().name)
         self.assertEqual(loc.name, discovery_rule.location[0].read().name)
@@ -131,8 +122,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :expectedresults: Validation error should be raised
         """
         for name in (
-                gen_string(str_type, 256)
-                for str_type in ('alpha', 'numeric', 'alphanumeric')):
+            gen_string(str_type, 256) for str_type in ('alpha', 'numeric', 'alphanumeric')
+        ):
             with self.subTest(name):
                 self.discovery_rule.name = name
                 with self.assertRaises(HTTPError):
@@ -194,11 +185,7 @@ class DiscoveryRuleTestCase(APITestCase):
         discovery_rule.organization = [org]
         discovery_rule.location = [loc]
         discovery_rule.hostgroup = hostgroup
-        discovery_rule = discovery_rule.update([
-            'organization',
-            'location',
-            'hostgroup',
-        ])
+        discovery_rule = discovery_rule.update(['organization', 'location', 'hostgroup'])
         self.assertEqual(org.name, discovery_rule.organization[0].read().name)
         self.assertEqual(loc.name, discovery_rule.location[0].read().name)
 
@@ -212,10 +199,7 @@ class DiscoveryRuleTestCase(APITestCase):
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.search_ = 'Location = Default_Location'
-        self.assertEqual(
-            discovery_rule.search_,
-            discovery_rule.update(['search_']).search_,
-        )
+        self.assertEqual(discovery_rule.search_, discovery_rule.update(['search_']).search_)
 
     @tier1
     def test_positive_update_host_limit(self):
@@ -227,10 +211,7 @@ class DiscoveryRuleTestCase(APITestCase):
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.max_count = gen_integer(1, 100)
-        self.assertEqual(
-            discovery_rule.max_count,
-            discovery_rule.update(['max_count']).max_count,
-        )
+        self.assertEqual(discovery_rule.max_count, discovery_rule.update(['max_count']).max_count)
 
     @tier1
     def test_positive_disable(self):
@@ -243,10 +224,7 @@ class DiscoveryRuleTestCase(APITestCase):
         discovery_rule = self.discovery_rule.create()
         self.assertEqual(discovery_rule.enabled, True)
         discovery_rule.enabled = False
-        self.assertEqual(
-            discovery_rule.enabled,
-            discovery_rule.update(['enabled']).enabled,
-        )
+        self.assertEqual(discovery_rule.enabled, discovery_rule.update(['enabled']).enabled)
 
     @tier2
     def test_positive_update_rule_hostgroup(self):
@@ -261,6 +239,5 @@ class DiscoveryRuleTestCase(APITestCase):
         discovery_rule = self.discovery_rule.create()
         discovery_rule.hostgroup = entities.HostGroup().create()
         self.assertEqual(
-            discovery_rule.hostgroup.id,
-            discovery_rule.update(['hostgroup']).hostgroup.id,
+            discovery_rule.hostgroup.id, discovery_rule.update(['hostgroup']).hostgroup.id
         )

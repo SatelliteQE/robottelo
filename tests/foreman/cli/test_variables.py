@@ -52,31 +52,30 @@ class SmartVariablesTestCase(CLITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
-        cls.puppet_modules = [
-            {'author': 'robottelo', 'name': 'cli_test_variables'},
-        ]
+        cls.puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_variables'}]
         cls.org = make_org()
         cls.loc = make_location()
-        cv = publish_puppet_module(
-            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({
-            'search': u'content_view="{0}"'.format(cv['name'])
-        })[0]
-        Environment.update({
-            'name': cls.env['name'],
-            'organization-ids': cls.org['id'],
-            'location-ids': cls.loc['id'],
-        })
+        cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
+        cls.env = Environment.list({'search': u'content_view="{0}"'.format(cv['name'])})[0]
+        Environment.update(
+            {
+                'name': cls.env['name'],
+                'organization-ids': cls.org['id'],
+                'location-ids': cls.loc['id'],
+            }
+        )
         # Find imported puppet class
-        cls.puppet_class = Puppet.info({
-            'name': cls.puppet_modules[0]['name'],
-            'environment': cls.env['name'],
-        })
+        cls.puppet_class = Puppet.info(
+            {'name': cls.puppet_modules[0]['name'], 'environment': cls.env['name']}
+        )
         # And all its subclasses
-        cls.puppet_subclasses = Puppet.list({
-            'search': "name ~ {0}:: and environment = {1}".format(
-                cls.puppet_class['name'], cls.env['name'])
-        })
+        cls.puppet_subclasses = Puppet.list(
+            {
+                'search': "name ~ {0}:: and environment = {1}".format(
+                    cls.puppet_class['name'], cls.env['name']
+                )
+            }
+        )
 
     # TearDown brakes parallel tests run as every test depends on the same
     # puppet class that will be removed during TearDown
@@ -99,62 +98,43 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
+        smart_variable = make_smart_variable({'puppet-class': self.puppet_class['name']})
 
         # List by host name and id
-        host = entities.Host(organization=self.org['id'],
-                             location=self.loc['id']).create()
-        Host.update({
-            'name': host.name,
-            'environment-id': self.env['id'],
-            'puppet-classes': self.puppet_class['name'],
-            'organization-id': self.org['id'],
-        })
+        host = entities.Host(organization=self.org['id'], location=self.loc['id']).create()
+        Host.update(
+            {
+                'name': host.name,
+                'environment-id': self.env['id'],
+                'puppet-classes': self.puppet_class['name'],
+                'organization-id': self.org['id'],
+            }
+        )
         host_variables = SmartVariable.list({'host': host.name})
         self.assertGreater(len(host_variables), 0)
-        self.assertIn(
-            smart_variable['variable'],
-            [sv['variable'] for sv in host_variables]
-        )
+        self.assertIn(smart_variable['variable'], [sv['variable'] for sv in host_variables])
         host_variables = SmartVariable.list({'host-id': host.id})
         self.assertGreater(len(host_variables), 0)
-        self.assertIn(
-            smart_variable['id'], [sv['id'] for sv in host_variables])
+        self.assertIn(smart_variable['id'], [sv['id'] for sv in host_variables])
 
         # List by hostgroup name and id
-        hostgroup = make_hostgroup({
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet_class['id']
-        })
-        hostgroup_variables = SmartVariable.list(
-            {'hostgroup': hostgroup['name']})
-        self.assertGreater(len(hostgroup_variables), 0)
-        self.assertIn(
-            smart_variable['variable'],
-            [sv['variable'] for sv in hostgroup_variables]
+        hostgroup = make_hostgroup(
+            {'environment-id': self.env['id'], 'puppet-class-ids': self.puppet_class['id']}
         )
-        hostgroup_variables = SmartVariable.list(
-            {'hostgroup-id': hostgroup['id']})
+        hostgroup_variables = SmartVariable.list({'hostgroup': hostgroup['name']})
         self.assertGreater(len(hostgroup_variables), 0)
-        self.assertIn(
-            smart_variable['id'], [sv['id'] for sv in hostgroup_variables])
+        self.assertIn(smart_variable['variable'], [sv['variable'] for sv in hostgroup_variables])
+        hostgroup_variables = SmartVariable.list({'hostgroup-id': hostgroup['id']})
+        self.assertGreater(len(hostgroup_variables), 0)
+        self.assertIn(smart_variable['id'], [sv['id'] for sv in hostgroup_variables])
 
         # List by puppetclass name and id
-        sc_params_list = SmartVariable.list({
-            'puppet-class': self.puppet_class['name']
-        })
+        sc_params_list = SmartVariable.list({'puppet-class': self.puppet_class['name']})
         self.assertGreater(len(sc_params_list), 0)
-        self.assertIn(
-            smart_variable['variable'],
-            [sv['variable'] for sv in sc_params_list]
-        )
-        sc_params_list = SmartVariable.list({
-            'puppet-class-id': self.puppet_class['id']
-        })
+        self.assertIn(smart_variable['variable'], [sv['variable'] for sv in sc_params_list])
+        sc_params_list = SmartVariable.list({'puppet-class-id': self.puppet_class['id']})
         self.assertGreater(len(sc_params_list), 0)
-        self.assertIn(
-            smart_variable['id'], [sv['id'] for sv in sc_params_list])
+        self.assertIn(smart_variable['id'], [sv['id'] for sv in sc_params_list])
 
     @tier1
     def test_positive_CRUD(self):
@@ -169,21 +149,21 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = valid_data_list()[0]
-        smart_variable = make_smart_variable({
-            'variable': name,
-            'puppet-class': self.puppet_class['name']
-        })
+        smart_variable = make_smart_variable(
+            {'variable': name, 'puppet-class': self.puppet_class['name']}
+        )
         self.assertEqual(smart_variable['variable'], name)
 
         # Update name and puppet class
         new_name = valid_data_list()[0]
-        new_puppet = Puppet.info(
-            {u'name': choice(self.puppet_subclasses)['name']})
-        SmartVariable.update({
-            'id': smart_variable['id'],
-            'new-variable': new_name,
-            'puppet-class': new_puppet['name']
-        })
+        new_puppet = Puppet.info({u'name': choice(self.puppet_subclasses)['name']})
+        SmartVariable.update(
+            {
+                'id': smart_variable['id'],
+                'new-variable': new_name,
+                'puppet-class': new_puppet['name'],
+            }
+        )
         updated_sv = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(updated_sv['puppet-class'], new_puppet['name'])
         self.assertEqual(updated_sv['variable'], new_name)
@@ -206,10 +186,7 @@ class SmartVariablesTestCase(CLITestCase):
         """
         name = invalid_values_list()[0]
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.create({
-                'variable': name,
-                'puppet-class': self.puppet_class['name']
-            })
+            SmartVariable.create({'variable': name, 'puppet-class': self.puppet_class['name']})
 
     @tier1
     def test_negative_duplicate_name_variable(self):
@@ -229,11 +206,9 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        make_smart_variable(
-            {'variable': name, 'puppet-class': self.puppet_class['name']})
+        make_smart_variable({'variable': name, 'puppet-class': self.puppet_class['name']})
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.create({
-                'variable': name, 'puppet-class': self.puppet_class['name']})
+            SmartVariable.create({'variable': name, 'puppet-class': self.puppet_class['name']})
 
     @tier1
     def test_positive_create_with_default_value(self):
@@ -249,10 +224,9 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         value = valid_data_list()[0]
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': value,
-        })
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name'], 'default-value': value}
+        )
         self.assertEqual(smart_variable['default-value'], value)
 
     @tier2
@@ -267,18 +241,22 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: Matcher is not created with empty value
 
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': '20',
-            'variable-type': 'integer',
-            'override-value-order': 'is_virtual',
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': '20',
+                'variable-type': 'integer',
+                'override-value-order': 'is_virtual',
+            }
+        )
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.add_override_value({
-                'smart-variable-id': smart_variable['id'],
-                'match': 'is_virtual=true',
-                'value': '',
-            })
+            SmartVariable.add_override_value(
+                {
+                    'smart-variable-id': smart_variable['id'],
+                    'match': 'is_virtual=true',
+                    'value': '',
+                }
+            )
 
     @tier2
     def test_negative_create_with_invalid_match_value(self):
@@ -291,15 +269,15 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: Matcher is not created
 
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-        })
+        smart_variable = make_smart_variable({'puppet-class': self.puppet_class['name']})
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.add_override_value({
-                'smart-variable-id': smart_variable['id'],
-                'match': 'invalid_value',
-                'value': gen_string('alpha'),
-            })
+            SmartVariable.add_override_value(
+                {
+                    'smart-variable-id': smart_variable['id'],
+                    'match': 'invalid_value',
+                    'value': gen_string('alpha'),
+                }
+            )
 
     @tier2
     def test_positive_validate_default_value_with_regex(self):
@@ -318,16 +296,17 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: High
         """
         value = gen_string('numeric').lstrip('0')
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': gen_string('alpha')
-        })
-        SmartVariable.update({
-            'id': smart_variable['id'],
-            'default-value': value,
-            'validator-type': 'regexp',
-            'validator-rule': '[0-9]',
-        })
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name'], 'default-value': gen_string('alpha')}
+        )
+        SmartVariable.update(
+            {
+                'id': smart_variable['id'],
+                'default-value': value,
+                'validator-type': 'regexp',
+                'validator-rule': '[0-9]',
+            }
+        )
         updated_sv = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(updated_sv['default-value'], value)
         self.assertEqual(updated_sv['validator']['type'], 'regexp')
@@ -349,26 +328,24 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: High
         """
         value = gen_string('numeric').lstrip('0')
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': gen_string('numeric'),
-            'validator-type': 'regexp',
-            'validator-rule': '[0-9]',
-        })
-        SmartVariable.add_override_value({
-            'smart-variable-id': smart_variable['id'],
-            'match': 'domain=test.com',
-            'value': value
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': gen_string('numeric'),
+                'validator-type': 'regexp',
+                'validator-rule': '[0-9]',
+            }
+        )
+        SmartVariable.add_override_value(
+            {'smart-variable-id': smart_variable['id'], 'match': 'domain=test.com', 'value': value}
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(smart_variable['validator']['type'], 'regexp')
         self.assertEqual(smart_variable['validator']['rule'], '[0-9]')
         self.assertEqual(
-            smart_variable['override-values']['values']['1']['match'],
-            'domain=test.com'
+            smart_variable['override-values']['values']['1']['match'], 'domain=test.com'
         )
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['value'], value)
+        self.assertEqual(smart_variable['override-values']['values']['1']['value'], value)
 
     @tier2
     def test_negative_validate_default_value_with_list(self):
@@ -384,12 +361,14 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: High
         """
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.create({
-                'puppet-class': self.puppet_class['name'],
-                'default-value': gen_string('alphanumeric'),
-                'validator-type': 'list',
-                'validator-rule': '5, test',
-            })
+            SmartVariable.create(
+                {
+                    'puppet-class': self.puppet_class['name'],
+                    'default-value': gen_string('alphanumeric'),
+                    'validator-type': 'list',
+                    'validator-rule': '5, test',
+                }
+            )
 
     @tier2
     def test_positive_validate_matcher_value_with_list(self):
@@ -407,27 +386,24 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': 'example',
-            'validator-type': 'list',
-            'validator-rule': 'test, example, 30',
-        })
-        SmartVariable.add_override_value({
-            'smart-variable-id': smart_variable['id'],
-            'match': 'domain=test.com',
-            'value': '30'
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': 'example',
+                'validator-type': 'list',
+                'validator-rule': 'test, example, 30',
+            }
+        )
+        SmartVariable.add_override_value(
+            {'smart-variable-id': smart_variable['id'], 'match': 'domain=test.com', 'value': '30'}
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(smart_variable['validator']['type'], 'list')
+        self.assertEqual(smart_variable['validator']['rule'], 'test, example, 30')
         self.assertEqual(
-            smart_variable['validator']['rule'], 'test, example, 30')
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['match'],
-            'domain=test.com'
+            smart_variable['override-values']['values']['1']['match'], 'domain=test.com'
         )
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['value'], '30')
+        self.assertEqual(smart_variable['override-values']['values']['1']['value'], '30')
 
     @tier2
     def test_positive_validate_matcher_value_with_default_type(self):
@@ -444,24 +420,26 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': 'true',
-            'variable-type': 'boolean',
-            'override-value-order': 'is_virtual',
-        })
-        SmartVariable.add_override_value({
-            'smart-variable-id': smart_variable['id'],
-            'match': 'is_virtual=true',
-            'value': 'false',
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': 'true',
+                'variable-type': 'boolean',
+                'override-value-order': 'is_virtual',
+            }
+        )
+        SmartVariable.add_override_value(
+            {
+                'smart-variable-id': smart_variable['id'],
+                'match': 'is_virtual=true',
+                'value': 'false',
+            }
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(
-            smart_variable['override-values']['values']['1']['match'],
-            'is_virtual=true'
+            smart_variable['override-values']['values']['1']['match'], 'is_virtual=true'
         )
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['value'], False)
+        self.assertEqual(smart_variable['override-values']['values']['1']['value'], False)
 
     @tier2
     def test_negative_validate_matcher_non_existing_attribute(self):
@@ -474,17 +452,21 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': 'true',
-            'variable-type': 'boolean',
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': 'true',
+                'variable-type': 'boolean',
+            }
+        )
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.add_override_value({
-                'smart-variable-id': smart_variable['id'],
-                'match': 'hostgroup={0}'.format(gen_string('alpha')),
-                'value': 'false',
-            })
+            SmartVariable.add_override_value(
+                {
+                    'smart-variable-id': smart_variable['id'],
+                    'match': 'hostgroup={0}'.format(gen_string('alpha')),
+                    'value': 'false',
+                }
+            )
 
     @tier2
     def test_negative_create_matcher_with_invalid_attribute(self):
@@ -499,17 +481,21 @@ class SmartVariablesTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': 'true',
-            'variable-type': 'boolean',
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': 'true',
+                'variable-type': 'boolean',
+            }
+        )
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.add_override_value({
-                'smart-variable-id': smart_variable['id'],
-                'match': 'something_is_here=true',
-                'value': 'false',
-            })
+            SmartVariable.add_override_value(
+                {
+                    'smart-variable-id': smart_variable['id'],
+                    'match': 'something_is_here=true',
+                    'value': 'false',
+                }
+            )
 
     @tier1
     @upgrade
@@ -534,26 +520,23 @@ class SmartVariablesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         value = gen_string('alpha')
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'override-value-order': 'is_virtual',
-        })
-        SmartVariable.add_override_value({
-            'smart-variable-id': smart_variable['id'],
-            'match': 'is_virtual=true',
-            'value': value,
-        })
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name'], 'override-value-order': 'is_virtual'}
+        )
+        SmartVariable.add_override_value(
+            {'smart-variable-id': smart_variable['id'], 'match': 'is_virtual=true', 'value': value}
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(
-            smart_variable['override-values']['values']['1']['match'],
-            'is_virtual=true'
+            smart_variable['override-values']['values']['1']['match'], 'is_virtual=true'
         )
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['value'], value)
-        SmartVariable.remove_override_value({
-            'id': smart_variable['override-values']['values']['1']['id'],
-            'smart-variable-id': smart_variable['id'],
-        })
+        self.assertEqual(smart_variable['override-values']['values']['1']['value'], value)
+        SmartVariable.remove_override_value(
+            {
+                'id': smart_variable['override-values']['values']['1']['id'],
+                'smart-variable-id': smart_variable['id'],
+            }
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
@@ -573,21 +556,19 @@ class SmartVariablesTestCase(CLITestCase):
             to set True.
 
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': '[56]',
-            'variable-type': 'array'
-        })
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'merge-overrides': 1,
-            'merge-default': 1,
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': '[56]',
+                'variable-type': 'array',
+            }
+        )
+        SmartVariable.update(
+            {'variable': smart_variable['variable'], 'merge-overrides': 1, 'merge-default': 1}
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
-        self.assertEqual(
-            smart_variable['override-values']['merge-overrides'], True)
-        self.assertEqual(
-            smart_variable['override-values']['merge-default-value'], True)
+        self.assertEqual(smart_variable['override-values']['merge-overrides'], True)
+        self.assertEqual(smart_variable['override-values']['merge-default-value'], True)
 
     @tier2
     def test_positive_enable_avoid_duplicates_flag(self):
@@ -603,22 +584,17 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: The '--avoid-duplicates' flag is allowed to set true.
 
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': '[test]',
-            'variable-type': 'array'
-        })
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'merge-overrides': 1,
-        })
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'avoid-duplicates': 1,
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': '[test]',
+                'variable-type': 'array',
+            }
+        )
+        SmartVariable.update({'variable': smart_variable['variable'], 'merge-overrides': 1})
+        SmartVariable.update({'variable': smart_variable['variable'], 'avoid-duplicates': 1})
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
-        self.assertEqual(
-            smart_variable['override-values']['avoid-duplicates'], True)
+        self.assertEqual(smart_variable['override-values']['avoid-duplicates'], True)
 
     @tier2
     @upgrade
@@ -643,35 +619,37 @@ class SmartVariablesTestCase(CLITestCase):
         """
         hostgroup_name = gen_string('alpha')
         matcher_value = gen_string('alpha')
-        smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
-        hostgroup = make_hostgroup({
-            'name': hostgroup_name,
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet_class['id']
-        })
-        SmartVariable.add_override_value({
-            'smart-variable-id': smart_variable['id'],
-            'match': 'hostgroup={0}'.format(hostgroup_name),
-            'value': matcher_value,
-        })
+        smart_variable = make_smart_variable({'puppet-class': self.puppet_class['name']})
+        hostgroup = make_hostgroup(
+            {
+                'name': hostgroup_name,
+                'environment-id': self.env['id'],
+                'puppet-class-ids': self.puppet_class['id'],
+            }
+        )
+        SmartVariable.add_override_value(
+            {
+                'smart-variable-id': smart_variable['id'],
+                'match': 'hostgroup={0}'.format(hostgroup_name),
+                'value': matcher_value,
+            }
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(
             smart_variable['override-values']['values']['1']['match'],
-            'hostgroup={0}'.format(hostgroup_name)
+            'hostgroup={0}'.format(hostgroup_name),
         )
-        self.assertEqual(
-            smart_variable['override-values']['values']['1']['value'],
-            matcher_value,
-        )
+        self.assertEqual(smart_variable['override-values']['values']['1']['value'], matcher_value)
         HostGroup.delete({'id': hostgroup['id']})
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
-        make_hostgroup({
-            'name': hostgroup_name,
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet_class['id']
-        })
+        make_hostgroup(
+            {
+                'name': hostgroup_name,
+                'environment-id': self.env['id'],
+                'puppet-class-ids': self.puppet_class['id'],
+            }
+        )
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
         self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
@@ -694,30 +672,24 @@ class SmartVariablesTestCase(CLITestCase):
             Default value is hidden
 
         """
-        smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name'],
-            'default-value': gen_string('alpha'),
-            'hidden-value': 1,
-        })
+        smart_variable = make_smart_variable(
+            {
+                'puppet-class': self.puppet_class['name'],
+                'default-value': gen_string('alpha'),
+                'hidden-value': 1,
+            }
+        )
         self.assertEqual(smart_variable['hidden-value?'], True)
         self.assertEqual(smart_variable['default-value'], '*****')
 
         # Update hidden value to empty
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'default-value': '',
-        })
-        updated_sv = SmartVariable.info({
-            'variable': smart_variable['variable'],
-            'show-hidden': 'true',
-        })
+        SmartVariable.update({'variable': smart_variable['variable'], 'default-value': ''})
+        updated_sv = SmartVariable.info(
+            {'variable': smart_variable['variable'], 'show-hidden': 'true'}
+        )
         self.assertEqual(updated_sv['default-value'], '')
 
         # Unhide value
-        SmartVariable.update({
-            'variable': smart_variable['variable'],
-            'hidden-value': 0
-        })
-        updated_sv = SmartVariable.info(
-            {'variable': smart_variable['variable']})
+        SmartVariable.update({'variable': smart_variable['variable'], 'hidden-value': 0})
+        updated_sv = SmartVariable.info({'variable': smart_variable['variable']})
         self.assertEqual(updated_sv['hidden-value?'], False)

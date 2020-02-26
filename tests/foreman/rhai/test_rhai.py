@@ -37,14 +37,13 @@ NAV_ITEMS = [
     ("insightsinventory", "All"),
     ("insightsoverview", "Details"),
     ("insightsplan", "All"),
-    ("insightsrule", "All")
+    ("insightsrule", "All"),
 ]
 
 
 @fixture(scope="module")
 def module_org():
-    org = entities.Organization(name="insights_{0}".format(
-        gen_string("alpha", 6))).create()
+    org = entities.Organization(name="insights_{0}".format(gen_string("alpha", 6))).create()
     with manifests.clone() as manifest:
         up_man(org.id, manifest.content)
     yield org
@@ -58,7 +57,7 @@ def activation_key(module_org):
         content_view=module_org.default_content_view.id,
         environment=module_org.library.id,
         name=gen_string("alpha"),
-        organization=module_org
+        organization=module_org,
     ).create()
     yield ak
     ak.delete()
@@ -72,23 +71,18 @@ def attach_subscription(module_org, activation_key):
             # values produce this error: "RuntimeError: Error: Only pools
             # with multi-entitlement product subscriptions can be added to
             # the activation key with a quantity greater than one."
-            activation_key.add_subscriptions(data={
-                "quantity": 1,
-                "subscription_id": subs.id,
-            })
+            activation_key.add_subscriptions(data={"quantity": 1, "subscription_id": subs.id})
             break
     else:
-        raise Exception("{} organization doesn't have any subscription".format(
-            module_org.name))
+        raise Exception("{} organization doesn't have any subscription".format(module_org.name))
 
 
 @fixture
 def vm(activation_key, module_org):
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.configure_rhai_client(
-            activation_key=activation_key.name,
-            org=module_org.label,
-            rhel_distro=DISTRO_RHEL7)
+            activation_key=activation_key.name, org=module_org.label, rhel_distro=DISTRO_RHEL7
+        )
         yield vm
 
 
@@ -466,8 +460,10 @@ def test_numeric_group(vm, autosession):
 
     :expectedresults: rule no more appears on Rules page on portal
     """
-    rule_title = ('Unexpected behavior in command-line tools and 3rd party software when user or '
-                  'group names are numeric')
+    rule_title = (
+        'Unexpected behavior in command-line tools and 3rd party software when user or '
+        'group names are numeric'
+    )
     values = autosession.insightsinventory.read(vm.hostname, 'rules')
     # assert that the user and group numeric rule is not present
     assert not [rule for rule in values['rules'] if rule_title in rule['title']]

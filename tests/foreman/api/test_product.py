@@ -64,8 +64,7 @@ class ProductTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                product = entities.Product(
-                    name=name, organization=self.org).create()
+                product = entities.Product(name=name, organization=self.org).create()
                 self.assertEqual(name, product.name)
 
     @tier1
@@ -95,8 +94,7 @@ class ProductTestCase(APITestCase):
         """
         for desc in valid_data_list():
             with self.subTest(desc):
-                product = entities.Product(
-                    description=desc, organization=self.org).create()
+                product = entities.Product(description=desc, organization=self.org).create()
                 self.assertEqual(desc, product.description)
 
     @tier2
@@ -114,11 +112,9 @@ class ProductTestCase(APITestCase):
         # product -----------↘
         #       `-→ gpg_key → organization
         gpg_key = entities.GPGKey(
-            content=read_data_file(VALID_GPG_KEY_FILE),
-            organization=self.org,
+            content=read_data_file(VALID_GPG_KEY_FILE), organization=self.org
         ).create()
-        product = entities.Product(
-            gpg_key=gpg_key, organization=self.org).create()
+        product = entities.Product(gpg_key=gpg_key, organization=self.org).create()
         self.assertEqual(product.gpg_key.id, gpg_key.id)
 
     @tier1
@@ -213,16 +209,10 @@ class ProductTestCase(APITestCase):
         old_name = product.name
         # Update new product name
         product.name = new_name
-        self.assertEqual(
-            product.name,
-            product.update(['name']).name
-        )
+        self.assertEqual(product.name, product.update(['name']).name)
         # Rename product to old name and verify
         product.name = old_name
-        self.assertEqual(
-            product.name,
-            product.update(['name']).name
-        )
+        self.assertEqual(product.name, product.update(['name']).name)
 
     @upgrade
     @tier2
@@ -237,16 +227,13 @@ class ProductTestCase(APITestCase):
         """
         # Create a product and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
-            content=read_data_file(VALID_GPG_KEY_FILE),
-            organization=self.org,
+            content=read_data_file(VALID_GPG_KEY_FILE), organization=self.org
         ).create()
-        product = entities.Product(
-            gpg_key=gpg_key_1, organization=self.org).create()
+        product = entities.Product(gpg_key=gpg_key_1, organization=self.org).create()
 
         # Update the product and make it point to a new GPG key.
         gpg_key_2 = entities.GPGKey(
-            content=read_data_file(VALID_GPG_KEY_BETA_FILE),
-            organization=self.org,
+            content=read_data_file(VALID_GPG_KEY_BETA_FILE), organization=self.org
         ).create()
         product.gpg_key = gpg_key_2
         product = product.update()
@@ -286,10 +273,7 @@ class ProductTestCase(APITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.Product(
-                        id=product.id,
-                        name=new_name,
-                    ).update(['name'])
+                    entities.Product(id=product.id, name=new_name).update(['name'])
 
     @tier1
     def test_negative_update_label(self):
@@ -335,9 +319,7 @@ class ProductTestCase(APITestCase):
         """
         product = entities.Product().create()
         rpm_repo = entities.Repository(
-            product=product,
-            content_type='yum',
-            url=FAKE_1_YUM_REPO
+            product=product, content_type='yum', url=FAKE_1_YUM_REPO
         ).create()
         self.assertEqual(rpm_repo.read().content_counts['rpm'], 0)
         product.sync()
@@ -359,21 +341,16 @@ class ProductTestCase(APITestCase):
         """
         product = entities.Product().create()
         rpm_repo = entities.Repository(
-            product=product,
-            content_type='yum',
-            url=FAKE_1_YUM_REPO
+            product=product, content_type='yum', url=FAKE_1_YUM_REPO
         ).create()
         puppet_repo = entities.Repository(
-            product=product,
-            content_type='puppet',
-            url=FAKE_1_PUPPET_REPO
+            product=product, content_type='puppet', url=FAKE_1_PUPPET_REPO
         ).create()
         self.assertEqual(rpm_repo.read().content_counts['rpm'], 0)
         self.assertEqual(puppet_repo.read().content_counts['puppet_module'], 0)
         product.sync()
         self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
-        self.assertGreaterEqual(
-            puppet_repo.read().content_counts['puppet_module'], 1)
+        self.assertGreaterEqual(puppet_repo.read().content_counts['puppet_module'], 1)
 
     @tier2
     def test_positive_filter_product_list(self):
@@ -394,7 +371,8 @@ class ProductTestCase(APITestCase):
 
         custom_products = entities.Product(organization=self.org.id).search(query={'custom': True})
         rh_products = entities.Product(organization=self.org.id).search(
-            query={'redhat_only': True})
+            query={'redhat_only': True}
+        )
 
         self.assertEqual(len(custom_products), 1)
         self.assertEqual(product.name, custom_products[0].name)
@@ -417,48 +395,39 @@ class ProductTestCase(APITestCase):
         """
         # create HTTP proxies
         http_proxy_url_a = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+        )
         http_proxy_a = entities.HTTPProxy(
-            name=gen_string('alpha', 15),
-            url=http_proxy_url_a,
-            organization=[self.org.id]
+            name=gen_string('alpha', 15), url=http_proxy_url_a, organization=[self.org.id]
         ).create()
         http_proxy_url_b = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+        )
         http_proxy_b = entities.HTTPProxy(
-            name=gen_string('alpha', 15),
-            url=http_proxy_url_b,
-            organization=[self.org.id]
+            name=gen_string('alpha', 15), url=http_proxy_url_b, organization=[self.org.id]
         ).create()
         proxy_fqdn = re.split(r'[:]', http_proxy_b.url)[1].strip("//")
         # Create products and repositories
         product_a = entities.Product(organization=self.org).create()
         product_b = entities.Product(organization=self.org).create()
-        repo_a1 = entities.Repository(
-            product=product_a,
-            http_proxy_policy='none',
-        ).create()
+        repo_a1 = entities.Repository(product=product_a, http_proxy_policy='none').create()
         repo_a2 = entities.Repository(
             product=product_a,
             http_proxy_policy='use_selected_http_proxy',
-            http_proxy_id=http_proxy_a.id
-
+            http_proxy_id=http_proxy_a.id,
         ).create()
-        repo_b1 = entities.Repository(
-            product=product_b,
-            http_proxy_policy='none',
-        ).create()
+        repo_b1 = entities.Repository(product=product_b, http_proxy_policy='none').create()
         repo_b2 = entities.Repository(
-            product=product_b,
-            http_proxy_policy='global_default_http_proxy',
+            product=product_b, http_proxy_policy='global_default_http_proxy'
         ).create()
         # Add http_proxy to products
         entities.ProductBulkAction().http_proxy(
             data={
                 "ids": [product_a.id, product_b.id],
                 "http_proxy_policy": "use_selected_http_proxy",
-                "http_proxy_id": http_proxy_b.id
-            })
+                "http_proxy_id": http_proxy_b.id,
+            }
+        )
         assert repo_a1.read().http_proxy_policy == "use_selected_http_proxy"
         assert repo_a2.read().http_proxy_policy == "use_selected_http_proxy"
         assert repo_b1.read().http_proxy_policy == "use_selected_http_proxy"

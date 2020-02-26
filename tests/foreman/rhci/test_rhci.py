@@ -23,15 +23,14 @@ from robottelo.test import APITestCase
 
 def valid_name_update_tests():
     """Returns a tuple of valid names for update tests."""
-    return(
-        {'name': gen_string(str_type='alpha'),
-         'new-name': gen_string(str_type='alpha')},
-        {'name': gen_string(str_type='alphanumeric'),
-         'new-name': gen_string(str_type='alphanumeric')},
-        {'name': gen_string(str_type='cjk'),
-         'new-name': gen_string(str_type='cjk')},
-        {'name': gen_string(str_type='latin1'),
-         'new-name': gen_string(str_type='latin1')},
+    return (
+        {'name': gen_string(str_type='alpha'), 'new-name': gen_string(str_type='alpha')},
+        {
+            'name': gen_string(str_type='alphanumeric'),
+            'new-name': gen_string(str_type='alphanumeric'),
+        },
+        {'name': gen_string(str_type='cjk'), 'new-name': gen_string(str_type='cjk')},
+        {'name': gen_string(str_type='latin1'), 'new-name': gen_string(str_type='latin1')},
     )
 
 
@@ -44,8 +43,7 @@ class RHCIDeploymentTestCase(APITestCase):
         super(RHCIDeploymentTestCase, cls).setUpClass()
         org_id = entities.Organization().create_json()['organization']['id']
         cls.org = entities.Organization(id=org_id)
-        cls.lc_env = entities.LifecycleEnvironment(
-            organization=cls.org).create()
+        cls.lc_env = entities.LifecycleEnvironment(organization=cls.org).create()
         cls.rhev_engine_host = entities.Host(id=3)
         cls.to_delete = []
 
@@ -64,10 +62,12 @@ class RHCIDeploymentTestCase(APITestCase):
         :expectedresults: An RHCI deployment is created with a random name.
 
         """
-        for name in (gen_string(str_type='alpha'),
-                     gen_string(str_type='alphanumeric'),
-                     gen_string(str_type='cjk'),
-                     gen_string(str_type='latin1')):
+        for name in (
+            gen_string(str_type='alpha'),
+            gen_string(str_type='alphanumeric'),
+            gen_string(str_type='cjk'),
+            gen_string(str_type='latin1'),
+        ):
             with self.subTest(name):
                 deployment = entities.RHCIDeployment(
                     name=name,
@@ -80,8 +80,7 @@ class RHCIDeploymentTestCase(APITestCase):
                 ).create()
                 self.assertEquals(deployment.name, name)
                 self.assertEqual(deployment.organization.id, self.org.id)
-                self.assertEqual(deployment.lifecycle_environment.id,
-                                 self.lc_env.id)
+                self.assertEqual(deployment.lifecycle_environment.id, self.lc_env.id)
                 self.to_delete.append(deployment)
 
     def test_positive_update_name(self):

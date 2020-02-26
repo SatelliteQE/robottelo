@@ -37,9 +37,11 @@ def module_lce(module_org):
 
 @pytest.fixture(scope='module')
 def module_smart_proxy(module_location):
-    smart_proxy = entities.SmartProxy().search(
-        query={'search': 'name={0}'.format(
-            settings.server.hostname)})[0].read()
+    smart_proxy = (
+        entities.SmartProxy()
+        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .read()
+    )
     smart_proxy.location.append(entities.Location(id=module_location.id))
     smart_proxy.update(['location'])
     return entities.SmartProxy(id=smart_proxy.id).read()
@@ -47,33 +49,34 @@ def module_smart_proxy(module_location):
 
 @pytest.fixture(scope='module')
 def module_domain(module_org, module_location):
-    return entities.Domain(
-        location=[module_location], organization=[module_org]
-    ).create()
+    return entities.Domain(location=[module_location], organization=[module_org]).create()
 
 
 @pytest.fixture(scope='module')
 def module_subnet(module_org, module_location, module_domain, module_smart_proxy):
     network = settings.vlan_networking.subnet
     subnet = entities.Subnet(
-            network=network,
-            mask=settings.vlan_networking.netmask,
-            domain=[module_domain],
-            location=[module_location],
-            organization=[module_org],
-            dns=module_smart_proxy,
-            dhcp=module_smart_proxy,
-            tftp=module_smart_proxy,
-            discovery=module_smart_proxy,
-            ipam='DHCP'
-        ).create()
+        network=network,
+        mask=settings.vlan_networking.netmask,
+        domain=[module_domain],
+        location=[module_location],
+        organization=[module_org],
+        dns=module_smart_proxy,
+        dhcp=module_smart_proxy,
+        tftp=module_smart_proxy,
+        discovery=module_smart_proxy,
+        ipam='DHCP',
+    ).create()
     return subnet
 
 
 @pytest.fixture(scope='module')
 def module_partiontable(module_org, module_location):
-    ptable = entities.PartitionTable().search(query={
-        u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0].read()
+    ptable = (
+        entities.PartitionTable()
+        .search(query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+        .read()
+    )
     ptable.location.append(module_location)
     ptable.organization.append(module_org)
     ptable.update(['location', 'organization'])
@@ -83,25 +86,20 @@ def module_partiontable(module_org, module_location):
 @pytest.fixture(scope='module')
 def module_provisioingtemplate(module_org, module_location):
     provisioning_template = entities.ProvisioningTemplate().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)
-        }
+        query={u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.organization.append(module_org)
     provisioning_template.location.append(module_location)
     provisioning_template.update(['organization', 'location'])
-    provisioning_template = entities.ProvisioningTemplate(
-        id=provisioning_template.id).read()
+    provisioning_template = entities.ProvisioningTemplate(id=provisioning_template.id).read()
     return provisioning_template
 
 
 @pytest.fixture(scope='module')
 def module_configtemaplate(module_org, module_location):
     pxe_template = entities.ConfigTemplate().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)
-        }
+        query={u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.organization.append(module_org)
@@ -113,38 +111,51 @@ def module_configtemaplate(module_org, module_location):
 
 @pytest.fixture(scope='module')
 def module_architecture():
-    arch = entities.Architecture().search(
-        query={
-            u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)
-        }
-    )[0].read()
+    arch = (
+        entities.Architecture()
+        .search(query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .read()
+    )
     return arch
 
 
 @pytest.fixture(scope='module')
 def module_os(
-        module_architecture, module_partiontable, module_configtemaplate,
-        module_provisioingtemplate, os=None):
+    module_architecture,
+    module_partiontable,
+    module_configtemaplate,
+    module_provisioingtemplate,
+    os=None,
+):
     if os is None:
-        os = entities.OperatingSystem().search(query={
-            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
-                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-        })[0].read()
+        os = (
+            entities.OperatingSystem()
+            .search(
+                query={
+                    u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                        RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+                    )
+                }
+            )[0]
+            .read()
+        )
     else:
-        os = entities.OperatingSystem().search(query={
-            u'search': u'family="Redhat" AND major="{0}" AND minor="{1}")'.format(
-                os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1])
-        })[0].read()
+        os = (
+            entities.OperatingSystem()
+            .search(
+                query={
+                    u'search': u'family="Redhat" AND major="{0}" AND minor="{1}")'.format(
+                        os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
+                    )
+                }
+            )[0]
+            .read()
+        )
     os.architecture.append(module_architecture)
     os.ptable.append(module_partiontable)
     os.config_template.append(module_configtemaplate)
     os.provisioning_template.append(module_provisioingtemplate)
-    os.update([
-        'architecture',
-        'ptable',
-        'config_template',
-        'provisioning_template'
-    ])
+    os.update(['architecture', 'ptable', 'config_template', 'provisioning_template'])
     os = entities.OperatingSystem(id=os.id).read()
     return os
 
@@ -152,15 +163,15 @@ def module_os(
 @pytest.fixture(scope='module')
 def module_puppet_environment(module_org, module_location):
     environments = entities.Environment().search(
-        query=dict(search='organization_id={0}'.format(module_org.id)))
+        query=dict(search='organization_id={0}'.format(module_org.id))
+    )
     if len(environments) > 0:
         environment = environments[0].read()
         environment.location.append(module_location)
         environment = environment.update(['location'])
     else:
         environment = entities.Environment(
-            organization=[module_org],
-            location=[module_location]
+            organization=[module_org], location=[module_location]
         ).create()
     puppetenv = entities.Environment(id=environment.id).read()
     return puppetenv
@@ -175,7 +186,8 @@ def googleclient():
         project=settings.gce.project_id,
         zone=settings.gce.zone,
         file_path=download_gce_cert(),
-        file_type='json')
+        file_type='json',
+    )
     yield gceclient
     gceclient.disconnect()
 
@@ -190,19 +202,24 @@ def gce_latest_rhel_uuid(googleclient):
 
 @pytest.fixture(scope='session')
 def gce_custom_cloudinit_uuid(googleclient):
-    cloudinit_uuid = googleclient.get_template(
-        'customcinit', project=settings.gce.project_id).uuid
+    cloudinit_uuid = googleclient.get_template('customcinit', project=settings.gce.project_id).uuid
     return cloudinit_uuid
 
 
 @pytest.fixture(scope='module')
 def module_gce_compute(module_org, module_location):
     gce_cr = entities.GCEComputeResource(
-        name=gen_string('alphanumeric'), provider='GCE', email=settings.gce.client_email,
-        key_path=settings.gce.cert_path, project=settings.gce.project_id,
-        zone=settings.gce.zone, organization=[module_org],
-        location=[module_location]).create()
+        name=gen_string('alphanumeric'),
+        provider='GCE',
+        email=settings.gce.client_email,
+        key_path=settings.gce.cert_path,
+        project=settings.gce.project_id,
+        zone=settings.gce.zone,
+        organization=[module_org],
+        location=[module_location],
+    ).create()
     return gce_cr
+
 
 # Azure Entities
 
@@ -245,7 +262,7 @@ def module_azurerm_finishimg(module_architecture, module_os, module_azurerm_cr):
         name=gen_string('alpha'),
         operatingsystem=module_os,
         username=settings.azurerm.username,
-        uuid=AZURERM_RHEL7_FT_IMG_URN
+        uuid=AZURERM_RHEL7_FT_IMG_URN,
     ).create()
     return finish_image
 
@@ -260,7 +277,7 @@ def module_azurerm_cloudimg(module_architecture, module_os, module_azurerm_cr):
         operatingsystem=module_os,
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_UD_IMG_URN,
-        user_data=True
+        user_data=True,
     ).create()
     return finish_image
 
@@ -276,9 +293,12 @@ def azurermclient(azurerm_settings):
         provisioning={
             "resource_group": AZURERM_RG_DEFAULT,
             "template_container": None,
-            "region_api": azurerm_settings['region']})
+            "region_api": azurerm_settings['region'],
+        },
+    )
     yield azurermclient
     azurermclient.disconnect()
+
 
 # Katello Entities
 

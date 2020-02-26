@@ -43,13 +43,7 @@ from robottelo.test import CLITestCase
 @filtered_datapoint
 def negative_delete_data():
     """Returns a list of invalid data for operating system deletion"""
-    return [
-        {'id': gen_string("alpha")},
-        {'id': None},
-        {'id': ""},
-        {},
-        {'id': -1},
-    ]
+    return [{'id': gen_string("alpha")}, {'id': None}, {'id': ""}, {}, {'id': -1}]
 
 
 class OperatingSystemTestCase(CLITestCase):
@@ -158,21 +152,19 @@ class OperatingSystemTestCase(CLITestCase):
         architecture = make_architecture()
         medium = make_medium()
         ptable = make_partition_table()
-        operating_system = make_os({
-            u'architecture-ids': architecture['id'],
-            u'medium-ids': medium['id'],
-            u'partition-table-ids': ptable['id'],
-        })
+        operating_system = make_os(
+            {
+                u'architecture-ids': architecture['id'],
+                u'medium-ids': medium['id'],
+                u'partition-table-ids': ptable['id'],
+            }
+        )
 
-        for attr in (
-                'architectures', 'installation-media', 'partition-tables'):
+        for attr in ('architectures', 'installation-media', 'partition-tables'):
             self.assertEqual(len(operating_system[attr]), 1)
-        self.assertEqual(
-            operating_system['architectures'][0], architecture['name'])
-        self.assertEqual(
-            operating_system['installation-media'][0], medium['name'])
-        self.assertEqual(
-            operating_system['partition-tables'][0], ptable['name'])
+        self.assertEqual(operating_system['architectures'][0], architecture['name'])
+        self.assertEqual(operating_system['installation-media'][0], medium['name'])
+        self.assertEqual(operating_system['partition-tables'][0], ptable['name'])
 
     @tier1
     def test_negative_create_with_name(self):
@@ -202,12 +194,9 @@ class OperatingSystemTestCase(CLITestCase):
         os = make_os({'name': gen_alphanumeric()})
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                OperatingSys.update({
-                    'id': os['id'],
-                    'name': new_name,
-                })
+                OperatingSys.update({'id': os['id'], 'name': new_name})
                 result = OperatingSys.info({'id': os['id']})
-                self.assertEqual(result['id'], os['id'], )
+                self.assertEqual(result['id'], os['id'])
                 self.assertNotEqual(result['name'], os['name'])
 
     @tier1
@@ -223,13 +212,8 @@ class OperatingSystemTestCase(CLITestCase):
         os = make_os()
         # New value for major
         major = int(os['major-version']) + 1
-        OperatingSys.update({
-            'id': os['id'],
-            'major': major,
-        })
-        os = OperatingSys.info({
-            'id': os['id'],
-        })
+        OperatingSys.update({'id': os['id'], 'major': major})
+        os = OperatingSys.info({'id': os['id']})
         self.assertEqual(int(os['major-version']), major)
 
     @tier1
@@ -246,10 +230,7 @@ class OperatingSystemTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    OperatingSys.update({
-                        'id': os['id'],
-                        'name': new_name,
-                    })
+                    OperatingSys.update({'id': os['id'], 'name': new_name})
                 result = OperatingSys.info({'id': os['id']})
                 self.assertEqual(result['name'], os['name'])
 
@@ -304,10 +285,7 @@ class OperatingSystemTestCase(CLITestCase):
         """
         architecture = make_architecture()
         os = make_os()
-        OperatingSys.add_architecture({
-            'architecture-id': architecture['id'],
-            'id': os['id'],
-        })
+        OperatingSys.add_architecture({'architecture-id': architecture['id'], 'id': os['id']})
         os = OperatingSys.info({'id': os['id']})
         self.assertEqual(len(os['architectures']), 1)
         self.assertEqual(architecture['name'], os['architectures'][0])
@@ -325,10 +303,7 @@ class OperatingSystemTestCase(CLITestCase):
         """
         template = make_template()
         os = make_os()
-        OperatingSys.add_config_template({
-            'config-template': template['name'],
-            'id': os['id'],
-        })
+        OperatingSys.add_config_template({'config-template': template['name'], 'id': os['id']})
         os = OperatingSys.info({'id': os['id']})
         self.assertEqual(len(os['templates']), 1)
         template_name = os['templates'][0]
@@ -349,10 +324,7 @@ class OperatingSystemTestCase(CLITestCase):
         # Create an operating system.
         os_id = make_os()['id']
         # Add the partition table to the operating system.
-        OperatingSys.add_ptable({
-            'id': os_id,
-            'partition-table': ptable_name,
-        })
+        OperatingSys.add_ptable({'id': os_id, 'partition-table': ptable_name})
         # Verify that the operating system has a partition table.
         os = OperatingSys.info({'id': os_id})
         self.assertEqual(len(os['partition-tables']), 1)
@@ -371,10 +343,14 @@ class OperatingSystemTestCase(CLITestCase):
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
         os_id = make_os()['id']
-        OperatingSys.update({
-            'id': os_id,
-            'os-parameters-attributes': 'name={}, value={}'.format(param_name+'\\', param_value),
-        })
+        OperatingSys.update(
+            {
+                'id': os_id,
+                'os-parameters-attributes': 'name={}, value={}'.format(
+                    param_name + '\\', param_value
+                ),
+            }
+        )
         os = OperatingSys.info({'id': os_id}, output_format='json')
         self.assertEqual(param_name, os['parameters'][0]['name'])
         self.assertEqual(param_value, os['parameters'][0]['value'])
@@ -395,10 +371,7 @@ class OperatingSystemTestCase(CLITestCase):
         os_list_before_default = OperatingSys.list()
         self.assertTrue(len(os_list_before_default) > 0)
         try:
-            Defaults.add({
-                u'param-name': 'organization',
-                u'param-value': DEFAULT_ORG,
-            })
+            Defaults.add({u'param-name': 'organization', u'param-value': DEFAULT_ORG})
             result = ssh.command('hammer defaults list')
             self.assertEqual(result.return_code, 0)
             self.assertTrue(DEFAULT_ORG in "".join(result.stdout))

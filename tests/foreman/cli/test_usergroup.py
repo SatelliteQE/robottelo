@@ -175,11 +175,9 @@ class UserGroupTestCase(CLITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 sub_user_group = make_usergroup({'name': name})
-                user_group = make_usergroup({
-                    'user-groups': sub_user_group['name']})
+                user_group = make_usergroup({'user-groups': sub_user_group['name']})
                 self.assertEqual(len(user_group['user-groups']), 1)
-                self.assertEqual(user_group['user-groups'][0]['usergroup'],
-                                 name)
+                self.assertEqual(user_group['user-groups'][0]['usergroup'], name)
 
     @tier1
     def test_positive_create_with_usergroup_id(self):
@@ -193,11 +191,8 @@ class UserGroupTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         sub_user_group = make_usergroup()
-        user_group = make_usergroup({
-            'user-group-ids': sub_user_group['id']})
-        self.assertEqual(
-            user_group['user-groups'][0]['usergroup'], sub_user_group['name']
-        )
+        user_group = make_usergroup({'user-group-ids': sub_user_group['id']})
+        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
     @tier1
     @upgrade
@@ -212,13 +207,11 @@ class UserGroupTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        sub_user_groups = [
-            make_usergroup()['name'] for _ in range(randint(3, 5))]
+        sub_user_groups = [make_usergroup()['name'] for _ in range(randint(3, 5))]
         user_groups = make_usergroup({'user-groups': sub_user_groups})
         self.assertEqual(
             sorted(sub_user_groups),
-            sorted([user_group['usergroup']
-                    for user_group in user_groups['user-groups']])
+            sorted([user_group['usergroup'] for user_group in user_groups['user-groups']]),
         )
 
     @tier1
@@ -265,11 +258,9 @@ class UserGroupTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         user_group = make_usergroup()
-        result_list = UserGroup.list({
-            'search': 'name={0}'.format(user_group['name'])})
+        result_list = UserGroup.list({'search': 'name={0}'.format(user_group['name'])})
         self.assertTrue(len(result_list) > 0)
-        self.assertTrue(
-            UserGroup.exists(search=('name', user_group['name'])))
+        self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
 
     @tier1
     def test_positive_update_by_id(self):
@@ -285,10 +276,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = make_usergroup()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                UserGroup.update({
-                    'id': user_group['id'],
-                    'new-name': new_name,
-                })
+                UserGroup.update({'id': user_group['id'], 'new-name': new_name})
                 user_group = UserGroup.info({'id': user_group['id']})
                 self.assertEqual(user_group['name'], new_name)
 
@@ -306,10 +294,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = make_usergroup()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                UserGroup.update({
-                    'name': user_group['name'],
-                    'new-name': new_name,
-                })
+                UserGroup.update({'name': user_group['name'], 'new-name': new_name})
                 user_group = UserGroup.info({'id': user_group['id']})
                 self.assertEqual(user_group['name'], new_name)
 
@@ -328,10 +313,7 @@ class UserGroupTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.update({
-                        'id': user_group['id'],
-                        'new-name': new_name,
-                    })
+                    UserGroup.update({'id': user_group['id'], 'new-name': new_name})
                 user_group = UserGroup.info({'id': user_group['id']})
                 self.assertNotEqual(user_group['name'], new_name)
 
@@ -350,10 +332,7 @@ class UserGroupTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.update({
-                        'name': user_group['name'],
-                        'new-name': new_name,
-                    })
+                    UserGroup.update({'name': user_group['name'], 'new-name': new_name})
                 user_group = UserGroup.info({'id': user_group['id']})
                 self.assertNotEqual(user_group['name'], new_name)
 
@@ -420,10 +399,7 @@ class UserGroupTestCase(CLITestCase):
         """
         role = make_role()
         user_group = make_usergroup()
-        UserGroup.add_role({
-            'id': user_group['id'],
-            'role-id': role['id'],
-        })
+        UserGroup.add_role({'id': user_group['id'], 'role-id': role['id']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['roles'][0], role['name'])
 
@@ -440,10 +416,7 @@ class UserGroupTestCase(CLITestCase):
         """
         role = make_role()
         user_group = make_usergroup()
-        UserGroup.add_role({
-            'id': user_group['id'],
-            'role': role['name'],
-        })
+        UserGroup.add_role({'id': user_group['id'], 'role': role['name']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['roles'][0], role['name'])
 
@@ -460,10 +433,7 @@ class UserGroupTestCase(CLITestCase):
         """
         user = make_user()
         user_group = make_usergroup()
-        UserGroup.add_user({
-            'id': user_group['id'],
-            'user-id': user['id'],
-        })
+        UserGroup.add_user({'id': user_group['id'], 'user-id': user['id']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['users'][0], user['login'])
 
@@ -480,10 +450,7 @@ class UserGroupTestCase(CLITestCase):
         """
         user = make_user()
         user_group = make_usergroup()
-        UserGroup.add_user({
-            'id': user_group['id'],
-            'user': user['login'],
-        })
+        UserGroup.add_user({'id': user_group['id'], 'user': user['login']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['users'][0], user['login'])
 
@@ -500,13 +467,9 @@ class UserGroupTestCase(CLITestCase):
         """
         sub_user_group = make_usergroup()
         user_group = make_usergroup()
-        UserGroup.add_user_group({
-            'id': user_group['id'],
-            'user-group-id': sub_user_group['id'],
-        })
+        UserGroup.add_user_group({'id': user_group['id'], 'user-group-id': sub_user_group['id']})
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(
-            user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
+        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
     @tier2
     def test_positive_add_user_group_by_name(self):
@@ -522,13 +485,9 @@ class UserGroupTestCase(CLITestCase):
         """
         sub_user_group = make_usergroup()
         user_group = make_usergroup()
-        UserGroup.add_user_group({
-            'id': user_group['id'],
-            'user-group': sub_user_group['name'],
-        })
+        UserGroup.add_user_group({'id': user_group['id'], 'user-group': sub_user_group['name']})
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(
-            user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
+        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
     @tier2
     def test_positive_remove_role_by_id(self):
@@ -546,10 +505,7 @@ class UserGroupTestCase(CLITestCase):
         role = make_role()
         user_group = make_usergroup({'role-ids': role['id']})
         self.assertEqual(len(user_group['roles']), 1)
-        UserGroup.remove_role({
-            'id': user_group['id'],
-            'role-id': role['id'],
-        })
+        UserGroup.remove_role({'id': user_group['id'], 'role-id': role['id']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['roles']), 0)
 
@@ -570,10 +526,7 @@ class UserGroupTestCase(CLITestCase):
         role = make_role()
         user_group = make_usergroup({'role-ids': role['id']})
         self.assertEqual(len(user_group['roles']), 1)
-        UserGroup.remove_role({
-            'id': user_group['id'],
-            'role': role['name'],
-        })
+        UserGroup.remove_role({'id': user_group['id'], 'role': role['name']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['roles']), 0)
 
@@ -593,10 +546,7 @@ class UserGroupTestCase(CLITestCase):
         user = make_user()
         user_group = make_usergroup({'user-ids': user['id']})
         self.assertEqual(len(user_group['users']), 1)
-        UserGroup.remove_user({
-            'id': user_group['id'],
-            'user-id': user['id'],
-        })
+        UserGroup.remove_user({'id': user_group['id'], 'user-id': user['id']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['users']), 0)
 
@@ -617,10 +567,7 @@ class UserGroupTestCase(CLITestCase):
         user = make_user()
         user_group = make_usergroup({'user-ids': user['id']})
         self.assertEqual(len(user_group['users']), 1)
-        UserGroup.remove_user({
-            'id': user_group['id'],
-            'user': user['login'],
-        })
+        UserGroup.remove_user({'id': user_group['id'], 'user': user['login']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['users']), 0)
 
@@ -640,10 +587,9 @@ class UserGroupTestCase(CLITestCase):
         sub_user_group = make_usergroup()
         user_group = make_usergroup({'user-group-ids': sub_user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 1)
-        UserGroup.remove_user_group({
-            'id': user_group['id'],
-            'user-group-id': sub_user_group['id'],
-        })
+        UserGroup.remove_user_group(
+            {'id': user_group['id'], 'user-group-id': sub_user_group['id']}
+        )
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 0)
 
@@ -664,10 +610,7 @@ class UserGroupTestCase(CLITestCase):
         sub_user_group = make_usergroup()
         user_group = make_usergroup({'user-group-ids': sub_user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 1)
-        UserGroup.remove_user_group({
-            'id': user_group['id'],
-            'user-group': sub_user_group['name'],
-        })
+        UserGroup.remove_user_group({'id': user_group['id'], 'user-group': sub_user_group['name']})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 0)
 
@@ -706,20 +649,22 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         cls.base_dn = settings.ldap.basedn
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
-        cls.auth = make_ldap_auth_source({
-            u'name': gen_string('alpha'),
-            u'onthefly-register': 'true',
-            u'host': cls.ldap_hostname,
-            u'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
-            u'attr-login': LDAP_ATTR['login_ad'],
-            u'attr-firstname': LDAP_ATTR['firstname'],
-            u'attr-lastname': LDAP_ATTR['surname'],
-            u'attr-mail': LDAP_ATTR['mail'],
-            u'account': cls.ldap_user_name,
-            u'account-password': cls.ldap_user_passwd,
-            u'base-dn': cls.base_dn,
-            u'groups-base': cls.group_base_dn,
-        })
+        cls.auth = make_ldap_auth_source(
+            {
+                u'name': gen_string('alpha'),
+                u'onthefly-register': 'true',
+                u'host': cls.ldap_hostname,
+                u'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
+                u'attr-login': LDAP_ATTR['login_ad'],
+                u'attr-firstname': LDAP_ATTR['firstname'],
+                u'attr-lastname': LDAP_ATTR['surname'],
+                u'attr-mail': LDAP_ATTR['mail'],
+                u'account': cls.ldap_user_name,
+                u'account-password': cls.ldap_user_passwd,
+                u'base-dn': cls.base_dn,
+                u'groups-base': cls.group_base_dn,
+            }
+        )
 
     def setUp(self):
         """Create new usergroup per each test"""
@@ -751,14 +696,14 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup',
+            }
         )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
 
     @tier2
     def test_positive_refresh_external_usergroup(self):
@@ -771,19 +716,18 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         :CaseLevel: Integration
         """
 
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
-        )
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
                 'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
+                'name': 'foobargroup',
+            }
+        )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
 
     @tier2
     @upgrade
@@ -798,38 +742,33 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
 
         :BZ: 1412209
         """
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
-        )
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
                 'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
+                'name': 'foobargroup',
+            }
+        )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
         user = make_user()
-        UserGroup.add_user({
-            'user': user['login'],
-            'id': self.user_group['id']
-        })
+        UserGroup.add_user({'user': user['login'], 'id': self.user_group['id']})
         print(User.info({'login': user['login']}))
         self.assertEqual(
             User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name']
+            self.user_group['name'],
         )
         with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
         print(User.info({'login': user['login']}))
         self.assertEqual(
             User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name']
+            self.user_group['name'],
         )
 
     @tier2
@@ -844,24 +783,22 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
 
         :BZ: 1426957, 1667704
         """
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup',
+            }
         )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
         role = make_role()
         UserGroup.add_role({'id': self.user_group['id'], 'role-id': role['id']})
         with self.assertNotRaises(CLIReturnCodeError):
             Task.with_user(username=self.ldap_user_name, password=self.ldap_user_passwd).list()
-            UserGroupExternal.refresh({
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
-        self.assertEqual(User.info({'login': self.ldap_user_name})['user-groups'][1],
-                         role['name'])
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
+        self.assertEqual(User.info({'login': self.ldap_user_name})['user-groups'][1], role['name'])
         User.delete({'login': self.ldap_user_name})
 
     @tier2
@@ -877,16 +814,21 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         :BZ: 1437578
         """
         with self.assertRaises(CLIReturnCodeError):
-            result = UserGroupExternal.create({
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
-                'name': 'Domain Users'
-            })
-            self.assertEqual('Could not create external user group: '
-                             'Name is not found in the authentication source'
-                             'Name Domain Users is a special group in AD.'
-                             ' Unfortunately, we cannot obtain membership information'
-                             ' from a LDAP search and therefore sync it.', result)
+            result = UserGroupExternal.create(
+                {
+                    'auth-source-id': self.auth['server']['id'],
+                    'user-group-id': self.user_group['id'],
+                    'name': 'Domain Users',
+                }
+            )
+            self.assertEqual(
+                'Could not create external user group: '
+                'Name is not found in the authentication source'
+                'Name Domain Users is a special group in AD.'
+                ' Unfortunately, we cannot obtain membership information'
+                ' from a LDAP search and therefore sync it.',
+                result,
+            )
 
 
 @run_in_one_thread
@@ -904,20 +846,22 @@ class FreeIPAUserGroupTestCase(CLITestCase):
         cls.base_dn = settings.ipa.basedn_ipa
         cls.group_base_dn = settings.ipa.grpbasedn_ipa
         cls.ldap_hostname = settings.ipa.hostname_ipa
-        cls.auth = make_ldap_auth_source({
-            u'name': gen_string('alpha'),
-            u'onthefly-register': 'true',
-            u'host': cls.ldap_hostname,
-            u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
-            u'attr-login': LDAP_ATTR['login'],
-            u'attr-firstname': LDAP_ATTR['firstname'],
-            u'attr-lastname': LDAP_ATTR['surname'],
-            u'attr-mail': LDAP_ATTR['mail'],
-            u'account': cls.ldap_user_name,
-            u'account-password': cls.ldap_user_passwd,
-            u'base-dn': cls.base_dn,
-            u'groups-base': cls.group_base_dn,
-        })
+        cls.auth = make_ldap_auth_source(
+            {
+                u'name': gen_string('alpha'),
+                u'onthefly-register': 'true',
+                u'host': cls.ldap_hostname,
+                u'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                u'attr-login': LDAP_ATTR['login'],
+                u'attr-firstname': LDAP_ATTR['firstname'],
+                u'attr-lastname': LDAP_ATTR['surname'],
+                u'attr-mail': LDAP_ATTR['mail'],
+                u'account': cls.ldap_user_name,
+                u'account-password': cls.ldap_user_passwd,
+                u'base-dn': cls.base_dn,
+                u'groups-base': cls.group_base_dn,
+            }
+        )
 
     def setUp(self):
         """Create new usergroup per each test"""
@@ -949,14 +893,14 @@ class FreeIPAUserGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
+                'user-group-id': self.user_group['id'],
+                'name': 'foobargroup',
+            }
         )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
 
     @tier2
     def test_positive_refresh_external_usergroup(self):
@@ -968,19 +912,18 @@ class FreeIPAUserGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
-        )
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
                 'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
+                'name': 'foobargroup',
+            }
+        )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
 
     @tier2
     @upgrade
@@ -995,35 +938,30 @@ class FreeIPAUserGroupTestCase(CLITestCase):
 
         :BZ: 1412209
         """
-        ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['server']['id'],
-            'user-group-id': self.user_group['id'],
-            'name': 'foobargroup'
-        })
-        self.assertEqual(
-            ext_user_group['auth-source'], self.auth['server']['name']
-        )
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
+        ext_user_group = make_usergroup_external(
+            {
+                'auth-source-id': self.auth['server']['id'],
                 'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
+                'name': 'foobargroup',
+            }
+        )
+        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
+        with self.assertNotRaises(CLIReturnCodeError):
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
         user = make_user()
-        UserGroup.add_user({
-            'user': user['login'],
-            'id': self.user_group['id']
-        })
+        UserGroup.add_user({'user': user['login'], 'id': self.user_group['id']})
         self.assertEqual(
             User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name']
+            self.user_group['name'],
         )
         with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh({
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup'
-            })
+            UserGroupExternal.refresh(
+                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
+            )
         print(User.info({'login': user['login']}))
         self.assertEqual(
             User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name']
+            self.user_group['name'],
         )

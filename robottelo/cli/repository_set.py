@@ -34,15 +34,13 @@ class RepositorySet(Base):
     def enable(cls, options):
         """Enables a repository."""
         cls.command_sub = 'enable'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def disable(cls, options):
         """Disables a repository."""
         cls.command_sub = 'disable'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def available_repositories(cls, options):
@@ -71,5 +69,4 @@ class RepositorySet(Base):
 
         """
         cls.command_sub = 'available-repositories'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

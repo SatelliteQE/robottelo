@@ -44,8 +44,8 @@ class TailoringFilesTestCase(CLITestCase):
     def setUpClass(cls):
         super(TailoringFilesTestCase, cls).setUpClass()
         cls.tailoring_file_path = file_downloader(
-            file_url=settings.oscap.tailoring_path,
-            hostname=settings.server.hostname)[0]
+            file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
+        )[0]
 
     @tier1
     def test_positive_create(self):
@@ -63,9 +63,9 @@ class TailoringFilesTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                tailoring_file = make_tailoringfile({
-                    'name': name,
-                    'scap-file': self.tailoring_file_path})
+                tailoring_file = make_tailoringfile(
+                    {'name': name, 'scap-file': self.tailoring_file_path}
+                )
                 assert tailoring_file['name'] == name
 
     @tier1
@@ -83,9 +83,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
-        tailoring_file = make_tailoringfile({
-            'name': name,
-            'scap-file': self.tailoring_file_path})
+        tailoring_file = make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
         assert tailoring_file['name'] == name
 
     @tier1
@@ -107,9 +105,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({
-            'name': name,
-            'scap-file': self.tailoring_file_path})
+        make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
         result = TailoringFiles.info({'name': name})
         assert result['name'] == name
 
@@ -131,9 +127,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({
-            'name': name,
-            'scap-file': self.tailoring_file_path})
+        make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
         result = TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
@@ -153,14 +147,11 @@ class TailoringFilesTestCase(CLITestCase):
         """
         ssh.upload_file(
             local_file=get_data_file(SNIPPET_DATA_FILE),
-            remote_file='/tmp/{0}'.format(SNIPPET_DATA_FILE)
+            remote_file='/tmp/{0}'.format(SNIPPET_DATA_FILE),
         )
         name = gen_string('alphanumeric')
         with pytest.raises(CLIFactoryError):
-            make_tailoringfile({
-                'name': name,
-                'scap-file': '/tmp/{0}'.format(SNIPPET_DATA_FILE)
-            })
+            make_tailoringfile({'name': name, 'scap-file': '/tmp/{0}'.format(SNIPPET_DATA_FILE)})
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -179,9 +170,7 @@ class TailoringFilesTestCase(CLITestCase):
         for name in invalid_names_list():
             with self.subTest(name):
                 with pytest.raises(CLIFactoryError):
-                    make_tailoringfile({
-                        'name': name,
-                        'scap-file': self.tailoring_file_path})
+                    make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
 
     @stubbed()
     @tier2
@@ -221,14 +210,9 @@ class TailoringFilesTestCase(CLITestCase):
         """
         name = gen_string('alphanumeric')
         file_path = '/tmp/{0}.xml'.format(name)
-        tailoring_file = make_tailoringfile({
-            'name': name,
-            'scap-file': self.tailoring_file_path})
+        tailoring_file = make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
         assert tailoring_file['name'] == name
-        result = TailoringFiles.download_tailoring_file({
-            'name': name,
-            'path': '/tmp/'
-        })
+        result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/tmp/'})
         assert file_path in result[0]
         result = ssh.command('find {0}'.format(file_path))
         assert result.return_code == 0
@@ -250,8 +234,7 @@ class TailoringFilesTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        tailoring_file = make_tailoringfile({
-            'scap-file': self.tailoring_file_path})
+        tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
         TailoringFiles.delete({'id': tailoring_file['id']})
         with pytest.raises(CLIReturnCodeError):
             TailoringFiles.info({'id': tailoring_file['id']})

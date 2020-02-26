@@ -78,10 +78,7 @@ class ContentAccessTestCase(APITestCase):
         # Create Organization
         cls.org = entities.Organization().create()
         # upload organization manifest with org environment access enabled
-        manifests.upload_manifest_locked(
-            cls.org.id,
-            manifests.clone(org_environment_access=True)
-        )
+        manifests.upload_manifest_locked(cls.org.id, manifests.clone(org_environment_access=True))
         # Create repositories
         cls.repos = [
             # Red Hat Enterprise Linux 7
@@ -101,17 +98,16 @@ class ContentAccessTestCase(APITestCase):
                 'repository': REPOS['rhst7']['name'],
                 'repository-id': REPOS['rhst7']['id'],
                 'url': settings.sattools_repo['rhel7'],
-                'cdn': bool(
-                    settings.cdn or not settings.sattools_repo['rhel7']),
+                'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
             },
         ]
         cls.custom_product, cls.repos_info = setup_cdn_and_custom_repositories(
-            cls.org.id, cls.repos)
+            cls.org.id, cls.repos
+        )
         # Create a content view
         content_view = entities.ContentView(
             organization=cls.org,
-            repository=[entities.Repository(id=repo_info['id'])
-                        for repo_info in cls.repos_info],
+            repository=[entities.Repository(id=repo_info['id']) for repo_info in cls.repos_info],
         ).create()
         # Publish the content view
         call_entity_method_with_timeout(content_view.publish, timeout=1500)
@@ -142,22 +138,17 @@ class ContentAccessTestCase(APITestCase):
             setup_virtual_machine(
                 vm,
                 self.org.label,
-                rh_repos_id=[
-                    repo['repository-id'] for repo in self.repos if repo['cdn']
-                ],
+                rh_repos_id=[repo['repository-id'] for repo in self.repos if repo['cdn']],
                 product_label=self.custom_product['label'],
                 repos_label=[
-                    repo['label'] for repo in self.repos_info
-                    if repo['red-hat-repository'] == 'no'
+                    repo['label'] for repo in self.repos_info if repo['red-hat-repository'] == 'no'
                 ],
                 lce=ENVIRONMENT,
                 patch_os_release_distro=DISTRO_RHEL7,
                 install_katello_agent=True,
             )
-            host = entities.Host(
-                name=vm.hostname, organization=self.org).search()[0].read()
+            host = entities.Host(name=vm.hostname, organization=self.org).search()[0].read()
             # force host to generate errata applicability
-            call_entity_method_with_timeout(
-                host.errata_applicability, timeout=600)
+            call_entity_method_with_timeout(host.errata_applicability, timeout=600)
             erratum = host.errata()['results']
             self.assertGreater(len(erratum), 0)

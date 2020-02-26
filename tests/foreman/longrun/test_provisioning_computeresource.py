@@ -51,22 +51,25 @@ class ComputeResourceHostTestCase(CLITestCase):
         cls.rhev_img_pass = settings.rhev.image_password
         cls.rhev_vm_name = settings.rhev.vm_name
         cls.rhev_storage_domain = settings.rhev.storage_domain
-        cls.rhv_api = RHEVMSystem(hostname=cls.rhev_url.split('/')[2],
-                                  username=cls.rhev_username,
-                                  password=cls.rhev_password,
-                                  version='4.0',
-                                  verify=False
-                                  )
+        cls.rhv_api = RHEVMSystem(
+            hostname=cls.rhev_url.split('/')[2],
+            username=cls.rhev_username,
+            password=cls.rhev_password,
+            version='4.0',
+            verify=False,
+        )
         cls.cluster_id = cls.rhv_api.get_cluster(cls.rhev_datacenter).id
-        cls.storage_id = cls.rhv_api.get_storage_domain(
-            cls.rhev_storage_domain).id
+        cls.storage_id = cls.rhv_api.get_storage_domain(cls.rhev_storage_domain).id
         cls.network_id = (
-            cls.rhv_api.api.system_service().networks_service(
-            ).list(search='name={0}'.format(bridge))[0].id
+            cls.rhv_api.api.system_service()
+            .networks_service()
+            .list(search='name={0}'.format(bridge))[0]
+            .id
         )
         if is_open('BZ:1685949'):
             dc = cls.rhv_api._data_centers_service.list(
-                search='name={0}'.format(cls.rhev_datacenter))[0]
+                search='name={0}'.format(cls.rhev_datacenter)
+            )[0]
             dc = cls.rhv_api._data_centers_service.data_center_service(dc.id)
             cls.quota = dc.quotas_service().list()[0].id
         else:
@@ -83,29 +86,19 @@ class ComputeResourceHostTestCase(CLITestCase):
         cls.vmware_img_user = settings.vmware.image_username
         cls.vmware_img_pass = settings.vmware.image_password
         cls.vmware_vm_name = settings.vmware.vm_name
-        cls.current_interface = (
-                VMWARE_CONSTANTS.get('network_interfaces') % bridge
+        cls.current_interface = VMWARE_CONSTANTS.get('network_interfaces') % bridge
+        cls.vmware_api = VMWareSystem(
+            hostname=cls.vmware_server, username=cls.vmware_username, password=cls.vmware_password
         )
-        cls.vmware_api = VMWareSystem(hostname=cls.vmware_server,
-                                      username=cls.vmware_username,
-                                      password=cls.vmware_password
-                                      )
-        cls.vmware_net_id = cls.vmware_api.get_network(
-            cls.current_interface)._moId
+        cls.vmware_net_id = cls.vmware_api.get_network(cls.current_interface)._moId
 
         # Provisioning setup
         cls.org = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = cls.org.name
-        cls.loc = entities.Location(
-            name=gen_string('alpha'),
-            organization=[cls.org],
-        ).create()
+        cls.loc = entities.Location(name=gen_string('alpha'), organization=[cls.org]).create()
         cls.loc_name = cls.loc.name
         cls.config_env = configure_provisioning(
-            compute=True,
-            org=cls.org,
-            loc=cls.loc,
-            os=cls.rhev_img_os
+            compute=True, org=cls.org, loc=cls.loc, os=cls.rhev_img_os
         )
         cls.os_name = cls.config_env['os']
 
@@ -142,42 +135,44 @@ class ComputeResourceHostTestCase(CLITestCase):
         :CaseAutomation: automated
         """
         name = gen_string('alpha')
-        rhv_cr = ComputeResource.create({
-            u'name': name,
-            u'provider': 'Ovirt',
-            u'user': self.rhev_username,
-            u'password': self.rhev_password,
-            u'datacenter': self.rhev_datacenter,
-            u'url': self.rhev_url,
-            u'ovirt-quota': self.quota,
-            u'organizations': self.org_name,
-            u'locations': self.loc_name
-        })
+        rhv_cr = ComputeResource.create(
+            {
+                u'name': name,
+                u'provider': 'Ovirt',
+                u'user': self.rhev_username,
+                u'password': self.rhev_password,
+                u'datacenter': self.rhev_datacenter,
+                u'url': self.rhev_url,
+                u'ovirt-quota': self.quota,
+                u'organizations': self.org_name,
+                u'locations': self.loc_name,
+            }
+        )
         self.assertEquals(rhv_cr['name'], name)
         host_name = gen_string('alpha').lower()
-        host = make_host({
-            'name': '{0}'.format(host_name),
-            'root-password': gen_string('alpha'),
-            'organization': self.org_name,
-            'location': self.loc_name,
-            'pxe-loader': 'PXELinux BIOS',
-            'hostgroup': self.config_env['host_group'],
-            'compute-resource-id': rhv_cr.get('id'),
-            'compute-attributes': "cluster={0},"
-                                  "cores=1,"
-                                  "memory=1073741824,"
-                                  "start=1".format(self.cluster_id),
-            'ip': None,
-            'mac': None,
-            'interface': "compute_name=nic1, "
-                         "compute_network={0}".format(self.network_id),
-            'volume': "size_gb=10,"
-                      "storage_domain={0},"
-                      "bootable=True".format(self.storage_id),
-            'provision-method': 'build'
-        })
-        hostname = '{0}.{1}'.format(
-                host_name, self.config_env['domain'])
+        host = make_host(
+            {
+                'name': '{0}'.format(host_name),
+                'root-password': gen_string('alpha'),
+                'organization': self.org_name,
+                'location': self.loc_name,
+                'pxe-loader': 'PXELinux BIOS',
+                'hostgroup': self.config_env['host_group'],
+                'compute-resource-id': rhv_cr.get('id'),
+                'compute-attributes': "cluster={0},"
+                "cores=1,"
+                "memory=1073741824,"
+                "start=1".format(self.cluster_id),
+                'ip': None,
+                'mac': None,
+                'interface': "compute_name=nic1, " "compute_network={0}".format(self.network_id),
+                'volume': "size_gb=10,"
+                "storage_domain={0},"
+                "bootable=True".format(self.storage_id),
+                'provision-method': 'build',
+            }
+        )
+        hostname = '{0}.{1}'.format(host_name, self.config_env['domain'])
         self.assertEquals(hostname, host['name'])
         host_info = Host.info({'name': hostname})
         host_ip = host_info.get('network').get('ipv4-address')
@@ -186,9 +181,7 @@ class ComputeResourceHostTestCase(CLITestCase):
         # Get the information of created VM
         rhv_vm = self.rhv_api.get_vm(hostname)
         # Assert of Satellite mac address for VM and Mac of VM created is same
-        self.assertEqual(host_info.get('network').get('mac'),
-                         rhv_vm.get_nics()[0].mac.address
-                         )
+        self.assertEqual(host_info.get('network').get('mac'), rhv_vm.get_nics()[0].mac.address)
         # Start to run a ping check if network was established on VM
         with self.assertNotRaises(ProvisioningCheckError):
             host_provisioning_check(ip_addr=host_ip)
@@ -224,53 +217,51 @@ class ComputeResourceHostTestCase(CLITestCase):
         :CaseLevel: System
         """
         cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource({
-            'name': cr_name,
-            'organizations': self.org_name,
-            'locations': self.loc_name,
-            'provider': FOREMAN_PROVIDERS['vmware'],
-            'server': self.vmware_server,
-            'user': self.vmware_username,
-            'password': self.vmware_password,
-            'datacenter': self.vmware_datacenter
-        })
+        vmware_cr = make_compute_resource(
+            {
+                'name': cr_name,
+                'organizations': self.org_name,
+                'locations': self.loc_name,
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'server': self.vmware_server,
+                'user': self.vmware_username,
+                'password': self.vmware_password,
+                'datacenter': self.vmware_datacenter,
+            }
+        )
         self.assertEquals(vmware_cr['name'], cr_name)
         host_name = gen_string('alpha').lower()
-        host = make_host({
-            'name': '{0}'.format(host_name),
-            'root-password': gen_string('alpha'),
-            'organization': self.org_name,
-            'location': self.loc_name,
-            'hostgroup': self.config_env['host_group'],
-            'pxe-loader': 'PXELinux BIOS',
-            'compute-resource-id': vmware_cr.get('id'),
-            'compute-attributes': "cpus=2,"
-                                  "corespersocket=2,"
-                                  "memory_mb=4028,"
-                                  "cluster={0},"
-                                  "path=/Datacenters/{1}/vm/QE,"
-                                  "guest_id=rhel7_64Guest,"
-                                  "scsi_controller_type=VirtualLsiLogicController,"
-                                  "hardware_version=Default,"
-                                  "start=1".format(VMWARE_CONSTANTS['cluster'],
-                                                   self.vmware_datacenter
-                                                   ),
-            'ip': None,
-            'mac': None,
-            'interface': "compute_network={0},"
-                         "compute_type=VirtualVmxnet3".format(
-                self.vmware_net_id),
-            'volume': "name=Hard disk,"
-                      "size_gb=10,"
-                      "thin=true,"
-                      "eager_zero=false,"
-                      "datastore={0}".format(
-                VMWARE_CONSTANTS['datastore'].split()[0]
-            ),
-            'provision-method': 'build'
-        })
-        hostname = '{0}.{1}'.format(
-            host_name, self.config_env['domain'])
+        host = make_host(
+            {
+                'name': '{0}'.format(host_name),
+                'root-password': gen_string('alpha'),
+                'organization': self.org_name,
+                'location': self.loc_name,
+                'hostgroup': self.config_env['host_group'],
+                'pxe-loader': 'PXELinux BIOS',
+                'compute-resource-id': vmware_cr.get('id'),
+                'compute-attributes': "cpus=2,"
+                "corespersocket=2,"
+                "memory_mb=4028,"
+                "cluster={0},"
+                "path=/Datacenters/{1}/vm/QE,"
+                "guest_id=rhel7_64Guest,"
+                "scsi_controller_type=VirtualLsiLogicController,"
+                "hardware_version=Default,"
+                "start=1".format(VMWARE_CONSTANTS['cluster'], self.vmware_datacenter),
+                'ip': None,
+                'mac': None,
+                'interface': "compute_network={0},"
+                "compute_type=VirtualVmxnet3".format(self.vmware_net_id),
+                'volume': "name=Hard disk,"
+                "size_gb=10,"
+                "thin=true,"
+                "eager_zero=false,"
+                "datastore={0}".format(VMWARE_CONSTANTS['datastore'].split()[0]),
+                'provision-method': 'build',
+            }
+        )
+        hostname = '{0}.{1}'.format(host_name, self.config_env['domain'])
         self.assertEquals(hostname, host['name'])
         # Check on Vmware, if VM exists
         self.assertTrue(self.vmware_api.does_vm_exist(hostname))

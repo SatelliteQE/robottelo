@@ -101,8 +101,7 @@ class ConfigTemplateTestCase(APITestCase):
         conf_templ = conf_templ.update(['organization'])
         self.assertEqual(len(conf_templ.organization), 2)
         self.assertEqual(
-            set((org.id for org in conf_templ.organization)),
-            set((org.id for org in orgs)),
+            set((org.id for org in conf_templ.organization)), set((org.id for org in orgs))
         )
 
         # Finally, associate our config template with zero organizations.
@@ -160,7 +159,7 @@ class ConfigTemplateTestCase(APITestCase):
         """
         template_kind = choice(entities.TemplateKind().search())
         template = entities.ProvisioningTemplate(
-            snippet=False, template_kind=template_kind,
+            snippet=False, template_kind=template_kind
         ).create()
         self.assertEqual(template.template_kind.id, template_kind.id)
 
@@ -209,10 +208,7 @@ class ConfigTemplateTestCase(APITestCase):
         with self.assertRaises(HTTPError) as context:
             template.create(create_missing=False)
         self.assertEqual(context.exception.response.status_code, 404)
-        self.assertRegex(
-            context.exception.response.text,
-            "Could not find template_kind with name"
-        )
+        self.assertRegex(context.exception.response.text, "Could not find template_kind with name")
 
     @tier1
     def test_positive_update_name(self):
@@ -232,8 +228,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                updated = entities.ConfigTemplate(
-                    id=c_temp.id, name=new_name).update(['name'])
+                updated = entities.ConfigTemplate(id=c_temp.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
     @tier1
@@ -255,8 +250,7 @@ class ConfigTemplateTestCase(APITestCase):
         new_name = gen_string('alpha')
         org = entities.Organization().create()
         loc = entities.Location().create()
-        template = entities.ProvisioningTemplate(
-            organization=[org], location=[loc]).create()
+        template = entities.ProvisioningTemplate(organization=[org], location=[loc]).create()
         # Create user with Manager role
         role = entities.Role().search(query={'search': 'name="Manager"'})[0]
         entities.User(
@@ -270,8 +264,9 @@ class ConfigTemplateTestCase(APITestCase):
         # Update template name with that user
         cfg = get_nailgun_config()
         cfg.auth = (user_login, user_password)
-        updated = entities.ProvisioningTemplate(
-            cfg, id=template.id, name=new_name).update(['name'])
+        updated = entities.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(
+            ['name']
+        )
         self.assertEqual(updated.name, new_name)
 
     @tier1
@@ -292,8 +287,7 @@ class ConfigTemplateTestCase(APITestCase):
         for new_name in invalid_names_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.ConfigTemplate(
-                        id=c_temp.id, name=new_name).update(['name'])
+                    entities.ConfigTemplate(id=c_temp.id, name=new_name).update(['name'])
                 c_temp = entities.ConfigTemplate(id=c_temp.id).read()
                 self.assertNotEqual(c_temp.name, new_name)
 
@@ -340,7 +334,8 @@ class ConfigTemplateTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 new_template = entities.ConfigTemplate(
-                    id=template.clone(data={u'name': name})['id']).read_json()
+                    id=template.clone(data={u'name': name})['id']
+                ).read_json()
                 for key in unique_keys:
                     del new_template[key]
                 self.assertEqual(template_origin, new_template)
@@ -430,9 +425,9 @@ class TemplateSyncTestCase(APITestCase):
             if ssh.command('rm -rf {}'.format(dir_path)) == 1:
                 raise OSError(
                     'The existing export directory {} still exists! Please '
-                    'remove, recreate it and try again'.format(dir_path))
-        if not ssh.command(
-                'mkdir -p {}'.format(dir_path)).return_code == 0:
+                    'remove, recreate it and try again'.format(dir_path)
+                )
+        if not ssh.command('mkdir -p {}'.format(dir_path)).return_code == 0:
             raise OSError('The export directory is not being created!')
         ssh.command('chown foreman {} -R'.format(dir_path))
         ssh.command('chmod 777 {} -R'.format(dir_path))
@@ -470,35 +465,29 @@ class TemplateSyncTestCase(APITestCase):
                 'branch': 'automation',
                 'filter': 'robottelo',
                 'organization_id': org.id,
-                'prefix': org.name
-            })
+                'prefix': org.name,
+            }
+        )
         imported_count = [
-            template['imported'] for template in filtered_imported_templates[
-                'message']['templates']].count(True)
+            template['imported']
+            for template in filtered_imported_templates['message']['templates']
+        ].count(True)
         self.assertEqual(imported_count, 8)
         ptemplates = entities.ProvisioningTemplate().search(
-            query={
-                'per_page': 100,
-                'search': 'name~robottelo',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~robottelo', 'organization_id': org.id}
+        )
         self.assertEqual(len(ptemplates), 5)
         ptables = entities.PartitionTable().search(
-            query={
-                'per_page': 100,
-                'search': 'name~robottelo',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~robottelo', 'organization_id': org.id}
+        )
         self.assertEqual(len(ptables), 1)
         jtemplates = entities.JobTemplate().search(
-            query={
-                'per_page': 100,
-                'search': 'name~robottelo',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~robottelo', 'organization_id': org.id}
+        )
         self.assertEqual(len(jtemplates), 1)
         rtemplates = entities.ReportTemplate().search(
-            query={
-                'per_page': 10,
-                'search': 'name~robottelo',
-                'organization_id': org.id})
+            query={'per_page': 10, 'search': 'name~robottelo', 'organization_id': org.id}
+        )
         self.assertEqual(len(rtemplates), 1)
 
     @tier2
@@ -528,35 +517,29 @@ class TemplateSyncTestCase(APITestCase):
                 'filter': 'robottelo',
                 'organization_id': org.id,
                 'prefix': org.name,
-                'negate': True
-            })
+                'negate': True,
+            }
+        )
         not_imported_count = [
-            template['imported'] for template in filtered_imported_templates[
-                'message']['templates']].count(False)
+            template['imported']
+            for template in filtered_imported_templates['message']['templates']
+        ].count(False)
         self.assertEqual(not_imported_count, 8)
         ptemplates = entities.ProvisioningTemplate().search(
-            query={
-                'per_page': 100,
-                'search': 'name~jenkins',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': org.id}
+        )
         self.assertEqual(len(ptemplates), 6)
         ptables = entities.PartitionTable().search(
-            query={
-                'per_page': 100,
-                'search': 'name~jenkins',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': org.id}
+        )
         self.assertEqual(len(ptables), 1)
         jtemplates = entities.JobTemplate().search(
-            query={
-                'per_page': 100,
-                'search': 'name~jenkins',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': org.id}
+        )
         self.assertEqual(len(jtemplates), 1)
         rtemplates = entities.ReportTemplate().search(
-            query={
-                'per_page': 100,
-                'search': 'name~jenkins',
-                'organization_id': org.id})
+            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': org.id}
+        )
         self.assertEqual(len(rtemplates), 1)
 
     @stubbed()
@@ -711,25 +694,21 @@ class TemplateSyncTestCase(APITestCase):
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
                 'organization_id': org.id,
-                'prefix': org.name
-            })
+                'prefix': org.name,
+            }
+        )
         imported_count = [
-            template['imported'] for template in all_imported_templates[
-                'message']['templates']].count(True)
+            template['imported'] for template in all_imported_templates['message']['templates']
+        ].count(True)
         self.assertEqual(imported_count, 18)  # Total Count
         # Export some filtered templates to local dir
         dir_name = 'test-b7c98b75-4dd1-4b6a-b424-35b0f48c25db'
         dir_path = self.create_import_export_local_directory(dir_name)
         exported_temps = entities.Template().exports(
-            data={
-                'repo': dir_path,
-                'organization_ids': [org.id],
-                'filter': 'robottelo'
-            })
+            data={'repo': dir_path, 'organization_ids': [org.id], 'filter': 'robottelo'}
+        )
         self.assertEqual(len(exported_temps['message']['templates']), 8)
-        self.assertEqual(
-            ssh.command(
-                'find {} -type f | wc -l'.format(dir_path)).stdout[0], '8')
+        self.assertEqual(ssh.command('find {} -type f | wc -l'.format(dir_path)).stdout[0], '8')
 
     @stubbed()
     @tier2
@@ -965,11 +944,21 @@ class TemplateSyncTestCase(APITestCase):
                 'filter': 'robottelo',
                 'organization_id': org.id,
                 'prefix': org.name,
-                'verbose': True
-            })
+                'verbose': True,
+            }
+        )
         expected_fields = [
-            'name', 'imported', 'diff', 'additional_errors', 'exception',
-            'validation_errors', 'file', 'type', 'id', 'changed', 'additional_info'
+            'name',
+            'imported',
+            'diff',
+            'additional_errors',
+            'exception',
+            'validation_errors',
+            'file',
+            'type',
+            'id',
+            'changed',
+            'additional_info',
         ]
         actual_fields = templates['message']['templates'][0].keys()
         self.assertListEqual(sorted(actual_fields), sorted(expected_fields))
@@ -1002,11 +991,20 @@ class TemplateSyncTestCase(APITestCase):
                 'filter': 'robottelo',
                 'organization_id': org.id,
                 'prefix': org.name,
-                'verbose': False
-            })
+                'verbose': False,
+            }
+        )
         expected_fields = [
-            'name', 'imported', 'changed', 'additional_errors', 'exception',
-            'validation_errors', 'file', 'type', 'id', 'additional_info'
+            'name',
+            'imported',
+            'changed',
+            'additional_errors',
+            'exception',
+            'validation_errors',
+            'file',
+            'type',
+            'id',
+            'additional_info',
         ]
         actual_fields = templates['message']['templates'][0].keys()
         self.assertListEqual(sorted(actual_fields), sorted(expected_fields))
@@ -1038,26 +1036,16 @@ class TemplateSyncTestCase(APITestCase):
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
         pre_template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-                'prefix': org.name
-            })
-        self.assertTrue(
-            bool(pre_template['message']['templates'][0]['imported']))
+            data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
+        )
+        self.assertTrue(bool(pre_template['message']['templates'][0]['imported']))
         ssh.command(
-            'echo " Updating Template data." >> '
-            '{}/example_template.erb'.format(
-                dir_path)
+            'echo " Updating Template data." >> ' '{}/example_template.erb'.format(dir_path)
         )
         post_template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-                'prefix': org.name
-            })
-        self.assertTrue(
-            bool(post_template['message']['templates'][0]['changed']))
+            data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
+        )
+        self.assertTrue(bool(post_template['message']['templates'][0]['changed']))
 
     @tier2
     def test_positive_import_json_output_changed_key_false(self):
@@ -1085,21 +1073,13 @@ class TemplateSyncTestCase(APITestCase):
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
         pre_template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-                'prefix': org.name
-            })
-        self.assertTrue(
-            bool(pre_template['message']['templates'][0]['imported']))
+            data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
+        )
+        self.assertTrue(bool(pre_template['message']['templates'][0]['imported']))
         post_template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-                'prefix': org.name
-            })
-        self.assertFalse(
-            bool(post_template['message']['templates'][0]['changed']))
+            data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
+        )
+        self.assertFalse(bool(post_template['message']['templates'][0]['changed']))
 
     @tier2
     def test_positive_import_json_output_name_key(self):
@@ -1126,16 +1106,12 @@ class TemplateSyncTestCase(APITestCase):
         ssh.command('cp example_template.erb {}'.format(dir_path))
         ssh.command(
             'sed -ie "s/name: .*/name: {0}/" {1}/example_template.erb'.format(
-                template_name, dir_path)
+                template_name, dir_path
+            )
         )
-        template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-            })
+        template = entities.Template().imports(data={'repo': dir_path, 'organization_id': org.id})
         self.assertIn('name', template['message']['templates'][0].keys())
-        self.assertEqual(
-            template_name, template['message']['templates'][0]['name'])
+        self.assertEqual(template_name, template['message']['templates'][0]['name'])
 
     @tier2
     def test_positive_import_json_output_imported_key(self):
@@ -1160,13 +1136,9 @@ class TemplateSyncTestCase(APITestCase):
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
         template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-                'prefix': org.name
-            })
-        self.assertTrue(
-            bool(template['message']['templates'][0]['imported']))
+            data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
+        )
+        self.assertTrue(bool(template['message']['templates'][0]['imported']))
 
     @tier2
     def test_positive_import_json_output_file_key(self):
@@ -1191,14 +1163,8 @@ class TemplateSyncTestCase(APITestCase):
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
-        template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-            })
-        self.assertEqual(
-            'example_template.erb',
-            template['message']['templates'][0]['file'])
+        template = entities.Template().imports(data={'repo': dir_path, 'organization_id': org.id})
+        self.assertEqual('example_template.erb', template['message']['templates'][0]['file'])
 
     @tier2
     def test_positive_import_json_output_corrupted_metadata(self):
@@ -1225,19 +1191,12 @@ class TemplateSyncTestCase(APITestCase):
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
-        ssh.command(
-            'sed -ie "s/<%#/$#$#@%^$^@@RT$$/" {0}/example_template.erb'.format(
-                dir_path)
-        )
-        template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-            })
+        ssh.command('sed -ie "s/<%#/$#$#@%^$^@@RT$$/" {0}/example_template.erb'.format(dir_path))
+        template = entities.Template().imports(data={'repo': dir_path, 'organization_id': org.id})
         self.assertFalse(bool(template['message']['templates'][0]['imported']))
         self.assertEqual(
-            'Failed to parse metadata',
-            template['message']['templates'][0]['additional_errors'])
+            'Failed to parse metadata', template['message']['templates'][0]['additional_errors']
+        )
 
     @pytest.mark.skip_if_open('BZ:1787355')
     @tier2
@@ -1265,16 +1224,13 @@ class TemplateSyncTestCase(APITestCase):
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
         template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id,
-                'filter': gen_string('alpha')
-            })
+            data={'repo': dir_path, 'organization_id': org.id, 'filter': gen_string('alpha')}
+        )
         self.assertFalse(bool(template['message']['templates'][0]['imported']))
         self.assertEqual(
-            "Skipping, 'name' filtered out based on"
-            " 'filter' and 'negate' settings",
-            template['message']['templates'][0]['additional_errors'])
+            "Skipping, 'name' filtered out based on" " 'filter' and 'negate' settings",
+            template['message']['templates'][0]['additional_errors'],
+        )
 
     @tier2
     def test_positive_import_json_output_no_name_error(self):
@@ -1301,19 +1257,12 @@ class TemplateSyncTestCase(APITestCase):
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
-        ssh.command(
-            'sed -ie "s/name: .*/name: /" {}/example_template.erb'.format(
-                dir_path)
-        )
-        template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id
-            })
+        ssh.command('sed -ie "s/name: .*/name: /" {}/example_template.erb'.format(dir_path))
+        template = entities.Template().imports(data={'repo': dir_path, 'organization_id': org.id})
         self.assertFalse(bool(template['message']['templates'][0]['imported']))
         self.assertEqual(
-            "No 'name' found in metadata",
-            template['message']['templates'][0]['additional_errors'])
+            "No 'name' found in metadata", template['message']['templates'][0]['additional_errors']
+        )
 
     @tier2
     def test_positive_import_json_output_no_model_error(self):
@@ -1340,19 +1289,13 @@ class TemplateSyncTestCase(APITestCase):
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
-        ssh.command(
-            'sed -ie "/model: .*/d" {0}/example_template.erb'.format(
-                dir_path)
-        )
-        template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id
-            })
+        ssh.command('sed -ie "/model: .*/d" {0}/example_template.erb'.format(dir_path))
+        template = entities.Template().imports(data={'repo': dir_path, 'organization_id': org.id})
         self.assertFalse(bool(template['message']['templates'][0]['imported']))
         self.assertEqual(
             "No 'model' found in metadata",
-            template['message']['templates'][0]['additional_errors'])
+            template['message']['templates'][0]['additional_errors'],
+        )
 
     @tier2
     def test_positive_import_json_output_blank_model_error(self):
@@ -1379,19 +1322,13 @@ class TemplateSyncTestCase(APITestCase):
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         ssh.command('cp example_template.erb {}'.format(dir_path))
-        ssh.command(
-            'sed -ie "s/model: .*/model: /" {}/example_template.erb'.format(
-                dir_path)
-        )
-        template = entities.Template().imports(
-            data={
-                'repo': dir_path,
-                'organization_id': org.id
-            })
+        ssh.command('sed -ie "s/model: .*/model: /" {}/example_template.erb'.format(dir_path))
+        template = entities.Template().imports(data={'repo': dir_path, 'organization_id': org.id})
         self.assertFalse(bool(template['message']['templates'][0]['imported']))
         self.assertEqual(
             "Template type  was not found, are you missing a plugin?",
-            template['message']['templates'][0]['additional_errors'])
+            template['message']['templates'][0]['additional_errors'],
+        )
 
     @tier2
     def test_positive_export_json_output(self):
@@ -1417,39 +1354,29 @@ class TemplateSyncTestCase(APITestCase):
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
                 'organization_id': org.id,
-                'prefix': org.name
-            })
+                'prefix': org.name,
+            }
+        )
         imported_count = [
-            template['imported'] for template in imported_templates[
-                'message']['templates']].count(True)
+            template['imported'] for template in imported_templates['message']['templates']
+        ].count(True)
         self.assertEqual(imported_count, 18)  # Total Count
         # Export some filtered templates to local dir
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         exported_temps = entities.Template().exports(
-            data={
-                'repo': dir_path,
-                'organization_ids': [org.id],
-                'filter': org.name
-            })
+            data={'repo': dir_path, 'organization_ids': [org.id], 'filter': org.name}
+        )
         self.assertEqual(len(exported_temps['message']['templates']), 18)
         self.assertIn('name', exported_temps['message']['templates'][0].keys())
+        self.assertEqual(ssh.command('[ -d {}/job_templates ]'.format(dir_path)).return_code, 0)
         self.assertEqual(
-            ssh.command(
-                '[ -d {}/job_templates ]'.format(dir_path)
-            ).return_code, 0)
+            ssh.command('[ -d {}/partition_tables_templates ]'.format(dir_path)).return_code, 0
+        )
         self.assertEqual(
-            ssh.command(
-                '[ -d {}/partition_tables_templates ]'.format(dir_path)
-            ).return_code, 0)
-        self.assertEqual(
-            ssh.command(
-                '[ -d {}/provisioning_templates ]'.format(dir_path)
-            ).return_code, 0)
-        self.assertEqual(
-            ssh.command(
-                '[ -d {}/report_templates ]'.format(dir_path)
-            ).return_code, 0)
+            ssh.command('[ -d {}/provisioning_templates ]'.format(dir_path)).return_code, 0
+        )
+        self.assertEqual(ssh.command('[ -d {}/report_templates ]'.format(dir_path)).return_code, 0)
 
     @tier3
     def test_positive_import_log_to_production(self):
@@ -1476,12 +1403,14 @@ class TemplateSyncTestCase(APITestCase):
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'master',
                 'organization_id': org.id,
-                'filter': 'empty'
-            })
+                'filter': 'empty',
+            }
+        )
         time.sleep(5)
         result = ssh.command(
             'grep -i \'Started POST "/api/v2/templates/import"\' '
-            '/var/log/foreman/production.log')
+            '/var/log/foreman/production.log'
+        )
         self.assertEqual(result.return_code, 0)
 
     @tier3
@@ -1509,18 +1438,17 @@ class TemplateSyncTestCase(APITestCase):
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'master',
                 'organization_id': org.id,
-                'filter': 'empty'
-            })
+                'filter': 'empty',
+            }
+        )
         dir_name = gen_string('alpha')
         dir_path = self.create_import_export_local_directory(dir_name)
         entities.Template().exports(
-            data={
-                'repo': dir_path,
-                'organization_ids': [org.id],
-                'filter': 'empty'
-            })
+            data={'repo': dir_path, 'organization_ids': [org.id], 'filter': 'empty'}
+        )
         time.sleep(5)
         result = ssh.command(
             'grep -i \'Started POST "/api/v2/templates/export"\' '
-            '/var/log/foreman/production.log')
+            '/var/log/foreman/production.log'
+        )
         self.assertEqual(result.return_code, 0)

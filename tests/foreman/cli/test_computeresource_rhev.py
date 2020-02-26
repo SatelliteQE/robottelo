@@ -54,14 +54,16 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :BZ: 1602835
         """
-        ComputeResource.create({
-            u'name': 'cr {0}'.format(gen_string(str_type='alpha')),
-            u'provider': 'Ovirt',
-            u'user': self.username,
-            u'password': self.passord,
-            u'datacenter': self.datacenter,
-            u'url': self.current_rhev_url
-        })
+        ComputeResource.create(
+            {
+                u'name': 'cr {0}'.format(gen_string(str_type='alpha')),
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': self.current_rhev_url,
+            }
+        )
 
     @tier1
     def test_positive_rhev_info(self):
@@ -76,14 +78,16 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :BZ: 1602835
         """
         name = gen_string('utf8')
-        compute_resource = make_compute_resource({
-            u'name': name,
-            u'provider': 'Ovirt',
-            u'user': self.username,
-            u'password': self.passord,
-            u'datacenter': self.datacenter,
-            u'url': self.current_rhev_url
-        })
+        compute_resource = make_compute_resource(
+            {
+                u'name': name,
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': self.current_rhev_url,
+            }
+        )
         self.assertEquals(compute_resource['name'], name)
 
     @tier1
@@ -98,13 +102,15 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :BZ: 1602835
         """
-        comp_res = make_compute_resource({
-            u'provider': 'Ovirt',
-            u'user': self.username,
-            u'password': self.passord,
-            u'datacenter': self.datacenter,
-            u'url': self.current_rhev_url
-        })
+        comp_res = make_compute_resource(
+            {
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': self.current_rhev_url,
+            }
+        )
         self.assertTrue(comp_res['name'])
         ComputeResource.delete({'name': comp_res['name']})
         result = ComputeResource.exists(search=('name', comp_res['name']))
@@ -122,13 +128,15 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :BZ: 1602835
         """
-        comp_res = make_compute_resource({
-            u'provider': 'Ovirt',
-            u'user': self.username,
-            u'password': self.passord,
-            u'datacenter': self.datacenter,
-            u'url': self.current_rhev_url
-        })
+        comp_res = make_compute_resource(
+            {
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': self.current_rhev_url,
+            }
+        )
         self.assertTrue(comp_res['name'])
         ComputeResource.delete({'id': comp_res['id']})
         result = ComputeResource.exists(search=('name', comp_res['name']))
@@ -145,13 +153,15 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :CaseImportance: High
         """
         with self.assertRaises(CLIReturnCodeError):
-            ComputeResource.create({
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': 'invalid url'
-            })
+            ComputeResource.create(
+                {
+                    u'provider': 'Ovirt',
+                    u'user': self.username,
+                    u'password': self.passord,
+                    u'datacenter': self.datacenter,
+                    u'url': 'invalid url',
+                }
+            )
 
     @tier2
     def test_negative_create_with_same_name(self):
@@ -169,24 +179,28 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :CaseImportance: High
         """
         name = gen_string('alpha')
-        compute_resource = make_compute_resource({
-            u'name': name,
-            u'provider': 'Ovirt',
-            u'user': self.username,
-            u'password': self.passord,
-            u'datacenter': self.datacenter,
-            u'url': self.current_rhev_url
-        })
-        self.assertEquals(compute_resource['name'], name)
-        with self.assertRaises(CLIFactoryError):
-            make_compute_resource({
+        compute_resource = make_compute_resource(
+            {
                 u'name': name,
                 u'provider': 'Ovirt',
                 u'user': self.username,
                 u'password': self.passord,
                 u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url
-            })
+                u'url': self.current_rhev_url,
+            }
+        )
+        self.assertEquals(compute_resource['name'], name)
+        with self.assertRaises(CLIFactoryError):
+            make_compute_resource(
+                {
+                    u'name': name,
+                    u'provider': 'Ovirt',
+                    u'user': self.username,
+                    u'password': self.passord,
+                    u'datacenter': self.datacenter,
+                    u'url': self.current_rhev_url,
+                }
+            )
 
     @tier1
     @upgrade
@@ -207,22 +221,18 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :BZ: 1602835
         """
         new_name = gen_string('alpha')
-        comp_res = make_compute_resource({
-            u'provider': 'Ovirt',
-            u'user': self.username,
-            u'password': self.passord,
-            u'datacenter': self.datacenter,
-            u'url': self.current_rhev_url
-        })
-        self.assertTrue(comp_res['name'])
-        ComputeResource.update({
-            'name': comp_res['name'],
-            'new-name': new_name
-        })
-        self.assertEqual(
-            new_name,
-            ComputeResource.info({'id': comp_res['id']})['name']
+        comp_res = make_compute_resource(
+            {
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': self.current_rhev_url,
+            }
         )
+        self.assertTrue(comp_res['name'])
+        ComputeResource.update({'name': comp_res['name'], 'new-name': new_name})
+        self.assertEqual(new_name, ComputeResource.info({'id': comp_res['id']})['name'])
 
     @tier2
     @stubbed()

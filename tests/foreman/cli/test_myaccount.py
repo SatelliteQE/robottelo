@@ -33,11 +33,9 @@ def _create_test_user(class_or_instance):
     """
     class_or_instance.login = gen_string('alphanumeric', 30)
     class_or_instance.password = gen_string('alphanumeric', 30)
-    class_or_instance.user = make_user({
-        'login': class_or_instance.login,
-        'password': class_or_instance.password,
-        'admin': '1',
-    })
+    class_or_instance.user = make_user(
+        {'login': class_or_instance.login, 'password': class_or_instance.password, 'admin': '1'}
+    )
 
 
 def _delete_test_user(cls_or_instance):
@@ -203,9 +201,7 @@ class MyAccountTestCase(CLITestCase):
         for email in invalid_emails_list():
             with self.subTest(email):
                 with self.assertRaises(CLIReturnCodeError):
-                    self.update_user(
-                        {'login': self.user['login'], 'mail': email}
-                    )
+                    self.update_user({'login': self.user['login'], 'mail': email})
 
     @tier1
     def test_negative_update_locale(self):
@@ -262,10 +258,7 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_password = gen_string('alphanumeric')
-        self.update_user({
-            'password': new_password,
-            'current-password': self.password
-        })
+        self.update_user({'password': new_password, 'current-password': self.password})
         # If password is updated, hammer authentication must fail because old
         # password stored on self is used
         self.assertRaises(CLIReturnCodeError, self.user_info)

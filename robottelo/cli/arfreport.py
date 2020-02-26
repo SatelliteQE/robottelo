@@ -50,5 +50,4 @@ class Arfreport(Base):
         """
         cls.command_sub = 'list'
 
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

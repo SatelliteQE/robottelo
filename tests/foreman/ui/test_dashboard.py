@@ -75,8 +75,7 @@ def test_positive_host_configuration_status(session):
         ' status.failed_restarts > 0) and status.enabled = true',
         'last_report > \"30 minutes ago\" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'last_report > \"30 minutes ago\" and status.pending > 0'
-        ' and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.pending > 0' ' and status.enabled = true',
         'last_report < \"30 minutes ago\" and status.enabled = true',
         'status.enabled = false',
         'not has last_report and status.enabled = true',
@@ -97,17 +96,13 @@ def test_positive_host_configuration_status(session):
 
         for criteria, search in zip(criteria_list, search_strings_list):
             if criteria == 'Hosts with no reports':
-                session.dashboard.action({
-                    'HostConfigurationStatus': {'status_list': criteria}
-                })
+                session.dashboard.action({'HostConfigurationStatus': {'status_list': criteria}})
                 values = session.host.read_all()
                 assert values['searchbox'] == search
                 assert len(values['table']) == 1
                 assert values['table'][0]['Name'] == host.name
             else:
-                session.dashboard.action({
-                    'HostConfigurationStatus': {'status_list': criteria}
-                })
+                session.dashboard.action({'HostConfigurationStatus': {'status_list': criteria}})
                 values = session.host.read_all()
                 assert values['searchbox'] == search
                 assert len(values['table']) == 0
@@ -166,51 +161,33 @@ def test_positive_task_status(session):
     url = 'http://www.non_existent_repo_url.org/repos'
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
-    repo = entities.Repository(
-        url=url, product=product, content_type='puppet').create()
+    repo = entities.Repository(url=url, product=product, content_type='puppet').create()
     with raises(TaskFailedError):
         repo.sync()
     with session:
         session.organization.select(org_name=org.name)
-        session.dashboard.action({
-            'TaskStatus': {'state': 'running', 'result': 'pending'}
-        })
+        session.dashboard.action({'TaskStatus': {'state': 'running', 'result': 'pending'}})
         searchbox = session.task.read_all('searchbox')
         assert searchbox['searchbox'] == 'state=running&result=pending'
         session.task.set_chart_filter('RunningChart')
         tasks = session.task.read_all(['pagination', 'RunningChart'])
-        assert (
-            tasks['pagination']['total_items'] ==
-            tasks['RunningChart']['total']['Total']
-        )
-        session.dashboard.action({
-            'TaskStatus': {'state': 'stopped', 'result': 'warning'}
-        })
+        assert tasks['pagination']['total_items'] == tasks['RunningChart']['total']['Total']
+        session.dashboard.action({'TaskStatus': {'state': 'stopped', 'result': 'warning'}})
         tasks = session.task.read_all('searchbox')
         assert tasks['searchbox'] == 'state=stopped&result=warning'
-        session.task.set_chart_filter(
-            'StoppedChart', {'row': 1, 'focus': 'Total'})
+        session.task.set_chart_filter('StoppedChart', {'row': 1, 'focus': 'Total'})
         tasks = session.task.read_all()
-        assert (
-            tasks['pagination']['total_items'] ==
-            tasks['StoppedChart']['table'][1]['Total']
-        )
-        task_name = (
-            "Synchronize repository '{}'; product '{}'; "
-            "organization '{}'".format(repo.name, product.name, org.name)
+        assert tasks['pagination']['total_items'] == tasks['StoppedChart']['table'][1]['Total']
+        task_name = "Synchronize repository '{}'; product '{}'; " "organization '{}'".format(
+            repo.name, product.name, org.name
         )
         assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'
-        session.dashboard.action({
-            'LatestFailedTasks': {'name': 'Synchronize'}
-        })
+        session.dashboard.action({'LatestFailedTasks': {'name': 'Synchronize'}})
         values = session.task.read(task_name)
         assert values['task']['result'] == 'warning'
-        assert (
-            values['task']['errors'] ==
-            'PLP0000: Importer indicated a failed response'
-        )
+        assert values['task']['errors'] == 'PLP0000: Importer indicated a failed response'
 
 
 @upgrade
@@ -259,17 +236,14 @@ def test_positive_user_access_with_host_filter(test_name, module_loc):
         location=[module_loc],
         role=[role],
         login=user_login,
-        password=user_password
+        password=user_password,
     ).create()
     with Session(test_name, user=user_login, password=user_password) as session:
         assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
         assert len(session.dashboard.read('LatestErrata')) == 0
         repos_collection = RepositoryCollection(
             distro=DISTRO_RHEL7,
-            repositories=[
-                SatelliteToolsRepository(),
-                YumRepository(url=FAKE_6_YUM_REPO),
-            ]
+            repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_6_YUM_REPO)],
         )
         repos_collection.setup_content(org.id, lce.id)
         with VirtualMachine(distro=repos_collection.distro) as client:

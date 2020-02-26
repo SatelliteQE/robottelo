@@ -27,14 +27,17 @@ def graph():
     for entity_name, entity in entities_.items():
         # Graph out which entities this entity depends on.
         for field_name, field in entity.get_fields().items():
-            if (isinstance(field, entity_mixins.OneToOneField) or
-                    isinstance(field, entity_mixins.OneToManyField)):
-                print('{0} -> {1} [label="{2}"{3}]'.format(
-                    entity_name,
-                    field.entity,
-                    field_name,
-                    ' color=red' if field.required else ''
-                ))
+            if isinstance(field, entity_mixins.OneToOneField) or isinstance(
+                field, entity_mixins.OneToManyField
+            ):
+                print(
+                    '{0} -> {1} [label="{2}"{3}]'.format(
+                        entity_name,
+                        field.entity,
+                        field_name,
+                        ' color=red' if field.required else '',
+                    )
+                )
         # Make entities that cannot be created less visible.
         if not issubclass(entity, entity_mixins.EntityCreateMixin):
             print('{0} [style=dotted]'.format(entity_name))

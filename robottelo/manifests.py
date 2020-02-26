@@ -22,6 +22,7 @@ from robottelo.ssh import upload_file
 
 class ManifestCloner(object):
     """Manifest clonning utility class."""
+
     def __init__(self, template=None, private_key=None, signing_key=None):
         self.template = template
         self.signing_key = signing_key
@@ -31,16 +32,12 @@ class ManifestCloner(object):
         """Download and cache the manifest information."""
         if self.template is None:
             self.template = {}
-        self.template[name] = requests.get(
-            settings.fake_manifest.url[name]
-        ).content
+        self.template[name] = requests.get(settings.fake_manifest.url[name]).content
         if self.signing_key is None:
             self.signing_key = requests.get(settings.fake_manifest.key_url).content
         if self.private_key is None:
             self.private_key = serialization.load_pem_private_key(
-                self.signing_key,
-                password=None,
-                backend=default_backend()
+                self.signing_key, password=None, backend=default_backend()
             )
 
     def clone(self, org_environment_access=False, name='default'):
@@ -62,15 +59,14 @@ class ManifestCloner(object):
             ``StringIO`` on Python 2) with the contents of the cloned
             manifest.
         """
-        if (self.signing_key is None or
-                self.template is None or
-                self.template.get(name) is None):
+        if self.signing_key is None or self.template is None or self.template.get(name) is None:
             self._download_manifest_info(name)
 
         template_zip = zipfile.ZipFile(six.BytesIO(self.template[name]))
         # Extract the consumer_export.zip from the template manifest.
         consumer_export_zip = zipfile.ZipFile(
-            six.BytesIO(template_zip.read('consumer_export.zip')))
+            six.BytesIO(template_zip.read('consumer_export.zip'))
+        )
 
         # Generate a new consumer_export.zip file changing the consumer
         # uuid.
@@ -78,36 +74,27 @@ class ManifestCloner(object):
         with zipfile.ZipFile(consumer_export, 'w') as new_consumer_export_zip:
             for name in consumer_export_zip.namelist():
                 if name == 'export/consumer.json':
-                    consumer_data = json.loads(
-                        consumer_export_zip.read(name).decode('utf-8'))
+                    consumer_data = json.loads(consumer_export_zip.read(name).decode('utf-8'))
                     consumer_data['uuid'] = six.text_type(uuid.uuid1())
                     if org_environment_access:
                         consumer_data['contentAccessMode'] = 'org_environment'
-                        consumer_data['owner']['contentAccessModeList'] = (
-                            'entitlement,org_environment')
-                    new_consumer_export_zip.writestr(
-                        name,
-                        json.dumps(consumer_data)
-                    )
+                        consumer_data['owner'][
+                            'contentAccessModeList'
+                        ] = 'entitlement,org_environment'
+                    new_consumer_export_zip.writestr(name, json.dumps(consumer_data))
                 else:
-                    new_consumer_export_zip.writestr(
-                        name,
-                        consumer_export_zip.read(name)
-                    )
+                    new_consumer_export_zip.writestr(name, consumer_export_zip.read(name))
 
         # Generate a new manifest.zip file with the generated
         # consumer_export.zip and new signature.
         manifest = six.BytesIO()
-        with zipfile.ZipFile(
-                manifest, 'w', zipfile.ZIP_DEFLATED) as manifest_zip:
+        with zipfile.ZipFile(manifest, 'w', zipfile.ZIP_DEFLATED) as manifest_zip:
             consumer_export.seek(0)
-            manifest_zip.writestr(
-                'consumer_export.zip',
-                consumer_export.read()
-            )
+            manifest_zip.writestr('consumer_export.zip', consumer_export.read())
             consumer_export.seek(0)
             signature = self.private_key.sign(
-                consumer_export.read(), padding.PKCS1v15(), hashes.SHA256())
+                consumer_export.read(), padding.PKCS1v15(), hashes.SHA256()
+            )
             manifest_zip.writestr('signature', signature)
         # Make sure that the file-like object is at the beginning and
         # ready to be read.
@@ -126,9 +113,7 @@ class ManifestCloner(object):
         Make sure to close the returned file-like object in order to clean up
         the memory used to store it.
         """
-        if (self.signing_key is None or
-                self.template is None or
-                self.template.get(name) is None):
+        if self.signing_key is None or self.template is None or self.template.get(name) is None:
             self._download_manifest_info(name)
         return six.BytesIO(self.template[name])
 
@@ -148,17 +133,17 @@ class Manifest(object):
         with Manifest() as manifest:
             # my fancy stuff
     """
-    def __init__(self, content=None, filename=None,
-                 org_environment_access=False, name='default'):
+
+    def __init__(self, content=None, filename=None, org_environment_access=False, name='default'):
         self._content = content
         self.filename = filename
 
         if self._content is None:
             self._content = _manifest_cloner.clone(
-                org_environment_access=org_environment_access, name=name)
+                org_environment_access=org_environment_access, name=name
+            )
         if self.filename is None:
-            self.filename = u'/var/tmp/manifest-{0}.zip'.format(
-                    int(time.time()))
+            self.filename = u'/var/tmp/manifest-{0}.zip'.format(int(time.time()))
 
     @property
     def content(self):
@@ -212,7 +197,7 @@ def original_manifest(name='default'):
 
 
 @lock_function
-def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API, timeout=None):
+def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeout=None):
     """Upload a manifest with locking, using the requested interface.
 
     :type org_id: int
@@ -241,10 +226,7 @@ def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API, time
     """
 
     if interface not in [INTERFACE_API, INTERFACE_CLI]:
-        raise ValueError(
-            'upload manifest with interface "{0}" not supported'
-            .format(interface)
-        )
+        raise ValueError('upload manifest with interface "{0}" not supported'.format(interface))
     if manifest is None:
         manifest = clone()
     if timeout is None:
@@ -256,17 +238,15 @@ def upload_manifest_locked(org_id, manifest=None,  interface=INTERFACE_API, time
     if interface == INTERFACE_API:
         with manifest:
             result = entities.Subscription().upload(
-                data={'organization_id': org_id},
-                files={'content': manifest.content},
+                data={'organization_id': org_id}, files={'content': manifest.content}
             )
     else:
         # interface is INTERFACE_CLI
         with manifest:
             upload_file(manifest.content, manifest.filename)
 
-        result = Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': org_id,
-        }, timeout=timeout)
+        result = Subscription.upload(
+            {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
+        )
 
     return result

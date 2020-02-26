@@ -58,8 +58,7 @@ class CapsuleTestCase(APITestCase):
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
             entities.SmartProxy(url=gen_url(scheme='https')).create()
-        self.assertRegexpMatches(
-            context.exception.response.text, u'Unable to communicate')
+        self.assertRegexpMatches(context.exception.response.text, u'Unable to communicate')
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -157,16 +156,14 @@ class CapsuleTestCase(APITestCase):
         :CaseLevel: Component
 
         """
-        organizations = [
-            entities.Organization().create() for _ in range(2)]
+        organizations = [entities.Organization().create() for _ in range(2)]
         newport = get_available_capsule_port()
         with default_url_on_new_port(9090, newport) as url:
             proxy = self._create_smart_proxy(url=url)
             proxy.organization = organizations
             proxy = proxy.update(['organization'])
             self.assertEqual(
-                {org.id for org in proxy.organization},
-                {org.id for org in organizations}
+                {org.id for org in proxy.organization}, {org.id for org in organizations}
             )
 
     @skip_if_not_set('fake_capsules')
@@ -187,10 +184,7 @@ class CapsuleTestCase(APITestCase):
             proxy = self._create_smart_proxy(url=url)
             proxy.location = locations
             proxy = proxy.update(['location'])
-            self.assertEqual(
-                {loc.id for loc in proxy.location},
-                {loc.id for loc in locations}
-            )
+            self.assertEqual({loc.id for loc in proxy.location}, {loc.id for loc in locations})
 
     @skip_if_not_set('fake_capsules')
     @tier2
@@ -235,7 +229,7 @@ class CapsuleTestCase(APITestCase):
             self.assertEqual(
                 result['message'],
                 "Successfully updated environment and puppetclasses from "
-                "the on-disk puppet installation"
+                "the on-disk puppet installation",
             )
 
 
@@ -257,9 +251,9 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         existing smart proxy should always succeed.
         """
         super(SmartProxyMissingAttrTestCase, cls).setUpClass()
-        smart_proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })
+        smart_proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0, "No smart proxy is found"
         smart_proxy = smart_proxy[0]

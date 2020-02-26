@@ -68,9 +68,7 @@ def module_org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
-        name='remote_execution_connect_by_ip',
-        value='Yes',
-        organization=org.id
+        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
     ).create()
     return org
 
@@ -85,8 +83,8 @@ def repos_collection(module_org):
             RHELAnsibleEngineRepository(cdn=True),
             SatelliteToolsRepository(),
             YumRepository(url=FAKE_1_YUM_REPO),
-            YumRepository(url=FAKE_6_YUM_REPO)
-        ]
+            YumRepository(url=FAKE_6_YUM_REPO),
+        ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
     return repos_collection
@@ -98,10 +96,7 @@ def repos_collection_for_module_streams(module_org):
     module streams"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8,
-        repositories=[
-            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)
-        ]
+        distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
     return repos_collection
@@ -119,8 +114,9 @@ def vm(repos_collection):
 def vm_module_streams(repos_collection_for_module_streams):
     """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
-        repos_collection_for_module_streams.setup_virtual_machine(vm_module_streams,
-                                                                  install_katello_agent=False)
+        repos_collection_for_module_streams.setup_virtual_machine(
+            vm_module_streams, install_katello_agent=False
+        )
         add_remote_execution_ssh_key(vm_module_streams.ip_addr)
         yield vm_module_streams
 
@@ -128,7 +124,8 @@ def vm_module_streams(repos_collection_for_module_streams):
 def set_ignore_facts_for_os(value=False):
     """Helper to set 'ignore_facts_for_operatingsystem' setting"""
     ignore_setting = entities.Setting().search(
-        query={'search': 'name="ignore_facts_for_operatingsystem"'})[0]
+        query={'search': 'name="ignore_facts_for_operatingsystem"'}
+    )[0]
     ignore_setting.value = str(value)
     ignore_setting.update({'value'})
 
@@ -157,36 +154,31 @@ def test_positive_end_to_end(session, repos_collection, vm):
     with session:
         # Ensure content host is searchable
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
-        chost = session.contenthost.read(vm.hostname,
-                                         widget_names=['details',
-                                                       'provisioning_details',
-                                                       'subscriptions'])
+        chost = session.contenthost.read(
+            vm.hostname, widget_names=['details', 'provisioning_details', 'subscriptions']
+        )
         session.contenthost.update(vm.hostname, {'repository_sets.limit_to_lce': True})
         ch_reposet = session.contenthost.read(vm.hostname, widget_names=['repository_sets'])
         chost.update(ch_reposet)
         # Ensure all content host fields/tabs have appropriate values
         assert chost['details']['name'] == vm.hostname
         assert (
-            chost['details']['content_view'] ==
-            repos_collection.setup_content_data['content_view']['name']
+            chost['details']['content_view']
+            == repos_collection.setup_content_data['content_view']['name']
         )
         lce_name = repos_collection.setup_content_data['lce']['name']
         assert chost['details']['lce'][lce_name][lce_name]
-        assert (
-            chost['details']['registered_by'] == 'Activation Key {}'
-            .format(repos_collection.setup_content_data['activation_key']['name'])
+        assert chost['details']['registered_by'] == 'Activation Key {}'.format(
+            repos_collection.setup_content_data['activation_key']['name']
         )
         assert chost['provisioning_details']['name'] == vm.hostname
-        assert (
-            repos_collection.custom_product['name'] in
-            {repo['Repository Name'] for repo in chost['subscriptions']['resources']['assigned']}
-
-        )
+        assert repos_collection.custom_product['name'] in {
+            repo['Repository Name'] for repo in chost['subscriptions']['resources']['assigned']
+        }
         actual_repos = {repo['Repository Name'] for repo in chost['repository_sets']['table']}
         expected_repos = {
             repos_collection.repos_data[repo_index].get(
-                'repository-set',
-                repos_collection.repos_info[repo_index]['name']
+                'repository-set', repos_collection.repos_info[repo_index]['name']
             )
             for repo_index in range(len(repos_collection.repos_info))
         }
@@ -198,9 +190,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
         assert chost['details']['description'] == new_description
         # Install package
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Install',
-            FAKE_0_CUSTOM_PACKAGE_NAME,
+            vm.hostname, 'Package Install', FAKE_0_CUSTOM_PACKAGE_NAME
         )
         assert result['result'] == 'success'
         # Ensure package installed
@@ -244,31 +234,28 @@ def test_positive_end_to_end_bulk_update(session, vm):
         assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
         # Update package using bulk action
         # use the Host Collection view to access Update Packages dialogue
-        session.hostcollection.create({
-            'name': hc_name,
-            'unlimited_hosts': False,
-            'max_hosts': 2,
-            'description': description
-        })
+        session.hostcollection.create(
+            {'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 2, 'description': description}
+        )
         session.hostcollection.associate_host(hc_name, vm.hostname)
         # make a note of time for later CLI wait_for_tasks, and include
         # 5 mins margin of safety.
         timestamp = (datetime.utcnow() - timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M")
         # Update the package by name
         session.hostcollection.manage_packages(
-            hc_name, content_type='Package',
+            hc_name,
+            content_type='Package',
             packages=FAKE_1_CUSTOM_PACKAGE_NAME,
-            action='update_all'
+            action='update_all',
         )
         # Wait for upload profile event (in case Satellite system slow)
-        host = entities.Host().search(
-            query={'search': 'name={}'.format(vm.hostname)})
+        host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadProfiles'
-                         ' and resource_id = {}'
-                         ' and started_at >= "{}"'.format(
-                             host[0].id, timestamp),
-            search_rate=15, max_tries=10,
+            ' and resource_id = {}'
+            ' and started_at >= "{}"'.format(host[0].id, timestamp),
+            search_rate=15,
+            max_tries=10,
         )
         # Ensure package updated to a later version
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
@@ -326,9 +313,7 @@ def test_negative_install_package(session, vm):
     """
     with session:
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Install',
-            gen_string('alphanumeric')
+            vm.hostname, 'Package Install', gen_string('alphanumeric')
         )
         assert result['result'] == 'warning'
 
@@ -346,9 +331,7 @@ def test_positive_remove_package(session, vm):
     vm.download_install_rpm(FAKE_6_YUM_REPO, FAKE_0_CUSTOM_PACKAGE)
     with session:
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Remove',
-            FAKE_0_CUSTOM_PACKAGE_NAME,
+            vm.hostname, 'Package Remove', FAKE_0_CUSTOM_PACKAGE_NAME
         )
         assert result['result'] == 'success'
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
@@ -368,9 +351,7 @@ def test_positive_upgrade_package(session, vm):
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     with session:
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Update',
-            FAKE_1_CUSTOM_PACKAGE_NAME,
+            vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME
         )
         assert result['result'] == 'success'
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
@@ -390,9 +371,7 @@ def test_positive_install_package_group(session, vm):
     """
     with session:
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Group Install',
-            FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+            vm.hostname, 'Group Install', FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
         )
         assert result['result'] == 'success'
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
@@ -413,9 +392,7 @@ def test_positive_remove_package_group(session, vm):
     with session:
         for action in ('Group Install', 'Group Remove'):
             result = session.contenthost.execute_package_action(
-                vm.hostname,
-                action,
-                FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+                vm.hostname, action, FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
             )
             assert result['result'] == 'success'
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
@@ -439,7 +416,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     """
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     with Session(
-            test_name, user=module_viewer_user.login, password=module_viewer_user.password
+        test_name, user=module_viewer_user.login, password=module_viewer_user.password
     ) as session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
@@ -517,7 +494,7 @@ def test_positive_host_re_registion_with_host_rename(session, module_org, repos_
     assert result.return_code == 0
     vm.register_contenthost(
         module_org.name,
-        activation_key=repos_collection.setup_content_data['activation_key']['name']
+        activation_key=repos_collection.setup_content_data['activation_key']['name'],
     )
     assert result.return_code == 0
     with session:
@@ -561,10 +538,13 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
     minor = str(gen_integer(1, 9))
     expected_os = "RedHat {}.{}".format(major, minor)
     set_ignore_facts_for_os(False)
-    host = entities.Host().search(query={
-        'search': 'name={0} and organization_id={1}'.format(
-            vm.hostname, module_org.id)
-    })[0].read()
+    host = (
+        entities.Host()
+        .search(
+            query={'search': 'name={0} and organization_id={1}'.format(vm.hostname, module_org.id)}
+        )[0]
+        .read()
+    )
     with session:
         # Get host current operating system value
         os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
@@ -580,20 +560,14 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
         facts['osfamily'] = 'RedHat'
         facts['operatingsystemmajrelease'] = major
         facts['operatingsystemrelease'] = "{}.{}".format(major, minor)
-        host.upload_facts(data={
-            u'name': vm.hostname,
-            u'facts': facts,
-        })
+        host.upload_facts(data={u'name': vm.hostname, u'facts': facts})
         session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
         # Put it to false and re-run the process
         set_ignore_facts_for_os(False)
-        host.upload_facts(data={
-            u'name': vm.hostname,
-            u'facts': facts,
-        })
+        host.upload_facts(data={u'name': vm.hostname, u'facts': facts})
         session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Check that host OS was changed to new value
@@ -630,12 +604,14 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
     lce = entities.LifecycleEnvironment(organization=org).create()
     provisioning_server = settings.compute_resources.libvirt_hostname
     # Create a new virt-who config
-    virt_who_config = make_virt_who_config({
-        'organization-id': org.id,
-        'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
-        'hypervisor-server': 'qemu+ssh://{0}/system'.format(provisioning_server),
-        'hypervisor-username': 'root',
-    })
+    virt_who_config = make_virt_who_config(
+        {
+            'organization-id': org.id,
+            'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
+            'hypervisor-server': 'qemu+ssh://{0}/system'.format(provisioning_server),
+            'hypervisor-username': 'root',
+        }
+    )
     # create a virtual machine to host virt-who service
     with VirtualMachine() as virt_who_vm:
         # configure virtual machine and setup virt-who service
@@ -648,23 +624,31 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
             hypervisor_hostname=provisioning_server,
             configure_ssh=True,
         )
-        virt_who_hypervisor_host = virt_who_data[
-            'virt_who_hypervisor_host']
+        virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
         with session:
             session.organization.select(org.name)
-            assert session.contenthost.search(
-                virt_who_hypervisor_host['name'])[0]['Subscription Status'] == 'yellow'
+            assert (
+                session.contenthost.search(virt_who_hypervisor_host['name'])[0][
+                    'Subscription Status'
+                ]
+                == 'yellow'
+            )
             chost = session.contenthost.read(
-                virt_who_hypervisor_host['name'],
-                widget_names='details')
+                virt_who_hypervisor_host['name'], widget_names='details'
+            )
             assert chost['details']['subscription_status'] == 'Unsubscribed hypervisor'
             session.contenthost.add_subscription(
-                virt_who_hypervisor_host['name'], VDC_SUBSCRIPTION_NAME)
-            assert session.contenthost.search(
-                virt_who_hypervisor_host['name'])[0]['Subscription Status'] == 'green'
+                virt_who_hypervisor_host['name'], VDC_SUBSCRIPTION_NAME
+            )
+            assert (
+                session.contenthost.search(virt_who_hypervisor_host['name'])[0][
+                    'Subscription Status'
+                ]
+                == 'green'
+            )
             chost = session.contenthost.read(
-                virt_who_hypervisor_host['name'],
-                widget_names='details')
+                virt_who_hypervisor_host['name'], widget_names='details'
+            )
             assert chost['details']['subscription_status'] == 'Fully entitled'
 
 
@@ -682,29 +666,24 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
     :CaseLevel: System
     """
     stream_version = "5.21"
-    run_remote_command_on_content_host(
-        'dnf -y upload-profile',
-        vm_module_streams
-    )
+    run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
     with session:
         entities.Parameter(
-            name='remote_execution_connect_by_ip',
-            value='Yes',
-            host=vm_module_streams.hostname
+            name='remote_execution_connect_by_ip', value='Yes', host=vm_module_streams.hostname
         )
         # install Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type="Install",
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -715,20 +694,20 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
             vm_module_streams.hostname,
             action_type="Remove",
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Enabled',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -739,14 +718,14 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
             vm_module_streams.hostname,
             action_type='Disable',
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Disabled',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -757,20 +736,20 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
             vm_module_streams.hostname,
             action_type='Reset',
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Disabled',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Unknown',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -792,25 +771,19 @@ def test_module_streams_customize_action(session, vm_module_streams):
     with session:
         search_stream_version = "5.21"
         install_stream_version = "0.71"
+        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
         run_remote_command_on_content_host(
-            'dnf -y upload-profile',
-            vm_module_streams
+            'dnf module reset {} -y'.format(FAKE_2_CUSTOM_PACKAGE_NAME), vm_module_streams
         )
         run_remote_command_on_content_host(
-            'dnf module reset {} -y'.format(FAKE_2_CUSTOM_PACKAGE_NAME),
-            vm_module_streams
-        )
-        run_remote_command_on_content_host(
-            'dnf module reset {}'.format(FAKE_2_CUSTOM_PACKAGE_NAME),
-            vm_module_streams
+            'dnf module reset {}'.format(FAKE_2_CUSTOM_PACKAGE_NAME), vm_module_streams
         )
 
         # installing walrus:0.71 version
         customize_values = {
-                'template_content.module_spec': '{}:{}'.format(
-                    FAKE_2_CUSTOM_PACKAGE_NAME,
-                    install_stream_version
-                ),
+            'template_content.module_spec': '{}:{}'.format(
+                FAKE_2_CUSTOM_PACKAGE_NAME, install_stream_version
+            )
         }
         # run customize action on module streams
         result = session.contenthost.execute_module_stream_action(
@@ -819,14 +792,14 @@ def test_module_streams_customize_action(session, vm_module_streams):
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
             stream_version=search_stream_version,
             customize=True,
-            customize_values=customize_values
+            customize_values=customize_values,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=install_stream_version
+            stream_version=install_stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == install_stream_version
@@ -846,10 +819,7 @@ def test_install_modular_errata(session, vm_module_streams):
     with session:
         stream_version = "0"
         module_name = "kangaroo"
-        run_remote_command_on_content_host(
-            'dnf -y upload-profile',
-            vm_module_streams
-        )
+        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Install',
@@ -860,14 +830,13 @@ def test_install_modular_errata(session, vm_module_streams):
 
         # downgrade rpm package to generate errata.
         run_remote_command_on_content_host(
-            'dnf downgrade {} -y'.format(module_name),
-            vm_module_streams
+            'dnf downgrade {} -y'.format(module_name), vm_module_streams
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             module_name,
             status='Upgrade Available',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == module_name
 
@@ -877,9 +846,7 @@ def test_install_modular_errata(session, vm_module_streams):
 
         # Install errata
         result = session.contenthost.install_errata(
-            vm_module_streams.hostname,
-            FAKE_0_MODULAR_ERRATA_ID,
-            install_via='rex'
+            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='rex'
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
 
@@ -888,7 +855,7 @@ def test_install_modular_errata(session, vm_module_streams):
             vm_module_streams.hostname,
             module_name,
             status='Upgrade Available',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
 
 
@@ -906,32 +873,24 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
         module_name = "walrus"
         stream_version = "0.71"
         profile = "flipper"
-        run_remote_command_on_content_host(
-            'dnf -y upload-profile',
-            vm_module_streams
-        )
+        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
 
         # reset walrus module streams
         run_remote_command_on_content_host(
-            'dnf module reset {} -y'.format(module_name),
-            vm_module_streams
+            'dnf module reset {} -y'.format(module_name), vm_module_streams
         )
 
         # install walrus module stream with flipper profile
         run_remote_command_on_content_host(
-            'dnf module install {}:{}/{} -y'.format(
-                module_name,
-                stream_version,
-                profile
-            ),
-            vm_module_streams
+            'dnf module install {}:{}/{} -y'.format(module_name, stream_version, profile),
+            vm_module_streams,
         )
 
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -939,18 +898,14 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
         # remove walrus module stream with flipper profile
         run_remote_command_on_content_host(
-            'dnf module remove {}:{}/{} -y'.format(
-                module_name,
-                stream_version,
-                profile
-            ),
-            vm_module_streams
+            'dnf module remove {}:{}/{} -y'.format(module_name, stream_version, profile),
+            vm_module_streams,
         )
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
 
 
@@ -975,37 +930,31 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
         profile = "flipper"
         # reset walrus module streams
         run_remote_command_on_content_host(
-            'dnf module reset {} -y'.format(module_name),
-            vm_module_streams
+            'dnf module reset {} -y'.format(module_name), vm_module_streams
         )
         # make a note of time for later CLI wait_for_tasks, and include
         # 5 mins margin of safety.
         timestamp = (datetime.utcnow() - timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M")
         # install walrus module stream with flipper profile
         run_remote_command_on_content_host(
-            'dnf module install {}:{}/{} -y'.format(
-                module_name,
-                stream_version,
-                profile
-            ),
-            vm_module_streams
+            'dnf module install {}:{}/{} -y'.format(module_name, stream_version, profile),
+            vm_module_streams,
         )
         # Wait for upload profile event (in case Satellite system slow)
-        host = entities.Host().search(
-            query={'search': 'name={}'.format(vm.hostname)})
+        host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadProfiles'
-                         ' and resource_id = {}'
-                         ' and started_at >= "{}"'.format(
-                             host[0].id, timestamp),
-            search_rate=15, max_tries=10,
+            ' and resource_id = {}'
+            ' and started_at >= "{}"'.format(host[0].id, timestamp),
+            search_rate=15,
+            max_tries=10,
         )
         # Check web UI for the new module stream version
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == FAKE_2_CUSTOM_PACKAGE_NAME
         assert module_stream[0]['Stream'] == stream_version
@@ -1013,18 +962,14 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
 
         # remove walrus module stream with flipper profile
         run_remote_command_on_content_host(
-            'dnf module remove {}:{}/{} -y'.format(
-                module_name,
-                stream_version,
-                profile
-            ),
-            vm_module_streams
+            'dnf module remove {}:{}/{} -y'.format(module_name, stream_version, profile),
+            vm_module_streams,
         )
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
             status='Installed',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
 
 
@@ -1042,14 +987,10 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
     with session:
         module_name = "duck"
         stream_version = "0"
-        run_remote_command_on_content_host(
-            'dnf -y upload-profile',
-            vm_module_streams
-        )
+        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
         # reset duck module
         run_remote_command_on_content_host(
-            'dnf module reset {} -y'.format(module_name),
-            vm_module_streams
+            'dnf module reset {} -y'.format(module_name), vm_module_streams
         )
 
         # enable duck module stream
@@ -1064,7 +1005,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
             vm_module_streams.hostname,
             module_name,
             status='Enabled',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
         assert module_stream[0]['Name'] == module_name
         assert module_stream[0]['Stream'] == stream_version
@@ -1072,12 +1013,10 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
 
         # install module stream and downgrade it to generate the errata
         run_remote_command_on_content_host(
-            'dnf module install {} -y'.format(module_name),
-            vm_module_streams
+            'dnf module install {} -y'.format(module_name), vm_module_streams
         )
         run_remote_command_on_content_host(
-            'dnf downgrade {} -y'.format(module_name),
-            vm_module_streams
+            'dnf downgrade {} -y'.format(module_name), vm_module_streams
         )
 
         # update duck module stream
@@ -1094,7 +1033,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
             vm_module_streams.hostname,
             module_name,
             status='Upgrade Available',
-            stream_version=stream_version
+            stream_version=stream_version,
         )
 
 
@@ -1114,9 +1053,9 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
     :CaseImportance: High
     """
     with session:
-        details = session.contenthost.read(
-            vm_module_streams.hostname,
-            widget_names='details')['details']
+        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
+            'details'
+        ]
         syspurpose_status = details['system_purpose_status']
         assert syspurpose_status.lower() == "not specified"
         for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
@@ -1141,10 +1080,12 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
         # Set sypurpose attributes
         for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
             run_remote_command_on_content_host(
-                'syspurpose set-{0} "{1}"'.format(*spdata), vm_module_streams)
+                'syspurpose set-{0} "{1}"'.format(*spdata), vm_module_streams
+            )
 
-        details = session.contenthost.read(
-            vm_module_streams.hostname, widget_names='details')['details']
+        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
+            'details'
+        ]
         for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
             assert details[spname] == spdata[1]
 
@@ -1167,15 +1108,18 @@ def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
     # Set sypurpose attributes...
     for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
         run_remote_command_on_content_host(
-            'syspurpose set-{0} "{1}"'.format(*spdata), vm_module_streams)
+            'syspurpose set-{0} "{1}"'.format(*spdata), vm_module_streams
+        )
     for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
         # ...and unset them.
         run_remote_command_on_content_host(
-            'syspurpose unset-{0}'.format(*spdata), vm_module_streams)
+            'syspurpose unset-{0}'.format(*spdata), vm_module_streams
+        )
 
     with session:
-        details = session.contenthost.read(
-            vm_module_streams.hostname, widget_names='details')['details']
+        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
+            'details'
+        ]
         for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
             assert details[spname] == ''
 
@@ -1196,13 +1140,12 @@ def test_syspurpose_matched(session, vm_module_streams):
 
     :CaseImportance: High
     """
-    run_remote_command_on_content_host(
-        'syspurpose set-sla Premium', vm_module_streams)
-    run_remote_command_on_content_host(
-        "subscription-manager attach --auto", vm_module_streams)
+    run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
+    run_remote_command_on_content_host("subscription-manager attach --auto", vm_module_streams)
     with session:
-        details = session.contenthost.read(
-            vm_module_streams.hostname, widget_names='details')['details']
+        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
+            'details'
+        ]
         assert details['system_purpose_status'] == "Matched"
 
 
@@ -1222,13 +1165,11 @@ def test_syspurpose_mismatched(session, vm_module_streams):
 
     :CaseImportance: High
     """
-    run_remote_command_on_content_host(
-        'syspurpose set-sla Premium', vm_module_streams)
-    run_remote_command_on_content_host(
-        'subscription-manager attach --auto', vm_module_streams)
-    run_remote_command_on_content_host(
-        'syspurpose set-sla Standard', vm_module_streams)
+    run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
+    run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
+    run_remote_command_on_content_host('syspurpose set-sla Standard', vm_module_streams)
     with session:
-        details = session.contenthost.read(
-            vm_module_streams.hostname, widget_names='details')['details']
+        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
+            'details'
+        ]
         assert details['system_purpose_status'] == "Mismatched"

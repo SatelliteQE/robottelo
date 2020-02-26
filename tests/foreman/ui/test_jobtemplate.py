@@ -54,15 +54,15 @@ def test_positive_end_to_end(session, module_org, module_loc):
             'required': True,
             'input_type': 'Puppet parameter',
             'input_content.puppet_class_name': gen_string('alpha'),
-            'input_content.puppet_parameter_name':  gen_string('alpha'),
-            'input_content.description': gen_string('alpha')
+            'input_content.puppet_parameter_name': gen_string('alpha'),
+            'input_content.description': gen_string('alpha'),
         },
         {
             'name': gen_string('alpha'),
             'required': False,
             'input_type': 'Fact value',
             'input_content.fact_name': gen_string('alpha'),
-            'input_content.description': gen_string('alpha')
+            'input_content.description': gen_string('alpha'),
         },
         {
             'name': template_user_input_name,
@@ -70,42 +70,44 @@ def test_positive_end_to_end(session, module_org, module_loc):
             'input_type': 'User input',
             'input_content.options': gen_string('alpha'),
             'input_content.advanced': True,
-            'input_content.description': gen_string('alpha')
-        }
+            'input_content.description': gen_string('alpha'),
+        },
     ]
     job_foreign_input_sets = [
         {
             'target_template': 'Run Command - SSH Default',
             'include_all': True,
-            'exclude': ', '.join([gen_string('alpha') for _ in range(3)])
+            'exclude': ', '.join([gen_string('alpha') for _ in range(3)]),
         },
         {
             'target_template': 'Run Command - SSH Default',
             'include_all': False,
-            'include': ', '.join([gen_string('alpha') for _ in range(3)])
-        }
+            'include': ', '.join([gen_string('alpha') for _ in range(3)]),
+        },
     ]
     value = gen_string('alpha')
     with session:
-        session.jobtemplate.create({
-            'template.name': template_name,
-            'template.default': False,
-            'template.template_editor.rendering_options': 'Editor',
-            'template.template_editor.editor': template_editor_value,
-            'template.description': template_description,
-            'job.job_category': job_category,
-            'job.description_format': description_format,
-            'job.provider_type': 'SSH',
-            'job.timeout': '6000',
-            'inputs': template_inputs,
-            'job.value': value,
-            'job.current_user': True,
-            'job.overridable': False,
-            'job.foreign_input_sets': job_foreign_input_sets,
-            'type.snippet': True,
-            'organizations.resources.assigned': [module_org.name, "Default Organization"],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.jobtemplate.create(
+            {
+                'template.name': template_name,
+                'template.default': False,
+                'template.template_editor.rendering_options': 'Editor',
+                'template.template_editor.editor': template_editor_value,
+                'template.description': template_description,
+                'job.job_category': job_category,
+                'job.description_format': description_format,
+                'job.provider_type': 'SSH',
+                'job.timeout': '6000',
+                'inputs': template_inputs,
+                'job.value': value,
+                'job.current_user': True,
+                'job.overridable': False,
+                'job.foreign_input_sets': job_foreign_input_sets,
+                'type.snippet': True,
+                'organizations.resources.assigned': [module_org.name, "Default Organization"],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         template = session.jobtemplate.read(template_name, editor_view_option='Editor')
         assert template['template']['name'] == template_name
         assert template['template']['default'] is False
@@ -125,63 +127,92 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert template['inputs'][0]['name'] == template_inputs[0]['name']
         assert template['inputs'][0]['required'] == template_inputs[0]['required']
         assert template['inputs'][0]['input_type'] == template_inputs[0]['input_type']
-        assert (template['inputs'][0]['input_content']['puppet_class_name']
-                == template_inputs[0]['input_content.puppet_class_name'])
-        assert (template['inputs'][0]['input_content']['puppet_parameter_name']
-                == template_inputs[0]['input_content.puppet_parameter_name'])
-        assert (template['inputs'][0]['input_content']['description']
-                == template_inputs[0]['input_content.description'])
+        assert (
+            template['inputs'][0]['input_content']['puppet_class_name']
+            == template_inputs[0]['input_content.puppet_class_name']
+        )
+        assert (
+            template['inputs'][0]['input_content']['puppet_parameter_name']
+            == template_inputs[0]['input_content.puppet_parameter_name']
+        )
+        assert (
+            template['inputs'][0]['input_content']['description']
+            == template_inputs[0]['input_content.description']
+        )
         assert template['inputs'][1]['name'] == template_inputs[1]['name']
         assert template['inputs'][1]['required'] == template_inputs[1]['required']
         assert template['inputs'][1]['input_type'] == template_inputs[1]['input_type']
-        assert (template['inputs'][1]['input_content']['fact_name']
-                == template_inputs[1]['input_content.fact_name'])
-        assert (template['inputs'][1]['input_content']['description']
-                == template_inputs[1]['input_content.description'])
+        assert (
+            template['inputs'][1]['input_content']['fact_name']
+            == template_inputs[1]['input_content.fact_name']
+        )
+        assert (
+            template['inputs'][1]['input_content']['description']
+            == template_inputs[1]['input_content.description']
+        )
         assert template['inputs'][2]['name'] == template_inputs[2]['name']
         assert template['inputs'][2]['required'] == template_inputs[2]['required']
         assert template['inputs'][2]['input_type'] == template_inputs[2]['input_type']
-        assert (template['inputs'][2]['input_content']['options']
-                == template_inputs[2]['input_content.options'])
-        assert (template['inputs'][2]['input_content']['advanced']
-                == template_inputs[2]['input_content.advanced'])
-        assert (template['inputs'][2]['input_content']['description']
-                == template_inputs[2]['input_content.description'])
+        assert (
+            template['inputs'][2]['input_content']['options']
+            == template_inputs[2]['input_content.options']
+        )
+        assert (
+            template['inputs'][2]['input_content']['advanced']
+            == template_inputs[2]['input_content.advanced']
+        )
+        assert (
+            template['inputs'][2]['input_content']['description']
+            == template_inputs[2]['input_content.description']
+        )
 
         assert len(template['job']['foreign_input_sets']) == 2
-        assert (template['job']['foreign_input_sets'][0]['target_template']
-                == job_foreign_input_sets[0]['target_template'])
-        assert (template['job']['foreign_input_sets'][0]['include_all']
-                == job_foreign_input_sets[0]['include_all'])
-        assert (template['job']['foreign_input_sets'][0]['exclude']
-                == job_foreign_input_sets[0]['exclude'])
-        assert (template['job']['foreign_input_sets'][1]['target_template']
-                == job_foreign_input_sets[1]['target_template'])
-        assert (template['job']['foreign_input_sets'][1]['include_all']
-                == job_foreign_input_sets[1]['include_all'])
-        assert (template['job']['foreign_input_sets'][1]['include']
-                == job_foreign_input_sets[1]['include'])
+        assert (
+            template['job']['foreign_input_sets'][0]['target_template']
+            == job_foreign_input_sets[0]['target_template']
+        )
+        assert (
+            template['job']['foreign_input_sets'][0]['include_all']
+            == job_foreign_input_sets[0]['include_all']
+        )
+        assert (
+            template['job']['foreign_input_sets'][0]['exclude']
+            == job_foreign_input_sets[0]['exclude']
+        )
+        assert (
+            template['job']['foreign_input_sets'][1]['target_template']
+            == job_foreign_input_sets[1]['target_template']
+        )
+        assert (
+            template['job']['foreign_input_sets'][1]['include_all']
+            == job_foreign_input_sets[1]['include_all']
+        )
+        assert (
+            template['job']['foreign_input_sets'][1]['include']
+            == job_foreign_input_sets[1]['include']
+        )
         session.organization.select(org_name="Default Organization")
         template_values = session.jobtemplate.read(
             template_name,
             editor_view_option='Preview',
-            widget_names='template.template_editor.editor'
+            widget_names='template.template_editor.editor',
         )
-        assert (template_values['template']['template_editor']['editor']
-                == '$USER_INPUT[{0}]'.format(template_user_input_name))
+        assert template_values['template']['template_editor'][
+            'editor'
+        ] == '$USER_INPUT[{0}]'.format(template_user_input_name)
         session.jobtemplate.update(
             template_name,
             {
                 'template.name': template_new_name,
                 'template.template_editor.rendering_options': 'Editor',
-                'template.template_editor.editor': '<%= foreman_url("built") %>'
-            }
+                'template.template_editor.editor': '<%= foreman_url("built") %>',
+            },
         )
         assert not session.jobtemplate.search(template_name)
         template_values = session.jobtemplate.read(
             template_new_name,
             editor_view_option='Preview',
-            widget_names='template.template_editor.editor'
+            widget_names='template.template_editor.editor',
         )
         assert settings.server.hostname in template_values['template']['template_editor']['editor']
         session.jobtemplate.clone(template_new_name, {'template.name': template_clone_name})
@@ -206,18 +237,13 @@ def test_positive_clone_job_template_with_foreign_input_sets(session):
     child_name = gen_string('alpha')
     parent_name = 'Install Group - Katello SSH Default'
     with session:
-        parent = session.jobtemplate.read(
-            parent_name,
-            widget_names='job'
-        )['job']['foreign_input_sets']
-        session.jobtemplate.clone(
-            parent_name,
-            {'template.name': child_name}
-        )
-        child = session.jobtemplate.read(
-            child_name,
-            widget_names='job'
-        )['job']['foreign_input_sets']
+        parent = session.jobtemplate.read(parent_name, widget_names='job')['job'][
+            'foreign_input_sets'
+        ]
+        session.jobtemplate.clone(parent_name, {'template.name': child_name})
+        child = session.jobtemplate.read(child_name, widget_names='job')['job'][
+            'foreign_input_sets'
+        ]
         assert len(parent) == len(child)
         assert parent[0]['target_template'] == child[0]['target_template']
         assert parent[0]['include_all'] == child[0]['include_all']

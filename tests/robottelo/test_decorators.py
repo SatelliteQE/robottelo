@@ -11,8 +11,7 @@ class CacheableTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.cacheable`."""
 
     def setUp(self):
-        self.object_cache_patcher = mock.patch.dict(
-            'robottelo.decorators.OBJECT_CACHE')
+        self.object_cache_patcher = mock.patch.dict('robottelo.decorators.OBJECT_CACHE')
         self.object_cache = self.object_cache_patcher.start()
 
         def make_foo(options):
@@ -48,6 +47,7 @@ class SkipIfTestCase(TestCase):
 
     def test_raise_skip_test(self):
         """Skip a test method on True condition"""
+
         @decorators.skip_if(True)
         def dummy():
             pass
@@ -57,6 +57,7 @@ class SkipIfTestCase(TestCase):
 
     def test_execute_test_with_false(self):
         """Execute a test method on False condition"""
+
         @decorators.skip_if(False)
         def dummy():
             pass
@@ -66,6 +67,7 @@ class SkipIfTestCase(TestCase):
     def test_raise_type_error(self):
         """Type error is raised with no condition (None) provided"""
         with self.assertRaises(TypeError):
+
             @decorators.skip_if()
             def dummy():
                 pass
@@ -74,6 +76,7 @@ class SkipIfTestCase(TestCase):
 
     def test_raise_default_message(self):
         """Test is skipped with a default message"""
+
         @decorators.skip_if(True)
         def dummy():
             pass
@@ -81,13 +84,11 @@ class SkipIfTestCase(TestCase):
         try:
             dummy()
         except SkipTest as err:
-            self.assertIn(
-                'Skipping due expected condition is true',
-                err.args
-            )
+            self.assertIn('Skipping due expected condition is true', err.args)
 
     def test_raise_custom_message(self):
         """Test is skipped with a custom message"""
+
         @decorators.skip_if(True, 'foo')
         def dummy():
             pass
@@ -159,6 +160,7 @@ class SkipIfNotSetTestCase(TestCase):
     def test_raise_value_error(self):
         """ValueError is raised when a misspelled feature is passed."""
         with self.assertRaises(ValueError):
+
             @decorators.skip_if_not_set('client')
             def dummy():
                 pass

@@ -49,17 +49,13 @@ def form_data():
         'hypervisor_content.server': hypervisor_server,
     }
     if hypervisor_type == 'libvirt':
-        form['hypervisor_content.username'] = (
-            settings.virtwho.hypervisor_username)
+        form['hypervisor_content.username'] = settings.virtwho.hypervisor_username
     elif hypervisor_type == 'kubevirt':
         del form['hypervisor_content.server']
-        form['hypervisor_content.kubeconfig'] = (
-            settings.virtwho.hypervisor_config_file)
+        form['hypervisor_content.kubeconfig'] = settings.virtwho.hypervisor_config_file
     else:
-        form['hypervisor_content.username'] = (
-            settings.virtwho.hypervisor_username)
-        form['hypervisor_content.password'] = (
-            settings.virtwho.hypervisor_password)
+        form['hypervisor_content.username'] = settings.virtwho.hypervisor_username
+        form['hypervisor_content.password'] = settings.virtwho.hypervisor_password
     return form
 
 
@@ -89,10 +85,10 @@ def test_positive_deploy_configure_by_id(session, form_data):
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-        vdc_physical = 'product_id = {} and type=NORMAL'.format(
-            settings.virtwho.sku_vdc_physical)
+        vdc_physical = 'product_id = {} and type=NORMAL'.format(settings.virtwho.sku_vdc_physical)
         vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
-            settings.virtwho.sku_vdc_physical)
+            settings.virtwho.sku_vdc_physical
+        )
         session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
         assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
         session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -127,10 +123,10 @@ def test_positive_deploy_configure_by_script(session, form_data):
         hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-        vdc_physical = 'product_id = {} and type=NORMAL'.format(
-            settings.virtwho.sku_vdc_physical)
+        vdc_physical = 'product_id = {} and type=NORMAL'.format(settings.virtwho.sku_vdc_physical)
         vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
-            settings.virtwho.sku_vdc_physical)
+            settings.virtwho.sku_vdc_physical
+        )
         session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
         assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
         session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -197,8 +193,8 @@ def test_positive_interval_option(session, form_data):
             'Every 8 hours': '28800',
             'Every 12 hours': '43200',
             'Every 24 hours': '86400',
-            'Every 2 days':  '172800',
-            'Every 3 days':  '259200',
+            'Every 2 days': '172800',
+            'Every 3 days': '259200',
         }
         for option, value in sorted(intervals.items(), key=lambda item: int(item[1])):
             session.virtwho_configure.edit(name, {'interval': option})
@@ -269,14 +265,8 @@ def test_positive_filtering_option(session, form_data):
         config_file = get_configure_file(config_id)
         hypervisor_type = form_data['hypervisor_type']
         regex = '.*redhat.com'
-        whitelist = {
-            'filtering': 'Whitelist',
-            'filtering_content.filter_hosts': regex,
-        }
-        blacklist = {
-            'filtering': 'Blacklist',
-            'filtering_content.exclude_hosts': regex,
-        }
+        whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
+        blacklist = {'filtering': 'Blacklist', 'filtering_content.exclude_hosts': regex}
         if hypervisor_type == 'esx':
             whitelist['filtering_content.filter_host_parents'] = regex
             blacklist['filtering_content.exclude_host_parents'] = regex
@@ -325,10 +315,7 @@ def test_positive_proxy_option(session, form_data):
         config_command = get_configure_command(config_id)
         http_proxy = 'test.example.com:3128'
         no_proxy = 'test.satellite.com'
-        session.virtwho_configure.edit(name, {
-            'proxy': http_proxy,
-            'no_proxy': no_proxy,
-        })
+        session.virtwho_configure.edit(name, {'proxy': http_proxy, 'no_proxy': no_proxy})
         results = session.virtwho_configure.read(name)
         assert results['overview']['proxy'] == http_proxy
         assert results['overview']['no_proxy'] == no_proxy
@@ -358,16 +345,15 @@ def test_positive_virtwho_roles(session):
                 'view_virt_who_config',
                 'create_virt_who_config',
                 'edit_virt_who_config',
-                'destroy_virt_who_config']
+                'destroy_virt_who_config',
+            ]
         },
         'Virt-who Reporter': {
             'Host': ['create_hosts', 'edit_hosts'],
             'Lifecycle Environment': ['view_lifecycle_environments'],
-            '(Miscellaneous)': ['my_organizations']
+            '(Miscellaneous)': ['my_organizations'],
         },
-        'Virt-who Viewer': {
-            'Satellite virt who configure/config': ['view_virt_who_config']
-        }
+        'Virt-who Viewer': {'Satellite virt who configure/config': ['view_virt_who_config']},
     }
     with session:
         for role_name, role_filters in roles.items():
@@ -405,7 +391,7 @@ def test_positive_virtwho_configs_widget(session, form_data):
             {'Configuration Status': 'No Reports', 'Count': '1'},
             {'Configuration Status': 'No Change', 'Count': '0'},
             {'Configuration Status': 'OK', 'Count': '0'},
-            {'Configuration Status': 'Total Configurations', 'Count': '1'}
+            {'Configuration Status': 'Total Configurations', 'Count': '1'},
         ]
         values = session.dashboard.read('VirtWhoConfigStatus')
         assert values['config_status'] == expected_values
@@ -419,7 +405,7 @@ def test_positive_virtwho_configs_widget(session, form_data):
             {'Configuration Status': 'No Reports', 'Count': '0'},
             {'Configuration Status': 'No Change', 'Count': '0'},
             {'Configuration Status': 'OK', 'Count': '1'},
-            {'Configuration Status': 'Total Configurations', 'Count': '1'}
+            {'Configuration Status': 'Total Configurations', 'Count': '1'},
         ]
         values = session.dashboard.read('VirtWhoConfigStatus')
         assert values['config_status'] == expected_values
@@ -476,13 +462,15 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
     config_name = gen_string('alpha')
     with session:
         # Create an user
-        session.user.create({
-            'user.login': username,
-            'user.mail': valid_emails_list()[0],
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-        })
+        session.user.create(
+            {
+                'user.login': username,
+                'user.mail': valid_emails_list()[0],
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+            }
+        )
         # Create a virt-who config plugin
         form_data['name'] = config_name
         session.virtwho_configure.create(form_data)
@@ -499,10 +487,7 @@ def test_positive_virtwho_reporter_role(session, test_name, form_data):
         restart_virtwho_service()
         assert get_virtwho_status() == 'logerror'
         # Check the permissioin of Virt-who Reporter
-        session.user.update(
-            username,
-            {'roles.resources.assigned': ['Virt-who Reporter']}
-        )
+        session.user.update(username, {'roles.resources.assigned': ['Virt-who Reporter']})
         assert session.user.search(username)[0]['Username'] == username
         user = session.user.read(username)
         assert user['roles']['resources']['assigned'] == ['Virt-who Reporter']
@@ -530,13 +515,15 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
     config_name = gen_string('alpha')
     with session:
         # Create an user
-        session.user.create({
-            'user.login': username,
-            'user.mail': valid_emails_list()[0],
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-        })
+        session.user.create(
+            {
+                'user.login': username,
+                'user.mail': valid_emails_list()[0],
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+            }
+        )
         # Create a virt-who config plugin
         form_data['name'] = config_name
         session.virtwho_configure.create(form_data)
@@ -545,10 +532,7 @@ def test_positive_virtwho_viewer_role(session, test_name, form_data):
         deploy_configure_by_command(command)
         assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Check the permissioin of Virt-who Viewer
-        session.user.update(
-            username,
-            {'roles.resources.assigned': ['Virt-who Viewer']}
-        )
+        session.user.update(username, {'roles.resources.assigned': ['Virt-who Viewer']})
         user = session.user.read(username)
         assert user['roles']['resources']['assigned'] == ['Virt-who Viewer']
         # Update the virt-who config file
@@ -587,13 +571,15 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
     config_name = gen_string('alpha')
     with session:
         # Create an user
-        session.user.create({
-            'user.login': username,
-            'user.mail': valid_emails_list()[0],
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-        })
+        session.user.create(
+            {
+                'user.login': username,
+                'user.mail': valid_emails_list()[0],
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+            }
+        )
         # Create a virt-who config plugin
         form_data['name'] = config_name
         session.virtwho_configure.create(form_data)
@@ -602,10 +588,7 @@ def test_positive_virtwho_manager_role(session, test_name, form_data):
         deploy_configure_by_command(command)
         assert session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
         # Check the permissioin of Virt-who Manager
-        session.user.update(
-            username,
-            {'roles.resources.assigned': ['Virt-who Manager']}
-        )
+        session.user.update(username, {'roles.resources.assigned': ['Virt-who Manager']})
         user = session.user.read(username)
         assert user['roles']['resources']['assigned'] == ['Virt-who Manager']
         with Session(test_name, username, password) as newsession:
@@ -648,12 +631,8 @@ def test_positive_overview_label_name(form_data, session):
     form_data['proxy'] = 'test.example.com:3128'
     form_data['no_proxy'] = 'test.satellite.com'
     regex = '.*redhat.com'
-    whitelist = {
-        'filtering': 'Whitelist',
-        'filtering_content.filter_hosts': regex}
-    blacklist = {
-        'filtering': 'Blacklist',
-        'filtering_content.exclude_hosts': regex}
+    whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
+    blacklist = {'filtering': 'Blacklist', 'filtering_content.exclude_hosts': regex}
     if hypervisor_type == 'esx':
         whitelist['filtering_content.filter_host_parents'] = regex
         blacklist['filtering_content.exclude_host_parents'] = regex
@@ -672,7 +651,7 @@ def test_positive_overview_label_name(form_data, session):
             'filtering_label': 'Filtering',
             'filter_hosts_label': 'Filter Hosts',
             'proxy_label': 'HTTP Proxy',
-            'no_proxy_label': 'Ignore Proxy'
+            'no_proxy_label': 'Ignore Proxy',
         }
         if hypervisor_type == 'kubevirt':
             del fields['hypervisor_username_label']
@@ -721,7 +700,14 @@ def test_positive_last_checkin_status(form_data, session):
         assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         checkin_time = session.contenthost.search(hypervisor_name)[0]['Last Checkin']
         # 10 mins margin to check the Last Checkin time
-        assert abs(datetime.strptime(checkin_time, "%b %d, %I:%M %p").replace(
-            year=datetime.utcnow().year).timestamp() - time_now.timestamp()) <= 300
+        assert (
+            abs(
+                datetime.strptime(checkin_time, "%b %d, %I:%M %p")
+                .replace(year=datetime.utcnow().year)
+                .timestamp()
+                - time_now.timestamp()
+            )
+            <= 300
+        )
         session.virtwho_configure.delete(name)
         assert not session.virtwho_configure.search(name)

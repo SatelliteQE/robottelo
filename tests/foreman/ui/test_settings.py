@@ -37,10 +37,11 @@ def invalid_settings_values():
 
 def valid_error_messages():
     """Returns the list of valid error messages"""
-    return ['Value is invalid: must be integer',
-            'Value must be greater than 0',
-            'Value URL must be valid and schema must be one of http and https'
-            ]
+    return [
+        'Value is invalid: must be integer',
+        'Value must be greater than 0',
+        'Value URL must be valid and schema must be one of http and https',
+    ]
 
 
 def is_valid_error_message(actual_error_message):
@@ -58,20 +59,22 @@ def set_original_property_value():
 
     def _set_original_property_value(property_name):
         before_test_setting_param = entities.Setting().search(
-            query={'search': 'name="{0}"'.format(property_name)})[0]
+            query={'search': 'name="{0}"'.format(property_name)}
+        )[0]
         property_list[property_name] = before_test_setting_param.value
         return before_test_setting_param.value
+
     yield _set_original_property_value
     for key, value in property_list.items():
         after_test_setting_param = entities.Setting().search(
-            query={'search': 'name="{0}"'.format(key)})[0]
+            query={'search': 'name="{0}"'.format(key)}
+        )[0]
         after_test_setting_param.value = value
 
 
 def setting_cleanup(setting_name=None, setting_value=None):
     """Put necessary value for a specified setting"""
-    setting_entity = entities.Setting().search(
-        query={'search': 'name={}'.format(setting_name)})[0]
+    setting_entity = entities.Setting().search(query={'search': 'name={}'.format(setting_name)})[0]
     setting_entity.value = setting_value
     setting_entity.update({'value'})
 
@@ -112,24 +115,20 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
     product = entities.Product(organization=org).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repo = entities.Repository(name=repo_name, product=product).create()
-    composite_cv = entities.ContentView(
-        composite=True,
-        organization=org,
-    ).create()
+    composite_cv = entities.ContentView(composite=True, organization=org).create()
     add_content_views_to_composite(composite_cv, org, repo)
     composite_cv.publish()
     with session:
         session.organization.select(org_name=org.name)
         for param_value in ('Yes', 'No'):
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
+            session.settings.update('name = {}'.format(property_name), param_value)
             if param_value == 'Yes':
                 with raises(AssertionError) as context:
                     session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
-                assert 'Administrator -> Settings -> Content page using the ' \
-                       'restrict_composite_view flag.' in str(context.value)
+                assert (
+                    'Administrator -> Settings -> Content page using the '
+                    'restrict_composite_view flag.' in str(context.value)
+                )
             else:
                 result = session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
                 assert lce.name in result['Environments']
@@ -153,10 +152,7 @@ def test_positive_httpd_proxy_url_update(session, set_original_property_value):
     with session:
         set_original_property_value(property_name)
         param_value = gen_url(scheme='https')
-        session.settings.update(
-            'name = {}'.format(property_name),
-            param_value
-        )
+        session.settings.update('name = {}'.format(property_name), param_value)
         result = session.settings.read('name = {}'.format(property_name))
         assert result['table'][0]['Value'] == param_value
 
@@ -177,10 +173,7 @@ def test_negative_validate_error_message(session, set_original_property_value):
             set_original_property_value(property_name)
             for param_value in invalid_settings_values():
                 with raises(AssertionError) as context:
-                    session.settings.update(
-                        'name = {}'.format(property_name),
-                        param_value
-                    )
+                    session.settings.update('name = {}'.format(property_name), param_value)
                 assert is_valid_error_message(str(context.value))
 
 
@@ -205,13 +198,11 @@ def test_positive_selectors(session):
         for setting_attr, value in [uuid_duplicate_prop, dep_solve_prop, reg_host_prop]:
             # Stores original values for each type of selectors
             original_val = entities.Setting().search(
-                query={'search': 'name={}'.format(setting_attr)})[0]
+                query={'search': 'name={}'.format(setting_attr)}
+            )[0]
             # Update to new value and resets value to back to old state
             try:
-                session.settings.update(
-                    'name = {}'.format(setting_attr),
-                    value
-                )
+                session.settings.update('name = {}'.format(setting_attr), value)
                 result = session.settings.read('name = {}'.format(setting_attr))
                 assert result['table'][0]['Value'] == value
             finally:

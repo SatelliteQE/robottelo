@@ -47,13 +47,9 @@ class OstreeBranchTestCase(CLITestCase):
         cls.user = make_user({'admin': 'true', 'password': password})
         cls.user['password'] = password
         credentials = cls.get_user_credentials()
-        cls.org = make_org_with_credentials(
-            credentials=credentials)
+        cls.org = make_org_with_credentials(credentials=credentials)
         cls.product = make_product_with_credentials(
-            {
-                u'organization-id': cls.org['id']
-            },
-            credentials
+            {u'organization-id': cls.org['id']}, credentials
         )
         # Create new custom ostree repo
         cls.ostree_repo = make_repository_with_credentials(
@@ -63,20 +59,15 @@ class OstreeBranchTestCase(CLITestCase):
                 u'publish-via-http': u'false',
                 u'url': FEDORA27_OSTREE_REPO,
             },
-            credentials
+            credentials,
         )
-        Repository.with_user(*credentials).synchronize(
-            {'id': cls.ostree_repo['id']})
+        Repository.with_user(*credentials).synchronize({'id': cls.ostree_repo['id']})
         cls.cv = make_content_view(
-            {
-                u'organization-id': cls.org['id'],
-                u'repository-ids': [cls.ostree_repo['id']],
-            },
-            credentials
+            {u'organization-id': cls.org['id'], u'repository-ids': [cls.ostree_repo['id']]},
+            credentials,
         )
         ContentView.with_user(*credentials).publish({u'id': cls.cv['id']})
-        cls.cv = ContentView.with_user(*credentials).info(
-            {u'id': cls.cv['id']})
+        cls.cv = ContentView.with_user(*credentials).info({u'id': cls.cv['id']})
 
     @classmethod
     def get_user_credentials(cls):
@@ -117,7 +108,8 @@ class OstreeBranchTestCase(CLITestCase):
         :expectedresults: Ostree Branch List is displayed
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list(
-            {'product-id': self.product['id']})
+            {'product-id': self.product['id']}
+        )
         self.assertGreater(len(result), 0)
 
     @tier3
@@ -129,7 +121,8 @@ class OstreeBranchTestCase(CLITestCase):
         :expectedresults: Ostree Branch List is displayed
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list(
-            {'organization-id': self.org['id']})
+            {'organization-id': self.org['id']}
+        )
         self.assertGreater(len(result), 0)
 
     @tier3
@@ -142,7 +135,8 @@ class OstreeBranchTestCase(CLITestCase):
 
         """
         result = OstreeBranch.with_user(*self.get_user_credentials()).list(
-            {'content-view-id': self.cv['id']})
+            {'content-view-id': self.cv['id']}
+        )
         self.assertGreater(len(result), 0)
 
     @tier3
@@ -157,6 +151,5 @@ class OstreeBranchTestCase(CLITestCase):
         self.assertGreater(len(result), 0)
         # Grab a random branch
         branch = random.choice(result)
-        result = OstreeBranch.with_user(*self.get_user_credentials()).info(
-            {'id': branch['id']})
+        result = OstreeBranch.with_user(*self.get_user_credentials()).info({'id': branch['id']})
         self.assertEqual(branch['id'], result['id'])

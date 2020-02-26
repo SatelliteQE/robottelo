@@ -68,7 +68,8 @@ def test_positive_create_event(session, module_org, module_loc):
         assert values.get('affected_location') == module_loc.name
         summary = {
             prop['column0']: prop['column1']
-            for prop in values.get('action_summary') if prop.get('column1')
+            for prop in values.get('action_summary')
+            if prop.get('column1')
         }
         assert summary.get('Name') == host.name
         assert summary.get('Architecture') == host.architecture.read().name
@@ -103,11 +104,13 @@ def test_positive_audit_comment(session, module_org):
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.template_editor': gen_string('alpha'),
-            'template.audit_comment': audit_comment,
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.template_editor': gen_string('alpha'),
+                'template.audit_comment': audit_comment,
+            }
+        )
         assert session.partitiontable.search(name)[0]['Name'] == name
         current_user = session.partitiontable.read(name, 'current_user')['current_user']
         values = session.audit.search('type=ptable and username={}'.format(current_user))
@@ -203,7 +206,8 @@ def test_positive_add_event(session, module_org):
         assert values['resource_name'] == '{}/{} / {}'.format(ENVIRONMENT, cv.name, cv.name)
         assert len(values['action_summary']) == 1
         assert values['action_summary'][0]['column0'] == 'Added {}/{} to {}'.format(
-            ENVIRONMENT, cv.name, cv.name)
+            ENVIRONMENT, cv.name, cv.name
+        )
 
 
 @pytest.mark.skip_if_open("BZ:1701118")
@@ -231,21 +235,20 @@ def test_positive_create_role_filter(session, module_org):
     role = entities.Role(organization=[module_org]).create()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
-        values = session.audit.search(
-            'type=role and organization={}'.format(module_org.name)
-        )
+        values = session.audit.search('type=role and organization={}'.format(module_org.name))
         assert values['action_type'] == 'created'
         assert values['resource_type'] == 'ROLE'
         assert values['resource_name'] == role.name
         create_role_permissions(
-            role,
-            {'Architecture': ['view_architectures', 'edit_architectures']}
+            role, {'Architecture': ['view_architectures', 'edit_architectures']}
         )
         values = session.audit.search('type=filter')
         assert values['action_type'] == 'added'
         assert values['resource_type'] == 'Filter'
         assert values['resource_name'] == '{} and {} / {}'.format(
-            'view_architectures', 'edit_architectures', role.name)
+            'view_architectures', 'edit_architectures', role.name
+        )
         assert len(values['action_summary']) == 1
         assert values['action_summary'][0]['column0'] == 'Added {} and {} to {}'.format(
-            'view_architectures', 'edit_architectures', role.name)
+            'view_architectures', 'edit_architectures', role.name
+        )

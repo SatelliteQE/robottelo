@@ -21,16 +21,14 @@ from robottelo.helpers import Storage
 
 class GetServerVersionTestCase(unittest2.TestCase):
     """Tests for method ``get_server_version``."""
+
     @mock.patch('robottelo.helpers.ssh')
     def test_return_version(self, ssh):
         """get_server_version returns a proper version.
 
         When the version.rb file is present.
         """
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
-            ['"6.1.4"'],
-            0
-        ))
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult(['"6.1.4"'], 0))
         self.assertEqual(get_server_version(), '6.1.4')
 
     @mock.patch('robottelo.helpers.ssh')
@@ -39,10 +37,7 @@ class GetServerVersionTestCase(unittest2.TestCase):
 
         When the versions.rb file is not present.
         """
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
-            [],
-            0
-        ))
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 0))
         self.assertEqual(get_server_version(), None)
 
 
@@ -51,33 +46,24 @@ class GetHostInfoTestCase(unittest2.TestCase):
 
     @mock.patch('robottelo.helpers.ssh')
     def test_fedora_info(self, ssh):
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
-            ['Fedora release 20 (Heisenbug)'],
-            0
-        ))
+        ssh.command = mock.MagicMock(
+            return_value=FakeSSHResult(['Fedora release 20 (Heisenbug)'], 0)
+        )
         self.assertTupleEqual(get_host_info(), ('Fedora', 20, None))
 
     @mock.patch('robottelo.helpers.ssh')
     def test_rhel_info(self, ssh):
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
-            ['Red Hat Enterprise Linux Server release 7.1 (Maipo)'],
-            0
-        ))
-        self.assertTupleEqual(
-            get_host_info(),
-            ('Red Hat Enterprise Linux Server', 7, 1)
+        ssh.command = mock.MagicMock(
+            return_value=FakeSSHResult(['Red Hat Enterprise Linux Server release 7.1 (Maipo)'], 0)
         )
+        self.assertTupleEqual(get_host_info(), ('Red Hat Enterprise Linux Server', 7, 1))
 
     @mock.patch('robottelo.helpers.ssh')
     def test_cat_fail(self, ssh):
-        ssh.command = mock.MagicMock(
-            return_value=FakeSSHResult([], 1, 'stderr'))
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 1, 'stderr'))
         with self.assertRaises(HostInfoError) as context:
             get_host_info()
-        self.assertEqual(
-            str(context.exception),
-            'Not able to cat /etc/redhat-release "stderr"'
-        )
+        self.assertEqual(str(context.exception), 'Not able to cat /etc/redhat-release "stderr"')
 
     @mock.patch('robottelo.helpers.ssh')
     def test_release_parse_fail(self, ssh):
@@ -110,8 +96,7 @@ class EscapeSearchTestCase(unittest2.TestCase):
 
     def test_escapes_double_quotes_and_backslash(self):
         """Tests if escape search escapes backslashes"""
-        self.assertEqual(escape_search('termwith"and\\')[1:-1],
-                         'termwith\\"and\\\\')
+        self.assertEqual(escape_search('termwith"and\\')[1:-1], 'termwith\\"and\\\\')
 
     def test_wraps_in_double_quotes(self):
         """Tests if escape search wraps the term in double quotes"""
@@ -136,7 +121,6 @@ class StorageTestCase(unittest2.TestCase):
 
 
 class BugzillaIssueHandlerTestCase(unittest2.TestCase):
-
     @classmethod
     def setUpClass(cls):
         """Set SAT_VERSION to avoid ssh calls"""
@@ -176,7 +160,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": status,
                     "resolution": "",
                     "target_milestone": "Unspecified",
-                    "flags": []
+                    "flags": [],
                 }
                 self.assertTrue(is_open("BZ:123456", data))
 
@@ -189,7 +173,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": "CLOSED",
                     "resolution": resolution,
                     "target_milestone": "Unspecified",
-                    "flags": []
+                    "flags": [],
                 }
                 self.assertTrue(is_open("BZ:123456", data))
 
@@ -203,7 +187,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
             "resolution": "ERRATA",
             "target_milestone": "7.0.1",
             "flags": [],
-            "clones": []
+            "clones": [],
         }
         self.assertTrue(is_open("BZ:123456", data))
 
@@ -219,7 +203,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "resolution": "",
                     "target_milestone": "6.6.1",
                     "flags": [],
-                    "clones": []
+                    "clones": [],
                 }
                 self.assertFalse(is_open("BZ:123456", data))
 
@@ -233,7 +217,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
             "resolution": "ERRATA",
             "target_milestone": "Unspecified",
             "flags": [{"status": "+", "name": "sat-7.0.1"}],
-            "clones": []
+            "clones": [],
         }
         self.assertTrue(is_open("BZ:123456", data))
 
@@ -249,7 +233,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "resolution": "",
                     "target_milestone": "Unspecified",
                     "flags": [{"status": "+", "name": "sat-6.6.0"}],
-                    "clones": []
+                    "clones": [],
                 }
                 self.assertFalse(is_open("BZ:123456", data))
 
@@ -268,8 +252,8 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 "status": "CLOSED",
                 "resolution": "ERRATA",
                 "target_milestone": "Unspecified",
-                "flags": [{"status": "+", "name": "sat-6.7.z"}]
-            }
+                "flags": [{"status": "+", "name": "sat-6.7.z"}],
+            },
         }
         self.assertTrue(is_open("BZ:123456", data))
 
@@ -287,8 +271,8 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 "status": "CLOSED",
                 "resolution": "ERRATA",
                 "target_milestone": "Unspecified",
-                "flags": [{"status": "+", "name": "sat-6.3.z"}]
-            }
+                "flags": [{"status": "+", "name": "sat-6.3.z"}],
+            },
         }
         self.assertFalse(is_open("BZ:123456", data))
 
@@ -313,9 +297,9 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": "CLOSED",
                     "resolution": "ERRATA",
                     "target_milestone": "Unspecified",
-                    "flags": [{"status": "+", "name": "sat-6.7.z"}]
-                }
-            }
+                    "flags": [{"status": "+", "name": "sat-6.7.z"}],
+                },
+            },
         }
         self.assertTrue(is_open("BZ:123456", data))
 
@@ -339,9 +323,9 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": "CLOSED",
                     "resolution": "ERRATA",
                     "target_milestone": "Unspecified",
-                    "flags": [{"status": "+", "name": "sat-6.3.z"}]
-                }
-            }
+                    "flags": [{"status": "+", "name": "sat-6.3.z"}],
+                },
+            },
         }
         self.assertFalse(is_open("BZ:123456", data))
 
@@ -365,8 +349,8 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": "NEW",
                     "resolution": "",
                     "target_milestone": "Unspecified",
-                }
-            }
+                },
+            },
         }
         self.assertTrue(is_open("BZ:123456", data))
 
@@ -388,9 +372,9 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": "CLOSED",
                     "resolution": "ERRATA",
                     "target_milestone": "Unspecified",
-                    "flags": []
-                }
-            }
+                    "flags": [],
+                },
+            },
         }
         self.assertFalse(is_open("BZ:123456", data))
 
@@ -403,7 +387,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": "CLOSED",
                     "resolution": resolution,
                     "target_milestone": "Unspecified",
-                    "flags": []
+                    "flags": [],
                 }
                 self.assertTrue(_should_deselect("BZ:123456", data))
 
@@ -422,8 +406,8 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                         "status": "CLOSED",
                         "resolution": resolution,
                         "target_milestone": "Unspecified",
-                        "flags": []
-                    }
+                        "flags": [],
+                    },
                 }
                 self.assertTrue(_should_deselect("BZ:123456", data))
 
@@ -436,7 +420,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                     "status": status,
                     "resolution": "",
                     "target_milestone": "Unspecified",
-                    "flags": []
+                    "flags": [],
                 }
                 self.assertFalse(_should_deselect("BZ:123456", data))
 
@@ -448,7 +432,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                         "status": status,
                         "resolution": "",
                         "target_milestone": "Unspecified",
-                        "flags": []
+                        "flags": [],
                     }
                     self.assertFalse(_should_deselect("BZ:123456", data))
 
@@ -482,19 +466,10 @@ def test_add_workaround():
     data = defaultdict(lambda: {"data": {}, "used_in": []})
     matches = [('BZ', '123456'), ('BZ', '789456')]
 
-    _add_workaround(
-        data,
-        matches,
-        'test',
-        foo='bar'
-    )
+    _add_workaround(data, matches, 'test', foo='bar')
 
     _add_workaround(
-        data,
-        matches,
-        'test',
-        validation=lambda *a, **k: False,  # Should not be added
-        zaz='traz'
+        data, matches, 'test', validation=lambda *a, **k: False, zaz='traz'  # Should not be added
     )
 
     for match in matches:

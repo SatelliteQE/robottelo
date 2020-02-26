@@ -45,6 +45,7 @@ def skip_if_os(*versions):
             """Wrapper that will skip the test if one of defined versions
             match host's version.
             """
+
             def log_version_info(msg, template):
                 LOGGER.debug(template, func.__name__, func.__module__, msg)
 
@@ -54,10 +55,7 @@ def skip_if_os(*versions):
             host_version = get_host_os_version()
 
             if any(host_version.startswith(version) for version in versions):
-                skip_msg = 'host {0} in ignored versions {1}'.format(
-                    host_version,
-                    versions
-                )
+                skip_msg = 'host {0} in ignored versions {1}'.format(host_version, versions)
                 skip_template = 'Skipping test %s in module %s due to %s'
                 log_version_info(skip_msg, skip_template)
                 raise unittest2.SkipTest(skip_msg)

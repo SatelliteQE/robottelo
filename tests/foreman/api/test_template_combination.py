@@ -47,17 +47,17 @@ class TemplateCombinationTestCase(APITestCase):
         super(TemplateCombinationTestCase, self).setUp()
         self.template = entities.ConfigTemplate(
             snippet=False,
-            template_combinations=[{
-                'hostgroup_id': self.hostgroup.id,
-                'environment_id': self.env.id
-            }])
+            template_combinations=[
+                {'hostgroup_id': self.hostgroup.id, 'environment_id': self.env.id}
+            ],
+        )
         self.template = self.template.create()
         template_combination_dct = self.template.template_combinations[0]
         self.template_combination = entities.TemplateCombination(
             id=template_combination_dct['id'],
             environment=self.env,
             config_template=self.template,
-            hostgroup=self.hostgroup
+            hostgroup=self.hostgroup,
         )
 
     def tearDown(self):

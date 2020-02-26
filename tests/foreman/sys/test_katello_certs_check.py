@@ -50,9 +50,7 @@ class KatelloCertsCheckTestCase(TestCase):
     def setUpClass(cls):
         """Get host name and credentials."""
         super(KatelloCertsCheckTestCase, cls).setUpClass()
-        _, cls.ca_bundle_file_name = os.path.split(
-            settings.certs.ca_bundle_file
-        )
+        _, cls.ca_bundle_file_name = os.path.split(settings.certs.ca_bundle_file)
         _, cls.cert_file_name = os.path.split(settings.certs.cert_file)
         _, cls.key_file_name = os.path.split(settings.certs.key_file)
         cls.ca_bundle_file = settings.certs.ca_bundle_file
@@ -62,30 +60,33 @@ class KatelloCertsCheckTestCase(TestCase):
         # uploads certs to satellite
         upload_file(
             local_file=settings.certs.ca_bundle_file,
-            remote_file="/tmp/{0}".format(cls.ca_bundle_file_name)
+            remote_file="/tmp/{0}".format(cls.ca_bundle_file_name),
         )
         upload_file(
-            local_file=settings.certs.cert_file,
-            remote_file="/tmp/{0}".format(cls.cert_file_name)
+            local_file=settings.certs.cert_file, remote_file="/tmp/{0}".format(cls.cert_file_name)
         )
         upload_file(
-            local_file=settings.certs.key_file,
-            remote_file="/tmp/{0}".format(cls.key_file_name)
+            local_file=settings.certs.key_file, remote_file="/tmp/{0}".format(cls.key_file_name)
         )
 
     def validate_output(self, result):
         """Validate katello-certs-check output against a set."""
         expected_result = set(
-            ['--server-cert', '--server-key', '--certs-update-server',
-                '--foreman-proxy-fqdn', '--certs-tar', '--server-ca-cert'])
+            [
+                '--server-cert',
+                '--server-key',
+                '--certs-update-server',
+                '--foreman-proxy-fqdn',
+                '--certs-tar',
+                '--server-ca-cert',
+            ]
+        )
         self.assertEqual(result.return_code, 0)
         self.assertIn(self.SUCCESS_MSG, result.stdout)
         # validate all checks passed
-        self.assertEqual(any(
-            flag for flag in re.findall(
-                r"\[([A-Z]+)\]",
-                result.stdout
-            ) if flag != 'OK'), False)
+        self.assertEqual(
+            any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK'), False
+        )
         # validate options in output
         commands = result.stdout.split('To')
         commands.pop(0)
@@ -117,11 +118,9 @@ class KatelloCertsCheckTestCase(TestCase):
             result = connection.run(
                 'katello-certs-check -c /tmp/{0} -k /tmp/{1} '
                 '-b /tmp/{2}'.format(
-                    self.cert_file_name,
-                    self.key_file_name,
-                    self.ca_bundle_file_name
+                    self.cert_file_name, self.key_file_name, self.ca_bundle_file_name
                 ),
-                output_format='plain'
+                output_format='plain',
             )
             self.validate_output(result)
 
@@ -154,7 +153,9 @@ class KatelloCertsCheckTestCase(TestCase):
                     '--certs-server-cert /tmp/server.valid.crt '
                     '--certs-server-key /tmp/server.key '
                     '--certs-server-ca-cert /tmp/rootCA.pem '
-                    '--certs-update-server --certs-update-server-ca', timeout=500)
+                    '--certs-update-server --certs-update-server-ca',
+                    timeout=500,
+                )
                 # assert no hammer ping SSL cert error
                 result = connection.run('hammer ping')
                 assert 'SSL certificate verification failed' not in result.stdout
@@ -166,8 +167,8 @@ class KatelloCertsCheckTestCase(TestCase):
             # revert to original certs
             with get_connection(timeout=600) as connection:
                 result = connection.run(
-                    'satellite-installer --scenario satellite '
-                    '--certs-reset', timeout=500)
+                    'satellite-installer --scenario satellite ' '--certs-reset', timeout=500
+                )
                 # Check for hammer ping SSL cert error
                 result = connection.run('hammer ping')
                 assert result.return_code == 0, 'Hammer Ping fail'
@@ -356,16 +357,18 @@ class CapsuleCertsCheckTestCase(TestCase):
         cls.caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(cls.tmp_dir)
         # Use same path locally as on remote for storing files
         Path('{0}/ssl-build/capsule.example.com/'.format(cls.tmp_dir)).mkdir(
-            parents=True, exist_ok=True)
+            parents=True, exist_ok=True
+        )
         with get_connection(timeout=200) as connection:
-            result = ssh.command(
-                    'mkdir {0}'.format(cls.tmp_dir))
+            result = ssh.command('mkdir {0}'.format(cls.tmp_dir))
             assert result.return_code == 0, 'Create working directory failed.'
-        # Generate a Capsule cert for capsule.example.com
+            # Generate a Capsule cert for capsule.example.com
             result = connection.run(
-                    'capsule-certs-generate '
-                    '--foreman-proxy-fqdn capsule.example.com '
-                    '--certs-tar {0}/capsule_certs.tar '.format(cls.tmp_dir), timeout=100)
+                'capsule-certs-generate '
+                '--foreman-proxy-fqdn capsule.example.com '
+                '--certs-tar {0}/capsule_certs.tar '.format(cls.tmp_dir),
+                timeout=100,
+            )
 
     @tier1
     def test_positive_validate_capsule_certificate(self):
@@ -388,19 +391,21 @@ class CapsuleCertsCheckTestCase(TestCase):
         DNS_Check = False
         with get_connection(timeout=200) as connection:
             # extract the cert from the tar file
-            result = connection.run('tar -xf {0}/capsule_certs.tar'
-                                    ' --directory {0}/ '.format(self.tmp_dir))
+            result = connection.run(
+                'tar -xf {0}/capsule_certs.tar' ' --directory {0}/ '.format(self.tmp_dir)
+            )
             assert result.return_code == 0, 'Extraction to working directory failed.'
             # Extract raw data from RPM to a file
             result = connection.run(
                 'rpm2cpio {0}/ssl-build/capsule.example.com/'
                 'capsule.example.com-qpid-router-server*.rpm'
-                '>> {0}/ssl-build/capsule.example.com/cert-raw-data'
-                .format(self.tmp_dir))
+                '>> {0}/ssl-build/capsule.example.com/cert-raw-data'.format(self.tmp_dir)
+            )
             # Extract the cert data from file cert-raw-data and write to cert-data
             result = connection.run(
                 'openssl x509 -noout -text -in {0}/ssl-build/capsule.example.com/cert-raw-data'
-                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(self.tmp_dir))
+                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(self.tmp_dir)
+            )
             # use same location on remote and local for cert_file
             download_file(self.caps_cert_file)
             # search the file for the line with DNS

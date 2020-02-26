@@ -131,27 +131,26 @@ class TestReturnTypes(unittest2.TestCase):
 
         """
         for item in itertools.chain(
-                generate_strings_list(),
-                invalid_emails_list(),
-                invalid_interfaces_list(),
-                invalid_names_list(),
-                valid_data_list(),
-                valid_docker_repository_names(),
-                valid_emails_list(),
-                valid_environments_list(),
-                valid_hosts_list(),
-                valid_hostgroups_list(),
-                valid_interfaces_list(),
-                valid_labels_list(),
-                valid_names_list(),
-                valid_org_names_list(),
-                valid_cron_expressions(),
-                valid_usernames_list()):
+            generate_strings_list(),
+            invalid_emails_list(),
+            invalid_interfaces_list(),
+            invalid_names_list(),
+            valid_data_list(),
+            valid_docker_repository_names(),
+            valid_emails_list(),
+            valid_environments_list(),
+            valid_hosts_list(),
+            valid_hostgroups_list(),
+            valid_interfaces_list(),
+            valid_labels_list(),
+            valid_names_list(),
+            valid_org_names_list(),
+            valid_cron_expressions(),
+            valid_usernames_list(),
+        ):
             self.assertIsInstance(item, six.text_type)
         for item in invalid_id_list():
-            if not (
-                    isinstance(item, (six.text_type, int)) or item is None
-                    ):
+            if not (isinstance(item, (six.text_type, int)) or item is None):
                 self.fail('Unexpected data type')
 
 

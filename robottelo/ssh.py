@@ -35,8 +35,7 @@ def decode_to_utf8(text):  # pragma: no cover
 class SSHCommandResult(object):
     """Structure that returns in all ssh commands results."""
 
-    def __init__(
-            self, stdout=None, stderr=None, return_code=0, output_format=None):
+    def __init__(self, stdout=None, stderr=None, return_code=0, output_format=None):
         self.stdout = stdout
         self.stderr = stderr
         self.return_code = return_code
@@ -49,8 +48,10 @@ class SSHCommandResult(object):
                 self.stdout = hammer.parse_json(stdout) if stdout else None
 
     def __repr__(self):
-        tmpl = u'SSHCommandResult(stdout={stdout!r}, stderr={stderr!r}, ' + \
-               u'return_code={return_code!r}, output_format={output_format!r})'
+        tmpl = (
+            u'SSHCommandResult(stdout={stdout!r}, stderr={stderr!r}, '
+            + u'return_code={return_code!r}, output_format={output_format!r})'
+        )
         return tmpl.format(**self.__dict__)
 
 
@@ -85,8 +86,9 @@ def _call_paramiko_sshclient():  # pragma: no cover
     return SSHClient()
 
 
-def get_client(hostname=None, username=None, password=None,
-               key_filename=None, timeout=None, port=22):
+def get_client(
+    hostname=None, username=None, password=None, key_filename=None, timeout=None, port=22
+):
     """Returns a SSH client connected to given hostname"""
     if hostname is None:
         hostname = settings.server.hostname
@@ -113,8 +115,9 @@ def get_client(hostname=None, username=None, password=None,
 
 
 @contextmanager
-def get_connection(hostname=None, username=None, password=None,
-                   key_filename=None, timeout=None, port=22):
+def get_connection(
+    hostname=None, username=None, password=None, key_filename=None, timeout=None, port=22
+):
     """Yield an ssh connection object.
 
     The connection will be configured with the specified arguments or will
@@ -147,9 +150,7 @@ def get_connection(hostname=None, username=None, password=None,
     """
     if timeout is None:
         timeout = settings.ssh_client.connection_timeout
-    client = get_client(
-        hostname, username, password, key_filename, timeout, port
-    )
+    client = get_client(hostname, username, password, key_filename, timeout, port)
     try:
         logger.debug('Instantiated Paramiko client {0}'.format(client._id))
         logger.info('Connected to [%s]', hostname)
@@ -160,8 +161,7 @@ def get_connection(hostname=None, username=None, password=None,
 
 
 @contextmanager
-def get_sftp_session(hostname=None, username=None,
-                     password=None, key_filename=None, timeout=None):
+def get_sftp_session(hostname=None, username=None, password=None, key_filename=None, timeout=None):
     """Yield a SFTP session object.
 
     The session will be configured with the host whose hostname is
@@ -188,9 +188,13 @@ def get_sftp_session(hostname=None, username=None,
         configuration's ``server`` section will be used.
     :param int timeout: Time to wait for establish the connection.
        """
-    with get_connection(hostname=hostname, username=username,
-                        password=password, key_filename=key_filename,
-                        timeout=timeout) as connection:
+    with get_connection(
+        hostname=hostname,
+        username=username,
+        password=password,
+        key_filename=key_filename,
+        timeout=timeout,
+    ) as connection:
         try:
             sftp = connection.open_sftp()
             yield sftp
@@ -198,8 +202,9 @@ def get_sftp_session(hostname=None, username=None,
             sftp.close()
 
 
-def add_authorized_key(key, hostname=None, username=None, password=None,
-                       key_filename=None, timeout=None):
+def add_authorized_key(
+    key, hostname=None, username=None, password=None, key_filename=None, timeout=None
+):
     """Appends a local public ssh key to remote authorized keys
 
     refer to: remote_execution_ssh_keys provisioning template
@@ -236,16 +241,21 @@ def add_authorized_key(key, hostname=None, username=None, password=None,
     ssh_path = '~/.ssh'
     auth_file = os.path.join(ssh_path, 'authorized_keys')
 
-    with get_connection(hostname=hostname, username=username,
-                        password=password, key_filename=key_filename,
-                        timeout=timeout) as con:
+    with get_connection(
+        hostname=hostname,
+        username=username,
+        password=password,
+        key_filename=key_filename,
+        timeout=timeout,
+    ) as con:
 
         # ensure ssh directory exists
         execute_command('mkdir -p %s' % ssh_path, con)
 
         # append the key if doesn't exists
         add_key = "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
-            key=key_content, dest=auth_file)
+            key=key_content, dest=auth_file
+        )
         execute_command(add_key, con)
 
         # set proper permissions
@@ -272,13 +282,11 @@ def upload_file(local_file, remote_file, key_filename=None, hostname=None):
         configuration's ``server`` section will be used.
     """
 
-    with get_sftp_session(hostname=hostname,
-                          key_filename=key_filename) as sftp:
+    with get_sftp_session(hostname=hostname, key_filename=key_filename) as sftp:
         _upload_file(sftp, local_file, remote_file)
 
 
-def upload_files(local_dir, remote_dir, file_search="*.txt",
-                 hostname=None, key_filename=None):
+def upload_files(local_dir, remote_dir, file_search="*.txt", hostname=None, key_filename=None):
     """ Upload all files from directory to a remote directory
     :param local_dir: all files from local path to be uploaded.
     :param remote_dir: a remote path where the uploaded files will be
@@ -292,8 +300,7 @@ def upload_files(local_dir, remote_dir, file_search="*.txt",
     """
     command("mkdir -p {}".format(remote_dir))
     # making only one SFTP Session to transfer all files
-    with get_sftp_session(hostname=hostname,
-                          key_filename=key_filename) as sftp:
+    with get_sftp_session(hostname=hostname, key_filename=key_filename) as sftp:
         for root, dirs, files in os.walk(local_dir):
             for local_filename in files:
                 if fnmatch(local_filename, file_search):
@@ -325,9 +332,7 @@ def download_file(remote_file, local_file=None, hostname=None):
     """
     if local_file is None:  # pragma: no cover
         local_file = remote_file
-    with get_connection(
-        hostname=hostname,
-    ) as connection:  # pragma: no cover
+    with get_connection(hostname=hostname) as connection:  # pragma: no cover
         try:
             sftp = connection.open_sftp()
             sftp.get(remote_file, local_file)
@@ -335,9 +340,17 @@ def download_file(remote_file, local_file=None, hostname=None):
             sftp.close()
 
 
-def command(cmd, hostname=None, output_format=None, username=None,
-            password=None, key_filename=None, timeout=None,
-            connection_timeout=None, port=22):
+def command(
+    cmd,
+    hostname=None,
+    output_format=None,
+    username=None,
+    password=None,
+    key_filename=None,
+    timeout=None,
+    connection_timeout=None,
+    port=22,
+):
     """Executes SSH command(s) on remote hostname.
 
     :param str cmd: The command to run
@@ -362,15 +375,18 @@ def command(cmd, hostname=None, output_format=None, username=None,
         timeout = settings.ssh_client.command_timeout
     if connection_timeout is None:
         connection_timeout = settings.ssh_client.connection_timeout
-    with get_connection(hostname=hostname, username=username,
-                        password=password, key_filename=key_filename,
-                        timeout=connection_timeout, port=port) as connection:
-        return execute_command(
-            cmd, connection, output_format, timeout, connection_timeout)
+    with get_connection(
+        hostname=hostname,
+        username=username,
+        password=password,
+        key_filename=key_filename,
+        timeout=connection_timeout,
+        port=port,
+    ) as connection:
+        return execute_command(cmd, connection, output_format, timeout, connection_timeout)
 
 
-def execute_command(cmd, connection, output_format=None, timeout=None,
-                    connection_timeout=None):
+def execute_command(cmd, connection, output_format=None, timeout=None, connection_timeout=None):
     """Execute a command via ssh in the given connection
 
     :param cmd: a command to be executed via ssh
@@ -385,8 +401,7 @@ def execute_command(cmd, connection, output_format=None, timeout=None,
     if connection_timeout is None:
         connection_timeout = settings.ssh_client.connection_timeout
     logger.info('>>> %s', cmd)
-    _, stdout, stderr = connection.exec_command(
-        cmd, timeout=connection_timeout)
+    _, stdout, stderr = connection.exec_command(cmd, timeout=connection_timeout)
     if timeout:
         # wait for the exit status ready
         end_time = time.time() + timeout
@@ -395,16 +410,15 @@ def execute_command(cmd, connection, output_format=None, timeout=None,
                 break
             time.sleep(1)
         else:
-            logger.error('ssh command did not respond in the predefined time'
-                         ' (timeout=%s) and will be interrupted', timeout)
+            logger.error(
+                'ssh command did not respond in the predefined time'
+                ' (timeout=%s) and will be interrupted',
+                timeout,
+            )
             stdout.channel.close()
             stderr.channel.close()
-            logger.error(
-                    '[Captured stdout]\n{0}\n-----\n'.format(stdout.read())
-            )
-            logger.error(
-                    '[Captured stderr]\n{0}\n-----\n'.format(stderr.read())
-            )
+            logger.error('[Captured stdout]\n{0}\n-----\n'.format(stdout.read()))
+            logger.error('[Captured stderr]\n{0}\n-----\n'.format(stderr.read()))
             raise SSHCommandTimeoutError(
                 'ssh command: {0} \n did not respond in the predefined time '
                 '(timeout={1})'.format(cmd, timeout)
@@ -432,13 +446,8 @@ def execute_command(cmd, connection, output_format=None, timeout=None,
         # Empty fields are returned as "" which gives us u'""'
         stdout = stdout.replace('""', '')
         stdout = u''.join(stdout).split('\n')
-        stdout = [
-            regex.sub('', line)
-            for line in stdout
-            if not line.startswith('[')
-        ]
-    return SSHCommandResult(
-        stdout, stderr, errorcode, output_format)
+        stdout = [regex.sub('', line) for line in stdout if not line.startswith('[')]
+    return SSHCommandResult(stdout, stderr, errorcode, output_format)
 
 
 def is_ssh_pub_key(key):
@@ -449,8 +458,7 @@ def is_ssh_pub_key(key):
     """
 
     if not isinstance(key, six.string_types):
-        raise ValueError(
-            "Key should be a string type, received: %s" % type(key))
+        raise ValueError("Key should be a string type, received: %s" % type(key))
 
     # 1) a valid pub key has 3 parts separated by space
     try:
@@ -465,6 +473,4 @@ def is_ssh_pub_key(key):
         return False
 
     # 3) The first part, the type, should be one of below
-    return key_type in (
-        'ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519'
-    )
+    return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')

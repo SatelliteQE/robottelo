@@ -41,13 +41,12 @@ def test_positive_delete_with_user(session, module_org, module_loc):
         login=user_name,
         password=gen_string('alpha'),
         organization=[module_org],
-        location=[module_loc]
+        location=[module_loc],
     ).create()
     with session:
-        session.usergroup.create({
-            'usergroup.name': group_name,
-            'usergroup.users': {'assigned': [user_name]},
-        })
+        session.usergroup.create(
+            {'usergroup.name': group_name, 'usergroup.users': {'assigned': [user_name]}}
+        )
         session.usergroup.delete(group_name)
         assert not session.usergroup.search(group_name)
         assert session.user.search(user_name) is not None
@@ -69,20 +68,20 @@ def test_positive_end_to_end(session, module_org, module_loc):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     user = entities.User(
-        password=gen_string('alpha'),
-        organization=[module_org],
-        location=[module_loc]
+        password=gen_string('alpha'), organization=[module_org], location=[module_loc]
     ).create()
     user_group = entities.UserGroup().create()
     with session:
         # Create new user group with assigned entities
-        session.usergroup.create({
-            'usergroup.name': name,
-            'usergroup.users': {'assigned': [user.login]},
-            'usergroup.usergroups': {'assigned': [user_group.name]},
-            'roles.admin': True,
-            'roles.resources': {'assigned': ['Viewer']},
-        })
+        session.usergroup.create(
+            {
+                'usergroup.name': name,
+                'usergroup.users': {'assigned': [user.login]},
+                'usergroup.usergroups': {'assigned': [user_group.name]},
+                'roles.admin': True,
+                'roles.resources': {'assigned': ['Viewer']},
+            }
+        )
         assert session.usergroup.search(name)[0]['Name'] == name
         usergroup_values = session.usergroup.read(name)
         assert usergroup_values['usergroup']['name'] == name

@@ -16,20 +16,11 @@ def run_goferd(client_hostname=None):
     """
 
     kwargs = {'async': True, 'host': settings.upgrade.docker_vm}
-    execute(
-        docker_execute_command,
-        client_hostname,
-        'pkill -f gofer',
-        **kwargs
-    )
-    execute(
-        docker_execute_command,
-        client_hostname,
-        'goferd -f',
-        **kwargs
-    )
-    status = execute(docker_execute_command, client_hostname, 'ps -ef',
-                     host=settings.upgrade.docker_vm)[settings.upgrade.docker_vm]
+    execute(docker_execute_command, client_hostname, 'pkill -f gofer', **kwargs)
+    execute(docker_execute_command, client_hostname, 'goferd -f', **kwargs)
+    status = execute(
+        docker_execute_command, client_hostname, 'ps -ef', host=settings.upgrade.docker_vm
+    )[settings.upgrade.docker_vm]
     assert "goferd" in status
 
 
@@ -43,10 +34,7 @@ def check_package_installed(client_hostname=None, package=None):
 
     kwargs = {'host': settings.upgrade.docker_vm}
     installed_package = execute(
-        docker_execute_command,
-        client_hostname,
-        'rpm -q {}'.format(package),
-        **kwargs
+        docker_execute_command, client_hostname, 'rpm -q {}'.format(package), **kwargs
     )[settings.upgrade.docker_vm]
     return installed_package
 
@@ -59,19 +47,19 @@ def install_or_update_package(client_hostname=None, update=False, package=None):
     :param: str package:
     """
     kwargs = {'host': settings.upgrade.docker_vm}
-    execute(docker_execute_command,
-            client_hostname,
-            'subscription-manager repos --enable=*;yum clean all',
-            **kwargs)[settings.upgrade.docker_vm]
+    execute(
+        docker_execute_command,
+        client_hostname,
+        'subscription-manager repos --enable=*;yum clean all',
+        **kwargs
+    )[settings.upgrade.docker_vm]
     if update:
         command = 'yum update -y {}'.format(package)
     else:
         command = 'yum install -y {}'.format(package)
 
-    execute(docker_execute_command, client_hostname, command, **kwargs)[
-        settings.upgrade.docker_vm]
-    assert package in check_package_installed(client_hostname=client_hostname,
-                                              package=package)
+    execute(docker_execute_command, client_hostname, command, **kwargs)[settings.upgrade.docker_vm]
+    assert package in check_package_installed(client_hostname=client_hostname, package=package)
 
 
 def create_repo(rpm_name, repo_path, post_upgrade=False, other_rpm=None):
@@ -100,13 +88,11 @@ def host_status(client_container_name=None):
     :param: str client_container_name: The content host hostname
     :return: nailgun.entity.host: host
     """
-    host = entities.Host().search(
-        query={'search': '{0}'.format(client_container_name)})
+    host = entities.Host().search(query={'search': '{0}'.format(client_container_name)})
     return host
 
 
-def host_location_update(client_container_name=None,
-                         logger_obj=None, loc=None):
+def host_location_update(client_container_name=None, logger_obj=None, loc=None):
     """ Check the content host status (as package profile update task does
     take time to upload) and update location.
 
@@ -118,7 +104,7 @@ def host_location_update(client_container_name=None,
             lambda: len(host_status(client_container_name=client_container_name)) > 0,
             timeout=100,
             delay=2,
-            logger=logger_obj
+            logger=logger_obj,
         )
     host_loc = host_status(client_container_name=client_container_name)[0]
     host_loc.location = loc

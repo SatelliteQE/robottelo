@@ -12,10 +12,9 @@ import os
 import re
 
 
-ROOT_PATH = os.path.realpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    os.path.pardir,
-))
+ROOT_PATH = os.path.realpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir)
+)
 TESTIMONY_TOKENS_RE = re.compile(r'TESTIMONY_TOKENS="([\w, ]+)"')
 OLD_TOKEN_PREFIX = '@'
 NEW_TOKEN_PREFIX = ':'
@@ -28,12 +27,10 @@ if not match:
 
 valid_tokens = [token.strip() for token in match.group(1).split(',')]
 TOKEN_RE = re.compile(
-    r'{0}({1}):'.format(OLD_TOKEN_PREFIX, '|'.join(valid_tokens)),
-    flags=re.IGNORECASE
+    r'{0}({1}):'.format(OLD_TOKEN_PREFIX, '|'.join(valid_tokens)), flags=re.IGNORECASE
 )
 
-test_modules = glob.glob(
-    os.path.join(ROOT_PATH, 'tests', 'foreman', '*', 'test_*.py'))
+test_modules = glob.glob(os.path.join(ROOT_PATH, 'tests', 'foreman', '*', 'test_*.py'))
 for test_module in test_modules:
     with open(test_module) as handler:
         content = handler.read()

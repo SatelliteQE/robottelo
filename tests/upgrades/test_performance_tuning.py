@@ -76,19 +76,16 @@ MEDIUM_TUNING_DATA = [
     "  checkpoint_completion_target: 0.9",
     "  effective_cache_size: 16GB",
     "  autovacuum_vacuum_cost_limit: 2000",
-    "  log_min_duration_statement: 500 "
+    "  log_min_duration_statement: 500 ",
 ]
 
 MMPV1_MONGODB = [
     "# Added by foreman-installer during upgrade, run the "
     "installer with --upgrade-mongo-storage to upgrade to WiredTiger.",
-    "mongodb::server::storage_engine: 'mmapv1'"
+    "mongodb::server::storage_engine: 'mmapv1'",
 ]
 
-WIREDTIGER_MONGODB = [
-    "# Do not remove",
-    "mongodb::server::storage_engine: 'wiredTiger'"
-]
+WIREDTIGER_MONGODB = ["# Do not remove", "mongodb::server::storage_engine: 'wiredTiger'"]
 
 
 @destructive
@@ -106,6 +103,7 @@ class ScenarioPerformanceTuning(TestCase):
 
     :expectedresults: The performance parameter should not be changed after upgrade.
     """
+
     @staticmethod
     def _create_custom_hiera_file(mongodb_type, tune_size="default"):
         """
@@ -136,20 +134,24 @@ class ScenarioPerformanceTuning(TestCase):
         :expectedresults: Medium tuning parameter should be applied.
 
          """
-        cmd = 'grep "mongodb::server::storage_engine: \'wiredTiger\'" ' \
-              '/etc/foreman-installer/custom-hiera.yaml'
+        cmd = (
+            'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
+            '/etc/foreman-installer/custom-hiera.yaml'
+        )
         mongodb_type = ssh.command(cmd).return_code
         self._create_custom_hiera_file(mongodb_type, "medium")
         try:
             ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
-            command_output = ssh.command('satellite-installer -s --disable-system-checks',
-                                         connection_timeout=1000).stdout
+            command_output = ssh.command(
+                'satellite-installer -s --disable-system-checks', connection_timeout=1000
+            ).stdout
             assert '  Success!' in command_output
         except Exception:
             self._create_custom_hiera_file(mongodb_type, "default")
             ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
-            command_output = ssh.command('satellite-installer -s --disable-system-checks',
-                                         connection_timeout=1000).stdout
+            command_output = ssh.command(
+                'satellite-installer -s --disable-system-checks', connection_timeout=1000
+            ).stdout
             assert '  Success!' in command_output
             raise
 
@@ -168,8 +170,10 @@ class ScenarioPerformanceTuning(TestCase):
         :expectedresults: Medium tuning parameter should be applied.
 
          """
-        cmd = 'grep "mongodb::server::storage_engine: \'wiredTiger\'" ' \
-              '/etc/foreman-installer/custom-hiera.yaml'
+        cmd = (
+            'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
+            '/etc/foreman-installer/custom-hiera.yaml'
+        )
         mongodb_type = ssh.command(cmd).return_code
         try:
             self._create_custom_hiera_file(mongodb_type)
@@ -177,15 +181,16 @@ class ScenarioPerformanceTuning(TestCase):
             tuning_state_after_upgrade = ssh.command(cmd).return_code
             assert tuning_state_after_upgrade == 0
             ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
-            command_output = ssh.command('satellite-installer --tuning default '
-                                         '-s --disable-system-checks',
-                                         connection_timeout=1000).stdout
+            command_output = ssh.command(
+                'satellite-installer --tuning default ' '-s --disable-system-checks',
+                connection_timeout=1000,
+            ).stdout
             assert "  Success!" in command_output
         finally:
             ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
-            command_output = ssh.command('satellite-installer -s '
-                                         '--disable-system-checks',
-                                         connection_timeout=1000).stdout
+            command_output = ssh.command(
+                'satellite-installer -s ' '--disable-system-checks', connection_timeout=1000
+            ).stdout
             assert "  Success!" in command_output
 
 
@@ -221,12 +226,12 @@ class ScenarioCustomFileCheck(TestCase):
         expectedresults: Content of default custom-hiera file should be same.
 
         """
-        actual_custom_hiera = ssh.command("cat /etc/foreman-installer/custom-hiera.yaml") \
-            .stdout
-        actual_custom_hiera = set([data.strip() for data in actual_custom_hiera
-                                   if data != ''])
-        cmd = 'grep "mongodb::server::storage_engine: \'wiredTiger\'" ' \
-              '/etc/foreman-installer/custom-hiera.yaml'
+        actual_custom_hiera = ssh.command("cat /etc/foreman-installer/custom-hiera.yaml").stdout
+        actual_custom_hiera = set([data.strip() for data in actual_custom_hiera if data != ''])
+        cmd = (
+            'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
+            '/etc/foreman-installer/custom-hiera.yaml'
+        )
         mongodb_type = ssh.command(cmd).return_code
         if mongodb_type:
             expected_custom_hiera = set(DEFAULT_CUSTOM_HIERA_DATA + MMPV1_MONGODB)
@@ -250,12 +255,12 @@ class ScenarioCustomFileCheck(TestCase):
         expectedresults: Content of default custom-hiera file should be same.
 
         """
-        actual_custom_hiera = ssh.command("cat /etc/foreman-installer/custom-hiera.yaml")\
-            .stdout
-        actual_custom_hiera = set([data.strip() for data in actual_custom_hiera
-                                   if data != ''])
-        cmd = 'grep "mongodb::server::storage_engine: \'wiredTiger\'" ' \
-              '/etc/foreman-installer/custom-hiera.yaml'
+        actual_custom_hiera = ssh.command("cat /etc/foreman-installer/custom-hiera.yaml").stdout
+        actual_custom_hiera = set([data.strip() for data in actual_custom_hiera if data != ''])
+        cmd = (
+            'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
+            '/etc/foreman-installer/custom-hiera.yaml'
+        )
         mongodb_type = ssh.command(cmd).return_code
         if mongodb_type:
             expected_custom_hiera = set(DEFAULT_CUSTOM_HIERA_DATA + MMPV1_MONGODB)

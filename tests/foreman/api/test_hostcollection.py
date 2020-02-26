@@ -36,11 +36,7 @@ class HostCollectionTestCase(APITestCase):
         """Create hosts that can be shared by tests."""
         super(HostCollectionTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        cls.hosts = [
-            entities.Host(organization=cls.org).create()
-            for _
-            in range(2)
-        ]
+        cls.hosts = [entities.Host(organization=cls.org).create() for _ in range(2)]
 
     @tier1
     def test_positive_create_with_name(self):
@@ -56,8 +52,7 @@ class HostCollectionTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 host_collection = entities.HostCollection(
-                    name=name,
-                    organization=self.org,
+                    name=name, organization=self.org
                 ).create()
                 self.assertEqual(host_collection.name, name)
 
@@ -111,8 +106,7 @@ class HostCollectionTestCase(APITestCase):
         for desc in valid_data_list():
             with self.subTest(desc):
                 host_collection = entities.HostCollection(
-                    description=desc,
-                    organization=self.org,
+                    description=desc, organization=self.org
                 ).create()
                 self.assertEqual(host_collection.description, desc)
 
@@ -130,8 +124,7 @@ class HostCollectionTestCase(APITestCase):
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
                 host_collection = entities.HostCollection(
-                    max_hosts=limit,
-                    organization=self.org,
+                    max_hosts=limit, organization=self.org
                 ).create()
                 self.assertEqual(host_collection.max_hosts, limit)
 
@@ -154,8 +147,7 @@ class HostCollectionTestCase(APITestCase):
                     organization=self.org,
                     unlimited_hosts=unlimited,
                 ).create()
-                self.assertEqual(
-                    host_collection.unlimited_hosts, unlimited)
+                self.assertEqual(host_collection.unlimited_hosts, unlimited)
 
     @tier1
     def test_positive_create_with_host(self):
@@ -171,8 +163,7 @@ class HostCollectionTestCase(APITestCase):
         :BZ: 1325989
         """
         host_collection = entities.HostCollection(
-            host=[self.hosts[0]],
-            organization=self.org,
+            host=[self.hosts[0]], organization=self.org
         ).create()
         self.assertEqual(len(host_collection.host), 1)
 
@@ -189,10 +180,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ: 1325989
         """
-        host_collection = entities.HostCollection(
-            host=self.hosts,
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
     @tier2
@@ -207,9 +195,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ:1325989
         """
-        host_collection = entities.HostCollection(
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         host_collection.host = [self.hosts[0]]
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), 1)
@@ -227,9 +213,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ: 1325989
         """
-        host_collection = entities.HostCollection(
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         host_collection.host = self.hosts
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), len(self.hosts))
@@ -247,10 +231,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ:1325989
         """
-        host_collection = entities.HostCollection(
-            host=self.hosts,
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
         self.assertEqual(
             frozenset((host.id for host in host_collection.host)),
             frozenset((host.id for host in self.hosts)),
@@ -266,8 +247,7 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            organization=self.org).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 host_collection.name = new_name
@@ -283,13 +263,11 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            organization=self.org).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
                 host_collection.description = new_desc
-                self.assertEqual(
-                    host_collection.update().description, new_desc)
+                self.assertEqual(host_collection.update().description, new_desc)
 
     @tier1
     def test_positive_update_limit(self):
@@ -302,15 +280,12 @@ class HostCollectionTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
-            max_hosts=1,
-            organization=self.org,
-            unlimited_hosts=False,
+            max_hosts=1, organization=self.org, unlimited_hosts=False
         ).create()
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
                 host_collection.max_hosts = limit
-                self.assertEqual(
-                    host_collection.update().max_hosts, limit)
+                self.assertEqual(host_collection.update().max_hosts, limit)
 
     @tier1
     def test_positive_update_unlimited_hosts(self):
@@ -333,10 +308,8 @@ class HostCollectionTestCase(APITestCase):
             with self.subTest(unlimited):
                 host_collection.max_hosts = 1 if not unlimited else None
                 host_collection.unlimited_hosts = unlimited
-                host_collection = host_collection.update(
-                    ['max_hosts', 'unlimited_hosts'])
-                self.assertEqual(
-                    host_collection.unlimited_hosts, unlimited)
+                host_collection = host_collection.update(['max_hosts', 'unlimited_hosts'])
+                self.assertEqual(host_collection.unlimited_hosts, unlimited)
 
     @tier1
     def test_positive_update_host(self):
@@ -349,8 +322,7 @@ class HostCollectionTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
-            host=[self.hosts[0]],
-            organization=self.org,
+            host=[self.hosts[0]], organization=self.org
         ).create()
         host_collection.host = [self.hosts[1]]
         host_collection = host_collection.update(['host'])
@@ -367,20 +339,12 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            host=self.hosts,
-            organization=self.org,
-        ).create()
-        new_hosts = [
-            entities.Host(organization=self.org).create()
-            for _
-            in range(2)
-        ]
+        host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
+        new_hosts = [entities.Host(organization=self.org).create() for _ in range(2)]
         host_collection.host = new_hosts
         host_collection = host_collection.update(['host'])
         self.assertEqual(
-            {host.id for host in host_collection.host},
-            {host.id for host in new_hosts}
+            {host.id for host in host_collection.host}, {host.id for host in new_hosts}
         )
 
     @upgrade
@@ -394,8 +358,7 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            organization=self.org).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         host_collection.delete()
         with self.assertRaises(HTTPError):
             host_collection.read()
@@ -413,10 +376,7 @@ class HostCollectionTestCase(APITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
-                    entities.HostCollection(
-                        name=name,
-                        organization=self.org,
-                    ).create()
+                    entities.HostCollection(name=name, organization=self.org).create()
 
     @tier1
     @stubbed()

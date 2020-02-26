@@ -64,22 +64,24 @@ def test_positive_end_to_end(session, test_name, module_org, module_loc):
     role = entities.Role().create().name
     with session:
         # Create new user and validate its values
-        session.user.create({
-            'user.login': name,
-            'user.firstname': firstname,
-            'user.lastname': lastname,
-            'user.mail': email,
-            'user.description': description,
-            'user.language': language,
-            'user.timezone': timezone,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'locations.resources.assigned': [module_loc.name],
-            'organizations.resources.assigned': [module_org.name],
-            'roles.admin': True,
-            'roles.resources.assigned': [role],
-        })
+        session.user.create(
+            {
+                'user.login': name,
+                'user.firstname': firstname,
+                'user.lastname': lastname,
+                'user.mail': email,
+                'user.description': description,
+                'user.language': language,
+                'user.timezone': timezone,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'locations.resources.assigned': [module_loc.name],
+                'organizations.resources.assigned': [module_org.name],
+                'roles.admin': True,
+                'roles.resources.assigned': [role],
+            }
+        )
         assert session.user.search(name)[0]['Username'] == name
         user_values = session.user.read(name)
         assert user_values['user']['login'] == name
@@ -129,17 +131,18 @@ def test_positive_create_with_multiple_roles(session):
     for role in [role1, role2]:
         entities.Role(name=role).create()
     with session:
-        session.user.create({
-            'user.login': name,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'roles.resources.assigned': [role1, role2],
-        })
+        session.user.create(
+            {
+                'user.login': name,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'roles.resources.assigned': [role1, role2],
+            }
+        )
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
-        assert (
-            set(user['roles']['resources']['assigned']) == {role1, role2})
+        assert set(user['roles']['resources']['assigned']) == {role1, role2}
 
 
 @tier2
@@ -155,13 +158,15 @@ def test_positive_create_with_all_roles(session):
     name = gen_string('alpha')
     password = gen_string('alpha')
     with session:
-        session.user.create({
-            'user.login': name,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'roles.resources.assigned': ROLES,
-        })
+        session.user.create(
+            {
+                'user.login': name,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'roles.resources.assigned': ROLES,
+            }
+        )
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
@@ -185,19 +190,22 @@ def test_positive_create_with_multiple_orgs(session):
         entities.Organization(name=org_name).create()
     with session:
         session.organization.select(org_name=DEFAULT_ORG)
-        session.user.create({
-            'user.login': name,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'organizations.resources.assigned': [org_name1, org_name2],
-        })
+        session.user.create(
+            {
+                'user.login': name,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'organizations.resources.assigned': [org_name1, org_name2],
+            }
+        )
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
-        assert (
-            set(user['organizations']['resources']['assigned']) ==
-            {DEFAULT_ORG, org_name1, org_name2}
-        )
+        assert set(user['organizations']['resources']['assigned']) == {
+            DEFAULT_ORG,
+            org_name1,
+            org_name2,
+        }
 
 
 @tier2
@@ -211,22 +219,18 @@ def test_positive_update_with_multiple_roles(session):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    role_names = [
-        entities.Role().create().name
-        for _ in range(3)
-    ]
+    role_names = [entities.Role().create().name for _ in range(3)]
     password = gen_string('alpha')
     with session:
-        session.user.create({
-            'user.login': name,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-        })
-        session.user.update(
-            name,
-            {'roles.resources.assigned': role_names},
+        session.user.create(
+            {
+                'user.login': name,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+            }
         )
+        session.user.update(name, {'roles.resources.assigned': role_names})
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
         assert set(user['roles']['resources']['assigned']) == set(role_names)
@@ -245,16 +249,15 @@ def test_positive_update_with_all_roles(session):
     name = gen_string('alpha')
     password = gen_string('alpha')
     with session:
-        session.user.create({
-            'user.login': name,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-        })
-        session.user.update(
-            name,
-            {'roles.resources.assigned': ROLES},
+        session.user.create(
+            {
+                'user.login': name,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+            }
         )
+        session.user.update(name, {'roles.resources.assigned': ROLES})
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
@@ -272,25 +275,18 @@ def test_positive_update_orgs(session):
     """
     name = gen_string('alpha')
     password = gen_string('alpha')
-    org_names = [
-        entities.Organization().create().name
-        for _ in range(3)
-    ]
+    org_names = [entities.Organization().create().name for _ in range(3)]
     with session:
         session.organization.select(org_name=random.choice(org_names))
-        session.user.create({
-            'user.login': name,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-        })
-        session.user.update(
-            name,
-            {'organizations.resources.assigned': org_names},
+        session.user.create(
+            {
+                'user.login': name,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+            }
         )
+        session.user.update(name, {'organizations.resources.assigned': org_names})
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
-        assert (
-            set(user['organizations']['resources']['assigned']) ==
-            set(org_names)
-        )
+        assert set(user['organizations']['resources']['assigned']) == set(org_names)

@@ -43,6 +43,7 @@ class scenario_positive_virt_who(APITestCase):
 
     :expectedresults: Virtwho config should be created, updated and deleted successfully.
     """
+
     @classmethod
     @skip_if_not_set('virtwho')
     def setUpClass(cls):
@@ -91,8 +92,9 @@ class scenario_positive_virt_who(APITestCase):
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
-        default_loc_id = entities.Location().search(
-            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+        default_loc_id = (
+            entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+        )
         default_loc = entities.Location(id=default_loc_id).read()
         org = entities.Organization(name=self.org_name).create()
         default_loc.organization.append(entities.Organization(id=org.id))
@@ -105,39 +107,45 @@ class scenario_positive_virt_who(APITestCase):
         self.assertEqual(vhd.status, 'unknown')
         command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, debug=True, org=org.name)
+            command, debug=True, org=org.name
+        )
         self.assertEqual(
-            entities.VirtWhoConfig(organization_id=org.id).search(
-                query={'search': 'name={}'.format(self.name)})[0].status,
-            'ok')
+            entities.VirtWhoConfig(organization_id=org.id)
+            .search(query={'search': 'name={}'.format(self.name)})[0]
+            .status,
+            'ok',
+        )
         hosts = [
-            (hypervisor_name, 'product_id={} and type=NORMAL'.format(
-                self.vdc_physical)),
-            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(
-                self.vdc_physical))]
+            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
+            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical)),
+        ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
                 subscriptions = entities.Subscription(organization=org.id).search(
-                    query={'search': sku})
+                    query={'search': sku}
+                )
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 subscriptions = entities.Subscription(organization=org.id).search(
-                    query={'search': sku})
+                    query={'search': sku}
+                )
                 vdc_id = subscriptions[0].id
-            host, time = wait_for(entities.Host(organization=org.id).search,
-                                  func_args=(None, {'search': hostname}),
-                                  fail_condition=[],
-                                  timeout=5,
-                                  delay=1)
+            host, time = wait_for(
+                entities.Host(organization=org.id).search,
+                func_args=(None, {'search': hostname}),
+                fail_condition=[],
+                timeout=5,
+                delay=1,
+            )
             entities.HostSubscription(host=host[0].id).add_subscriptions(
-                data={'subscriptions': [{
-                    'id': vdc_id,
-                    'quantity': 1}]})
-            result = entities.Host(organization=org.id).search(
-                query={'search': hostname})[0].read_json()
-            self.assertEqual(
-                result['subscription_status_label'],
-                'Fully entitled')
+                data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
+            )
+            result = (
+                entities.Host(organization=org.id)
+                .search(query={'search': hostname})[0]
+                .read_json()
+            )
+            self.assertEqual(result['subscription_status_label'], 'Fully entitled')
 
     @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
     def test_post_crud_virt_who_configuration(self):
@@ -157,23 +165,24 @@ class scenario_positive_virt_who(APITestCase):
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = entities.Organization().search(query={
-            'search': 'name={0}'.format(self.org_name)})[0]
+        org = entities.Organization().search(query={'search': 'name={0}'.format(self.org_name)})[0]
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
-            query={'search': 'name={}'.format(self.name)})[0]
+            query={'search': 'name={}'.format(self.name)}
+        )[0]
         self.assertEqual(vhd.status, 'ok')
 
         # Vefify the connection of the guest on Content host
         hypervisor_name, guest_name = get_hypervisor_info()
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
-            result = entities.Host(organization=org.id).search(
-                query={'search': hostname})[0].read_json()
-            self.assertEqual(
-                result['subscription_status_label'],
-                'Fully entitled')
+            result = (
+                entities.Host(organization=org.id)
+                .search(query={'search': hostname})[0]
+                .read_json()
+            )
+            self.assertEqual(result['subscription_status_label'], 'Fully entitled')
 
         # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
@@ -186,5 +195,8 @@ class scenario_positive_virt_who(APITestCase):
 
         # Delete virt-who config
         vhd.delete()
-        self.assertFalse(entities.VirtWhoConfig(organization_id=org.id).search(
-            query={'search': 'name={}'.format(modify_name)}))
+        self.assertFalse(
+            entities.VirtWhoConfig(organization_id=org.id).search(
+                query={'search': 'name={}'.format(modify_name)}
+            )
+        )
