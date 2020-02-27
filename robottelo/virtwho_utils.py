@@ -76,7 +76,7 @@ def runcmd(cmd, system=None, timeout=600, output_format='base'):
     :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
-    result = ssh.command(cmd, **system, timeout=timeout, output_format=output_format)
+    result = ssh.command(cmd, **system, output_format=output_format, timeout=timeout)
     ret = result.return_code
     stdout = result.stdout.strip()
     return ret, stdout
@@ -161,7 +161,7 @@ def get_configure_id(name):
         raise VirtWhoError("No configure id found for {}".format(name))
 
 
-def get_configure_command(config_id, org=DEFAULT_ORG, auth=None):
+def get_configure_command(config_id, org=DEFAULT_ORG):
     """Return the deploy command line based on configure id.
     :param str config_id: the unique id of the configure file you have created.
     :param str org: the satellite organization name.
@@ -249,7 +249,7 @@ def deploy_validation():
     return hypervisor_name, guest_name
 
 
-def deploy_configure_by_command(command, debug=False, org=DEFAULT_ORG):
+def deploy_configure_by_command(command, debug=False, org='Default_Organization'):
     """Deploy and run virt-who servcie by the hammer command.
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
