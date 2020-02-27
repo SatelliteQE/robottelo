@@ -76,7 +76,7 @@ def runcmd(cmd, system=None, timeout=600, output_format='base'):
     :param str output_format: base|json|csv|list
     """
     system = system or get_system('satellite')
-    result = ssh.command(cmd, **system, output_format=output_format, timeout=timeout)
+    result = ssh.command(cmd, **system, timeout=timeout, output_format=output_format)
     ret = result.return_code
     stdout = result.stdout.strip()
     return ret, stdout
