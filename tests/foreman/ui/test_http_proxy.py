@@ -17,9 +17,24 @@
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
+from nailgun import entities
 
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import REPO_TYPE
+from robottelo.decorators import fixture
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
+
+
+@fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
 
 
 @tier2
@@ -67,3 +82,115 @@ def test_positive_create_update_delete(session, module_org, module_loc):
         # Delete http_proxy
         session.http_proxy.delete(updated_proxy_name)
         assert not session.http_proxy.search(updated_proxy_name)
+
+
+@tier2
+def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_loc):
+    """Assign HTTP Proxy to Products and Repositories.
+
+    :id: 2b803f9c-8d5d-4467-8eba-18244ebc0201
+
+    :expectedresults: HTTP Proxy is assigned to all repos present
+        in Products.
+
+    :CaseImportance: Critical
+    """
+    # create HTTP proxies
+    http_proxy_url_a = '{}:{}'.format(
+        gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+    )
+    http_proxy_a = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=http_proxy_url_a,
+        organization=[module_org.id],
+        location=[module_loc.id],
+    ).create()
+    http_proxy_url_b = '{}:{}'.format(
+        gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+    )
+    http_proxy_b = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=http_proxy_url_b,
+        organization=[module_org.id],
+        location=[module_loc.id],
+    ).create()
+    # Create products
+    product_a = entities.Product(organization=module_org.id,).create()
+    product_b = entities.Product(organization=module_org.id,).create()
+    # Create repositories from UI.
+    with session:
+        repo_a1_name = gen_string('alpha')
+        session.repository.create(
+            product_a.name,
+            {
+                'name': repo_a1_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+            },
+        )
+        repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
+        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP Proxy'
+        repo_a2_name = gen_string('alpha')
+        session.repository.create(
+            product_a.name,
+            {
+                'name': repo_a2_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.http_proxy_policy': 'Use specific HTTP Proxy',
+                'repo_content.proxy_policy.http_proxy': http_proxy_a.name,
+            },
+        )
+        repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
+        expected_policy = 'Use specific HTTP Proxy ({})'.format(http_proxy_a.name)
+        assert repo_a2_values['repo_content']['http_proxy_policy'] == expected_policy
+        repo_b1_name = gen_string('alpha')
+        session.repository.create(
+            product_b.name,
+            {
+                'name': repo_b1_name,
+                'repo_type': REPO_TYPE['puppet'],
+                'repo_content.upstream_url': FAKE_0_PUPPET_REPO,
+                'repo_content.http_proxy_policy': 'Global Default',
+            },
+        )
+        repo_b1_values = session.repository.read(product_b.name, repo_b1_name)
+        assert 'Global Default' in repo_b1_values['repo_content']['http_proxy_policy']
+        repo_b2_name = gen_string('alpha')
+        session.repository.create(
+            product_b.name,
+            {
+                'name': repo_b2_name,
+                'repo_type': REPO_TYPE['puppet'],
+                'repo_content.upstream_url': FAKE_0_PUPPET_REPO,
+                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+            },
+        )
+        # Add http_proxy to products
+        session.product.search('')
+        session.product.manage_http_proxy(
+            [product_a.name, product_b.name],
+            {
+                'http_proxy_policy': 'Use specific HTTP Proxy',
+                'proxy_policy.http_proxy': http_proxy_b.name,
+            },
+        )
+        # Verify that Http Proxy is updated for all repos of product_a and product_b.
+        proxy_policy = 'Use specific HTTP Proxy ({})'
+        repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
+        assert repo_a1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
+            http_proxy_b.name
+        )
+        repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
+        assert repo_a2_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
+            http_proxy_b.name
+        )
+        repo_b1_values = session.repository.read(product_b.name, repo_b1_name)
+        assert repo_b1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
+            http_proxy_b.name
+        )
+        repo_b2_values = session.repository.read(product_b.name, repo_b2_name)
+        assert repo_b2_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
+            http_proxy_b.name
+        )
