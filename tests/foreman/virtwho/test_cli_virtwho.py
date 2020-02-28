@@ -19,13 +19,6 @@ import re
 import requests
 from fauxfactory import gen_string
 
-from .utils import deploy_configure_by_command
-from .utils import deploy_configure_by_script
-from .utils import get_configure_command
-from .utils import get_configure_file
-from .utils import get_configure_option
-from .utils import hypervisor_json_create
-from .utils import VIRTWHO_SYSCONFIG
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.host import Host
 from robottelo.cli.subscription import Subscription
@@ -36,6 +29,13 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.test import CLITestCase
+from robottelo.virtwho_utils import deploy_configure_by_command
+from robottelo.virtwho_utils import deploy_configure_by_script
+from robottelo.virtwho_utils import get_configure_command
+from robottelo.virtwho_utils import get_configure_file
+from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import hypervisor_json_create
+from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
 class VirtWhoConfigTestCase(CLITestCase):
