@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Other
+:CaseComponent: Infrastructure
 
 :TestType: Functional
 

@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 

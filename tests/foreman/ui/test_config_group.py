@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: ConfigurationManagement
+:CaseComponent: Puppet
 
 :TestType: Functional
 

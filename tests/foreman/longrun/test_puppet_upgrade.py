@@ -6,7 +6,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: ConfigurationManagement
+:CaseComponent: Puppet
 
 :TestType: Functional
 

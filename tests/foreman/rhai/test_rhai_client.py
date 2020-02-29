@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: InsightsPlugin
+:CaseComponent: InsightsInventoryPlugin
 
 :TestType: Functional
 
