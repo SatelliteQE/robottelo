@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Usability
+:CaseComponent: Navigation
 
 :TestType: Functional
 

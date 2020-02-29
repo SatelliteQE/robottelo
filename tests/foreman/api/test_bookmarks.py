@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Usability
+:CaseComponent: API
 
 :TestType: Functional
 

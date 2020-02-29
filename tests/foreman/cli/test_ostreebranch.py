@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Atomic
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 

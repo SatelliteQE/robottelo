@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: SmartVariables
+:CaseComponent: Puppet
 
 :TestType: Functional
 
