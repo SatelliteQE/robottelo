@@ -520,9 +520,7 @@ class ReportTemplateTestCase(APITestCase):
             vm.register_contenthost(self.org_setup.label, self.ak_setup.name)
             assert vm.subscribed
             rt = (
-                entities.ReportTemplate()
-                .search(query={'search': u'name="Entitlements"'})[0]
-                .read()
+                entities.ReportTemplate().search(query={'search': 'name="Entitlements"'})[0].read()
             )
             scheduled_csv = rt.schedule_report(
                 data={
