@@ -555,7 +555,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
                     raise entities.APIResponseError('permission "{}" not found'.format(name))
                 if len(result) > 1:
                     raise entities.APIResponseError(
-                        'found more than one entity for permission' ' "{}"'.format(name)
+                        'found more than one entity for permission "{}"'.format(name)
                     )
                 entity_permission = result[0]
                 if entity_permission.name != name:
@@ -590,7 +590,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
             not_found_names = set(permissions_name).difference(permissions_entities_names)
             if not_found_names:
                 raise entities.APIResponseError(
-                    'permissions names entities not found' ' "{}"'.format(not_found_names)
+                    'permissions names entities not found "{}"'.format(not_found_names)
                 )
         entities.Filter(permission=permissions_entities, role=role, search=search).create()
 
@@ -640,7 +640,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
         )
     # Fetch the Pulp password
     pulp_pass = ssh.command(
-        'grep "^default_password" /etc/pulp/server.conf |' ' awk \'{print $2}\''
+        'grep "^default_password" /etc/pulp/server.conf | awk \'{print $2}\''
     ).stdout[0]
     # Set the Timeout value
     timeup = time.time() + int(timeout) * 60

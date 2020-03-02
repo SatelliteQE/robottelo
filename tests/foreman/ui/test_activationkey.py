@@ -474,9 +474,7 @@ def test_positive_update_rh_product(session):
         'releasever': DEFAULT_RELEASE_VERSION,
     }
     rh_repo2 = {
-        'name': (
-            'Red Hat Enterprise Virtualization Agents for RHEL 6 ' 'Server RPMs i386 6Server'
-        ),
+        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs i386 6Server'),
         'product': PRDS['rhel'],
         'reposet': REPOSET['rhva6'],
         'basearch': 'i386',

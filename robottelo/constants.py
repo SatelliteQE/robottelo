@@ -338,8 +338,8 @@ REPOSET = {
     'rhst7_66': 'Red Hat Satellite Tools 6.6 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.6 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
-    'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7' ' Server'),
-    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise' ' Linux 7 Server'),
+    'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
+    'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
 }
 
@@ -448,9 +448,7 @@ REPOS = {
     },
     'rhva6': {
         'id': 'rhel-6-server-rhev-agent-rpms',
-        'name': (
-            'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6Server'
-        ),
+        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6Server'),
         'version': '6.0',
         'reposet': REPOSET['rhva6'],
         'product': PRDS['rhel'],
@@ -459,7 +457,7 @@ REPOS = {
         'key': 'rhva6',
     },
     'rhva65': {
-        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6.5'),
+        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.5'),
         'version': '6.5',
         'reposet': REPOSET['rhva6'],
         'product': PRDS['rhel'],
@@ -478,7 +476,7 @@ REPOS = {
     },
     'rhaht': {'name': ('Red Hat Enterprise Linux Atomic Host Trees')},
     'rhdt7': {
-        'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7' ' Server x86_64')
+        'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server x86_64')
     },
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
@@ -518,7 +516,7 @@ RHVA_REPO_TREE = [
         'rhva6',
         'rhva65',
         'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6.5',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.5',
     ),
     ('rhel', 'rhva6', 'rhva65', 'repo_arch', 'x86_64'),
     ('rhel', 'rhva6', 'rhva65', 'repo_ver', '6.5'),
@@ -527,7 +525,7 @@ RHVA_REPO_TREE = [
         'rhva6',
         'rhva6S',
         'repo_name',
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs ' 'x86_64 6Server',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6Server',
     ),
     ('rhel', 'rhva6', 'rhva6S', 'repo_arch', 'x86_64'),
     ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server'),
@@ -764,7 +762,7 @@ FAKE_0_PUPPET_MODULE = 'httpd'
 FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
 
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://repos.fedorapeople.org/pulp/pulp' '/fixtures/rpm-string-version-updateinfo/'
+    'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-string-version-updateinfo/'
 )
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
 
@@ -1470,12 +1468,12 @@ OSCAP_DEFAULT_CONTENT = {
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'esp': 'Example Server Profile',
-    'rhccp': ('Red Hat Corporate Profile for ' 'Certified Cloud Providers (RH CCP)'),
+    'rhccp': ('Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
     'tailoring_rhel7': (
-        'Standard System Security Profile for Red Hat Enterprise Linux 7 ' '[CUSTOMIZED]'
+        'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
     ),
     'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
     'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7',
@@ -1674,7 +1672,7 @@ TOOLS_ERRATA_DETAILS = [
     ['Issued', '7/27/16'],
     ['Last Updated On', '7/27/16'],
     ['Reboot Suggested', 'No'],
-    ['Topic', 'Red Hat Satellite 6.2 now available for Red Hat Enterprise Linux 6 ' 'and 7'],
+    ['Topic', 'Red Hat Satellite 6.2 now available for Red Hat Enterprise Linux 6 and 7'],
     ['Description', 'This update provides Satellite 6.2 client tooling'],
     ['Solution', 'Before applying this update, make sure all previously released errata'],
 ]

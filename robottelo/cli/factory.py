@@ -1104,7 +1104,7 @@ def make_scap_policy(options=None):
         and not options.get('deploy-by')
     ):
         raise CLIFactoryError(
-            'Please provide a valid SCAP ID or' ' SCAP Profile ID or Period or Deploy by option'
+            'Please provide a valid SCAP ID or SCAP Profile ID or Period or Deploy by option'
         )
     args = {
         'description': None,
@@ -3104,7 +3104,7 @@ def activationkey_add_subscription_to_repo(options=None):
         or not options.get('subscription')
     ):
         raise CLIFactoryError(
-            'Please provide valid organization, activation key and ' 'subscription.'
+            'Please provide valid organization, activation key and subscription.'
         )
     # List the subscriptions in given org
     subscriptions = Subscription.list(

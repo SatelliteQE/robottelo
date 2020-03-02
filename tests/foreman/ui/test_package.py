@@ -152,7 +152,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
             'url': 'http://tstrachota.fedorapeople.org',
             'size': '2.39 KB (2452 Bytes)',
             'filename': 'gorilla-0.62-1.noarch.rpm',
-            'checksum': ('ffd511be32adbf91fa0b3f54f23cd1c02add50578344' 'ff8de44cea4f4ab5aa37'),
+            'checksum': ('ffd511be32adbf91fa0b3f54f23cd1c02add50578344ff8de44cea4f4ab5aa37'),
             'checksum_type': 'sha256',
             'source_rpm': 'gorilla-0.62-1.src.rpm',
             'build_host': 'smqe-ws15',

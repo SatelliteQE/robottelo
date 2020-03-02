@@ -77,7 +77,7 @@ def test_positive_end_to_end(session):
         'Disable Red Hat Insights.',
         'Require you to upload the subscription-manifest and re-attach '
         'subscriptions to hosts and activation keys.',
-        'This action should only be taken in extreme circumstances or for ' 'debugging purposes.',
+        'This action should only be taken in extreme circumstances or for debugging purposes.',
     ]
     org = entities.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')

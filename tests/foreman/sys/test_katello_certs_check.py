@@ -167,7 +167,7 @@ class KatelloCertsCheckTestCase(TestCase):
             # revert to original certs
             with get_connection(timeout=600) as connection:
                 result = connection.run(
-                    'satellite-installer --scenario satellite ' '--certs-reset', timeout=500
+                    'satellite-installer --scenario satellite --certs-reset', timeout=500
                 )
                 # Check for hammer ping SSL cert error
                 result = connection.run('hammer ping')
@@ -392,7 +392,7 @@ class CapsuleCertsCheckTestCase(TestCase):
         with get_connection(timeout=200) as connection:
             # extract the cert from the tar file
             result = connection.run(
-                'tar -xf {0}/capsule_certs.tar' ' --directory {0}/ '.format(self.tmp_dir)
+                'tar -xf {0}/capsule_certs.tar --directory {0}/ '.format(self.tmp_dir)
             )
             assert result.return_code == 0, 'Extraction to working directory failed.'
             # Extract raw data from RPM to a file

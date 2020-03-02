@@ -272,7 +272,7 @@ class BaseCliTestCase(unittest2.TestCase):
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', output_format='json')
-        ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json' ' some_cmd'
+        ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'), output_format='json', timeout=None, connection_timeout=None
         )

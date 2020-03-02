@@ -150,7 +150,7 @@ def get_server_version():
     """
     result = ''.join(
         ssh.command(
-            "cat /usr/share/foreman/lib/satellite/version.rb | grep VERSION | " "awk '{print $3}'"
+            "cat /usr/share/foreman/lib/satellite/version.rb | grep VERSION | awk '{print $3}'"
         ).stdout
     )
     result = result.replace('"', '').strip()
@@ -653,7 +653,7 @@ def extract_ui_token(input):
     HTML string"""
     token = re.search('"token":"(.*?)"', input)
     if token is None:
-        raise IndexError("the given string does not contain any authenticity" "token references")
+        raise IndexError("the given string does not contain any authenticity token references")
     else:
         return token[1]
 
@@ -966,7 +966,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
         }
         with open('bz_cache.json', 'w') as collect_file:
             json.dump(collected_data, collect_file, indent=4, cls=VersionEncoder)
-            LOGGER.debug(f"Generated file {bz_cache or 'bz_cache.json'}" " with BZ collect data")
+            LOGGER.debug(f"Generated file {bz_cache or 'bz_cache.json'} with BZ collect data")
 
     return collected_data
 

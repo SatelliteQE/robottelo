@@ -774,18 +774,14 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id for product in products]})
         # Wait quarter of expected time
-        self.logger.info(
-            'Waiting {0} seconds to check products' ' were not synced'.format(delay / 4)
-        )
+        self.logger.info('Waiting {0} seconds to check products were not synced'.format(delay / 4))
         sleep(delay / 4)
         # Verify products has not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo.id, max_tries=1)
         # Wait the rest of expected time
-        self.logger.info(
-            'Waiting {0} seconds to check products' ' were synced'.format(delay * 3 / 4)
-        )
+        self.logger.info('Waiting {0} seconds to check products were synced'.format(delay * 3 / 4))
         sleep(delay * 3 / 4)
         # Verify product was synced successfully
         for repo in repos:

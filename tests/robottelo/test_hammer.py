@@ -194,7 +194,7 @@ class ParseHelpTestCase(unittest2.TestCase):
                         'shortname': None,
                         'value': 'ADAPTER',
                         'help': (
-                            'Set output format. One of [base, table, silent, ' 'csv, yaml, json]'
+                            'Set output format. One of [base, table, silent, csv, yaml, json]'
                         ),
                     },
                     {

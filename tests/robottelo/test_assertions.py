@@ -36,7 +36,7 @@ def fake_404_response():
     response = namedtuple('response', 'ok raw reason request status_code')
     response.status_code = 404
     raise HTTPError(
-        '404 Client Error: Not Found for url: ' 'https://example.com/api/v2/hosts/1',
+        '404 Client Error: Not Found for url: https://example.com/api/v2/hosts/1',
         response=response,
     )
 

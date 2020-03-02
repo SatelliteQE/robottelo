@@ -165,7 +165,7 @@ class ComputeResourceHostTestCase(CLITestCase):
                 "start=1".format(self.cluster_id),
                 'ip': None,
                 'mac': None,
-                'interface': "compute_name=nic1, " "compute_network={0}".format(self.network_id),
+                'interface': "compute_name=nic1, compute_network={0}".format(self.network_id),
                 'volume': "size_gb=10,"
                 "storage_domain={0},"
                 "bootable=True".format(self.storage_id),

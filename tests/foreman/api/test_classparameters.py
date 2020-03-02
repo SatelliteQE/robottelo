@@ -113,7 +113,7 @@ class SmartClassParametersTestCase(APITestCase):
         """
         super(SmartClassParametersTestCase, self).setUp()
         if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please " "update puppet module.")
+            raise Exception("Not enough smart class parameters. Please update puppet module.")
 
     @tier1
     @upgrade
@@ -438,7 +438,7 @@ class SmartClassParametersTestCase(APITestCase):
             sc_param.update(['parameter_type', 'default_value'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Default value is invalid, " "Lookup values is invalid",
+            "Validation failed: Default value is invalid, Lookup values is invalid",
         )
 
     @tier1
@@ -526,13 +526,13 @@ class SmartClassParametersTestCase(APITestCase):
             sc_param.update(['override', 'parameter_type', 'default_value', 'merge_overrides'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Merge overrides can only be set for " "array or hash",
+            "Validation failed: Merge overrides can only be set for array or hash",
         )
         with self.assertRaises(HTTPError) as context:
             sc_param.update(['override', 'parameter_type', 'default_value', 'merge_default'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Merge default can only be set when merge " "overrides is set",
+            "Validation failed: Merge default can only be set when merge overrides is set",
         )
         sc_param = sc_param.read()
         self.assertEqual(sc_param.merge_overrides, False)

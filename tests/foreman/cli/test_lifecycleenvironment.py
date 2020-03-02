@@ -265,7 +265,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
         registry_name_pattern = (
-            "{}-<%= organization.label %>" "/<%= repository.docker_upstream_name %>"
+            "{}-<%= organization.label %>/<%= repository.docker_upstream_name %>"
         ).format(gen_string('alpha', 5))
 
         LifecycleEnvironment.update(

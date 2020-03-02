@@ -615,9 +615,7 @@ class HostCreateTestCase(CLITestCase):
                 lce='{}/{}'.format(self.new_lce['label'], self.promoted_cv['label']),
             )
             self.assertTrue(client.subscribed)
-            hosts = Host.list(
-                {'search': 'last_checkin = "Today" or ' 'last_checkin = "Yesterday"'}
-            )
+            hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
             self.assertGreaterEqual(len(hosts), 1)
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
@@ -1682,7 +1680,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertEqual(host_errata[0]['installable'], 'true')
         # Check the erratum becomes available
         result = self.client.run(
-            'yum update --assumeno --security ' '| grep "No packages needed for security"'
+            'yum update --assumeno --security | grep "No packages needed for security"'
         )
         self.assertEqual(result.return_code, 1)
 

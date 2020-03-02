@@ -707,7 +707,7 @@ class DockerContentViewTestCase(APITestCase):
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'hello-world'
         new_pattern = (
-            "{}-<%= organization.label %>" "/<%= repository.docker_upstream_name %>"
+            "{}-<%= organization.label %>/<%= repository.docker_upstream_name %>"
         ).format(pattern_prefix)
 
         repo = _create_repository(

@@ -183,7 +183,7 @@ def _check_deadlock(lock_file_path, process_id):
 
         if lock_file_content and lock_file_content == process_id:
             raise FunctionLockerError(
-                'recursion detected: the function file already ' 'locked by the same process'
+                'recursion detected: the function file already locked by the same process'
             )
 
 

@@ -2157,7 +2157,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         self.assertGreater(
             len(registry_config['registry_password']),
             255,
-            msg='Please use a longer (>255) token for ' 'long_pass_test_registry',
+            msg='Please use a longer (>255) token for long_pass_test_registry',
         )
 
         product = entities.Product(organization=self.org).create()

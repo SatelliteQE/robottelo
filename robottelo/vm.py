@@ -422,7 +422,7 @@ gpgcheck=0'''.format(
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
         gofer_check = self.run(
-            'for i in {1..5}; do service goferd status ' '&& exit 0; sleep 1; done; exit 1'
+            'for i in {1..5}; do service goferd status && exit 0; sleep 1; done; exit 1'
         )
         if gofer_check.return_code != 0:
             raise VirtualMachineError('katello-agent is not running')
@@ -590,7 +590,7 @@ gpgcheck=0'''.format(
         """
         if not self._created:
             raise VirtualMachineError(
-                'The virtual machine should be created before running any ssh ' 'command'
+                'The virtual machine should be created before running any ssh command'
             )
 
         return ssh.command(cmd, hostname=self.ip_addr, timeout=timeout)
@@ -734,7 +734,7 @@ gpgcheck=0'''.format(
         result = self.run('insights-client --register')
         if result.return_code != 0:
             raise VirtualMachineError(
-                'Unable to register client to Access Insights through ' 'Satellite'
+                'Unable to register client to Access Insights through Satellite'
             )
 
     def patch_os_release_version(self, distro=DISTRO_RHEL7):

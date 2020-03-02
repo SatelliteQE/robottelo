@@ -727,7 +727,7 @@ class RepositoryTestCase(CLITestCase):
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    'Download policy Cannot set attribute ' 'download_policy for content type',
+                    'Download policy Cannot set attribute download_policy for content type',
                 ):
                     self._make_repository(
                         {'content-type': content_type, 'download-policy': 'on_demand'}
@@ -830,7 +830,7 @@ class RepositoryTestCase(CLITestCase):
                 response = Task.progress({'id': repo_sync[0]['id']}, return_raw_response=True)
                 if creds['original_encoding'] == 'utf8':
                     self.assertIn(
-                        ("Error retrieving metadata: 'latin-1' codec can't" " encode characters"),
+                        ("Error retrieving metadata: 'latin-1' codec can't encode characters"),
                         ''.join(response.stderr),
                     )
                 else:
@@ -2020,7 +2020,7 @@ class OstreeRepositoryTestCase(CLITestCase):
             with self.subTest(checksum_type):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    'Validation failed: Checksum type cannot be set for ' 'non-yum repositories',
+                    'Validation failed: Checksum type cannot be set for non-yum repositories',
                 ):
                     self._make_repository(
                         {
@@ -2045,7 +2045,7 @@ class OstreeRepositoryTestCase(CLITestCase):
             with self.subTest(use_http):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    'Validation failed: OSTree Repositories cannot be ' 'unprotected',
+                    'Validation failed: OSTree Repositories cannot be unprotected',
                 ):
                     self._make_repository(
                         {

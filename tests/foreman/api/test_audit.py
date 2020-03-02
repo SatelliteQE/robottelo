@@ -80,7 +80,7 @@ class AuditTestCase(APITestCase):
             {'entity': entities.Role()},
             {
                 'entity': entities.Subnet(),
-                'value_template': '{entity.name} ' '({entity.network}/{entity.cidr})',
+                'value_template': '{entity.name} ({entity.network}/{entity.cidr})',
             },
             {'entity': entities.ProvisioningTemplate(), 'entity_type': 'provisioning_template'},
             {'entity': entities.User(), 'value_template': '{entity.login}'},

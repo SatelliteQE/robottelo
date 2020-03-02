@@ -1012,7 +1012,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(
             {comp['id'] for comp in comp_cv['components']},
             set(component_ids),
-            'IDs of the composite content view components differ from ' 'the input values',
+            'IDs of the composite content view components differ from the input values',
         )
 
     @tier3
@@ -1079,7 +1079,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(
             comp_cv['components'][0]['id'],
             component_ids,
-            'IDs of the composite content view components differ from ' 'the input values',
+            'IDs of the composite content view components differ from the input values',
         )
 
     # Content Views: Adding products/repos

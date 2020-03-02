@@ -182,14 +182,14 @@ class ScenarioPerformanceTuning(TestCase):
             assert tuning_state_after_upgrade == 0
             ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
             command_output = ssh.command(
-                'satellite-installer --tuning default ' '-s --disable-system-checks',
+                'satellite-installer --tuning default -s --disable-system-checks',
                 connection_timeout=1000,
             ).stdout
             assert "  Success!" in command_output
         finally:
             ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
             command_output = ssh.command(
-                'satellite-installer -s ' '--disable-system-checks', connection_timeout=1000
+                'satellite-installer -s --disable-system-checks', connection_timeout=1000
             ).stdout
             assert "  Success!" in command_output
 

@@ -60,7 +60,7 @@ class ScenarioErrataAbstract(object):
         rhel_repo_url = settings.rhel7_os
         tools_repo_url = settings.sattools_repo[DISTRO_RHEL7]
         if None in [rhel_repo_url, tools_repo_url]:
-            raise ValueError('The rhel7_os or tools_rhel7 Repo url is not set in ' 'settings!')
+            raise ValueError('The rhel7_os or tools_rhel7 Repo url is not set in settings!')
         tools_repo = entities.Repository(
             product=product, content_type='yum', url=tools_repo_url
         ).create()

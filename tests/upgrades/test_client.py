@@ -70,7 +70,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
     if sat_state.lower() == 'pre':
         product_name = 'Red Hat Enterprise Linux Server'
-        repo_name = 'Red Hat Satellite Tools {0} for RHEL ' '{1} Server RPMs x86_64'.format(
+        repo_name = 'Red Hat Satellite Tools {0} for RHEL {1} Server RPMs x86_64'.format(
             from_ver, client_os[-1]
         )
         tools_prod = entities.Product(organization=org.id).search(

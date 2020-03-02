@@ -272,7 +272,7 @@ class OpenScapTestCase(CLITestCase):
                 # satellite6 and fetch katello SSL certs.
                 for _ in range(2):
                     vm.run('puppet agent -t 2> /dev/null')
-                result = vm.run('cat /etc/foreman_scap_client/config.yaml' '| grep profile')
+                result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
                 self.assertEqual(result.return_code, 0)
                 # Runs the actual oscap scan on the vm/clients and
                 # uploads report to Internal Capsule.
@@ -363,7 +363,7 @@ class OpenScapTestCase(CLITestCase):
             # satellite6 and fetch katello SSL certs.
             for _ in range(2):
                 vm.run('puppet agent -t 2> /dev/null')
-            result = vm.run('cat /etc/foreman_scap_client/config.yaml' '| grep content_path')
+            result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep content_path')
             self.assertEqual(result.return_code, 0)
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.
@@ -392,9 +392,7 @@ class OpenScapTestCase(CLITestCase):
             Arfreport.delete({'id': arf_report[0].get('id')})
             for _ in range(2):
                 vm.run('puppet agent -t 2> /dev/null')
-            updated_result = vm.run(
-                'cat /etc/foreman_scap_client/config.yaml' '| grep content_path'
-            )
+            updated_result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep content_path')
             self.assertIsNot(result, updated_result)
             self.assertEqual(updated_result.return_code, 0)
             # Runs the actual oscap scan on the vm/clients and
@@ -509,7 +507,7 @@ class OpenScapTestCase(CLITestCase):
             # satellite6 and fetch katello SSL certs.
             for _ in range(2):
                 vm.run('puppet agent -t 2> /dev/null')
-            result = vm.run('cat /etc/foreman_scap_client/config.yaml' '| grep profile')
+            result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
             self.assertEqual(result.return_code, 0)
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.
@@ -643,7 +641,7 @@ class OpenScapTestCase(CLITestCase):
                     ' '.join(JobInvocation.get_output({'id': job_id, 'host': vm.hostname}))
                 )
                 raise AssertionError(result)
-            result = vm.run('cat /etc/foreman_scap_client/config.yaml' '| grep profile')
+            result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
             self.assertEqual(result.return_code, 0)
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.

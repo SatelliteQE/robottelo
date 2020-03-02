@@ -90,7 +90,7 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         super(SmartClassParametersTestCase, self).setUp()
         if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please " "update puppet module.")
+            raise Exception("Not enough smart class parameters. Please update puppet module.")
 
     @tier1
     def test_positive_list(self):
