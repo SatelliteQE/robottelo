@@ -53,7 +53,7 @@ def module_loc():
 
 
 @pytest.fixture(scope='module')
-def content_setup(module_org):
+def setup_content(module_org):
     with manifests.clone() as manifest:
         upload_manifest(module_org.id, manifest.content)
     rh_repo_id = enable_rhrepo_and_fetchid(
@@ -402,7 +402,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 
 
 @tier3
-def test_positive_gen_entitlements_reports_multiple_formats(session, content_setup, module_org):
+def test_positive_gen_entitlements_reports_multiple_formats(session, setup_content, module_org):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.
 
         :id: b268663d-c213-4e59-8f81-61bec0838b1e
@@ -424,7 +424,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(session, content_set
     """
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.install_katello_ca()
-        module_org, ak = content_setup
+        module_org, ak = setup_content
         vm.register_contenthost(module_org.label, ak.name)
         assert vm.subscribed
         with session:
