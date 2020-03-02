@@ -750,3 +750,34 @@ class ReportTemplateTestCase(CLITestCase):
             )
             assert vm.hostname in result_csv[1]
             assert self.setup_subs_id[0]['name'] in result_csv[1]
+
+    @tier3
+    def test_positive_schedule_Entitlements_report(self):
+        """Schedule an report using the Entitlements template in csv format.
+
+        :id: 572fb387-86e0-40e2-b2df-e8ec26433610
+
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, and Subscriptions.
+
+        :steps:
+            1. hammer report-template schedule --organization '' --id '' --report-format ''
+
+        :expectedresults: report is scheduled and generated containing all the expected information
+                          regarding Entitlements.
+
+        :CaseImportance: High
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
+            assert vm.subscribed
+            scheduled_csv = ReportTemplate.schedule(
+                {'id': 115, 'organization': self.setup_org['name'], 'report-format': 'csv'}
+            )
+            data_csv = ReportTemplate.report_data(
+                {'id': 115, 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]}
+            )
+            assert any(vm.hostname in line for line in data_csv)
+            assert any(self.setup_subs_id[0]['name'] in line for line in data_csv)
