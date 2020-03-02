@@ -105,7 +105,7 @@ class RepositoryTestCase(CLITestCase):
             RepositoryTestCase.org = make_org(cached=True)
         if RepositoryTestCase.product is None:
             RepositoryTestCase.product = make_product_wait(
-                {u'organization-id': RepositoryTestCase.org['id']}
+                {'organization-id': RepositoryTestCase.org['id']}
             )
 
     def _make_repository(self, options=None):
@@ -114,7 +114,7 @@ class RepositoryTestCase(CLITestCase):
             options = {}
 
         if options.get('product-id') is None:
-            options[u'product-id'] = self.product['id']
+            options['product-id'] = self.product['id']
 
         return make_repository(options)
 
@@ -156,13 +156,13 @@ class RepositoryTestCase(CLITestCase):
         """
         repository = self._make_repository(
             {
-                u'content-type': u'docker',
-                u'name': gen_string('alpha'),
-                u'docker-upstream-name': u'fedora/rabbitmq',
+                'content-type': 'docker',
+                'name': gen_string('alpha'),
+                'docker-upstream-name': 'fedora/rabbitmq',
             }
         )
-        self.assertIn(u'upstream-repository-name', repository)
-        self.assertEqual(repository['upstream-repository-name'], u'fedora/rabbitmq')
+        self.assertIn('upstream-repository-name', repository)
+        self.assertEqual(repository['upstream-repository-name'], 'fedora/rabbitmq')
 
     @tier1
     def test_positive_create_with_name(self):
@@ -176,7 +176,7 @@ class RepositoryTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_repo = self._make_repository({u'name': name})
+                new_repo = self._make_repository({'name': name})
                 self.assertEqual(new_repo['name'], name)
 
     @tier1
@@ -194,7 +194,7 @@ class RepositoryTestCase(CLITestCase):
             with self.subTest(name):
                 # Generate a random, 'safe' label
                 label = gen_string('alpha', 20)
-                new_repo = self._make_repository({u'label': label, u'name': name})
+                new_repo = self._make_repository({'label': label, 'name': name})
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['label'], label)
 
@@ -216,9 +216,9 @@ class RepositoryTestCase(CLITestCase):
             FAKE_4_YUM_REPO,
         ):
             with self.subTest(url):
-                new_repo = self._make_repository({u'content-type': u'yum', u'url': url})
+                new_repo = self._make_repository({'content-type': 'yum', 'url': url})
                 self.assertEqual(new_repo['url'], url)
-                self.assertEqual(new_repo['content-type'], u'yum')
+                self.assertEqual(new_repo['content-type'], 'yum')
 
     @tier1
     @upgrade
@@ -239,9 +239,9 @@ class RepositoryTestCase(CLITestCase):
             FAKE_5_PUPPET_REPO,
         ):
             with self.subTest(url):
-                new_repo = self._make_repository({u'content-type': u'puppet', u'url': url})
+                new_repo = self._make_repository({'content-type': 'puppet', 'url': url})
                 self.assertEqual(new_repo['url'], url)
-                self.assertEqual(new_repo['content-type'], u'puppet')
+                self.assertEqual(new_repo['content-type'], 'puppet')
 
     @tier1
     @upgrade
@@ -254,9 +254,9 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'content-type': u'file', u'url': CUSTOM_FILE_REPO})
+        new_repo = self._make_repository({'content-type': 'file', 'url': CUSTOM_FILE_REPO})
         self.assertEqual(new_repo['url'], CUSTOM_FILE_REPO)
-        self.assertEqual(new_repo['content-type'], u'file')
+        self.assertEqual(new_repo['content-type'], 'file')
 
     @tier1
     def test_positive_create_with_auth_yum_repo(self):
@@ -272,9 +272,9 @@ class RepositoryTestCase(CLITestCase):
         for creds in valid_http_credentials(url_encoded=True):
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url_encoded):
-                new_repo = self._make_repository({u'content-type': u'yum', u'url': url_encoded})
+                new_repo = self._make_repository({'content-type': 'yum', 'url': url_encoded})
                 self.assertEqual(new_repo['url'], url_encoded)
-                self.assertEqual(new_repo['content-type'], u'yum')
+                self.assertEqual(new_repo['content-type'], 'yum')
 
     @tier1
     @upgrade
@@ -290,7 +290,7 @@ class RepositoryTestCase(CLITestCase):
         for policy in DOWNLOAD_POLICIES:
             with self.subTest(policy):
                 new_repo = self._make_repository(
-                    {u'content-type': u'yum', u'download-policy': policy}
+                    {'content-type': 'yum', 'download-policy': policy}
                 )
                 self.assertEqual(new_repo['download-policy'], policy)
 
@@ -310,9 +310,7 @@ class RepositoryTestCase(CLITestCase):
         """
         for value in ['yes', 'no']:
             with self.subTest(value):
-                new_repo = self._make_repository(
-                    {u'content-type': u'yum', u'mirror-on-sync': value}
-                )
+                new_repo = self._make_repository({'content-type': 'yum', 'mirror-on-sync': value})
                 self.assertEqual(new_repo['mirror-on-sync'], value)
 
     @tier1
@@ -328,7 +326,7 @@ class RepositoryTestCase(CLITestCase):
         """
         default_dl_policy = Settings.list({'search': 'name=default_download_policy'})
         self.assertTrue(default_dl_policy)
-        new_repo = self._make_repository({u'content-type': u'yum'})
+        new_repo = self._make_repository({'content-type': 'yum'})
         self.assertEqual(new_repo['download-policy'], default_dl_policy[0]['value'])
 
     @tier1
@@ -344,9 +342,9 @@ class RepositoryTestCase(CLITestCase):
 
         :BZ: 1732056
         """
-        new_repo = self._make_repository({u'content-type': u'yum'})
+        new_repo = self._make_repository({'content-type': 'yum'})
         self.assertEqual(new_repo['download-policy'], 'immediate')
-        Repository.update({u'id': new_repo['id'], u'download-policy': 'on_demand'})
+        Repository.update({'id': new_repo['id'], 'download-policy': 'on_demand'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'on_demand')
 
@@ -361,10 +359,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository(
-            {u'content-type': u'yum', u'download-policy': 'immediate'}
-        )
-        Repository.update({u'id': new_repo['id'], u'download-policy': 'background'})
+        new_repo = self._make_repository({'content-type': 'yum', 'download-policy': 'immediate'})
+        Repository.update({'id': new_repo['id'], 'download-policy': 'background'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'background')
 
@@ -379,10 +375,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository(
-            {u'content-type': u'yum', u'download-policy': 'on_demand'}
-        )
-        Repository.update({u'id': new_repo['id'], u'download-policy': 'immediate'})
+        new_repo = self._make_repository({'content-type': 'yum', 'download-policy': 'on_demand'})
+        Repository.update({'id': new_repo['id'], 'download-policy': 'immediate'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'immediate')
 
@@ -397,10 +391,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository(
-            {u'content-type': u'yum', u'download-policy': 'on_demand'}
-        )
-        Repository.update({u'id': new_repo['id'], u'download-policy': 'background'})
+        new_repo = self._make_repository({'content-type': 'yum', 'download-policy': 'on_demand'})
+        Repository.update({'id': new_repo['id'], 'download-policy': 'background'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'background')
 
@@ -415,10 +407,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository(
-            {u'content-type': u'yum', u'download-policy': 'background'}
-        )
-        Repository.update({u'id': new_repo['id'], u'download-policy': 'immediate'})
+        new_repo = self._make_repository({'content-type': 'yum', 'download-policy': 'background'})
+        Repository.update({'id': new_repo['id'], 'download-policy': 'immediate'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'immediate')
 
@@ -433,10 +423,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository(
-            {u'content-type': u'yum', u'download-policy': 'background'}
-        )
-        Repository.update({u'id': new_repo['id'], u'download-policy': 'on_demand'})
+        new_repo = self._make_repository({'content-type': 'yum', 'download-policy': 'background'})
+        Repository.update({'id': new_repo['id'], 'download-policy': 'on_demand'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'on_demand')
 
@@ -454,9 +442,9 @@ class RepositoryTestCase(CLITestCase):
         for creds in valid_http_credentials(url_encoded=True):
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url_encoded):
-                new_repo = self._make_repository({u'content-type': u'puppet', u'url': url_encoded})
+                new_repo = self._make_repository({'content-type': 'puppet', 'url': url_encoded})
                 self.assertEqual(new_repo['url'], url_encoded)
-                self.assertEqual(new_repo['content-type'], u'puppet')
+                self.assertEqual(new_repo['content-type'], 'puppet')
 
     @tier1
     @upgrade
@@ -473,7 +461,7 @@ class RepositoryTestCase(CLITestCase):
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for name in valid_data_list():
             with self.subTest(name):
-                new_repo = self._make_repository({u'gpg-key-id': gpg_key['id'], u'name': name})
+                new_repo = self._make_repository({'gpg-key-id': gpg_key['id'], 'name': name})
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])
 
@@ -493,11 +481,7 @@ class RepositoryTestCase(CLITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 new_repo = self._make_repository(
-                    {
-                        u'gpg-key': gpg_key['name'],
-                        u'name': name,
-                        u'organization-id': self.org['id'],
-                    }
+                    {'gpg-key': gpg_key['name'], 'name': name, 'organization-id': self.org['id']}
                 )
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])
@@ -512,10 +496,10 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for use_http in u'true', u'yes', u'1':
+        for use_http in 'true', 'yes', '1':
             with self.subTest(use_http):
                 repo = self._make_repository({'publish-via-http': use_http})
-                self.assertEqual(repo['publish-via-http'], u'yes')
+                self.assertEqual(repo['publish-via-http'], 'yes')
 
     @tier1
     def test_positive_create_publish_via_https(self):
@@ -527,10 +511,10 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for use_http in u'false', u'no', u'0':
+        for use_http in 'false', 'no', '0':
             with self.subTest(use_http):
                 repo = self._make_repository({'publish-via-http': use_http})
-                self.assertEqual(repo['publish-via-http'], u'no')
+                self.assertEqual(repo['publish-via-http'], 'no')
 
     @tier1
     @upgrade
@@ -544,14 +528,14 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for checksum_type in u'sha1', u'sha256':
+        for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
-                content_type = u'yum'
+                content_type = 'yum'
                 repository = self._make_repository(
                     {
-                        u'checksum-type': checksum_type,
-                        u'content-type': content_type,
-                        u'download-policy': u'immediate',
+                        'checksum-type': checksum_type,
+                        'content-type': content_type,
+                        'download-policy': 'immediate',
                     }
                 )
                 self.assertEqual(repository['content-type'], content_type)
@@ -568,19 +552,19 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        content_type = u'docker'
+        content_type = 'docker'
         new_repo = self._make_repository(
             {
-                u'content-type': content_type,
-                u'docker-upstream-name': u'busybox',
-                u'name': u'busybox',
-                u'url': DOCKER_REGISTRY_HUB,
+                'content-type': content_type,
+                'docker-upstream-name': 'busybox',
+                'name': 'busybox',
+                'url': DOCKER_REGISTRY_HUB,
             }
         )
         # Assert that urls and content types matches data passed
         self.assertEqual(new_repo['url'], DOCKER_REGISTRY_HUB)
         self.assertEqual(new_repo['content-type'], content_type)
-        self.assertEqual(new_repo['name'], u'busybox')
+        self.assertEqual(new_repo['name'], 'busybox')
 
     @tier1
     def test_positive_create_docker_repo_with_name(self):
@@ -595,13 +579,13 @@ class RepositoryTestCase(CLITestCase):
         """
         for name in valid_docker_repository_names():
             with self.subTest(name):
-                content_type = u'docker'
+                content_type = 'docker'
                 new_repo = self._make_repository(
                     {
-                        u'content-type': content_type,
-                        u'docker-upstream-name': u'busybox',
-                        u'name': name,
-                        u'url': DOCKER_REGISTRY_HUB,
+                        'content-type': content_type,
+                        'docker-upstream-name': 'busybox',
+                        'name': name,
+                        'url': DOCKER_REGISTRY_HUB,
                     }
                 )
                 # Assert that urls, content types and name matches data passed
@@ -622,7 +606,7 @@ class RepositoryTestCase(CLITestCase):
         """
         url = 'https://omaciel.fedorapeople.org/b3502064/'
         # Create first repo
-        repo = self._make_repository({u'content-type': u'puppet', u'url': url})
+        repo = self._make_repository({'content-type': 'puppet', 'url': url})
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['puppet-modules'], '1')
@@ -630,7 +614,7 @@ class RepositoryTestCase(CLITestCase):
         org = make_org()
         product = make_product({'organization-id': org['id']})
         new_repo = self._make_repository(
-            {u'url': url, u'product': product, u'content-type': u'puppet'}
+            {'url': url, 'product': product, 'content-type': 'puppet'}
         )
         Repository.synchronize({'id': new_repo['id']})
         new_repo = Repository.info({'id': new_repo['id']})
@@ -649,7 +633,7 @@ class RepositoryTestCase(CLITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(CLIFactoryError):
-                    self._make_repository({u'name': name})
+                    self._make_repository({'name': name})
 
     @tier1
     def test_negative_create_with_auth_url_with_special_characters(self):
@@ -666,7 +650,7 @@ class RepositoryTestCase(CLITestCase):
             url_encoded = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
             with self.subTest(url_encoded):
                 with self.assertRaises(CLIFactoryError):
-                    self._make_repository({u'url': url_encoded})
+                    self._make_repository({'url': url_encoded})
 
     @tier1
     def test_negative_create_with_auth_url_too_long(self):
@@ -682,7 +666,7 @@ class RepositoryTestCase(CLITestCase):
             url_encoded = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
             with self.subTest(url_encoded):
                 with self.assertRaises(CLIFactoryError):
-                    self._make_repository({u'url': url_encoded})
+                    self._make_repository({'url': url_encoded})
 
     @tier1
     def test_negative_create_with_invalid_download_policy(self):
@@ -698,7 +682,7 @@ class RepositoryTestCase(CLITestCase):
         """
         with self.assertRaises(CLIFactoryError):
             self._make_repository(
-                {u'content-type': u'yum', u'download-policy': gen_string('alpha', 5)}
+                {'content-type': 'yum', 'download-policy': gen_string('alpha', 5)}
             )
 
     @tier1
@@ -714,8 +698,8 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
-            new_repo = self._make_repository({u'content-type': u'yum'})
-            Repository.update({u'id': new_repo['id'], u'download-policy': gen_string('alpha', 5)})
+            new_repo = self._make_repository({'content-type': 'yum'})
+            Repository.update({'id': new_repo['id'], 'download-policy': gen_string('alpha', 5)})
 
     @tier1
     def test_negative_create_non_yum_with_download_policy(self):
@@ -743,10 +727,10 @@ class RepositoryTestCase(CLITestCase):
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    u'Download policy Cannot set attribute ' 'download_policy for content type',
+                    'Download policy Cannot set attribute download_policy for content type',
                 ):
                     self._make_repository(
-                        {u'content-type': content_type, u'download-policy': u'on_demand'}
+                        {'content-type': content_type, 'download-policy': 'on_demand'}
                     )
 
     @tier1
@@ -763,7 +747,7 @@ class RepositoryTestCase(CLITestCase):
         """
         for url in FAKE_1_YUM_REPO, FAKE_3_YUM_REPO, FAKE_4_YUM_REPO:
             with self.subTest(url):
-                new_repo = self._make_repository({u'content-type': u'yum', u'url': url})
+                new_repo = self._make_repository({'content-type': 'yum', 'url': url})
                 # Assertion that repo is not yet synced
                 self.assertEqual(new_repo['sync']['status'], 'Not Synced')
                 # Synchronize it
@@ -784,7 +768,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'content-type': u'file', u'url': CUSTOM_FILE_REPO})
+        new_repo = self._make_repository({'content-type': 'file', 'url': CUSTOM_FILE_REPO})
         # Assertion that repo is not yet synced
         self.assertEqual(new_repo['sync']['status'], 'Not Synced')
         # Synchronize it
@@ -813,7 +797,7 @@ class RepositoryTestCase(CLITestCase):
         ]:
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url_encoded):
-                new_repo = self._make_repository({u'content-type': u'yum', u'url': url_encoded})
+                new_repo = self._make_repository({'content-type': 'yum', 'url': url_encoded})
                 # Assertion that repo is not yet synced
                 self.assertEqual(new_repo['sync']['status'], 'Not Synced')
                 # Synchronize it
@@ -840,21 +824,18 @@ class RepositoryTestCase(CLITestCase):
         ]:
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url_encoded):
-                new_repo = self._make_repository({u'content-type': u'yum', u'url': url_encoded})
+                new_repo = self._make_repository({'content-type': 'yum', 'url': url_encoded})
                 # Try to synchronize it
-                repo_sync = Repository.synchronize({'id': new_repo['id'], u'async': True})
-                response = Task.progress({u'id': repo_sync[0]['id']}, return_raw_response=True)
+                repo_sync = Repository.synchronize({'id': new_repo['id'], 'async': True})
+                response = Task.progress({'id': repo_sync[0]['id']}, return_raw_response=True)
                 if creds['original_encoding'] == 'utf8':
                     self.assertIn(
-                        (
-                            u"Error retrieving metadata: 'latin-1' codec can't"
-                            u" encode characters"
-                        ),
+                        ("Error retrieving metadata: 'latin-1' codec can't encode characters"),
                         ''.join(response.stderr),
                     )
                 else:
                     self.assertIn(
-                        u'Error retrieving metadata: Unauthorized', ''.join(response.stderr)
+                        'Error retrieving metadata: Unauthorized', ''.join(response.stderr)
                     )
 
     @tier2
@@ -876,7 +857,7 @@ class RepositoryTestCase(CLITestCase):
         ]:
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url_encoded):
-                new_repo = self._make_repository({u'content-type': u'puppet', u'url': url_encoded})
+                new_repo = self._make_repository({'content-type': 'puppet', 'url': url_encoded})
                 # Assertion that repo is not yet synced
                 self.assertEqual(new_repo['sync']['status'], 'Not Synced')
                 # Synchronize it
@@ -896,9 +877,9 @@ class RepositoryTestCase(CLITestCase):
         """
         new_repo = self._make_repository(
             {
-                u'content-type': u'docker',
-                u'docker-upstream-name': u'busybox',
-                u'url': DOCKER_REGISTRY_HUB,
+                'content-type': 'docker',
+                'docker-upstream-name': 'busybox',
+                'url': DOCKER_REGISTRY_HUB,
             }
         )
         # Assertion that repo is not yet synced
@@ -1020,7 +1001,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         # Create repository and synchronize it
-        repo = self._make_repository({u'content-type': u'yum', u'url': FAKE_1_YUM_REPO})
+        repo = self._make_repository({'content-type': 'yum', 'url': FAKE_1_YUM_REPO})
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['sync']['status'], 'Success')
@@ -1052,7 +1033,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         # Create repository and synchronize it
-        repo = self._make_repository({u'content-type': u'puppet', u'url': FAKE_1_PUPPET_REPO})
+        repo = self._make_repository({'content-type': 'puppet', 'url': FAKE_1_PUPPET_REPO})
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['sync']['status'], 'Success')
@@ -1170,7 +1151,7 @@ class RepositoryTestCase(CLITestCase):
         ] + auth_repos:
             with self.subTest(url):
                 # Update the url
-                Repository.update({u'id': new_repo['id'], u'url': url})
+                Repository.update({'id': new_repo['id'], 'url': url})
                 # Fetch it again
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], url)
@@ -1198,7 +1179,7 @@ class RepositoryTestCase(CLITestCase):
         for url in auth_repos:
             with self.subTest(url):
                 with self.assertRaises(CLIReturnCodeError):
-                    Repository.update({u'id': new_repo['id'], u'url': url})
+                    Repository.update({'id': new_repo['id'], 'url': url})
                 # Fetch it again
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], new_repo['url'])
@@ -1224,7 +1205,7 @@ class RepositoryTestCase(CLITestCase):
         for url in auth_repos:
             with self.subTest(url):
                 with self.assertRaises(CLIReturnCodeError):
-                    Repository.update({u'id': new_repo['id'], u'url': url})
+                    Repository.update({'id': new_repo['id'], 'url': url})
                 # Fetch it again
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], new_repo['url'])
@@ -1241,8 +1222,8 @@ class RepositoryTestCase(CLITestCase):
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         gpg_key_new = make_gpg_key({'organization-id': self.org['id']})
-        new_repo = self._make_repository({u'gpg-key-id': gpg_key['id']})
-        Repository.update({u'id': new_repo['id'], u'gpg-key-id': gpg_key_new['id']})
+        new_repo = self._make_repository({'gpg-key-id': gpg_key['id']})
+        Repository.update({'id': new_repo['id'], 'gpg-key-id': gpg_key_new['id']})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['gpg-key']['id'], gpg_key_new['id'])
 
@@ -1256,8 +1237,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'mirror-on-sync': 'no'})
-        Repository.update({u'id': new_repo['id'], u'mirror-on-sync': 'yes'})
+        new_repo = self._make_repository({'mirror-on-sync': 'no'})
+        Repository.update({'id': new_repo['id'], 'mirror-on-sync': 'yes'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['mirror-on-sync'], 'yes')
 
@@ -1271,8 +1252,8 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'publish-via-http': 'no'})
-        Repository.update({u'id': new_repo['id'], u'publish-via-http': 'yes'})
+        new_repo = self._make_repository({'publish-via-http': 'no'})
+        Repository.update({'id': new_repo['id'], 'publish-via-http': 'yes'})
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['publish-via-http'], 'yes')
 
@@ -1287,14 +1268,14 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        content_type = u'yum'
+        content_type = 'yum'
         repository = self._make_repository(
-            {u'content-type': content_type, u'download-policy': u'immediate'}
+            {'content-type': content_type, 'download-policy': 'immediate'}
         )
         self.assertEqual(repository['content-type'], content_type)
-        for checksum_type in u'sha1', u'sha256':
+        for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
-                Repository.update({u'checksum-type': checksum_type, u'id': repository['id']})
+                Repository.update({'checksum-type': checksum_type, 'id': repository['id']})
                 result = Repository.info({'id': repository['id']})
                 self.assertEqual(result['checksum-type'], checksum_type)
 
@@ -1314,9 +1295,9 @@ class RepositoryTestCase(CLITestCase):
             with self.assertRaises(CLIFactoryError):
                 self._make_repository(
                     {
-                        u'content-type': u'yum',
-                        u'checksum-type': checksum_type,
-                        u'download-policy': 'on_demand',
+                        'content-type': 'yum',
+                        'checksum-type': checksum_type,
+                        'download-policy': 'on_demand',
                     }
                 )
 
@@ -1332,10 +1313,10 @@ class RepositoryTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_repo = self._make_repository({u'name': name})
-                Repository.delete({u'id': new_repo['id']})
+                new_repo = self._make_repository({'name': name})
+                Repository.delete({'id': new_repo['id']})
                 with self.assertRaises(CLIReturnCodeError):
-                    Repository.info({u'id': new_repo['id']})
+                    Repository.info({'id': new_repo['id']})
 
     @tier1
     @upgrade
@@ -1350,10 +1331,10 @@ class RepositoryTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_repo = self._make_repository({u'name': name})
+                new_repo = self._make_repository({'name': name})
                 Repository.delete({'name': new_repo['name'], 'product-id': self.product['id']})
                 with self.assertRaises(CLIReturnCodeError):
-                    Repository.info({u'id': new_repo['id']})
+                    Repository.info({'id': new_repo['id']})
 
     @tier1
     def test_positive_delete_rpm(self):
@@ -1365,15 +1346,15 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'content-type': u'yum', u'url': FAKE_1_YUM_REPO})
+        new_repo = self._make_repository({'content-type': 'yum', 'url': FAKE_1_YUM_REPO})
         Repository.synchronize({'id': new_repo['id']})
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['sync']['status'], 'Success')
         # Check that there is at least one package
         self.assertGreater(int(new_repo['content-counts']['packages']), 0)
-        Repository.delete({u'id': new_repo['id']})
+        Repository.delete({'id': new_repo['id']})
         with self.assertRaises(CLIReturnCodeError):
-            Repository.info({u'id': new_repo['id']})
+            Repository.info({'id': new_repo['id']})
 
     @tier1
     def test_positive_delete_puppet(self):
@@ -1387,15 +1368,15 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'content-type': u'puppet', u'url': FAKE_1_PUPPET_REPO})
+        new_repo = self._make_repository({'content-type': 'puppet', 'url': FAKE_1_PUPPET_REPO})
         Repository.synchronize({'id': new_repo['id']})
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['sync']['status'], 'Success')
         # Check that there is at least one puppet module
         self.assertGreater(int(new_repo['content-counts']['puppet-modules']), 0)
-        Repository.delete({u'id': new_repo['id']})
+        Repository.delete({'id': new_repo['id']})
         with self.assertRaises(CLIReturnCodeError):
-            Repository.info({u'id': new_repo['id']})
+            Repository.info({'id': new_repo['id']})
 
     @tier1
     @upgrade
@@ -1411,7 +1392,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # Create repository and synchronize it
-        repo = self._make_repository({'content-type': u'yum', 'url': FAKE_1_YUM_REPO})
+        repo = self._make_repository({'content-type': 'yum', 'url': FAKE_1_YUM_REPO})
         Repository.synchronize(
             {
                 'name': repo['name'],
@@ -1461,7 +1442,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # Create repository and synchronize it
-        repo = self._make_repository({u'content-type': u'yum', u'url': FAKE_1_YUM_REPO})
+        repo = self._make_repository({'content-type': 'yum', 'url': FAKE_1_YUM_REPO})
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['sync']['status'], 'Success')
@@ -1488,7 +1469,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # Create repository and synchronize it
-        repo = self._make_repository({u'content-type': u'puppet', u'url': FAKE_1_PUPPET_REPO})
+        repo = self._make_repository({'content-type': 'puppet', 'url': FAKE_1_PUPPET_REPO})
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['sync']['status'], 'Success')
@@ -1541,7 +1522,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({u'content-type': u'file', u'url': CUSTOM_FILE_REPO})
+        new_repo = self._make_repository({'content-type': 'file', 'url': CUSTOM_FILE_REPO})
         Repository.synchronize({'id': new_repo['id']})
         # Verify it has finished
         new_repo = Repository.info({'id': new_repo['id']})
@@ -1869,8 +1850,8 @@ class RepositoryTestCase(CLITestCase):
         repo = make_repository(
             {
                 'product-id': product['id'],
-                u'content-type': u'yum',
-                u'url': CUSTOM_MODULE_STREAM_REPO_2,
+                'content-type': 'yum',
+                'url': CUSTOM_MODULE_STREAM_REPO_2,
             }
         )
         Repository.synchronize({'id': repo['id']})
@@ -1883,8 +1864,8 @@ class RepositoryTestCase(CLITestCase):
         duplicate_repo = make_repository(
             {
                 'product-id': product['id'],
-                u'content-type': u'yum',
-                u'url': CUSTOM_MODULE_STREAM_REPO_2,
+                'content-type': 'yum',
+                'url': CUSTOM_MODULE_STREAM_REPO_2,
             }
         )
         Repository.synchronize({'id': duplicate_repo['id']})
@@ -1892,7 +1873,7 @@ class RepositoryTestCase(CLITestCase):
         module_streams = ModuleStream.list({'organization-id': org['id']})
         self.assertEqual(len(module_streams), 7, 'Module Streams get worked correctly')
         Repository.update(
-            {'product-id': product['id'], u'id': repo['id'], u'url': CUSTOM_MODULE_STREAM_REPO_2}
+            {'product-id': product['id'], 'id': repo['id'], 'url': CUSTOM_MODULE_STREAM_REPO_2}
         )
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
@@ -1902,7 +1883,7 @@ class RepositoryTestCase(CLITestCase):
 
         Repository.delete({'id': repo['id']})
         with self.assertRaises(CLIReturnCodeError):
-            Repository.info({u'id': repo['id']})
+            Repository.info({'id': repo['id']})
 
     @tier1
     def test_module_stream_list_validation(self):
@@ -1921,16 +1902,14 @@ class RepositoryTestCase(CLITestCase):
 
          :CaseAutomation: automated
          """
-        repo1 = self._make_repository(
-            {u'content-type': u'yum', u'url': CUSTOM_MODULE_STREAM_REPO_1}
-        )
+        repo1 = self._make_repository({'content-type': 'yum', 'url': CUSTOM_MODULE_STREAM_REPO_1})
         Repository.synchronize({'id': repo1['id']})
-        product2 = make_product_wait({u'organization-id': self.org['id']})
+        product2 = make_product_wait({'organization-id': self.org['id']})
         repo2 = self._make_repository(
             {
-                u'content-type': u'yum',
-                u'url': CUSTOM_MODULE_STREAM_REPO_2,
-                u'product-id': product2['id'],
+                'content-type': 'yum',
+                'url': CUSTOM_MODULE_STREAM_REPO_2,
+                'product-id': product2['id'],
             }
         )
         Repository.synchronize({'id': repo2['id']})
@@ -1956,19 +1935,19 @@ class RepositoryTestCase(CLITestCase):
 
          :CaseAutomation: automated
          """
-        product2 = make_product_wait({u'organization-id': self.org['id']})
+        product2 = make_product_wait({'organization-id': self.org['id']})
         repo2 = self._make_repository(
             {
-                u'content-type': u'yum',
-                u'url': CUSTOM_MODULE_STREAM_REPO_2,
-                u'product-id': product2['id'],
+                'content-type': 'yum',
+                'url': CUSTOM_MODULE_STREAM_REPO_2,
+                'product-id': product2['id'],
             }
         )
         Repository.synchronize({'id': repo2['id']})
         module_streams = ModuleStream.list(
             {'repository-id': repo2['id'], 'search': 'name="walrus" and stream="5.21"'}
         )
-        actual_result = ModuleStream.info({u'id': module_streams[0]['id']})
+        actual_result = ModuleStream.info({'id': module_streams[0]['id']})
         expected_result = {
             'module-stream-name': 'walrus',
             'stream': '5.21',
@@ -1989,7 +1968,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         """Create an organization and product which can be re-used in tests."""
         super(OstreeRepositoryTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.product = make_product({u'organization-id': cls.org['id']})
+        cls.product = make_product({'organization-id': cls.org['id']})
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""
@@ -1997,7 +1976,7 @@ class OstreeRepositoryTestCase(CLITestCase):
             options = {}
 
         if options.get('product-id') is None:
-            options[u'product-id'] = self.product['id']
+            options['product-id'] = self.product['id']
 
         return make_repository(options)
 
@@ -2015,14 +1994,14 @@ class OstreeRepositoryTestCase(CLITestCase):
             with self.subTest(name):
                 new_repo = self._make_repository(
                     {
-                        u'name': name,
-                        u'content-type': u'ostree',
-                        u'publish-via-http': u'false',
-                        u'url': FEDORA27_OSTREE_REPO,
+                        'name': name,
+                        'content-type': 'ostree',
+                        'publish-via-http': 'false',
+                        'url': FEDORA27_OSTREE_REPO,
                     }
                 )
                 self.assertEqual(new_repo['name'], name)
-                self.assertEqual(new_repo['content-type'], u'ostree')
+                self.assertEqual(new_repo['content-type'], 'ostree')
 
     @pytest.mark.skip_if_open("BZ:1716429")
     @tier1
@@ -2037,18 +2016,18 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :BZ: 1716429
         """
-        for checksum_type in u'sha1', u'sha256':
+        for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    u'Validation failed: Checksum type cannot be set for ' 'non-yum repositories',
+                    'Validation failed: Checksum type cannot be set for non-yum repositories',
                 ):
                     self._make_repository(
                         {
-                            u'content-type': u'ostree',
-                            u'checksum-type': checksum_type,
-                            u'publish-via-http': u'false',
-                            u'url': FEDORA27_OSTREE_REPO,
+                            'content-type': 'ostree',
+                            'checksum-type': checksum_type,
+                            'publish-via-http': 'false',
+                            'url': FEDORA27_OSTREE_REPO,
                         }
                     )
 
@@ -2062,17 +2041,17 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for use_http in u'true', u'yes', u'1':
+        for use_http in 'true', 'yes', '1':
             with self.subTest(use_http):
                 with self.assertRaisesRegex(
                     CLIFactoryError,
-                    u'Validation failed: OSTree Repositories cannot be ' 'unprotected',
+                    'Validation failed: OSTree Repositories cannot be unprotected',
                 ):
                     self._make_repository(
                         {
-                            u'content-type': u'ostree',
-                            u'publish-via-http': u'true',
-                            u'url': FEDORA27_OSTREE_REPO,
+                            'content-type': 'ostree',
+                            'publish-via-http': 'true',
+                            'url': FEDORA27_OSTREE_REPO,
                         }
                     )
 
@@ -2091,11 +2070,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         :BZ: 1625783
         """
         new_repo = self._make_repository(
-            {
-                u'content-type': u'ostree',
-                u'publish-via-http': u'false',
-                u'url': FEDORA27_OSTREE_REPO,
-            }
+            {'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}
         )
         # Synchronize it
         Repository.synchronize({'id': new_repo['id']})
@@ -2114,21 +2089,17 @@ class OstreeRepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_repo = self._make_repository(
-            {
-                u'content-type': u'ostree',
-                u'publish-via-http': u'false',
-                u'url': FEDORA27_OSTREE_REPO,
-            }
+            {'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}
         )
         Repository.delete(
             {
-                u'name': new_repo['name'],
-                u'product': new_repo['product']['name'],
-                u'organization': new_repo['organization'],
+                'name': new_repo['name'],
+                'product': new_repo['product']['name'],
+                'organization': new_repo['organization'],
             }
         )
         with self.assertRaises(CLIReturnCodeError):
-            Repository.info({u'name': new_repo['name']})
+            Repository.info({'name': new_repo['name']})
 
     @tier1
     @upgrade
@@ -2142,15 +2113,11 @@ class OstreeRepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_repo = self._make_repository(
-            {
-                u'content-type': u'ostree',
-                u'publish-via-http': u'false',
-                u'url': FEDORA27_OSTREE_REPO,
-            }
+            {'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}
         )
-        Repository.delete({u'id': new_repo['id']})
+        Repository.delete({'id': new_repo['id']})
         with self.assertRaises(CLIReturnCodeError):
-            Repository.info({u'id': new_repo['id']})
+            Repository.info({'id': new_repo['id']})
 
 
 class SRPMRepositoryTestCase(CLITestCase):

@@ -45,10 +45,10 @@ class HostCollectionTestCase(CLITestCase):
         super(HostCollectionTestCase, cls).setUpClass()
         cls.organization = make_org()
         cls.library = LifecycleEnvironment.info(
-            {u'organization-id': cls.organization['id'], u'name': ENVIRONMENT}
+            {'organization-id': cls.organization['id'], 'name': ENVIRONMENT}
         )
         cls.default_cv = ContentView.info(
-            {u'organization-id': cls.organization['id'], u'name': DEFAULT_CV}
+            {'organization-id': cls.organization['id'], 'name': DEFAULT_CV}
         )
         make_host_collection({'organization-id': cls.organization['id']})
 
@@ -56,10 +56,10 @@ class HostCollectionTestCase(CLITestCase):
         """Make a new fake host"""
         return make_fake_host(
             {
-                u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id'],
-                u'name': gen_string('alpha', 15),
-                u'organization-id': self.organization['id'],
+                'content-view-id': self.default_cv['id'],
+                'lifecycle-environment-id': self.library['id'],
+                'name': gen_string('alpha', 15),
+                'organization-id': self.organization['id'],
             }
         )
 
@@ -89,12 +89,12 @@ class HostCollectionTestCase(CLITestCase):
         # add host
         new_system = self._make_fake_host_helper()
         no_of_content_host = new_host_col['total-hosts']
-        HostCollection.add_host({u'host-ids': new_system['id'], u'id': new_host_col['id']})
-        result = HostCollection.info({u'id': new_host_col['id']})
+        HostCollection.add_host({'host-ids': new_system['id'], 'id': new_host_col['id']})
+        result = HostCollection.info({'id': new_host_col['id']})
         self.assertGreater(result['total-hosts'], no_of_content_host)
 
         # list hosts
-        result = HostCollection.hosts({u'name': name, u'organization-id': self.organization['id']})
+        result = HostCollection.hosts({'name': name, 'organization-id': self.organization['id']})
         self.assertEqual(new_system['name'].lower(), result[0]['name'])
         # List all host collections within organization
         result = HostCollection.list({'organization': self.organization['name']})
@@ -111,9 +111,9 @@ class HostCollectionTestCase(CLITestCase):
         self.assertEqual(result[0]['name'], new_host_col['name'])
 
         # remove host
-        no_of_content_host = HostCollection.info({u'id': new_host_col['id']})['total-hosts']
-        HostCollection.remove_host({u'host-ids': new_system['id'], u'id': new_host_col['id']})
-        result = HostCollection.info({u'id': new_host_col['id']})
+        no_of_content_host = HostCollection.info({'id': new_host_col['id']})['total-hosts']
+        HostCollection.remove_host({'host-ids': new_system['id'], 'id': new_host_col['id']})
+        result = HostCollection.info({'id': new_host_col['id']})
         self.assertGreater(no_of_content_host, result['total-hosts'])
 
         # update
@@ -253,13 +253,13 @@ class HostCollectionTestCase(CLITestCase):
         """
         host_collection = make_host_collection({'organization-id': self.organization['id']})
         host_ids = ','.join(self._make_fake_host_helper()['id'] for _ in range(2))
-        HostCollection.add_host({u'host-ids': host_ids, u'id': host_collection['id']})
+        HostCollection.add_host({'host-ids': host_ids, 'id': host_collection['id']})
         for number in range(1, 3):
             listed_hosts = HostCollection.hosts(
                 {
-                    u'id': host_collection['id'],
-                    u'organization-id': self.organization['id'],
-                    u'per-page': number,
+                    'id': host_collection['id'],
+                    'organization-id': self.organization['id'],
+                    'per-page': number,
                 }
             )
             self.assertEqual(len(listed_hosts), number)
@@ -283,9 +283,9 @@ class HostCollectionTestCase(CLITestCase):
         )
         new_name = gen_string('numeric')
         new_host_collection = HostCollection.copy(
-            {u'id': host_collection['id'], u'new-name': new_name}
+            {'id': host_collection['id'], 'new-name': new_name}
         )
-        result = HostCollection.info({u'id': new_host_collection[0]['id']})
+        result = HostCollection.info({'id': new_host_collection[0]['id']})
         self.assertEqual(result['name'], new_name)
 
     @tier1

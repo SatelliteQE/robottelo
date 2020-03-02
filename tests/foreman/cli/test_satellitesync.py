@@ -258,8 +258,8 @@ class ContentViewSync(CLITestCase):
         content_view = ContentView.info({'name': cv_name, 'organization-id': organization['id']})
         cvv_id = None
         if publish:
-            ContentView.publish({u'id': content_view['id']})
-            content_view = ContentView.info({u'id': content_view['id']})
+            ContentView.publish({'id': content_view['id']})
+            content_view = ContentView.info({'id': content_view['id']})
             cvv_id = content_view['versions'][0]['id']
         return content_view, cvv_id
 
@@ -459,7 +459,7 @@ class ContentViewSync(CLITestCase):
         ContentView.publish(
             {'id': exporting_cv['id'], 'organization-id': self.exporting_org['id']}
         )
-        exporting_cv = ContentView.info({u'id': exporting_cv['id']})
+        exporting_cv = ContentView.info({'id': exporting_cv['id']})
         exporting_cvv_id = exporting_cv['versions'][0]['id']
         exporting_cvv_version = exporting_cv['versions'][0]['version']
         ContentView.version_export(
@@ -478,7 +478,7 @@ class ContentViewSync(CLITestCase):
         ContentView.version_import(
             {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
         )
-        importing_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
+        importing_cvv = ContentView.info({'id': self.importing_cv['id']})['versions']
         self.assertTrue(len(importing_cvv) >= 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertTrue(len(imported_packages) == 1)
@@ -527,7 +527,7 @@ class ContentViewSync(CLITestCase):
         ContentView.version_import(
             {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
         )
-        importing_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
+        importing_cvv = ContentView.info({'id': self.importing_cv['id']})['versions']
         self.assertTrue(len(importing_cvv) >= 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertTrue(len(imported_packages) > 0)
@@ -595,7 +595,7 @@ class ContentViewSync(CLITestCase):
         ContentView.version_import(
             {'export-tar': exported_tar, 'organization-id': importing_org['id']}
         )
-        importing_cvv_id = ContentView.info({u'id': importing_cv['id']})['versions'][0]['id']
+        importing_cvv_id = ContentView.info({'id': importing_cv['id']})['versions'][0]['id']
         imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
@@ -661,7 +661,7 @@ class ContentViewSync(CLITestCase):
         ContentView.version_import(
             {'export-tar': exported_tar, 'organization-id': importing_org['id']}, timeout=7200
         )
-        importing_cvv_id = ContentView.info({u'id': importing_cv['id']})['versions'][0]['id']
+        importing_cvv_id = ContentView.info({'id': importing_cv['id']})['versions'][0]['id']
         imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
@@ -732,11 +732,11 @@ class ContentViewSync(CLITestCase):
 
         :CaseLevel: System
         """
-        env = make_lifecycle_environment({u'organization-id': self.exporting_org['id']})
+        env = make_lifecycle_environment({'organization-id': self.exporting_org['id']})
         ContentView.version_promote(
-            {u'id': self.exporting_cvv_id, u'to-lifecycle-environment-id': env['id']}
+            {'id': self.exporting_cvv_id, 'to-lifecycle-environment-id': env['id']}
         )
-        promoted_cvv_id = ContentView.info({u'id': self.exporting_cv['id']})['versions'][-1]['id']
+        promoted_cvv_id = ContentView.info({'id': self.exporting_cv['id']})['versions'][-1]['id']
         ContentView.version_export(
             {'export-dir': '{}'.format(self.export_dir), 'id': promoted_cvv_id}
         )
@@ -753,7 +753,7 @@ class ContentViewSync(CLITestCase):
         ContentView.version_import(
             {'export-tar': exported_tar, 'organization-id': self.importing_org['id']}
         )
-        importing_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
+        importing_cvv = ContentView.info({'id': self.importing_cv['id']})['versions']
         self.assertEqual(len(importing_cvv), 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertEqual(len(exported_packages), len(imported_packages))
@@ -1093,8 +1093,8 @@ class ContentViewSync(CLITestCase):
         content_view = make_content_view(
             {'name': gen_string('alpha'), 'organization-id': org['id']}
         )
-        ContentView.publish({u'id': content_view['id'], 'major': major, 'minor': minor})
-        content_view = ContentView.info({u'id': content_view['id']})
+        ContentView.publish({'id': content_view['id'], 'major': major, 'minor': minor})
+        content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][0]['version']
         self.assertEqual(cvv.split('.')[0], str(major))
         self.assertEqual(cvv.split('.')[1], str(minor))
@@ -1131,21 +1131,21 @@ class ContentViewSync(CLITestCase):
         puppet_module = PuppetModule.list(
             {'search': 'name={name} and version={version}'.format(**module)}
         )[0]
-        content_view = make_content_view({u'organization-id': exporting_org['id']})
+        content_view = make_content_view({'organization-id': exporting_org['id']})
         ContentView.puppet_module_add(
             {
-                u'content-view-id': content_view['id'],
-                u'name': puppet_module['name'],
-                u'author': puppet_module['author'],
+                'content-view-id': content_view['id'],
+                'name': puppet_module['name'],
+                'author': puppet_module['author'],
             }
         )
-        ContentView.publish({u'id': content_view['id']})
-        cv_version = ContentView.info({u'id': content_view['id']})['versions'][0]['version']
+        ContentView.publish({'id': content_view['id']})
+        cv_version = ContentView.info({'id': content_view['id']})['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export(
                 {
                     'export-dir': '{}'.format(self.export_dir),
-                    'id': ContentView.info({u'id': content_view['id']})['versions'][0]['id'],
+                    'id': ContentView.info({'id': content_view['id']})['versions'][0]['id'],
                 }
             )
         self.assert_error_msg(
@@ -1196,7 +1196,7 @@ class ContentViewSync(CLITestCase):
         puppet_module = PuppetModule.list(
             {'search': 'name={name} and version={version}'.format(**module)}
         )[0]
-        content_view = make_content_view({u'organization-id': self.exporting_org['id']})
+        content_view = make_content_view({'organization-id': self.exporting_org['id']})
         ContentView.puppet_module_add(
             {
                 'content-view-id': content_view['id'],
@@ -1211,8 +1211,8 @@ class ContentViewSync(CLITestCase):
                 'repository-id': yum_repo['id'],
             }
         )
-        ContentView.publish({u'id': content_view['id']})
-        export_cvv_info = ContentView.info({u'id': content_view['id']})['versions'][0]
+        ContentView.publish({'id': content_view['id']})
+        export_cvv_info = ContentView.info({'id': content_view['id']})['versions'][0]
         ContentView.version_export(
             {'export-dir': '{}'.format(self.export_dir), 'id': export_cvv_info['id']}
         )
@@ -1269,7 +1269,7 @@ class ContentViewSync(CLITestCase):
         ContentView.version_import(
             {'export-tar': custom_cvv_tar, 'organization-id': self.importing_org['id']}
         )
-        imported_cvv = ContentView.info({u'id': self.importing_cv['id']})['versions']
+        imported_cvv = ContentView.info({'id': self.importing_cv['id']})['versions']
         self.assertEqual(str(new_major), imported_cvv[0]['version'].split('.')[0])
         self.assertEqual(str(new_minor), imported_cvv[0]['version'].split('.')[1])
 
@@ -1306,8 +1306,8 @@ class ContentViewSync(CLITestCase):
              Errata IDs
 
         """
-        exporting_repo = Repository.info({u'id': self.exporting_repo['id']})
-        exporting_cv = ContentView.info({u'id': self.exporting_cv['id']})
+        exporting_repo = Repository.info({'id': self.exporting_repo['id']})
+        exporting_cv = ContentView.info({'id': self.exporting_cv['id']})
         ContentView.version_export(
             {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
         )

@@ -1357,15 +1357,15 @@ class DockerRepositoryTestCase(APITestCase):
         for name in valid_docker_repository_names():
             with self.subTest(name):
                 repo = entities.Repository(
-                    content_type=u'docker',
-                    docker_upstream_name=u'busybox',
+                    content_type='docker',
+                    docker_upstream_name='busybox',
                     name=name,
                     product=product,
                     url=DOCKER_REGISTRY_HUB,
                 ).create()
                 self.assertEqual(repo.name, name)
-                self.assertEqual(repo.docker_upstream_name, u'busybox')
-                self.assertEqual(repo.content_type, u'docker')
+                self.assertEqual(repo.docker_upstream_name, 'busybox')
+                self.assertEqual(repo.content_type, 'docker')
 
     @tier1
     def test_positive_synchronize(self):
@@ -1380,9 +1380,9 @@ class DockerRepositoryTestCase(APITestCase):
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
-            name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
+            name='busybox',
             product=product,
             url=DOCKER_REGISTRY_HUB,
         ).create()
@@ -1426,7 +1426,7 @@ class DockerRepositoryTestCase(APITestCase):
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-            content_type=u'docker',
+            content_type='docker',
             docker_upstream_name=settings.docker.private_registry_name,
             name=gen_string('alpha'),
             product=product,
@@ -1456,7 +1456,7 @@ class DockerRepositoryTestCase(APITestCase):
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-            content_type=u'docker',
+            content_type='docker',
             docker_upstream_name=settings.docker.private_registry_name,
             name=gen_string('alpha'),
             product=product,
@@ -1493,7 +1493,7 @@ class DockerRepositoryTestCase(APITestCase):
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
-            content_type=u'docker',
+            content_type='docker',
             docker_upstream_name=settings.docker.private_registry_name,
             name=gen_string('alpha'),
             product=product,
@@ -1531,7 +1531,7 @@ class DockerRepositoryTestCase(APITestCase):
         product = entities.Product(organization=self.org).create()
         with self.assertRaises(HTTPError) as excinfo:
             entities.Repository(
-                content_type=u'docker',
+                content_type='docker',
                 docker_upstream_name=settings.docker.private_registry_name,
                 name=gen_string('alpha'),
                 product=product,
@@ -2157,14 +2157,14 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         self.assertGreater(
             len(registry_config['registry_password']),
             255,
-            msg='Please use a longer (>255) token for ' 'long_pass_test_registry',
+            msg='Please use a longer (>255) token for long_pass_test_registry',
         )
 
         product = entities.Product(organization=self.org).create()
         for reponame in registry_config['repos_to_sync']:
             with self.subTest(reponame):
                 repo = entities.Repository(
-                    content_type=u'docker',
+                    content_type='docker',
                     docker_upstream_name=reponame,
                     name=reponame,
                     product=product,
@@ -2174,7 +2174,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                 ).create()
                 self.assertEqual(repo.name, reponame)
                 self.assertEqual(repo.docker_upstream_name, reponame)
-                self.assertEqual(repo.content_type, u'docker')
+                self.assertEqual(repo.content_type, 'docker')
                 self.assertEqual(repo.upstream_username, registry_config['registry_username'])
                 repo.sync()
                 self.assertGreater(repo.read().content_counts['docker_manifest'], 1)
@@ -2194,7 +2194,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
 
                 for repo_name in config['repos_to_sync']:
                     repo = entities.Repository(
-                        content_type=u'docker',
+                        content_type='docker',
                         docker_upstream_name=repo_name,
                         name=repo_name,
                         product=product,
@@ -2205,7 +2205,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                     ).create()
                     self.assertEqual(repo.name, repo_name)
                     self.assertEqual(repo.docker_upstream_name, repo_name)
-                    self.assertEqual(repo.content_type, u'docker')
+                    self.assertEqual(repo.content_type, 'docker')
                     self.assertEqual(repo.upstream_username, config['registry_username'])
                     repo.sync()
                     self.assertGreaterEqual(repo.read().content_counts['docker_manifest'], 1)

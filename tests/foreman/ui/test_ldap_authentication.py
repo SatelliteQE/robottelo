@@ -77,7 +77,7 @@ def set_certificate_in_satellite(server_type):
     result = ssh.command('systemctl restart httpd')
     if result.return_code != 0:
         raise AssertionError(
-            'Failed to restart the httpd after applying {} ' 'cert'.format(server_type)
+            'Failed to restart the httpd after applying {} cert'.format(server_type)
         )
 
 

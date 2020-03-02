@@ -314,7 +314,7 @@ class OrganizationTestCase(CLITestCase):
         compute_res_a = make_compute_resource(
             {
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': u'qemu+ssh://root@{0}/system'.format(
+                'url': 'qemu+ssh://root@{0}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
             }
@@ -322,7 +322,7 @@ class OrganizationTestCase(CLITestCase):
         compute_res_b = make_compute_resource(
             {
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': u'qemu+ssh://root@{0}/system'.format(
+                'url': 'qemu+ssh://root@{0}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
             }
@@ -408,7 +408,7 @@ class OrganizationTestCase(CLITestCase):
         Org.add_config_template({'name': self.org['name'], 'config-template': template['name']})
         org_info = Org.info({'name': self.org['name']})
         self.assertIn(
-            u'{0} ({1})'.format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
@@ -416,7 +416,7 @@ class OrganizationTestCase(CLITestCase):
         Org.remove_config_template({'config-template': template['name'], 'name': self.org['name']})
         org_info = Org.info({'name': self.org['name']})
         self.assertNotIn(
-            u'{0} ({1})'.format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to remove template by name",
         )
@@ -426,7 +426,7 @@ class OrganizationTestCase(CLITestCase):
         Org.add_config_template({'config-template-id': template['id'], 'id': self.org['id']})
         org_info = Org.info({'id': self.org['id']})
         self.assertIn(
-            u'{0} ({1})'.format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
@@ -434,7 +434,7 @@ class OrganizationTestCase(CLITestCase):
         Org.remove_config_template({'config-template-id': template['id'], 'id': self.org['id']})
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn(
-            u'{0} ({1})'.format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to remove template by id",
         )

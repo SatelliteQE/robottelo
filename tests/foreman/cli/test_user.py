@@ -271,7 +271,7 @@ class UserTestCase(CLITestCase):
                     'password': gen_string('alpha'),
                 }
                 self.logger.debug(str(options))
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not create the user:'):
                     User.create(options)
 
     @tier1
@@ -294,7 +294,7 @@ class UserTestCase(CLITestCase):
                     'mail': 'root@localhost',
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not create the user'):
                     User.create(options)
 
     @tier1
@@ -317,7 +317,7 @@ class UserTestCase(CLITestCase):
                     'mail': 'root@localhost',
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not create the user'):
                     User.create(options)
 
     @tier1
@@ -340,7 +340,7 @@ class UserTestCase(CLITestCase):
                     'mail': email,
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not create the user'):
                     User.create(options)
 
     @tier1
@@ -353,7 +353,7 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user:'):
+        with self.assertRaisesRegex(CLIReturnCodeError, 'Could not create the user:'):
             User.create(
                 {'auth-source-id': '', 'login': gen_string('alpha'), 'mail': 'root@localhost'}
             )
@@ -370,7 +370,7 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(CLIReturnCodeError, u'Could not create the user:'):
+        with self.assertRaisesRegex(CLIReturnCodeError, 'Could not create the user:'):
             User.create(
                 {
                     'auth-source-id': '',
@@ -458,7 +458,7 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(CLIReturnCodeError, u'Could not delete the user:'):
+        with self.assertRaisesRegex(CLIReturnCodeError, 'Could not delete the user:'):
             User.delete({'login': self.foreman_user})
         self.assertTrue(User.info({'login': self.foreman_user}))
 
@@ -475,7 +475,7 @@ class UserTestCase(CLITestCase):
         for login in valid_usernames_list():
             with self.subTest(login):
                 user = make_user({'login': login})
-                result = User.list({u'search': u'login = {0}'.format(login)})
+                result = User.list({'search': 'login = {0}'.format(login)})
                 self.assertEqual(len(result), 1)
                 # make sure user is in list result
                 self.assertEqual(
@@ -495,7 +495,7 @@ class UserTestCase(CLITestCase):
         for firstname in valid_usernames_list():
             with self.subTest(firstname):
                 user = make_user({'firstname': firstname})
-                result = User.list({u'search': u'firstname = {0}'.format(firstname)})
+                result = User.list({'search': 'firstname = {0}'.format(firstname)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['id'], user['login'], user['name']},
@@ -515,7 +515,7 @@ class UserTestCase(CLITestCase):
         for lastname in valid_usernames_list():
             with self.subTest(lastname):
                 user = make_user({'lastname': lastname})
-                result = User.list({u'search': u'lastname = {0}'.format(lastname)})
+                result = User.list({'search': 'lastname = {0}'.format(lastname)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['id'], user['login'], user['name']},
@@ -541,7 +541,7 @@ class UserTestCase(CLITestCase):
         for mail in valid_emails:
             with self.subTest(mail):
                 user = make_user({'mail': mail})
-                result = User.list({u'search': u'mail = {0}'.format(mail)})
+                result = User.list({'search': 'mail = {0}'.format(mail)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['email'], user['id'], user['login']},
@@ -567,7 +567,7 @@ class UserTestCase(CLITestCase):
         for mail in valid_mails:
             with self.subTest(mail):
                 user = make_user({'mail': mail})
-                result = User.list({u'search': u'mail = {0}'.format(mail)})
+                result = User.list({'search': 'mail = {0}'.format(mail)})
                 # make sure user is in list result
                 self.assertEqual(
                     {user['email'], user['id'], user['login']},
@@ -856,7 +856,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         for new_user_name in invalid_names_list():
             with self.subTest(new_user_name):
                 options = {'id': user['id'], 'login': new_user_name}
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the user:'):
                     User.update(options)
 
     @tier1
@@ -873,7 +873,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         for invalid_firstname in invalid_names_list():
             with self.subTest(invalid_firstname):
                 options = {'firstname': invalid_firstname, 'login': user['login']}
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the user:'):
                     User.update(options)
                 updated_user = User.info({'id': user['id']})
                 self.assertEqual(updated_user['name'], user['name'])
@@ -891,7 +891,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for invalid_lastname in (gen_string('alpha', 51), gen_string('html')):
             with self.subTest(invalid_lastname):
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the user:'):
                     User.update({'lastname': invalid_lastname, 'login': user['login']})
 
     @tier1
@@ -907,7 +907,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for email in invalid_emails_list():
             with self.subTest(email):
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the user:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the user:'):
                     User.update({'login': user['login'], 'mail': email})
 
     @tier2
@@ -999,7 +999,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         make_user({'login': login, 'password': password})
         User.add_role({'login': login, 'role': 'System admin'})
-        result_before_login = User.list({u'search': u'login = {0}'.format(login)})
+        result_before_login = User.list({'search': 'login = {0}'.format(login)})
 
         # this is because satellite uses the UTC timezone
         before_login_time = datetime.datetime.utcnow()
@@ -1007,7 +1007,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         assert result_before_login[0]['last-login'] == ""
 
         Org.with_user(username=login, password=password).create({'name': org_name})
-        result_after_login = User.list({u'search': u'login = {0}'.format(login)})
+        result_after_login = User.list({'search': 'login = {0}'.format(login)})
 
         # checking user last login should not be empty
         assert result_after_login[0]['last-login'] != ""

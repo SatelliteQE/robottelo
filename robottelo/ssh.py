@@ -49,8 +49,8 @@ class SSHCommandResult(object):
 
     def __repr__(self):
         tmpl = (
-            u'SSHCommandResult(stdout={stdout!r}, stderr={stderr!r}, '
-            + u'return_code={return_code!r}, output_format={output_format!r})'
+            'SSHCommandResult(stdout={stdout!r}, stderr={stderr!r}, '
+            + 'return_code={return_code!r}, output_format={output_format!r})'
         )
         return tmpl.format(**self.__dict__)
 
@@ -443,9 +443,9 @@ def execute_command(cmd, connection, output_format=None, timeout=None, connectio
         # Mostly only for hammer commands
         # for output we don't really want to see all of Rails traffic
         # information, so strip it out.
-        # Empty fields are returned as "" which gives us u'""'
+        # Empty fields are returned as "" which gives us '""'
         stdout = stdout.replace('""', '')
-        stdout = u''.join(stdout).split('\n')
+        stdout = ''.join(stdout).split('\n')
         stdout = [regex.sub('', line) for line in stdout if not line.startswith('[')]
     return SSHCommandResult(stdout, stderr, errorcode, output_format)
 

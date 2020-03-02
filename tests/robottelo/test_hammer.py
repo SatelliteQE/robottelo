@@ -10,19 +10,19 @@ class ParseCSVTestCase(unittest2.TestCase):
 
     def test_parse_csv(self):
         output_lines = [
-            u'Header,Header 2',
-            u'header value 1,header with spaces value',
-            u'MixEd CaSe ValUe,ALL CAPS VALUE',
-            u'"""double quote escaped value""","," escaped value',
-            u'unicode,chårs',
+            'Header,Header 2',
+            'header value 1,header with spaces value',
+            'MixEd CaSe ValUe,ALL CAPS VALUE',
+            '"""double quote escaped value""","," escaped value',
+            'unicode,chårs',
         ]
         self.assertEqual(
             hammer.parse_csv(output_lines),
             [
-                {u'header': u'header value 1', u'header-2': u'header with spaces value'},
-                {u'header': u'MixEd CaSe ValUe', u'header-2': u'ALL CAPS VALUE'},
-                {u'header': u'"double quote escaped value"', u'header-2': u', escaped value'},
-                {u'header': u'unicode', u'header-2': u'chårs'},
+                {'header': 'header value 1', 'header-2': 'header with spaces value'},
+                {'header': 'MixEd CaSe ValUe', 'header-2': 'ALL CAPS VALUE'},
+                {'header': '"double quote escaped value"', 'header-2': ', escaped value'},
+                {'header': 'unicode', 'header-2': 'chårs'},
             ],
         )
 
@@ -33,7 +33,7 @@ class ParseJSONTestCase(unittest2.TestCase):
     def test_parse_json(self):
         """Output generated with:
         hammer -u admin -p changeme --output json content-view info --id 1"""
-        output = u"""{
+        output = """{
           "ID": 1,
           "Name": "Default Organization View",
           "Label": "Default_Organization_View",
@@ -71,27 +71,23 @@ class ParseJSONTestCase(unittest2.TestCase):
         self.assertEqual(
             hammer.parse_json(output),
             {
-                u'puppet-modules': {},
-                u'description': None,
-                u'versions': {
-                    u'1': {
-                        u'version': u'1.0',
-                        u'id': u'1',
-                        u'published': u'2016-07-05 17:35:33 UTC',
-                    }
+                'puppet-modules': {},
+                'description': None,
+                'versions': {
+                    '1': {'version': '1.0', 'id': '1', 'published': '2016-07-05 17:35:33 UTC'}
                 },
-                u'composite': False,
-                u'ostree-repositories': {},
-                u'label': u'Default_Organization_View',
-                u'activation-keys': {},
-                u'container-image-repositories': {},
-                u'components': {},
-                u'organization': u'Default Organization',
-                u'yum-repositories': {},
-                u'lifecycle-environments': {u'1': {u'id': u'1', u'name': u'Library'}},
-                u'id': u'1',
-                u'content-host-count': u'0',
-                u'name': u'Default Organization View',
+                'composite': False,
+                'ostree-repositories': {},
+                'label': 'Default_Organization_View',
+                'activation-keys': {},
+                'container-image-repositories': {},
+                'components': {},
+                'organization': 'Default Organization',
+                'yum-repositories': {},
+                'lifecycle-environments': {'1': {'id': '1', 'name': 'Library'}},
+                'id': '1',
+                'content-host-count': '0',
+                'name': 'Default Organization View',
             },
         )
 
@@ -105,7 +101,7 @@ class ParseJSONTestCase(unittest2.TestCase):
         LANG=en_US.UTF-8  hammer -v -u admin -p changeme --output=csv gpg
         info --id="160" --organization-id="1003"
         """
-        json_output = u"""{
+        json_output = """{
           "ID": 160,
           "Name": "QUWTHo0WzF",
           "Organization": "ANtbiU",
@@ -114,8 +110,8 @@ class ParseJSONTestCase(unittest2.TestCase):
         """
 
         csv_ouput_lines = [
-            u"ID,Name,Organization,Content",
-            u"160,QUWTHo0WzF,ANtbiU,qJxB1FX1UrssYiGGhRcZDF9eY8U",
+            "ID,Name,Organization,Content",
+            "160,QUWTHo0WzF,ANtbiU,qJxB1FX1UrssYiGGhRcZDF9eY8U",
         ]
 
         self.assertEqual(hammer.parse_json(json_output), hammer.parse_csv(csv_ouput_lines)[0])
@@ -198,7 +194,7 @@ class ParseHelpTestCase(unittest2.TestCase):
                         'shortname': None,
                         'value': 'ADAPTER',
                         'help': (
-                            'Set output format. One of [base, table, silent, ' 'csv, yaml, json]'
+                            'Set output format. One of [base, table, silent, csv, yaml, json]'
                         ),
                     },
                     {

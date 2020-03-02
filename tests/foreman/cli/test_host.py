@@ -141,7 +141,7 @@ class HostCreateTestCase(CLITestCase):
             puppet_modules, CUSTOM_PUPPET_REPO, cls.new_org['id']
         )
         cls.puppet_env = Environment.list(
-            {'search': u'content_view="{0}"'.format(cls.puppet_cv['name'])}
+            {'search': 'content_view="{0}"'.format(cls.puppet_cv['name'])}
         )[0]
         cls.puppet_class = Puppet.info(
             {'name': puppet_modules[0]['name'], 'puppet-environment': cls.puppet_env['name']}
@@ -188,20 +188,20 @@ class HostCreateTestCase(CLITestCase):
         ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
         new_host = make_host(
             {
-                u'architecture-id': host.architecture.id,
-                u'content-view-id': self.DEFAULT_CV['id'],
-                u'domain-id': host.domain.id,
-                u'environment-id': host.environment.id,
-                u'interface': interface,
-                u'lifecycle-environment-id': self.LIBRARY['id'],
-                u'location-id': host.location.id,
-                u'mac': host.mac,
-                u'medium-id': host.medium.id,
-                u'name': name,
-                u'operatingsystem-id': host.operatingsystem.id,
-                u'organization-id': host.organization.id,
-                u'partition-table-id': host.ptable.id,
-                u'root-password': host.root_pass,
+                'architecture-id': host.architecture.id,
+                'content-view-id': self.DEFAULT_CV['id'],
+                'domain-id': host.domain.id,
+                'environment-id': host.environment.id,
+                'interface': interface,
+                'lifecycle-environment-id': self.LIBRARY['id'],
+                'location-id': host.location.id,
+                'mac': host.mac,
+                'medium-id': host.medium.id,
+                'name': name,
+                'operatingsystem-id': host.operatingsystem.id,
+                'organization-id': host.organization.id,
+                'partition-table-id': host.ptable.id,
+                'root-password': host.root_pass,
             }
         )
         self.assertEqual('{0}.{1}'.format(name, host.domain.read().name), new_host['name'])
@@ -213,7 +213,7 @@ class HostCreateTestCase(CLITestCase):
             new_host['content-information']['lifecycle-environment']['name'], self.LIBRARY['name']
         )
         host_interface = HostInterface.info(
-            {u'host-id': new_host['id'], u'id': new_host['network-interfaces'][0]['id']}
+            {'host-id': new_host['id'], 'id': new_host['network-interfaces'][0]['id']}
         )
         self.assertEqual(host_interface['domain'], host.domain.read().name)
 
@@ -233,23 +233,18 @@ class HostCreateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         domain = make_domain(
-            {u'organizations': u'Default Organization', u'locations': u'Default Location'}
+            {'organizations': 'Default Organization', 'locations': 'Default Location'}
         )
         mac = gen_mac(multicast=False)
-        host = make_fake_host({u'domain-id': domain['id']})
+        host = make_fake_host({'domain-id': domain['id']})
         HostInterface.create(
-            {
-                u'host-id': host['id'],
-                u'domain-id': domain['id'],
-                u'mac': mac,
-                u'type': u'interface',
-            }
+            {'host-id': host['id'], 'domain-id': domain['id'], 'mac': mac, 'type': 'interface'}
         )
-        host = Host.info({u'id': host['id']})
+        host = Host.info({'id': host['id']})
         host_interface = HostInterface.info(
             {
-                u'host-id': host['id'],
-                u'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0][
+                'host-id': host['id'],
+                'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0][
                     'id'
                 ],
             }
@@ -563,7 +558,7 @@ class HostCreateTestCase(CLITestCase):
         sc_params_list = SmartClassParameter.list(
             {
                 'environment': self.puppet_env['name'],
-                'search': u'puppetclass="{0}"'.format(self.puppet_class['name']),
+                'search': 'puppetclass="{0}"'.format(self.puppet_class['name']),
             }
         )
         scp_id = choice(sc_params_list)['id']
@@ -620,9 +615,7 @@ class HostCreateTestCase(CLITestCase):
                 lce='{}/{}'.format(self.new_lce['label'], self.promoted_cv['label']),
             )
             self.assertTrue(client.subscribed)
-            hosts = Host.list(
-                {'search': 'last_checkin = "Today" or ' 'last_checkin = "Yesterday"'}
-            )
+            hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
             self.assertGreaterEqual(len(hosts), 1)
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
@@ -682,18 +675,18 @@ class HostCreateTestCase(CLITestCase):
         host.create_missing()
         result = make_host(
             {
-                u'architecture-id': host.architecture.id,
-                u'compute-resource-id': compute_resource.id,
-                u'domain-id': host.domain.id,
-                u'environment-id': host.environment.id,
-                u'location-id': host.location.id,
-                u'medium-id': host.medium.id,
-                u'name': host.name,
-                u'operatingsystem-id': host.operatingsystem.id,
-                u'organization-id': host.organization.id,
-                u'partition-table-id': host.ptable.id,
-                u'puppet-proxy-id': self.puppet_proxy['id'],
-                u'root-password': host.root_pass,
+                'architecture-id': host.architecture.id,
+                'compute-resource-id': compute_resource.id,
+                'domain-id': host.domain.id,
+                'environment-id': host.environment.id,
+                'location-id': host.location.id,
+                'medium-id': host.medium.id,
+                'name': host.name,
+                'operatingsystem-id': host.operatingsystem.id,
+                'organization-id': host.organization.id,
+                'partition-table-id': host.ptable.id,
+                'puppet-proxy-id': self.puppet_proxy['id'],
+                'root-password': host.root_pass,
             }
         )
         self.assertEqual(result['name'], host.name + '.' + host.domain.name)
@@ -889,18 +882,18 @@ class HostUpdateTestCase(CLITestCase):
         # using CLI to create host
         self.host = make_host(
             {
-                u'architecture-id': self.host_args.architecture.id,
-                u'domain-id': self.host_args.domain.id,
-                u'environment-id': self.host_args.environment.id,
-                u'location-id': self.host_args.location.id,
-                u'mac': self.host_args.mac,
-                u'medium-id': self.host_args.medium.id,
-                u'name': self.host_args.name,
-                u'operatingsystem-id': self.host_args.operatingsystem.id,
-                u'organization-id': self.host_args.organization.id,
-                u'partition-table-id': self.host_args.ptable.id,
-                u'puppet-proxy-id': self.puppet_proxy['id'],
-                u'root-password': self.host_args.root_pass,
+                'architecture-id': self.host_args.architecture.id,
+                'domain-id': self.host_args.domain.id,
+                'environment-id': self.host_args.environment.id,
+                'location-id': self.host_args.location.id,
+                'mac': self.host_args.mac,
+                'medium-id': self.host_args.medium.id,
+                'name': self.host_args.name,
+                'operatingsystem-id': self.host_args.operatingsystem.id,
+                'organization-id': self.host_args.organization.id,
+                'partition-table-id': self.host_args.ptable.id,
+                'puppet-proxy-id': self.puppet_proxy['id'],
+                'root-password': self.host_args.root_pass,
             }
         )
 
@@ -955,7 +948,7 @@ class HostUpdateTestCase(CLITestCase):
         )
         self.host = Host.info({'id': self.host['id']})
         self.assertEqual(
-            u'{0}.{1}'.format(new_name, self.host['network']['domain']), self.host['name']
+            '{0}.{1}'.format(new_name, self.host['network']['domain']), self.host['name']
         )
         self.assertEqual(self.host['location'], new_loc['name'])
         self.assertEqual(self.host['network']['mac'], new_mac)
@@ -981,7 +974,7 @@ class HostUpdateTestCase(CLITestCase):
                     Host.update({'id': self.host['id'], 'new-name': new_name})
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotEqual(
-                    u'{0}.{1}'.format(new_name, self.host['network']['domain']).lower(),
+                    '{0}.{1}'.format(new_name, self.host['network']['domain']).lower(),
                     self.host['name'],
                 )
 
@@ -1067,18 +1060,18 @@ class HostParameterTestCase(CLITestCase):
         # using CLI to create host
         cls.host = make_host(
             {
-                u'architecture-id': cls.host_template.architecture.id,
-                u'domain-id': cls.host_template.domain.id,
-                u'environment-id': cls.host_template.environment.id,
-                u'location-id': cls.loc_id,
-                u'mac': cls.host_template.mac,
-                u'medium-id': cls.host_template.medium.id,
-                u'name': cls.host_template.name,
-                u'operatingsystem-id': cls.host_template.operatingsystem.id,
-                u'organization-id': cls.org_id,
-                u'partition-table-id': cls.host_template.ptable.id,
-                u'puppet-proxy-id': cls.puppet_proxy['id'],
-                u'root-password': cls.host_template.root_pass,
+                'architecture-id': cls.host_template.architecture.id,
+                'domain-id': cls.host_template.domain.id,
+                'environment-id': cls.host_template.environment.id,
+                'location-id': cls.loc_id,
+                'mac': cls.host_template.mac,
+                'medium-id': cls.host_template.medium.id,
+                'name': cls.host_template.name,
+                'operatingsystem-id': cls.host_template.operatingsystem.id,
+                'organization-id': cls.org_id,
+                'partition-table-id': cls.host_template.ptable.id,
+                'puppet-proxy-id': cls.puppet_proxy['id'],
+                'root-password': cls.host_template.root_pass,
             }
         )
 
@@ -1322,23 +1315,23 @@ class HostParameterTestCase(CLITestCase):
         # long string that should be escaped and affected by line break with
         # yaml dump by default
         param_value = (
-            u'auth                          include              '
-            u'password-auth\r\n'
-            u'account     include                  password-auth'
+            'auth                          include              '
+            'password-auth\r\n'
+            'account     include                  password-auth'
         )
         host = make_host(
             {
-                u'architecture-id': self.host_template.architecture.id,
-                u'domain-id': self.host_template.domain.id,
-                u'environment-id': self.host_template.environment.id,
-                u'location-id': self.loc_id,
-                u'mac': self.host_template.mac,
-                u'medium-id': self.host_template.medium.id,
-                u'operatingsystem-id': self.host_template.operatingsystem.id,
-                u'organization-id': self.org_id,
-                u'partition-table-id': self.host_template.ptable.id,
-                u'puppet-proxy-id': self.puppet_proxy['id'],
-                u'root-password': self.host_template.root_pass,
+                'architecture-id': self.host_template.architecture.id,
+                'domain-id': self.host_template.domain.id,
+                'environment-id': self.host_template.environment.id,
+                'location-id': self.loc_id,
+                'mac': self.host_template.mac,
+                'medium-id': self.host_template.medium.id,
+                'operatingsystem-id': self.host_template.operatingsystem.id,
+                'organization-id': self.org_id,
+                'partition-table-id': self.host_template.ptable.id,
+                'puppet-proxy-id': self.puppet_proxy['id'],
+                'root-password': self.host_template.root_pass,
             }
         )
         # count parameters of a host
@@ -1573,37 +1566,37 @@ class KatelloAgentTestCase(CLITestCase):
         # Create new org, environment, CV and activation key
         KatelloAgentTestCase.org = make_org()
         KatelloAgentTestCase.env = make_lifecycle_environment(
-            {u'organization-id': KatelloAgentTestCase.org['id']}
+            {'organization-id': KatelloAgentTestCase.org['id']}
         )
         KatelloAgentTestCase.content_view = make_content_view(
-            {u'organization-id': KatelloAgentTestCase.org['id']}
+            {'organization-id': KatelloAgentTestCase.org['id']}
         )
         KatelloAgentTestCase.activation_key = make_activation_key(
             {
-                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                u'organization-id': KatelloAgentTestCase.org['id'],
+                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+                'organization-id': KatelloAgentTestCase.org['id'],
             }
         )
         # Add subscription to Satellite Tools repo to activation key
         setup_org_for_a_rh_repo(
             {
-                u'product': PRDS['rhel'],
-                u'repository-set': REPOSET['rhst7'],
-                u'repository': REPOS['rhst7']['name'],
-                u'organization-id': KatelloAgentTestCase.org['id'],
-                u'content-view-id': KatelloAgentTestCase.content_view['id'],
-                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': KatelloAgentTestCase.org['id'],
+                'content-view-id': KatelloAgentTestCase.content_view['id'],
+                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+                'activationkey-id': KatelloAgentTestCase.activation_key['id'],
             }
         )
         # Create custom repo, add subscription to activation key
         setup_org_for_a_custom_repo(
             {
-                u'url': FAKE_1_YUM_REPO,
-                u'organization-id': KatelloAgentTestCase.org['id'],
-                u'content-view-id': KatelloAgentTestCase.content_view['id'],
-                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+                'url': FAKE_1_YUM_REPO,
+                'organization-id': KatelloAgentTestCase.org['id'],
+                'content-view-id': KatelloAgentTestCase.content_view['id'],
+                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+                'activationkey-id': KatelloAgentTestCase.activation_key['id'],
             }
         )
 
@@ -1639,7 +1632,7 @@ class KatelloAgentTestCase(CLITestCase):
         :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        result = Host.errata_info({u'host-id': self.host['id'], u'id': FAKE_1_ERRATA_ID})
+        result = Host.errata_info({'host-id': self.host['id'], 'id': FAKE_1_ERRATA_ID})
         self.assertEqual(result[0]['errata-id'], FAKE_1_ERRATA_ID)
         self.assertIn(FAKE_2_CUSTOM_PACKAGE, result[0]['packages'])
 
@@ -1656,7 +1649,7 @@ class KatelloAgentTestCase(CLITestCase):
         :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.errata_apply({u'errata-ids': FAKE_1_ERRATA_ID, u'host-id': self.host['id']})
+        Host.errata_apply({'errata-ids': FAKE_1_ERRATA_ID, 'host-id': self.host['id']})
 
     @pytest.mark.skip_if_open("BZ:1740790")
     @tier3
@@ -1682,12 +1675,12 @@ class KatelloAgentTestCase(CLITestCase):
         # Wait for errata applicability cache is counted
         wait_for_errata_applicability_task(int(self.host['id']), before_downgrade)
         # Check that host has applicable errata
-        host_errata = Host.errata_list({u'host-id': self.host['id']})
+        host_errata = Host.errata_list({'host-id': self.host['id']})
         self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
         self.assertEqual(host_errata[0]['installable'], 'true')
         # Check the erratum becomes available
         result = self.client.run(
-            'yum update --assumeno --security ' '| grep "No packages needed for security"'
+            'yum update --assumeno --security | grep "No packages needed for security"'
         )
         self.assertEqual(result.return_code, 1)
 
@@ -1703,9 +1696,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        Host.package_install(
-            {u'host-id': self.host['id'], u'packages': FAKE_0_CUSTOM_PACKAGE_NAME}
-        )
+        Host.package_install({'host-id': self.host['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
         result = self.client.run('rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME))
         self.assertEqual(result.return_code, 0)
 
@@ -1721,7 +1712,7 @@ class KatelloAgentTestCase(CLITestCase):
         :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_remove({u'host-id': self.host['id'], u'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
+        Host.package_remove({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
         result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME))
         self.assertNotEqual(result.return_code, 0)
 
@@ -1737,9 +1728,7 @@ class KatelloAgentTestCase(CLITestCase):
         :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_upgrade(
-            {u'host-id': self.host['id'], u'packages': FAKE_1_CUSTOM_PACKAGE_NAME}
-        )
+        Host.package_upgrade({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
@@ -1771,7 +1760,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        hammer_args = {u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME, u'host-id': self.host['id']}
+        hammer_args = {'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME, 'host-id': self.host['id']}
         Host.package_group_install(hammer_args)
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             result = self.client.run('rpm -q {0}'.format(package))
@@ -1814,12 +1803,12 @@ class KatelloAgentTestCase(CLITestCase):
         # create a new activation key
         activation_key = make_activation_key(
             {
-                u'lifecycle-environment-id': self.env['id'],
-                u'organization-id': self.org['id'],
-                u'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'content-view-id': self.content_view['id'],
             }
         )
-        hc = make_host_collection({u'organization-id': self.org['id']})
+        hc = make_host_collection({'organization-id': self.org['id']})
         ActivationKey.add_host_collection(
             {
                 'id': activation_key['id'],
@@ -1857,31 +1846,31 @@ class KatelloHostToolsTestCase(CLITestCase):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super(KatelloHostToolsTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.env = make_lifecycle_environment({u'organization-id': cls.org['id']})
-        cls.content_view = make_content_view({u'organization-id': cls.org['id']})
+        cls.env = make_lifecycle_environment({'organization-id': cls.org['id']})
+        cls.content_view = make_content_view({'organization-id': cls.org['id']})
         cls.activation_key = make_activation_key(
-            {u'lifecycle-environment-id': cls.env['id'], u'organization-id': cls.org['id']}
+            {'lifecycle-environment-id': cls.env['id'], 'organization-id': cls.org['id']}
         )
         # setup rh satellite tools repository content
         setup_org_for_a_rh_repo(
             {
-                u'product': PRDS['rhel'],
-                u'repository-set': REPOSET['rhst7'],
-                u'repository': REPOS['rhst7']['name'],
-                u'organization-id': cls.org['id'],
-                u'content-view-id': cls.content_view['id'],
-                u'lifecycle-environment-id': cls.env['id'],
-                u'activationkey-id': cls.activation_key['id'],
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': cls.org['id'],
+                'content-view-id': cls.content_view['id'],
+                'lifecycle-environment-id': cls.env['id'],
+                'activationkey-id': cls.activation_key['id'],
             }
         )
         # Create custom repository content
         setup_org_for_a_custom_repo(
             {
-                u'url': FAKE_6_YUM_REPO,
-                u'organization-id': cls.org['id'],
-                u'content-view-id': cls.content_view['id'],
-                u'lifecycle-environment-id': cls.env['id'],
-                u'activationkey-id': cls.activation_key['id'],
+                'url': FAKE_6_YUM_REPO,
+                'organization-id': cls.org['id'],
+                'content-view-id': cls.content_view['id'],
+                'lifecycle-environment-id': cls.env['id'],
+                'activationkey-id': cls.activation_key['id'],
             }
         )
 
@@ -2059,7 +2048,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         """
         with self.assertRaises(CLIReturnCodeError) as context:
             Host.package_install(
-                {u'host-id': self.host_info['id'], u'packages': FAKE_1_CUSTOM_PACKAGE}
+                {'host-id': self.host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE}
             )
         self.assertIn(
             (
@@ -2089,24 +2078,24 @@ class HostSubscriptionTestCase(CLITestCase):
         """
         super(HostSubscriptionTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.env = make_lifecycle_environment({u'organization-id': cls.org['id']})
-        cls.content_view = make_content_view({u'organization-id': cls.org['id']})
+        cls.env = make_lifecycle_environment({'organization-id': cls.org['id']})
+        cls.content_view = make_content_view({'organization-id': cls.org['id']})
         cls.activation_key = make_activation_key(
-            {u'lifecycle-environment-id': cls.env['id'], u'organization-id': cls.org['id']}
+            {'lifecycle-environment-id': cls.env['id'], 'organization-id': cls.org['id']}
         )
 
         cls.subscription_name = SATELLITE_SUBSCRIPTION_NAME
         # create a rh capsule content
         setup_org_for_a_rh_repo(
             {
-                u'product': PRDS['rhsc'],
-                u'repository-set': REPOSET['rhsc7'],
-                u'repository': REPOS['rhsc7']['name'],
-                u'organization-id': cls.org['id'],
-                u'content-view-id': cls.content_view['id'],
-                u'lifecycle-environment-id': cls.env['id'],
-                u'activationkey-id': cls.activation_key['id'],
-                u'subscription': cls.subscription_name,
+                'product': PRDS['rhsc'],
+                'repository-set': REPOSET['rhsc7'],
+                'repository': REPOS['rhsc7']['name'],
+                'organization-id': cls.org['id'],
+                'content-view-id': cls.content_view['id'],
+                'lifecycle-environment-id': cls.env['id'],
+                'activationkey-id': cls.activation_key['id'],
+                'subscription': cls.subscription_name,
             },
             force_use_cdn=True,
         )
@@ -2118,15 +2107,15 @@ class HostSubscriptionTestCase(CLITestCase):
                 cls.default_subscription_id = org_subscription['id']
                 break
         # create a new lce for hosts subscription
-        cls.hosts_env = make_lifecycle_environment({u'organization-id': cls.org['id']})
+        cls.hosts_env = make_lifecycle_environment({'organization-id': cls.org['id']})
         # refresh content view data
         cls.content_view = ContentView.info({'id': cls.content_view['id']})
         content_view_version = cls.content_view['versions'][-1]
         ContentView.version_promote(
             {
-                u'id': content_view_version['id'],
-                u'organization-id': cls.org['id'],
-                u'to-lifecycle-environment-id': cls.hosts_env['id'],
+                'id': content_view_version['id'],
+                'organization-id': cls.org['id'],
+                'to-lifecycle-environment-id': cls.hosts_env['id'],
             }
         )
 
@@ -2231,10 +2220,10 @@ class HostSubscriptionTestCase(CLITestCase):
         """Register the subscription of client as a content host consumer"""
         Host.subscription_register(
             {
-                u'organization-id': self.org['id'],
-                u'content-view-id': self.content_view['id'],
-                u'lifecycle-environment-id': self.hosts_env['id'],
-                u'name': self.client.hostname,
+                'organization-id': self.org['id'],
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.hosts_env['id'],
+                'name': self.client.hostname,
             }
         )
 
@@ -2461,13 +2450,13 @@ class HostSubscriptionTestCase(CLITestCase):
         # Create an activation key with test values
         activation_key = make_activation_key(
             {
-                u'purpose-addons': "test-addon1, test-addon2",
-                u'purpose-role': "test-role",
-                u'purpose-usage': "test-usage",
-                u'service-level': "Self-Support",
-                u'lifecycle-environment-id': self.env['id'],
-                u'organization-id': self.org['id'],
-                u'content-view-id': self.content_view['id'],
+                'purpose-addons': "test-addon1, test-addon2",
+                'purpose-role': "test-role",
+                'purpose-usage': "test-usage",
+                'service-level': "Self-Support",
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'content-view-id': self.content_view['id'],
             }
         )
         # Register a host using the activation key
@@ -2491,11 +2480,11 @@ class HostSubscriptionTestCase(CLITestCase):
         # Change system purpose values in the host
         Host.update(
             {
-                u'purpose-addons': "test-addon3",
-                u'purpose-role': "test-role2",
-                u'purpose-usage': "test-usage2",
-                u'service-level': "Self-Support2",
-                u'id': host['id'],
+                'purpose-addons': "test-addon3",
+                'purpose-role': "test-role2",
+                'purpose-usage': "test-usage2",
+                'service-level': "Self-Support2",
+                'id': host['id'],
             }
         )
         host = Host.info({'id': host['id']})

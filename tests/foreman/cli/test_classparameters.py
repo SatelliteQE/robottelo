@@ -52,7 +52,7 @@ class SmartClassParametersTestCase(CLITestCase):
         cls.org = make_org()
         cls.loc = make_location()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': u'content_view="{0}"'.format(cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
         Environment.update(
             {
                 'name': cls.env['name'],
@@ -66,7 +66,7 @@ class SmartClassParametersTestCase(CLITestCase):
         cls.sc_params_list = SmartClassParameter.list(
             {
                 'environment': cls.env['name'],
-                'search': u'puppetclass="{0}"'.format(cls.puppet_class['name']),
+                'search': 'puppetclass="{0}"'.format(cls.puppet_class['name']),
             }
         )
         cls.sc_params_ids_list = [sc_param['id'] for sc_param in cls.sc_params_list]
@@ -90,7 +90,7 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         super(SmartClassParametersTestCase, self).setUp()
         if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please " "update puppet module.")
+            raise Exception("Not enough smart class parameters. Please update puppet module.")
 
     @tier1
     def test_positive_list(self):
@@ -190,7 +190,7 @@ class SmartClassParametersTestCase(CLITestCase):
         :CaseImportance: Low
         """
         cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
-        env = Environment.list({'search': u'content_view="{0}"'.format(cv['name'])})[0]
+        env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
         puppet_class = Puppet.info(
             {'name': self.puppet_modules[0]['name'], 'environment': env['name']}
         )

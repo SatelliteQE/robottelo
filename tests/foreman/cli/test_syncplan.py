@@ -56,24 +56,24 @@ from robottelo.test import CLITestCase
 def valid_name_interval_create_tests():
     """Returns a list of valid data for interval create tests."""
     return [
-        {u'name': gen_string('alpha', 15), u'interval': u'hourly'},
-        {u'name': gen_string('alphanumeric', 15), u'interval': u'hourly'},
-        {u'name': gen_string('numeric', 15), u'interval': u'hourly'},
-        {u'name': gen_string('latin1', 15), u'interval': u'hourly'},
-        {u'name': gen_string('utf8', 15), u'interval': u'hourly'},
-        {u'name': gen_string('html', 15), u'interval': u'hourly'},
-        {u'name': gen_string('alpha', 15), u'interval': u'daily'},
-        {u'name': gen_string('alphanumeric', 15), u'interval': u'daily'},
-        {u'name': gen_string('numeric', 15), u'interval': u'daily'},
-        {u'name': gen_string('latin1', 15), u'interval': u'daily'},
-        {u'name': gen_string('utf8', 15), u'interval': u'daily'},
-        {u'name': gen_string('html', 15), u'interval': u'daily'},
-        {u'name': gen_string('alpha', 15), u'interval': u'weekly'},
-        {u'name': gen_string('alphanumeric', 15), u'interval': u'weekly'},
-        {u'name': gen_string('numeric', 15), u'interval': 'weekly'},
-        {u'name': gen_string('latin1', 15), u'interval': u'weekly'},
-        {u'name': gen_string('utf8', 15), u'interval': u'weekly'},
-        {u'name': gen_string('html', 15), u'interval': u'weekly'},
+        {'name': gen_string('alpha', 15), 'interval': 'hourly'},
+        {'name': gen_string('alphanumeric', 15), 'interval': 'hourly'},
+        {'name': gen_string('numeric', 15), 'interval': 'hourly'},
+        {'name': gen_string('latin1', 15), 'interval': 'hourly'},
+        {'name': gen_string('utf8', 15), 'interval': 'hourly'},
+        {'name': gen_string('html', 15), 'interval': 'hourly'},
+        {'name': gen_string('alpha', 15), 'interval': 'daily'},
+        {'name': gen_string('alphanumeric', 15), 'interval': 'daily'},
+        {'name': gen_string('numeric', 15), 'interval': 'daily'},
+        {'name': gen_string('latin1', 15), 'interval': 'daily'},
+        {'name': gen_string('utf8', 15), 'interval': 'daily'},
+        {'name': gen_string('html', 15), 'interval': 'daily'},
+        {'name': gen_string('alpha', 15), 'interval': 'weekly'},
+        {'name': gen_string('alphanumeric', 15), 'interval': 'weekly'},
+        {'name': gen_string('numeric', 15), 'interval': 'weekly'},
+        {'name': gen_string('latin1', 15), 'interval': 'weekly'},
+        {'name': gen_string('utf8', 15), 'interval': 'weekly'},
+        {'name': gen_string('html', 15), 'interval': 'weekly'},
     ]
 
 
@@ -81,36 +81,24 @@ def valid_name_interval_create_tests():
 def valid_name_interval_update_tests():
     """Returns a list of valid data for interval update tests."""
     return [
-        {u'name': gen_string('alpha', 15), u'interval': u'daily', u'new-interval': u'hourly'},
-        {
-            u'name': gen_string('alphanumeric', 15),
-            u'interval': u'daily',
-            u'new-interval': u'hourly',
-        },
-        {u'name': gen_string('numeric', 15), u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('latin1', 15), u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('utf8', 15), u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('html', 15), u'interval': u'daily', u'new-interval': u'hourly'},
-        {u'name': gen_string('alpha', 15), u'interval': u'weekly', u'new-interval': u'daily'},
-        {
-            u'name': gen_string('alphanumeric', 15),
-            u'interval': u'weekly',
-            u'new-interval': u'daily',
-        },
-        {u'name': gen_string('numeric', 15), u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('latin1', 15), u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('utf8', 15), u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('html', 15), u'interval': u'weekly', u'new-interval': u'daily'},
-        {u'name': gen_string('alpha', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
-        {
-            u'name': gen_string('alphanumeric', 15),
-            u'interval': u'hourly',
-            u'new-interval': u'weekly',
-        },
-        {u'name': gen_string('numeric', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('latin1', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('utf8', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
-        {u'name': gen_string('html', 15), u'interval': u'hourly', u'new-interval': u'weekly'},
+        {'name': gen_string('alpha', 15), 'interval': 'daily', 'new-interval': 'hourly'},
+        {'name': gen_string('alphanumeric', 15), 'interval': 'daily', 'new-interval': 'hourly'},
+        {'name': gen_string('numeric', 15), 'interval': 'daily', 'new-interval': 'hourly'},
+        {'name': gen_string('latin1', 15), 'interval': 'daily', 'new-interval': 'hourly'},
+        {'name': gen_string('utf8', 15), 'interval': 'daily', 'new-interval': 'hourly'},
+        {'name': gen_string('html', 15), 'interval': 'daily', 'new-interval': 'hourly'},
+        {'name': gen_string('alpha', 15), 'interval': 'weekly', 'new-interval': 'daily'},
+        {'name': gen_string('alphanumeric', 15), 'interval': 'weekly', 'new-interval': 'daily'},
+        {'name': gen_string('numeric', 15), 'interval': 'weekly', 'new-interval': 'daily'},
+        {'name': gen_string('latin1', 15), 'interval': 'weekly', 'new-interval': 'daily'},
+        {'name': gen_string('utf8', 15), 'interval': 'weekly', 'new-interval': 'daily'},
+        {'name': gen_string('html', 15), 'interval': 'weekly', 'new-interval': 'daily'},
+        {'name': gen_string('alpha', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
+        {'name': gen_string('alphanumeric', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
+        {'name': gen_string('numeric', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
+        {'name': gen_string('latin1', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
+        {'name': gen_string('utf8', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
+        {'name': gen_string('html', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
     ]
 
 
@@ -132,7 +120,7 @@ class SyncPlanTestCase(CLITestCase):
             options = {}
 
         if not options.get('organization-id', None):
-            options[u'organization-id'] = self.org['id']
+            options['organization-id'] = self.org['id']
 
         return make_sync_plan(options)
 
@@ -183,7 +171,7 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_sync_plan = self._make_sync_plan({u'name': name})
+                new_sync_plan = self._make_sync_plan({'name': name})
                 self.assertEqual(new_sync_plan['name'], name)
 
     @tier1
@@ -198,7 +186,7 @@ class SyncPlanTestCase(CLITestCase):
         """
         for desc in valid_data_list():
             with self.subTest(desc):
-                new_sync_plan = self._make_sync_plan({u'description': desc})
+                new_sync_plan = self._make_sync_plan({'description': desc})
                 self.assertEqual(new_sync_plan['description'], desc)
 
     @tier1
@@ -214,7 +202,7 @@ class SyncPlanTestCase(CLITestCase):
         for test_data in valid_name_interval_create_tests():
             with self.subTest(test_data):
                 new_sync_plan = self._make_sync_plan(
-                    {u'interval': test_data['interval'], u'name': test_data['name']}
+                    {'interval': test_data['interval'], 'name': test_data['name']}
                 )
                 self.assertEqual(new_sync_plan['name'], test_data['name'])
                 self.assertEqual(new_sync_plan['interval'], test_data['interval'])
@@ -231,8 +219,8 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name):
-                with self.assertRaisesRegex(CLIFactoryError, u'Could not create the sync plan:'):
-                    self._make_sync_plan({u'name': name})
+                with self.assertRaisesRegex(CLIFactoryError, 'Could not create the sync plan:'):
+                    self._make_sync_plan({'name': name})
 
     @tier2
     def test_positive_update_description(self):
@@ -245,8 +233,8 @@ class SyncPlanTestCase(CLITestCase):
         new_sync_plan = self._make_sync_plan()
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
-                SyncPlan.update({u'description': new_desc, u'id': new_sync_plan['id']})
-                result = SyncPlan.info({u'id': new_sync_plan['id']})
+                SyncPlan.update({'description': new_desc, 'id': new_sync_plan['id']})
+                result = SyncPlan.info({'id': new_sync_plan['id']})
                 self.assertEqual(result['description'], new_desc)
 
     @tier1
@@ -262,12 +250,10 @@ class SyncPlanTestCase(CLITestCase):
         for test_data in valid_name_interval_update_tests():
             with self.subTest(test_data):
                 new_sync_plan = self._make_sync_plan(
-                    {u'interval': test_data['interval'], u'name': test_data['name']}
+                    {'interval': test_data['interval'], 'name': test_data['name']}
                 )
-                SyncPlan.update(
-                    {u'id': new_sync_plan['id'], u'interval': test_data['new-interval']}
-                )
-                result = SyncPlan.info({u'id': new_sync_plan['id']})
+                SyncPlan.update({'id': new_sync_plan['id'], 'interval': test_data['new-interval']})
+                result = SyncPlan.info({'id': new_sync_plan['id']})
                 self.assertEqual(result['interval'], test_data['new-interval'])
 
     @tier1
@@ -287,7 +273,7 @@ class SyncPlanTestCase(CLITestCase):
         today = datetime.now()
         sync_plan_name = gen_string('alphanumeric')
         new_sync_plan = self._make_sync_plan(
-            {u'name': sync_plan_name, u'sync-date': today.strftime("%Y-%m-%d %H:%M:%S")}
+            {'name': sync_plan_name, 'sync-date': today.strftime("%Y-%m-%d %H:%M:%S")}
         )
         # Assert that sync date matches data passed
         self.assertEqual(new_sync_plan['start-date'], today.strftime("%Y/%m/%d %H:%M:%S"))
@@ -295,10 +281,10 @@ class SyncPlanTestCase(CLITestCase):
         future_date = today + timedelta(days=5)
         # Update sync interval
         SyncPlan.update(
-            {u'id': new_sync_plan['id'], u'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S")}
+            {'id': new_sync_plan['id'], 'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S")}
         )
         # Fetch it
-        result = SyncPlan.info({u'id': new_sync_plan['id']})
+        result = SyncPlan.info({'id': new_sync_plan['id']})
         self.assertNotEqual(result['start-date'], new_sync_plan['start-date'])
         self.assertGreater(
             datetime.strptime(result['start-date'], '%Y/%m/%d %H:%M:%S'),
@@ -319,8 +305,8 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_sync_plan = self._make_sync_plan({u'name': name})
-                SyncPlan.delete({u'id': new_sync_plan['id']})
+                new_sync_plan = self._make_sync_plan({'name': name})
+                SyncPlan.delete({'id': new_sync_plan['id']})
                 with self.assertRaises(CLIReturnCodeError):
                     SyncPlan.info({'id': new_sync_plan['id']})
 
@@ -557,18 +543,14 @@ class SyncPlanTestCase(CLITestCase):
         for product in products:
             Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
         # Wait quarter of expected time
-        self.logger.info(
-            'Waiting {0} seconds to check products' ' were not synced'.format(delay / 4)
-        )
+        self.logger.info('Waiting {0} seconds to check products were not synced'.format(delay / 4))
         sleep(delay / 4)
         # Verify products has not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo['id'], max_tries=1)
         # Wait the rest of expected time
-        self.logger.info(
-            'Waiting {0} seconds to check products' ' were synced'.format(delay * 3 / 4)
-        )
+        self.logger.info('Waiting {0} seconds to check products were synced'.format(delay * 3 / 4))
         sleep(delay * 3 / 4)
         # Verify product was synced successfully
         for repo in repos:

@@ -67,16 +67,12 @@ def setup_content(request):
     org = make_org()
     with manifests.clone() as manifest:
         upload_file(manifest.content, manifest.filename)
-    new_product = make_product({u'organization-id': org['id']})
-    new_repo = make_repository({u'product-id': new_product['id']})
+    new_product = make_product({'organization-id': org['id']})
+    new_repo = make_repository({'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})
     content_view = make_content_view({'organization-id': org['id']})
     ContentView.add_repository(
-        {
-            u'id': content_view['id'],
-            u'organization-id': org['id'],
-            u'repository-id': new_repo['id'],
-        }
+        {'id': content_view['id'], 'organization-id': org['id'], 'repository-id': new_repo['id']}
     )
     ContentView.publish({'id': content_view['id']})
     env = make_lifecycle_environment({'organization-id': org['id']})
@@ -187,7 +183,7 @@ class ReportTemplateTestCase(CLITestCase):
         # delete tmp
         ReportTemplate.delete({'name': tmp_report_template['name']})
         with self.assertRaises(CLIReturnCodeError):
-            ReportTemplate.info({u'id': tmp_report_template['id']})
+            ReportTemplate.info({'id': tmp_report_template['id']})
 
     @tier1
     def test_positive_generate_report_nofilter_and_with_filter(self):

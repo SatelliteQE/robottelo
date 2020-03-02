@@ -116,19 +116,19 @@ class ContentAccessTestCase(CLITestCase):
             cls.org['id'], cls.repos
         )
         # Create a content view
-        content_view = make_content_view({u'organization-id': cls.org['id']})
+        content_view = make_content_view({'organization-id': cls.org['id']})
         # Add repositories to content view
         for repo_info in cls.repos_info:
             ContentView.add_repository(
                 {
-                    u'id': content_view['id'],
-                    u'organization-id': cls.org['id'],
-                    u'repository-id': repo_info['id'],
+                    'id': content_view['id'],
+                    'organization-id': cls.org['id'],
+                    'repository-id': repo_info['id'],
                 }
             )
         # Publish the content view
-        ContentView.publish({u'id': content_view['id']})
-        cls.content_view = ContentView.info({u'id': content_view['id']})
+        ContentView.publish({'id': content_view['id']})
+        cls.content_view = ContentView.info({'id': content_view['id']})
 
     def _setup_virtual_machine(self, vm):
         """Make the initial virtual machine setup

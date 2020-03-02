@@ -58,13 +58,13 @@ class OSPComputeResourceTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             compute_resource = ComputeResource.create(
                 {
-                    u'name': name,
-                    u'provider': 'Openstack',
-                    u'user': self.username,
-                    u'password': self.password,
-                    u'tenant': self.tenant,
-                    u'url': self.current_osp_url,
-                    u'project-domain-id': self.domain_id,
+                    'name': name,
+                    'provider': 'Openstack',
+                    'user': self.username,
+                    'password': self.password,
+                    'tenant': self.tenant,
+                    'url': self.current_osp_url,
+                    'project-domain-id': self.domain_id,
                 }
             )
             self.assertEqual(compute_resource['name'], name)
@@ -85,13 +85,13 @@ class OSPComputeResourceTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             compute_resource = make_compute_resource(
                 {
-                    u'name': name,
-                    u'provider': 'Openstack',
-                    u'user': self.username,
-                    u'password': self.password,
-                    u'tenant': self.tenant,
-                    u'url': self.current_osp_url,
-                    u'project-domain-id': self.domain_id,
+                    'name': name,
+                    'provider': 'Openstack',
+                    'user': self.username,
+                    'password': self.password,
+                    'tenant': self.tenant,
+                    'url': self.current_osp_url,
+                    'project-domain-id': self.domain_id,
                 }
             )
             self.assertEqual(compute_resource['name'], name)
@@ -112,12 +112,12 @@ class OSPComputeResourceTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             comp_res = make_compute_resource(
                 {
-                    u'provider': 'Openstack',
-                    u'user': self.username,
-                    u'password': self.password,
-                    u'tenant': self.tenant,
-                    u'url': self.current_osp_url,
-                    u'project-domain-id': self.domain_id,
+                    'provider': 'Openstack',
+                    'user': self.username,
+                    'password': self.password,
+                    'tenant': self.tenant,
+                    'url': self.current_osp_url,
+                    'project-domain-id': self.domain_id,
                 }
             )
             self.assertTrue(comp_res['name'])
@@ -141,12 +141,12 @@ class OSPComputeResourceTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             comp_res = make_compute_resource(
                 {
-                    u'provider': 'Openstack',
-                    u'user': self.username,
-                    u'password': self.password,
-                    u'tenant': self.tenant,
-                    u'url': self.current_osp_url,
-                    u'project-domain-id': self.domain_id,
+                    'provider': 'Openstack',
+                    'user': self.username,
+                    'password': self.password,
+                    'tenant': self.tenant,
+                    'url': self.current_osp_url,
+                    'project-domain-id': self.domain_id,
                 }
             )
             self.assertTrue(comp_res['name'])
@@ -170,13 +170,13 @@ class OSPComputeResourceTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ComputeResource.create(
                 {
-                    u'name': name,
-                    u'provider': 'Openstack',
-                    u'user': self.username,
-                    u'password': self.password,
-                    u'tenant': self.tenant,
-                    u'url': 'invalid url',
-                    u'project-domain-id': self.domain_id,
+                    'name': name,
+                    'provider': 'Openstack',
+                    'user': self.username,
+                    'password': self.password,
+                    'tenant': self.tenant,
+                    'url': 'invalid url',
+                    'project-domain-id': self.domain_id,
                 }
             )
 
@@ -201,26 +201,26 @@ class OSPComputeResourceTestCase(CLITestCase):
         name = gen_string('alpha')
         compute_resource = make_compute_resource(
             {
-                u'name': name,
-                u'provider': 'Openstack',
-                u'user': self.username,
-                u'password': self.password,
-                u'tenant': self.tenant,
-                u'url': self.current_osp_url,
-                u'project-domain-id': self.domain_id,
+                'name': name,
+                'provider': 'Openstack',
+                'user': self.username,
+                'password': self.password,
+                'tenant': self.tenant,
+                'url': self.current_osp_url,
+                'project-domain-id': self.domain_id,
             }
         )
         self.assertEqual(compute_resource['name'], name)
         with self.assertRaises(CLIFactoryError):
             make_compute_resource(
                 {
-                    u'name': name,
-                    u'provider': 'Openstack',
-                    u'user': self.username,
-                    u'password': self.password,
-                    u'tenant': self.tenant,
-                    u'url': self.current_osp_url,
-                    u'project-domain-id': self.domain_id,
+                    'name': name,
+                    'provider': 'Openstack',
+                    'user': self.username,
+                    'password': self.password,
+                    'tenant': self.tenant,
+                    'url': self.current_osp_url,
+                    'project-domain-id': self.domain_id,
                 }
             )
 
@@ -244,12 +244,12 @@ class OSPComputeResourceTestCase(CLITestCase):
         new_name = gen_string('alpha')
         comp_res = make_compute_resource(
             {
-                u'provider': 'Openstack',
-                u'user': self.username,
-                u'password': self.password,
-                u'tenant': self.tenant,
-                u'url': self.current_osp_url,
-                u'project-domain-id': self.domain_id,
+                'provider': 'Openstack',
+                'user': self.username,
+                'password': self.password,
+                'tenant': self.tenant,
+                'url': self.current_osp_url,
+                'project-domain-id': self.domain_id,
             }
         )
         self.assertTrue(comp_res['name'])

@@ -44,8 +44,8 @@ from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
-TEMPLATE_FILE = u'template_file.txt'
-TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
+TEMPLATE_FILE = 'template_file.txt'
+TEMPLATE_FILE_EMPTY = 'template_file_empty.txt'
 distros = [DISTRO_DEFAULT]
 
 
@@ -142,12 +142,12 @@ class TestRemoteExecution:
         )
 
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -190,12 +190,12 @@ class TestRemoteExecution:
             }
         )
         try:
-            assert make_user_job[u'success'] == u'1'
+            assert make_user_job['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': make_user_job[u'id'], 'host': self.client.hostname}
+                        {'id': make_user_job['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -210,12 +210,12 @@ class TestRemoteExecution:
             }
         )
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -248,7 +248,7 @@ class TestRemoteExecution:
         )
         template_name = gen_string('alpha', 7)
         make_job_template(
-            {u'organizations': self.org.name, u'name': template_name, u'file': TEMPLATE_FILE}
+            {'organizations': self.org.name, 'name': template_name, 'file': TEMPLATE_FILE}
         )
         invocation_command = make_job_invocation(
             {
@@ -257,12 +257,12 @@ class TestRemoteExecution:
             }
         )
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -316,12 +316,12 @@ class TestRemoteExecution:
                         vm.hostname,
                         ' '.join(
                             JobInvocation.get_output(
-                                {'id': invocation_command[u'id'], 'host': vm.hostname}
+                                {'id': invocation_command['id'], 'host': vm.hostname}
                             )
                         ),
                     )
                 )
-            assert invocation_command['success'] == u'2', output_msgs
+            assert invocation_command['success'] == '2', output_msgs
 
     @tier3
     def test_positive_install_multiple_packages_with_a_job_by_ip(
@@ -372,12 +372,12 @@ class TestRemoteExecution:
             }
         )
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -416,14 +416,14 @@ class TestRemoteExecution:
             }
         )
 
-        JobInvocation.get_output({'id': invocation_command[u'id'], 'host': self.client.hostname})
+        JobInvocation.get_output({'id': invocation_command['id'], 'host': self.client.hostname})
         try:
-            assert invocation_command['status'] == u'queued'
+            assert invocation_command['status'] == 'queued'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -431,8 +431,8 @@ class TestRemoteExecution:
 
         sleep(150)
         rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
-        assert rec_logic['state'] == u'finished'
-        assert rec_logic['iteration'] == u'2'
+        assert rec_logic['state'] == 'finished'
+        assert rec_logic['iteration'] == '2'
 
     @tier3
     def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup, fixture_org):
@@ -464,19 +464,19 @@ class TestRemoteExecution:
             }
         )
         # Wait until the job runs
-        pending_state = u'1'
-        while pending_state != u'0':
-            invocation_info = JobInvocation.info({'id': invocation_command[u'id']})
-            pending_state = invocation_info[u'pending']
+        pending_state = '1'
+        while pending_state != '0':
+            invocation_info = JobInvocation.info({'id': invocation_command['id']})
+            pending_state = invocation_info['pending']
             sleep(30)
-        invocation_info = JobInvocation.info({'id': invocation_command[u'id']})
+        invocation_info = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_info['success'] == u'1'
+            assert invocation_info['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -530,12 +530,12 @@ class TestAnsibleREX:
             }
         )
         try:
-            assert make_user_job[u'success'] == u'1'
+            assert make_user_job['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': make_user_job[u'id'], 'host': self.client.hostname}
+                        {'id': make_user_job['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -550,12 +550,12 @@ class TestAnsibleREX:
             }
         )
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -608,22 +608,22 @@ class TestAnsibleREX:
                 'max-iteration': 2,  # just two runs
             }
         )
-        JobInvocation.get_output({'id': invocation_command[u'id'], 'host': self.client.hostname})
+        JobInvocation.get_output({'id': invocation_command['id'], 'host': self.client.hostname})
         try:
-            assert invocation_command['status'] == u'queued'
+            assert invocation_command['status'] == 'queued'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
             raise AssertionError(result)
         sleep(150)
         rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
-        assert rec_logic['state'] == u'finished'
-        assert rec_logic['iteration'] == u'2'
+        assert rec_logic['state'] == 'finished'
+        assert rec_logic['iteration'] == '2'
 
     @tier3
     @upgrade
@@ -688,12 +688,12 @@ class TestAnsibleREX:
             }
         )
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )
@@ -715,12 +715,12 @@ class TestAnsibleREX:
             }
         )
         try:
-            assert invocation_command['success'] == u'1'
+            assert invocation_command['success'] == '1'
         except AssertionError:
             result = 'host output: {0}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command[u'id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': self.client.hostname}
                     )
                 )
             )

@@ -472,7 +472,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         org_subnet = entities.Subnet(
             location=[loc],
             organization=[org],
-            ipam=u'DHCP',
+            ipam='DHCP',
             vlanid=gen_string('numeric', 3),
             subnet_parameters_attributes=[parameter],
         ).create()

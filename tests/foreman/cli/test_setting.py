@@ -378,7 +378,7 @@ class BruteForceLogin(CLITestCase):
         super(BruteForceLogin, cls).tearDownClass()
         # reset failed_login_attempts_limit value
         sleep(301)
-        Settings.set({u'name': u'failed_login_attempts_limit', u'value': cls.host_value})
+        Settings.set({'name': 'failed_login_attempts_limit', 'value': cls.host_value})
 
     @pytest.mark.skip_if_open("BZ:1778599")
     @tier3
@@ -410,7 +410,7 @@ class BruteForceLogin(CLITestCase):
             'hammer -u {0} -p {1} user list'.format(self.foreman_user, self.foreman_password)
         )
         self.assertEqual(result.return_code, 0)
-        Settings.set({u'name': u'failed_login_attempts_limit', u'value': '5'})
+        Settings.set({'name': 'failed_login_attempts_limit', 'value': '5'})
         for i in range(5):
             output = ssh.command('hammer -u {0} -p BAD_PASS user list'.format(self.foreman_user))
             self.assertEqual(output.return_code, 129)

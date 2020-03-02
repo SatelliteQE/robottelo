@@ -97,23 +97,23 @@ class DockerManifestTestCase(CLITestCase):
         :BZ: 1658274
         """
         organization = make_org()
-        product = make_product_wait({u'organization-id': organization['id']})
+        product = make_product_wait({'organization-id': organization['id']})
         repository = make_repository(
             {
-                u'content-type': REPO_CONTENT_TYPE,
-                u'docker-upstream-name': REPO_UPSTREAM_NAME,
-                u'product-id': product['id'],
-                u'url': DOCKER_REGISTRY_HUB,
+                'content-type': REPO_CONTENT_TYPE,
+                'docker-upstream-name': REPO_UPSTREAM_NAME,
+                'product-id': product['id'],
+                'url': DOCKER_REGISTRY_HUB,
             }
         )
         Repository.synchronize({'id': repository['id']})
         # Grab all available manifests related to repository
-        manifests_list = Docker.manifest.list({u'repository-id': repository['id']})
+        manifests_list = Docker.manifest.list({'repository-id': repository['id']})
         # Some manifests do not have tags associated with it, ignore those
         # because we want to check the tag information
         manifests = [m_iter for m_iter in manifests_list if not m_iter['tags'] == '']
         self.assertTrue(manifests)
-        tags_list = Docker.tag.list({u'repository-id': repository['id']})
+        tags_list = Docker.tag.list({'repository-id': repository['id']})
         # Extract tag names for the repository out of docker tag list
         repo_tag_names = [tag['tag'] for tag in tags_list]
         for manifest in manifests:
@@ -1214,11 +1214,11 @@ class DockerClientTestCase(CLITestCase):
         super(DockerClientTestCase, cls).setUpClass()
         cls.org = make_org()
         """Instantiate and setup a docker host VM"""
-        cls.logger.info(u'Creating an external docker host')
+        cls.logger.info('Creating an external docker host')
         docker_image = settings.docker.docker_image
-        cls.docker_host = VirtualMachine(source_image=docker_image, tag=u'docker')
+        cls.docker_host = VirtualMachine(source_image=docker_image, tag='docker')
         cls.docker_host.create()
-        cls.logger.info(u'Installing katello-ca on the external docker host')
+        cls.logger.info('Installing katello-ca on the external docker host')
         cls.docker_host.install_katello_ca()
 
     @classmethod
@@ -1531,7 +1531,7 @@ class DockerClientTestCase(CLITestCase):
             compute_resource = make_compute_resource({
                 'organization-ids': [self.org['id']],
                 'provider': DOCKER_PROVIDER,
-                'url': u'http://{0}:2375'.format(self.docker_host.ip_addr),
+                'url': 'http://{0}:2375'.format(self.docker_host.ip_addr),
             })
             container = make_container({
                 'compute-resource-id': compute_resource['id'],

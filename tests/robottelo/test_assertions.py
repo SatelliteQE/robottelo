@@ -14,13 +14,13 @@ def fake_128_return_code():
     # flake8:noqa (line-too-long)
     raise CLIReturnCodeError(
         128,
-        u"""[ERROR 2017-03-01 05:58:50 API] 404 Resource Not Found
+        """[ERROR 2017-03-01 05:58:50 API] 404 Resource Not Found
         [ERROR 2017-03-01 05:58:50 Exception] Resource medium not found by id \\'1\\'
         Resource medium not found by id \\'1\\'
         [ERROR 2017-03-01 05:58:50 Exception]
 
         RestClient::ResourceNotFound (404 Resource Not Found):""",
-        u"""Command "medium info" finished with return_code 128
+        """Command "medium info" finished with return_code 128
         stderr contains following message:
         [ERROR 2017-03-01 05:58:50 API] 404 Resource Not Found
         [ERROR 2017-03-01 05:58:50 Exception] Resource medium not found by id \\'1\\'
@@ -36,7 +36,7 @@ def fake_404_response():
     response = namedtuple('response', 'ok raw reason request status_code')
     response.status_code = 404
     raise HTTPError(
-        u'404 Client Error: Not Found for url: ' u'https://example.com/api/v2/hosts/1',
+        '404 Client Error: Not Found for url: https://example.com/api/v2/hosts/1',
         response=response,
     )
 

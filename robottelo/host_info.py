@@ -31,9 +31,9 @@ def get_host_os_version():
     return 'Not Available'
 
 
-_SAT_6_2_VERSION_COMMAND = u'rpm -q satellite'
+_SAT_6_2_VERSION_COMMAND = 'rpm -q satellite'
 
-_SAT_6_1_VERSION_COMMAND = u'grep "VERSION" /usr/share/foreman/lib/satellite/version.rb'
+_SAT_6_1_VERSION_COMMAND = 'grep "VERSION" /usr/share/foreman/lib/satellite/version.rb'
 
 
 @functools.lru_cache(maxsize=1)

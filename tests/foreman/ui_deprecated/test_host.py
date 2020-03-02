@@ -108,7 +108,7 @@
 #         # Search for SmartProxy, and associate location
 #         cls.proxy = entities.SmartProxy().search(
 #             query={
-#                 u'search': u'name={0}'.format(
+#                 'search': 'name={0}'.format(
 #                     settings.server.hostname
 #                 )
 #             }
@@ -121,7 +121,7 @@
 #         _, _, domain = settings.server.hostname.partition('.')
 #         cls.domain = entities.Domain().search(
 #             query={
-#                 u'search': u'name="{0}"'.format(domain)
+#                 'search': 'name="{0}"'.format(domain)
 #             }
 #         )
 #         if len(cls.domain) > 0:
@@ -142,7 +142,7 @@
 #         # Create new subnet
 #         network = settings.vlan_networking.subnet
 #         subnet = entities.Subnet().search(
-#             query={u'search': u'network={0}'.format(network)}
+#             query={'search': 'network={0}'.format(network)}
 #         )
 #         if len(subnet) > 0:
 #             cls.subnet = subnet[0].read()
@@ -182,7 +182,7 @@
 #         # Search if Libvirt compute-resource already exists
 #         # If so, just update its relevant fields otherwise,
 #         # Create new compute-resource with 'libvirt' provider.
-#         resource_url = u'qemu+ssh://root@{0}/system'.format(
+#         resource_url = 'qemu+ssh://root@{0}/system'.format(
 #             settings.compute_resources.libvirt_hostname
 #         )
 #         comp_res = [
@@ -200,17 +200,17 @@
 #             # Create Libvirt compute-resource
 #             cls.computeresource = entities.LibvirtComputeResource(
 #                 name=gen_string('alpha'),
-#                 provider=u'libvirt',
+#                 provider='libvirt',
 #                 url=resource_url,
 #                 set_console_password=False,
-#                 display_type=u'VNC',
+#                 display_type='VNC',
 #                 location=[cls.loc.id],
 #                 organization=[cls.org.id],
 #             ).create()
 #         # Get the Partition table ID
 #         cls.ptable = entities.PartitionTable().search(
 #             query={
-#                 u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+#                 'search': 'name="{0}"'.format(DEFAULT_PTABLE)
 #             }
 #         )[0].read()
 #         cls.ptable.location.append(cls.loc)
@@ -218,7 +218,7 @@
 #         cls.ptable = cls.ptable.update(['location', 'organization'])
 #         # Get the OS ID
 #         os = entities.OperatingSystem().search(query={
-#             u'search': u'name="RedHat_Enterprise_Linux_Atomic_Host"'
+#             'search': 'name="RedHat_Enterprise_Linux_Atomic_Host"'
 #         })
 #         if len(os) > 0:
 #             cls.os = os[0].read()
@@ -233,7 +233,7 @@
 #         for template_name in [DEFAULT_ATOMIC_TEMPLATE, DEFAULT_PXE_TEMPLATE]:
 #             template = entities.ConfigTemplate().search(
 #                 query={
-#                     u'search': u'name="{0}"'.format(template_name)
+#                     'search': 'name="{0}"'.format(template_name)
 #                 }
 #             )[0].read()
 #             template.operatingsystem.append(cls.os)
@@ -245,13 +245,13 @@
 #             cls.templates.append(template)
 #         # Get the arch ID
 #         cls.arch = entities.Architecture().search(
-#             query={u'search': u'name="x86_64"'}
+#             query={'search': 'name="x86_64"'}
 #         )[0]
 #         # Get the ostree installer URL
 #         ostree_path = settings.ostree.ostree_installer
 #         # Get the Media
 #         media = entities.Media().search(query={
-#             u'search': u'path={0}'.format(ostree_path)
+#             'search': 'path={0}'.format(ostree_path)
 #         })
 #         if len(media) > 0:
 #             cls.media = media[0].read()
@@ -293,7 +293,7 @@
 #     def tearDown(self):
 #         """Delete the host to free the resources"""
 #         hosts = entities.Host().search(
-#             query={u'search': u'organization={0}'.format(self.org_name)})
+#             query={'search': 'organization={0}'.format(self.org_name)})
 #         for host in hosts:
 #             host.delete()
 #         super(AtomicHostTestCase, self).tearDown()
@@ -305,7 +305,7 @@
 #             content-hosts/Hosts
 #         :CaseLevel: System
 #         """
-#         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
+#         resource = '{0} (Libvirt)'.format(self.computeresource.name)
 #         root_pwd = gen_string('alpha', 15)
 #         with Session(self) as session:
 #             make_host(
@@ -330,7 +330,7 @@
 #                 ],
 #             )
 #             search = self.hosts.search(
-#                 u'{0}.{1}'.format(self.hostname, self.domain_name)
+#                 '{0}.{1}'.format(self.hostname, self.domain_name)
 #             )
 #             self.assertIsNotNone(search)
 #     @stubbed()
@@ -364,7 +364,7 @@
 #             shouldn't be listed under hosts/content-hosts
 #         :CaseLevel: System
 #         """
-#         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
+#         resource = '{0} (Libvirt)'.format(self.computeresource.name)
 #         root_pwd = gen_string('alpha', 15)
 #         with Session(self) as session:
 #             make_host(
@@ -390,7 +390,7 @@
 #             )
 #             # Delete host
 #             self.hosts.delete(
-#                 u'{0}.{1}'.format(self.hostname, self.domain_name),
+#                 '{0}.{1}'.format(self.hostname, self.domain_name),
 #                 dropdown_present=True,
 #             )
 #     @stubbed()

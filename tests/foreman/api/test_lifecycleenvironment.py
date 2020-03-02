@@ -200,7 +200,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         lc_envs = lc_env.search({'organization'})
         self.assertEqual(len(lc_envs), 2)
-        self.assertEqual({lc_env_.name for lc_env_ in lc_envs}, {u'Library', lc_env.name})
+        self.assertEqual({lc_env_.name for lc_env_ in lc_envs}, {'Library', lc_env.name})
 
     @tier2
     @stubbed('Implement once BZ1348727 is fixed')

@@ -143,7 +143,7 @@ class Manifest(object):
                 org_environment_access=org_environment_access, name=name
             )
         if self.filename is None:
-            self.filename = u'/var/tmp/manifest-{0}.zip'.format(int(time.time()))
+            self.filename = '/var/tmp/manifest-{0}.zip'.format(int(time.time()))
 
     @property
     def content(self):

@@ -162,7 +162,7 @@ class scenario_positive_hostgroup(APITestCase):
             del hostgroup_cloned[key]
 
         # remove unique values before comparison
-        uniqe_keys = (u'updated_at', u'created_at', u'title', u'id', u'name')
+        uniqe_keys = ('updated_at', 'created_at', 'title', 'id', 'name')
         for key in uniqe_keys:
             del hostgroup_cloned[key]
         self.assertDictContainsSubset(hostgroup_cloned, hostgroup_origin)

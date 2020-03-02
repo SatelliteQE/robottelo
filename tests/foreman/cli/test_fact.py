@@ -37,9 +37,9 @@ class FactTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for fact in (u'uptime', u'uptime_days', u'uptime_seconds', u'memoryfree', u'ipaddress'):
+        for fact in ('uptime', 'uptime_days', 'uptime_seconds', 'memoryfree', 'ipaddress'):
             with self.subTest(fact):
-                args = {u'search': "fact={0}".format(fact)}
+                args = {'search': "fact={0}".format(fact)}
                 facts = Fact().list(args)
                 self.assertEqual(facts[0]['fact'], fact)
 

@@ -54,17 +54,17 @@ from robottelo.test import CLITestCase
 def valid_name_desc_data():
     """Random data for valid name and description"""
     return (
-        {u'name': gen_string('numeric'), u'description': gen_string('numeric')},
-        {u'name': gen_string('alphanumeric', 255), u'description': gen_string('alphanumeric')},
-        {u'name': gen_string('alphanumeric'), u'description': gen_string('alphanumeric', 255)},
-        {u'name': gen_string('utf8'), u'description': gen_string('utf8')},
+        {'name': gen_string('numeric'), 'description': gen_string('numeric')},
+        {'name': gen_string('alphanumeric', 255), 'description': gen_string('alphanumeric')},
+        {'name': gen_string('alphanumeric'), 'description': gen_string('alphanumeric', 255)},
+        {'name': gen_string('utf8'), 'description': gen_string('utf8')},
         {
-            u'name': u'<html>{0}</html>'.format(gen_string('alpha')),
-            u'description': u'<html>{0}</html>'.format(gen_string('alpha')),
+            'name': '<html>{0}</html>'.format(gen_string('alpha')),
+            'description': '<html>{0}</html>'.format(gen_string('alpha')),
         },
         {
-            u'name': u"{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
-            u'description': u"{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('alpha')),
+            'name': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
+            'description': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('alpha')),
         },
     )
 
@@ -72,33 +72,33 @@ def valid_name_desc_data():
 def invalid_create_data():
     """Random data for invalid name and url"""
     return (
-        {u'name': gen_string('alphanumeric', 256)},
-        {u'name': ''},
-        {u'url': 'invalid url'},
-        {u'url': ''},
+        {'name': gen_string('alphanumeric', 256)},
+        {'name': ''},
+        {'url': 'invalid url'},
+        {'url': ''},
     )
 
 
 def valid_update_data():
     """Random data for valid update"""
     return (
-        {u'new-name': gen_string('utf8', 255)},
-        {u'new-name': gen_string('alphanumeric')},
-        {u'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
-        {u'description': gen_string('utf8', 255)},
-        {u'description': gen_string('alphanumeric')},
-        {u'url': gen_url()},
-        {u'url': 'qemu+tcp://localhost:16509/system'},
+        {'new-name': gen_string('utf8', 255)},
+        {'new-name': gen_string('alphanumeric')},
+        {'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
+        {'description': gen_string('utf8', 255)},
+        {'description': gen_string('alphanumeric')},
+        {'url': gen_url()},
+        {'url': 'qemu+tcp://localhost:16509/system'},
     )
 
 
 def invalid_update_data():
     """Random data for invalid update"""
     return (
-        {u'new-name': gen_string('utf8', 256)},
-        {u'new-name': ''},
-        {u'url': 'invalid url'},
-        {u'url': ''},
+        {'new-name': gen_string('utf8', 256)},
+        {'new-name': ''},
+        {'url': 'invalid url'},
+        {'url': ''},
     )
 
 
@@ -216,10 +216,10 @@ class ComputeResourceTestCase(CLITestCase):
             with self.subTest(options):
                 ComputeResource.create(
                     {
-                        u'description': options['description'],
-                        u'name': options['name'],
-                        u'provider': FOREMAN_PROVIDERS['libvirt'],
-                        u'url': gen_url(),
+                        'description': options['description'],
+                        'name': options['name'],
+                        'provider': FOREMAN_PROVIDERS['libvirt'],
+                        'url': gen_url(),
                     }
                 )
 
@@ -281,9 +281,9 @@ class ComputeResourceTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     ComputeResource.create(
                         {
-                            u'name': options.get('name', gen_string(str_type='alphanumeric')),
-                            u'provider': FOREMAN_PROVIDERS['libvirt'],
-                            u'url': options.get('url', gen_url()),
+                            'name': options.get('name', gen_string(str_type='alphanumeric')),
+                            'provider': FOREMAN_PROVIDERS['libvirt'],
+                            'url': options.get('url', gen_url()),
                         }
                     )
 
@@ -303,9 +303,9 @@ class ComputeResourceTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ComputeResource.create(
                 {
-                    u'name': comp_res['name'],
-                    u'provider': FOREMAN_PROVIDERS['libvirt'],
-                    u'url': gen_url(),
+                    'name': comp_res['name'],
+                    'provider': FOREMAN_PROVIDERS['libvirt'],
+                    'url': gen_url(),
                 }
             )
 

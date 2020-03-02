@@ -71,7 +71,7 @@ def valid_sync_dates():
 @filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
-    return [u'hourly', u'daily', u'weekly', u'custom cron']
+    return ['hourly', 'daily', 'weekly', 'custom cron']
 
 
 class SyncPlanTestCase(APITestCase):
@@ -666,7 +666,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
-            interval=u'hourly',
+            interval='hourly',
             sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -774,18 +774,14 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id for product in products]})
         # Wait quarter of expected time
-        self.logger.info(
-            'Waiting {0} seconds to check products' ' were not synced'.format(delay / 4)
-        )
+        self.logger.info('Waiting {0} seconds to check products were not synced'.format(delay / 4))
         sleep(delay / 4)
         # Verify products has not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo.id, max_tries=1)
         # Wait the rest of expected time
-        self.logger.info(
-            'Waiting {0} seconds to check products' ' were synced'.format(delay * 3 / 4)
-        )
+        self.logger.info('Waiting {0} seconds to check products were synced'.format(delay * 3 / 4))
         sleep(delay * 3 / 4)
         # Verify product was synced successfully
         for repo in repos:
@@ -827,7 +823,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=org,
             enabled=True,
-            interval=u'hourly',
+            interval='hourly',
             sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
         # Associate sync plan with product
@@ -887,7 +883,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         else:
             sync_date = (datetime.utcnow() + timedelta(seconds=delay),)
         sync_plan = entities.SyncPlan(
-            organization=org, enabled=True, interval=u'hourly', sync_date=sync_date
+            organization=org, enabled=True, interval='hourly', sync_date=sync_date
         ).create()
         # Create and Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -935,7 +931,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         )
         # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
-            organization=self.org, enabled=True, interval=u'daily', sync_date=start_date
+            organization=self.org, enabled=True, interval='daily', sync_date=start_date
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
@@ -980,7 +976,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         )
         # Create and Associate sync plan with product
         sync_plan = entities.SyncPlan(
-            organization=self.org, enabled=True, interval=u'weekly', sync_date=start_date
+            organization=self.org, enabled=True, interval='weekly', sync_date=start_date
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time

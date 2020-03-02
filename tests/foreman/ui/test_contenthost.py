@@ -553,21 +553,21 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
         # Add cleanup function to roll back setting to default value
         request.addfinalizer(set_ignore_facts_for_os)
         # Read all facts for corresponding host
-        facts = host.get_facts(data={u'per_page': 10000})['results'][vm.hostname]
+        facts = host.get_facts(data={'per_page': 10000})['results'][vm.hostname]
         # Modify OS facts to another values and upload them to the server
         # back
         facts['operatingsystem'] = 'RedHat'
         facts['osfamily'] = 'RedHat'
         facts['operatingsystemmajrelease'] = major
         facts['operatingsystemrelease'] = "{}.{}".format(major, minor)
-        host.upload_facts(data={u'name': vm.hostname, u'facts': facts})
+        host.upload_facts(data={'name': vm.hostname, 'facts': facts})
         session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
         # Put it to false and re-run the process
         set_ignore_facts_for_os(False)
-        host.upload_facts(data={u'name': vm.hostname, u'facts': facts})
+        host.upload_facts(data={'name': vm.hostname, 'facts': facts})
         session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Check that host OS was changed to new value

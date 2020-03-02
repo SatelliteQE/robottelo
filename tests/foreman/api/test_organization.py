@@ -99,7 +99,7 @@ class OrganizationTestCase(APITestCase):
 
                 # Was a label auto-generated?
                 self.assertTrue(hasattr(org, 'label'))
-                self.assertIsInstance(org.label, type(u''))
+                self.assertIsInstance(org.label, type(''))
                 self.assertGreater(len(org.label), 0)
 
     @tier1
@@ -141,7 +141,7 @@ class OrganizationTestCase(APITestCase):
         :CaseImportance: Critical
         """
         org = entities.Organization().create()
-        orgs = entities.Organization().search(query={u'search': u'name="{0}"'.format(org.name)})
+        orgs = entities.Organization().search(query={'search': 'name="{0}"'.format(org.name)})
         self.assertEqual(len(orgs), 1)
         self.assertEqual(orgs[0].id, org.id)
         self.assertEqual(orgs[0].name, org.name)

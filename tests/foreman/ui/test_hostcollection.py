@@ -571,9 +571,7 @@ def test_positive_change_assigned_content(
     content_view = entities.ContentView(
         id=module_repos_collection.setup_content_data['content_view']['id']
     ).read()
-    new_content_view = entities.ContentView(
-        id=content_view.copy(data={u'name': new_cv_name})['id']
-    )
+    new_content_view = entities.ContentView(id=content_view.copy(data={'name': new_cv_name})['id'])
     new_content_view.publish()
     new_content_view = new_content_view.read()
     new_content_view_version = new_content_view.version[0]

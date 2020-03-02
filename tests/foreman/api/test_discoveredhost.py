@@ -53,15 +53,15 @@ def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
         macaddress = gen_mac(multicast=False)
     return entities.DiscoveredHost().facts(
         json={
-            u'facts': {
-                u'name': name,
-                u'discovery_bootip': ipaddress,
-                u'discovery_bootif': macaddress,
-                u'interfaces': 'eth0',
-                u'ipaddress': ipaddress,
-                u'macaddress': macaddress,
-                u'macaddress_eth0': macaddress,
-                u'ipaddress_eth0': ipaddress,
+            'facts': {
+                'name': name,
+                'discovery_bootip': ipaddress,
+                'discovery_bootif': macaddress,
+                'interfaces': 'eth0',
+                'ipaddress': ipaddress,
+                'macaddress': macaddress,
+                'macaddress_eth0': macaddress,
+                'ipaddress_eth0': ipaddress,
             }
         }
     )

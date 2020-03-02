@@ -139,7 +139,7 @@ class ErrataTestCase(APITestCase):
                 sleep(15)
             else:
                 self.fail(
-                    u'Package {0} was not {1} host {2}'.format(
+                    'Package {0} was not {1} host {2}'.format(
                         package_name,
                         'installed on' if expected_installed else 'removed from',
                         host.hostname,
@@ -155,7 +155,7 @@ class ErrataTestCase(APITestCase):
             sleep(5)
         else:
             self.fail(
-                u'Host {0} contains {1} {2} errata, but expected to contain '
+                'Host {0} contains {1} {2} errata, but expected to contain '
                 '{3} of them'.format(
                     host.name,
                     host.content_facet_attributes['errata_counts'][errata_type],
@@ -174,7 +174,7 @@ class ErrataTestCase(APITestCase):
             errata = host.errata()
         else:
             self.fail(
-                u'Host {0} contains {1} available errata, but expected to '
+                'Host {0} contains {1} available errata, but expected to '
                 'contain {2} of them'.format(host.name, len(errata['results']), expected_amount)
             )
 

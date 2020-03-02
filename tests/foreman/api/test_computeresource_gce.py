@@ -78,7 +78,7 @@ def module_gce_finishimg(module_architecture, module_gce_compute, module_os, gce
 def gce_domain(module_org, module_location, module_smart_proxy):
     """Sets Domain for GCE Host Provisioning"""
     _, _, dom = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(query={u'search': u'name="{0}"'.format(dom)})
+    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(dom)})
     domain = domain[0].read()
     domain.location.append(module_location)
     domain.organization.append(module_org)

@@ -41,27 +41,27 @@ from robottelo.test import APITestCase
 def valid_sc_variable_data():
     """Returns a list of valid smart class variable types and values"""
     return [
-        {u'sc_type': 'string', u'value': choice(generate_strings_list())},
-        {u'sc_type': 'boolean', u'value': choice([True, False])},
-        {u'sc_type': 'integer', u'value': gen_integer()},
-        {u'sc_type': 'real', u'value': uniform(-1000, 1000)},
+        {'sc_type': 'string', 'value': choice(generate_strings_list())},
+        {'sc_type': 'boolean', 'value': choice([True, False])},
+        {'sc_type': 'integer', 'value': gen_integer()},
+        {'sc_type': 'real', 'value': uniform(-1000, 1000)},
         {
-            u'sc_type': 'array',
-            u'value': u'["{0}","{1}","{2}"]'.format(
+            'sc_type': 'array',
+            'value': '["{0}","{1}","{2}"]'.format(
                 gen_string('alpha'), gen_string('numeric').lstrip('0'), gen_string('html')
             ),
         },
         {
-            u'sc_type': 'hash',
-            u'value': '{{ "{0}": "{1}" }}'.format(gen_string('alpha'), gen_string('alpha')),
+            'sc_type': 'hash',
+            'value': '{{ "{0}": "{1}" }}'.format(gen_string('alpha'), gen_string('alpha')),
         },
         {
-            u'sc_type': 'yaml',
-            u'value': '--- {0}=>{1} ...'.format(gen_string('alpha'), gen_string('alpha')),
+            'sc_type': 'yaml',
+            'value': '--- {0}=>{1} ...'.format(gen_string('alpha'), gen_string('alpha')),
         },
         {
-            u'sc_type': 'json',
-            u'value': u'{{"{0}":"{1}","{2}":"{3}"}}'.format(
+            'sc_type': 'json',
+            'value': '{{"{0}":"{1}","{2}":"{3}"}}'.format(
                 gen_string('alpha'),
                 gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),
@@ -75,18 +75,18 @@ def valid_sc_variable_data():
 def invalid_sc_variable_data():
     """Returns a list of invalid smart class variable type and values"""
     return [
-        {u'sc_type': 'boolean', u'value': gen_string('alphanumeric')},
-        {u'sc_type': 'integer', u'value': gen_string('utf8')},
-        {u'sc_type': 'real', u'value': gen_string('alphanumeric')},
-        {u'sc_type': 'array', u'value': gen_string('alpha')},
-        {u'sc_type': 'hash', u'value': gen_string('alpha')},
+        {'sc_type': 'boolean', 'value': gen_string('alphanumeric')},
+        {'sc_type': 'integer', 'value': gen_string('utf8')},
+        {'sc_type': 'real', 'value': gen_string('alphanumeric')},
+        {'sc_type': 'array', 'value': gen_string('alpha')},
+        {'sc_type': 'hash', 'value': gen_string('alpha')},
         {
-            u'sc_type': 'yaml',
-            u'value': '{{{0}:{1}}}'.format(gen_string('alpha'), gen_string('alpha')),
+            'sc_type': 'yaml',
+            'value': '{{{0}:{1}}}'.format(gen_string('alpha'), gen_string('alpha')),
         },
         {
-            u'sc_type': 'json',
-            u'value': u'{{{0}:{1},{2}:{3}}}'.format(
+            'sc_type': 'json',
+            'value': '{{{0}:{1},{2}:{3}}}'.format(
                 gen_string('alpha'),
                 gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),
@@ -110,12 +110,12 @@ class SmartVariablesTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cv.name)}
+            query={'search': 'content_view="{0}"'.format(cv.name)}
         )[0]
         # Find imported puppet class
         cls.puppet_class = entities.PuppetClass().search(
             query={
-                'search': u'name = "{0}" and environment = "{1}"'.format(
+                'search': 'name = "{0}" and environment = "{1}"'.format(
                     cls.puppet_modules[0]['name'], cls.env.name
                 )
             }
@@ -123,7 +123,7 @@ class SmartVariablesTestCase(APITestCase):
         # And all its subclasses
         cls.puppet_subclasses = entities.PuppetClass().search(
             query={
-                'search': u'name ~ "{0}::" and environment = "{1}"'.format(
+                'search': 'name ~ "{0}::" and environment = "{1}"'.format(
                     cls.puppet_modules[0]['name'], cls.env.name
                 )
             }

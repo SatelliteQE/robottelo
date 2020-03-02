@@ -75,7 +75,7 @@ def test_positive_host_configuration_status(session):
         ' status.failed_restarts > 0) and status.enabled = true',
         'last_report > \"30 minutes ago\" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'last_report > \"30 minutes ago\" and status.pending > 0' ' and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.pending > 0 and status.enabled = true',
         'last_report < \"30 minutes ago\" and status.enabled = true',
         'status.enabled = false',
         'not has last_report and status.enabled = true',
@@ -178,7 +178,7 @@ def test_positive_task_status(session):
         session.task.set_chart_filter('StoppedChart', {'row': 1, 'focus': 'Total'})
         tasks = session.task.read_all()
         assert tasks['pagination']['total_items'] == tasks['StoppedChart']['table'][1]['Total']
-        task_name = "Synchronize repository '{}'; product '{}'; " "organization '{}'".format(
+        task_name = "Synchronize repository '{}'; product '{}'; organization '{}'".format(
             repo.name, product.name, org.name
         )
         assert tasks['table'][0]['Action'] == task_name

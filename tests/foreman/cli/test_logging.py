@@ -61,7 +61,7 @@ class SimpleLoggingTestCase(CLITestCase):
         # need own org for the manifest refresh test
 
         cls.org = make_org(cached=True)
-        cls.product = make_product_wait({u'organization-id': cls.org['id']})
+        cls.product = make_product_wait({'organization-id': cls.org['id']})
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""
@@ -69,7 +69,7 @@ class SimpleLoggingTestCase(CLITestCase):
             options = {}
 
         if not options.get('product-id'):
-            options[u'product-id'] = self.product['id']
+            options['product-id'] = self.product['id']
 
         return make_repository(options)
 
@@ -238,8 +238,8 @@ class SimpleLoggingTestCase(CLITestCase):
             # get the number of lines in the source log before the test
             line_count_start = line_count(source_log, connection)
             # command for this test
-            new_repo = self._make_repository({u'name': gen_string('alpha')})
-            self.logger.info('Created Repo {0} for dynflow log test'.format(new_repo[u'name']))
+            new_repo = self._make_repository({'name': gen_string('alpha')})
+            self.logger.info('Created Repo {0} for dynflow log test'.format(new_repo['name']))
             # get the number of lines in the source log after the test
             line_count_end = line_count(source_log, connection)
             # get the log lines of interest, put them in test_logfile

@@ -548,7 +548,7 @@ class EC2Settings(FeatureSettings):
         validation_errors = []
         if not all((self.access_key, self.secret_key, self.region)):
             validation_errors.append(
-                'All [ec2] access_key, secret_key, region options ' 'must be provided'
+                'All [ec2] access_key, secret_key, region options must be provided'
             )
         if self.managed_ip not in ('Private', 'Public'):
             validation_errors.append('[ec2] managed_ip option must be Public or Private')
@@ -1065,11 +1065,11 @@ class VlanNetworkSettings(FeatureSettings):
         validation_errors = []
         if bool(self.bridge) == bool(self.network):
             validation_errors.append(
-                'exactly one of the "bridge" or "network" parameters ' 'must be specified'
+                'exactly one of the "bridge" or "network" parameters must be specified'
             )
         if bool(self.dhcp_from) != bool(self.dhcp_to):
             validation_errors.append(
-                'both or none of "dhcp_from", "dhcp_to" parameters ' 'must be specified'
+                'both or none of "dhcp_from", "dhcp_to" parameters must be specified'
             )
         if self.dhcp_ipam and self.dhcp_ipam not in ['Internal DB', 'DHCP']:
             validation_errors.append(
@@ -1176,7 +1176,7 @@ class SharedFunctionSettings(FeatureSettings):
             self.share_timeout = self.MAX_SHARE_TIMEOUT
         if self.share_timeout > self.MAX_SHARE_TIMEOUT:
             validation_errors.append(
-                '[shared] share time out cannot be more than 86400' ' seconds (24 hours)'
+                '[shared] share time out cannot be more than 86400 seconds (24 hours)'
             )
 
         return validation_errors
@@ -1242,11 +1242,11 @@ class VirtWhoSettings(FeatureSettings):
             )
         if self.hypervisor_type == 'kubevirt' and self.hypervisor_config_file is None:
             validation_errors.append(
-                '[virtwho] hypervisor_config_file ' 'must be provided for kubevirt type.'
+                '[virtwho] hypervisor_config_file must be provided for kubevirt type.'
             )
         if self.hypervisor_type == 'libvirt' and self.hypervisor_username is None:
             validation_errors.append(
-                '[virtwho] hypervisor_username ' 'must be provided for libvirt type'
+                '[virtwho] hypervisor_username must be provided for libvirt type'
             )
         if self.hypervisor_type in ('esx', 'xen', 'hyperv', 'rhevm') and (
             self.hypervisor_username is None or self.hypervisor_password is None
@@ -1445,11 +1445,11 @@ class Settings(object):
         if self.browser == 'saucelabs':
             if self.saucelabs_user is None:
                 validation_errors.append(
-                    '[robottelo] saucelabs_user must be provided when ' 'browser is saucelabs.'
+                    '[robottelo] saucelabs_user must be provided when browser is saucelabs.'
                 )
             if self.saucelabs_key is None:
                 validation_errors.append(
-                    '[robottelo] saucelabs_key must be provided when ' 'browser is saucelabs.'
+                    '[robottelo] saucelabs_key must be provided when browser is saucelabs.'
                 )
         return validation_errors
 

@@ -136,7 +136,7 @@ def create_object(cli_object, options, values):
     except CLIReturnCodeError as err:
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
-            u'Failed to create {0} with data:\n{1}\n{2}'.format(
+            'Failed to create {0} with data:\n{1}\n{2}'.format(
                 cli_object.__name__, json.dumps(options, indent=2, sort_keys=True), err.msg
             )
         )
@@ -196,21 +196,21 @@ def make_activation_key(options=None):
         raise CLIFactoryError('Please provide a valid Organization.')
 
     args = {
-        u'content-view': None,
-        u'content-view-id': None,
-        u'description': None,
-        u'lifecycle-environment': None,
-        u'lifecycle-environment-id': None,
-        u'max-hosts': None,
-        u'name': gen_alphanumeric(),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'unlimited-hosts': None,
-        u'service-level': None,
-        u'purpose-role': None,
-        u'purpose-usage': None,
-        u'purpose-addons': None,
+        'content-view': None,
+        'content-view-id': None,
+        'description': None,
+        'lifecycle-environment': None,
+        'lifecycle-environment-id': None,
+        'max-hosts': None,
+        'name': gen_alphanumeric(),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'unlimited-hosts': None,
+        'service-level': None,
+        'purpose-role': None,
+        'purpose-usage': None,
+        'purpose-addons': None,
     }
 
     return create_object(ActivationKey, args, options)
@@ -229,7 +229,7 @@ def make_architecture(options=None):
         --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
                                       Comma separated list of values.
     """
-    args = {u'name': gen_alphanumeric(), u'operatingsystem-ids': None}
+    args = {'name': gen_alphanumeric(), 'operatingsystem-ids': None}
 
     return create_object(Architecture, args, options)
 
@@ -308,18 +308,18 @@ def make_content_view_with_credentials(options=None, credentials=None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
-        u'component-ids': None,
-        u'composite': False,
-        u'description': None,
-        u'label': None,
-        u'name': gen_string('alpha', 10),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'product': None,
-        u'product-id': None,
-        u'repositories': None,
-        u'repository-ids': None,
+        'component-ids': None,
+        'composite': False,
+        'description': None,
+        'label': None,
+        'name': gen_string('alpha', 10),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'product': None,
+        'product-id': None,
+        'repositories': None,
+        'repository-ids': None,
     }
 
     cv_cls = _entity_with_credentials(credentials, ContentView)
@@ -360,18 +360,18 @@ def make_content_view_filter(options=None):
     """
 
     args = {
-        u'content-view': None,
-        u'content-view-id': None,
-        u'description': None,
-        u'inclusion': None,
-        u'name': gen_string('alpha', 10),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'original-packages': None,
-        u'repositories': None,
-        u'repository-ids': None,
-        u'type': None,
+        'content-view': None,
+        'content-view-id': None,
+        'description': None,
+        'inclusion': None,
+        'name': gen_string('alpha', 10),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'original-packages': None,
+        'repositories': None,
+        'repository-ids': None,
+        'type': None,
     }
 
     return create_object(ContentViewFilter, args, options)
@@ -415,21 +415,21 @@ def make_content_view_filter_rule(options=None):
     """
 
     args = {
-        u'content-view': None,
-        u'content-view-filter': None,
-        u'content-view-filter-id': None,
-        u'content-view-id': None,
-        u'date-type': None,
-        u'end-date': None,
-        u'errata-id': None,
-        u'errata-ids': None,
-        u'max-version': None,
-        u'min-version': None,
-        u'name': None,
-        u'names': None,
-        u'start-date': None,
-        u'types': None,
-        u'version': None,
+        'content-view': None,
+        'content-view-filter': None,
+        'content-view-filter-id': None,
+        'content-view-id': None,
+        'date-type': None,
+        'end-date': None,
+        'errata-id': None,
+        'errata-ids': None,
+        'max-version': None,
+        'min-version': None,
+        'name': None,
+        'names': None,
+        'start-date': None,
+        'types': None,
+        'version': None,
     }
 
     return create_object(ContentViewFilterRule, args, options)
@@ -490,20 +490,20 @@ def make_discoveryrule(options=None):
         raise CLIFactoryError('Please provider a valid hostgroup')
 
     args = {
-        u'enabled': None,
-        u'hostgroup': None,
-        u'hostgroup-id': None,
-        u'hostgroup-title': None,
-        u'hostname': None,
-        u'hosts-limit': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'max-count': None,
-        u'name': gen_alphanumeric(),
-        u'organizations': None,
-        u'organization-ids': None,
-        u'priority': None,
-        u'search': None,
+        'enabled': None,
+        'hostgroup': None,
+        'hostgroup-id': None,
+        'hostgroup-title': None,
+        'hostname': None,
+        'hosts-limit': None,
+        'location-ids': None,
+        'locations': None,
+        'max-count': None,
+        'name': gen_alphanumeric(),
+        'organizations': None,
+        'organization-ids': None,
+        'priority': None,
+        'search': None,
     }
 
     return create_object(DiscoveryRule, args, options)
@@ -541,11 +541,11 @@ def make_gpg_key(options=None):
         key_filename = options.pop('key')
 
     args = {
-        u'key': '/tmp/{0}'.format(gen_alphanumeric()),
-        u'name': gen_alphanumeric(),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
+        'key': '/tmp/{0}'.format(gen_alphanumeric()),
+        'name': gen_alphanumeric(),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
     }
 
     # Upload file to server
@@ -630,30 +630,30 @@ def make_location(options=None):
                                                     values.
     """
     args = {
-        u'compute-resource-ids': None,
-        u'compute-resources': None,
-        u'config-template-ids': None,
-        u'config-templates': None,
-        u'description': None,
-        u'domain-ids': None,
-        u'domains': None,
-        u'environment-ids': None,
-        u'environments': None,
-        u'puppet-environment-ids': None,
-        u'puppet-environments': None,
-        u'hostgroup-ids': None,
-        u'hostgroups': None,
-        u'medium-ids': None,
-        u'name': gen_alphanumeric(),
-        u'parent-id': None,
-        u'realm-ids': None,
-        u'realms': None,
-        u'smart-proxy-ids': None,
-        u'smart-proxies': None,
-        u'subnet-ids': None,
-        u'subnets': None,
-        u'user-ids': None,
-        u'users': None,
+        'compute-resource-ids': None,
+        'compute-resources': None,
+        'config-template-ids': None,
+        'config-templates': None,
+        'description': None,
+        'domain-ids': None,
+        'domains': None,
+        'environment-ids': None,
+        'environments': None,
+        'puppet-environment-ids': None,
+        'puppet-environments': None,
+        'hostgroup-ids': None,
+        'hostgroups': None,
+        'medium-ids': None,
+        'name': gen_alphanumeric(),
+        'parent-id': None,
+        'realm-ids': None,
+        'realms': None,
+        'smart-proxy-ids': None,
+        'smart-proxies': None,
+        'subnet-ids': None,
+        'subnets': None,
+        'user-ids': None,
+        'users': None,
     }
 
     return create_object(Location, args, options)
@@ -674,10 +674,10 @@ def make_model(options=None):
         --vendor-class VENDOR_CLASS
     """
     args = {
-        u'hardware-model': None,
-        u'info': None,
-        u'name': gen_alphanumeric(),
-        u'vendor-class': None,
+        'hardware-model': None,
+        'info': None,
+        'name': gen_alphanumeric(),
+        'vendor-class': None,
     }
 
     return create_object(Model, args, options)
@@ -717,15 +717,15 @@ def make_partition_table(options=None):
         ptable.write(options.get('content', 'default ptable content'))
 
     args = {
-        u'file': '/tmp/{0}'.format(gen_alphanumeric()),
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric(),
-        u'operatingsystem-ids': None,
-        u'operatingsystems': None,
-        u'organization-ids': None,
-        u'organizations': None,
-        u'os-family': random.choice(OPERATING_SYSTEMS),
+        'file': '/tmp/{0}'.format(gen_alphanumeric()),
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric(),
+        'operatingsystem-ids': None,
+        'operatingsystems': None,
+        'organization-ids': None,
+        'organizations': None,
+        'os-family': random.choice(OPERATING_SYSTEMS),
     }
 
     # Upload file to server
@@ -764,16 +764,16 @@ def make_product_with_credentials(options=None, credentials=None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
-        u'description': gen_string('alpha', 20),
-        u'gpg-key': None,
-        u'gpg-key-id': None,
-        u'label': gen_string('alpha', 20),
-        u'name': gen_string('alpha', 20),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'sync-plan': None,
-        u'sync-plan-id': None,
+        'description': gen_string('alpha', 20),
+        'gpg-key': None,
+        'gpg-key-id': None,
+        'label': gen_string('alpha', 20),
+        'name': gen_string('alpha', 20),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'sync-plan': None,
+        'sync-plan-id': None,
     }
     product_cls = _entity_with_credentials(credentials, Product)
     return create_object(product_cls, args, options)
@@ -830,7 +830,7 @@ def make_proxy(options=None):
         -h, --help                      print help
 
     """
-    args = {u'name': gen_alphanumeric()}
+    args = {'name': gen_alphanumeric()}
 
     if options is None or 'url' not in options:
         newport = get_available_capsule_port()
@@ -915,7 +915,7 @@ def make_repository_with_credentials(options=None, credentials=None):
 
     args = {
         'checksum-type': None,
-        'content-type': u'yum',
+        'content-type': 'yum',
         'docker-tags-whitelist': None,
         'docker-upstream-name': None,
         'download-policy': None,
@@ -930,7 +930,7 @@ def make_repository_with_credentials(options=None, credentials=None):
         'organization-label': None,
         'product': None,
         'product-id': None,
-        'publish-via-http': u'true',
+        'publish-via-http': 'true',
         'http-proxy': None,
         'http-proxy-id': None,
         'http-proxy-policy': None,
@@ -951,7 +951,7 @@ def make_role(options=None):
         --name NAME
     """
     # Assigning default values for attributes
-    args = {u'name': gen_alphanumeric(6)}
+    args = {'name': gen_alphanumeric(6)}
 
     return create_object(Role, args, options)
 
@@ -978,16 +978,16 @@ def make_filter(options=None):
         -h, --help                          print help
     """
     args = {
-        u'location-ids': None,
-        u'locations': None,
-        u'organization-ids': None,
-        u'organizations': None,
-        u'override': None,
-        u'permission-ids': None,
-        u'permissions': None,
-        u'role': None,
-        u'role-id': None,
-        u'search': None,
+        'location-ids': None,
+        'locations': None,
+        'organization-ids': None,
+        'organizations': None,
+        'override': None,
+        'permission-ids': None,
+        'permissions': None,
+        'role': None,
+        'role-id': None,
+        'search': None,
     }
 
     # Role and permissions are required fields.
@@ -1104,27 +1104,27 @@ def make_scap_policy(options=None):
         and not options.get('deploy-by')
     ):
         raise CLIFactoryError(
-            'Please provide a valid SCAP ID or' ' SCAP Profile ID or Period or Deploy by option'
+            'Please provide a valid SCAP ID or SCAP Profile ID or Period or Deploy by option'
         )
     args = {
-        u'description': None,
-        u'scap-content-id': None,
-        u'scap-content-profile-id': None,
-        u'deploy-by': None,
-        u'period': None,
-        u'weekday': None,
-        u'day-of-month': None,
-        u'cron-line': None,
-        u'hostgroup-ids': None,
-        u'hostgroups': None,
-        u'locations': None,
-        u'organizations': None,
-        u'tailoring-file': None,
-        u'tailoring-file-id': None,
-        u'tailoring-file-profile-id': None,
-        u'location-ids': None,
-        u'name': gen_alphanumeric().lower(),
-        u'organization-ids': None,
+        'description': None,
+        'scap-content-id': None,
+        'scap-content-profile-id': None,
+        'deploy-by': None,
+        'period': None,
+        'weekday': None,
+        'day-of-month': None,
+        'cron-line': None,
+        'hostgroup-ids': None,
+        'hostgroups': None,
+        'locations': None,
+        'organizations': None,
+        'tailoring-file': None,
+        'tailoring-file-id': None,
+        'tailoring-file-profile-id': None,
+        'location-ids': None,
+        'name': gen_alphanumeric().lower(),
+        'organization-ids': None,
     }
 
     return create_object(Scappolicy, args, options)
@@ -1168,26 +1168,26 @@ def make_subnet(options=None):
 
     """
     args = {
-        u'boot-mode': None,
-        u'dhcp-id': None,
-        u'dns-id': None,
-        u'dns-primary': None,
-        u'dns-secondary': None,
-        u'domain-ids': None,
-        u'domains': None,
-        u'from': None,
-        u'gateway': None,
-        u'ipam': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'mask': gen_netmask(),
-        u'name': gen_alphanumeric(8),
-        u'network': gen_ipaddr(ip3=True),
-        u'organization-ids': None,
-        u'organizations': None,
-        u'tftp-id': None,
-        u'to': None,
-        u'vlanid': None,
+        'boot-mode': None,
+        'dhcp-id': None,
+        'dns-id': None,
+        'dns-primary': None,
+        'dns-secondary': None,
+        'domain-ids': None,
+        'domains': None,
+        'from': None,
+        'gateway': None,
+        'ipam': None,
+        'location-ids': None,
+        'locations': None,
+        'mask': gen_netmask(),
+        'name': gen_alphanumeric(8),
+        'network': gen_ipaddr(ip3=True),
+        'organization-ids': None,
+        'organizations': None,
+        'tftp-id': None,
+        'to': None,
+        'vlanid': None,
     }
 
     return create_object(Subnet, args, options)
@@ -1230,15 +1230,15 @@ def make_sync_plan(options=None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
-        u'description': gen_string('alpha', 20),
-        u'enabled': 'true',
-        u'interval': random.choice(list(SYNC_INTERVAL.values())),
-        u'name': gen_string('alpha', 20),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        u'cron-expression': None,
+        'description': gen_string('alpha', 20),
+        'enabled': 'true',
+        'interval': random.choice(list(SYNC_INTERVAL.values())),
+        'name': gen_string('alpha', 20),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'cron-expression': None,
     }
     if options.get('interval', args['interval']) == SYNC_INTERVAL['custom'] and not options.get(
         'cron-expression'
@@ -1407,73 +1407,73 @@ def make_host(options=None):
         virtual                                     true/false
     """
     args = {
-        u'architecture': None,
-        u'architecture-id': None,
-        u'ask-root-password': None,
-        u'autoheal': None,
-        u'build': None,
-        u'comment': None,
-        u'compute-attributes': None,
-        u'compute-profile': None,
-        u'compute-profile-id': None,
-        u'compute-resource': None,
-        u'compute-resource-id': None,
-        u'content-source-id': None,
-        u'content-view': None,
-        u'content-view-id': None,
-        u'domain': None,
-        u'domain-id': None,
-        u'enabled': None,
-        u'environment': None,
-        u'environment-id': None,
-        u'hostgroup': None,
-        u'hostgroup-id': None,
-        u'hostgroup-title': None,
-        u'hypervisor-guest-uuids': None,
-        u'image': None,
-        u'image-id': None,
-        u'interface': None,
-        u'ip': gen_ipaddr(),
-        u'kickstart-repository-id': None,
-        u'lifecycle-environment': None,
-        u'lifecycle-environment-id': None,
-        u'location': None,
-        u'location-id': None,
-        u'mac': gen_mac(multicast=False),
-        u'managed': None,
-        u'medium': None,
-        u'medium-id': None,
-        u'model': None,
-        u'model-id': None,
-        u'name': gen_string('alpha', 10),
-        u'operatingsystem': None,
-        u'operatingsystem-id': None,
-        u'openscap-proxy-id': None,
-        u'organization': None,
-        u'organization-id': None,
-        u'overwrite': None,
-        u'owner': None,
-        u'owner-id': None,
-        u'owner-type': None,
-        u'parameters': None,
-        u'partition-table': None,
-        u'partition-table-id': None,
-        u'progress-report-id': None,
-        u'provision-method': None,
-        u'puppet-ca-proxy': None,
-        u'puppet-ca-proxy-id': None,
-        u'puppet-class-ids': None,
-        u'puppet-classes': None,
-        u'puppet-proxy': None,
-        u'puppet-proxy-id': None,
-        u'pxe-loader': None,
-        u'realm': None,
-        u'realm-id': None,
-        u'root-password': gen_string('alpha', 8),
-        u'service-level': None,
-        u'subnet': None,
-        u'subnet-id': None,
-        u'volume': None,
+        'architecture': None,
+        'architecture-id': None,
+        'ask-root-password': None,
+        'autoheal': None,
+        'build': None,
+        'comment': None,
+        'compute-attributes': None,
+        'compute-profile': None,
+        'compute-profile-id': None,
+        'compute-resource': None,
+        'compute-resource-id': None,
+        'content-source-id': None,
+        'content-view': None,
+        'content-view-id': None,
+        'domain': None,
+        'domain-id': None,
+        'enabled': None,
+        'environment': None,
+        'environment-id': None,
+        'hostgroup': None,
+        'hostgroup-id': None,
+        'hostgroup-title': None,
+        'hypervisor-guest-uuids': None,
+        'image': None,
+        'image-id': None,
+        'interface': None,
+        'ip': gen_ipaddr(),
+        'kickstart-repository-id': None,
+        'lifecycle-environment': None,
+        'lifecycle-environment-id': None,
+        'location': None,
+        'location-id': None,
+        'mac': gen_mac(multicast=False),
+        'managed': None,
+        'medium': None,
+        'medium-id': None,
+        'model': None,
+        'model-id': None,
+        'name': gen_string('alpha', 10),
+        'operatingsystem': None,
+        'operatingsystem-id': None,
+        'openscap-proxy-id': None,
+        'organization': None,
+        'organization-id': None,
+        'overwrite': None,
+        'owner': None,
+        'owner-id': None,
+        'owner-type': None,
+        'parameters': None,
+        'partition-table': None,
+        'partition-table-id': None,
+        'progress-report-id': None,
+        'provision-method': None,
+        'puppet-ca-proxy': None,
+        'puppet-ca-proxy-id': None,
+        'puppet-class-ids': None,
+        'puppet-classes': None,
+        'puppet-proxy': None,
+        'puppet-proxy-id': None,
+        'pxe-loader': None,
+        'realm': None,
+        'realm-id': None,
+        'root-password': gen_string('alpha', 8),
+        'service-level': None,
+        'subnet': None,
+        'subnet-id': None,
+        'volume': None,
     }
 
     return create_object(Host, args, options)
@@ -1599,15 +1599,15 @@ def make_host_collection(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'description': None,
-        u'host-collection-ids': None,
-        u'hosts': None,
-        u'max-hosts': None,
-        u'name': gen_string('alpha', 15),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'unlimited-hosts': None,
+        'description': None,
+        'host-collection-ids': None,
+        'hosts': None,
+        'max-hosts': None,
+        'name': gen_string('alpha', 15),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'unlimited-hosts': None,
     }
 
     return create_object(HostCollection, args, options)
@@ -1662,24 +1662,24 @@ def make_job_invocation(options=None):
     """
 
     args = {
-        u'async': None,
-        u'bookmark': None,
-        u'bookmark-id': None,
-        u'concurrency-level': None,
-        u'cron-line': None,
-        u'description-format': None,
-        u'dynamic': None,
-        u'effective-user': None,
-        u'end-time': None,
-        u'input-files': None,
-        u'inputs': None,
-        u'job-template': None,
-        u'job-template-id': None,
-        u'max-iteration': None,
-        u'search-query': None,
-        u'start-at': None,
-        u'start-before': None,
-        u'time-span': None,
+        'async': None,
+        'bookmark': None,
+        'bookmark-id': None,
+        'concurrency-level': None,
+        'cron-line': None,
+        'description-format': None,
+        'dynamic': None,
+        'effective-user': None,
+        'end-time': None,
+        'input-files': None,
+        'inputs': None,
+        'job-template': None,
+        'job-template-id': None,
+        'max-iteration': None,
+        'search-query': None,
+        'start-at': None,
+        'start-before': None,
+        'time-span': None,
     }
 
     return create_object(JobInvocation, args, options)
@@ -1721,20 +1721,20 @@ def make_job_template(options=None):
 
     """
     args = {
-        u'audit-comment': None,
-        u'current-user': None,
-        u'description-format': None,
-        u'file': None,
-        u'job-category': u'Miscellaneous',
-        u'location-ids': None,
-        u'locations': None,
-        u'name': None,
-        u'organization-ids': None,
-        u'organizations': None,
-        u'overridable': None,
-        u'provider-type': u'SSH',
-        u'snippet': None,
-        u'value': None,
+        'audit-comment': None,
+        'current-user': None,
+        'description-format': None,
+        'file': None,
+        'job-category': 'Miscellaneous',
+        'location-ids': None,
+        'locations': None,
+        'name': None,
+        'organization-ids': None,
+        'organizations': None,
+        'overridable': None,
+        'provider-type': 'SSH',
+        'snippet': None,
+        'value': None,
     }
 
     return create_object(JobTemplate, args, options)
@@ -1771,18 +1771,18 @@ def make_user(options=None):
 
     # Assigning default values for attributes
     args = {
-        u'admin': None,
-        u'auth-source-id': 1,
-        u'default-location-id': None,
-        u'default-organization-id': None,
-        u'description': None,
-        u'firstname': gen_alphanumeric(),
-        u'lastname': gen_alphanumeric(),
-        u'location-ids': None,
-        u'login': login,
-        u'mail': '{0}@example.com'.format(login),
-        u'organization-ids': None,
-        u'password': gen_alphanumeric(),
+        'admin': None,
+        'auth-source-id': 1,
+        'default-location-id': None,
+        'default-organization-id': None,
+        'description': None,
+        'firstname': gen_alphanumeric(),
+        'lastname': gen_alphanumeric(),
+        'location-ids': None,
+        'login': login,
+        'mail': '{0}@example.com'.format(login),
+        'organization-ids': None,
+        'password': gen_alphanumeric(),
     }
     logger.debug(
         'User "{0}" password not provided {1} was generated'.format(
@@ -1810,13 +1810,13 @@ def make_usergroup(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'name': gen_alphanumeric(),
-        u'role-ids': None,
-        u'roles': None,
-        u'user-group-ids': None,
-        u'user-groups': None,
-        u'user-ids': None,
-        u'users': None,
+        'name': gen_alphanumeric(),
+        'role-ids': None,
+        'roles': None,
+        'user-group-ids': None,
+        'user-groups': None,
+        'user-ids': None,
+        'users': None,
     }
 
     return create_object(UserGroup, args, options)
@@ -1842,10 +1842,10 @@ def make_usergroup_external(options=None):
 
     # Assigning default values for attributes
     args = {
-        u'auth-source-id': 1,
-        u'name': gen_alphanumeric(8),
-        u'user-group': None,
-        u'user-group-id': None,
+        'auth-source-id': 1,
+        'name': gen_alphanumeric(8),
+        'user-group': None,
+        'user-group-id': None,
     }
 
     return create_object(UserGroupExternal, args, options)
@@ -1910,27 +1910,27 @@ def make_ldap_auth_source(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'account': None,
-        u'account-password': None,
-        u'attr-firstname': None,
-        u'attr-lastname': None,
-        u'attr-login': None,
-        u'attr-mail': None,
-        u'attr-photo': None,
-        u'base-dn': None,
-        u'groups-base': None,
-        u'host': None,
-        u'ldap-filter': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric(),
-        u'onthefly-register': None,
-        u'organization-ids': None,
-        u'organizations': None,
-        u'port': None,
-        u'server-type': None,
-        u'tls': None,
-        u'usergroup-sync': None,
+        'account': None,
+        'account-password': None,
+        'attr-firstname': None,
+        'attr-lastname': None,
+        'attr-login': None,
+        'attr-mail': None,
+        'attr-photo': None,
+        'base-dn': None,
+        'groups-base': None,
+        'host': None,
+        'ldap-filter': None,
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric(),
+        'onthefly-register': None,
+        'organization-ids': None,
+        'organizations': None,
+        'port': None,
+        'server-type': None,
+        'tls': None,
+        'usergroup-sync': None,
     }
 
     return create_object(LDAPAuthSource, args, options)
@@ -2018,39 +2018,39 @@ def make_compute_resource(options=None):
 
     """
     args = {
-        u'caching-enabled': None,
-        u'datacenter': None,
-        u'description': None,
-        u'display-type': None,
-        u'domain': None,
-        u'location': None,
-        u'location-id': None,
-        u'location-ids': None,
-        u'location-title': None,
-        u'location-titles': None,
-        u'locations': None,
-        u'name': gen_alphanumeric(8),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-ids': None,
-        u'organization-title': None,
-        u'organization-titles': None,
-        u'organizations': None,
-        u'ovirt-quota': None,
-        u'password': None,
-        u'project-domain-id': None,
-        u'project-domain-name': None,
-        u'provider': None,
-        u'public-key': None,
-        u'public-key-path': None,
-        u'region': None,
-        u'server': None,
-        u'set-console-password': None,
-        u'tenant': None,
-        u'url': None,
-        u'use-v4': None,
-        u'user': None,
-        u'uuid': None,
+        'caching-enabled': None,
+        'datacenter': None,
+        'description': None,
+        'display-type': None,
+        'domain': None,
+        'location': None,
+        'location-id': None,
+        'location-ids': None,
+        'location-title': None,
+        'location-titles': None,
+        'locations': None,
+        'name': gen_alphanumeric(8),
+        'organization': None,
+        'organization-id': None,
+        'organization-ids': None,
+        'organization-title': None,
+        'organization-titles': None,
+        'organizations': None,
+        'ovirt-quota': None,
+        'password': None,
+        'project-domain-id': None,
+        'project-domain-name': None,
+        'provider': None,
+        'public-key': None,
+        'public-key-path': None,
+        'region': None,
+        'server': None,
+        'set-console-password': None,
+        'tenant': None,
+        'url': None,
+        'use-v4': None,
+        'user': None,
+        'uuid': None,
     }
 
     if options is None:
@@ -2142,28 +2142,28 @@ def make_org_with_credentials(options=None, credentials=None):
     """
     # Assigning default values for attributes
     args = {
-        u'compute-resource-ids': None,
-        u'compute-resources': None,
-        u'config-template-ids': None,
-        u'config-templates': None,
-        u'description': None,
-        u'domain-ids': None,
-        u'environment-ids': None,
-        u'environments': None,
-        u'hostgroup-ids': None,
-        u'hostgroups': None,
-        u'label': None,
-        u'media-ids': None,
-        u'media': None,
-        u'name': gen_alphanumeric(6),
-        u'realm-ids': None,
-        u'realms': None,
-        u'smart-proxy-ids': None,
-        u'smart-proxies': None,
-        u'subnet-ids': None,
-        u'subnets': None,
-        u'user-ids': None,
-        u'users': None,
+        'compute-resource-ids': None,
+        'compute-resources': None,
+        'config-template-ids': None,
+        'config-templates': None,
+        'description': None,
+        'domain-ids': None,
+        'environment-ids': None,
+        'environments': None,
+        'hostgroup-ids': None,
+        'hostgroups': None,
+        'label': None,
+        'media-ids': None,
+        'media': None,
+        'name': gen_alphanumeric(6),
+        'realm-ids': None,
+        'realms': None,
+        'smart-proxy-ids': None,
+        'smart-proxies': None,
+        'subnet-ids': None,
+        'subnets': None,
+        'user-ids': None,
+        'users': None,
     }
     org_cls = _entity_with_credentials(credentials, Org)
     return create_object(org_cls, args, options)
@@ -2204,13 +2204,13 @@ def make_realm(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric(6),
-        u'organization-ids': None,
-        u'organizations': None,
-        u'realm-proxy-id': None,
-        u'realm-type': None,
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric(6),
+        'organization-ids': None,
+        'organizations': None,
+        'realm-proxy-id': None,
+        'realm-type': None,
     }
 
     return create_object(Realm, args, options)
@@ -2288,25 +2288,25 @@ def make_report_template(options=None):
         content = gen_alphanumeric()
 
     args = {
-        u'audit-comment': None,
-        u'default': None,
-        u'file': content,
-        u'interactive': None,
-        u'location': None,
-        u'location-id': None,
-        u'location-ids': None,
-        u'location-title': None,
-        u'location-titles': None,
-        u'locations': None,
-        u'locked': None,
-        u'name': gen_alphanumeric(10),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-ids': None,
-        u'organization-title': None,
-        u'organization-titles': None,
-        u'organizations': None,
-        u'snippet': None,
+        'audit-comment': None,
+        'default': None,
+        'file': content,
+        'interactive': None,
+        'location': None,
+        'location-id': None,
+        'location-ids': None,
+        'location-title': None,
+        'location-titles': None,
+        'locations': None,
+        'locked': None,
+        'name': gen_alphanumeric(10),
+        'organization': None,
+        'organization-id': None,
+        'organization-ids': None,
+        'organization-title': None,
+        'organization-titles': None,
+        'organizations': None,
+        'snippet': None,
     }
     return create_object(ReportTemplate, args, options)
 
@@ -2354,21 +2354,21 @@ def make_os(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'architecture-ids': None,
-        u'architectures': None,
-        u'config-template-ids': None,
-        u'config-templates': None,
-        u'description': None,
-        u'family': None,
-        u'major': random.randint(0, 10),
-        u'media': None,
-        u'medium-ids': None,
-        u'minor': random.randint(0, 10),
-        u'name': gen_alphanumeric(6),
-        u'partition-table-ids': None,
-        u'partition-tables': None,
-        u'password-hash': None,
-        u'release-name': None,
+        'architecture-ids': None,
+        'architectures': None,
+        'config-template-ids': None,
+        'config-templates': None,
+        'description': None,
+        'family': None,
+        'major': random.randint(0, 10),
+        'media': None,
+        'medium-ids': None,
+        'minor': random.randint(0, 10),
+        'name': gen_alphanumeric(6),
+        'partition-table-ids': None,
+        'partition-tables': None,
+        'password-hash': None,
+        'release-name': None,
     }
 
     return create_object(OperatingSys, args, options)
@@ -2406,13 +2406,13 @@ def make_scapcontent(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'scap-file': None,
-        u'original-filename': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'title': gen_alphanumeric().lower(),
-        u'organization-ids': None,
-        u'organizations': None,
+        'scap-file': None,
+        'original-filename': None,
+        'location-ids': None,
+        'locations': None,
+        'title': gen_alphanumeric().lower(),
+        'organization-ids': None,
+        'organizations': None,
     }
 
     return create_object(Scapcontent, args, options)
@@ -2442,13 +2442,13 @@ def make_domain(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'description': None,
-        u'dns-id': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric().lower(),
-        u'organization-ids': None,
-        u'organizations': None,
+        'description': None,
+        'dns-id': None,
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric().lower(),
+        'organization-ids': None,
+        'organizations': None,
     }
 
     return create_object(Domain, args, options)
@@ -2527,54 +2527,54 @@ def make_hostgroup(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'architecture': None,
-        u'architecture-id': None,
-        u'compute-profile': None,
-        u'compute-profile-id': None,
-        u'config-group-ids': None,
-        u'config-groups': None,
-        u'content-source-id': None,
-        u'content-source': None,
-        u'content-view': None,
-        u'content-view-id': None,
-        u'domain': None,
-        u'domain-id': None,
-        u'environment': None,
-        u'puppet-environment': None,
-        u'environment-id': None,
-        u'puppet-environment-id': None,
-        u'locations': None,
-        u'location-ids': None,
-        u'kickstart-repository-id': None,
-        u'lifecycle-environment': None,
-        u'lifecycle-environment-id': None,
-        u'lifecycle-environment-organization-id': None,
-        u'medium': None,
-        u'medium-id': None,
-        u'name': gen_alphanumeric(6),
-        u'operatingsystem': None,
-        u'operatingsystem-id': None,
-        u'organizations': None,
-        u'organization-titles': None,
-        u'organization-ids': None,
-        u'parent': None,
-        u'parent-id': None,
-        u'partition-table': None,
-        u'partition-table-id': None,
-        u'puppet-ca-proxy': None,
-        u'puppet-ca-proxy-id': None,
-        u'puppet-class-ids': None,
-        u'puppet-classes': None,
-        u'puppet-proxy': None,
-        u'puppet-proxy-id': None,
-        u'pxe-loader': None,
-        u'query-organization': None,
-        u'query-organization-id': None,
-        u'query-organization-label': None,
-        u'realm': None,
-        u'realm-id': None,
-        u'subnet': None,
-        u'subnet-id': None,
+        'architecture': None,
+        'architecture-id': None,
+        'compute-profile': None,
+        'compute-profile-id': None,
+        'config-group-ids': None,
+        'config-groups': None,
+        'content-source-id': None,
+        'content-source': None,
+        'content-view': None,
+        'content-view-id': None,
+        'domain': None,
+        'domain-id': None,
+        'environment': None,
+        'puppet-environment': None,
+        'environment-id': None,
+        'puppet-environment-id': None,
+        'locations': None,
+        'location-ids': None,
+        'kickstart-repository-id': None,
+        'lifecycle-environment': None,
+        'lifecycle-environment-id': None,
+        'lifecycle-environment-organization-id': None,
+        'medium': None,
+        'medium-id': None,
+        'name': gen_alphanumeric(6),
+        'operatingsystem': None,
+        'operatingsystem-id': None,
+        'organizations': None,
+        'organization-titles': None,
+        'organization-ids': None,
+        'parent': None,
+        'parent-id': None,
+        'partition-table': None,
+        'partition-table-id': None,
+        'puppet-ca-proxy': None,
+        'puppet-ca-proxy-id': None,
+        'puppet-class-ids': None,
+        'puppet-classes': None,
+        'puppet-proxy': None,
+        'puppet-proxy-id': None,
+        'pxe-loader': None,
+        'query-organization': None,
+        'query-organization-id': None,
+        'query-organization-label': None,
+        'realm': None,
+        'realm-id': None,
+        'subnet': None,
+        'subnet-id': None,
     }
 
     return create_object(HostGroup, args, options)
@@ -2626,15 +2626,15 @@ def make_medium(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric(6),
-        u'operatingsystem-ids': None,
-        u'operatingsystems': None,
-        u'organization-ids': None,
-        u'organizations': None,
-        u'os-family': None,
-        u'path': 'http://{0}'.format((gen_string('alpha', 6))),
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric(6),
+        'operatingsystem-ids': None,
+        'operatingsystems': None,
+        'organization-ids': None,
+        'organizations': None,
+        'os-family': None,
+        'path': 'http://{0}'.format((gen_string('alpha', 6))),
     }
 
     return create_object(Medium, args, options)
@@ -2661,11 +2661,11 @@ def make_environment(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric(6),
-        u'organization-ids': None,
-        u'organizations': None,
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric(6),
+        'organization-ids': None,
+        'organizations': None,
     }
 
     return create_object(Environment, args, options)
@@ -2711,15 +2711,15 @@ def make_lifecycle_environment(options=None):
 
     # Assigning default values for attributes
     args = {
-        u'description': None,
-        u'label': None,
-        u'name': gen_alphanumeric(6),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'prior': None,
-        u'registry-name-pattern': None,
-        u'registry-unauthenticated-pull': None,
+        'description': None,
+        'label': None,
+        'name': gen_alphanumeric(6),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+        'prior': None,
+        'registry-name-pattern': None,
+        'registry-unauthenticated-pull': None,
     }
 
     return create_object(LifecycleEnvironment, args, options)
@@ -2757,13 +2757,13 @@ def make_tailoringfile(options=None):
     """
     # Assigning default values for attributes
     args = {
-        u'scap-file': None,
-        u'original-filename': None,
-        u'location-ids': None,
-        u'locations': None,
-        u'name': gen_alphanumeric().lower(),
-        u'organization-ids': None,
-        u'organizations': None,
+        'scap-file': None,
+        'original-filename': None,
+        'location-ids': None,
+        'locations': None,
+        'name': gen_alphanumeric().lower(),
+        'organization-ids': None,
+        'organizations': None,
     }
 
     return create_object(TailoringFiles, args, options)
@@ -2798,14 +2798,14 @@ def make_template(options=None):
     """
     # Assigning default values for attribute
     args = {
-        u'audit-comment': None,
-        u'file': '/tmp/{0}'.format(gen_alphanumeric()),
-        u'location-ids': None,
-        u'locked': None,
-        u'name': gen_alphanumeric(6),
-        u'operatingsystem-ids': None,
-        u'organization-ids': None,
-        u'type': random.choice(TEMPLATE_TYPES),
+        'audit-comment': None,
+        'file': '/tmp/{0}'.format(gen_alphanumeric()),
+        'location-ids': None,
+        'locked': None,
+        'name': gen_alphanumeric(6),
+        'operatingsystem-ids': None,
+        'organization-ids': None,
+        'type': random.choice(TEMPLATE_TYPES),
     }
 
     # Write content to file or random text
@@ -2914,25 +2914,25 @@ def make_template_input(options=None):
         raise CLIFactoryError('Please provide valid template-id and input-type')
 
     args = {
-        u'advanced': None,
-        u'description': None,
-        u'fact-name': None,
-        u'input-type': None,
-        u'location': None,
-        u'location-id': None,
-        u'location-title': None,
-        u'name': gen_alphanumeric(6),
-        u'options': None,
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-title': None,
-        u'puppet-class-name': None,
-        u'puppet-parameter-name': None,
-        u'required': None,
-        u'resource-type': None,
-        u'template-id': None,
-        u'value-type': None,
-        u'variable-name': None,
+        'advanced': None,
+        'description': None,
+        'fact-name': None,
+        'input-type': None,
+        'location': None,
+        'location-id': None,
+        'location-title': None,
+        'name': gen_alphanumeric(6),
+        'options': None,
+        'organization': None,
+        'organization-id': None,
+        'organization-title': None,
+        'puppet-class-name': None,
+        'puppet-parameter-name': None,
+        'required': None,
+        'resource-type': None,
+        'template-id': None,
+        'value-type': None,
+        'variable-name': None,
     }
     return create_object(TemplateInput, args, options)
 
@@ -2989,19 +2989,19 @@ def make_smart_variable(options=None):
 
     # Assigning default values for attributes
     args = {
-        u'avoid-duplicates': None,
-        u'default-value': None,
-        u'description': None,
-        u'hidden-value': None,
-        u'merge-default': None,
-        u'merge-overrides': None,
-        u'override-value-order': None,
-        u'puppet-class': None,
-        u'puppet-class-id': None,
-        u'validator-rule': None,
-        u'validator-type': None,
-        u'variable': gen_alphanumeric(),
-        u'variable-type': None,
+        'avoid-duplicates': None,
+        'default-value': None,
+        'description': None,
+        'hidden-value': None,
+        'merge-default': None,
+        'merge-overrides': None,
+        'override-value-order': None,
+        'puppet-class': None,
+        'puppet-class-id': None,
+        'validator-rule': None,
+        'validator-type': None,
+        'variable': gen_alphanumeric(),
+        'variable-type': None,
     }
 
     return create_object(SmartVariable, args, options)
@@ -3065,23 +3065,23 @@ def make_virt_who_config(options=None):
         -h, --help            print help
     """
     args = {
-        u'blacklist': None,
-        u'debug': None,
-        u'filtering-mode': 'none',
-        u'hypervisor-id': 'hostname',
-        u'hypervisor-password': None,
-        u'hypervisor-server': None,
-        u'hypervisor-type': None,
-        u'hypervisor-username': None,
-        u'interval': '60',
-        u'name': gen_alphanumeric(6),
-        u'no-proxy': None,
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-title': None,
-        u'proxy': None,
-        u'satellite-url': settings.server.hostname,
-        u'whitelist': None,
+        'blacklist': None,
+        'debug': None,
+        'filtering-mode': 'none',
+        'hypervisor-id': 'hostname',
+        'hypervisor-password': None,
+        'hypervisor-server': None,
+        'hypervisor-type': None,
+        'hypervisor-username': None,
+        'interval': '60',
+        'name': gen_alphanumeric(6),
+        'no-proxy': None,
+        'organization': None,
+        'organization-id': None,
+        'organization-title': None,
+        'proxy': None,
+        'satellite-url': settings.server.hostname,
+        'whitelist': None,
     }
     return create_object(VirtWhoConfig, args, options)
 
@@ -3104,16 +3104,16 @@ def activationkey_add_subscription_to_repo(options=None):
         or not options.get('subscription')
     ):
         raise CLIFactoryError(
-            'Please provide valid organization, activation key and ' 'subscription.'
+            'Please provide valid organization, activation key and subscription.'
         )
     # List the subscriptions in given org
     subscriptions = Subscription.list(
-        {u'organization-id': options['organization-id']}, per_page=False
+        {'organization-id': options['organization-id']}, per_page=False
     )
     # Add subscription to activation-key
     if options['subscription'] not in (sub['name'] for sub in subscriptions):
         raise CLIFactoryError(
-            u'Subscription {0} not found in the given org'.format(options['subscription'])
+            'Subscription {0} not found in the given org'.format(options['subscription'])
         )
     for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
@@ -3122,14 +3122,14 @@ def activationkey_add_subscription_to_repo(options=None):
             try:
                 ActivationKey.add_subscription(
                     {
-                        u'id': options['activationkey-id'],
-                        u'subscription-id': subscription['id'],
-                        u'quantity': 1,
+                        'id': options['activationkey-id'],
+                        'subscription-id': subscription['id'],
+                        'quantity': 1,
                     }
                 )
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(
-                    u'Failed to add subscription to activation key\n{0}'.format(err.msg)
+                    'Failed to add subscription to activation key\n{0}'.format(err.msg)
                 )
 
 
@@ -3171,55 +3171,51 @@ def setup_org_for_a_custom_repo(options=None):
     else:
         org_id = options['organization-id']
     if options.get('lifecycle-environment-id') is None:
-        env_id = make_lifecycle_environment({u'organization-id': org_id})['id']
+        env_id = make_lifecycle_environment({'organization-id': org_id})['id']
     else:
         env_id = options['lifecycle-environment-id']
     # Create custom product and repository
-    custom_product = make_product({u'organization-id': org_id})
+    custom_product = make_product({'organization-id': org_id})
     custom_repo = make_repository(
-        {u'content-type': 'yum', u'product-id': custom_product['id'], u'url': options.get('url')}
+        {'content-type': 'yum', 'product-id': custom_product['id'], 'url': options.get('url')}
     )
     # Synchronize custom repository
     try:
         Repository.synchronize({'id': custom_repo['id']})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to synchronize repository\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
-        cv_id = make_content_view({u'organization-id': org_id})['id']
+        cv_id = make_content_view({'organization-id': org_id})['id']
     else:
         cv_id = options['content-view-id']
     try:
         ContentView.add_repository(
-            {u'id': cv_id, u'organization-id': org_id, u'repository-id': custom_repo['id']}
+            {'id': cv_id, 'organization-id': org_id, 'repository-id': custom_repo['id']}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to add repository to content view\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
     try:
-        ContentView.publish({u'id': cv_id})
+        ContentView.publish({'id': cv_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to publish new version of content view\n{0}'.format(err.msg)
-        )
+        raise CLIFactoryError('Failed to publish new version of content view\n{0}'.format(err.msg))
     # Get the version id
-    cvv = ContentView.info({u'id': cv_id})['versions'][-1]
+    cvv = ContentView.info({'id': cv_id})['versions'][-1]
     # Promote version to next env
     try:
         ContentView.version_promote(
-            {u'id': cvv['id'], u'organization-id': org_id, u'to-lifecycle-environment-id': env_id}
+            {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to promote version to next environment\n{0}'.format(err.msg)
-        )
+        raise CLIFactoryError('Failed to promote version to next environment\n{0}'.format(err.msg))
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
         activationkey_id = make_activation_key(
             {
-                u'content-view-id': cv_id,
-                u'lifecycle-environment-id': env_id,
-                u'organization-id': org_id,
+                'content-view-id': cv_id,
+                'lifecycle-environment-id': env_id,
+                'organization-id': org_id,
             }
         )['id']
     else:
@@ -3228,27 +3224,27 @@ def setup_org_for_a_custom_repo(options=None):
         # Associate activation key with CV just to be sure
         try:
             ActivationKey.update(
-                {u'content-view-id': cv_id, u'id': activationkey_id, u'organization-id': org_id}
+                {'content-view-id': cv_id, 'id': activationkey_id, 'organization-id': org_id}
             )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                u'Failed to associate activation-key with CV\n{0}'.format(err.msg)
+                'Failed to associate activation-key with CV\n{0}'.format(err.msg)
             )
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo(
         {
-            u'activationkey-id': activationkey_id,
-            u'organization-id': org_id,
-            u'subscription': custom_product['name'],
+            'activationkey-id': activationkey_id,
+            'organization-id': org_id,
+            'subscription': custom_product['name'],
         }
     )
     return {
-        u'activationkey-id': activationkey_id,
-        u'content-view-id': cv_id,
-        u'lifecycle-environment-id': env_id,
-        u'organization-id': org_id,
-        u'product-id': custom_product['id'],
-        u'repository-id': custom_repo['id'],
+        'activationkey-id': activationkey_id,
+        'content-view-id': cv_id,
+        'lifecycle-environment-id': env_id,
+        'organization-id': org_id,
+        'product-id': custom_product['id'],
+        'repository-id': custom_repo['id'],
     }
 
 
@@ -3305,90 +3301,86 @@ def _setup_org_for_a_rh_repo(options=None):
     else:
         org_id = options['organization-id']
     if options.get('lifecycle-environment-id') is None:
-        env_id = make_lifecycle_environment({u'organization-id': org_id})['id']
+        env_id = make_lifecycle_environment({'organization-id': org_id})['id']
     else:
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
     with manifests.clone() as manifest:
         upload_file(manifest.content, manifest.filename)
     try:
-        Subscription.upload({u'file': manifest.filename, u'organization-id': org_id})
+        Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to upload manifest\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
     # Enable repo from Repository Set
     try:
         RepositorySet.enable(
             {
-                u'basearch': 'x86_64',
-                u'name': options['repository-set'],
-                u'organization-id': org_id,
-                u'product': options['product'],
-                u'releasever': options.get('releasever'),
+                'basearch': 'x86_64',
+                'name': options['repository-set'],
+                'organization-id': org_id,
+                'product': options['product'],
+                'releasever': options.get('releasever'),
             }
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to enable repository set\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to enable repository set\n{0}'.format(err.msg))
     # Fetch repository info
     try:
         rhel_repo = Repository.info(
             {
-                u'name': options['repository'],
-                u'organization-id': org_id,
-                u'product': options['product'],
+                'name': options['repository'],
+                'organization-id': org_id,
+                'product': options['product'],
             }
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to fetch repository info\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to fetch repository info\n{0}'.format(err.msg))
     # Synchronize the RH repository
     try:
         Repository.synchronize(
             {
-                u'name': options['repository'],
-                u'organization-id': org_id,
-                u'product': options['product'],
+                'name': options['repository'],
+                'organization-id': org_id,
+                'product': options['product'],
             }
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to synchronize repository\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
-        cv_id = make_content_view({u'organization-id': org_id})['id']
+        cv_id = make_content_view({'organization-id': org_id})['id']
     else:
         cv_id = options['content-view-id']
     try:
         ContentView.add_repository(
-            {u'id': cv_id, u'organization-id': org_id, u'repository-id': rhel_repo['id']}
+            {'id': cv_id, 'organization-id': org_id, 'repository-id': rhel_repo['id']}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to add repository to content view\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
     try:
-        ContentView.publish({u'id': cv_id})
+        ContentView.publish({'id': cv_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to publish new version of content view\n{0}'.format(err.msg)
-        )
+        raise CLIFactoryError('Failed to publish new version of content view\n{0}'.format(err.msg))
     # Get the version id
     try:
-        cvv = ContentView.info({u'id': cv_id})['versions'][-1]
+        cvv = ContentView.info({'id': cv_id})['versions'][-1]
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(u'Failed to fetch content view info\n{0}'.format(err.msg))
+        raise CLIFactoryError('Failed to fetch content view info\n{0}'.format(err.msg))
     # Promote version1 to next env
     try:
         ContentView.version_promote(
-            {u'id': cvv['id'], u'organization-id': org_id, u'to-lifecycle-environment-id': env_id}
+            {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to promote version to next environment\n{0}'.format(err.msg)
-        )
+        raise CLIFactoryError('Failed to promote version to next environment\n{0}'.format(err.msg))
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
         activationkey_id = make_activation_key(
             {
-                u'content-view-id': cv_id,
-                u'lifecycle-environment-id': env_id,
-                u'organization-id': org_id,
+                'content-view-id': cv_id,
+                'lifecycle-environment-id': env_id,
+                'organization-id': org_id,
             }
         )['id']
     else:
@@ -3397,26 +3389,26 @@ def _setup_org_for_a_rh_repo(options=None):
         # Associate activation key with CV just to be sure
         try:
             ActivationKey.update(
-                {u'id': activationkey_id, u'organization-id': org_id, u'content-view-id': cv_id}
+                {'id': activationkey_id, 'organization-id': org_id, 'content-view-id': cv_id}
             )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                u'Failed to associate activation-key with CV\n{0}'.format(err.msg)
+                'Failed to associate activation-key with CV\n{0}'.format(err.msg)
             )
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo(
         {
-            u'organization-id': org_id,
-            u'activationkey-id': activationkey_id,
-            u'subscription': options.get(u'subscription', DEFAULT_SUBSCRIPTION_NAME),
+            'organization-id': org_id,
+            'activationkey-id': activationkey_id,
+            'subscription': options.get('subscription', DEFAULT_SUBSCRIPTION_NAME),
         }
     )
     return {
-        u'activationkey-id': activationkey_id,
-        u'content-view-id': cv_id,
-        u'lifecycle-environment-id': env_id,
-        u'organization-id': org_id,
-        u'repository-id': rhel_repo['id'],
+        'activationkey-id': activationkey_id,
+        'content-view-id': cv_id,
+        'lifecycle-environment-id': env_id,
+        'organization-id': org_id,
+        'repository-id': rhel_repo['id'],
     }
 
 
@@ -3453,15 +3445,15 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
                 upload_file(manifest.content, manifest.filename)
             try:
                 Subscription.upload(
-                    {u'file': manifest.filename, u'organization-id': result.get('organization-id')}
+                    {'file': manifest.filename, 'organization-id': result.get('organization-id')}
                 )
             except CLIReturnCodeError as err:
-                raise CLIFactoryError(u'Failed to upload manifest\n{0}'.format(err.msg))
+                raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
             # attach the default subscription to activation key
             activationkey_add_subscription_to_repo(
                 {
-                    'activationkey-id': result[u'activationkey-id'],
-                    'organization-id': result[u'organization-id'],
+                    'activationkey-id': result['activationkey-id'],
+                    'organization-id': result['organization-id'],
                     'subscription': DEFAULT_SUBSCRIPTION_NAME,
                 }
             )
@@ -3488,14 +3480,14 @@ def configure_env_for_provision(org=None, loc=None):
         loc = make_location()
 
     # Get a Library Lifecycle environment and the default CV for the org
-    lce = LifecycleEnvironment.info({u'name': u'Library', 'organization-id': org['id']})
-    cv = ContentView.info({u'name': u'Default Organization View', u'organization-id': org['id']})
+    lce = LifecycleEnvironment.info({'name': 'Library', 'organization-id': org['id']})
+    cv = ContentView.info({'name': 'Default Organization View', 'organization-id': org['id']})
 
     # Create puppet environment and associate organization and location
     env = make_environment({'location-ids': loc['id'], 'organization-ids': org['id']})
 
     # get default capsule and associate location
-    puppet_proxy = Proxy.info({'id': Proxy.list({u'search': settings.server.hostname})[0]['id']})
+    puppet_proxy = Proxy.info({'id': Proxy.list({'search': settings.server.hostname})[0]['id']})
     Proxy.update(
         {
             'id': puppet_proxy['id'],
@@ -3676,22 +3668,22 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     """
     if not organization_id:
         organization_id = make_org()['id']
-    product = make_product({u'organization-id': organization_id})
+    product = make_product({'organization-id': organization_id})
     repo = make_repository(
-        {u'product-id': product['id'], u'content-type': 'puppet', u'url': repo_url}
+        {'product-id': product['id'], 'content-type': 'puppet', 'url': repo_url}
     )
     # Synchronize repo via provided URL
     Repository.synchronize({'id': repo['id']})
     # Add selected module to Content View
-    cv = make_content_view({u'organization-id': organization_id})
+    cv = make_content_view({'organization-id': organization_id})
     for module in puppet_modules:
         ContentView.puppet_module_add(
-            {u'author': module['author'], u'name': module['name'], u'content-view-id': cv['id']}
+            {'author': module['author'], 'name': module['name'], 'content-view-id': cv['id']}
         )
     # CV publishing will automatically create Environment and
     # Puppet Class entities
-    ContentView.publish({u'id': cv['id']})
-    return ContentView.info({u'id': cv['id']})
+    ContentView.publish({'id': cv['id']})
+    return ContentView.info({'id': cv['id']})
 
 
 def setup_virtual_machine(
@@ -3877,22 +3869,22 @@ def setup_cdn_and_custom_repositories(
         custom_repo_url = repo.get('url')
         cdn = repo.get('cdn', False)
         if not cdn and not custom_repo_url:
-            raise CLIFactoryError(u'Custom repository with url not supplied')
+            raise CLIFactoryError('Custom repository with url not supplied')
         if cdn:
             RepositorySet.enable(
                 {
-                    u'organization-id': org_id,
-                    u'product': repo['product'],
-                    u'name': repo['repository-set'],
-                    u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                    u'releasever': repo.get('releasever'),
+                    'organization-id': org_id,
+                    'product': repo['product'],
+                    'name': repo['repository-set'],
+                    'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                    'releasever': repo.get('releasever'),
                 }
             )
             repo_info = Repository.info(
                 {
-                    u'organization-id': org_id,
-                    u'name': repo['repository'],
-                    u'product': repo['product'],
+                    'organization-id': org_id,
+                    'name': repo['repository'],
+                    'product': repo['product'],
                 }
             )
         else:
@@ -3939,7 +3931,7 @@ def setup_cdn_and_custom_repos_content(
     :return: a dict containing the activation key, content view and repos info
     """
     if lce_id is None and not default_cv:
-        raise TypeError(u'lce_id must be specified')
+        raise TypeError('lce_id must be specified')
     if repos is None:
         repos = []
     if rh_subscriptions is None:
@@ -3952,52 +3944,52 @@ def setup_cdn_and_custom_repos_content(
                 org_id, manifests.clone(), interface=manifests.INTERFACE_CLI
             )
         except CLIReturnCodeError as err:
-            raise CLIFactoryError(u'Failed to upload manifest\n{0}'.format(err.msg))
+            raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
 
     custom_product, repos_info = setup_cdn_and_custom_repositories(
         org_id=org_id, repos=repos, download_policy=download_policy
     )
     if default_cv:
         activation_key = make_activation_key(
-            {u'organization-id': org_id, u'lifecycle-environment': 'Library'}
+            {'organization-id': org_id, 'lifecycle-environment': 'Library'}
         )
         content_view = ContentView.info(
-            {u'organization-id': org_id, u'name': u'Default Organization View'}
+            {'organization-id': org_id, 'name': 'Default Organization View'}
         )
     else:
         # Create a content view
-        content_view = make_content_view({u'organization-id': org_id})
+        content_view = make_content_view({'organization-id': org_id})
         # Add repositories to content view
         for repo_info in repos_info:
             ContentView.add_repository(
                 {
-                    u'id': content_view['id'],
-                    u'organization-id': org_id,
-                    u'repository-id': repo_info['id'],
+                    'id': content_view['id'],
+                    'organization-id': org_id,
+                    'repository-id': repo_info['id'],
                 }
             )
         # Publish the content view
-        ContentView.publish({u'id': content_view['id']})
+        ContentView.publish({'id': content_view['id']})
         # Get the latest content view version id
-        content_view_version = ContentView.info({u'id': content_view['id']})['versions'][-1]
+        content_view_version = ContentView.info({'id': content_view['id']})['versions'][-1]
         # Promote content view version to lifecycle environment
         ContentView.version_promote(
             {
-                u'id': content_view_version['id'],
-                u'organization-id': org_id,
-                u'to-lifecycle-environment-id': lce_id,
+                'id': content_view_version['id'],
+                'organization-id': org_id,
+                'to-lifecycle-environment-id': lce_id,
             }
         )
-        content_view = ContentView.info({u'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
         activation_key = make_activation_key(
             {
-                u'organization-id': org_id,
-                u'lifecycle-environment-id': lce_id,
-                u'content-view-id': content_view['id'],
+                'organization-id': org_id,
+                'lifecycle-environment-id': lce_id,
+                'content-view-id': content_view['id'],
             }
         )
     # Get organization subscriptions
-    subscriptions = Subscription.list({u'organization-id': org_id}, per_page=False)
+    subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
     # Add subscriptions to activation-key
     needed_subscription_names = list(rh_subscriptions)
     if custom_product:
@@ -4009,11 +4001,7 @@ def setup_cdn_and_custom_repos_content(
             and subscription['name'] not in added_subscription_names
         ):
             ActivationKey.add_subscription(
-                {
-                    u'id': activation_key['id'],
-                    u'subscription-id': subscription['id'],
-                    u'quantity': 1,
-                }
+                {'id': activation_key['id'], 'subscription-id': subscription['id'], 'quantity': 1}
             )
             added_subscription_names.append(subscription['name'])
             if len(added_subscription_names) == len(needed_subscription_names):
@@ -4022,7 +4010,7 @@ def setup_cdn_and_custom_repos_content(
         set(added_subscription_names)
     )
     if missing_subscription_names:
-        raise CLIFactoryError(u'Missing subscriptions: {0}'.format(missing_subscription_names))
+        raise CLIFactoryError('Missing subscriptions: {0}'.format(missing_subscription_names))
     data = dict(
         activation_key=activation_key,
         content_view=content_view,
@@ -4054,18 +4042,18 @@ def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
     ssh_config_file_path = '{0}/config'.format(ssh_path)
     result = vm.run('touch {0}'.format(ssh_config_file_path))
     if result.return_code != 0:
-        raise CLIFactoryError(u'Failed to create ssh config file:\n{}'.format(result.stderr))
+        raise CLIFactoryError('Failed to create ssh config file:\n{}'.format(result.stderr))
     result = vm.run(
         'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
         '\tIdentityFile {2}\n" >> {3}'.format(host, user, ssh_key_file_path, ssh_config_file_path)
     )
     if result.return_code != 0:
-        raise CLIFactoryError(u'Failed to write to ssh config file:\n{}'.format(result.stderr))
+        raise CLIFactoryError('Failed to write to ssh config file:\n{}'.format(result.stderr))
     # add host entry to ssh known_hosts
     result = vm.run('ssh-keyscan {0} >> {1}/known_hosts'.format(host, ssh_path))
     if result.return_code != 0:
         raise CLIFactoryError(
-            u'Failed to put hostname in ssh known_hosts files:\n{}'.format(result.stderr)
+            'Failed to put hostname in ssh known_hosts files:\n{}'.format(result.stderr)
         )
 
 
@@ -4081,7 +4069,7 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
     upload_file(local_file=source_key_path, remote_file=destination_key_path, hostname=vm.ip_addr)
     result = vm.run('chmod 600 {0}'.format(destination_key_path))
     if result.return_code != 0:
-        raise CLIFactoryError(u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
+        raise CLIFactoryError('Failed to chmod ssh key file:\n{}'.format(result.stderr))
 
 
 def virt_who_hypervisor_config(
@@ -4196,12 +4184,12 @@ def virt_who_hypervisor_config(
     result = virt_who_vm.run('chmod +x {0}'.format(temp_virt_who_deploy_file_path))
     if result.return_code != 0:
         raise CLIFactoryError(
-            u'Failed to set deployment script as executable:\n{}'.format(result.stderr)
+            'Failed to set deployment script as executable:\n{}'.format(result.stderr)
         )
     # execute the deployment script
     result = virt_who_vm.run('{0}'.format(temp_virt_who_deploy_file_path))
     if result.return_code != 0:
-        raise CLIFactoryError(u'Deployment script failure:\n{}'.format(result.stderr))
+        raise CLIFactoryError('Deployment script failure:\n{}'.format(result.stderr))
     # after this step, we should have virt-who service installed and started
     if exec_one_shot:
         # usually to be sure that the virt-who generated the report we need
@@ -4209,18 +4197,16 @@ def virt_who_hypervisor_config(
         # service
         result = virt_who_vm.run('service virt-who stop')
         if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Failed to stop the virt-who service:\n{}'.format(result.stderr)
-            )
+            raise CLIFactoryError('Failed to stop the virt-who service:\n{}'.format(result.stderr))
         result = virt_who_vm.run('virt-who --one-shot', timeout=900)
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Failed when executing virt-who --one-shot:\n{}'.format(result.stderr)
+                'Failed when executing virt-who --one-shot:\n{}'.format(result.stderr)
             )
         result = virt_who_vm.run('service virt-who start')
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Failed to start the virt-who service:\n{}'.format(result.stderr)
+                'Failed to start the virt-who service:\n{}'.format(result.stderr)
             )
     # after this step the hypervisor as a content host should be created
     # do not confuse virt-who host with hypervisor host as they can be
@@ -4254,11 +4240,11 @@ def virt_who_hypervisor_config(
                 break
 
     if len(org_hosts) == 0:
-        raise CLIFactoryError(u'Failed to find hypervisor host:\n{}'.format(result.stderr))
+        raise CLIFactoryError('Failed to find hypervisor host:\n{}'.format(result.stderr))
     virt_who_hypervisor_host = org_hosts[0]
     subscription_id = None
     if hypervisor_hostname and subscription_name:
-        subscriptions = Subscription.list({u'organization-id': org_id}, per_page=False)
+        subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
         for subscription in subscriptions:
             if subscription['name'] == subscription_name:
                 subscription_id = subscription['id']

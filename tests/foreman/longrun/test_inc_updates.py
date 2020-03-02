@@ -97,7 +97,7 @@ class IncrementalUpdateTestCase(TestCase):
             # Update timeout to 15 minutes to finish sync
             entity_mixins.TASK_TIMEOUT = 900
             for repo in [cls.rhva_6_repo, cls.rhel6_sat6tools_repo]:
-                assert repo.sync()['result'] == u'success'
+                assert repo.sync()['result'] == 'success'
         finally:
             entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
 
@@ -162,13 +162,13 @@ class IncrementalUpdateTestCase(TestCase):
         sub_found = False
         for sub in subs:
             if sub.name == DEFAULT_SUBSCRIPTION_NAME:
-                rhel_6_partial_ak.add_subscriptions(data={u'subscription_id': sub.id})
+                rhel_6_partial_ak.add_subscriptions(data={'subscription_id': sub.id})
                 sub_found = True
         assert sub_found
 
         # Enable product content in activation key
         rhel_6_partial_ak.content_override(
-            data={'content_override': {u'content_label': REPOS['rhst6']['id'], u'value': u'1'}}
+            data={'content_override': {'content_label': REPOS['rhst6']['id'], 'value': '1'}}
         )
 
         # Create client machine and register it to satellite with
@@ -282,9 +282,9 @@ class IncrementalUpdateTestCase(TestCase):
         # Apply incremental update using the first applicable errata
         ContentViewCLI.version_incremental_update(
             {
-                u'content-view-version-id': cv_versions[-1].id,
-                u'lifecycle-environment-ids': self.qe_lce.id,
-                u'errata-ids': errata_list[0].id,
+                'content-view-version-id': cv_versions[-1].id,
+                'lifecycle-environment-ids': self.qe_lce.id,
+                'errata-ids': errata_list[0].id,
             }
         )
 

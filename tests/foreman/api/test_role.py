@@ -106,7 +106,7 @@ class CannedRoleTestCases(APITestCase):
             data returned from 'clone' function
         """
         name = gen_string('alpha') if not name else name
-        default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
+        default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
         org_admin = entities.Role(id=default_org_admin[0].id).clone(
             data={
                 'role': {'name': name, 'organization_ids': orgs or [], 'location_ids': locs or []}
@@ -499,7 +499,7 @@ class CannedRoleTestCases(APITestCase):
 
         :BZ: 1637436
         """
-        default_org_admin = entities.Role().search(query={'search': u'name="Organization admin"'})
+        default_org_admin = entities.Role().search(query={'search': 'name="Organization admin"'})
         org_admin = self.create_org_admin_role()
         default_filters = entities.Role(id=default_org_admin[0].id).read().filters
         orgadmin_filters = entities.Role(id=org_admin.id).read().filters

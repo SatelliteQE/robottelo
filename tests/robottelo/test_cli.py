@@ -30,14 +30,14 @@ class BaseCliTestCase(unittest2.TestCase):
         Base.command_base = 'basecommand'
         Base.command_sub = 'subcommand'
         command_parts = Base._construct_command(
-            {u'flag-one': True, u'flag-two': False, u'argument': u'value', u'ommited-arg': None}
+            {'flag-one': True, 'flag-two': False, 'argument': 'value', 'ommited-arg': None}
         ).split()
 
-        self.assertIn(u'basecommand', command_parts)
-        self.assertIn(u'subcommand', command_parts)
-        self.assertIn(u'--flag-one', command_parts)
-        self.assertIn(u'--argument="value"', command_parts)
-        self.assertNotIn(u'--flag-two', command_parts)
+        self.assertIn('basecommand', command_parts)
+        self.assertIn('subcommand', command_parts)
+        self.assertIn('--flag-one', command_parts)
+        self.assertIn('--argument="value"', command_parts)
+        self.assertNotIn('--flag-two', command_parts)
         self.assertEqual(len(command_parts), 4)
 
     def test_username_password_parameters_lookup(self):
@@ -88,14 +88,14 @@ class BaseCliTestCase(unittest2.TestCase):
         base = Base()
         response = mock.Mock()
         response.return_code = 0
-        response.stderr = [u'not empty']
+        response.stderr = ['not empty']
         self.assertEqual(response.stdout, base._handle_response(response))
         warning.assert_called_once_with(
-            u'stderr contains following message:\n{}'.format(response.stderr)
+            'stderr contains following message:\n{}'.format(response.stderr)
         )
         warning.reset_mock()
         self.assertEqual(response.stdout, base._handle_response(response, True))
-        self.assertFalse(warning.called, u'Should not be called when ignore_stderr is True')
+        self.assertFalse(warning.called, 'Should not be called when ignore_stderr is True')
 
     def test_handle_response_error(self):
         """Check handle_response raise ``CLIReturnCodeError`` when
@@ -132,7 +132,7 @@ class BaseCliTestCase(unittest2.TestCase):
         for msg in msgs:
             self.assert_response_error(CLIDataBaseError, msg)
 
-    def assert_response_error(self, expected_error, stderr=u'some error'):
+    def assert_response_error(self, expected_error, stderr='some error'):
         """Check error is raised when handling cli response
         :param expected_error: expected error (class)
         :param stderr: error present on stderr (str)
@@ -148,7 +148,7 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_add_operating_system(self, construct, execute):
         """Check command_sub edited when executing add_operating_system"""
-        options = {u'foo': u'bar'}
+        options = {'foo': 'bar'}
         self.assertNotEqual('add-operatingsystem', Base.command_sub)
         self.assertEqual(execute.return_value, Base.add_operating_system(options))
         self.assertEqual('add-operatingsystem', Base.command_sub)
@@ -256,7 +256,7 @@ class BaseCliTestCase(unittest2.TestCase):
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', return_raw_response=True)
-        ssh_cmd = u'LANG=en_US  hammer -v -u admin -p password  some_cmd'
+        ssh_cmd = 'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'), output_format=None, timeout=None, connection_timeout=None
         )
@@ -272,7 +272,7 @@ class BaseCliTestCase(unittest2.TestCase):
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', output_format='json')
-        ssh_cmd = u'LANG=en_US time -p hammer -v -u admin -p password --output=json' u' some_cmd'
+        ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'), output_format='json', timeout=None, connection_timeout=None
         )
@@ -284,14 +284,14 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check exists method without options and empty return"""
         lst_method.return_value = []
         response = Base.exists(search=['id', 1])
-        lst_method.assert_called_once_with({u'search': u'id=\\"1\\"'})
+        lst_method.assert_called_once_with({'search': 'id=\\"1\\"'})
         self.assertEqual([], response)
 
     @mock.patch('robottelo.cli.base.Base.list')
     def test_exists_with_option_and_no_empty_return(self, lst_method):
         """Check exists method with options and no empty return"""
         lst_method.return_value = [1, 2]
-        my_options = {u'search': u'foo=bar'}
+        my_options = {'search': 'foo=bar'}
         response = Base.exists(my_options, search=['id', 1])
         lst_method.assert_called_once_with(my_options)
         self.assertEqual(1, response)
@@ -392,7 +392,7 @@ class CLIErrorTests(unittest2.TestCase):
 
     def test_error_msg_is_exposed(self):
         """Check if message error is exposed to assertRaisesRegex"""
-        msg = u'organization-id option is required for Foo.create'
+        msg = 'organization-id option is required for Foo.create'
         with self.assertRaisesRegex(CLIError, msg):
             raise CLIError(msg)
 
@@ -402,23 +402,23 @@ class CLIBaseErrorTestCase(unittest2.TestCase):
 
     def test_init(self):
         """Check properties initialization"""
-        error = CLIBaseError(1, u'stderr', u'msg')
+        error = CLIBaseError(1, 'stderr', 'msg')
         self.assertEqual(error.return_code, 1)
-        self.assertEqual(error.stderr, u'stderr')
-        self.assertEqual(error.msg, u'msg')
+        self.assertEqual(error.stderr, 'stderr')
+        self.assertEqual(error.msg, 'msg')
         self.assertEqual(error.message, error.msg)
 
     def test_return_code_is_exposed(self):
         """Check if return_code is exposed to assertRaisesRegex"""
-        with self.assertRaisesRegex(CLIBaseError, u'1'):
-            raise CLIBaseError(1, u'stderr', u'msg')
+        with self.assertRaisesRegex(CLIBaseError, '1'):
+            raise CLIBaseError(1, 'stderr', 'msg')
 
     def test_stderr_is_exposed(self):
         """Check if stderr is exposed to assertRaisesRegex"""
-        with self.assertRaisesRegex(CLIBaseError, u'stderr'):
-            raise CLIBaseError(1, u'stderr', u'msg')
+        with self.assertRaisesRegex(CLIBaseError, 'stderr'):
+            raise CLIBaseError(1, 'stderr', 'msg')
 
     def test_message_is_exposed(self):
         """Check if message is exposed to assertRaisesRegex"""
-        with self.assertRaisesRegex(CLIBaseError, u'msg'):
-            raise CLIBaseError(1, u'stderr', u'msg')
+        with self.assertRaisesRegex(CLIBaseError, 'msg'):
+            raise CLIBaseError(1, 'stderr', 'msg')

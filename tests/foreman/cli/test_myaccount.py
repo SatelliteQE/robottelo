@@ -136,7 +136,7 @@ class MyAccountTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        email = u'{0}@example.com'.format(gen_string('alphanumeric'))
+        email = '{0}@example.com'.format(gen_string('alphanumeric'))
         self.update_user({'mail': email})
         result = self.user_info()
         self.assertEqual(result['email'], email)

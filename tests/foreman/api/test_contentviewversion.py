@@ -498,8 +498,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
         product = entities.Product(organization=org).create()
         docker_repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
             product=product,
             url=DOCKER_REGISTRY_HUB,
         ).create()
@@ -561,8 +561,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
         yum_repo.sync()
         docker_repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
             product=product,
             url=DOCKER_REGISTRY_HUB,
         ).create()

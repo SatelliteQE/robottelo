@@ -31,15 +31,15 @@ from robottelo.test import APITestCase
 def _valid_sc_parameters_data():
     """Returns a list of valid smart class parameter types and values"""
     return [
-        {u'sc_type': 'string', u'value': '\u6120\U000201fc\u3a07\U0002b2cf\u45b9\u7d3c\U00026dea'},
-        {u'sc_type': 'boolean', u'value': '1'},
-        {u'sc_type': 'boolean', u'value': '0'},
-        {u'sc_type': 'integer', u'value': 4541321256269544184},
-        {u'sc_type': 'real', u'value': -123.0},
-        {u'sc_type': 'array', u'value': "['JkKAxzCvIw', '343532124', 'False']"},
-        {u'sc_type': 'hash', u'value': '{"SAEasshgd": "ASDFDdsss"}'},
-        {u'sc_type': 'yaml', u'value': 'name=>XYZ'},
-        {u'sc_type': 'json', u'value': '{"name": "XYZ"}'},
+        {'sc_type': 'string', 'value': '\u6120\U000201fc\u3a07\U0002b2cf\u45b9\u7d3c\U00026dea'},
+        {'sc_type': 'boolean', 'value': '1'},
+        {'sc_type': 'boolean', 'value': '0'},
+        {'sc_type': 'integer', 'value': 4541321256269544184},
+        {'sc_type': 'real', 'value': -123.0},
+        {'sc_type': 'array', 'value': "['JkKAxzCvIw', '343532124', 'False']"},
+        {'sc_type': 'hash', 'value': '{"SAEasshgd": "ASDFDdsss"}'},
+        {'sc_type': 'yaml', 'value': 'name=>XYZ'},
+        {'sc_type': 'json', 'value': '{"name": "XYZ"}'},
     ]
 
 
@@ -70,12 +70,12 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
         cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
         self.env = (
             entities.Environment()
-            .search(query={'search': u'content_view="{0}"'.format(cv.name)})[0]
+            .search(query={'search': 'content_view="{0}"'.format(cv.name)})[0]
             .read()
         )
         self.puppet_class = entities.PuppetClass().search(
             query={
-                'search': u'name = "{0}" and environment = "{1}"'.format(
+                'search': 'name = "{0}" and environment = "{1}"'.format(
                     self.puppet_modules[0]['name'], self.env.name
                 )
             }

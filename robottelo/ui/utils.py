@@ -13,7 +13,7 @@ def create_fake_host(
 ):
     if extra_values is None:
         extra_values = {}
-    os_name = u'{0} {1}'.format(host.operatingsystem.name, host.operatingsystem.major)
+    os_name = '{0} {1}'.format(host.operatingsystem.name, host.operatingsystem.major)
     name = host.name if host.name is not None else gen_string('alpha').lower()
     values = {
         'host.name': name,

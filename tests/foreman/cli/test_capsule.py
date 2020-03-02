@@ -58,13 +58,9 @@ class CapsuleTestCase(CLITestCase):
 
        """
         # Create a random proxy
-        with self.assertRaisesRegex(CLIFactoryError, u'Could not create the proxy:'):
+        with self.assertRaisesRegex(CLIFactoryError, 'Could not create the proxy:'):
             make_proxy(
-                {
-                    u'url': u'http://{0}:{1}'.format(
-                        gen_string('alpha', 6), gen_string('numeric', 4)
-                    )
-                }
+                {'url': 'http://{0}:{1}'.format(gen_string('alpha', 6), gen_string('numeric', 4))}
             )
 
     @skip_if_not_set('fake_capsules')
@@ -82,7 +78,7 @@ class CapsuleTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                proxy = self._make_proxy({u'name': name})
+                proxy = self._make_proxy({'name': name})
                 self.assertEquals(proxy['name'], name)
 
     @skip_if_not_set('fake_capsules')
@@ -100,10 +96,10 @@ class CapsuleTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                proxy = make_proxy({u'name': name})
+                proxy = make_proxy({'name': name})
                 Proxy.delete({'id': proxy['id']})
                 with self.assertRaises(CLIReturnCodeError):
-                    Proxy.info({u'id': proxy['id']})
+                    Proxy.info({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -118,13 +114,13 @@ class CapsuleTestCase(CLITestCase):
 
         :BZ: 1398695
         """
-        proxy = self._make_proxy({u'name': gen_alphanumeric()})
+        proxy = self._make_proxy({'name': gen_alphanumeric()})
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 newport = get_available_capsule_port()
                 with default_url_on_new_port(9090, newport) as url:
-                    Proxy.update({u'id': proxy['id'], u'name': new_name, u'url': url})
-                    proxy = Proxy.info({u'id': proxy['id']})
+                    Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})
+                    proxy = Proxy.info({'id': proxy['id']})
                     self.assertEqual(proxy['name'], new_name)
 
     @skip_if_not_set('fake_capsules')
@@ -148,8 +144,8 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({u'url': url})
-            Proxy.refresh_features({u'id': proxy['id']})
+            proxy = self._make_proxy({'url': url})
+            Proxy.refresh_features({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
     @tier2
@@ -172,8 +168,8 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({u'url': url})
-            Proxy.refresh_features({u'id': proxy['name']})
+            proxy = self._make_proxy({'url': url})
+            Proxy.refresh_features({'id': proxy['name']})
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -189,8 +185,8 @@ class CapsuleTestCase(CLITestCase):
         """
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({u'url': url})
-            Proxy.import_classes({u'id': proxy['id']})
+            proxy = self._make_proxy({'url': url})
+            Proxy.import_classes({'id': proxy['id']})
 
 
 @run_in_one_thread

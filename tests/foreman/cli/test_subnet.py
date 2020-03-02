@@ -49,13 +49,13 @@ def valid_addr_pools():
 def invalid_addr_pools():
     """Returns a list of invalid address pools"""
     return [
-        {u'from': gen_integer(min_value=1, max_value=255)},
-        {u'to': gen_integer(min_value=1, max_value=255)},
+        {'from': gen_integer(min_value=1, max_value=255)},
+        {'to': gen_integer(min_value=1, max_value=255)},
         {
-            u'from': gen_integer(min_value=128, max_value=255),
-            u'to': gen_integer(min_value=1, max_value=127),
+            'from': gen_integer(min_value=128, max_value=255),
+            'to': gen_integer(min_value=1, max_value=127),
         },
-        {u'from': 256, u'to': 257},
+        {'from': 256, 'to': 257},
     ]
 
 
@@ -63,12 +63,12 @@ def invalid_addr_pools():
 def invalid_missing_attributes():
     """Returns a list of invalid missing attributes"""
     return [
-        {u'name': ''},
-        {u'network': '256.0.0.0'},
-        {u'network': ''},
-        {u'mask': '256.0.0.0'},
-        {u'mask': ''},
-        {u'mask': '255.0.255.0'},
+        {'name': ''},
+        {'network': '256.0.0.0'},
+        {'network': ''},
+        {'mask': '256.0.0.0'},
+        {'mask': ''},
+        {'mask': '255.0.255.0'},
     ]
 
 
@@ -102,14 +102,14 @@ class SubnetTestCase(CLITestCase):
         ipam_type = SUBNET_IPAM_TYPES['dhcp']
         subnet = make_subnet(
             {
-                u'name': name,
-                u'from': from_ip,
-                u'mask': mask,
-                u'network': network,
-                u'to': to_ip,
-                u'domain-ids': [domain['id'] for domain in domains],
-                u'gateway': gateway,
-                u'ipam': ipam_type,
+                'name': name,
+                'from': from_ip,
+                'mask': mask,
+                'network': network,
+                'to': to_ip,
+                'domain-ids': [domain['id'] for domain in domains],
+                'gateway': gateway,
+                'ipam': ipam_type,
             }
         )
         # Check if Subnet can be listed
@@ -135,17 +135,17 @@ class SubnetTestCase(CLITestCase):
         ipam_type = SUBNET_IPAM_TYPES['internal']
         Subnet.update(
             {
-                u'new-name': new_name,
-                u'from': ip_from,
-                u'id': subnet['id'],
-                u'to': ip_to,
-                u'mask': new_mask,
-                u'network': new_network,
-                u'ipam': ipam_type,
-                u'domain-ids': "",  # delete domains needed for subnet delete
+                'new-name': new_name,
+                'from': ip_from,
+                'id': subnet['id'],
+                'to': ip_to,
+                'mask': new_mask,
+                'network': new_network,
+                'ipam': ipam_type,
+                'domain-ids': "",  # delete domains needed for subnet delete
             }
         )
-        subnet = Subnet.info({u'id': subnet['id']})
+        subnet = Subnet.info({'id': subnet['id']})
         self.assertEqual(subnet['name'], new_name)
         self.assertEqual(subnet['start-of-ip-range'], ip_from)
         self.assertEqual(subnet['end-of-ip-range'], ip_to)
@@ -170,7 +170,7 @@ class SubnetTestCase(CLITestCase):
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
-                with self.assertRaisesRegex(CLIFactoryError, u'Could not create the subnet:'):
+                with self.assertRaisesRegex(CLIFactoryError, 'Could not create the subnet:'):
                     make_subnet(options)
 
     @tier2
@@ -188,13 +188,13 @@ class SubnetTestCase(CLITestCase):
         network = gen_ipaddr()
         for pool in invalid_addr_pools():
             with self.subTest(pool):
-                opts = {u'mask': mask, u'network': network}
+                opts = {'mask': mask, 'network': network}
                 # generate pool range from network address
                 for key, val in pool.items():
                     opts[key] = re.sub(r'\d+$', str(val), network)
                 with self.assertRaises(CLIFactoryError) as raise_ctx:
                     make_subnet(opts)
-                self.assert_error_msg(raise_ctx, u'Could not create the subnet:')
+                self.assert_error_msg(raise_ctx, 'Could not create the subnet:')
 
     @tier2
     def test_negative_update_attributes(self):
@@ -210,10 +210,10 @@ class SubnetTestCase(CLITestCase):
         for options in invalid_missing_attributes():
             with self.subTest(options):
                 options['id'] = subnet['id']
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the subnet:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the subnet:'):
                     Subnet.update(options)
                     # check - subnet is not updated
-                    result = Subnet.info({u'id': subnet['id']})
+                    result = Subnet.info({'id': subnet['id']})
                     for key in options.keys():
                         self.assertEqual(subnet[key], result[key])
 
@@ -230,14 +230,14 @@ class SubnetTestCase(CLITestCase):
         subnet = make_subnet()
         for options in invalid_addr_pools():
             with self.subTest(options):
-                opts = {u'id': subnet['id']}
+                opts = {'id': subnet['id']}
                 # generate pool range from network address
                 for key, val in options.items():
                     opts[key] = re.sub(r'\d+$', str(val), subnet['network-addr'])
-                with self.assertRaisesRegex(CLIReturnCodeError, u'Could not update the subnet:'):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the subnet:'):
                     Subnet.update(opts)
                 # check - subnet is not updated
-                result = Subnet.info({u'id': subnet['id']})
+                result = Subnet.info({'id': subnet['id']})
                 for key in ['start-of-ip-range', 'end-of-ip-range']:
                     self.assertEqual(result[key], subnet[key])
 

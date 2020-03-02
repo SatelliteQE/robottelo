@@ -327,14 +327,14 @@ class ConfigTemplateTestCase(APITestCase):
         template_origin = template.read_json()
 
         # remove unique keys
-        unique_keys = (u'updated_at', u'created_at', u'id', u'name')
+        unique_keys = ('updated_at', 'created_at', 'id', 'name')
         for key in unique_keys:
             del template_origin[key]
 
         for name in valid_data_list():
             with self.subTest(name):
                 new_template = entities.ConfigTemplate(
-                    id=template.clone(data={u'name': name})['id']
+                    id=template.clone(data={'name': name})['id']
                 ).read_json()
                 for key in unique_keys:
                     del new_template[key]
@@ -1039,9 +1039,7 @@ class TemplateSyncTestCase(APITestCase):
             data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
         )
         self.assertTrue(bool(pre_template['message']['templates'][0]['imported']))
-        ssh.command(
-            'echo " Updating Template data." >> ' '{}/example_template.erb'.format(dir_path)
-        )
+        ssh.command('echo " Updating Template data." >> {}/example_template.erb'.format(dir_path))
         post_template = entities.Template().imports(
             data={'repo': dir_path, 'organization_id': org.id, 'prefix': org.name}
         )
@@ -1228,7 +1226,7 @@ class TemplateSyncTestCase(APITestCase):
         )
         self.assertFalse(bool(template['message']['templates'][0]['imported']))
         self.assertEqual(
-            "Skipping, 'name' filtered out based on" " 'filter' and 'negate' settings",
+            "Skipping, 'name' filtered out based on 'filter' and 'negate' settings",
             template['message']['templates'][0]['additional_errors'],
         )
 
@@ -1408,8 +1406,7 @@ class TemplateSyncTestCase(APITestCase):
         )
         time.sleep(5)
         result = ssh.command(
-            'grep -i \'Started POST "/api/v2/templates/import"\' '
-            '/var/log/foreman/production.log'
+            'grep -i \'Started POST "/api/v2/templates/import"\' /var/log/foreman/production.log'
         )
         self.assertEqual(result.return_code, 0)
 
@@ -1448,7 +1445,6 @@ class TemplateSyncTestCase(APITestCase):
         )
         time.sleep(5)
         result = ssh.command(
-            'grep -i \'Started POST "/api/v2/templates/export"\' '
-            '/var/log/foreman/production.log'
+            'grep -i \'Started POST "/api/v2/templates/export"\' /var/log/foreman/production.log'
         )
         self.assertEqual(result.return_code, 0)

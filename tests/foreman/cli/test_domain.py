@@ -36,14 +36,14 @@ def valid_create_params():
     """Returns a list of valid domain create parameters"""
     return [
         {
-            u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-            u'description': gen_string(str_type='alpha'),
+            'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'description': gen_string(str_type='alpha'),
         },
-        {u'name': gen_string(str_type='utf8'), u'description': gen_string(str_type='utf8')},
-        {u'name': gen_string(str_type='numeric'), u'description': gen_string(str_type='numeric')},
+        {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='numeric'), 'description': gen_string(str_type='numeric')},
         {
-            u'name': gen_string(str_type='utf8', length=255),
-            u'description': gen_string(str_type='utf8', length=255),
+            'name': gen_string(str_type='utf8', length=255),
+            'description': gen_string(str_type='utf8', length=255),
         },
     ]
 
@@ -51,7 +51,7 @@ def valid_create_params():
 @filtered_datapoint
 def invalid_create_params():
     """Returns a list of invalid domain create parameters"""
-    params = [{u'name': gen_string(str_type='utf8', length=256)}]
+    params = [{'name': gen_string(str_type='utf8', length=256)}]
     return params
 
 
@@ -60,14 +60,14 @@ def valid_update_params():
     """Returns a list of valid domain update parameters"""
     return [
         {
-            u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-            u'description': gen_string(str_type='alpha'),
+            'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'description': gen_string(str_type='alpha'),
         },
-        {u'name': gen_string(str_type='utf8'), u'description': gen_string(str_type='utf8')},
-        {u'name': gen_string(str_type='numeric'), u'description': gen_string(str_type='numeric')},
+        {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='numeric'), 'description': gen_string(str_type='numeric')},
         {
-            u'name': gen_string(str_type='utf8', length=255),
-            u'description': gen_string(str_type='utf8', length=255),
+            'name': gen_string(str_type='utf8', length=255),
+            'description': gen_string(str_type='utf8', length=255),
         },
     ]
 
@@ -75,7 +75,7 @@ def valid_update_params():
 @filtered_datapoint
 def invalid_update_params():
     """Returns a list of invalid domain update parameters"""
-    params = [{u'name': ''}, {u'name': gen_string(str_type='utf8', length=256)}]
+    params = [{'name': ''}, {'name': gen_string(str_type='utf8', length=256)}]
     return params
 
 
@@ -95,7 +95,7 @@ def invalid_set_params():
     """Returns a list of invalid domain set parameters"""
     return [
         {
-            'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
             'value': gen_string(str_type='utf8'),
         },
         {'name': '', 'value': gen_string(str_type='utf8')},
@@ -133,10 +133,10 @@ class DomainTestCase(CLITestCase):
         org = make_org()
         domain = make_domain(
             {
-                u'name': options['name'],
-                u'description': options['description'],
-                u'location-ids': location['id'],
-                u'organization-ids': org['id'],
+                'name': options['name'],
+                'description': options['description'],
+                'location-ids': location['id'],
+                'organization-ids': org['id'],
             }
         )
         self.assertEqual(domain['name'], options['name'])
@@ -164,7 +164,7 @@ class DomainTestCase(CLITestCase):
             self.assertEqual(domain[key], val)
 
         # delete parameter
-        Domain.delete_parameter({u'name': parameter_options['name'], u'domain-id': domain['id']})
+        Domain.delete_parameter({'name': parameter_options['name'], 'domain-id': domain['id']})
         # check - parameter not set
         domain = Domain.info({'name': domain['name']})
         self.assertEqual(len(domain['parameters']), 0)

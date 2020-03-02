@@ -138,7 +138,7 @@ class ContentViewTestCase(APITestCase):
         promote(content_view.read().version[0], lc_env.id)
 
         cloned_cv = entities.ContentView(
-            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+            id=content_view.copy(data={'name': gen_string('alpha', gen_integer(3, 30))})['id']
         )
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], lc_env.id)
@@ -166,7 +166,7 @@ class ContentViewTestCase(APITestCase):
         content_view.publish()
         promote(content_view.read().version[0], lc_env.id)
         cloned_cv = entities.ContentView(
-            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+            id=content_view.copy(data={'name': gen_string('alpha', gen_integer(3, 30))})['id']
         )
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], le_clone.id)
@@ -451,12 +451,12 @@ class ContentViewCreateTestCase(APITestCase):
         content_view = entities.ContentView(organization=org).create()
 
         cloned_cv = entities.ContentView(
-            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+            id=content_view.copy(data={'name': gen_string('alpha', gen_integer(3, 30))})['id']
         ).read_json()
 
         # remove unique values before comparison
         cv_origin = content_view.read_json()
-        uniqe_keys = (u'label', u'id', u'name', u'updated_at', u'created_at')
+        uniqe_keys = ('label', 'id', 'name', 'updated_at', 'created_at')
         for key in uniqe_keys:
             del cv_origin[key]
             del cloned_cv[key]
@@ -1774,8 +1774,8 @@ class OstreeContentViewTestCase(APITestCase):
         cls.puppet_repo.sync()
         # Create new docker repository
         cls.docker_repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
             product=cls.product,
             url=DOCKER_REGISTRY_HUB,
         ).create()

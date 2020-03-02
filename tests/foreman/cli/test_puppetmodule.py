@@ -35,13 +35,13 @@ class PuppetModuleTestCase(CLITestCase):
     def setUpClass(cls):
         super(PuppetModuleTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.product = make_product({u'organization-id': cls.org['id']})
+        cls.product = make_product({'organization-id': cls.org['id']})
         cls.repo = make_repository(
             {
-                u'organization-id': cls.org['id'],
-                u'product-id': cls.product['id'],
-                u'content-type': u'puppet',
-                u'url': FAKE_0_PUPPET_REPO,
+                'organization-id': cls.org['id'],
+                'product-id': cls.product['id'],
+                'content-type': 'puppet',
+                'url': FAKE_0_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': cls.repo['id']})
@@ -100,10 +100,10 @@ class PuppetModuleTestCase(CLITestCase):
         # Create and sync second repo
         repo2 = make_repository(
             {
-                u'organization-id': self.org['id'],
-                u'product-id': self.product['id'],
-                u'content-type': u'puppet',
-                u'url': FAKE_1_PUPPET_REPO,
+                'organization-id': self.org['id'],
+                'product-id': self.product['id'],
+                'content-type': 'puppet',
+                'url': FAKE_1_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': repo2['id']})

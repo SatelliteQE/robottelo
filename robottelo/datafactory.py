@@ -123,15 +123,15 @@ def invalid_emails_list():
     <https://bugzilla.redhat.com/show_bug.cgi?id=1455501>`_.
     """
     return [
-        u'foreman@',
-        u'@foreman',
-        u'@',
-        u'Abc.example.com',
-        u'A@b@c@example.com',
+        'foreman@',
+        '@foreman',
+        '@',
+        'Abc.example.com',
+        'A@b@c@example.com',
         # total length 255:
-        u'{0}@example.com'.format(gen_string('alpha', 243)),
-        u'{0}@example.com'.format(gen_string('html')),
-        u's p a c e s@example.com',
+        '{0}@example.com'.format(gen_string('alpha', 243)),
+        '{0}@example.com'.format(gen_string('html')),
+        's p a c e s@example.com',
     ]
 
 
@@ -175,7 +175,7 @@ def xdist_adapter(argvalues):
 @filtered_datapoint
 def invalid_id_list():
     """Generates a list of invalid IDs."""
-    return [gen_string('alpha'), None, u'', -1]
+    return [gen_string('alpha'), None, '', -1]
 
 
 @filtered_datapoint
@@ -286,14 +286,14 @@ def valid_docker_repository_names():
 def valid_emails_list():
     """Returns a list of valid emails."""
     return [
-        u'{0}@example.com'.format(gen_string('alpha')),
-        u'{0}@example.com'.format(gen_string('alphanumeric')),
-        u'{0}@example.com'.format(gen_string('numeric')),
-        u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
-        u'{0}+{1}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
-        u'{0}.{1}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
-        u'"():;"@example.com',
-        u'!#$%&*+-/=?^`{|}~@example.com',
+        '{0}@example.com'.format(gen_string('alpha')),
+        '{0}@example.com'.format(gen_string('alphanumeric')),
+        '{0}@example.com'.format(gen_string('numeric')),
+        '{0}@example.com'.format(gen_string('alphanumeric', 48)),
+        '{0}+{1}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
+        '{0}.{1}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
+        '"():;"@example.com',
+        '!#$%&*+-/=?^`{|}~@example.com',
     ]
 
 
@@ -365,19 +365,19 @@ def valid_names_list():
     return [
         gen_string('utf8', 5),
         gen_string('utf8', 255),
-        u"{0}-{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
-        u"{0}.{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
-        u"նոր օգտվող-{0}".format(gen_string('utf8', 2)),
-        u"新用戶-{0}".format(gen_string('utf8', 2)),
-        u"नए उपयोगकर्ता-{0}".format(gen_string('utf8', 2)),
-        u"нового пользователя-{0}".format(gen_string('utf8', 2)),
-        u"uusi käyttäjä-{0}".format(gen_string('utf8', 2)),
-        u"νέος χρήστης-{0}".format(gen_string('utf8', 2)),
-        u"foo@!#$^&*( ) {0}".format(gen_string('utf8')),
-        u"<blink>{0}</blink>".format(gen_string('utf8')),
-        u"bar+{{}}|\"?hi {0}".format(gen_string('utf8')),
-        u' {0}'.format(gen_string('utf8')),
-        u'{0} '.format(gen_string('utf8')),
+        "{0}-{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
+        "{0}.{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
+        "նոր օգտվող-{0}".format(gen_string('utf8', 2)),
+        "新用戶-{0}".format(gen_string('utf8', 2)),
+        "नए उपयोगकर्ता-{0}".format(gen_string('utf8', 2)),
+        "нового пользователя-{0}".format(gen_string('utf8', 2)),
+        "uusi käyttäjä-{0}".format(gen_string('utf8', 2)),
+        "νέος χρήστης-{0}".format(gen_string('utf8', 2)),
+        "foo@!#$^&*( ) {0}".format(gen_string('utf8')),
+        "<blink>{0}</blink>".format(gen_string('utf8')),
+        "bar+{{}}|\"?hi {0}".format(gen_string('utf8')),
+        ' {0}'.format(gen_string('utf8')),
+        '{0} '.format(gen_string('utf8')),
     ]
 
 
@@ -447,50 +447,50 @@ def valid_http_credentials(url_encoded=False):
     :return: A list of dictionaries with user and password credentials
     """
     credentials = [
-        {u'login': 'admin', u'pass': 'changeme', u'quote': False, u'http_valid': True},
-        {u'login': '@dmin', u'pass': 'changeme', u'quote': True, u'http_valid': True},
-        {u'login': 'adm/n', u'pass': 'changeme', u'quote': False, u'http_valid': True},
-        {u'login': 'admin2', u'pass': 'ch@ngeme', u'quote': True, u'http_valid': True},
-        {u'login': 'admin3', u'pass': 'chan:eme', u'quote': False, u'http_valid': True},
-        {u'login': 'admin4', u'pass': 'chan/eme', u'quote': True, u'http_valid': True},
-        {u'login': 'admin5', u'pass': 'ch@n:eme', u'quote': True, u'http_valid': True},
-        {u'login': '0', u'pass': 'mypassword', u'quote': False, u'http_valid': True},
+        {'login': 'admin', 'pass': 'changeme', 'quote': False, 'http_valid': True},
+        {'login': '@dmin', 'pass': 'changeme', 'quote': True, 'http_valid': True},
+        {'login': 'adm/n', 'pass': 'changeme', 'quote': False, 'http_valid': True},
+        {'login': 'admin2', 'pass': 'ch@ngeme', 'quote': True, 'http_valid': True},
+        {'login': 'admin3', 'pass': 'chan:eme', 'quote': False, 'http_valid': True},
+        {'login': 'admin4', 'pass': 'chan/eme', 'quote': True, 'http_valid': True},
+        {'login': 'admin5', 'pass': 'ch@n:eme', 'quote': True, 'http_valid': True},
+        {'login': '0', 'pass': 'mypassword', 'quote': False, 'http_valid': True},
         {
-            u'login': '0123456789012345678901234567890123456789',
-            u'pass': 'changeme',
-            u'quote': False,
-            u'http_valid': True,
+            'login': '0123456789012345678901234567890123456789',
+            'pass': 'changeme',
+            'quote': False,
+            'http_valid': True,
         },
-        {u'login': 'admin', u'pass': '', u'quote': False, u'http_valid': False},
-        {u'login': '', u'pass': 'mypassword', u'quote': False, u'http_valid': False},
-        {u'login': '', u'pass': '', u'quote': False, u'http_valid': False},
+        {'login': 'admin', 'pass': '', 'quote': False, 'http_valid': False},
+        {'login': '', 'pass': 'mypassword', 'quote': False, 'http_valid': False},
+        {'login': '', 'pass': '', 'quote': False, 'http_valid': False},
         {
-            u'login': gen_string('alpha', gen_integer(1, 512)),
-            u'pass': gen_string('alpha'),
-            u'quote': False,
-            u'http_valid': False,
-        },
-        {
-            u'login': gen_string('alphanumeric', gen_integer(1, 512)),
-            u'pass': gen_string('alphanumeric'),
-            u'quote': False,
-            u'http_valid': False,
+            'login': gen_string('alpha', gen_integer(1, 512)),
+            'pass': gen_string('alpha'),
+            'quote': False,
+            'http_valid': False,
         },
         {
-            u'login': gen_string('utf8', gen_integer(1, 50)),
-            u'pass': gen_string('utf8'),
-            u'quote': True,
-            u'http_valid': False,
-            u'encoding': 'utf8',
+            'login': gen_string('alphanumeric', gen_integer(1, 512)),
+            'pass': gen_string('alphanumeric'),
+            'quote': False,
+            'http_valid': False,
+        },
+        {
+            'login': gen_string('utf8', gen_integer(1, 50)),
+            'pass': gen_string('utf8'),
+            'quote': True,
+            'http_valid': False,
+            'encoding': 'utf8',
         },
     ]
     if url_encoded:
         return [
             {
-                u'login': quote_plus(cred['login'].encode('utf-8'), ''),
-                u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
-                u'http_valid': cred['http_valid'],
-                u'original_encoding': cred.get('encoding', 'latin-1'),
+                'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
+                'http_valid': cred['http_valid'],
+                'original_encoding': cred.get('encoding', 'latin-1'),
             }
             for cred in credentials
         ]
@@ -505,15 +505,15 @@ def invalid_http_credentials(url_encoded=False):
     :return: A list of dictionaries with user and password credentials
     """
     credentials = [
-        {u'login': gen_string('alpha', 1024), u'pass': ''},
-        {u'login': gen_string('alpha', 512), u'pass': gen_string('alpha', 512)},
-        {u'login': gen_string('utf8', 256), u'pass': gen_string('utf8', 256)},
+        {'login': gen_string('alpha', 1024), 'pass': ''},
+        {'login': gen_string('alpha', 512), 'pass': gen_string('alpha', 512)},
+        {'login': gen_string('utf8', 256), 'pass': gen_string('utf8', 256)},
     ]
     if url_encoded:
         return [
             {
-                u'login': quote_plus(cred['login'].encode('utf-8'), ''),
-                u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
+                'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
             }
             for cred in credentials
         ]
@@ -530,35 +530,35 @@ def invalid_docker_upstream_names():
         # boundaries
         add_uppercase_char_into_string(gen_string('alphanumeric', 2)),
         gen_string('alphanumeric', 256).lower(),
-        u'{0}/{1}'.format(
+        '{0}/{1}'.format(
             add_uppercase_char_into_string(gen_string('alphanumeric', 4)),
             gen_string('alphanumeric', 3),
         ),
-        u'{0}/{1}'.format(
+        '{0}/{1}'.format(
             gen_string('alphanumeric', 4),
             add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
         ),
-        u'{0}/{1}'.format(
+        '{0}/{1}'.format(
             gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 128).lower()
         ),
-        u'{0}/{1}'.format(
+        '{0}/{1}'.format(
             gen_string('alphanumeric', 128).lower(), gen_string('alphanumeric', 127).lower()
         ),
         # not allowed non alphanumeric character
-        u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
+        '{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
-        u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
+        '{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
-        u'{}-_-_/-_.'.format(gen_string('alphanumeric', 1).lower()),
-        u'-_-_/{}-_.'.format(gen_string('alphanumeric', 1).lower()),
+        '{}-_-_/-_.'.format(gen_string('alphanumeric', 1).lower()),
+        '-_-_/{}-_.'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 
@@ -570,20 +570,20 @@ def valid_docker_upstream_names():
         # boundaries
         gen_string('alphanumeric', 1).lower(),
         gen_string('alphanumeric', 255).lower(),
-        u'{0}/{1}'.format(
+        '{0}/{1}'.format(
             gen_string('alphanumeric', 1).lower(), gen_string('alphanumeric', 1).lower()
         ),
-        u'{0}/{1}'.format(
+        '{0}/{1}'.format(
             gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 127).lower()
         ),
         # allowed non alphanumeric character
-        u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
+        '{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
-        u'{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
+        '{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 

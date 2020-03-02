@@ -222,7 +222,7 @@ class SubscriptionTestCase(CLITestCase):
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
         Subscription.with_user(username=user1.login, password=user1_password).upload(
-            {u'file': manifest.filename, u'organization-id': org.id}
+            {'file': manifest.filename, 'organization-id': org.id}
         )
         # try to search and delete the manifest with another admin
         Subscription.with_user(username=user2.login, password=user2_password).delete_manifest(

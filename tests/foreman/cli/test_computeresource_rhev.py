@@ -56,12 +56,12 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
         ComputeResource.create(
             {
-                u'name': 'cr {0}'.format(gen_string(str_type='alpha')),
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url,
+                'name': 'cr {0}'.format(gen_string(str_type='alpha')),
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.passord,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
             }
         )
 
@@ -80,12 +80,12 @@ class RHEVComputeResourceTestCase(CLITestCase):
         name = gen_string('utf8')
         compute_resource = make_compute_resource(
             {
-                u'name': name,
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url,
+                'name': name,
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.passord,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
             }
         )
         self.assertEquals(compute_resource['name'], name)
@@ -104,11 +104,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
         comp_res = make_compute_resource(
             {
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url,
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.passord,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
             }
         )
         self.assertTrue(comp_res['name'])
@@ -130,11 +130,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
         comp_res = make_compute_resource(
             {
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url,
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.passord,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
             }
         )
         self.assertTrue(comp_res['name'])
@@ -155,11 +155,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ComputeResource.create(
                 {
-                    u'provider': 'Ovirt',
-                    u'user': self.username,
-                    u'password': self.passord,
-                    u'datacenter': self.datacenter,
-                    u'url': 'invalid url',
+                    'provider': 'Ovirt',
+                    'user': self.username,
+                    'password': self.passord,
+                    'datacenter': self.datacenter,
+                    'url': 'invalid url',
                 }
             )
 
@@ -181,24 +181,24 @@ class RHEVComputeResourceTestCase(CLITestCase):
         name = gen_string('alpha')
         compute_resource = make_compute_resource(
             {
-                u'name': name,
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url,
+                'name': name,
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.passord,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
             }
         )
         self.assertEquals(compute_resource['name'], name)
         with self.assertRaises(CLIFactoryError):
             make_compute_resource(
                 {
-                    u'name': name,
-                    u'provider': 'Ovirt',
-                    u'user': self.username,
-                    u'password': self.passord,
-                    u'datacenter': self.datacenter,
-                    u'url': self.current_rhev_url,
+                    'name': name,
+                    'provider': 'Ovirt',
+                    'user': self.username,
+                    'password': self.passord,
+                    'datacenter': self.datacenter,
+                    'url': self.current_rhev_url,
                 }
             )
 
@@ -223,11 +223,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
         new_name = gen_string('alpha')
         comp_res = make_compute_resource(
             {
-                u'provider': 'Ovirt',
-                u'user': self.username,
-                u'password': self.passord,
-                u'datacenter': self.datacenter,
-                u'url': self.current_rhev_url,
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.passord,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
             }
         )
         self.assertTrue(comp_res['name'])

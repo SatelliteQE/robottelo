@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pa
 
 # Project Information ---------------------------------------------------------
 
-project = u'Robottelo'
-copyright = u'2012, Og Maciel <omaciel@redhat.com>'
+project = 'Robottelo'
+copyright = '2012, Og Maciel <omaciel@redhat.com>'
 
 # `version` should be a short X.Y version, and `release` should be a full
 # version string. Robottelo has thus far had little use for versions, which is
@@ -46,26 +46,26 @@ latex_documents = [
     (
         'index',
         'Robottelo.tex',
-        u'Robottelo Documentation',
-        u'Og Maciel \\textless{}omaciel@redhat.com\\textgreater{}',
+        'Robottelo Documentation',
+        'Og Maciel \\textless{}omaciel@redhat.com\\textgreater{}',
         'manual',
     )
 ]
 man_pages = [
-    ('index', 'robottelo', u'Robottelo Documentation', [u'Og Maciel <omaciel@redhat.com>'], 1)
+    ('index', 'robottelo', 'Robottelo Documentation', ['Og Maciel <omaciel@redhat.com>'], 1)
 ]
 texinfo_documents = [
     (
         'index',
         'Robottelo',
-        u'Robottelo Documentation',
-        u'Og Maciel <omaciel@redhat.com>',
+        'Robottelo Documentation',
+        'Og Maciel <omaciel@redhat.com>',
         'Robottelo',
         'One line description of project.',
         'Miscellaneous',
     )
 ]
-epub_title = u'Robottelo'
-epub_author = u'Og Maciel <omaciel@redhat.com>'
-epub_publisher = u'Og Maciel <omaciel@redhat.com>'
-epub_copyright = u'2012, Og Maciel <omaciel@redhat.com>'
+epub_title = 'Robottelo'
+epub_author = 'Og Maciel <omaciel@redhat.com>'
+epub_publisher = 'Og Maciel <omaciel@redhat.com>'
+epub_copyright = '2012, Og Maciel <omaciel@redhat.com>'

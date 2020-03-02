@@ -58,7 +58,7 @@ class CapsuleTestCase(APITestCase):
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
             entities.SmartProxy(url=gen_url(scheme='https')).create()
-        self.assertRegexpMatches(context.exception.response.text, u'Unable to communicate')
+        self.assertRegexpMatches(context.exception.response.text, 'Unable to communicate')
 
     @skip_if_not_set('fake_capsules')
     @tier1

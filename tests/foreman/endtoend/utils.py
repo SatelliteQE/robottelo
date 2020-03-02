@@ -4,7 +4,7 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 
-AK_CONTENT_LABEL = u'rhel-6-server-rhev-agent-rpms'
+AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
 class ClientProvisioningMixin(object):

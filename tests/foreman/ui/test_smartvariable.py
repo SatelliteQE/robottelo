@@ -53,7 +53,7 @@ def content_view(module_org):
 def puppet_env(content_view, module_org):
     return entities.Environment().search(
         query={
-            'search': u'content_view="{0}" and organization_id={1}'.format(
+            'search': 'content_view="{0}" and organization_id={1}'.format(
                 content_view.name, module_org.id
             )
         }
@@ -64,7 +64,7 @@ def puppet_env(content_view, module_org):
 def puppet_class(puppet_env):
     puppet_class_entity = entities.PuppetClass().search(
         query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
+            'search': 'name = "{0}" and environment = "{1}"'.format(
                 PUPPET_MODULES[0]['name'], puppet_env.name
             )
         }
@@ -80,7 +80,7 @@ def puppet_class(puppet_env):
 def puppet_subclasses(puppet_env):
     return entities.PuppetClass().search(
         query={
-            'search': u'name ~ "{0}::" and environment = "{1}"'.format(
+            'search': 'name ~ "{0}::" and environment = "{1}"'.format(
                 PUPPET_MODULES[0]['name'], puppet_env.name
             )
         }

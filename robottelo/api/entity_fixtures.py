@@ -76,7 +76,7 @@ def module_subnet(module_org, module_location, module_domain, module_smart_proxy
 def module_partiontable(module_org, module_location):
     ptable = (
         entities.PartitionTable()
-        .search(query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+        .search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[0]
         .read()
     )
     ptable.location.append(module_location)
@@ -88,7 +88,7 @@ def module_partiontable(module_org, module_location):
 @pytest.fixture(scope='module')
 def module_provisioingtemplate(module_org, module_location):
     provisioning_template = entities.ProvisioningTemplate().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)}
+        query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.organization.append(module_org)
@@ -101,7 +101,7 @@ def module_provisioingtemplate(module_org, module_location):
 @pytest.fixture(scope='module')
 def module_configtemaplate(module_org, module_location):
     pxe_template = entities.ConfigTemplate().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
+        query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.organization.append(module_org)
@@ -115,7 +115,7 @@ def module_configtemaplate(module_org, module_location):
 def module_architecture():
     arch = (
         entities.Architecture()
-        .search(query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .search(query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
         .read()
     )
     return arch
@@ -134,7 +134,7 @@ def module_os(
             entities.OperatingSystem()
             .search(
                 query={
-                    u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                    'search': 'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
                         RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
                     )
                 }
@@ -146,7 +146,7 @@ def module_os(
             entities.OperatingSystem()
             .search(
                 query={
-                    u'search': u'family="Redhat" AND major="{0}" AND minor="{1}")'.format(
+                    'search': 'family="Redhat" AND major="{0}" AND minor="{1}")'.format(
                         os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
                     )
                 }

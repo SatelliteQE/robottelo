@@ -137,15 +137,15 @@ class ComputeResourceHostTestCase(CLITestCase):
         name = gen_string('alpha')
         rhv_cr = ComputeResource.create(
             {
-                u'name': name,
-                u'provider': 'Ovirt',
-                u'user': self.rhev_username,
-                u'password': self.rhev_password,
-                u'datacenter': self.rhev_datacenter,
-                u'url': self.rhev_url,
-                u'ovirt-quota': self.quota,
-                u'organizations': self.org_name,
-                u'locations': self.loc_name,
+                'name': name,
+                'provider': 'Ovirt',
+                'user': self.rhev_username,
+                'password': self.rhev_password,
+                'datacenter': self.rhev_datacenter,
+                'url': self.rhev_url,
+                'ovirt-quota': self.quota,
+                'organizations': self.org_name,
+                'locations': self.loc_name,
             }
         )
         self.assertEquals(rhv_cr['name'], name)
@@ -165,7 +165,7 @@ class ComputeResourceHostTestCase(CLITestCase):
                 "start=1".format(self.cluster_id),
                 'ip': None,
                 'mac': None,
-                'interface': "compute_name=nic1, " "compute_network={0}".format(self.network_id),
+                'interface': "compute_name=nic1, compute_network={0}".format(self.network_id),
                 'volume': "size_gb=10,"
                 "storage_domain={0},"
                 "bootable=True".format(self.storage_id),
