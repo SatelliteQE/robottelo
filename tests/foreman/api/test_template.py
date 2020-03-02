@@ -207,7 +207,7 @@ class ConfigTemplateTestCase(APITestCase):
         template.template_kind_name = gen_string('alpha')
         with self.assertRaises(HTTPError) as context:
             template.create(create_missing=False)
-        self.assertEqual(context.exception.response.status_code, 404)
+        self.assertEqual(context.exception.response.status_code, 422)
         self.assertRegex(context.exception.response.text, "Could not find template_kind with name")
 
     @tier1
