@@ -1,17 +1,11 @@
 import operator
+from unittest import mock
+from unittest.mock import call
 
-import six
 from unittest2 import TestCase
 
 from robottelo import host_info
 from robottelo.ssh import SSHCommandResult
-
-if six.PY2:
-    import mock
-    from mock.mock import call
-else:
-    from unittest import mock
-    from unittest.mock import call
 
 
 class GetHostOsVersionTestCase(TestCase):

@@ -21,11 +21,11 @@ References for the relevant paths can be found on your Satellite:
 :Upstream: No
 """
 import random
+from http.client import NOT_FOUND
 
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
-from six.moves.http_client import NOT_FOUND
 
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list

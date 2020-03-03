@@ -13,10 +13,10 @@ import json
 import logging
 import os
 from time import sleep
+from urllib.parse import urljoin
+from urllib.parse import urlunsplit
 
-import six
 from fauxfactory import gen_string
-from six.moves.urllib.parse import urlunsplit
 from wait_for import wait_for
 
 from robottelo import ssh
@@ -31,11 +31,6 @@ from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
 from robottelo.host_info import get_host_os_version
 
-# This conditional is here to centralize use of urljoin
-if six.PY3:  # pragma: no cover
-    from urllib.parse import urljoin  # noqa
-else:  # pragma: no cover
-    from urlparse import urljoin  # noqa
 
 logger = logging.getLogger(__name__)
 

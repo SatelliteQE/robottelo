@@ -1,16 +1,11 @@
 """Tests for module ``robottelo.ssh``."""
 import os
+from unittest import mock
 
 import paramiko
-import six
 from unittest2 import TestCase
 
 from robottelo import ssh
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
 
 
 class MockChannel(object):

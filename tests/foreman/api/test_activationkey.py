@@ -14,12 +14,13 @@
 
 :Upstream: No
 """
+import http
+
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
-from six.moves import http_client
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -277,7 +278,7 @@ class ActivationKeyTestCase(APITestCase):
         act_key = entities.ActivationKey().create()
         path = act_key.path('releases')
         response = client.get(path, auth=settings.server.get_credentials(), verify=False)
-        status_code = http_client.OK
+        status_code = http.client.OK
         self.assertEqual(status_code, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 

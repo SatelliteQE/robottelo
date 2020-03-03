@@ -18,8 +18,9 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 
 :Upstream: No
 """
+import http
+
 from nailgun import client
-from six.moves import http_client
 
 from robottelo.config import settings
 from robottelo.decorators import tier1
@@ -45,6 +46,6 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
         """
         path = '{0}/rhsm'.format(settings.server.get_url())
         response = client.get(path, auth=settings.server.get_credentials(), verify=False)
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
         self.assertIn('application/json', response.headers['content-type'])
         self.assertIsInstance(response.json(), list)

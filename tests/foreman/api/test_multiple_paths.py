@@ -14,13 +14,13 @@
 
 :Upstream: No
 """
+import http
 import logging
 
 from nailgun import client
 from nailgun import entities
 from nailgun import entity_fields
 from requests.exceptions import HTTPError
-from six.moves import http_client
 
 from robottelo.config import settings
 from robottelo.decorators import tier1
@@ -169,7 +169,7 @@ class EntityTestCase(APITestCase):
                     entity_cls().path(), auth=settings.server.get_credentials(), verify=False
                 )
                 response.raise_for_status()
-                self.assertEqual(http_client.OK, response.status_code)
+                self.assertEqual(http.client.OK, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
@@ -188,7 +188,7 @@ class EntityTestCase(APITestCase):
             with self.subTest(entity_cls):
                 self.logger.info('test_get_unauthorized arg: %s', entity_cls)
                 response = client.get(entity_cls().path(), auth=(), verify=False)
-                self.assertEqual(http_client.UNAUTHORIZED, response.status_code)
+                self.assertEqual(http.client.UNAUTHORIZED, response.status_code)
 
     @tier3
     def test_positive_post_status_code(self):
@@ -220,7 +220,7 @@ class EntityTestCase(APITestCase):
                     continue
 
                 response = entity_cls().create_raw()
-                self.assertEqual(http_client.CREATED, response.status_code)
+                self.assertEqual(http.client.CREATED, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
@@ -242,7 +242,7 @@ class EntityTestCase(APITestCase):
                 server_cfg = get_nailgun_config()
                 server_cfg.auth = ()
                 return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
-                self.assertEqual(http_client.UNAUTHORIZED, return_code)
+                self.assertEqual(http.client.UNAUTHORIZED, return_code)
 
 
 class EntityIdTestCase(APITestCase):
@@ -268,7 +268,7 @@ class EntityIdTestCase(APITestCase):
                 except HTTPError as err:
                     self.fail(err)
                 response = entity.read_raw()
-                self.assertEqual(http_client.OK, response.status_code)
+                self.assertEqual(http.client.OK, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
@@ -302,7 +302,7 @@ class EntityIdTestCase(APITestCase):
                     auth=settings.server.get_credentials(),
                     verify=False,
                 )
-                self.assertEqual(http_client.OK, response.status_code)
+                self.assertEqual(http.client.OK, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
@@ -328,13 +328,13 @@ class EntityIdTestCase(APITestCase):
                 response = entity.delete_raw()
                 self.assertIn(
                     response.status_code,
-                    (http_client.NO_CONTENT, http_client.OK, http_client.ACCEPTED),
+                    (http.client.NO_CONTENT, http.client.OK, http.client.ACCEPTED),
                 )
 
                 # According to RFC 2616, HTTP 204 responses "MUST NOT include a
                 # message-body". If a message does not have a body, there is no
                 # need to set the content-type of the message.
-                if response.status_code is not http_client.NO_CONTENT:
+                if response.status_code is not http.client.NO_CONTENT:
                     self.assertIn('application/json', response.headers['content-type'])
 
 
@@ -436,7 +436,7 @@ class DoubleCheckTestCase(APITestCase):
                 except HTTPError as err:
                     self.fail(err)
                 entity.delete()
-                self.assertEqual(http_client.NOT_FOUND, entity.read_raw().status_code)
+                self.assertEqual(http.client.NOT_FOUND, entity.read_raw().status_code)
 
 
 class EntityReadTestCase(APITestCase):

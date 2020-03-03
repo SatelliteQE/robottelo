@@ -1,19 +1,13 @@
 """Tests for module ``robottelo.decorators.host``."""
 from itertools import chain
+from unittest import mock
 
-import six
 import unittest2
-from unittest2 import TestCase
 
 from robottelo.decorators import host
 
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
 
-
-class SkipIfOSIsUnavailableTestCase(TestCase):
+class SkipIfOSIsUnavailableTestCase(unittest2.TestCase):
     """Tests for :func:`robottelo.decorators.host.skip_if_host_is` when host
     version isn't available
     """

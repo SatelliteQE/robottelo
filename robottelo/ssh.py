@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from fnmatch import fnmatch
 
 import paramiko
-import six
 
 from robottelo.cli import hammer
 from robottelo.config import settings
@@ -457,8 +456,8 @@ def is_ssh_pub_key(key):
     :return: Boolean
     """
 
-    if not isinstance(key, six.string_types):
-        raise ValueError("Key should be a string type, received: %s" % type(key))
+    if not isinstance(key, str):
+        raise ValueError("Key should be a string type, received: {}".format(type(key)))
 
     # 1) a valid pub key has 3 parts separated by space
     try:

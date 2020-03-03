@@ -1,8 +1,8 @@
 """Tests for module ``robottelo.datafactory``."""
 import itertools
 import random
+from unittest import mock
 
-import six
 import unittest2
 
 from robottelo.config import settings
@@ -27,11 +27,6 @@ from robottelo.datafactory import valid_labels_list
 from robottelo.datafactory import valid_names_list
 from robottelo.datafactory import valid_org_names_list
 from robottelo.datafactory import valid_usernames_list
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
 
 
 class FilteredDataPointTestCase(unittest2.TestCase):
@@ -148,9 +143,9 @@ class TestReturnTypes(unittest2.TestCase):
             valid_cron_expressions(),
             valid_usernames_list(),
         ):
-            self.assertIsInstance(item, six.text_type)
+            self.assertIsInstance(item, str)
         for item in invalid_id_list():
-            if not (isinstance(item, (six.text_type, int)) or item is None):
+            if not (isinstance(item, (str, int)) or item is None):
                 self.fail('Unexpected data type')
 
 

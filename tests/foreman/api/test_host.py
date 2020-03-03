@@ -19,6 +19,8 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :Upstream: No
 """
+import http
+
 from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
@@ -26,7 +28,6 @@ from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
-from six.moves import http_client
 
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
@@ -113,7 +114,7 @@ class HostTestCase(APITestCase):
             data={'search': query},
             verify=False,
         )
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
         self.assertEqual(response.json()['search'], query)
 
     @tier1
@@ -134,7 +135,7 @@ class HostTestCase(APITestCase):
             data={'per_page': per_page},
             verify=False,
         )
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
         self.assertEqual(response.json()['per_page'], per_page)
 
     @tier1

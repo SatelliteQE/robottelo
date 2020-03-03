@@ -1,6 +1,6 @@
 from functools import partial
+from unittest import mock
 
-import six
 import unittest2
 
 from robottelo.cli.base import Base
@@ -8,11 +8,6 @@ from robottelo.cli.base import CLIBaseError
 from robottelo.cli.base import CLIDataBaseError
 from robottelo.cli.base import CLIError
 from robottelo.cli.base import CLIReturnCodeError
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
 
 
 class CLIClass(Base):

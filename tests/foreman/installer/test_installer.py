@@ -16,8 +16,6 @@
 """
 import re
 
-from six.moves import zip
-
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION

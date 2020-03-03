@@ -1,11 +1,11 @@
 """Manifest clonning tools.."""
+import io
 import json
 import time
 import uuid
 import zipfile
 
 import requests
-import six
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
@@ -62,20 +62,18 @@ class ManifestCloner(object):
         if self.signing_key is None or self.template is None or self.template.get(name) is None:
             self._download_manifest_info(name)
 
-        template_zip = zipfile.ZipFile(six.BytesIO(self.template[name]))
+        template_zip = zipfile.ZipFile(io.BytesIO(self.template[name]))
         # Extract the consumer_export.zip from the template manifest.
-        consumer_export_zip = zipfile.ZipFile(
-            six.BytesIO(template_zip.read('consumer_export.zip'))
-        )
+        consumer_export_zip = zipfile.ZipFile(io.BytesIO(template_zip.read('consumer_export.zip')))
 
         # Generate a new consumer_export.zip file changing the consumer
         # uuid.
-        consumer_export = six.BytesIO()
+        consumer_export = io.BytesIO()
         with zipfile.ZipFile(consumer_export, 'w') as new_consumer_export_zip:
             for name in consumer_export_zip.namelist():
                 if name == 'export/consumer.json':
                     consumer_data = json.loads(consumer_export_zip.read(name).decode('utf-8'))
-                    consumer_data['uuid'] = six.text_type(uuid.uuid1())
+                    consumer_data['uuid'] = str(uuid.uuid1())
                     if org_environment_access:
                         consumer_data['contentAccessMode'] = 'org_environment'
                         consumer_data['owner'][
@@ -87,7 +85,7 @@ class ManifestCloner(object):
 
         # Generate a new manifest.zip file with the generated
         # consumer_export.zip and new signature.
-        manifest = six.BytesIO()
+        manifest = io.BytesIO()
         with zipfile.ZipFile(manifest, 'w', zipfile.ZIP_DEFLATED) as manifest_zip:
             consumer_export.seek(0)
             manifest_zip.writestr('consumer_export.zip', consumer_export.read())
@@ -115,7 +113,7 @@ class ManifestCloner(object):
         """
         if self.signing_key is None or self.template is None or self.template.get(name) is None:
             self._download_manifest_info(name)
-        return six.BytesIO(self.template[name])
+        return io.BytesIO(self.template[name])
 
 
 # Cache the ManifestCloner in order to avoid downloading the manifest template
