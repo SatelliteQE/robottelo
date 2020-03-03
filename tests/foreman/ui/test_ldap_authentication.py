@@ -235,13 +235,13 @@ def enroll_idm_and_configure_external_auth():
                        domain.upper()))
 
 
-def create_mapper(json, client_id):
+def create_mapper(json_content, client_id):
     """Helper method to create the RH-SSO Client Mapper"""
     with open("mapper_file", "w") as file:
-        json.dump(json)
+        json.dump(json_content, file)
     ssh.upload_file("mapper_file", "mapper_file", hostname=settings.rhsso.host_name)
-    run_command(cmd=f"{KEY_CLOAK_CLI} create clients/{client_id}/protocol-mappers/models "
-                    f"-r '{settings.rhsso.realm}' -f mapper_file",
+    run_command(cmd="{} create clients/{}/protocol-mappers/models -r {} -f mapper_file".
+                format(KEY_CLOAK_CLI, client_id, settings.rhsso.realm),
                 hostname=settings.rhsso.host_name)
 
 
@@ -304,7 +304,7 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
                        settings.rhsso.password),
                 hostname=settings.rhsso.host_name)
 
-    result = run_command(cmd=f"{KEY_CLOAK_CLI} get clients --fields id,clientId",
+    result = run_command(cmd="{} get clients --fields id,clientId".format(KEY_CLOAK_CLI),
                          hostname=settings.rhsso.host_name)
     result_json = json.loads("[{{{0}".format("".join(result)))
 
@@ -314,8 +314,8 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
             break
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
-    audience_mapper["config"]["included.client.audience"] = audience_mapper["config"]
-    ["included.client.audience"].format(rhsso_host=settings.server.hostname)
+    audience_mapper["config"]["included.client.audience"] = audience_mapper["config"][
+        "included.client.audience"].format(rhsso_host=settings.server.hostname)
     create_mapper(audience_mapper, client_id)
 
 
@@ -1224,7 +1224,7 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
     """
     try:
         update_rhsso_settings_in_satellite()
-        with session:
+        with session(login=False):
             session.rhsso_login.login({
                     'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password})
             with raises(NavigationTriesExceeded):
