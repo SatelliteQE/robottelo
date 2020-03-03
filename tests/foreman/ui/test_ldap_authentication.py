@@ -16,7 +16,7 @@
 """
 import json
 import os
-
+import copy
 import decorator
 import pyotp
 from airgun.session import Session
@@ -238,14 +238,14 @@ def enroll_idm_and_configure_external_auth():
 def create_mapper(json, client_id):
     """Helper method to create the RH-SSO Client Mapper"""
     with open("mapper_file", "w") as file:
-        file.write(json)
+        json.dump(json)
     ssh.upload_file("mapper_file", "mapper_file", hostname=settings.rhsso.host_name)
     run_command(cmd=f"{KEY_CLOAK_CLI} create clients/{client_id}/protocol-mappers/models "
                     f"-r '{settings.rhsso.realm}' -f mapper_file",
                 hostname=settings.rhsso.host_name)
 
 
-def update_or_revert_rhsso_settings_in_satellite(action=None):
+def update_rhsso_settings_in_satellite(revert=False):
     """Update the RH-SSO settings in satellite based on action"""
     rhhso_settings = {
         'authorize_login_delegation': True,
@@ -313,8 +313,10 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
             client_id = client['id']
             break
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
-    updated_audience_mapper = AUDIENCE_MAPPER.replace('{rhsso_host}', settings.server.hostname)
-    create_mapper(updated_audience_mapper, client_id)
+    audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
+    audience_mapper["config"]["included.client.audience"] = audience_mapper["config"]
+    ["included.client.audience"].format(rhsso_host=settings.server.hostname)
+    create_mapper(audience_mapper, client_id)
 
 
 def generate_otp(secret):
@@ -1221,7 +1223,7 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
 
     """
     try:
-        update_or_revert_rhsso_settings_in_satellite(action='update')
+        update_rhsso_settings_in_satellite()
         with session:
             session.rhsso_login.login({
                     'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password})
@@ -1230,4 +1232,4 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
             assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
 
     finally:
-        update_or_revert_rhsso_settings_in_satellite(action='revert')
+        update_rhsso_settings_in_satellite(revert=True)
