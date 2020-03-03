@@ -215,37 +215,6 @@ class UserGroupTestCase(CLITestCase):
         )
 
     @tier1
-    def test_negative_create_with_name(self):
-        """Attempt to create user group with invalid name.
-
-        :id: 79d2d28d-a0d9-42ab-ba88-c259a463533a
-
-        :expectedresults: User group is not created.
-
-        :CaseImportance: Critical
-        """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIFactoryError):
-                    make_usergroup({'name': name})
-                with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.info({'name': name})
-
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Attempt to create user group with a name of already existent entity.
-
-        :id: b1eebf2f-a59e-43af-a980-ae73320b4311
-
-        :expectedresults: User group is not created.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        with self.assertRaises(CLIFactoryError):
-            make_usergroup({'name': user_group['name']})
-
-    @tier1
     def test_positive_list(self):
         """Test user group list command
 
@@ -279,43 +248,6 @@ class UserGroupTestCase(CLITestCase):
                 UserGroup.update({'id': user_group['id'], 'new-name': new_name})
                 user_group = UserGroup.info({'id': user_group['id']})
                 self.assertEqual(user_group['name'], new_name)
-
-    @tier1
-    def test_positive_update_by_name(self):
-        """Update existing user group with different valid names. Use name of
-        the user group as a parameter
-
-        :id: 3bee63ff-ae2a-4fa4-a5bd-58ec85358c19
-
-        :expectedresults: User group is update successfully.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                UserGroup.update({'name': user_group['name'], 'new-name': new_name})
-                user_group = UserGroup.info({'id': user_group['id']})
-                self.assertEqual(user_group['name'], new_name)
-
-    @tier1
-    def test_negative_update_by_id(self):
-        """Attempt to update existing user group using different invalid names.
-        Use id of the user group as a parameter
-
-        :id: e5aecee1-7c4c-4ac5-aee2-a3190cbe956f
-
-        :expectedresults: User group is not updated.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.update({'id': user_group['id'], 'new-name': new_name})
-                user_group = UserGroup.info({'id': user_group['id']})
-                self.assertNotEqual(user_group['name'], new_name)
 
     @tier1
     def test_negative_update_by_name(self):
