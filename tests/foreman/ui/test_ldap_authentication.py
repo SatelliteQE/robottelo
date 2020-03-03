@@ -14,9 +14,10 @@
 
 :Upstream: No
 """
+import copy
 import json
 import os
-import copy
+
 import decorator
 import pyotp
 from airgun.session import Session
