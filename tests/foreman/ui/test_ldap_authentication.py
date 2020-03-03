@@ -246,7 +246,7 @@ def create_mapper(json, client_id):
 
 
 def update_rhsso_settings_in_satellite(revert=False):
-    """Update the RH-SSO settings in satellite based on action"""
+    """Update or Revert the RH-SSO settings in satellite"""
     rhhso_settings = {
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
@@ -257,7 +257,7 @@ def update_rhsso_settings_in_satellite(revert=False):
             settings.rhsso.host_url, settings.rhsso.realm
         )
     }
-    if action == 'update':
+    if not revert:
         for setting_name, setting_value in rhhso_settings.items():
             setting_entity = entities.Setting().search(
                 query={'search': 'name={}'.format(setting_name)})[0]
