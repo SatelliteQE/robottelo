@@ -562,3 +562,16 @@ port_range=9091, 14999
 # sku_vdc_physical=
 # The SKU ID for virtual vdc
 # sku_vdc_virtual=
+
+# section for RH-SSO integration
+[rhsso]
+# RH-SSO Hostname
+host_name=
+# RH-SSO Host Url
+host_url=
+# RH-SSO Host Admin of Realm
+rhsso_user=
+# RH-SSO Host Admin Password
+user_password=
+# RH-SSO Host Realm
+realm=
