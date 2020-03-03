@@ -52,99 +52,109 @@ from robottelo.helpers import file_downloader
 pytestmark = [run_in_one_thread]
 
 
-EXTERNAL_GROUP_NAME = 'foobargroup'
+EXTERNAL_GROUP_NAME = "foobargroup"
 
-if not setting_is_set('ldap'):
-    skip('skipping tests due to missing ldap settings', allow_module_level=True)
+if not setting_is_set("ldap"):
+    skip("skipping tests due to missing ldap settings", allow_module_level=True)
 
 
 def set_certificate_in_satellite(server_type):
     """update the cert settings in satellite based on type of ldap server"""
-    if server_type == 'IPA':
-        idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, 'ipa/config/ca.crt')
-        file_downloader(file_url=idm_cert_path_url,
-                        local_path=CERT_PATH,
-                        file_name='ipa.crt',
-                        hostname=settings.server.hostname)
-    elif server_type == 'AD':
-        command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
+    if server_type == "IPA":
+        idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, "ipa/config/ca.crt")
+        file_downloader(
+            file_url=idm_cert_path_url,
+            local_path=CERT_PATH,
+            file_name="ipa.crt",
+            hostname=settings.server.hostname,
+        )
+    elif server_type == "AD":
+        command = r"mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt"
         ssh.command(command.format(settings.ldap.password, settings.ldap.hostname))
-        result = ssh.command('cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {}'.
-                             format(CERT_PATH))
+        result = ssh.command(
+            "cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {}".format(
+                CERT_PATH
+            )
+        )
         if result.return_code != 0:
-            raise AssertionError('Failed to copy the AD server certificate at right path')
-    result = ssh.command('update-ca-trust extract && restorecon -R {}'.format(CERT_PATH))
+            raise AssertionError(
+                "Failed to copy the AD server certificate at right path"
+            )
+    result = ssh.command(
+        "update-ca-trust extract && restorecon -R {}".format(CERT_PATH)
+    )
     if result.return_code != 0:
-        raise AssertionError('Failed to update and trust the certificate')
-    result = ssh.command('systemctl restart httpd')
+        raise AssertionError("Failed to update and trust the certificate")
+    result = ssh.command("systemctl restart httpd")
     if result.return_code != 0:
-        raise AssertionError('Failed to restart the httpd after applying {} '
-                             'cert'.format(server_type))
+        raise AssertionError(
+            "Failed to restart the httpd after applying {} " "cert".format(server_type)
+        )
 
 
-@fixture(scope='module')
+@fixture(scope="module")
 def ldap_data():
     return {
-        'ldap_user_name': settings.ldap.username,
-        'ldap_user_passwd': settings.ldap.password,
-        'base_dn': settings.ldap.basedn,
-        'group_base_dn': settings.ldap.grpbasedn,
-        'ldap_hostname': settings.ldap.hostname,
+        "ldap_user_name": settings.ldap.username,
+        "ldap_user_passwd": settings.ldap.password,
+        "base_dn": settings.ldap.basedn,
+        "group_base_dn": settings.ldap.grpbasedn,
+        "ldap_hostname": settings.ldap.hostname,
     }
 
 
-@fixture(scope='module')
+@fixture(scope="module")
 def ipa_data():
     return {
-        'ldap_ipa_user_name': settings.ipa.username_ipa,
-        'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
-        'ipa_base_dn': settings.ipa.basedn_ipa,
-        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
-        'time_based_secret': settings.ipa.time_based_secret,
+        "ldap_ipa_user_name": settings.ipa.username_ipa,
+        "ipa_otp_username": settings.ipa.otp_user,
+        "ldap_ipa_user_passwd": settings.ipa.password_ipa,
+        "ipa_base_dn": settings.ipa.basedn_ipa,
+        "ipa_group_base_dn": settings.ipa.grpbasedn_ipa,
+        "ldap_ipa_hostname": settings.ipa.hostname_ipa,
+        "time_based_secret": settings.ipa.time_based_secret,
     }
 
 
-@fixture(scope='function')
+@fixture(scope="function")
 def auth_source(ldap_data, module_org, module_loc):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=ldap_data['ldap_user_name'],
-        account_password=ldap_data['ldap_user_passwd'],
-        base_dn=ldap_data['base_dn'],
-        groups_base=ldap_data['group_base_dn'],
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login_ad'],
-        server_type=LDAP_SERVER_TYPE['API']['ad'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=ldap_data['ldap_hostname'],
+        account=ldap_data["ldap_user_name"],
+        account_password=ldap_data["ldap_user_passwd"],
+        base_dn=ldap_data["base_dn"],
+        groups_base=ldap_data["group_base_dn"],
+        attr_firstname=LDAP_ATTR["firstname"],
+        attr_lastname=LDAP_ATTR["surname"],
+        attr_login=LDAP_ATTR["login_ad"],
+        server_type=LDAP_SERVER_TYPE["API"]["ad"],
+        attr_mail=LDAP_ATTR["mail"],
+        name=gen_string("alpha"),
+        host=ldap_data["ldap_hostname"],
         tls=False,
-        port='389',
+        port="389",
         organization=[module_org],
         location=[module_loc],
     ).create()
 
 
-@fixture(scope='function')
+@fixture(scope="function")
 def auth_source_ipa(ipa_data, module_org, module_loc):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=ipa_data['ldap_ipa_user_name'],
-        account_password=ipa_data['ldap_ipa_user_passwd'],
-        base_dn=ipa_data['ipa_base_dn'],
-        groups_base=ipa_data['ipa_group_base_dn'],
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login'],
-        server_type=LDAP_SERVER_TYPE['API']['ipa'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=ipa_data['ldap_ipa_hostname'],
+        account=ipa_data["ldap_ipa_user_name"],
+        account_password=ipa_data["ldap_ipa_user_passwd"],
+        base_dn=ipa_data["ipa_base_dn"],
+        groups_base=ipa_data["ipa_group_base_dn"],
+        attr_firstname=LDAP_ATTR["firstname"],
+        attr_lastname=LDAP_ATTR["surname"],
+        attr_login=LDAP_ATTR["login"],
+        server_type=LDAP_SERVER_TYPE["API"]["ipa"],
+        attr_mail=LDAP_ATTR["mail"],
+        name=gen_string("alpha"),
+        host=ipa_data["ldap_ipa_hostname"],
         tls=False,
-        port='389',
+        port="389",
         organization=[module_org],
         location=[module_loc],
     ).create()
@@ -156,15 +166,13 @@ def ldap_user_name(ldap_data, test_name):
     still exists) when test finishes.
     """
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ):
         pass
-    yield ldap_data['ldap_user_name']
-    users = entities.User().search(query={
-        'search': 'login="{}"'.format(ldap_data['ldap_user_name'])
-    })
+    yield ldap_data["ldap_user_name"]
+    users = entities.User().search(
+        query={"search": 'login="{}"'.format(ldap_data["ldap_user_name"])}
+    )
     if users:
         users[0].delete()
 
@@ -173,16 +181,16 @@ def ldap_user_name(ldap_data, test_name):
 def ldap_usergroup_name():
     """Return some random usergroup name, and attempt to delete such usergroup when test finishes.
     """
-    usergroup_name = gen_string('alphanumeric')
+    usergroup_name = gen_string("alphanumeric")
     yield usergroup_name
-    user_groups = entities.UserGroup().search(query={
-        'search': 'name="{}"'.format(usergroup_name)
-    })
+    user_groups = entities.UserGroup().search(
+        query={"search": 'name="{}"'.format(usergroup_name)}
+    )
     if user_groups:
         user_groups[0].delete()
 
 
-@fixture(scope='module')
+@fixture(scope="module")
 def ldap_auth_name():
     """Return some random ldap name, and attempt to delete all ldap when test starts.
     """
@@ -192,7 +200,7 @@ def ldap_auth_name():
         for user in range(len(users)):
             users[user].delete()
         ldap[ldap_auth].delete()
-    ldap_name = gen_string('alphanumeric')
+    ldap_name = gen_string("alphanumeric")
     yield ldap_name
 
 
@@ -206,34 +214,42 @@ def run_command(cmd, hostname=settings.server.hostname, timeout=None):
         raise CLIReturnCodeError(
             result.return_code,
             result.stderr,
-            'Failed to run the command : {}'.format(cmd),
+            "Failed to run the command : {}".format(cmd),
         )
     else:
         return result.stdout
 
 
-@fixture(scope='module')
+@fixture(scope="module")
 def enroll_idm_and_configure_external_auth():
     """Enroll the Satellite6 Server to an IDM Server."""
-    run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
+    run_command(
+        cmd="yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools"
+    )
 
-    run_command(cmd='echo {0} | kinit admin'.format(settings.ipa.password_ipa),
-                hostname=settings.ipa.hostname_ipa)
-    result = run_command(cmd='ipa host-add --random {}'.format(settings.server.hostname),
-                         hostname=settings.ipa.hostname_ipa)
+    run_command(
+        cmd="echo {0} | kinit admin".format(settings.ipa.password_ipa),
+        hostname=settings.ipa.hostname_ipa,
+    )
+    result = run_command(
+        cmd="ipa host-add --random {}".format(settings.server.hostname),
+        hostname=settings.ipa.hostname_ipa,
+    )
 
     for line in result:
         if "Random password" in line:
-            _, password = line.split(': ', 2)
+            _, password = line.split(": ", 2)
             break
-    run_command(cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
-                hostname=settings.ipa.hostname_ipa)
-    domain = settings.ipa.hostname_ipa[settings.ipa.hostname_ipa.find('satqe'):]
-    run_command(cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".
-                format(password,
-                       domain,
-                       settings.ipa.hostname_ipa,
-                       domain.upper()))
+    run_command(
+        cmd="ipa service-add HTTP/{}".format(settings.server.hostname),
+        hostname=settings.ipa.hostname_ipa,
+    )
+    domain = settings.ipa.hostname_ipa[settings.ipa.hostname_ipa.find("satqe") :]
+    run_command(
+        cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".format(
+            password, domain, settings.ipa.hostname_ipa, domain.upper()
+        )
+    )
 
 
 def create_mapper(json_content, client_id):
@@ -241,82 +257,97 @@ def create_mapper(json_content, client_id):
     with open("mapper_file", "w") as file:
         json.dump(json_content, file)
     ssh.upload_file("mapper_file", "mapper_file", hostname=settings.rhsso.host_name)
-    run_command(cmd="{} create clients/{}/protocol-mappers/models -r {} -f mapper_file".
-                format(KEY_CLOAK_CLI, client_id, settings.rhsso.realm),
-                hostname=settings.rhsso.host_name)
+    run_command(
+        cmd="{} create clients/{}/protocol-mappers/models -r {} -f mapper_file".format(
+            KEY_CLOAK_CLI, client_id, settings.rhsso.realm
+        ),
+        hostname=settings.rhsso.host_name,
+    )
 
 
 def update_rhsso_settings_in_satellite(revert=False):
     """Update or Revert the RH-SSO settings in satellite"""
     rhhso_settings = {
-        'authorize_login_delegation': True,
-        'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'oidc_algorithm': 'RS256',
-        'oidc_audience': '{}-foreman-openidc'.format(settings.server.hostname),
-        'oidc_issuer': '{}/auth/realms/{}'.format(settings.rhsso.host_url, settings.rhsso.realm),
-        'oidc_jwks_url': '{}/auth/realms/{}/protocol/openid-connect/certs'.format(
+        "authorize_login_delegation": True,
+        "authorize_login_delegation_auth_source_user_autocreate": "External",
+        "oidc_algorithm": "RS256",
+        "oidc_audience": "{}-foreman-openidc".format(settings.server.hostname),
+        "oidc_issuer": "{}/auth/realms/{}".format(
             settings.rhsso.host_url, settings.rhsso.realm
-        )
+        ),
+        "oidc_jwks_url": "{}/auth/realms/{}/protocol/openid-connect/certs".format(
+            settings.rhsso.host_url, settings.rhsso.realm
+        ),
     }
     if not revert:
         for setting_name, setting_value in rhhso_settings.items():
             setting_entity = entities.Setting().search(
-                query={'search': 'name={}'.format(setting_name)})[0]
+                query={"search": "name={}".format(setting_name)}
+            )[0]
             setting_entity.value = setting_value
-            setting_entity.update({'value'})
+            setting_entity.update({"value"})
     else:
         setting_entity = entities.Setting().search(
-            query={'search': 'name=authorize_login_delegation'})[0]
+            query={"search": "name=authorize_login_delegation"}
+        )[0]
         setting_entity.value = False
-        setting_entity.update({'value'})
+        setting_entity.update({"value"})
 
 
-@fixture(scope='module')
+@fixture(scope="module")
 def enroll_configure_rhsso_external_auth():
     """Enroll the Satellite6 Server to an RHSSO Server."""
-    run_command(cmd='yum -y --disableplugin=foreman-protector install '
-                    'mod_auth_openidc keycloak-httpd-client-install')
-    run_command(cmd='echo {0} | keycloak-httpd-client-install --app-name foreman-openidc \
+    run_command(
+        cmd="yum -y --disableplugin=foreman-protector install "
+        "mod_auth_openidc keycloak-httpd-client-install"
+    )
+    run_command(
+        cmd='echo {0} | keycloak-httpd-client-install --app-name foreman-openidc \
                 --keycloak-server-url {1} \
                 --keycloak-admin-username "admin" \
                 --keycloak-realm "{2}" \
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'.format(
-        settings.rhsso.password,
-        settings.rhsso.host_url,
-        settings.rhsso.realm,
-    ))
+            settings.rhsso.password, settings.rhsso.host_url, settings.rhsso.realm,
+        )
+    )
     run_command(cmd="systemctl restart httpd")
 
 
-@fixture(scope='module')
+@fixture(scope="module")
 def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = "{}{}".format(settings.server.hostname, '-foreman-openidc')
-    run_command(cmd="{0} config credentials "
-                    "--server {1}/auth "
-                    "--realm {2} "
-                    "--user {3} "
-                    "--password {4}".
-                format(KEY_CLOAK_CLI,
-                       settings.rhsso.host_url.replace("https://", "http://"),
-                       settings.rhsso.realm,
-                       settings.rhsso.rhsso_user,
-                       settings.rhsso.password),
-                hostname=settings.rhsso.host_name)
+    client_id = "{}{}".format(settings.server.hostname, "-foreman-openidc")
+    run_command(
+        cmd="{0} config credentials "
+        "--server {1}/auth "
+        "--realm {2} "
+        "--user {3} "
+        "--password {4}".format(
+            KEY_CLOAK_CLI,
+            settings.rhsso.host_url.replace("https://", "http://"),
+            settings.rhsso.realm,
+            settings.rhsso.rhsso_user,
+            settings.rhsso.password,
+        ),
+        hostname=settings.rhsso.host_name,
+    )
 
-    result = run_command(cmd="{} get clients --fields id,clientId".format(KEY_CLOAK_CLI),
-                         hostname=settings.rhsso.host_name)
+    result = run_command(
+        cmd="{} get clients --fields id,clientId".format(KEY_CLOAK_CLI),
+        hostname=settings.rhsso.host_name,
+    )
     result_json = json.loads("[{{{0}".format("".join(result)))
 
     for client in result_json:
-        if client['clientId'] == client_id:
-            client_id = client['id']
+        if client["clientId"] == client_id:
+            client_id = client["id"]
             break
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper["config"]["included.client.audience"] = audience_mapper["config"][
-        "included.client.audience"].format(rhsso_host=settings.server.hostname)
+        "included.client.audience"
+    ].format(rhsso_host=settings.server.hostname)
     create_mapper(audience_mapper, client_id)
 
 
@@ -341,11 +372,13 @@ def ldap_tear_down():
 
 def ldap_wrapper(test_func):
     """This decorator will take care of tear_down for ldap resources and wraps test function"""
+
     def test_wrapper(test_func, *args, **kwargs):
         try:
             test_func(*args, **kwargs)
         finally:
             ldap_tear_down()
+
     return decorator.decorator(test_wrapper, test_func)
 
 
@@ -364,22 +397,32 @@ def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
     """
     new_server = gen_url()
     with session:
-        session.ldapauthentication.create({
-            'ldap_server.name': ldap_auth_name,
-            'ldap_server.host': ldap_data['ldap_hostname'],
-            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-            'account.account_name': ldap_data['ldap_user_name'],
-            'account.password': ldap_data['ldap_user_passwd'],
-            'account.base_dn': ldap_data['base_dn'],
-            'account.groups_base_dn': ldap_data['group_base_dn'],
-            'attribute_mappings.login': LDAP_ATTR['login_ad'],
-            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-            'attribute_mappings.last_name': LDAP_ATTR['surname'],
-            'attribute_mappings.mail': LDAP_ATTR['mail'],
-        })
-        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
-        session.ldapauthentication.update(ldap_auth_name, {'ldap_server.host': new_server})
-        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Server'] == new_server
+        session.ldapauthentication.create(
+            {
+                "ldap_server.name": ldap_auth_name,
+                "ldap_server.host": ldap_data["ldap_hostname"],
+                "ldap_server.server_type": LDAP_SERVER_TYPE["UI"]["ad"],
+                "account.account_name": ldap_data["ldap_user_name"],
+                "account.password": ldap_data["ldap_user_passwd"],
+                "account.base_dn": ldap_data["base_dn"],
+                "account.groups_base_dn": ldap_data["group_base_dn"],
+                "attribute_mappings.login": LDAP_ATTR["login_ad"],
+                "attribute_mappings.first_name": LDAP_ATTR["firstname"],
+                "attribute_mappings.last_name": LDAP_ATTR["surname"],
+                "attribute_mappings.mail": LDAP_ATTR["mail"],
+            }
+        )
+        assert (
+            session.ldapauthentication.read_table_row(ldap_auth_name)["Name"]
+            == ldap_auth_name
+        )
+        session.ldapauthentication.update(
+            ldap_auth_name, {"ldap_server.host": new_server}
+        )
+        assert (
+            session.ldapauthentication.read_table_row(ldap_auth_name)["Server"]
+            == new_server
+        )
         session.ldapauthentication.delete(ldap_auth_name)
         assert not session.ldapauthentication.read_table_row(ldap_auth_name)
 
@@ -403,48 +446,47 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name)
     org = entities.Organization().create()
     loc = entities.Location().create()
     with session:
-        session.ldapauthentication.create({
-            'ldap_server.name': ldap_auth_name,
-            'ldap_server.host': ldap_data['ldap_hostname'],
-            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-            'account.account_name': ldap_data['ldap_user_name'],
-            'account.password': ldap_data['ldap_user_passwd'],
-            'account.base_dn': ldap_data['base_dn'],
-            'account.groups_base_dn': ldap_data['group_base_dn'],
-            'attribute_mappings.login': LDAP_ATTR['login_ad'],
-            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-            'attribute_mappings.last_name': LDAP_ATTR['surname'],
-            'attribute_mappings.mail': LDAP_ATTR['mail'],
-            'locations.resources.assigned': [loc.name],
-            'organizations.resources.assigned': [org.name]
-        })
+        session.ldapauthentication.create(
+            {
+                "ldap_server.name": ldap_auth_name,
+                "ldap_server.host": ldap_data["ldap_hostname"],
+                "ldap_server.server_type": LDAP_SERVER_TYPE["UI"]["ad"],
+                "account.account_name": ldap_data["ldap_user_name"],
+                "account.password": ldap_data["ldap_user_passwd"],
+                "account.base_dn": ldap_data["base_dn"],
+                "account.groups_base_dn": ldap_data["group_base_dn"],
+                "attribute_mappings.login": LDAP_ATTR["login_ad"],
+                "attribute_mappings.first_name": LDAP_ATTR["firstname"],
+                "attribute_mappings.last_name": LDAP_ATTR["surname"],
+                "attribute_mappings.mail": LDAP_ATTR["mail"],
+                "locations.resources.assigned": [loc.name],
+                "organizations.resources.assigned": [org.name],
+            }
+        )
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
+        assert (
+            session.ldapauthentication.read_table_row(ldap_auth_name)["Name"]
+            == ldap_auth_name
+        )
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
-        assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ldap_data['ldap_hostname']
-        assert ldap_source['ldap_server']['port'] == '389'
-        assert ldap_source[
-            'ldap_server']['server_type'] == LDAP_SERVER_TYPE['UI']['ad']
-        assert ldap_source[
-            'account']['account_name'] == ldap_data['ldap_user_name']
-        assert ldap_source['account']['base_dn'] == ldap_data['base_dn']
-        assert ldap_source[
-            'account']['groups_base_dn'] == ldap_data['group_base_dn']
-        assert not ldap_source['account']['onthefly_register']
-        assert ldap_source['account']['usergroup_sync']
-        assert ldap_source[
-            'attribute_mappings']['login'] == LDAP_ATTR['login_ad']
-        assert ldap_source[
-            'attribute_mappings']['first_name'] == LDAP_ATTR['firstname']
-        assert ldap_source[
-            'attribute_mappings']['last_name'] == LDAP_ATTR['surname']
-        assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
+        assert ldap_source["ldap_server"]["name"] == ldap_auth_name
+        assert ldap_source["ldap_server"]["host"] == ldap_data["ldap_hostname"]
+        assert ldap_source["ldap_server"]["port"] == "389"
+        assert ldap_source["ldap_server"]["server_type"] == LDAP_SERVER_TYPE["UI"]["ad"]
+        assert ldap_source["account"]["account_name"] == ldap_data["ldap_user_name"]
+        assert ldap_source["account"]["base_dn"] == ldap_data["base_dn"]
+        assert ldap_source["account"]["groups_base_dn"] == ldap_data["group_base_dn"]
+        assert not ldap_source["account"]["onthefly_register"]
+        assert ldap_source["account"]["usergroup_sync"]
+        assert ldap_source["attribute_mappings"]["login"] == LDAP_ATTR["login_ad"]
+        assert ldap_source["attribute_mappings"]["first_name"] == LDAP_ATTR["firstname"]
+        assert ldap_source["attribute_mappings"]["last_name"] == LDAP_ATTR["surname"]
+        assert ldap_source["attribute_mappings"]["mail"] == LDAP_ATTR["mail"]
 
 
 @ldap_wrapper
-@skip_if_not_set('ipa')
+@skip_if_not_set("ipa")
 @tier2
 def test_positive_create_with_idm_org_and_loc(session, ipa_data):
     """Create LDAP auth_source for IDM with org and loc assigned.
@@ -461,51 +503,51 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
-    ldap_auth_name = gen_string('alphanumeric')
+    ldap_auth_name = gen_string("alphanumeric")
     with session:
-        session.ldapauthentication.create({
-            'ldap_server.name': ldap_auth_name,
-            'ldap_server.host': ipa_data['ldap_ipa_hostname'],
-            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-            'account.account_name': ipa_data['ldap_ipa_user_name'],
-            'account.password': ipa_data['ldap_ipa_user_passwd'],
-            'account.base_dn': ipa_data['ipa_base_dn'],
-            'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
-            'attribute_mappings.login': LDAP_ATTR['login'],
-            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-            'attribute_mappings.last_name': LDAP_ATTR['surname'],
-            'attribute_mappings.mail': LDAP_ATTR['mail'],
-            'locations.resources.assigned': [loc.name],
-            'organizations.resources.assigned': [org.name]
-        })
+        session.ldapauthentication.create(
+            {
+                "ldap_server.name": ldap_auth_name,
+                "ldap_server.host": ipa_data["ldap_ipa_hostname"],
+                "ldap_server.server_type": LDAP_SERVER_TYPE["UI"]["ipa"],
+                "account.account_name": ipa_data["ldap_ipa_user_name"],
+                "account.password": ipa_data["ldap_ipa_user_passwd"],
+                "account.base_dn": ipa_data["ipa_base_dn"],
+                "account.groups_base_dn": ipa_data["ipa_group_base_dn"],
+                "attribute_mappings.login": LDAP_ATTR["login"],
+                "attribute_mappings.first_name": LDAP_ATTR["firstname"],
+                "attribute_mappings.last_name": LDAP_ATTR["surname"],
+                "attribute_mappings.mail": LDAP_ATTR["mail"],
+                "locations.resources.assigned": [loc.name],
+                "organizations.resources.assigned": [org.name],
+            }
+        )
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
+        assert (
+            session.ldapauthentication.read_table_row(ldap_auth_name)["Name"]
+            == ldap_auth_name
+        )
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
-        assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source[
-            'ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
-        assert ldap_source['ldap_server']['port'] == '389'
-        assert ldap_source[
-            'ldap_server']['server_type'] == LDAP_SERVER_TYPE['UI']['ipa']
-        assert ldap_source[
-            'account']['account_name'] == ipa_data['ldap_ipa_user_name']
-        assert ldap_source['account']['base_dn'] == ipa_data['ipa_base_dn']
-        assert ldap_source[
-            'account']['groups_base_dn'] == ipa_data['ipa_group_base_dn']
-        assert not ldap_source['account']['onthefly_register']
-        assert ldap_source['account']['usergroup_sync']
-        assert ldap_source[
-            'attribute_mappings']['login'] == LDAP_ATTR['login']
-        assert ldap_source[
-            'attribute_mappings']['first_name'] == LDAP_ATTR['firstname']
-        assert ldap_source[
-            'attribute_mappings']['last_name'] == LDAP_ATTR['surname']
-        assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
+        assert ldap_source["ldap_server"]["name"] == ldap_auth_name
+        assert ldap_source["ldap_server"]["host"] == ipa_data["ldap_ipa_hostname"]
+        assert ldap_source["ldap_server"]["port"] == "389"
+        assert (
+            ldap_source["ldap_server"]["server_type"] == LDAP_SERVER_TYPE["UI"]["ipa"]
+        )
+        assert ldap_source["account"]["account_name"] == ipa_data["ldap_ipa_user_name"]
+        assert ldap_source["account"]["base_dn"] == ipa_data["ipa_base_dn"]
+        assert ldap_source["account"]["groups_base_dn"] == ipa_data["ipa_group_base_dn"]
+        assert not ldap_source["account"]["onthefly_register"]
+        assert ldap_source["account"]["usergroup_sync"]
+        assert ldap_source["attribute_mappings"]["login"] == LDAP_ATTR["login"]
+        assert ldap_source["attribute_mappings"]["first_name"] == LDAP_ATTR["firstname"]
+        assert ldap_source["attribute_mappings"]["last_name"] == LDAP_ATTR["surname"]
+        assert ldap_source["attribute_mappings"]["mail"] == LDAP_ATTR["mail"]
 
 
 @ldap_wrapper
-@skip_if_not_set('ipa')
+@skip_if_not_set("ipa")
 @destructive
 def test_positive_create_with_idm_https(session, test_name, ipa_data):
     """Create LDAP auth_source for IDM with HTTPS.
@@ -523,47 +565,46 @@ def test_positive_create_with_idm_https(session, test_name, ipa_data):
     :expectedresults: LDAP auth source for IDM with HTTPS should be successful and LDAP login
         should work as expected.
     """
-    set_certificate_in_satellite(server_type='IPA')
+    set_certificate_in_satellite(server_type="IPA")
     org = entities.Organization().create()
     loc = entities.Location().create()
-    ldap_auth_name = gen_string('alphanumeric')
+    ldap_auth_name = gen_string("alphanumeric")
     with session:
-        session.ldapauthentication.create({
-            'ldap_server.name': ldap_auth_name,
-            'ldap_server.host': ipa_data['ldap_ipa_hostname'],
-            'ldap_server.ldaps': True,
-            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-            'account.account_name': ipa_data['ldap_ipa_user_name'],
-            'account.password': ipa_data['ldap_ipa_user_passwd'],
-            'account.base_dn': ipa_data['ipa_base_dn'],
-            'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
-            'account.onthefly_register': True,
-            'attribute_mappings.login': LDAP_ATTR['login'],
-            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-            'attribute_mappings.last_name': LDAP_ATTR['surname'],
-            'attribute_mappings.mail': LDAP_ATTR['mail'],
-            'locations.resources.assigned': [loc.name],
-            'organizations.resources.assigned': [org.name]
-        })
+        session.ldapauthentication.create(
+            {
+                "ldap_server.name": ldap_auth_name,
+                "ldap_server.host": ipa_data["ldap_ipa_hostname"],
+                "ldap_server.ldaps": True,
+                "ldap_server.server_type": LDAP_SERVER_TYPE["UI"]["ipa"],
+                "account.account_name": ipa_data["ldap_ipa_user_name"],
+                "account.password": ipa_data["ldap_ipa_user_passwd"],
+                "account.base_dn": ipa_data["ipa_base_dn"],
+                "account.groups_base_dn": ipa_data["ipa_group_base_dn"],
+                "account.onthefly_register": True,
+                "attribute_mappings.login": LDAP_ATTR["login"],
+                "attribute_mappings.first_name": LDAP_ATTR["firstname"],
+                "attribute_mappings.last_name": LDAP_ATTR["surname"],
+                "attribute_mappings.mail": LDAP_ATTR["mail"],
+                "locations.resources.assigned": [loc.name],
+                "organizations.resources.assigned": [org.name],
+            }
+        )
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.ldapauthentication.read_table_row(
-            ldap_auth_name)['Name'] == ldap_auth_name
+        assert (
+            session.ldapauthentication.read_table_row(ldap_auth_name)["Name"]
+            == ldap_auth_name
+        )
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
-        assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source[
-            'ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
-        assert ldap_source['ldap_server']['port'] == '636'
+        assert ldap_source["ldap_server"]["name"] == ldap_auth_name
+        assert ldap_source["ldap_server"]["host"] == ipa_data["ldap_ipa_hostname"]
+        assert ldap_source["ldap_server"]["port"] == "636"
     username = settings.ipa.user_ipa
-    full_name = '{} katello'.format(settings.ipa.user_ipa)
-    with Session(
-            test_name,
-            username,
-            ipa_data['ldap_ipa_user_passwd'],
-    ) as ldapsession:
+    full_name = "{} katello".format(settings.ipa.user_ipa)
+    with Session(test_name, username, ipa_data["ldap_ipa_user_passwd"],) as ldapsession:
         with raises(NavigationTriesExceeded):
-            ldapsession.usergroup.search('')
-        assert ldapsession.task.read_all()['current_user'] == full_name
+            ldapsession.usergroup.search("")
+        assert ldapsession.task.read_all()["current_user"] == full_name
 
 
 @ldap_wrapper
@@ -584,51 +625,53 @@ def test_positive_create_with_ad_https(session, test_name, ldap_data):
     :expectedresults: LDAP auth source for AD with HTTPS should be successful and LDAP login
         should work as expected.
     """
-    set_certificate_in_satellite(server_type='AD')
+    set_certificate_in_satellite(server_type="AD")
     org = entities.Organization().create()
     loc = entities.Location().create()
-    ldap_auth_name = gen_string('alphanumeric')
+    ldap_auth_name = gen_string("alphanumeric")
     with session:
-        session.ldapauthentication.create({
-            'ldap_server.name': ldap_auth_name,
-            'ldap_server.host': ldap_data['ldap_hostname'],
-            'ldap_server.ldaps': True,
-            'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-            'account.account_name': ldap_data['ldap_user_name'],
-            'account.password': ldap_data['ldap_user_passwd'],
-            'account.base_dn': ldap_data['base_dn'],
-            'account.groups_base_dn': ldap_data['group_base_dn'],
-            'account.onthefly_register': True,
-            'attribute_mappings.login': LDAP_ATTR['login_ad'],
-            'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-            'attribute_mappings.last_name': LDAP_ATTR['surname'],
-            'attribute_mappings.mail': LDAP_ATTR['mail'],
-            'locations.resources.assigned': [loc.name],
-            'organizations.resources.assigned': [org.name]
-        })
+        session.ldapauthentication.create(
+            {
+                "ldap_server.name": ldap_auth_name,
+                "ldap_server.host": ldap_data["ldap_hostname"],
+                "ldap_server.ldaps": True,
+                "ldap_server.server_type": LDAP_SERVER_TYPE["UI"]["ad"],
+                "account.account_name": ldap_data["ldap_user_name"],
+                "account.password": ldap_data["ldap_user_passwd"],
+                "account.base_dn": ldap_data["base_dn"],
+                "account.groups_base_dn": ldap_data["group_base_dn"],
+                "account.onthefly_register": True,
+                "attribute_mappings.login": LDAP_ATTR["login_ad"],
+                "attribute_mappings.first_name": LDAP_ATTR["firstname"],
+                "attribute_mappings.last_name": LDAP_ATTR["surname"],
+                "attribute_mappings.mail": LDAP_ATTR["mail"],
+                "locations.resources.assigned": [loc.name],
+                "organizations.resources.assigned": [org.name],
+            }
+        )
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.ldapauthentication.read_table_row(
-            ldap_auth_name)['Name'] == ldap_auth_name
+        assert (
+            session.ldapauthentication.read_table_row(ldap_auth_name)["Name"]
+            == ldap_auth_name
+        )
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
-        assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source[
-            'ldap_server']['host'] == ldap_data['ldap_hostname']
-        assert ldap_source['ldap_server']['port'] == '636'
+        assert ldap_source["ldap_server"]["name"] == ldap_auth_name
+        assert ldap_source["ldap_server"]["host"] == ldap_data["ldap_hostname"]
+        assert ldap_source["ldap_server"]["port"] == "636"
     with Session(
-            test_name,
-            settings.ldap.username,
-            ldap_data['ldap_user_passwd'],
+        test_name, settings.ldap.username, ldap_data["ldap_user_passwd"],
     ) as ldapsession:
         with raises(NavigationTriesExceeded):
-            ldapsession.usergroup.search('')
-        assert ldapsession.task.read_all()['current_user'] == settings.ldap.username
+            ldapsession.usergroup.search("")
+        assert ldapsession.task.read_all()["current_user"] == settings.ldap.username
 
 
 @ldap_wrapper
 @tier2
 def test_positive_add_katello_role(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+):
     """Associate katello roles to User Group.
     [belonging to external AD User Group.]
 
@@ -643,38 +686,46 @@ def test_positive_add_katello_role(
     :expectedresults: Whether a User belonging to User Group is able to
         access katello entities as per roles.
     """
-    ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source.name
-    user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    ak_name = gen_string("alpha")
+    auth_source_name = "LDAP-" + auth_source.name
+    user_permissions = {"Katello::ActivationKey": PERMISSIONS["Katello::ActivationKey"]}
     katello_role = entities.Role().create()
     create_role_permissions(katello_role, user_permissions)
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [katello_role.name],
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.resources.assigned": [katello_role.name],
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
+        session.usergroup.refresh_external_group(
+            ldap_usergroup_name, EXTERNAL_GROUP_NAME
+        )
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as session:
         with raises(NavigationTriesExceeded):
-            session.architecture.search('')
-        session.activationkey.create({'name': ak_name})
-        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ldap_data['ldap_user_name']
+            session.architecture.search("")
+        session.activationkey.create({"name": ak_name})
+        assert session.activationkey.search(ak_name)[0]["Name"] == ak_name
+        current_user = session.activationkey.read(ak_name, "current_user")[
+            "current_user"
+        ]
+        assert current_user == ldap_data["ldap_user_name"]
 
 
 @ldap_wrapper
 @upgrade
 @tier2
 def test_positive_update_external_roles(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+):
     """Added AD UserGroup roles get pushed down to user
 
     :id: f3ca1aae-5461-4af3-a508-82679bb6afed
@@ -693,53 +744,66 @@ def test_positive_update_external_roles(
     :expectedresults: User has access to all NEW functional areas that are
         assigned to aforementioned UserGroup.
     """
-    ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source.name
-    location_name = gen_string('alpha')
+    ak_name = gen_string("alpha")
+    auth_source_name = "LDAP-" + auth_source.name
+    location_name = gen_string("alpha")
     foreman_role = entities.Role().create()
     katello_role = entities.Role().create()
-    foreman_permissions = {'Location': PERMISSIONS['Location']}
-    katello_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    foreman_permissions = {"Location": PERMISSIONS["Location"]}
+    katello_permissions = {
+        "Katello::ActivationKey": PERMISSIONS["Katello::ActivationKey"]
+    }
     create_role_permissions(foreman_role, foreman_permissions)
     create_role_permissions(katello_role, katello_permissions)
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role.name],
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.resources.assigned": [foreman_role.name],
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
         with Session(
-                test_name,
-                ldap_data['ldap_user_name'],
-                ldap_data['ldap_user_passwd'],
+            test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
-                ldapsession.architecture.search('')
-            ldapsession.location.create({'name': location_name})
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ldap_data['ldap_user_name']
+                ldapsession.architecture.search("")
+            ldapsession.location.create({"name": location_name})
+            assert (
+                ldapsession.location.search(location_name)[0]["Name"] == location_name
+            )
+            current_user = ldapsession.location.read(location_name, "current_user")[
+                "current_user"
+            ]
+            assert current_user == ldap_data["ldap_user_name"]
         session.usergroup.update(
-            ldap_usergroup_name, {'roles.resources.assigned': [katello_role.name]})
-        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
+            ldap_usergroup_name, {"roles.resources.assigned": [katello_role.name]}
+        )
+        session.usergroup.refresh_external_group(
+            ldap_usergroup_name, EXTERNAL_GROUP_NAME
+        )
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as session:
-        session.activationkey.create({'name': ak_name})
-        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ldap_data['ldap_user_name']
+        session.activationkey.create({"name": ak_name})
+        assert session.activationkey.search(ak_name)[0]["Name"] == ak_name
+        current_user = session.activationkey.read(ak_name, "current_user")[
+            "current_user"
+        ]
+        assert current_user == ldap_data["ldap_user_name"]
 
 
 @ldap_wrapper
 @tier2
 @upgrade
 def test_positive_delete_external_roles(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+):
     """Deleted AD UserGroup roles get pushed down to user
 
     :id: 479bc8fe-f6a3-4c89-8c7e-3d997315383f
@@ -758,45 +822,52 @@ def test_positive_delete_external_roles(
     :expectedresults: User no longer has access to all deleted functional
         areas that were assigned to aforementioned UserGroup.
     """
-    auth_source_name = 'LDAP-' + auth_source.name
-    location_name = gen_string('alpha')
+    auth_source_name = "LDAP-" + auth_source.name
+    location_name = gen_string("alpha")
     foreman_role = entities.Role().create()
-    foreman_permissions = {'Location': PERMISSIONS['Location']}
+    foreman_permissions = {"Location": PERMISSIONS["Location"]}
     create_role_permissions(foreman_role, foreman_permissions)
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role.name],
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.resources.assigned": [foreman_role.name],
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
         with Session(
-                test_name,
-                ldap_data['ldap_user_name'],
-                ldap_data['ldap_user_passwd'],
+            test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
-                ldapsession.architecture.search('')
-            ldapsession.location.create({'name': location_name})
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ldap_data['ldap_user_name']
+                ldapsession.architecture.search("")
+            ldapsession.location.create({"name": location_name})
+            assert (
+                ldapsession.location.search(location_name)[0]["Name"] == location_name
+            )
+            current_user = ldapsession.location.read(location_name, "current_user")[
+                "current_user"
+            ]
+            assert current_user == ldap_data["ldap_user_name"]
         session.usergroup.update(
-            ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]})
+            ldap_usergroup_name, {"roles.resources.unassigned": [foreman_role.name]}
+        )
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as ldapsession:
         with raises(NavigationTriesExceeded):
-            ldapsession.location.create({'name': gen_string('alpha')})
+            ldapsession.location.create({"name": gen_string("alpha")})
 
 
 @ldap_wrapper
 @tier2
 def test_positive_update_external_user_roles(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name):
+    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+):
     """Assure that user has roles/can access feature areas for
     additional roles assigned outside any roles assigned by his group
 
@@ -819,52 +890,69 @@ def test_positive_update_external_user_roles(
         UserGroup but those additional feature areas / roles assigned
         specifically to user
     """
-    ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source.name
-    location_name = gen_string('alpha')
+    ak_name = gen_string("alpha")
+    auth_source_name = "LDAP-" + auth_source.name
+    location_name = gen_string("alpha")
     foreman_role = entities.Role().create()
     katello_role = entities.Role().create()
-    foreman_permissions = {'Location': PERMISSIONS['Location']}
-    katello_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    foreman_permissions = {"Location": PERMISSIONS["Location"]}
+    katello_permissions = {
+        "Katello::ActivationKey": PERMISSIONS["Katello::ActivationKey"]
+    }
     create_role_permissions(foreman_role, foreman_permissions)
     create_role_permissions(katello_role, katello_permissions)
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role.name],
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.resources.assigned": [foreman_role.name],
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
         with Session(
-                test_name,
-                ldap_data['ldap_user_name'],
-                ldap_data['ldap_user_passwd'],
+            test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
         ) as ldapsession:
-            ldapsession.location.create({'name': location_name})
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ldap_data['ldap_user_name']
+            ldapsession.location.create({"name": location_name})
+            assert (
+                ldapsession.location.search(location_name)[0]["Name"] == location_name
+            )
+            current_user = ldapsession.location.read(location_name, "current_user")[
+                "current_user"
+            ]
+            assert current_user == ldap_data["ldap_user_name"]
         session.user.update(
-            ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]})
+            ldap_data["ldap_user_name"],
+            {"roles.resources.assigned": [katello_role.name]},
+        )
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as session:
         with raises(NavigationTriesExceeded):
-            ldapsession.architecture.search('')
-        session.activationkey.create({'name': ak_name})
-        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ldap_data['ldap_user_name']
+            ldapsession.architecture.search("")
+        session.activationkey.create({"name": ak_name})
+        assert session.activationkey.search(ak_name)[0]["Name"] == ak_name
+        current_user = session.activationkey.read(ak_name, "current_user")[
+            "current_user"
+        ]
+        assert current_user == ldap_data["ldap_user_name"]
 
 
 @ldap_wrapper
 @tier2
 def test_positive_add_admin_role_with_org_loc(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
-        module_org):
+    session,
+    ldap_data,
+    ldap_user_name,
+    test_name,
+    auth_source,
+    ldap_usergroup_name,
+    module_org,
+):
     """Associate Admin role to User Group with org and loc set.
     [belonging to external AD User Group.]
 
@@ -882,39 +970,49 @@ def test_positive_add_admin_role_with_org_loc(
         access some of the pages, with the associated org and loc
         in LDAP Auth source page as the context set.
     """
-    ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source.name
-    location_name = gen_string('alpha')
+    ak_name = gen_string("alpha")
+    auth_source_name = "LDAP-" + auth_source.name
+    location_name = gen_string("alpha")
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.admin': True,
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.admin": True,
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as session:
-        session.location.create({'name': location_name})
-        assert session.location.search(location_name)[0]['Name'] == location_name
-        location = session.location.read(location_name, ['current_user', 'primary'])
-        assert location['current_user'] == ldap_data['ldap_user_name']
-        assert location['primary']['name'] == location_name
+        session.location.create({"name": location_name})
+        assert session.location.search(location_name)[0]["Name"] == location_name
+        location = session.location.read(location_name, ["current_user", "primary"])
+        assert location["current_user"] == ldap_data["ldap_user_name"]
+        assert location["primary"]["name"] == location_name
         session.organization.select(module_org.name)
-        session.activationkey.create({'name': ak_name})
-        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        ak = session.activationkey.read(ak_name, 'details.name')
-        assert ak['details']['name'] == ak_name
+        session.activationkey.create({"name": ak_name})
+        assert session.activationkey.search(ak_name)[0]["Name"] == ak_name
+        ak = session.activationkey.read(ak_name, "details.name")
+        assert ak["details"]["name"] == ak_name
 
 
 @ldap_wrapper
 @tier2
 def test_positive_add_foreman_role_with_org_loc(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
-        module_org, module_loc):
+    session,
+    ldap_data,
+    ldap_user_name,
+    test_name,
+    auth_source,
+    ldap_usergroup_name,
+    module_org,
+    module_loc,
+):
     """Associate foreman roles to User Group with org and loc set.
     [belonging to external AD User Group.]
 
@@ -933,44 +1031,55 @@ def test_positive_add_foreman_role_with_org_loc(
         access foreman entities as per roles, with the associated org and
         loc in LDAP Auth source page as the context set.
     """
-    auth_source_name = 'LDAP-' + auth_source.name
-    name = gen_string('alpha')
+    auth_source_name = "LDAP-" + auth_source.name
+    name = gen_string("alpha")
     user_permissions = {
-        'Hostgroup': PERMISSIONS['Hostgroup'],
-        'Location': ['assign_locations'],
-        'Organization': ['assign_organizations'],
+        "Hostgroup": PERMISSIONS["Hostgroup"],
+        "Location": ["assign_locations"],
+        "Organization": ["assign_organizations"],
     }
     foreman_role = entities.Role().create()
     create_role_permissions(foreman_role, user_permissions)
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [foreman_role.name],
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.resources.assigned": [foreman_role.name],
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
+        session.usergroup.refresh_external_group(
+            ldap_usergroup_name, EXTERNAL_GROUP_NAME
+        )
         with Session(
-                test_name,
-                ldap_data['ldap_user_name'],
-                ldap_data['ldap_user_passwd'],
+            test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
-                ldapsession.architecture.search('')
-            ldapsession.hostgroup.create({'host_group.name': name})
-        hostgroup = session.hostgroup.read(name, ['organizations', 'locations'])
-        assert len(hostgroup['organizations']['resources']['assigned']) == 1
-        assert module_org.name in hostgroup['organizations']['resources']['assigned']
-        assert len(hostgroup['locations']['resources']['assigned']) == 1
-        assert module_loc.name in hostgroup['locations']['resources']['assigned']
+                ldapsession.architecture.search("")
+            ldapsession.hostgroup.create({"host_group.name": name})
+        hostgroup = session.hostgroup.read(name, ["organizations", "locations"])
+        assert len(hostgroup["organizations"]["resources"]["assigned"]) == 1
+        assert module_org.name in hostgroup["organizations"]["resources"]["assigned"]
+        assert len(hostgroup["locations"]["resources"]["assigned"]) == 1
+        assert module_loc.name in hostgroup["locations"]["resources"]["assigned"]
 
 
 @ldap_wrapper
 @tier2
 def test_positive_add_katello_role_with_org(
-        session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name,
-        module_org):
+    session,
+    ldap_data,
+    ldap_user_name,
+    test_name,
+    auth_source,
+    ldap_usergroup_name,
+    module_org,
+):
     """Associate katello roles to User Group with org set.
     [belonging to external AD User Group.]
 
@@ -987,39 +1096,47 @@ def test_positive_add_katello_role_with_org(
         access katello entities as per roles, with the associated org
         in LDAP Auth source page as the context set.
     """
-    auth_source_name = 'LDAP-' + auth_source.name
-    ak_name = gen_string('alpha')
+    auth_source_name = "LDAP-" + auth_source.name
+    ak_name = gen_string("alpha")
     user_permissions = {
-        'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
-        'Location': ['assign_locations'],
-        'Organization': ['assign_organizations'],
+        "Katello::ActivationKey": PERMISSIONS["Katello::ActivationKey"],
+        "Location": ["assign_locations"],
+        "Organization": ["assign_organizations"],
     }
     katello_role = entities.Role().create()
     create_role_permissions(katello_role, user_permissions)
     different_org = entities.Organization().create()
     with session:
-        session.usergroup.create({
-            'usergroup.name': ldap_usergroup_name,
-            'roles.resources.assigned': [katello_role.name],
-            'external_groups.name': EXTERNAL_GROUP_NAME,
-            'external_groups.auth_source': auth_source_name,
-        })
-        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
+        session.usergroup.create(
+            {
+                "usergroup.name": ldap_usergroup_name,
+                "roles.resources.assigned": [katello_role.name],
+                "external_groups.name": EXTERNAL_GROUP_NAME,
+                "external_groups.auth_source": auth_source_name,
+            }
+        )
+        assert (
+            session.usergroup.search(ldap_usergroup_name)[0]["Name"]
+            == ldap_usergroup_name
+        )
+        session.usergroup.refresh_external_group(
+            ldap_usergroup_name, EXTERNAL_GROUP_NAME
+        )
         with Session(
-                test_name,
-                ldap_data['ldap_user_name'],
-                ldap_data['ldap_user_passwd'],
+            test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
-                ldapsession.architecture.search('')
-            ldapsession.activationkey.create({'name': ak_name})
+                ldapsession.architecture.search("")
+            ldapsession.activationkey.create({"name": ak_name})
         results = session.activationkey.search(ak_name)
-        assert results[0]['Name'] == ak_name
+        assert results[0]["Name"] == ak_name
         session.organization.select(different_org.name)
-        assert not session.activationkey.search(ak_name)[0]['Name'] == ak_name
-    ak = entities.ActivationKey(organization=module_org).search(
-        query={'search': 'name={}'.format(ak_name)})[0].read()
+        assert not session.activationkey.search(ak_name)[0]["Name"] == ak_name
+    ak = (
+        entities.ActivationKey(organization=module_org)
+        .search(query={"search": "name={}".format(ak_name)})[0]
+        .read()
+    )
     assert ak.organization.id == module_org.id
 
 
@@ -1033,21 +1150,22 @@ def test_positive_create_user_in_ldap_mode(session, auth_source):
 
     :expectedresults: User is created without specifying the password
     """
-    auth_source_name = 'LDAP-' + auth_source.name
-    name = gen_string('alpha')
+    auth_source_name = "LDAP-" + auth_source.name
+    name = gen_string("alpha")
     with session:
-        session.user.create({
-            'user.login': name,
-            'user.auth': auth_source_name,
-        })
-        assert session.user.search(name)[0]['Username'] == name
+        session.user.create(
+            {"user.login": name, "user.auth": auth_source_name,}
+        )
+        assert session.user.search(name)[0]["Username"] == name
         user_values = session.user.read(name)
-        assert user_values['user']['auth'] == auth_source_name
+        assert user_values["user"]["auth"] == auth_source_name
 
 
 @ldap_wrapper
 @tier2
-def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, auth_source):
+def test_positive_login_ad_user_no_roles(
+    test_name, ldap_data, ldap_user_name, auth_source
+):
     """Login with LDAP Auth- AD for user with no roles/rights
 
     :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
@@ -1060,20 +1178,21 @@ def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, a
         functional areas of UI
     """
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as ldapsession:
         with raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
-        assert ldapsession.task.read_all()['current_user'] == ldap_data['ldap_user_name']
+            ldapsession.user.search("")
+        assert (
+            ldapsession.task.read_all()["current_user"] == ldap_data["ldap_user_name"]
+        )
 
 
 @ldap_wrapper
 @tier2
 @upgrade
 def test_positive_login_ad_user_basic_roles(
-        session, test_name, ldap_data, ldap_user_name, auth_source):
+    session, test_name, ldap_data, ldap_user_name, auth_source
+):
     """Login with LDAP - AD for user with roles/rights
 
     :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
@@ -1085,27 +1204,24 @@ def test_positive_login_ad_user_basic_roles(
     :expectedresults: Log in to foreman UI successfully and can access
         appropriate functional areas in UI
     """
-    name = gen_string('alpha')
+    name = gen_string("alpha")
     role = entities.Role().create()
-    permissions = {'Architecture': PERMISSIONS['Architecture']}
+    permissions = {"Architecture": PERMISSIONS["Architecture"]}
     create_role_permissions(role, permissions)
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as ldapsession:
         with raises(NavigationTriesExceeded):
-            ldapsession.usergroup.search('')
+            ldapsession.usergroup.search("")
     with session:
         session.user.update(
-            ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
+            ldap_data["ldap_user_name"], {"roles.resources.assigned": [role.name]}
+        )
     with Session(
-            test_name,
-            ldap_data['ldap_user_name'],
-            ldap_data['ldap_user_passwd'],
+        test_name, ldap_data["ldap_user_name"], ldap_data["ldap_user_passwd"],
     ) as ldapsession:
-        ldapsession.architecture.create({'name': name})
-        assert ldapsession.architecture.search(name)[0]['Name'] == name
+        ldapsession.architecture.create({"name": name})
+        assert ldapsession.architecture.search(name)[0]["Name"] == name
 
 
 @ldap_wrapper
@@ -1124,27 +1240,28 @@ def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
 
     """
     password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_ipa_user_passwd'],
-        generate_otp(ipa_data['time_based_secret']))
+        ipa_data["ldap_ipa_user_passwd"], generate_otp(ipa_data["time_based_secret"])
+    )
     with Session(
-            test_name,
-            ipa_data['ipa_otp_username'],
-            password_with_otp
+        test_name, ipa_data["ipa_otp_username"], password_with_otp
     ) as ldapsession:
         with raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
-        expected_user = "{} {}".format(ipa_data['ipa_otp_username'],
-                                       ipa_data['ipa_otp_username'])
-        assert ldapsession.task.read_all()['current_user'] == expected_user
-    users = entities.User().search(query={
-        'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])
-    })
-    assert users[0].login == ipa_data['ipa_otp_username']
+            ldapsession.user.search("")
+        expected_user = "{} {}".format(
+            ipa_data["ipa_otp_username"], ipa_data["ipa_otp_username"]
+        )
+        assert ldapsession.task.read_all()["current_user"] == expected_user
+    users = entities.User().search(
+        query={"search": 'login="{}"'.format(ipa_data["ipa_otp_username"])}
+    )
+    assert users[0].login == ipa_data["ipa_otp_username"]
 
 
 @ldap_wrapper
 @tier2
-def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth_source_ipa):
+def test_negative_login_user_with_invalid_password_otp(
+    test_name, ipa_data, auth_source_ipa
+):
     """Login with password with time based OTP
 
     :id: 3718c86e-5976-4fb8-9c80-4685d53bd955
@@ -1157,15 +1274,13 @@ def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth
 
     """
     password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_ipa_user_passwd'],
-        gen_string(str_type='numeric', length=6))
+        ipa_data["ldap_ipa_user_passwd"], gen_string(str_type="numeric", length=6)
+    )
     with Session(
-            test_name,
-            ipa_data['ipa_otp_username'],
-            password_with_otp
+        test_name, ipa_data["ipa_otp_username"], password_with_otp
     ) as ldapsession:
         with raises(NavigationTriesExceeded) as error:
-            ldapsession.user.search('')
+            ldapsession.user.search("")
         assert error.typename == "NavigationTriesExceeded"
 
 
@@ -1186,24 +1301,37 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
     """
     # register the satellite with IPA for single sign-on and update external auth
     try:
-        run_command(cmd="subscription-manager repos --enable rhel-7-server-optional-rpms")
-        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
-        run_command('foreman-maintain service restart', timeout=300)
-        result = run_command(cmd="curl -k -u : --negotiate https://{}/users/extlogin/".
-                             format(settings.server.hostname),
-                             hostname=settings.ipa.hostname_ipa)
-        result = ''.join(result)
-        assert 'redirected' in result
-        assert 'https://{}/hosts'.format(settings.server.hostname) in result
-        assert 'You are being' in result
+        run_command(
+            cmd="subscription-manager repos --enable rhel-7-server-optional-rpms"
+        )
+        run_command(
+            cmd="satellite-installer --foreman-ipa-authentication=true", timeout=800
+        )
+        run_command("foreman-maintain service restart", timeout=300)
+        result = run_command(
+            cmd="curl -k -u : --negotiate https://{}/users/extlogin/".format(
+                settings.server.hostname
+            ),
+            hostname=settings.ipa.hostname_ipa,
+        )
+        result = "".join(result)
+        assert "redirected" in result
+        assert "https://{}/hosts".format(settings.server.hostname) in result
+        assert "You are being" in result
     finally:
         # resetting the settings to default for external auth
-        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
-        run_command('foreman-maintain service restart', timeout=300)
-        run_command(cmd='ipa service-del HTTP/{}'.format(settings.server.hostname),
-                    hostname=settings.ipa.hostname_ipa)
-        run_command(cmd='ipa host-del {}'.format(settings.server.hostname),
-                    hostname=settings.ipa.hostname_ipa)
+        run_command(
+            cmd="satellite-installer --foreman-ipa-authentication=false", timeout=800
+        )
+        run_command("foreman-maintain service restart", timeout=300)
+        run_command(
+            cmd="ipa service-del HTTP/{}".format(settings.server.hostname),
+            hostname=settings.ipa.hostname_ipa,
+        )
+        run_command(
+            cmd="ipa host-del {}".format(settings.server.hostname),
+            hostname=settings.ipa.hostname_ipa,
+        )
 
 
 @destructive
@@ -1226,11 +1354,15 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
     try:
         update_rhsso_settings_in_satellite()
         with session(login=False):
-            session.rhsso_login.login({
-                    'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password})
+            session.rhsso_login.login(
+                {
+                    "username": settings.rhsso.rhsso_user,
+                    "password": settings.rhsso.password,
+                }
+            )
             with raises(NavigationTriesExceeded):
-                session.user.search('')
-            assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
+                session.user.search("")
+            assert session.task.read_all()["current_user"] == settings.rhsso.rhsso_user
 
     finally:
         update_rhsso_settings_in_satellite(revert=True)
