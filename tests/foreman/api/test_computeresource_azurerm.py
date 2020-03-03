@@ -27,6 +27,7 @@ from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
+from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -149,6 +150,7 @@ class TestAzureRMComputeResourceTestCase:
         assert len(portal_nws) == len(cr_nws['results'])
 
 
+@run_in_one_thread
 class TestAzureRMHostProvisioningTestCase:
     """ AzureRM Host Provisioning Tests
 
@@ -212,6 +214,7 @@ class TestAzureRMHostProvisioningTestCase:
         skip_yum_update_during_provisioning(template='Kickstart default finish')
         host = entities.Host(
             architecture=module_architecture,
+            build=True,
             compute_resource=module_azurerm_cr,
             compute_attributes=self.compute_attrs,
             interfaces_attributes=self.interfaces_attributes,
@@ -256,11 +259,17 @@ class TestAzureRMHostProvisioningTestCase:
             2. The host name should be the same as given in data to provision the host
             3. The host should show Installed status for provisioned host
             4. The provisioned host should be assigned with external IP
+            5. The host Name and Platform should be same on Azure Cloud as provided during
+               provisioned
         """
 
         assert class_host_ft.name == self.fullhostname
         assert class_host_ft.build_status_label == "Installed"
         assert class_host_ft.ip == azureclient_host.ip
+
+        # Azure cloud
+        assert self.hostname.lower() == azureclient_host.name
+        assert self.vm_size == azureclient_host.type
 
     @tier3
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
@@ -280,8 +289,158 @@ class TestAzureRMHostProvisioningTestCase:
             1. The provisioned host should be powered off.
             2. The provisioned host should be powered on.
         """
-
         class_host_ft.power(data={'power_action': 'stop'})
         assert azureclient_host.is_stopped
         class_host_ft.power(data={'power_action': 'start'})
         assert azureclient_host.is_started
+
+
+@run_in_one_thread
+class TestAzureRM_UserData_Provisioning:
+    """ AzureRM UserData Host Provisioning Tests
+
+    """
+
+    @pytest.fixture(scope='class', autouse=True)
+    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
+        """
+        Sets Constants for all the Tests, fixtures which will be later used for assertions
+        """
+
+        request.cls.region = settings.azurerm.azure_region
+        request.cls.rhel7_ud_img = AZURERM_RHEL7_UD_IMG_URN
+        request.cls.rg_default = AZURERM_RG_DEFAULT
+        request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
+        request.cls.platform = AZURERM_PLATFORM_DEFAULT
+        request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
+        request.cls.hostname = gen_string('alpha')
+        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+
+        request.cls.compute_attrs = {
+            "resource_group": self.rg_default,
+            "vm_size": self.vm_size,
+            "username": module_azurerm_finishimg.username,
+            "ssh_key_data": settings.azurerm.ssh_pub_key,
+            "platform": self.platform,
+            "script_command": 'touch /var/tmp/text.txt',
+            "script_uris": AZURERM_FILE_URI,
+            "image_id": self.rhel7_ud_img,
+        }
+
+        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        request.cls.interfaces_attributes = {
+            "0": {
+                "compute_attributes": {
+                    "public_ip": "Dynamic",
+                    "private_ip": "false",
+                    "network": nw_id,
+                }
+            }
+        }
+
+    @pytest.fixture(scope='class')
+    def class_host_ud(
+        self,
+        azurermclient,
+        module_azurerm_cloudimg,
+        module_azurerm_cr,
+        module_architecture,
+        module_domain,
+        module_location,
+        module_org,
+        module_os,
+        module_smart_proxy,
+        module_puppet_environment,
+    ):
+        """
+        Provisions the host on AzureRM using Userdata template
+        Later in tests this host will be used to perform assertions
+        """
+
+        skip_yum_update_during_provisioning(template='Kickstart default finish')
+        host = entities.Host(
+            architecture=module_architecture,
+            build=True,
+            compute_resource=module_azurerm_cr,
+            compute_attributes=self.compute_attrs,
+            interfaces_attributes=self.interfaces_attributes,
+            domain=module_domain,
+            organization=module_org,
+            operatingsystem=module_os,
+            location=module_location,
+            name=self.hostname,
+            provision_method='image',
+            image=module_azurerm_cloudimg,
+            root_pass=gen_string('alphanumeric'),
+            environment=module_puppet_environment,
+            puppet_proxy=module_smart_proxy,
+            puppet_ca_proxy=module_smart_proxy,
+        ).create()
+        yield host
+        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
+        host.delete()
+
+    @pytest.fixture(scope='class')
+    def azureclient_host(self, azurermclient, class_host_ud):
+        """Returns the AzureRM Client Host object to perform the assertions"""
+
+        return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
+
+    @upgrade
+    @tier3
+    def test_positive_azurerm_ud_host_provisioned(self, class_host_ud, azureclient_host):
+        """Host can be provisioned on AzureRm with userdata image/template
+
+        :id: df496d7c-3443-4afe-b807-5bbfc90e866e
+
+        :CaseLevel: Component
+
+        ::CaseImportance: Critical
+
+        :steps:
+            1. Create a AzureRM Compute Resource and provision host.
+
+        :expectedresults:
+            1. The host should be provisioned on AzureRM
+            2. The host name should be the same as given in data to provision the host
+            3. The host should show "Pending installation" status for provisioned host(
+               as Satellite and VM are in diff networks hence status shows as "Pending
+               installation")
+            4. The provisioned host should be assigned with external IP
+            5. The host Name and Platform should be same on Azure Cloud as provided during
+               provisioned.
+        """
+
+        assert class_host_ud.name == self.fullhostname
+        assert class_host_ud.build_status_label == "Pending installation"
+        assert class_host_ud.ip == azureclient_host.ip
+
+        # Azure cloud
+        assert self.hostname.lower() == azureclient_host.name
+        assert self.vm_size == azureclient_host.type
+
+    @upgrade
+    @tier3
+    def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr):
+        """Host can be Disassociate and Associate
+
+        :id: 9514f15c-64b4-48ef-9707-fd4d39adc57d
+
+        :steps:
+            1. Disassociate a provision host and Associate it.
+
+        :expectedresults:
+            1. The host should be Disassociate
+            2. The host should be Associate
+
+        """
+
+        # Disassociate
+        disasso = class_host_ud.disassociate()
+        assert not disasso['compute_resource_name']
+
+        # Associate
+        asso = module_azurerm_cr.associate()
+        assert len(asso['results']) > 0
+        host = class_host_ud.read()
+        assert host.compute_resource.id == module_azurerm_cr.id
