@@ -1227,5 +1227,4 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
             assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
 
     finally:
-        pass
-#        update_rhsso_settings_in_satellite(revert=True)
+        update_rhsso_settings_in_satellite(revert=True)
