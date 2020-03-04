@@ -1204,11 +1204,15 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
 @tier4
 def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
+
     :id: 18a77de8-570f-11ea-a202-d46d6dd3b5b2
+
     :setup: Enroll the RH-SSO Configuration for External Authentication
+
     :steps:
         1. Create Mappers on RHSSO Instance and Update the Settings in Satellite
         2. Login into Satellite using RHSSO login page redirected by Satellite
+
     :expectedresults: After entering the login details in RHSSO page user should
         logged into Satellite
     """
@@ -1223,4 +1227,5 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
             assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
 
     finally:
-        update_rhsso_settings_in_satellite(revert=True)
+        pass
+#        update_rhsso_settings_in_satellite(revert=True)
