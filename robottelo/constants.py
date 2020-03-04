@@ -1751,25 +1751,25 @@ CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 
 GROUP_MEMBERSHIP_MAPPER = {
-   "config": {
-      "access.token.claim": "true",
-      "claim.name": "groups",
-      "full.path": "false",
-      "id.token.claim": "true",
-      "userinfo.token.claim": "true"
-   },
-   "name": "satellite-groups-mapper",
-   "protocol": "openid-connect",
-   "protocolMapper": "oidc-group-membership-mapper"
+    "config": {
+        "access.token.claim": "true",
+        "claim.name": "groups",
+        "full.path": "false",
+        "id.token.claim": "true",
+        "userinfo.token.claim": "true",
+    },
+    "name": "satellite-groups-mapper",
+    "protocol": "openid-connect",
+    "protocolMapper": "oidc-group-membership-mapper",
 }
 
 AUDIENCE_MAPPER = {
-   "config": {
-      "access.token.claim": "true",
-      "id.token.claim": "false",
-      "included.client.audience": "{rhsso_host}-foreman-openidc"
-   },
-   "name": "satellite-mapper",
-   "protocol": "openid-connect",
-   "protocolMapper": "oidc-audience-mapper"
+    "config": {
+        "access.token.claim": "true",
+        "id.token.claim": "false",
+        "included.client.audience": "{rhsso_host}-foreman-openidc",
+    },
+    "name": "satellite-mapper",
+    "protocol": "openid-connect",
+    "protocolMapper": "oidc-audience-mapper",
 }

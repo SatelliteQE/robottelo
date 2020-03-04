@@ -632,6 +632,7 @@ class GCESettings(FeatureSettings):
 
 class RHSSOSettings(FeatureSettings):
     """RHSSO settings definitions."""
+
     def __init__(self, *args, **kwargs):
         super(RHSSOSettings, self).__init__(*args, **kwargs)
         self.host_name = None
