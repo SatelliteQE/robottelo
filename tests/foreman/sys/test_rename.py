@@ -19,13 +19,13 @@
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import destructive
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import stubbed
+from robottelo.manifests import original_manifest
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 
@@ -36,6 +36,7 @@ NO_CREDS_MSG = "Username and/or Password options are missing!"
 BAD_CREDS_MSG = "Unable to authenticate user admin"
 
 
+@run_in_one_thread
 @destructive
 class RenameHostTestCase(TestCase):
     """Implements ``katello-change-hostname`` tests"""
@@ -50,11 +51,8 @@ class RenameHostTestCase(TestCase):
             entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
         )
         cls.org = entities.Organization().create()
-        with manifests.original_manifest() as manifest:
-            upload_manifest(cls.org.id, manifest.content)
         cls.product = entities.Product(organization=cls.org).create()
 
-    @run_in_one_thread
     def test_positive_rename_satellite(self):
         """run katello-change-hostname on Satellite server
 
@@ -84,6 +82,8 @@ class RenameHostTestCase(TestCase):
 
         :CaseAutomation: automated
         """
+        with original_manifest() as manifest:
+            upload_manifest(self.org.id, manifest.content)
         with get_connection() as connection:
             old_hostname = connection.run('hostname').stdout[0]
             new_hostname = 'new-{0}'.format(old_hostname)
@@ -166,7 +166,6 @@ class RenameHostTestCase(TestCase):
         cv.update(['repository'])
         cv.publish()
 
-    @run_in_one_thread
     def test_negative_rename_sat_to_invalid_hostname(self):
         """change to invalid hostname on Satellite server
 
@@ -195,7 +194,6 @@ class RenameHostTestCase(TestCase):
             result = connection.run('hostname')
             self.assertEqual(original_name, result.stdout[0], "Invalid hostame assigned")
 
-    @run_in_one_thread
     def test_negative_rename_sat_no_credentials(self):
         """change hostname without credentials on Satellite server
 
@@ -220,7 +218,6 @@ class RenameHostTestCase(TestCase):
             result = connection.run('hostname')
             self.assertEqual(original_name, result.stdout[0], "Invalid hostame assigned")
 
-    @run_in_one_thread
     def test_negative_rename_sat_wrong_passwd(self):
         """change hostname with wrong password on Satellite server
 
