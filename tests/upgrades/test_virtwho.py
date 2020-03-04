@@ -18,10 +18,13 @@ from fauxfactory import gen_string
 from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
+from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.constants import DEFAULT_LOC
 from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase
@@ -30,7 +33,6 @@ from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import get_hypervisor_info
 
 
 class scenario_positive_virt_who(APITestCase):
@@ -147,6 +149,14 @@ class scenario_positive_virt_who(APITestCase):
             )
             self.assertEqual(result['subscription_status_label'], 'Fully entitled')
 
+        scenario_dict = {
+            self.__class__.__name__: {
+                'hypervisor_name': hypervisor_name,
+                'guest_name': guest_name,
+            }
+        }
+        create_dict(scenario_dict)
+
     @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
     def test_post_crud_virt_who_configuration(self):
         """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
@@ -171,10 +181,16 @@ class scenario_positive_virt_who(APITestCase):
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
             query={'search': 'name={}'.format(self.name)}
         )[0]
-        self.assertEqual(vhd.status, 'ok')
+        # self.assertEqual(vhd.status, 'ok') comment this as BZ1802395 is still NEW
+        vhd_cli = VirtWhoConfig.exists(search=('name', self.name))
+        self.assertEqual(
+            VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'], 'OK'
+        )
 
         # Vefify the connection of the guest on Content host
-        hypervisor_name, guest_name = get_hypervisor_info()
+        entity_data = get_entity_data(self.__class__.__name__)
+        hypervisor_name = entity_data.get('hypervisor_name')
+        guest_name = entity_data.get('guest_name')
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = (
