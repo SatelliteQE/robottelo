@@ -31,6 +31,7 @@ from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
+from robottelo.decorators import parametrize
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
@@ -67,24 +68,7 @@ def azurerm_hostgroup(
 
 
 class TestAzureRMComputeResourceTestCase:
-    """
-    Usage::
-
-    hammer compute_resource [OPTIONS] SUBCOMMAND [ARG] ...
-
-Parameters::
-
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
-
-Subcommands::
-
-    create                        Create a compute resource.
-    info                          Show an compute resource.
-    list                          List all compute resources.
-    update                        Update a compute resource.
-    delete                        Delete a compute resource.
-    image                         View and manage compute resource's images"""
+    """ AzureRm compute resource Tests"""
 
     @upgrade
     @tier1
@@ -143,23 +127,22 @@ Subcommands::
 
     @upgrade
     @tier2
-    def test_positive_crud_finish_template_image(
-        self, module_architecture, module_azurerm_cr, module_os
-    ):
-        """ Finish template image along with username is being Create, Read, Update and
+    @parametrize("image", [AZURERM_RHEL7_FT_IMG_URN, AZURERM_RHEL7_UD_IMG_URN])
+    def test_positive_image_crud(self, module_architecture, module_azurerm_cr, module_os, image):
+        """ Finish template/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
         :id: e4f40640-46dd-4ef8-8be5-99c625056aff
 
         :steps:
             1. Create an AzureRm Compute Resource.
-            2. Create a finish template based image in it.
+            2. Create a finish template/Cloud_init based image in it.
             3. List/info the created image
             4. Update image name and username
             5. Delete created image
 
-        :expectedresults: Finish template image should be created, list, updated and deleted in
-                          AzureRm CR along with username
+        :expectedresults: Finish template/Cloud_init image should be created, list, updated and
+                          deleted in AzureRm CR along with username
 
         :CaseImportance: Critical
 
@@ -174,7 +157,7 @@ Subcommands::
                 'name': img_name,
                 'operatingsystem-id': module_os.id,
                 'architecture-id': module_architecture.id,
-                'uuid': AZURERM_RHEL7_FT_IMG_URN,
+                'uuid': image,
                 'compute-resource': module_azurerm_cr.name,
                 'username': username,
                 'user-data': 'no',
@@ -189,90 +172,8 @@ Subcommands::
         )[0]
         assert img_info['operating-system'] == module_os.title
         assert img_info['username'] == username
-        assert img_info['uuid'] == AZURERM_RHEL7_FT_IMG_URN
+        assert img_info['uuid'] == image
         assert img_info['user-data'] == 'false'
-        assert img_info['architecture'] == module_architecture.name
-
-        # List image
-        list_img = ComputeResource.image_list({'compute-resource': module_azurerm_cr.name})
-        assert len(list_img) == 1
-        assert list_img[0]['name'] == img_name
-
-        # Update image
-        new_img_name = gen_string('alpha')
-        new_username = gen_string('alpha')
-        result = ComputeResource.image_update(
-            {
-                'name': img_name,
-                'compute-resource': module_azurerm_cr.name,
-                'new-name': new_img_name,
-                'username': new_username,
-            }
-        )[0]
-        assert result['message'] == 'Image updated.'
-        assert result['name'] == new_img_name
-
-        img_info = ComputeResource.image_info(
-            {'name': new_img_name, 'compute-resource': module_azurerm_cr.name}
-        )[0]
-        assert img_info['username'] == new_username
-
-        # Delete Image
-        result = ComputeResource.image_delete(
-            {'name': new_img_name, 'compute-resource': module_azurerm_cr.name}
-        )[0]
-        assert result['message'] == 'Image deleted.'
-        assert result['name'] == new_img_name
-
-    @tier2
-    def test_positive_crud_cloud_init_image(
-        self, module_architecture, module_azurerm_cr, module_os
-    ):
-        """ Cloud_init image along with username is being Create, Read, Update and
-        Delete in AzureRm compute resources
-
-        :id: 28e7ca34-f5f7-4712-9f1c-f4490ac2916a
-
-        :steps:
-            1. Create an AzureRm Compute Resource.
-            2. Create a Cloud_init based image in it.
-            3. List/info the created image
-            4. Update image name and username
-            5. Delete created image
-
-        :expectedresults: Cloud_init image should be created, list, updated and deleted in
-                          AzureRm CR along with username
-
-        :CaseImportance: Critical
-
-        :CaseLevel: Integration
-        """
-
-        # Create
-        img_name = gen_string('alpha')
-        username = gen_string('alpha')
-        img_ft = ComputeResource.image_create(
-            {
-                'name': img_name,
-                'operatingsystem-id': module_os.id,
-                'architecture-id': module_architecture.id,
-                'uuid': AZURERM_RHEL7_UD_IMG_URN,
-                'compute-resource': module_azurerm_cr.name,
-                'username': username,
-                'user-data': 'yes',
-            }
-        )[0]
-        assert img_ft['message'] == 'Image created.'
-        assert img_ft['name'] == img_name
-
-        # Info Image
-        img_info = ComputeResource.image_info(
-            {'name': img_name, 'compute-resource': module_azurerm_cr.name}
-        )[0]
-        assert img_info['operating-system'] == module_os.title
-        assert img_info['username'] == username
-        assert img_info['uuid'] == AZURERM_RHEL7_UD_IMG_URN
-        assert img_info['user-data'] == 'true'
         assert img_info['architecture'] == module_architecture.name
 
         # List image
