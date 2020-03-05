@@ -524,11 +524,11 @@ class ReportTemplateTestCase(APITestCase):
             )
             scheduled_csv = rt.schedule_report(
                 data={
-                    'id': '115-Entitlements',
+                    'id': '{}-Entitlements'.format(rt.id),
                     'organization_id': self.org_setup.id,
                     'report_format': 'csv',
                 }
             )
-            data_csv = rt.report_data(data={'id': 115, 'job_id': scheduled_csv['job_id']})
+            data_csv = rt.report_data(data={'id': rt.id, 'job_id': scheduled_csv['job_id']})
             assert vm.hostname in data_csv
             assert DEFAULT_SUBSCRIPTION_NAME in data_csv
