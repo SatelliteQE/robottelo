@@ -27,6 +27,7 @@ from robottelo.api.utils import upload_manifest
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.constants import DEFAULT_LOC
 from robottelo.decorators import skip_if_not_set
+from robottelo.helpers import is_open
 from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.virtwho_utils import deploy_configure_by_command
@@ -181,7 +182,9 @@ class scenario_positive_virt_who(APITestCase):
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
             query={'search': 'name={}'.format(self.name)}
         )[0]
-        # self.assertEqual(vhd.status, 'ok') comment this as BZ1802395 is still NEW
+        if not is_open('BZ:1802395'):
+            self.assertEqual(vhd.status, 'ok')
+        # Verify virt-who status via CLI as we cannot check it via API now
         vhd_cli = VirtWhoConfig.exists(search=('name', self.name))
         self.assertEqual(
             VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'], 'OK'
