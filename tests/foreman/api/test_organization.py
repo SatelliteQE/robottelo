@@ -19,13 +19,13 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 
 :Upstream: No
 """
+import http
 from random import randint
 
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
-from six.moves import http_client
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
@@ -78,7 +78,7 @@ class OrganizationTestCase(APITestCase):
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        self.assertEqual(http_client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
+        self.assertEqual(http.client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
 
     @tier1
     def test_positive_create_with_name_and_description(self):

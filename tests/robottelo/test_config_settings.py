@@ -1,19 +1,14 @@
 """Tests for module ``robottelo.config.settings``."""
-import six
+from unittest import mock
+
 from unittest2 import TestCase
 
 from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import INIReader
 from robottelo.config.base import Settings
 
-if six.PY2:
-    import mock
 
-    builtin_open = '__builtin__.open'
-else:
-    from unittest import mock
-
-    builtin_open = 'builtins.open'
+builtin_open = 'builtins.open'
 
 
 class SettingsTestCase(TestCase):

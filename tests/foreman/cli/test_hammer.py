@@ -14,11 +14,11 @@
 
 :Upstream: No
 """
+import io
 import json
 import re
 
 from fauxfactory import gen_string
-from six import StringIO
 
 from robottelo import ssh
 from robottelo.cli import hammer
@@ -54,7 +54,7 @@ def _fetch_command_info(command):
 
 def _format_commands_diff(commands_diff):
     """Format the commands differences into a human readable format."""
-    output = StringIO()
+    output = io.StringIO()
     for key, value in sorted(commands_diff.items()):
         if key == 'hammer':
             continue

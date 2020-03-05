@@ -16,6 +16,7 @@
 """
 import re
 import tempfile
+from urllib.parse import urljoin
 
 import pytest
 from fauxfactory import gen_integer
@@ -26,7 +27,6 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from requests.exceptions import SSLError
-from six.moves.urllib.parse import urljoin
 
 from robottelo import manifests
 from robottelo import ssh

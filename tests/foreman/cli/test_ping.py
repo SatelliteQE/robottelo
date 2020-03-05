@@ -14,8 +14,6 @@
 
 :Upstream: No
 """
-from six.moves import zip
-
 from robottelo import ssh
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade

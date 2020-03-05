@@ -2,18 +2,17 @@
 import importlib
 import logging.config
 import os
+from configparser import ConfigParser
+from configparser import NoOptionError
+from configparser import NoSectionError
+from urllib.parse import urljoin
+from urllib.parse import urlunsplit
 
 import airgun.settings
-import six
 import yaml
 from nailgun import entities
 from nailgun import entity_mixins
 from nailgun.config import ServerConfig
-from six.moves.configparser import ConfigParser
-from six.moves.configparser import NoOptionError
-from six.moves.configparser import NoSectionError
-from six.moves.urllib.parse import urljoin
-from six.moves.urllib.parse import urlunsplit
 
 from robottelo.config import casts
 from robottelo.constants import AZURERM_VALID_REGIONS
@@ -54,12 +53,7 @@ class INIReader(object):
     def __init__(self, path):
         self.config_parser = ConfigParser()
         with open(path) as handler:
-            if six.PY2:
-                # ConfigParser.readfp is deprecated on Python3, read_file
-                # replaces it
-                self.config_parser.readfp(handler)
-            else:
-                self.config_parser.read_file(handler)
+            self.config_parser.read_file(handler)
 
     def get(self, section, option, default=None, cast=None):
         """Read an option from a section of a INI file.

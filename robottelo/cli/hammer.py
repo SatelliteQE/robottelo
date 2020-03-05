@@ -1,12 +1,8 @@
 """Helpers to interact with hammer command line utility."""
 import csv
+import io
 import json
 import re
-
-import six
-from six import text_type
-from six.moves import cStringIO as StringIO
-from six.moves import zip
 
 
 def _csv_reader(output):
@@ -29,15 +25,10 @@ def _csv_reader(output):
 
     """
     data = '\n'.join(output)
-    if six.PY2:
-        data = data.encode('utf8')
-    handler = StringIO(data)
+    handler = io.StringIO(data)
 
     for row in csv.reader(handler):  # pragma: no cover
-        if six.PY2:
-            yield [value.decode('utf8') for value in row]
-        else:
-            yield row
+        yield row
 
 
 def _normalize(header):
@@ -64,7 +55,7 @@ def _normalize_obj(obj):
         return [_normalize_obj(v) for v in obj]
     # doing this to conform to csv parser
     elif isinstance(obj, int) and not isinstance(obj, bool):
-        return text_type(obj)
+        return str(obj)
     return obj
 
 

@@ -3,13 +3,13 @@
 import random
 import string
 from functools import wraps
+from urllib.parse import quote_plus
 
 from fauxfactory import gen_alpha
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 from fauxfactory import gen_utf8
-from six.moves.urllib.parse import quote_plus
 
 from robottelo.config import settings
 from robottelo.constants import DOMAIN

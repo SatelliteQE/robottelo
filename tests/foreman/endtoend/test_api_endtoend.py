@@ -15,13 +15,13 @@
 
 :Upstream: No
 """
+import http
 import random
 
 import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
-from six.moves import http_client
 
 from .utils import AK_CONTENT_LABEL
 from .utils import ClientProvisioningMixin
@@ -893,7 +893,7 @@ class AvailableURLsTestCase(TestCase):
 
         """
         response = client.get(self.path, auth=settings.server.get_credentials(), verify=False)
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
     @tier1

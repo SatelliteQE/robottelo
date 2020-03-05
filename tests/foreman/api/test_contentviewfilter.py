@@ -18,6 +18,7 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :Upstream: No
 """
+import http
 from random import randint
 
 from fauxfactory import gen_integer
@@ -25,7 +26,6 @@ from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
-from six.moves import http_client
 
 from robottelo import ssh
 from robottelo.api.utils import promote
@@ -79,7 +79,7 @@ class ContentViewFilterTestCase(APITestCase):
             auth=settings.server.get_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
 
     @tier2
     def test_negative_get_with_bad_args(self):
@@ -100,7 +100,7 @@ class ContentViewFilterTestCase(APITestCase):
             verify=False,
             data={'foo': 'bar'},
         )
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
 
     @tier2
     def test_positive_create_erratum_with_name(self):
