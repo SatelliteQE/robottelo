@@ -230,7 +230,7 @@ def enroll_idm_and_configure_external_auth():
         cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
         hostname=settings.ipa.hostname_ipa,
     )
-    domain = settings.ipa.hostname_ipa[settings.ipa.hostname_ipa.find('satqe') :]  # noqa
+    _, domain = settings.ipa.hostname_ipa.split('.', 1)
     run_command(
         cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".format(
             password, domain, settings.ipa.hostname_ipa, domain.upper()
