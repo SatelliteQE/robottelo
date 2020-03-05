@@ -624,6 +624,36 @@ class GCESettings(FeatureSettings):
         return validation_errors
 
 
+class RHSSOSettings(FeatureSettings):
+    """RHSSO settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(RHSSOSettings, self).__init__(*args, **kwargs)
+        self.host_name = None
+        self.host_url = None
+        self.rhsso_user = None
+        self.password = None
+        self.realm = None
+
+    def read(self, reader):
+        """Read LDAP settings."""
+        self.host_name = reader.get('rhsso', 'host_name')
+        self.host_url = reader.get('rhsso', 'host_url')
+        self.rhsso_user = reader.get('rhsso', 'rhsso_user')
+        self.password = reader.get('rhsso', 'user_password')
+        self.realm = reader.get('rhsso', 'realm')
+
+    def validate(self):
+        """Validate RHSSO settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [rhsso] host_name, host_url, rhsso_user, password, '
+                'realm options must be provided.'
+            )
+        return validation_errors
+
+
 class LDAPSettings(FeatureSettings):
     """LDAP settings definitions."""
 
@@ -1312,6 +1342,7 @@ class Settings(object):
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
+        self.rhsso = RHSSOSettings()
         self.ssh_client = SSHClientSettings()
         self.shared_function = SharedFunctionSettings()
         self.vlan_networking = VlanNetworkSettings()

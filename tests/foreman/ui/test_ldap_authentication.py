@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import copy
+import json
 import os
 
 import decorator
@@ -29,7 +31,10 @@ from robottelo import ssh
 from robottelo.api.utils import create_role_permissions
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import CERT_PATH
+from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
+from robottelo.constants import KEY_CLOAK_CLI
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.constants import PERMISSIONS
@@ -197,7 +202,7 @@ def run_command(cmd, hostname=settings.server.hostname, timeout=None):
         result = ssh.command(cmd=cmd, hostname=hostname)
     if result.return_code != 0:
         raise CLIReturnCodeError(
-            result.return_code, result.stderr, 'Failed to run the command : {}'.format(cmd)
+            result.return_code, result.stderr, 'Failed to run the command : {}'.format(cmd),
         )
     else:
         return result.stdout
@@ -225,13 +230,109 @@ def enroll_idm_and_configure_external_auth():
         cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
         hostname=settings.ipa.hostname_ipa,
     )
-    _desired_pos = settings.ipa.hostname_ipa.find('satqe')
-    domain = settings.ipa.hostname_ipa[_desired_pos:]
+    _, domain = settings.ipa.hostname_ipa.split('.', 1)
     run_command(
         cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".format(
             password, domain, settings.ipa.hostname_ipa, domain.upper()
         )
     )
+
+
+def create_mapper(json_content, client_id):
+    """Helper method to create the RH-SSO Client Mapper"""
+    with open("mapper_file", "w") as file:
+        json.dump(json_content, file)
+    ssh.upload_file("mapper_file", "mapper_file", hostname=settings.rhsso.host_name)
+    run_command(
+        cmd="{} create clients/{}/protocol-mappers/models -r {} -f mapper_file".format(
+            KEY_CLOAK_CLI, client_id, settings.rhsso.realm
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+
+
+def update_rhsso_settings_in_satellite(revert=False):
+    """Update or Revert the RH-SSO settings in satellite"""
+    rhhso_settings = {
+        'authorize_login_delegation': True,
+        'authorize_login_delegation_auth_source_user_autocreate': 'External',
+        'oidc_algorithm': 'RS256',
+        'oidc_audience': '{}-foreman-openidc'.format(settings.server.hostname),
+        'oidc_issuer': '{}/auth/realms/{}'.format(settings.rhsso.host_url, settings.rhsso.realm),
+        'oidc_jwks_url': '{}/auth/realms/{}/protocol/openid-connect/certs'.format(
+            settings.rhsso.host_url, settings.rhsso.realm
+        ),
+    }
+    if not revert:
+        for setting_name, setting_value in rhhso_settings.items():
+            setting_entity = entities.Setting().search(
+                query={'search': 'name={}'.format(setting_name)}
+            )[0]
+            setting_entity.value = setting_value
+            setting_entity.update({'value'})
+    else:
+        setting_entity = entities.Setting().search(
+            query={'search': 'name=authorize_login_delegation'}
+        )[0]
+        setting_entity.value = False
+        setting_entity.update({'value'})
+
+
+@fixture(scope='module')
+def enroll_configure_rhsso_external_auth():
+    """Enroll the Satellite6 Server to an RHSSO Server."""
+    run_command(
+        cmd='yum -y --disableplugin=foreman-protector install '
+        'mod_auth_openidc keycloak-httpd-client-install'
+    )
+    run_command(
+        cmd='echo {0} | keycloak-httpd-client-install --app-name foreman-openidc \
+                --keycloak-server-url {1} \
+                --keycloak-admin-username "admin" \
+                --keycloak-realm "{2}" \
+                --keycloak-admin-realm master \
+                --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'.format(
+            settings.rhsso.password, settings.rhsso.host_url, settings.rhsso.realm,
+        )
+    )
+    run_command(cmd="systemctl restart httpd")
+
+
+@fixture(scope='module')
+def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
+    """register the satellite with RH-SSO Server for single sign-on"""
+    client_id = "{}{}".format(settings.server.hostname, '-foreman-openidc')
+    run_command(
+        cmd="{0} config credentials "
+        "--server {1}/auth "
+        "--realm {2} "
+        "--user {3} "
+        "--password {4}".format(
+            KEY_CLOAK_CLI,
+            settings.rhsso.host_url.replace("https://", "http://"),
+            settings.rhsso.realm,
+            settings.rhsso.rhsso_user,
+            settings.rhsso.password,
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+
+    result = run_command(
+        cmd="{} get clients --fields id,clientId".format(KEY_CLOAK_CLI),
+        hostname=settings.rhsso.host_name,
+    )
+    result_json = json.loads("[{{{0}".format("".join(result)))
+
+    for client in result_json:
+        if client['clientId'] == client_id:
+            client_id = client['id']
+            break
+    create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
+    audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
+    audience_mapper["config"]["included.client.audience"] = audience_mapper["config"][
+        "included.client.audience"
+    ].format(rhsso_host=settings.server.hostname)
+    create_mapper(audience_mapper, client_id)
 
 
 def generate_otp(secret):
@@ -1097,3 +1198,33 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
             cmd='ipa host-del {}'.format(settings.server.hostname),
             hostname=settings.ipa.hostname_ipa,
         )
+
+
+@destructive
+@tier4
+def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
+    """Verify the single sign-on functionality with external authentication RH-SSO
+
+    :id: 18a77de8-570f-11ea-a202-d46d6dd3b5b2
+
+    :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :steps:
+        1. Create Mappers on RHSSO Instance and Update the Settings in Satellite
+        2. Login into Satellite using RHSSO login page redirected by Satellite
+
+    :expectedresults: After entering the login details in RHSSO page user should
+        logged into Satellite
+    """
+    try:
+        update_rhsso_settings_in_satellite()
+        with session(login=False):
+            session.rhsso_login.login(
+                {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
+            )
+            with raises(NavigationTriesExceeded):
+                session.user.search('')
+            assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
+
+    finally:
+        update_rhsso_settings_in_satellite(revert=True)
