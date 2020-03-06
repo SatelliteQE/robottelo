@@ -12,8 +12,3 @@
 -----------------------------------------------
 
 .. automodule:: tests.foreman.endtoend.test_cli_endtoend
-
-:mod:`tests.foreman.endtoend.test_ui_endtoend`
-----------------------------------------------
-
-.. automodule:: tests.foreman.endtoend.test_ui_endtoend

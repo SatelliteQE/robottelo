@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-for test_suite in api cli endtoend installer longrun rhai rhci sys ui; do
+for test_suite in api cli endtoend installer longrun rhai rhci sys virtwho; do
     cat >"docs/api/tests.foreman.${test_suite}.rst" <<EOF
 :mod:\`tests.foreman.${test_suite}\`
 $(printf %$(( 21 + ${#test_suite} ))s | tr ' ' =)

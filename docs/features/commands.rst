@@ -16,9 +16,7 @@ The command manager specification is located at `robottelo/manage.yml` and
 it is easy to add new commands to framework by creating new functions or
 click commands and referring on `manage.yml` file.
 
-Existing commands are located at
-:doc:`commands package </api/robottelo.commands>`. There are commands to
-open an interactive shell, interact with UI browser, API and other utilities.
+There are commands to open an interactive shell, interact with UI browser, API and other utilities.
 
 requisites
 ----------

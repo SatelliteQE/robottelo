@@ -33,9 +33,18 @@ nitpick_ignore = [
     ('py:obj', 'bool'),
     ('py:obj', 'dict'),
     ('py:obj', 'int'),
+    ('py:obj', 'list'),
     ('py:obj', 'sequence'),
     ('py:obj', 'str'),
     ('py:obj', 'tuple'),
+    ('py:class', 'bool'),
+    ('py:class', 'dict'),
+    ('py:class', 'int'),
+    ('py:class', 'list'),
+    ('py:class', 'sequence'),
+    ('py:class', 'str'),
+    ('py:class', 'tuple'),
+    ('py:class', 'nailgun.entities.Role'),
 ]
 autodoc_default_options = {'members': None, 'undoc-members': None}
 

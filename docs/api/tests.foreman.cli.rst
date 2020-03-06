@@ -43,15 +43,30 @@
 
 .. automodule:: tests.foreman.cli.test_classparameters
 
-:mod:`tests.foreman.cli.test_computeresource`
----------------------------------------------
+:mod:`tests.foreman.cli.test_computeresource_ec2`
+-------------------------------------------------
 
-.. automodule:: tests.foreman.cli.test_computeresource
+.. automodule:: tests.foreman.cli.test_computeresource_ec2
+
+:mod:`tests.foreman.cli.test_computeresource_libvirt`
+-----------------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_computeresource_libvirt
+
+:mod:`tests.foreman.cli.test_computeresource_osp`
+-------------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_computeresource_osp
 
 :mod:`tests.foreman.cli.test_computeresource_rhev`
 --------------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_computeresource_rhev
+
+:mod:`tests.foreman.cli.test_computeresource_vmware`
+----------------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_computeresource_vmware
 
 :mod:`tests.foreman.cli.test_contentaccess`
 -------------------------------------------
@@ -138,15 +153,25 @@
 
 .. automodule:: tests.foreman.cli.test_host
 
-:mod:`tests.foreman.cli.test_import`
-------------------------------------
+:mod:`tests.foreman.cli.test_http_proxy`
+----------------------------------------
 
-.. automodule:: tests.foreman.cli.test_import
+.. automodule:: tests.foreman.cli.test_http_proxy
 
 :mod:`tests.foreman.cli.test_installer`
 ---------------------------------------
 
 .. automodule:: tests.foreman.cli.test_installer
+
+:mod:`tests.foreman.cli.test_jobtemplate`
+-----------------------------------------
+
+.. automodule:: tests.foreman.cli.test_jobtemplate
+
+:mod:`tests.foreman.cli.test_ldapauthsource`
+--------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_ldapauthsource
 
 :mod:`tests.foreman.cli.test_lifecycleenvironment`
 --------------------------------------------------
@@ -157,6 +182,11 @@
 --------------------------------------
 
 .. automodule:: tests.foreman.cli.test_location
+
+:mod:`tests.foreman.cli.test_logging`
+-------------------------------------
+
+.. automodule:: tests.foreman.cli.test_logging
 
 :mod:`tests.foreman.cli.test_medium`
 ------------------------------------
@@ -189,7 +219,7 @@
 .. automodule:: tests.foreman.cli.test_oscap
 
 :mod:`tests.foreman.cli.test_oscap_tailoringfiles`
------------------------------------
+--------------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_oscap_tailoringfiles
 
@@ -213,6 +243,11 @@
 
 .. automodule:: tests.foreman.cli.test_product
 
+:mod:`tests.foreman.cli.test_provisioning`
+------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_provisioning
+
 :mod:`tests.foreman.cli.test_puppetclass`
 -----------------------------------------
 
@@ -228,6 +263,11 @@
 
 .. automodule:: tests.foreman.cli.test_puppet
 
+:mod:`tests.foreman.cli.test_realm`
+-----------------------------------
+
+.. automodule:: tests.foreman.cli.test_realm
+
 :mod:`tests.foreman.cli.test_remoteexecution`
 ---------------------------------------------
 
@@ -237,6 +277,11 @@
 ------------------------------------
 
 .. automodule:: tests.foreman.cli.test_report
+
+:mod:`tests.foreman.cli.test_reporttemplates`
+---------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_reporttemplates
 
 :mod:`tests.foreman.cli.test_repository`
 ----------------------------------------
@@ -302,3 +347,8 @@
 ---------------------------------------
 
 .. automodule:: tests.foreman.cli.test_variables
+
+:mod:`tests.foreman.cli.test_vm_install_products_package`
+---------------------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_vm_install_products_package
