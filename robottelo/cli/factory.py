@@ -241,7 +241,8 @@ def make_content_view(options=None):
 
         hammer content-view create [OPTIONS]
 
-    Options:
+    Options::
+
          --auto-publish AUTO_PUBLISH             Enable/Disable auto publish of
                                                  composite view
                                                  One of true/false, yes/no, 1/0.
@@ -1796,10 +1797,12 @@ def make_user(options=None):
 @cacheable
 def make_usergroup(options=None):
     """
-    Usage:
+    Usage::
+
         hammer user-group create [OPTIONS]
 
-    Options:
+    Options::
+
         --name NAME
         --role-ids ROLE_IDS                              Comma separated list
         --roles ROLE_NAMES                               Comma separated list
@@ -1807,6 +1810,7 @@ def make_usergroup(options=None):
         --user-groups, --usergroups USER_GROUP_NAMES     Comma separated list
         --user-ids USER_IDS                              Comma separated list
         --users USER_LOGINS                              Comma separated list
+
     """
     # Assigning default values for attributes
     args = {
@@ -4266,47 +4270,49 @@ def virt_who_hypervisor_config(
 @cacheable
 def make_http_proxy(options=None):
     """
-    Usage:
-     http-proxy create [OPTIONS]
+    Usage::
 
-    Options:
-     --location LOCATION_NAME                  Location name
-     --location-id LOCATION_ID
-     --location-ids LOCATION_IDS               REPLACE locations with given ids
-                                               Comma separated list of values. Values containing
-                                               comma should be quoted or escaped with backslash.
-                                               JSON is acceptable and preferred way for complex
-                                               parameters
-     --location-title LOCATION_TITLE           Location title
-     --location-titles LOCATION_TITLES         Comma separated list of values. Values containing
-                                                comma should be quoted or escaped with backslash.
-                                               JSON is acceptable and preferred way for complex
-                                               parameters
-     --locations LOCATION_NAMES                Comma separated list of values. Values containing
-                                                comma should be quoted or escaped with backslash.
-                                               JSON is acceptable and preferred way for complex
-                                               parameters
-     --name NAME                               The HTTP Proxy name
-     --organization ORGANIZATION_NAME          Organization name
-     --organization-id ORGANIZATION_ID         Organization ID
-     --organization-ids ORGANIZATION_IDS       REPLACE organizations with given ids.
-                                               Comma separated list of values. Values containing
-                                               comma should be quoted or escaped with backslash.
-                                               JSON is acceptable and preferred way for complex
-                                               parameters
-     --organization-title ORGANIZATION_TITLE   Organization title
-     --organization-titles ORGANIZATION_TITLES Comma separated list of values. Values containing
-                                                comma should be quoted or escaped with backslash.
-                                               JSON is acceptable and preferred way for complex
-                                               parameters
-     --organizations ORGANIZATION_NAMES        Comma separated list of values. Values containing
-                                                comma should be quoted or escaped with backslash.
-                                               JSON is acceptable and preferred way for complex
-                                               parameters
-     --password PASSWORD                       Password used to authenticate with the HTTP Proxy
-     --url URL                                 URL of the HTTP Proxy
-     --username USERNAME                       Username used to authenticate with the HTTP Proxy
-     -h, --help                                Print help
+        http-proxy create [OPTIONS]
+
+    Options::
+
+        --location LOCATION_NAME                  Location name
+        --location-id LOCATION_ID
+        --location-ids LOCATION_IDS               REPLACE locations with given ids
+                                                  Comma separated list of values. Values containing
+                                                  comma should be quoted or escaped with backslash.
+                                                  JSON is acceptable and preferred way for complex
+                                                  parameters
+        --location-title LOCATION_TITLE           Location title
+        --location-titles LOCATION_TITLES         Comma separated list of values. Values containing
+                                                  comma should be quoted or escaped with backslash.
+                                                  JSON is acceptable and preferred way for complex
+                                                  parameters
+        --locations LOCATION_NAMES                Comma separated list of values. Values containing
+                                                  comma should be quoted or escaped with backslash.
+                                                  JSON is acceptable and preferred way for complex
+                                                  parameters
+        --name NAME                               The HTTP Proxy name
+        --organization ORGANIZATION_NAME          Organization name
+        --organization-id ORGANIZATION_ID         Organization ID
+        --organization-ids ORGANIZATION_IDS       REPLACE organizations with given ids.
+                                                  Comma separated list of values. Values containing
+                                                  comma should be quoted or escaped with backslash.
+                                                  JSON is acceptable and preferred way for complex
+                                                  parameters
+        --organization-title ORGANIZATION_TITLE   Organization title
+        --organization-titles ORGANIZATION_TITLES Comma separated list of values. Values containing
+                                                  comma should be quoted or escaped with backslash.
+                                                  JSON is acceptable and preferred way for complex
+                                                  parameters
+        --organizations ORGANIZATION_NAMES        Comma separated list of values. Values containing
+                                                  comma should be quoted or escaped with backslash.
+                                                  JSON is acceptable and preferred way for complex
+                                                  parameters
+        --password PASSWORD                       Password used to authenticate with the HTTP Proxy
+        --url URL                                 URL of the HTTP Proxy
+        --username USERNAME                       Username used to authenticate with the HTTP Proxy
+        -h, --help                                Print help
     """
     # Assigning default values for attributes
     args = {

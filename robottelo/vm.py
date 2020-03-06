@@ -383,14 +383,18 @@ class VirtualMachine(object):
         the key is the repository filename and repository name, and the value
         is the repository URL.
         For example::
+
             create_custom_repo(custom_repo='http://repourl.domain.com/path')
+
         Will create a repository file named ``custom_repo.repo`` with
         the following contents::
+
             [custom_repo]
             name=custom_repo
             baseurl=http://repourl.domain.com/path
             enabled=1
             gpgcheck=0
+
         """
         for name, url in kwargs.items():
             content = '''[{0}]
@@ -454,7 +458,7 @@ gpgcheck=0'''.format(
 
         :param: str capsule: Capsule hostname
         :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
-        installed.
+            installed.
         """
         url = urlunsplit(('http', capsule, 'pub/', '', ''))
         ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')

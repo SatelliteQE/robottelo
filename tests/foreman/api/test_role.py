@@ -120,9 +120,9 @@ class CannedRoleTestCases(APITestCase):
 
         The taxonomies for role and user will be assigned based on parameters
 
-        :param role_taxos bool: Whether or not to assign taxonomies to Role
+        :param bool role_taxos: Whether or not to assign taxonomies to Role
             If True, self.role_orgs and self.role_locs will be assigned else []
-        :param user_taxos bool: Whether or not to assign taxonomies to User
+        :param bool user_taxos: Whether or not to assign taxonomies to User
             If True and if same_taxos True => self.role_orgs, self.role_locs
             will be assigned
             elseif True and if same_taxos False => self.filter_orgs,
@@ -155,11 +155,11 @@ class CannedRoleTestCases(APITestCase):
     def create_simple_user(self, filter_taxos=None, role=None):
         """Creates simple user and assigns taxonomies
 
-        :param filter_taxos bool: Whether to assign filter taxonomies created
+        :param bool filter_taxos: Whether to assign filter taxonomies created
             in setupclass method.
             If true, self.filter_orgs and filter_locs else self.role_orgs
             and role_locs
-        :param role nailgun.entities.Role: Nailgun Role entity assign to user
+        :param nailgun.entities.Role role: Nailgun Role entity assign to user
         :return User: Returns the ```nailgun.entities.User``` object with
             passwd attr
         """
@@ -177,8 +177,8 @@ class CannedRoleTestCases(APITestCase):
     def create_domain(self, orgs, locs):
         """Creates domain in given orgs and locs
 
-        :param orgs list: List of Organization ids
-        :param locs list: List of Location ids
+        :param list orgs: List of Organization ids
+        :param list locs: List of Location ids
         :return Domain: Returns the ```nailgun.entities.Domain``` object
         """
         return entities.Domain(name=gen_string('alpha'), organization=orgs, location=locs).create()

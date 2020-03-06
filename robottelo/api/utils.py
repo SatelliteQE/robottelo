@@ -276,12 +276,12 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     previously created entities and create a hostgroup using all mentioned
     entities.
 
-    :param string org: Default Organization that should be used in both host
+    :param str org: Default Organization that should be used in both host
         discovering and host provisioning procedures
-    :param string loc: Default Location that should be used in both host
+    :param str loc: Default Location that should be used in both host
         discovering and host provisioning procedures
-    :param boolean compute: If False creates a default Libvirt compute resource
-    :param string os: Specify the os to be used while provisioning and to
+    :param bool compute: If False creates a default Libvirt compute resource
+    :param str os: Specify the os to be used while provisioning and to
         associate related entities to the specified os.
     :return: List of created entities that can be re-used further in
         provisioning or validation procedure (e.g. hostgroup or domain)
@@ -745,7 +745,7 @@ def create_discovered_host(name=None, ip_address=None, mac_address=None, options
     :param str ip_address: A valid ip address.
     :param str mac_address: A valid mac address.
     :param dict options: additional facts to add to discovered host
-    :returns dict of ``entities.DiscoveredHost`` facts.
+    :returns: dict of ``entities.DiscoveredHost`` facts.
     """
     if name is None:
         name = gen_string('alpha')
@@ -849,7 +849,7 @@ def update_provisioning_template(name=None, old=None, new=None):
     :param str old: current content
     :param str new: replace content
 
-    :return boolean: True/False
+    :return bool: True/False
     """
     temp = (
         entities.ProvisioningTemplate()
@@ -873,7 +873,7 @@ def apply_package_filter(content_view, repo, package, inclusion=True):
     :param content_view: entity content view
     :param repo: entity repository
     :param str package: package name to filter
-    :param boolean inclusion: True/False based on include or exclude filter
+    :param bool inclusion: True/False based on include or exclude filter
 
     :return list : list of content view versions
     """

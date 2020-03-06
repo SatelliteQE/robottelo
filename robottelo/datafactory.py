@@ -99,7 +99,7 @@ def add_uppercase_char_into_string(text=None, length=10):
     """Fix string to include a minimum of one uppercase character.
     https://github.com/SatelliteQE/robottelo/issues/4742
 
-    :param string text: String to include uppercase character.
+    :param str text: String to include uppercase character.
     :param int length: Length of string that we create in case string to change
         was not provided.
     """
@@ -158,7 +158,7 @@ def xdist_adapter(argvalues):
     Since every run has the same number of values, ids is going to be the same
     on different workers.
 
-        :Ex:
+    .. code-block:: python
 
         dct = xdist_adapter(invalid_boolean_strings())
 

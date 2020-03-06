@@ -94,12 +94,13 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
     with given file_name on host specified by hostname. Leave hostname as None
     to download file on the localhost.If remote directory is not specified it
     downloads file to /tmp/.
+
     :param str file_url: The complete server file path from where the
         file will be downloaded.
     :param str local_path: Name of directory where file will be saved. If not
-    provided file will be saved in /tmp/ directory.
+        provided file will be saved in /tmp/ directory.
     :param str file_name: Name of the file to be saved with. If not provided filename
-    from url will be used.
+        from url will be used.
     :param str hostname: Hostname of server where the file need to be downloaded.
     :returns: Returns list containing complete file path and name of downloaded file.
     """
@@ -769,34 +770,35 @@ def generate_issue_collection(items, config):  # pragma: no cover
     Returns:
         [List of dicts] - Dicts indexed by "<handler>:<issue>"
 
-        Example of return data:
+        Example of return data::
 
-        {
-            "XX:1625783" {
-                "data": {
-                    # data taken from REST api,
-                    "status": ...,
-                    "resolution": ...,
-                    ...
-                    # Calculated data
-                    "is_open": bool,
-                    "is_deselected": bool,
-                    "clones": [list],
-                    "dupe_data": {dict}
-                },
-                "used_in" [
-                    {
-                        "filepath": "tests/foreman/ui/test_sync.py",
-                        "lineno": 124,
-                        "testcase": "test_positive_sync_custom_ostree_repo",
-                        "component": "Repositories",
-                        "usage": "skip_if_open"
+            {
+                "XX:1625783" {
+                    "data": {
+                        # data taken from REST api,
+                        "status": ...,
+                        "resolution": ...,
+                        ...
+                        # Calculated data
+                        "is_open": bool,
+                        "is_deselected": bool,
+                        "clones": [list],
+                        "dupe_data": {dict}
                     },
-                    ...
-                ]
-            },
-            ...
-        }
+                    "used_in" [
+                        {
+                            "filepath": "tests/foreman/ui/test_sync.py",
+                            "lineno": 124,
+                            "testcase": "test_positive_sync_custom_ostree_repo",
+                            "component": "Repositories",
+                            "usage": "skip_if_open"
+                        },
+                        ...
+                    ]
+                },
+                ...
+            }
+
     """
     settings.configure()
     valid_markers = ["skip_if_open", "skip", "deselect"]

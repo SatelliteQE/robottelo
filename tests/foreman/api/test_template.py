@@ -417,7 +417,7 @@ class TemplateSyncTestCase(APITestCase):
         """Creates a local directory on satellite from where the templates will
             be import or exported to
 
-        :param dir_name str: The directory name which will be created as export
+        :param str dir_name: The directory name which will be created as export
             or import directory under ```/usr/share/foreman_templates```
         """
         dir_path = '/usr/share/foreman_templates/{}'.format(dir_name)

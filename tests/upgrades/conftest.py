@@ -149,7 +149,7 @@ def get_entity_data(scenario_name):
     """Fetches the dictionary of entities from the disk depending on the
     Scenario name (class name in which test is defined)
 
-    :param string scenario_name : The name of the class for which the data is
+    :param str scenario_name : The name of the class for which the data is
         to fetched
     :returns dict entity_data : Returns a dictionary of entities
     """

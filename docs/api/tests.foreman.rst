@@ -13,6 +13,6 @@ Submodules:
     tests.foreman.rhai
     tests.foreman.rhci
     tests.foreman.sys
-    tests.foreman.ui
+    tests.foreman.virtwho
 
 .. automodule:: tests.foreman
