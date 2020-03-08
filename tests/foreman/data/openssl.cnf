@@ -1,0 +1,65 @@
+# OpenSSL configuration file.
+
+# Establish working directory.
+
+dir                                     = .
+
+[ ca ]
+default_ca                              = CA_default
+
+[ CA_default ]
+default_bits                            = 2048
+default_md                              = sha256
+serial                                  = $dir/serial
+database                                = $dir/certindex.txt
+new_certs_dir                           = $dir/certs
+certificate                             = $dir/cacert.crt
+private_key                             = $dir/private/cakey.crt
+default_days                            = 365
+preserve                                = no
+email_in_dn                             = no
+nameopt                                 = default_ca
+certopt                                 = default_ca
+policy                                  = policy_match
+copy_extensions                         = copy
+
+[ policy_match ]
+countryName                             = match
+stateOrProvinceName                     = match
+organizationName                        = match
+organizationalUnitName                  = optional
+commonName                              = supplied
+emailAddress                            = optional
+
+[ req ]
+prompt = no
+default_bits                            = 2048                  # Size of keys
+default_md                              = sha256
+default_keyfile                         = key.crt               # name of generated keys
+string_mask                             = nombstr               # permitted characters
+distinguished_name                      = req_distinguished_name
+req_extensions                          = v3_req
+
+[ req_distinguished_name ]
+organizationName= My Company
+organizationalUnitName= My Org
+emailAddress= fake@example.com
+localityName= My Town
+stateOrProvinceName= My State
+countryName= US
+commonName= Fake CA
+
+[ v3_ca ]
+basicConstraints                        = CA:TRUE
+subjectKeyIdentifier                    = hash
+authorityKeyIdentifier                  = keyid:always,issuer:always
+
+[ v3_req ]
+basicConstraints                        = CA:FALSE
+subjectKeyIdentifier                    = hash
+keyUsage                                = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage                        = serverAuth, clientAuth, codeSigning, emailProtection
+subjectAltName                          = @alt_names
+
+[ alt_names ]
+DNS.1                                   = $ENV::CERT_HOST

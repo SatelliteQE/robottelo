@@ -30,6 +30,7 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
+from robottelo.helpers import get_data_file
 from robottelo.helpers import is_open
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
@@ -41,44 +42,56 @@ from robottelo.test import TestCase
 class KatelloCertsCheckTestCase(TestCase):
     """Implements ``katello-certs-check`` tests.
 
-    Depends on presence of custom certificates at path given
-    in robottello.properties file.
+    Depends on presence of scripts and files in
+    tests/foreman/data/ which come from
+    https://github.com/iNecas/ownca
+    CA cert (a.k.a cacert.crt or rootCA.pem) can be used as bundle file.
     """
 
     @classmethod
-    @skip_if_not_set('certs')
     def setUpClass(cls):
-        """Get host name and credentials."""
+        """Get host name, scripts, and create working directory."""
         super(KatelloCertsCheckTestCase, cls).setUpClass()
-        _, cls.ca_bundle_file_name = os.path.split(settings.certs.ca_bundle_file)
-        _, cls.cert_file_name = os.path.split(settings.certs.cert_file)
-        _, cls.key_file_name = os.path.split(settings.certs.key_file)
-        cls.ca_bundle_file = settings.certs.ca_bundle_file
-        cls.cert_file = settings.certs.cert_file
-        cls.key_file = settings.certs.key_file
+        _, cls.sat6_hostname = os.path.split(settings.server.hostname)
+        cls.key_file_name = '{0}/{0}.key'.format(cls.sat6_hostname)
+        cls.cert_file_name = '{0}/{0}.crt'.format(cls.sat6_hostname)
+        cls.ca_bundle_file_name = 'cacert.crt'
         cls.SUCCESS_MSG = "Validation succeeded"
-        # uploads certs to satellite
         upload_file(
-            local_file=settings.certs.ca_bundle_file,
-            remote_file="/tmp/{0}".format(cls.ca_bundle_file_name),
+            local_file=get_data_file('generate-ca.sh'), remote_file="generate-ca.sh",
         )
         upload_file(
-            local_file=settings.certs.cert_file, remote_file="/tmp/{0}".format(cls.cert_file_name)
+            local_file=get_data_file('generate-crt.sh'), remote_file="generate-crt.sh",
         )
-        upload_file(
-            local_file=settings.certs.key_file, remote_file="/tmp/{0}".format(cls.key_file_name)
-        )
+        upload_file(local_file=get_data_file('openssl.cnf'), remote_file="openssl.cnf")
+        # create the CA cert.
+        with get_connection(timeout=300) as connection:
+            result = connection.run('echo 100001 > serial')
+            result = connection.run("bash generate-ca.sh")
+            assert result.return_code == 0
+        # create the Satellite's cert
+        with get_connection(timeout=300) as connection:
+            result = connection.run(
+                "yes | bash {} {}".format('generate-crt.sh', cls.sat6_hostname)
+            )
+            assert result.return_code == 0
 
     def validate_output(self, result):
-        """Validate katello-certs-check output against a set."""
+        """Validate katello-certs-check output against a set.
+
+        If CN part of Subject in the server cert matches the FQDN of the machine running
+        the script, it is assumed the certs are meant for the Satellite and just
+        "satellite-installer --scenario satellite" part of output should be printed.
+        If FQDN doesn't match CN of Subject, just "capsule-certs-generate" part should be printed.
+        """
         expected_result = set(
             [
-                '--server-cert',
-                '--server-key',
+                '--scenario',
+                '--certs-server-cert',
+                '--certs-server-key',
+                '--certs-server-ca-cert',
                 '--certs-update-server',
-                '--foreman-proxy-fqdn',
-                '--certs-tar',
-                '--server-ca-cert',
+                '--certs-update-server-ca',
             ]
         )
         self.assertEqual(result.return_code, 0)
@@ -116,13 +129,12 @@ class KatelloCertsCheckTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-certs-check -c /tmp/{0} -k /tmp/{1} '
-                '-b /tmp/{2}'.format(
+                'katello-certs-check -c {} -k {} -b {}'.format(
                     self.cert_file_name, self.key_file_name, self.ca_bundle_file_name
                 ),
                 output_format='plain',
             )
-            self.validate_output(result)
+        self.validate_output(result)
 
     @destructive
     def test_positive_update_katello_certs(self):
@@ -150,10 +162,12 @@ class KatelloCertsCheckTestCase(TestCase):
                 assert result.return_code == 0, 'Hammer Ping fail'
                 result = connection.run(
                     'satellite-installer --scenario satellite '
-                    '--certs-server-cert /tmp/server.valid.crt '
-                    '--certs-server-key /tmp/server.key '
-                    '--certs-server-ca-cert /tmp/rootCA.pem '
-                    '--certs-update-server --certs-update-server-ca',
+                    '--certs-server-cert {} '
+                    '--certs-server-key {} '
+                    '--certs-server-ca-cert {} '
+                    '--certs-update-server --certs-update-server-ca'.format(
+                        self.cert_file_name, self.key_file_name, self.ca_bundle_file_name
+                    ),
                     timeout=500,
                 )
                 # assert no hammer ping SSL cert error
@@ -351,7 +365,7 @@ class CapsuleCertsCheckTestCase(TestCase):
     @classmethod
     @skip_if_not_set('certs')
     def setUpClass(cls):
-        """Create working direcotry and file."""
+        """Create working directory and file."""
         super(CapsuleCertsCheckTestCase, cls).setUpClass()
         cls.tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
         cls.caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(cls.tmp_dir)
