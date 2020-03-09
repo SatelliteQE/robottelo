@@ -1924,9 +1924,11 @@ def test_positive_cockpit(session):
     with session:
         session.organization.select(org_name='Default Organization')
         session.location.select(loc_name='Any Location')
-        webconsole_view = session.host.has_working_webconsole(entity_name=settings.server.hostname)
+        hostname_inside_cockpit = session.host.get_webconsole_content(
+            entity_name=settings.server.hostname
+        )
         assert (
-            webconsole_view[0].text == settings.server.hostname
+            hostname_inside_cockpit == settings.server.hostname
         ), 'cockpit page shows hostname {0} instead of {1}'.format(
-            webconsole_view[0].text, settings.server.hostname
+            hostname_inside_cockpit, settings.server.hostname
         )
