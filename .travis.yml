@@ -8,9 +8,9 @@ before_install:
     - sudo apt-get install -y libgnutls-dev
 install:
     - pip install -U pip
-    - pip install -r requirements.txt codecov flake8 sphinx tox-travis manage pre-commit
     - pip uninstall -y pycurl
     - pip install --compile --no-cache-dir pycurl
+    - pip install -r requirements.txt codecov flake8 sphinx tox-travis manage pre-commit
 script:
     - pre-commit clean
     - pre-commit run --all-files
