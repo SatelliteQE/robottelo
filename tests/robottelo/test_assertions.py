@@ -1,7 +1,7 @@
-# -*- encoding: utf-8 -*-
 """Tests for custom assertions in ``robottelo.test.TestCase``."""
 from collections import namedtuple
 
+import pytest
 from requests import HTTPError
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -82,7 +82,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         expected exception was risen inside
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             self.assertNotRaises(HTTPError, fake_404_response)
 
     def test_positive_raised_context_manager(self):
@@ -90,7 +90,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         expected exception was risen inside
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             with self.assertNotRaises(HTTPError):
                 fake_404_response()
 
@@ -99,7 +99,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         expected exception with expected http_status_code was risen inside
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             self.assertNotRaises(HTTPError, fake_404_response, expected_value=404)
 
     def test_positive_raised_context_manager_with_status_code(self):
@@ -107,7 +107,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         expected exception with expected http_status_code was risen inside
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             with self.assertNotRaises(HTTPError, expected_value=404):
                 fake_404_response()
 
@@ -128,14 +128,14 @@ class APIAssertNotRaisesTestCase(APITestCase):
         """Assert that unexpected exception won't be handled and passed through
         to the test from :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(ZeroDivisionError):
+        with pytest.raises(ZeroDivisionError):
             self.assertNotRaises(HTTPError, 1 / 0)
 
     def test_negative_wrong_exception_raised_context_manager(self):
         """Assert that unexpected exception won't be handled and passed through
         to the test from :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             with self.assertNotRaises(HTTPError):
                 raise ValueError
 
@@ -144,7 +144,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaises(HTTPError, fake_404_response, expected_value=405)
 
     def test_negative_wrong_status_code_context_manager(self):
@@ -152,7 +152,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaises(HTTPError, expected_value=405):
                 fake_404_response()
 
@@ -161,7 +161,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaises(ZeroDivisionError, fake_404_response, expected_value=405)
 
     def test_negative_wrong_exception_and_status_code_context_manager(self):
@@ -169,7 +169,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaises(ZeroDivisionError, expected_value=405):
                 fake_404_response()
 
@@ -178,7 +178,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaises(ZeroDivisionError, fake_404_response, expected_value=404)
 
     def test_negative_wrong_exc_correct_status_code_context_manager(self):
@@ -186,7 +186,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
         handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaises(ZeroDivisionError, expected_value=404):
                 fake_404_response()
 
@@ -224,7 +224,7 @@ class CLIAssertNotRaisesTestCase(CLITestCase):
         expected exception with expected cli_return_code code was risen inside
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             self.assertNotRaises(CLIReturnCodeError, fake_128_return_code, expected_value=128)
 
     def test_positive_raised_context_manager_with_status_code(self):
@@ -232,7 +232,7 @@ class CLIAssertNotRaisesTestCase(CLITestCase):
         expected exception with expected cli_return_code was risen inside
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             with self.assertNotRaises(CLIReturnCodeError, expected_value=128):
                 fake_128_return_code()
 
@@ -241,7 +241,7 @@ class CLIAssertNotRaisesTestCase(CLITestCase):
         won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` call.
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             self.assertNotRaises(CLIReturnCodeError, fake_128_return_code, expected_value=129)
 
     def test_negative_wrong_status_code_context_manager(self):
@@ -249,7 +249,7 @@ class CLIAssertNotRaisesTestCase(CLITestCase):
         status code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaises` block.
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             with self.assertNotRaises(CLIReturnCodeError, expected_value=129):
                 fake_128_return_code()
 
@@ -291,7 +291,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call and expected
         pattern was found in exception message.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             self.assertNotRaisesRegex(HTTPError, self.pattern, fake_404_response)
 
     def test_positive_raised_context_manager(self):
@@ -300,7 +300,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block and expected
         pattern was found in exception message.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             with self.assertNotRaisesRegex(HTTPError, self.pattern):
                 fake_404_response()
 
@@ -310,7 +310,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call and
         http_status_code altogether with regex pattern match expected ones.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             self.assertNotRaisesRegex(
                 HTTPError, self.pattern, fake_404_response, expected_value=404
             )
@@ -321,7 +321,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block and
         http_status_code altogether with regex pattern match expected ones.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             with self.assertNotRaisesRegex(HTTPError, self.pattern, expected_value=404):
                 fake_404_response()
 
@@ -343,7 +343,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(ZeroDivisionError):
+        with pytest.raises(ZeroDivisionError):
             self.assertNotRaisesRegex(HTTPError, self.pattern, 1 / 0)
 
     def test_negative_wrong_exception_raised_context_manager(self):
@@ -351,7 +351,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             with self.assertNotRaisesRegex(HTTPError, self.pattern):
                 raise ValueError
 
@@ -360,7 +360,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         http_status_code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaisesRegex(
                 HTTPError, self.pattern, fake_404_response, expected_value=405
             )
@@ -370,7 +370,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         http_status_code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(HTTPError, self.pattern, expected_value=405):
                 fake_404_response()
 
@@ -379,7 +379,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         expected pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaisesRegex(
                 ZeroDivisionError, self.pattern, fake_404_response, expected_value=405
             )
@@ -389,7 +389,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         expected pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(ZeroDivisionError, self.pattern, expected_value=405):
                 fake_404_response()
 
@@ -398,7 +398,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaisesRegex(
                 ZeroDivisionError, self.pattern, fake_404_response, expected_value=404
             )
@@ -408,7 +408,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(ZeroDivisionError, self.pattern, expected_value=404):
                 fake_404_response()
 
@@ -417,7 +417,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaisesRegex(HTTPError, 'foo', fake_404_response, expected_value=404)
 
     def test_negative_wrong_pattern_correct_exc_status_context_manager(self):
@@ -425,7 +425,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(HTTPError, 'foo', expected_value=404):
                 fake_404_response()
 
@@ -434,7 +434,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaisesRegex(HTTPError, 'foo', fake_404_response, expected_value=405)
 
     def test_negative_wrong_pattern_status_code_correct_exc_manager(self):
@@ -442,7 +442,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         pattern won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(HTTPError, 'foo', expected_value=405):
                 fake_404_response()
 
@@ -451,7 +451,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         status code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             self.assertNotRaisesRegex(
                 ZeroDivisionError, 'foo', fake_404_response, expected_value=404
             )
@@ -461,7 +461,7 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         status code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(ZeroDivisionError, 'foo', expected_value=404):
                 fake_404_response()
 
@@ -503,7 +503,7 @@ class CLIAssertNotRaisesRegexTestCase(CLITestCase):
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call and
         cli_return_code altogether with regex pattern match expected ones.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             self.assertNotRaisesRegex(
                 CLIReturnCodeError, self.pattern, fake_128_return_code, expected_value=128
             )
@@ -514,7 +514,7 @@ class CLIAssertNotRaisesRegexTestCase(CLITestCase):
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block and
         cli_return_code altogether with regex pattern match expected ones.
         """
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             with self.assertNotRaisesRegex(CLIReturnCodeError, self.pattern, expected_value=128):
                 fake_128_return_code()
 
@@ -523,7 +523,7 @@ class CLIAssertNotRaisesRegexTestCase(CLITestCase):
         cli_return_code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             self.assertNotRaisesRegex(
                 CLIReturnCodeError, self.pattern, fake_128_return_code, expected_value=129
             )
@@ -533,6 +533,6 @@ class CLIAssertNotRaisesRegexTestCase(CLITestCase):
         cli_return_code won't be handled and passed through to the test from
         :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             with self.assertNotRaisesRegex(CLIReturnCodeError, self.pattern, expected_value=129):
                 fake_128_return_code()
