@@ -54,7 +54,7 @@ class ComputeResource(Base):
 
     @classmethod
     def image_list(cls, options):
-        """list an image"""
+        """Show the list of images"""
         cls.command_sub = 'image list'
         return cls.execute(cls._construct_command(options), output_format='csv')
 

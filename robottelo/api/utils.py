@@ -948,12 +948,12 @@ def skip_yum_update_during_provisioning(template=None, reverse=False):
         return update_provisioning_template(name=template, old=new, new=old)
 
 
-def hammer_api_timeout_set(timeout=-1, reverse=False):
+def set_hammer_api_timeout(timeout=-1, reverse=False):
     """Set hammer API request timeout on Satellite
 
     :param int timeout: request timeout in seconds
     :param bool reverse: Reverses the request timeout
-    :return: Boolean True on success else exception
+    :return: ssh.command
     """
     default_timeout = ':request_timeout: {}'.format(120)
     new_timeout = ':request_timeout: {}'.format(timeout)

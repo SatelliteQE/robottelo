@@ -18,7 +18,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import hammer_api_timeout_set
+from robottelo.api.utils import set_hammer_api_timeout
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.cli.computeprofile import ComputeProfile
 from robottelo.cli.computeresource import ComputeResource
@@ -338,7 +338,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
         Provisions the host on AzureRM using Finish template
         Later in tests this host will be used to perform assertions
         """
-        hammer_api_timeout_set()
+        set_hammer_api_timeout()
         skip_yum_update_during_provisioning(template='Kickstart default finish')
         host = Host.create(
             {
@@ -359,7 +359,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
         Host.delete({'name': self.fullhostname}, timeout=1800)
-        hammer_api_timeout_set(reverse=True)
+        set_hammer_api_timeout(reverse=True)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ft):
@@ -462,7 +462,7 @@ class TestAzureRm_UserData_Provisioning:
         Provisions the host on AzureRM using UserData template
         Later in tests this host will be used to perform assertions
         """
-        hammer_api_timeout_set()
+        set_hammer_api_timeout()
         skip_yum_update_during_provisioning(template='Kickstart default user data')
         host = Host.create(
             {
@@ -480,7 +480,7 @@ class TestAzureRm_UserData_Provisioning:
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default user data', reverse=True)
         Host.delete({'name': self.fullhostname}, timeout=1800)
-        hammer_api_timeout_set(reverse=True)
+        set_hammer_api_timeout(reverse=True)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ud):
