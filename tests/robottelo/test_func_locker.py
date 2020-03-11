@@ -1,19 +1,11 @@
-# coding: utf-8
 import multiprocessing
 import os
 import tempfile
 import time
 
-from unittest2 import TestCase
+import pytest
 
-from robottelo.decorators.func_locker import FunctionLockerError
-from robottelo.decorators.func_locker import get_temp_dir
-from robottelo.decorators.func_locker import LOCK_FILE_NAME_EXT
-from robottelo.decorators.func_locker import lock_function
-from robottelo.decorators.func_locker import locking_function
-from robottelo.decorators.func_locker import set_default_scope
-from robottelo.decorators.func_locker import TEMP_FUNC_LOCK_DIR
-from robottelo.decorators.func_locker import TEMP_ROOT_DIR
+from robottelo.decorators import func_locker
 
 _this_module_name_string = 'tests.robottelo.test_func_locker'
 
@@ -28,37 +20,31 @@ SCOPE_2 = 'some_function_scope_2'
 POOL_SIZE = 8
 
 # patch the default scope namespace
-set_default_scope(NAMESPACE_SCOPE)
-
-_counter_file_name = None
+func_locker.set_default_scope(NAMESPACE_SCOPE)
 
 
-def _init_counter_file():
+class TmpCountFile(object):
+    def __init__(self):
+        tmp_root_path = os.path.join(func_locker.get_temp_dir(), func_locker.TEMP_ROOT_DIR)
+        if not os.path.exists(tmp_root_path):
+            os.mkdir(tmp_root_path)
+        self.file = tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path)
+        self.file_name = self.file.name
+        self.file.write('0'.encode('utf-8'))
+        self.file.close()
 
-    global _counter_file_name
+    def read(self):
+        with open(self.file_name, 'r') as cf:
+            content = cf.read()
 
-    tmp_root_path = os.path.join(get_temp_dir(), TEMP_ROOT_DIR)
-    if not os.path.exists(tmp_root_path):
-        os.mkdir(tmp_root_path)
+        return content
 
-    _counter_file = tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path)
-    _counter_file_name = _counter_file.name
-    _counter_file.write('0'.encode('utf-8'))
-    _counter_file.close()
-
-
-def _read_counter_file():
-    global _counter_file_name
-    with open(_counter_file_name, 'r') as cf:
-        content = cf.read()
-
-    return content
+    def write(self, content):
+        with open(self.file_name, 'wb') as cf:
+            cf.write(content.encode('utf-8'))
 
 
-def _write_to_counter_file(content):
-    global _counter_file_name
-    with open(_counter_file_name, 'wb') as cf:
-        cf.write(content.encode('utf-8'))
+counter_file = TmpCountFile()  # singleton so functions outside the test class don't need it passed
 
 
 def _get_function_name_string(name, class_name=None):
@@ -70,29 +56,36 @@ def _get_function_name_string(name, class_name=None):
 
 
 def _get_function_lock_path(name, scope_context=None, class_name=None):
-    ls = [get_temp_dir(), TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR, NAMESPACE_SCOPE]
+    ls = [
+        func_locker.get_temp_dir(),
+        func_locker.TEMP_ROOT_DIR,
+        func_locker.TEMP_FUNC_LOCK_DIR,
+        NAMESPACE_SCOPE,
+    ]
     if scope_context:
         ls.append(scope_context)
-    ls.append('{0}.{1}'.format(_get_function_name_string(name, class_name), LOCK_FILE_NAME_EXT))
+    func_name_string = _get_function_name_string(name, class_name)
+    ls.append(f'{func_name_string}.{func_locker.LOCK_FILE_NAME_EXT}')
     return os.path.join(*ls)
 
 
-@lock_function
+@func_locker.lock_function
 def simple_locked_function(index=None):
     """Read the lock file and return it"""
+    global counter_file
     time.sleep(0.05)
     with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
         content = rf.read()
 
     if index is not None:
-        saved_counter = int(_read_counter_file())
-        _write_to_counter_file(str(index + saved_counter))
+        saved_counter = int(counter_file.read())
+        counter_file.write(str(index + saved_counter))
 
     time.sleep(0.05)
     return os.getpid(), content
 
 
-@lock_function
+@func_locker.lock_function
 def simple_recursive_lock_function():
     """Try to trigger the same lock from the same process, an exception should
     be expected
@@ -105,23 +98,23 @@ def simple_recursive_locking_function():
     """try to trigger the same lock from the same process, an exception
     should be expected
     """
-    with locking_function(simple_locked_function):
-        with locking_function(simple_locked_function):
+    with func_locker.locking_function(simple_locked_function):
+        with func_locker.locking_function(simple_locked_function):
             pass
     return 'I should not be reached'
 
 
-@lock_function
+@func_locker.lock_function
 def simple_recursive_combined_function():
     """Try to trigger the same lock from the same process, an exception should
     be expected
     """
-    with locking_function(simple_recursive_combined_function):
+    with func_locker.locking_function(simple_recursive_combined_function):
         pass
     return 'I should not be reached'
 
 
-@lock_function
+@func_locker.lock_function
 def simple_function_to_lock():
     """Read the lock file and return it"""
 
@@ -131,14 +124,15 @@ def simple_function_to_lock():
 
 
 def simple_with_locking_function(index=None):
+    global counter_file
     time.sleep(0.05)
-    with locking_function(simple_locked_function):
+    with func_locker.locking_function(simple_locked_function):
         with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
             content = rf.read()
 
     if index is not None:
-        saved_counter = int(_read_counter_file())
-        _write_to_counter_file(str(index + saved_counter))
+        saved_counter = int(counter_file.read())
+        counter_file.write(str(index + saved_counter))
 
     time.sleep(0.05)
     return os.getpid(), content
@@ -147,7 +141,7 @@ def simple_with_locking_function(index=None):
 class SimpleClass(object):
     class SubClass(object):
         @classmethod
-        @lock_function
+        @func_locker.lock_function
         def simple_function_to_lock_cls(cls, file_path=None):
             """Return process id and file content"""
             with open(file_path, 'r') as rf:
@@ -155,14 +149,14 @@ class SimpleClass(object):
             return os.getpid(), content
 
     @classmethod
-    @lock_function
+    @func_locker.lock_function
     def simple_function_to_lock_cls(cls, file_path=None):
         """Return process id and file content"""
         with open(file_path, 'r') as rf:
             content = rf.read()
         return os.getpid(), content
 
-    @lock_function
+    @func_locker.lock_function
     def simple_function_to_lock(self, file_path=None):
         """Return process id and file content"""
         with open(file_path, 'r') as rf:
@@ -170,7 +164,7 @@ class SimpleClass(object):
         return os.getpid(), content
 
 
-@lock_function(scope=NAMESPACE_SCOPE_TEST, scope_context=SCOPE)
+@func_locker.lock_function(scope=NAMESPACE_SCOPE_TEST, scope_context=SCOPE)
 def simple_scoped_lock_function():
     """This function do nothing, when called the lock function must create
     a lock file
@@ -178,12 +172,12 @@ def simple_scoped_lock_function():
     return None
 
 
-@lock_function
+@func_locker.lock_function
 def simple_scoped_locking_function():
     """This function do nothing, when called the locking function must create
     a lock file
     """
-    with locking_function(
+    with func_locker.locking_function(
         simple_scoped_locking_function, scope=NAMESPACE_SCOPE_TEST_2, scope_context=SCOPE_2
     ):
         pass
@@ -198,38 +192,36 @@ def simple_function_not_locked():
     return None
 
 
-class FuncLockerTestCase(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        _init_counter_file()
+class TestFuncLocker:
+    @pytest.fixture(scope="function", autouse=True)
+    def count_and_pool(self):
+        global counter_file
+        counter_file.write('0')
+        pool = multiprocessing.Pool(POOL_SIZE)
+        yield pool
 
-    def setUp(self):
-        _write_to_counter_file('0')
-        self.pool = multiprocessing.Pool(POOL_SIZE)
-
-    def tearDown(self):
-        self.pool.terminate()
-        self.pool.join()
+        pool.terminate()
+        pool.join()
 
     def test_simple(self):
         pid, content = simple_locked_function()
-        self.assertEqual(str(pid), content)
-        self.assertEqual(pid, os.getpid())
+        assert str(pid) == content
+        assert pid == os.getpid()
 
     def test_simple_with(self):
-        with locking_function(simple_function_to_lock):
+        with func_locker.locking_function(simple_function_to_lock):
             with open(_get_function_lock_path('simple_function_to_lock'), 'r') as rf:
                 content = rf.read()
 
-            self.assertEqual(str(os.getpid()), content)
+            assert str(os.getpid()) == content
 
     def test_simple_with_lock_function(self):
         """lock a function that is already decorated by lock_function"""
-        with locking_function(simple_locked_function):
+        with func_locker.locking_function(simple_locked_function):
             with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
                 content = rf.read()
 
-            self.assertEqual(str(os.getpid()), content)
+            assert str(os.getpid()) == content
 
     def test_locker_file_location_when_in_class(self):
         """Check the lock file location when lock function in class"""
@@ -240,13 +232,13 @@ class FuncLockerTestCase(TestCase):
                 content = rf.read()
         else:
             content = ''
-        self.assertNotEqual(str(os.getpid()), content)
+        assert str(os.getpid()) != content
 
-        with locking_function(SimpleClass.simple_function_to_lock):
+        with func_locker.locking_function(SimpleClass.simple_function_to_lock):
             with open(file_path, 'r') as rf:
                 content = rf.read()
 
-        self.assertEqual(str(os.getpid()), content)
+        assert str(os.getpid()) == content
 
         file_path = _get_function_lock_path(
             'simple_function_to_lock_cls', class_name='SimpleClass'
@@ -256,13 +248,13 @@ class FuncLockerTestCase(TestCase):
                 content = rf.read()
         else:
             content = ''
-        self.assertNotEqual(str(os.getpid()), content)
+        assert str(os.getpid()) != content
 
-        with locking_function(SimpleClass.simple_function_to_lock_cls):
+        with func_locker.locking_function(SimpleClass.simple_function_to_lock_cls):
             with open(file_path, 'r') as rf:
                 content = rf.read()
 
-        self.assertEqual(str(os.getpid()), content)
+        assert str(os.getpid()) == content
 
         file_path = _get_function_lock_path(
             'simple_function_to_lock_cls', class_name='SimpleClass'
@@ -272,9 +264,9 @@ class FuncLockerTestCase(TestCase):
                 content = rf.read()
         else:
             content = ''
-        self.assertNotEqual(str(os.getpid()), content)
+        assert str(os.getpid()) != content
         _, content = SimpleClass.simple_function_to_lock_cls(file_path=file_path)
-        self.assertEqual(str(os.getpid()), content)
+        assert str(os.getpid()) == content
 
         simple = SimpleClass()
         file_path = _get_function_lock_path('simple_function_to_lock', class_name='SimpleClass')
@@ -283,9 +275,9 @@ class FuncLockerTestCase(TestCase):
                 content = rf.read()
         else:
             content = ''
-        self.assertNotEqual(str(os.getpid()), content)
+        assert str(os.getpid()) != content
         _, content = simple.simple_function_to_lock(file_path=file_path)
-        self.assertEqual(os.getpid(), int(content))
+        assert os.getpid() == int(content)
         # subCalss
         file_path = _get_function_lock_path(
             'simple_function_to_lock_cls', class_name='SimpleClass.SubClass'
@@ -295,24 +287,24 @@ class FuncLockerTestCase(TestCase):
                 content = rf.read()
         else:
             content = ''
-        self.assertNotEqual(str(os.getpid()), content)
+        assert str(os.getpid()) != content
         _, content = SimpleClass.SubClass.simple_function_to_lock_cls(file_path=file_path)
 
-        self.assertEqual(str(os.getpid()), content)
+        assert str(os.getpid()) == content
 
         if os.path.exists(file_path):
             with open(file_path, 'r') as rf:
                 content = rf.read()
         else:
             content = ''
-        self.assertNotEqual(str(os.getpid()), content)
-        with locking_function(SimpleClass.SubClass.simple_function_to_lock_cls):
+        assert str(os.getpid()) != content
+        with func_locker.locking_function(SimpleClass.SubClass.simple_function_to_lock_cls):
             with open(file_path, 'r') as rf:
                 content = rf.read()
 
-        self.assertEqual(str(os.getpid()), content)
+        assert str(os.getpid()) == content
 
-    def test_lock_in_multiprocess(self):
+    def test_lock_in_multiprocess(self, count_and_pool):
         """Ensure that locked functions in diffrent processes are
         executed serially and wait each other.
 
@@ -326,21 +318,22 @@ class FuncLockerTestCase(TestCase):
         at the end,  the sum of all indexes must equal the content of the file
         """
         pool_size = POOL_SIZE
-        pool = self.pool
+        pool = count_and_pool
         indexes = [index + 1 for index in range(pool_size)]
         results = pool.map(simple_locked_function, indexes)
-        self.assertEqual(len(results), pool_size)
+        assert len(results) == pool_size
         pids_set = {result[0] for result in results}
         content_set = {int(result[1]) for result in results}
         # assert that all pids correspond to all saved contents
-        self.assertEqual(pids_set, content_set)
+        assert pids_set == content_set
         # assert that each process was running with corresponding file content
         for pid, content in results:
-            self.assertEqual(pid, int(content))
+            assert pid == int(content)
         # assert that the sum in counter file is the sum of indexes
-        self.assertEqual(int(_read_counter_file()), sum(indexes))
+        global counter_file
+        assert int(counter_file.read()) == sum(indexes)
 
-    def test_with_locking_in_multiprocess(self):
+    def test_with_locking_in_multiprocess(self, count_and_pool):
         """Ensure that with locking functions in diffrent processes are
         executed serially and wait each other.
 
@@ -354,87 +347,79 @@ class FuncLockerTestCase(TestCase):
         at the end,  the sum of all indexes must equal the content of the file
         """
         pool_size = POOL_SIZE
-        pool = self.pool
+        pool = count_and_pool
         indexes = [index + 1 for index in range(pool_size)]
         results = pool.map(simple_with_locking_function, indexes)
-        self.assertEqual(len(results), pool_size)
+        assert len(results) == pool_size
         pids_set = {result[0] for result in results}
         content_set = {int(result[1]) for result in results}
         # assert that all pids correspond to all saved contents
-        self.assertEqual(pids_set, content_set)
+        assert pids_set == content_set
         # assert that each process was running with corresponding file content
         for pid, content in results:
-            self.assertEqual(pid, int(content))
+            assert pid == int(content)
         # assert that the sum in counter file is the sum of indexes
-        self.assertEqual(int(_read_counter_file()), sum(indexes))
+        global counter_file
+        assert int(counter_file.read()) == sum(indexes)
 
-    def test_recursive_lock_function(self):
+    recursive_functions = [
+        simple_recursive_lock_function,
+        simple_recursive_locking_function,
+        simple_recursive_combined_function,
+    ]
+
+    @pytest.mark.parametrize(
+        'recursive_function', recursive_functions, ids=[f.__name__ for f in recursive_functions]
+    )
+    def test_recursive_lock_function(self, count_and_pool, recursive_function):
         """Ensure that recursive calls to locked function is detected using
         lock_function decorator"""
-        res = self.pool.apply_async(simple_recursive_lock_function, ())
-        with self.assertRaises(FunctionLockerError) as context:
+        res = count_and_pool.apply_async(recursive_function, ())
+        with pytest.raises(func_locker.FunctionLockerError) as context:
             try:
                 res.get(timeout=5)
             except multiprocessing.TimeoutError:
-                self.fail('function lock recursion not detected')
+                pytest.fail('function lock recursion not detected')
 
-        self.assertIn('recursion detected', str(context.exception))
-
-    def test_recursive_locking_function(self):
-        """Ensure that recursive calls to locked function is detected using
-        decorator and with statement"""
-        res = self.pool.apply_async(simple_recursive_locking_function, ())
-        with self.assertRaises(FunctionLockerError) as context:
             try:
-                res.get(timeout=5)
-            except multiprocessing.TimeoutError:
-                self.fail('function lock recursion not detected')
-
-        self.assertIn('recursion detected', str(context.exception))
-
-    def test_recursive_combined_function(self):
-        """Ensure that recursive calls to locked function is detected using
-        decorator and with statement"""
-        res = self.pool.apply_async(simple_recursive_combined_function, ())
-        with self.assertRaises(FunctionLockerError) as context:
-            try:
-                res.get(timeout=5)
-            except multiprocessing.TimeoutError:
-                self.fail('function lock recursion not detected')
-
-        self.assertIn('recursion detected', str(context.exception))
+                assert context.match(r'.*recursion detected.*')
+            except AssertionError:
+                pytest.fail(f'Exception message {context.exconly} does not include expected text')
 
     def test_scoped_lock_function(self):
         """Ensure that the lock file was created at the right location"""
         # call the function
         simple_scoped_lock_function()
         lock_file_path = os.path.join(
-            get_temp_dir(),
-            TEMP_ROOT_DIR,
-            TEMP_FUNC_LOCK_DIR,
+            func_locker.get_temp_dir(),
+            func_locker.TEMP_ROOT_DIR,
+            func_locker.TEMP_FUNC_LOCK_DIR,
             NAMESPACE_SCOPE_TEST,
             SCOPE,
-            '{}.simple_scoped_lock_function.lock'.format(_this_module_name_string),
+            f'{_this_module_name_string}.simple_scoped_lock_function.lock',
         )
-        self.assertTrue(os.path.exists(lock_file_path))
+        assert os.path.exists(lock_file_path)
 
     def test_scoped_with_locking(self):
         """Ensure that the lock file was created at the right location"""
         simple_scoped_locking_function()
         lock_file_path = os.path.join(
-            get_temp_dir(),
-            TEMP_ROOT_DIR,
-            TEMP_FUNC_LOCK_DIR,
+            func_locker.get_temp_dir(),
+            func_locker.TEMP_ROOT_DIR,
+            func_locker.TEMP_FUNC_LOCK_DIR,
             NAMESPACE_SCOPE_TEST_2,
             SCOPE_2,
-            '{}.simple_scoped_locking_function.lock'.format(_this_module_name_string),
+            f'{_this_module_name_string}.simple_scoped_locking_function.lock',
         )
-        self.assertTrue(os.path.exists(lock_file_path))
+        assert os.path.exists(lock_file_path)
 
     def test_negative_with_locking_not_locked(self):
 
-        with self.assertRaises(FunctionLockerError) as context:
-            with locking_function(simple_function_not_locked):
+        with pytest.raises(func_locker.FunctionLockerError) as context:
+            with func_locker.locking_function(simple_function_not_locked):
                 pass
 
-        self.assertIn('Cannot ensure locking', str(context.exception))
+        try:
+            assert context.match(r'.*Cannot ensure locking.*')
+        except AssertionError:
+            pytest.fail(f'Exception message {context.exconly} does not include expected text')

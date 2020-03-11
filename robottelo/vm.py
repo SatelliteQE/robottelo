@@ -91,7 +91,14 @@ class VirtualMachine(object):
         self.nw_type = None
         if distro is None:
             # use the same distro as satellite host server os
-            server_host_os_version = get_host_os_version()
+            from paramiko.ssh_exception import NoValidConnectionsError, SSHException
+
+            try:
+                server_host_os_version = get_host_os_version()
+            except (NoValidConnectionsError, SSHException):
+                raise VirtualMachineError(
+                    f'Cannot connect via ssh to get host os version for creating virtal machine'
+                )
             if server_host_os_version.startswith('RHEL6'):
                 distro = DISTRO_RHEL6
             elif server_host_os_version.startswith('RHEL7'):
@@ -105,9 +112,7 @@ class VirtualMachine(object):
         self.distro = distro
         if self.distro not in (allowed_distros):
             raise VirtualMachineError(
-                '{0} is not a supported distro. Choose one of {1}'.format(
-                    self.distro, allowed_distros
-                )
+                f'{self.distro} is not a supported distro. Choose one of {allowed_distros}'
             )
         if provisioning_server is None:
             self.provisioning_server = settings.clients.provisioning_server

@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 from unittest import mock
 
-import unittest2
+import pytest
 
 from robottelo.constants import CLOSED_STATUSES
 from robottelo.constants import OPEN_STATUSES
@@ -19,7 +19,14 @@ from robottelo.helpers import slugify_component
 from robottelo.helpers import Storage
 
 
-class GetServerVersionTestCase(unittest2.TestCase):
+class FakeSSHResult(object):
+    def __init__(self, stdout=None, return_code=None, stderr=None):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.return_code = return_code
+
+
+class TestGetServerVersion:
     """Tests for method ``get_server_version``."""
 
     @mock.patch('robottelo.helpers.ssh')
@@ -29,7 +36,7 @@ class GetServerVersionTestCase(unittest2.TestCase):
         When the version.rb file is present.
         """
         ssh.command = mock.MagicMock(return_value=FakeSSHResult(['"6.1.4"'], 0))
-        self.assertEqual(get_server_version(), '6.1.4')
+        assert get_server_version() == '6.1.4'
 
     @mock.patch('robottelo.helpers.ssh')
     def test_return_none(self, ssh):
@@ -38,10 +45,10 @@ class GetServerVersionTestCase(unittest2.TestCase):
         When the versions.rb file is not present.
         """
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 0))
-        self.assertEqual(get_server_version(), None)
+        assert get_server_version() is None
 
 
-class GetHostInfoTestCase(unittest2.TestCase):
+class TestGetHostInfo:
     """Tests for method ``get_host_credentials``."""
 
     @mock.patch('robottelo.helpers.ssh')
@@ -49,213 +56,213 @@ class GetHostInfoTestCase(unittest2.TestCase):
         ssh.command = mock.MagicMock(
             return_value=FakeSSHResult(['Fedora release 20 (Heisenbug)'], 0)
         )
-        self.assertTupleEqual(get_host_info(), ('Fedora', 20, None))
+        assert get_host_info() == ('Fedora', 20, None)
 
     @mock.patch('robottelo.helpers.ssh')
     def test_rhel_info(self, ssh):
         ssh.command = mock.MagicMock(
             return_value=FakeSSHResult(['Red Hat Enterprise Linux Server release 7.1 (Maipo)'], 0)
         )
-        self.assertTupleEqual(get_host_info(), ('Red Hat Enterprise Linux Server', 7, 1))
+        assert get_host_info() == ('Red Hat Enterprise Linux Server', 7, 1)
 
     @mock.patch('robottelo.helpers.ssh')
     def test_cat_fail(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 1, 'stderr'))
-        with self.assertRaises(HostInfoError) as context:
+        with pytest.raises(HostInfoError) as context:
             get_host_info()
-        self.assertEqual(str(context.exception), 'Not able to cat /etc/redhat-release "stderr"')
+        assert context.match(r'.*Not able to cat /etc/redhat-release "stderr".*')
 
     @mock.patch('robottelo.helpers.ssh')
     def test_release_parse_fail(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
-        with self.assertRaises(HostInfoError) as context:
+        with pytest.raises(HostInfoError) as context:
             get_host_info()
-        message = str(context.exception)
-        self.assertEqual(message, 'Not able to parse release string ""')
+        assert context.match(r'.*Not able to parse release string "".*')
 
 
-class FakeSSHResult(object):
-    def __init__(self, stdout=None, return_code=None, stderr=None):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.return_code = return_code
-
-
-class EscapeSearchTestCase(unittest2.TestCase):
+class TestEscapeSearch:
     def test_return_type(self):
         """Tests if escape search returns a unicode string"""
-        self.assertIsInstance(escape_search('search term'), str)
+        assert isinstance(escape_search('search term'), str)
 
     def test_escapes_double_quotes(self):
         """Tests if escape search escapes double quotes"""
-        self.assertEqual(escape_search('termwith"')[1:-1], 'termwith\\"')
+        assert escape_search('termwith"')[1:-1] == 'termwith\\"'
 
     def test_escapes_backslash(self):
         """Tests if escape search escapes backslashes"""
-        self.assertEqual(escape_search('termwith\\')[1:-1], 'termwith\\\\')
+        assert escape_search('termwith\\')[1:-1] == 'termwith\\\\'
 
     def test_escapes_double_quotes_and_backslash(self):
         """Tests if escape search escapes backslashes"""
-        self.assertEqual(escape_search('termwith"and\\')[1:-1], 'termwith\\"and\\\\')
+        assert escape_search('termwith"and\\')[1:-1] == 'termwith\\"and\\\\'
 
     def test_wraps_in_double_quotes(self):
         """Tests if escape search wraps the term in double quotes"""
         term = escape_search('term')
-        self.assertEqual(term[0], '"')
-        self.assertEqual(term[-1], '"')
+        assert term[0] == '"'
+        assert term[-1] == '"'
 
 
-class StorageTestCase(unittest2.TestCase):
+class TestStorage:
     def test_dict_converted_to_storage(self):
         d = {'key': 'value'}
         storage = Storage(d)
-        self.assertEqual(storage.key, 'value')
+        assert storage.key == 'value'
 
     def test_multiple_dicts_converted_to_storage(self):
         d = {'key': 'value'}
         e = {'another_key': 'another value'}
         storage = Storage(d, e, spare_argument='one more value')
-        self.assertEqual(storage.key, 'value')
-        self.assertEqual(storage.another_key, 'another value')
-        self.assertEqual(storage.spare_argument, 'one more value')
+        assert storage.key == 'value'
+        assert storage.another_key == 'another value'
+        assert storage.spare_argument == 'one more value'
 
 
-class BugzillaIssueHandlerTestCase(unittest2.TestCase):
-    @classmethod
-    def setUpClass(cls):
+class TestBugzillaIssueHandler:
+    @pytest.fixture(scope='class', autouse=True)
+    def set_env_version(self):
         """Set SAT_VERSION to avoid ssh calls"""
         os.environ['SAT_VERSION'] = '6.6'
-
-    @classmethod
-    def tearDownClass(cls):
-        """clean env vars"""
+        yield
         os.environ.pop('SAT_VERSION', None)
 
     def test_bz_is_open_pre_processed(self):
         """Assert a pre-processed BZ is considered open"""
         data = {"is_open": True}
-        self.assertTrue(is_open("BZ:123456", data))
+        assert is_open("BZ:123456", data)
 
     def test_bz_is_not_open_pre_processed(self):
         """Assert a pre-processed BZ is considered not open"""
         data = {"is_open": False}
-        self.assertFalse(is_open("BZ:123456", data))
+        assert not is_open("BZ:123456", data)
 
     def test_bz_is_deselected_pre_processed(self):
         """Assert a pre-processed BZ is considered deselected"""
         data = {"is_deselected": True}
-        self.assertTrue(_should_deselect("BZ:123456", data))
+        assert _should_deselect("BZ:123456", data)
 
     def test_bz_is_not_deselected_pre_processed(self):
         """Assert a pre-processed BZ is considered not deselected"""
         data = {"is_deselected": False}
-        self.assertFalse(_should_deselect("BZ:123456", data))
+        assert not _should_deselect("BZ:123456", data)
 
-    def test_bz_is_open_by_status(self):
+    @pytest.mark.parametrize('status', OPEN_STATUSES)
+    def test_bz_is_open_by_status(self, status):
         """Assert status in NEW, ASSIGNED, POST, MODIFIED is open"""
-        for status in OPEN_STATUSES:
-            with self.subTest(status=status):
-                data = {
-                    "id": 123456,
-                    "status": status,
-                    "resolution": "",
-                    "target_milestone": "Unspecified",
-                    "flags": [],
-                }
-                self.assertTrue(is_open("BZ:123456", data))
+        assert is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": status,
+                "resolution": "",
+                "target_milestone": "Unspecified",
+                "flags": [],
+            },
+        )
 
-    def test_bz_is_open_by_resolution(self):
+    @pytest.mark.parametrize('resolution', WONTFIX_RESOLUTIONS)
+    def test_bz_is_open_by_resolution(self, resolution):
         """Assert a closed BZ in WONTFIX resolution is considered open"""
-        for resolution in WONTFIX_RESOLUTIONS:
-            with self.subTest(resolution=resolution):
-                data = {
-                    "id": 123456,
-                    "status": "CLOSED",
-                    "resolution": resolution,
-                    "target_milestone": "Unspecified",
-                    "flags": [],
-                }
-                self.assertTrue(is_open("BZ:123456", data))
+        assert is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": "CLOSED",
+                "resolution": resolution,
+                "target_milestone": "Unspecified",
+                "flags": [],
+            },
+        )
 
     def test_bz_is_open_if_server_version_is_lower(self):
         """Assert bug is considered open if TM is set for a future version
         and there are no clones backporting the solution to server version.
         """
-        data = {
-            "id": 123456,
-            "status": "CLOSED",
-            "resolution": "ERRATA",
-            "target_milestone": "7.0.1",
-            "flags": [],
-            "clones": [],
-        }
-        self.assertTrue(is_open("BZ:123456", data))
+        assert is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": "CLOSED",
+                "resolution": "ERRATA",
+                "target_milestone": "7.0.1",
+                "flags": [],
+                "clones": [],
+            },
+        )
 
-    def test_bz_is_not_open_if_server_version_is_higher_or_equal_tm(self):
+    @pytest.mark.parametrize('status', CLOSED_STATUSES)
+    def test_bz_is_not_open_if_server_version_is_higher_or_equal_tm(self, status):
         """Assert bug is considered not open if closed status and
         TM is higher or matches the running server version.
         """
-        for status in CLOSED_STATUSES:
-            with self.subTest(status=status):
-                data = {
-                    "id": 123456,
-                    "status": status,
-                    "resolution": "",
-                    "target_milestone": "6.6.1",
-                    "flags": [],
-                    "clones": [],
-                }
-                self.assertFalse(is_open("BZ:123456", data))
+        assert not is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": status,
+                "resolution": "",
+                "target_milestone": "6.6.1",
+                "flags": [],
+                "clones": [],
+            },
+        )
 
     def test_bz_is_open_if_server_version_is_lower_using_flags(self):
         """Assert bug is considered open if flag version is set for a future
         version and there are no clones backporting the solution.
         """
-        data = {
-            "id": 123456,
-            "status": "CLOSED",
-            "resolution": "ERRATA",
-            "target_milestone": "Unspecified",
-            "flags": [{"status": "+", "name": "sat-7.0.1"}],
-            "clones": [],
-        }
-        self.assertTrue(is_open("BZ:123456", data))
+        assert is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": "CLOSED",
+                "resolution": "ERRATA",
+                "target_milestone": "Unspecified",
+                "flags": [{"status": "+", "name": "sat-7.0.1"}],
+                "clones": [],
+            },
+        )
 
-    def test_bz_is_not_open_if_server_version_is_higher_or_equal_flags(self):
+    @pytest.mark.parametrize('status', CLOSED_STATUSES)
+    def test_bz_is_not_open_if_server_version_is_higher_or_equal_flags(self, status):
         """Assert bug is considered not open if closed status and
         min(flags) version is higher or matches the running server version.
         """
-        for status in CLOSED_STATUSES:
-            with self.subTest(status=status):
-                data = {
-                    "id": 123456,
-                    "status": status,
-                    "resolution": "",
-                    "target_milestone": "Unspecified",
-                    "flags": [{"status": "+", "name": "sat-6.6.0"}],
-                    "clones": [],
-                }
-                self.assertFalse(is_open("BZ:123456", data))
+        assert not is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": status,
+                "resolution": "",
+                "target_milestone": "Unspecified",
+                "flags": [{"status": "+", "name": "sat-6.6.0"}],
+                "clones": [],
+            },
+        )
 
     def test_bz_is_open_using_dupe_data_higher_version(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
         The dupe is CLOSED/ERRATA but on a future version, no clones for
         backport the solution."""
-        data = {
-            "id": 123456,
-            "status": "CLOSED",
-            "resolution": "DUPLICATE",
-            "target_milestone": "Unspecified",
-            "flags": [],
-            "dupe_data": {
-                "id": 999999,
+
+        assert is_open(
+            "BZ:123456",
+            {
+                "id": 123456,
                 "status": "CLOSED",
-                "resolution": "ERRATA",
+                "resolution": "DUPLICATE",
                 "target_milestone": "Unspecified",
-                "flags": [{"status": "+", "name": "sat-6.7.z"}],
+                "flags": [],
+                "dupe_data": {
+                    "id": 999999,
+                    "status": "CLOSED",
+                    "resolution": "ERRATA",
+                    "target_milestone": "Unspecified",
+                    "flags": [{"status": "+", "name": "sat-6.7.z"}],
+                },
             },
-        }
-        self.assertTrue(is_open("BZ:123456", data))
+        )
 
     def test_bz_is_not_open_using_dupe_data_lower_version(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
@@ -274,7 +281,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 "flags": [{"status": "+", "name": "sat-6.3.z"}],
             },
         }
-        self.assertFalse(is_open("BZ:123456", data))
+        assert not is_open("BZ:123456", data)
 
     def test_bz_is_open_using_dupe_of_dupe_data_higher_version(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
@@ -301,7 +308,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 },
             },
         }
-        self.assertTrue(is_open("BZ:123456", data))
+        assert is_open("BZ:123456", data)
 
     def test_bz_is_not_open_using_dupe_of_dupe_data_lower_version(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
@@ -327,7 +334,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 },
             },
         }
-        self.assertFalse(is_open("BZ:123456", data))
+        assert not is_open("BZ:123456", data)
 
     def test_bz_is_open_using_dupe_of_dupe_data_by_status(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
@@ -352,7 +359,7 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 },
             },
         }
-        self.assertTrue(is_open("BZ:123456", data))
+        assert is_open("BZ:123456", data)
 
     def test_bz_is_not_open_using_dupe_of_dupe_data_by_status(self):
         """Assert that if BZ has a dupe, the dupe data is considered.
@@ -376,80 +383,77 @@ class BugzillaIssueHandlerTestCase(unittest2.TestCase):
                 },
             },
         }
-        self.assertFalse(is_open("BZ:123456", data))
+        assert not is_open("BZ:123456", data)
 
-    def test_bz_should_deselect(self):
+    @pytest.mark.parametrize('resolution', WONTFIX_RESOLUTIONS)
+    def test_bz_should_deselect(self, resolution):
         """Ensure a BZ in resolution WONTFIX,CANTIFX,DEFERRED is deselected"""
-        for resolution in WONTFIX_RESOLUTIONS:
-            with self.subTest(resolution=resolution):
-                data = {
-                    "id": 123456,
+        assert _should_deselect(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": "CLOSED",
+                "resolution": resolution,
+                "target_milestone": "Unspecified",
+                "flags": [],
+            },
+        )
+
+    @pytest.mark.parametrize('resolution', WONTFIX_RESOLUTIONS)
+    def test_bz_should_deselect_if_dupe_is_wontfix(self, resolution):
+        """Ensure a BZ in resolution WONTFIX,CANTIFX,DEFERRED is deselected"""
+        assert _should_deselect(
+            "BZ:123456",
+            {
+                "id": 123456,
+                "status": "CLOSED",
+                "resolution": 'DUPLICATE',
+                "target_milestone": "Unspecified",
+                "flags": [],
+                "dupe_data": {
+                    "id": 999999,
                     "status": "CLOSED",
                     "resolution": resolution,
                     "target_milestone": "Unspecified",
                     "flags": [],
-                }
-                self.assertTrue(_should_deselect("BZ:123456", data))
-
-    def test_bz_should_deselect_if_dupe_is_wontfix(self):
-        """Ensure a BZ in resolution WONTFIX,CANTIFX,DEFERRED is deselected"""
-        for resolution in WONTFIX_RESOLUTIONS:
-            with self.subTest(resolution=resolution):
-                data = {
-                    "id": 123456,
-                    "status": "CLOSED",
-                    "resolution": 'DUPLICATE',
-                    "target_milestone": "Unspecified",
-                    "flags": [],
-                    "dupe_data": {
-                        "id": 999999,
-                        "status": "CLOSED",
-                        "resolution": resolution,
-                        "target_milestone": "Unspecified",
-                        "flags": [],
-                    },
-                }
-                self.assertTrue(_should_deselect("BZ:123456", data))
+                },
+            },
+        )
 
     def test_bz_should_not_deselect(self):
         """Ensure a BZ is not deselected if not in WONTFIX_RESOLUTIONS."""
         for status in OPEN_STATUSES:
-            with self.subTest(status=status):
-                data = {
+            assert not _should_deselect(
+                "BZ:123456",
+                {
                     "id": 123456,
                     "status": status,
                     "resolution": "",
                     "target_milestone": "Unspecified",
                     "flags": [],
-                }
-                self.assertFalse(_should_deselect("BZ:123456", data))
+                },
+            )
 
         for status in CLOSED_STATUSES:
             for resolution in ('ERRATA', 'CURRENT_RELEASE', 'WORKSFORME'):
-                with self.subTest(status=status, resolution=resolution):
-                    data = {
+                assert not _should_deselect(
+                    "BZ:123456",
+                    {
                         "id": 123456,
                         "status": status,
-                        "resolution": "",
+                        "resolution": resolution,
                         "target_milestone": "Unspecified",
                         "flags": [],
-                    }
-                    self.assertFalse(_should_deselect("BZ:123456", data))
+                    },
+                )
 
-    def test_invalid_handler_for_is_open_raises_error(self):
+    @pytest.mark.parametrize('issue', ["BZ123456", "XX:123456", "KK:89456", "123456", 999999])
+    def test_invalid_handler(self, issue):
         """Assert is_open w/ invalid handlers raise AttributeError"""
-
-        for issue in ("BZ123456", "XX:123456", "KK:89456", "123456", 999999):
-            with self.subTest(issue=issue):
-                with self.assertRaises(AttributeError):
-                    is_open(issue)
-
-    def test_invalid_handler_for_should_deselect_returns_None(self):
-        """Assert _should_deselect w/ invalid handlers returns None"""
-
-        for issue in ("BZ123456", "XX:123456", "KK:89456", "123456", 999999):
-            with self.subTest(issue=issue):
-                self.assertIsNone(_should_deselect(issue))
+        with pytest.raises(AttributeError):
+            issue_deselect = _should_deselect(issue)
+            is_open(issue)
+        assert issue_deselect is None
 
 
 def test_slugify_component():
