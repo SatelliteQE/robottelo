@@ -946,3 +946,26 @@ def skip_yum_update_during_provisioning(template=None, reverse=False):
         return update_provisioning_template(name=template, old=old, new=new)
     else:
         return update_provisioning_template(name=template, old=new, new=old)
+
+
+def set_hammer_api_timeout(timeout=-1, reverse=False):
+    """Set hammer API request timeout on Satellite
+
+    :param int timeout: request timeout in seconds
+    :param bool reverse: Reverses the request timeout
+    :return: ssh.command
+    """
+    default_timeout = ':request_timeout: {}'.format(120)
+    new_timeout = ':request_timeout: {}'.format(timeout)
+    if not reverse:
+        return ssh.command(
+            "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(
+                default_timeout, new_timeout
+            )
+        )
+    else:
+        return ssh.command(
+            "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(
+                new_timeout, default_timeout
+            )
+        )

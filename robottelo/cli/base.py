@@ -170,7 +170,7 @@ class Base(object):
         return result
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """
         Creates a new record using the arguments passed via dictionary.
         """
@@ -180,7 +180,7 @@ class Base(object):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
 
         # Extract new object ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:
@@ -203,10 +203,10 @@ class Base(object):
         return result
 
     @classmethod
-    def delete(cls, options=None):
+    def delete(cls, options=None, timeout=None):
         """Deletes existing record."""
         cls.command_sub = 'delete'
-        return cls.execute(cls._construct_command(options), ignore_stderr=True)
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def delete_parameter(cls, options=None):
