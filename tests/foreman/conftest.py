@@ -20,7 +20,7 @@ def log(message, level="DEBUG"):
     so we need to emulate the logger by stdouting the output
     """
     now = datetime.datetime.utcnow()
-    full_message = "{date} - conftest - {level} - {message}\n".format(
+    full_message = "{date} - conftest - {level} - {message}".format(
         date=now.strftime("%Y-%m-%d %H:%M:%S"),
         level=level,
         message=message
@@ -150,13 +150,7 @@ def pytest_collection_modifyitems(items, config):
         if skip_if_open:
             # marker must have `BZ:123456` as argument.
             issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
-            if is_open(issue):
-                log(
-                    f'Skipping {item.function.__name__} '
-                    f'in {item.function.__module__} '
-                    f'due to {issue}'
-                )
-                item.add_marker(pytest.mark.skip(reason=issue))
+            item.add_marker(pytest.mark.skipif(is_open(issue), reason=issue))
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
@@ -184,6 +178,11 @@ def pytest_configure(config):
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
+
+    # ignore warnings about dynamically added markers e.g: component markers
+    config.addinivalue_line(
+        'filterwarnings', 'ignore::pytest.PytestUnknownMarkWarning'
+    )
 
 
 def pytest_addoption(parser):
