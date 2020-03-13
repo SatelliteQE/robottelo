@@ -17,6 +17,7 @@ class TestGetHostOsVersion:
         patcher = mock.patch('robottelo.host_info.ssh.command')
         yield patcher.start()
 
+        host_info.get_host_os_version.cache_clear()
         patcher.stop()
 
     def assert_rhel_version(self, ssh_version, parsed_version, ssh_result):
@@ -53,7 +54,7 @@ class TestGetHostOsVersion:
             'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)', 'RHEL7.2.1', ssh_result
         )
 
-    def test_cache(self, ssh_result):
+    def test_cache(self, request, ssh_result):
         """Check get_host_os_version() calls are cached"""
         ssh_result.return_value.stdout = ['Red Hat Enterprise Linux Server release 7.2.1 (Maipo)']
         assert 'RHEL7.2.1' == host_info.get_host_os_version()
@@ -109,6 +110,7 @@ class TestGetHostSatVersion:
         patcher = mock.patch('robottelo.host_info.ssh.command')
         yield patcher.start()
 
+        host_info.get_host_sat_version.cache_clear()
         patcher.stop()
 
     def test_sat_6_dot_2(self, ssh_result):
@@ -180,7 +182,9 @@ class TestSatVersionDependentValues:
                 ),
             }
         )
-        return versions
+        yield versions
+
+        host_info.get_host_sat_version.cache_clear()
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
     def test_init(self, get_host_sat_version, dep_versions_data):
