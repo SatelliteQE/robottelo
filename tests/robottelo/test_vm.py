@@ -3,6 +3,8 @@ from unittest.mock import call
 from unittest.mock import patch
 
 import pytest
+from paramiko import SSHException
+from paramiko.ssh_exception import NoValidConnectionsError
 
 from robottelo import ssh
 from robottelo.config.base import DistroSettings
@@ -46,12 +48,20 @@ class TestVirtualMachine:
     def test_invalid_distro(self):
         """Check if an exception is raised if an invalid distro is passed"""
         with pytest.raises(VirtualMachineError):
-            vm = VirtualMachine(distro='invalid_distro')  # noqa
+            _ = VirtualMachine(distro='invalid_distro')  # noqa
 
     def test_provisioning_server_not_configured(self):
         """Check if an exception is raised if missing provisioning_server"""
         with pytest.raises(VirtualMachineError):
-            vm = VirtualMachine()  # noqa
+            _ = VirtualMachine()  # noqa
+
+    @pytest.mark.parametrize('exception_type', [NoValidConnectionsError, SSHException])
+    def test_host_unreachable(self, exception_type):
+        """Look for VirtualMachineError if the host is unreachable"""
+        with patch('robottelo.ssh.command') as ssh_mock:
+            ssh_mock.side_effect = exception_type
+        with pytest.raises(VirtualMachineError):
+            _ = VirtualMachine()
 
     def test_run(self, config_provisioning_server, host_os_version_patch):
         """Check if run calls ssh.command"""
