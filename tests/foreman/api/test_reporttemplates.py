@@ -495,3 +495,40 @@ class ReportTemplateTestCase(APITestCase):
             res = rt.generate(data={"organization_id": self.org_setup.id, "report_format": "json"})
             assert res[0]['Name'] == vm.hostname
             assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+
+    @tier3
+    @pytest.mark.usefixtures("setup_content")
+    def test_positive_schedule_entitlements_report(self):
+        """Schedule a report using the Entitlements template.
+
+        :id: 5152c518-b0da-4c27-8268-2be78289249f
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, and Subscriptions.
+
+        :steps:
+
+            1. POST /api/report_templates/115-Entitlements/schedule_report/
+
+        :expectedresults: Report is scheduled and contains all necessary
+                          information for entitlements.
+
+        :CaseImportance: High
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org_setup.label, self.ak_setup.name)
+            assert vm.subscribed
+            rt = (
+                entities.ReportTemplate().search(query={'search': 'name="Entitlements"'})[0].read()
+            )
+            scheduled_csv = rt.schedule_report(
+                data={
+                    'id': '{}-Entitlements'.format(rt.id),
+                    'organization_id': self.org_setup.id,
+                    'report_format': 'csv',
+                }
+            )
+            data_csv = rt.report_data(data={'id': rt.id, 'job_id': scheduled_csv['job_id']})
+            assert vm.hostname in data_csv
+            assert DEFAULT_SUBSCRIPTION_NAME in data_csv
