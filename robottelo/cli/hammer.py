@@ -41,6 +41,9 @@ def parse_json(stdout):
     """Parse JSON output from Hammer CLI and convert it to python dictionary
     while normalizing keys.
     """
+    new_object_index = stdout.find('\n}\n{')
+    if new_object_index > -1:
+        stdout = stdout[new_object_index + 3 :]  # noqa: E203
     parsed = json.loads(stdout)
     return _normalize_obj(parsed)
 
@@ -61,6 +64,13 @@ def _normalize_obj(obj):
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
+    try:
+        warning_index = output.index(
+            'Puppet and OSTree will no longer be supported in Katello 3.16'
+        )
+        output = output[warning_index + 1 :]  # noqa: E203
+    except ValueError:
+        pass
     reader = _csv_reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
