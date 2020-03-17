@@ -30,8 +30,9 @@ from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 
 BCK_MSG = "**** Hostname change complete! ****"
-BAD_HN_MSG = "{0} is not a valid fully qualified domain name, please \
-use a valid FQDN and try again."
+BAD_HN_MSG = (
+    "{0} is not a valid fully qualified domain name. Please use a valid FQDN and try again."
+)
 NO_CREDS_MSG = "Username and/or Password options are missing!"
 BAD_CREDS_MSG = "Unable to authenticate user admin"
 
