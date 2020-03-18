@@ -257,8 +257,6 @@ class TestGCEHostProvisioningTestCase:
     """GCE Host Provisioning Tests
 
     :Requirement: Host
-
-    :CaseComponent: Hosts
     """
 
     @pytest.fixture(scope='class', autouse=True)
