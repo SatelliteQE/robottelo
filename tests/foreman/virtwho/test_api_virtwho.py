@@ -19,7 +19,10 @@ from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.config import settings
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
+from robottelo.helpers import is_open
 from robottelo.test import APITestCase
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
@@ -31,6 +34,8 @@ from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 class VirtWhoConfigApiTestCase(APITestCase):
     @classmethod
+    @skip_if_not_set('virtwho')
+    @skip_if(settings.virtwho.hypervisor_type == 'kubevirt' and is_open('BZ:1735540'))
     def setUpClass(cls):
         super(VirtWhoConfigApiTestCase, cls).setUpClass()
         cls.org = entities.Organization().search(query={'search': 'name="Default Organization"'})[
