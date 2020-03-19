@@ -26,8 +26,10 @@ from robottelo.cli.user import User
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
+from robottelo.helpers import is_open
 from robottelo.test import CLITestCase
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
@@ -41,6 +43,7 @@ from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 class VirtWhoConfigTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('virtwho')
+    @skip_if(settings.virtwho.hypervisor_type == 'kubevirt' and is_open('BZ:1735540'))
     def setUpClass(cls):
         super(VirtWhoConfigTestCase, cls).setUpClass()
         cls.satellite_url = settings.server.hostname
