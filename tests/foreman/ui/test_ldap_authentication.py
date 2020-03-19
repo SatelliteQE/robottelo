@@ -45,7 +45,6 @@ from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
-from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
 
@@ -1158,7 +1157,6 @@ def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth
 
 @destructive
 @ldap_wrapper
-@tier4
 def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
     """Verify the single sign-on functionality with external authentication
 
@@ -1201,7 +1199,6 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
 
 
 @destructive
-@tier4
 def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
@@ -1231,7 +1228,6 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
 
 
 @destructive
-@tier4
 def test_ext_logout_rhsso(session):
     """Verify the ext logout page navigation with external authentication RH-SSO
 
