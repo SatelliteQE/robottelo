@@ -15,10 +15,9 @@
 
 :Upstream: No
 """
-from random import randint
+import random
 
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_ldap_auth_source
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
@@ -33,9 +32,7 @@ from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
-from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_usernames_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
@@ -48,570 +45,119 @@ class UserGroupTestCase(CLITestCase):
     """User group CLI related tests."""
 
     @tier1
-    def test_positive_create_with_name(self):
-        """Create new user group using different valid names
-
-        :id: 4cb19ecf-53f8-4804-8fbd-a028c02f13c6
-
-        :expectedresults: User group is created successfully.
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                user_group = make_usergroup({'name': name})
-                self.assertEqual(user_group['name'], name)
-
-    @tier1
-    def test_positive_create_with_user_name(self):
-        """Create new user group using valid user attached to that group. Use
-        user name as a parameter
-
-        :id: 50baa271-c741-4905-aa56-a3ee48be0dc0
-
-        :expectedresults: User group is created successfully.
-
-        :CaseImportance: Critical
-        """
-        for login in valid_usernames_list():
-            with self.subTest(login):
-                user = make_user({'login': login})
-                user_group = make_usergroup({'users': user['login']})
-                self.assertEqual(len(user_group['users']), 1)
-                self.assertEqual(user_group['users'][0], login)
-
-    @tier1
-    def test_positive_create_with_user_id(self):
-        """Create new user group using valid user attached to that group. Use
-        user id as a parameter
+    def test_positive_CRUD(self):
+        """Create new user group with valid elements that attached group.
+           List the user group, update and delete it.
 
         :id: bacef0e3-31dd-4991-93f7-f54fbe64d0f0
 
-        :expectedresults: User group is created successfully.
+        :expectedresults: User group is created, listed, updated and
+             deleted successfully.
 
         :CaseImportance: Critical
         """
         user = make_user()
-        user_group = make_usergroup({'user-ids': user['id']})
-        self.assertEqual(user_group['users'][0], user['login'])
-
-    @tier1
-    def test_positive_create_with_users(self):
-        """Create new user group using multiple users attached to that group.
-        Use users name as a parameter
-
-        :id: 3b0a3c3c-aab2-4e8a-b043-7462621c7333
-
-        :expectedresults: User group is created successfully and contains all
-            expected users.
-
-        :CaseImportance: Critical
-        """
-        users = [make_user()['login'] for _ in range(randint(3, 5))]
-        user_group = make_usergroup({'users': users})
-        self.assertEqual(sorted(users), sorted(user_group['users']))
-
-    @tier1
-    def test_positive_create_with_role_name(self):
-        """Create new user group using valid role attached to that group. Use
-        role name as a parameter
-
-        :id: 47fb3037-f48a-4f99-9a50-792b0fd77569
-
-        :expectedresults: User group is created successfully.
-
-        :CaseImportance: Critical
-        """
-        for role_name in valid_data_list():
-            with self.subTest(role_name):
-                role = make_role({'name': role_name})
-                user_group = make_usergroup({'roles': role['name']})
-                self.assertEqual(len(user_group['roles']), 1)
-                self.assertEqual(user_group['roles'][0], role_name)
-
-    @tier1
-    def test_positive_create_with_role_id(self):
-        """Create new user group using valid role attached to that group. Use
-        role id as a parameter
-
-        :id: 8524a561-037c-4509-aaba-3213924a1cfe
-
-        :expectedresults: User group is created successfully.
-
-        :CaseImportance: Critical
-        """
-        role = make_role()
-        user_group = make_usergroup({'role-ids': role['id']})
-        self.assertEqual(user_group['roles'][0], role['name'])
-
-    @tier1
-    @upgrade
-    def test_positive_create_with_roles(self):
-        """Create new user group using multiple roles attached to that group.
-        Use roles name as a parameter
-
-        :id: b7113d49-b9ce-4603-a09d-5ab23fe2d568
-
-        :expectedresults: User group is created successfully and contains all
-            expected roles
-
-        :CaseImportance: Critical
-        """
-        roles = [make_role()['name'] for _ in range(randint(3, 5))]
-        user_group = make_usergroup({'roles': roles})
-        self.assertEqual(sorted(roles), sorted(user_group['roles']))
-
-    @tier1
-    def test_positive_create_with_usergroup_name(self):
-        """Create new user group using another user group attached to the
-        initial group. Use user group name as a parameter
-
-        :id: 7bbe3af7-af36-4d13-a4ce-7ec5441b88bf
-
-        :expectedresults: User group is created successfully.
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                sub_user_group = make_usergroup({'name': name})
-                user_group = make_usergroup({'user-groups': sub_user_group['name']})
-                self.assertEqual(len(user_group['user-groups']), 1)
-                self.assertEqual(user_group['user-groups'][0]['usergroup'], name)
-
-    @tier1
-    def test_positive_create_with_usergroup_id(self):
-        """Create new user group using another user group attached to the
-        initial group. Use user group id as a parameter
-
-        :id: 04ee66e5-e721-431b-ac6d-c7413fdc6dc2
-
-        :expectedresults: User group is created successfully.
-
-        :CaseImportance: Critical
-        """
+        ug_name = random.choice(valid_data_list())
+        role_name = random.choice(valid_data_list())
+        role = make_role({'name': role_name})
         sub_user_group = make_usergroup()
-        user_group = make_usergroup({'user-group-ids': sub_user_group['id']})
-        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
-    @tier1
-    @upgrade
-    def test_positive_create_with_usergroups(self):
-        """Create new user group using multiple user groups attached to that
-        initial group. Use user groups name as a parameter
-
-        :id: ca6031f7-0998-444b-94be-f8a9e4a9f733
-
-        :expectedresults: User group is created successfully and contains all
-            expected user groups
-
-        :CaseImportance: Critical
-        """
-        sub_user_groups = [make_usergroup()['name'] for _ in range(randint(3, 5))]
-        user_groups = make_usergroup({'user-groups': sub_user_groups})
-        self.assertEqual(
-            sorted(sub_user_groups),
-            sorted([user_group['usergroup'] for user_group in user_groups['user-groups']]),
+        # Create
+        user_group = make_usergroup(
+            {
+                'user-ids': user['id'],
+                'name': ug_name,
+                'role-ids': role['id'],
+                'user-group-ids': sub_user_group['id'],
+            }
         )
 
-    @tier1
-    def test_negative_create_with_name(self):
-        """Attempt to create user group with invalid name.
+        self.assertEqual(user_group['name'], ug_name)
+        self.assertEqual(user_group['users'][0], user['login'])
+        self.assertEqual(len(user_group['roles']), 1)
+        self.assertEqual(user_group['roles'][0], role_name)
+        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
-        :id: 79d2d28d-a0d9-42ab-ba88-c259a463533a
-
-        :expectedresults: User group is not created.
-
-        :CaseImportance: Critical
-        """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIFactoryError):
-                    make_usergroup({'name': name})
-                with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.info({'name': name})
-
-    @tier1
-    def test_negative_create_with_same_name(self):
-        """Attempt to create user group with a name of already existent entity.
-
-        :id: b1eebf2f-a59e-43af-a980-ae73320b4311
-
-        :expectedresults: User group is not created.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        with self.assertRaises(CLIFactoryError):
-            make_usergroup({'name': user_group['name']})
-
-    @tier1
-    def test_positive_list(self):
-        """Test user group list command
-
-        :id: 828d0051-53c8-4737-809a-983517f675bb
-
-        :expectedresults: User group list command returns valid and expected
-            data
-
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
+        # List
         result_list = UserGroup.list({'search': 'name={0}'.format(user_group['name'])})
         self.assertTrue(len(result_list) > 0)
         self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
 
-    @tier1
-    def test_positive_update_by_id(self):
-        """Update existing user group with different valid names. Use id of the
-        user group as a parameter
+        # Update
+        new_name = random.choice(valid_data_list())
+        UserGroup.update({'id': user_group['id'], 'new-name': new_name})
+        user_group = UserGroup.info({'id': user_group['id']})
+        self.assertEqual(user_group['name'], new_name)
 
-        :id: bed911fe-da39-4798-a5d2-8a0467bfacc3
-
-        :expectedresults: User group is update successfully.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                UserGroup.update({'id': user_group['id'], 'new-name': new_name})
-                user_group = UserGroup.info({'id': user_group['id']})
-                self.assertEqual(user_group['name'], new_name)
-
-    @tier1
-    def test_positive_update_by_name(self):
-        """Update existing user group with different valid names. Use name of
-        the user group as a parameter
-
-        :id: 3bee63ff-ae2a-4fa4-a5bd-58ec85358c19
-
-        :expectedresults: User group is update successfully.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                UserGroup.update({'name': user_group['name'], 'new-name': new_name})
-                user_group = UserGroup.info({'id': user_group['id']})
-                self.assertEqual(user_group['name'], new_name)
-
-    @tier1
-    def test_negative_update_by_id(self):
-        """Attempt to update existing user group using different invalid names.
-        Use id of the user group as a parameter
-
-        :id: e5aecee1-7c4c-4ac5-aee2-a3190cbe956f
-
-        :expectedresults: User group is not updated.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.update({'id': user_group['id'], 'new-name': new_name})
-                user_group = UserGroup.info({'id': user_group['id']})
-                self.assertNotEqual(user_group['name'], new_name)
-
-    @tier1
-    def test_negative_update_by_name(self):
-        """Attempt to update existing user group using different invalid names.
-        Use name of the user group as a parameter
-
-        :id: 32ad14cf-4ed8-4deb-b2fc-df4ed60efb78
-
-        :expectedresults: User group is not updated.
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.update({'name': user_group['name'], 'new-name': new_name})
-                user_group = UserGroup.info({'id': user_group['id']})
-                self.assertNotEqual(user_group['name'], new_name)
-
-    @tier1
-    @upgrade
-    def test_positive_delete_by_name(self):
-        """Create user group with valid name and then delete it using that name
-
-        :id: 359b1806-64c5-42ec-9448-991e82f70e98
-
-        :expectedresults: User group is deleted successfully
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                user_group = make_usergroup({'name': name})
-                UserGroup.delete({'name': user_group['name']})
-                with self.assertRaises(CLIReturnCodeError):
-                    UserGroup.info({'name': user_group['name']})
-
-    @tier1
-    def test_positive_delete_by_id(self):
-        """Create user group with valid data and then delete it using its ID
-
-        :id: b60b4da7-9d1b-487d-89e5-ebf3aa2218d6
-
-        :expectedresults: User group is deleted successfully
-
-        :CaseImportance: Critical
-        """
-        user_group = make_usergroup()
-        UserGroup.delete({'id': user_group['id']})
+        # Delete
+        UserGroup.delete({'name': user_group['name']})
         with self.assertRaises(CLIReturnCodeError):
-            UserGroup.info({'id': user_group['id']})
+            UserGroup.info({'name': user_group['name']})
 
     @tier1
-    def test_positive_delete_with_user_by_id(self):
-        """Create new user group using valid user attached to that group. Then
-        delete that user group using id of that group as a parameter
+    def test_positive_create_with_multiple_elements(self):
+        """Create new user group using multiple users, roles and user
+           groups attached to that group.
 
-        :id: 34ffa204-9376-41f2-aca1-edf29f553957
+        :id: 3b0a3c3c-aab2-4e8a-b043-7462621c7333
 
-        :expectedresults: User group is deleted successfully.
+        :expectedresults: User group is created successfully and contains all
+            expected elements.
 
         :CaseImportance: Critical
         """
-        user = make_user()
-        user_group = make_usergroup({'user-ids': user['id']})
-        UserGroup.delete({'id': user_group['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            UserGroup.info({'id': user_group['id']})
+        count = 2
+        users = [make_user()['login'] for _ in range(count)]
+        roles = [make_role()['name'] for _ in range(count)]
+        sub_user_groups = [make_usergroup()['name'] for _ in range(count)]
+        user_group = make_usergroup(
+            {'users': users, 'roles': roles, 'user-groups': sub_user_groups}
+        )
+        self.assertEqual(sorted(users), sorted(user_group['users']))
+        self.assertEqual(sorted(roles), sorted(user_group['roles']))
+        self.assertEqual(
+            sorted(sub_user_groups), sorted([ug['usergroup'] for ug in user_group['user-groups']]),
+        )
 
     @tier2
-    def test_positive_add_role_by_id(self):
-        """Create new user group and new role. Then add created role to user
-        group by id
+    def test_positive_add_and_remove_elements(self):
+        """Create new user group. Add and remove several element from the group.
 
         :id: a4ce8724-d3c8-4c00-9421-aaa40394134d
 
-        :expectedresults: Role is added to user group successfully.
+        :BZ: 1395229
+
+        :expectedresults: Elements are added to user group and then removed
+                          successfully.
 
         :CaseLevel: Integration
         """
         role = make_role()
         user_group = make_usergroup()
+        user = make_user()
+        sub_user_group = make_usergroup()
+
+        # Add elements by id
         UserGroup.add_role({'id': user_group['id'], 'role-id': role['id']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['roles'][0], role['name'])
-
-    @tier2
-    def test_positive_add_role_by_name(self):
-        """Create new user group and new role. Then add created role to user
-        group by name
-
-        :id: 181bf2d5-0650-4fb0-890c-475eac3306a2
-
-        :expectedresults: Role is added to user group successfully.
-
-        :CaseLevel: Integration
-        """
-        role = make_role()
-        user_group = make_usergroup()
-        UserGroup.add_role({'id': user_group['id'], 'role': role['name']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['roles'][0], role['name'])
-
-    @tier2
-    def test_positive_add_user_by_id(self):
-        """Create new user group and new user. Then add created user to user
-        group by id
-
-        :id: f2972e48-67c3-4dc9-8c4b-aa550086afb7
-
-        :expectedresults: User is added to user group successfully.
-
-        :CaseLevel: Integration
-        """
-        user = make_user()
-        user_group = make_usergroup()
         UserGroup.add_user({'id': user_group['id'], 'user-id': user['id']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['users'][0], user['login'])
-
-    @tier2
-    def test_positive_add_user_by_name(self):
-        """Create new user group and new user. Then add created user to user
-        group by name
-
-        :id: f622eb11-a3d2-4a25-8889-766133750431
-
-        :expectedresults: User is added to user group successfully.
-
-        :CaseLevel: Integration
-        """
-        user = make_user()
-        user_group = make_usergroup()
-        UserGroup.add_user({'id': user_group['id'], 'user': user['login']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['users'][0], user['login'])
-
-    @tier2
-    def test_positive_add_user_group_by_id(self):
-        """Create two new user groups. Then add one user group to another by id
-
-        :id: f041d325-93c0-4799-88d7-5ece65568266
-
-        :expectedresults: User group is added to another user group
-            successfully.
-
-        :CaseLevel: Integration
-        """
-        sub_user_group = make_usergroup()
-        user_group = make_usergroup()
         UserGroup.add_user_group({'id': user_group['id'], 'user-group-id': sub_user_group['id']})
+
         user_group = UserGroup.info({'id': user_group['id']})
+        self.assertEqual(len(user_group['roles']), 1)
+        self.assertEqual(user_group['roles'][0], role['name'])
+        self.assertEqual(len(user_group['users']), 1)
+        self.assertEqual(user_group['users'][0], user['login'])
+        self.assertEqual(len(user_group['user-groups']), 1)
         self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
-    @tier2
-    def test_positive_add_user_group_by_name(self):
-        """Create two new user groups. Then add one user group to another by
-        name
-
-        :id: de60c347-b440-45c6-8e79-19aa0d338099
-
-        :expectedresults: User group is added to another user group
-            successfully.
-
-        :CaseLevel: Integration
-        """
-        sub_user_group = make_usergroup()
-        user_group = make_usergroup()
-        UserGroup.add_user_group({'id': user_group['id'], 'user-group': sub_user_group['name']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
-
-    @tier2
-    def test_positive_remove_role_by_id(self):
-        """Create new user group using valid role attached to that group. Then
-        remove that role from user group by id
-
-        :id: f086e7f0-4a24-4097-8ec6-3f698ac926ba
-
-        :expectedresults: Role is removed from user group successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1395229
-        """
-        role = make_role()
-        user_group = make_usergroup({'role-ids': role['id']})
-        self.assertEqual(len(user_group['roles']), 1)
-        UserGroup.remove_role({'id': user_group['id'], 'role-id': role['id']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(len(user_group['roles']), 0)
-
-    @tier2
-    @upgrade
-    def test_positive_remove_role_by_name(self):
-        """Create new user group using valid role attached to that group. Then
-        remove that role from user group by name
-
-        :id: 0a5fdeaf-a05f-4153-b2c8-c5f8745cbb80
-
-        :expectedresults: Role is removed from user group successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1395229
-        """
-        role = make_role()
-        user_group = make_usergroup({'role-ids': role['id']})
-        self.assertEqual(len(user_group['roles']), 1)
+        # Remove elements by name
         UserGroup.remove_role({'id': user_group['id'], 'role': role['name']})
+        UserGroup.remove_user({'id': user_group['id'], 'user': user['login']})
+        UserGroup.remove_user_group({'id': user_group['id'], 'user-group': sub_user_group['name']})
+
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['roles']), 0)
-
-    @tier2
-    def test_positive_remove_user_by_id(self):
-        """Create new user group using valid user attached to that group. Then
-        remove that user from user group by id
-
-        :id: 9ae91110-88dd-4449-82c7-59f626fdd2be
-
-        :expectedresults: User is removed from user group successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1395229
-        """
-        user = make_user()
-        user_group = make_usergroup({'user-ids': user['id']})
-        self.assertEqual(len(user_group['users']), 1)
-        UserGroup.remove_user({'id': user_group['id'], 'user-id': user['id']})
-        user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['users']), 0)
-
-    @tier2
-    @upgrade
-    def test_positive_remove_user_by_name(self):
-        """Create new user group using valid user attached to that group. Then
-        remove that user from user group by name
-
-        :id: e99b215b-05bb-4e7b-a11a-cd506d88df6c
-
-        :expectedresults: User is removed from user group successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1395229
-        """
-        user = make_user()
-        user_group = make_usergroup({'user-ids': user['id']})
-        self.assertEqual(len(user_group['users']), 1)
-        UserGroup.remove_user({'id': user_group['id'], 'user': user['login']})
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(len(user_group['users']), 0)
-
-    @tier2
-    def test_positive_remove_usergroup_by_id(self):
-        """Create new user group using another user group attached to the
-        initial group. Then remove that attached user group by id
-
-        :id: e7e8ccb2-a93d-420d-b71e-218ffbb428b4
-
-        :expectedresults: User group is removed from initial one successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1395229
-        """
-        sub_user_group = make_usergroup()
-        user_group = make_usergroup({'user-group-ids': sub_user_group['id']})
-        self.assertEqual(len(user_group['user-groups']), 1)
-        UserGroup.remove_user_group(
-            {'id': user_group['id'], 'user-group-id': sub_user_group['id']}
-        )
-        user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(len(user_group['user-groups']), 0)
-
-    @tier2
-    @upgrade
-    def test_positive_remove_usergroup_by_name(self):
-        """Create new user group using another user group attached to the
-        initial group. Then remove that attached user group by name
-
-        :id: 45a070b5-60b1-4c8c-8171-9d63e0a55698
-
-        :expectedresults: User group is removed from initial one successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1395229
-        """
-        sub_user_group = make_usergroup()
-        user_group = make_usergroup({'user-group-ids': sub_user_group['id']})
-        self.assertEqual(len(user_group['user-groups']), 1)
-        UserGroup.remove_user_group({'id': user_group['id'], 'user-group': sub_user_group['name']})
-        user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 0)
 
     @tier2
@@ -686,57 +232,15 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         super(ActiveDirectoryUserGroupTestCase, cls).tearDownClass()
 
     @tier2
-    def test_positive_create(self):
-        """Create external user group using LDAP
-
-        :id: 812c701a-27c5-4c4e-a4f7-04bf7d887a7c
-
-        :expectedresults: User group is created successfully and assigned to
-            correct auth source
-
-        :CaseLevel: Integration
-        """
-        ext_user_group = make_usergroup_external(
-            {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup',
-            }
-        )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
-
-    @tier2
-    def test_positive_refresh_external_usergroup(self):
-        """Refresh external user group with AD LDAP
-
-        :id: 1a3eb8ae-addb-406b-ac84-d8cec77c60a9
-
-        :expectedresults: User group is refreshed successfully.
-
-        :CaseLevel: Integration
-        """
-
-        ext_user_group = make_usergroup_external(
-            {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup',
-            }
-        )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
-
-    @tier2
     @upgrade
-    def test_positive_local_user_with_external_usergroup(self):
-        """Verify Local user association from user-group with external group with AD LDAP
+    def test_positive_create_and_refresh_external_usergroup_with_local_user(self):
+        """Create and refresh external user group with AD LDAP. Verify Local user
+           association from user-group with external group with AD LDAP
 
         :id: 7431979c-aea8-4984-bb7d-185f5b7c3109
 
-        :expectedresults: Local user is associated from user-group with external group.
+        :expectedresults: User group is created and refreshed successfully.
+            Local user is associated from user-group with external group.
 
         :CaseLevel: Integration
 
@@ -756,7 +260,6 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             )
         user = make_user()
         UserGroup.add_user({'user': user['login'], 'id': self.user_group['id']})
-        print(User.info({'login': user['login']}))
         self.assertEqual(
             User.info({'login': user['login']})['user-groups'][0]['usergroup'],
             self.user_group['name'],
@@ -765,7 +268,6 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             UserGroupExternal.refresh(
                 {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
             )
-        print(User.info({'login': user['login']}))
         self.assertEqual(
             User.info({'login': user['login']})['user-groups'][0]['usergroup'],
             self.user_group['name'],
@@ -882,57 +384,17 @@ class FreeIPAUserGroupTestCase(CLITestCase):
         LDAPAuthSource.delete({'id': cls.auth['server']['id']})
         super(FreeIPAUserGroupTestCase, cls).tearDownClass()
 
-    @tier1
-    def test_positive_create(self):
-        """Create external user group using FreeIPA LDAP
-
-        :id: cc14b7a2-2fb5-4063-b76a-14d204e54d76
-
-        :expectedresults: User group is created successfully and assigned to
-            correct auth source
-
-        :CaseLevel: Integration
-        """
-        ext_user_group = make_usergroup_external(
-            {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup',
-            }
-        )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
-
-    @tier2
-    def test_positive_refresh_external_usergroup(self):
-        """Refresh external user group with FreeIPA LDAP
-
-        :id: c63e86ea-bbed-4fae-b4c7-8c1f47969240
-
-        :expectedresults: User group is refreshed successfully.
-
-        :CaseLevel: Integration
-        """
-        ext_user_group = make_usergroup_external(
-            {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
-                'name': 'foobargroup',
-            }
-        )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
-
     @tier2
     @upgrade
-    def test_positive_local_user_with_external_usergroup(self):
-        """Verify Local user association from user-group with external group with FreeIPA LDAP
+    def test_positive_create_and_refresh_external_usergroup_with_local_user(self):
+        """Create and Refresh external user group with FreeIPA LDAP. Verify Local user
+           association from user-group with external group with FreeIPA LDAP
 
         :id: bd6152e3-51ac-4e84-b084-8bab1c4eb583
 
-        :expectedresults: Local user is associated from user-group with external group.
+        :expectedresults: User group is created successfully and assigned to correct auth
+             source. User group is refreshed successfully. Local user is associated from
+             user group with external group.
 
         :CaseLevel: Integration
 
