@@ -1228,3 +1228,35 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
 
     finally:
         update_rhsso_settings_in_satellite(revert=True)
+
+
+@destructive
+@tier4
+def test_ext_logout_rhsso(session):
+    """Verify the ext logout page navigation with external authentication RH-SSO
+
+    :id: 87b5e08e-69c6-11ea-8126-e74d80ea4308
+
+    :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :steps:
+        1. Create Mappers on RHSSO Instance and Update the Settings in Satellite
+        2. Login into Satellite using RHSSO login page redirected by Satellite
+        3. Logout from Satellite and Verify the ext_logout page displayed
+
+    :expectedresults: After logout from Satellite navigate should be ext_loout page
+    """
+    try:
+        update_rhsso_settings_in_satellite()
+        with session(login=False):
+            login_details = {
+                'username': settings.rhsso.rhsso_user,
+                'password': settings.rhsso.password,
+            }
+            session.rhsso_login.login(login_details)
+            view = session.rhsso_login.logout()
+            assert view['login_again'] == "Click to log in again"
+            session.rhsso_login.login(login_details, external_login=True)
+            assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
+    finally:
+        update_rhsso_settings_in_satellite(revert=True)
