@@ -294,10 +294,12 @@ def enroll_configure_rhsso_external_auth():
             settings.rhsso.password, settings.rhsso.host_url, settings.rhsso.realm,
         )
     )
-    run_command(cmd="satellite-installer --foreman-keycloak true "
-                    "--foreman-keycloak-app-name 'foreman-openidc' "
-                    "--foreman-keycloak-realm '{}' ".format(settings.rhsso.realm),
-                timeout=600)
+    run_command(
+        cmd="satellite-installer --foreman-keycloak true "
+        "--foreman-keycloak-app-name 'foreman-openidc' "
+        "--foreman-keycloak-realm '{}' ".format(settings.rhsso.realm),
+        timeout=600,
+    )
     run_command(cmd="systemctl restart httpd")
 
 
