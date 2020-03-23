@@ -294,6 +294,10 @@ def enroll_configure_rhsso_external_auth():
             settings.rhsso.password, settings.rhsso.host_url, settings.rhsso.realm,
         )
     )
+    run_command(cmd="satellite-installer --foreman-keycloak true "
+                    "--foreman-keycloak-app-name 'foreman-openidc' "
+                    "--foreman-keycloak-realm '{}' ".format(settings.rhsso.realm),
+                timeout=600)
     run_command(cmd="systemctl restart httpd")
 
 
@@ -1221,15 +1225,16 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
             )
             with raises(NavigationTriesExceeded):
                 session.user.search('')
-            assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
+                actual_user = session.task.read_all(widget_names="current_user")['current_user']
+                assert settings.rhsso.rhsso_user in actual_user
 
     finally:
         update_rhsso_settings_in_satellite(revert=True)
 
 
 @destructive
-def test_ext_logout_rhsso(session):
-    """Verify the ext logout page navigation with external authentication RH-SSO
+def test_external_logout_rhsso(session):
+    """Verify the external logout page navigation with external authentication RH-SSO
 
     :id: 87b5e08e-69c6-11ea-8126-e74d80ea4308
 
@@ -1238,9 +1243,9 @@ def test_ext_logout_rhsso(session):
     :steps:
         1. Create Mappers on RHSSO Instance and Update the Settings in Satellite
         2. Login into Satellite using RHSSO login page redirected by Satellite
-        3. Logout from Satellite and Verify the ext_logout page displayed
+        3. Logout from Satellite and Verify the external_logout page displayed
 
-    :expectedresults: After logout from Satellite navigate should be ext_loout page
+    :expectedresults: After logout from Satellite navigate should be external_loout page
     """
     try:
         update_rhsso_settings_in_satellite()
@@ -1253,6 +1258,7 @@ def test_ext_logout_rhsso(session):
             view = session.rhsso_login.logout()
             assert view['login_again'] == "Click to log in again"
             session.rhsso_login.login(login_details, external_login=True)
-            assert session.task.read_all()['current_user'] == settings.rhsso.rhsso_user
+            actual_user = session.task.read_all(widget_names="current_user")['current_user']
+            assert settings.rhsso.rhsso_user in actual_user
     finally:
         update_rhsso_settings_in_satellite(revert=True)
