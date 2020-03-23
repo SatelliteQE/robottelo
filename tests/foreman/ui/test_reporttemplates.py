@@ -17,7 +17,6 @@
 import csv
 import json
 import os
-import json
 
 import pytest
 import yaml
@@ -306,8 +305,9 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
         upload_manifest(module_org.id, manifest.content)
     # generate Subscriptions report
     with session:
-        file_path = session.reporttemplate.generate("Subscriptions",
-                                                    values={'output_format': 'JSON'})
+        file_path = session.reporttemplate.generate(
+            "Subscriptions", values={'output_format': 'JSON'}
+        )
     with open(file_path) as json_file:
         data = json.load(json_file)
     subscription_cnt = len(entities.Subscription(organization=module_org).search())
