@@ -12,6 +12,7 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 import json
 import logging
 import os
+import sys
 from time import sleep
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
@@ -96,9 +97,10 @@ class VirtualMachine(object):
             try:
                 server_host_os_version = get_host_os_version()
             except (NoValidConnectionsError, SSHException):
+                trace = sys.exc_info()[2]
                 raise VirtualMachineError(
-                    f'Cannot connect via ssh to get host os version for creating virtal machine'
-                )
+                    f'Exception connecting via ssh to get host os version'
+                ).with_traceback(trace)
             if server_host_os_version.startswith('RHEL6'):
                 distro = DISTRO_RHEL6
             elif server_host_os_version.startswith('RHEL7'):

@@ -375,16 +375,11 @@ class TestFuncLocker:
         """Ensure that recursive calls to locked function is detected using
         lock_function decorator"""
         res = count_and_pool.apply_async(recursive_function, ())
-        with pytest.raises(func_locker.FunctionLockerError) as context:
+        with pytest.raises(func_locker.FunctionLockerError, match=r'.*recursion detected.*'):
             try:
                 res.get(timeout=5)
             except multiprocessing.TimeoutError:
                 pytest.fail('function lock recursion not detected')
-
-            try:
-                assert context.match(r'.*recursion detected.*')
-            except AssertionError:
-                pytest.fail(f'Exception message {context.exconly} does not include expected text')
 
     def test_scoped_lock_function(self):
         """Ensure that the lock file was created at the right location"""
@@ -415,11 +410,6 @@ class TestFuncLocker:
 
     def test_negative_with_locking_not_locked(self):
 
-        with pytest.raises(func_locker.FunctionLockerError) as context:
+        with pytest.raises(func_locker.FunctionLockerError, match=r'.*Cannot ensure locking.*'):
             with func_locker.locking_function(simple_function_not_locked):
                 pass
-
-        try:
-            assert context.match(r'.*Cannot ensure locking.*')
-        except AssertionError:
-            pytest.fail(f'Exception message {context.exconly} does not include expected text')
