@@ -48,20 +48,20 @@ class TestVirtualMachine:
     def test_invalid_distro(self):
         """Check if an exception is raised if an invalid distro is passed"""
         with pytest.raises(VirtualMachineError):
-            _ = VirtualMachine(distro='invalid_distro')  # noqa
+            VirtualMachine(distro='invalid_distro')  # noqa
 
     def test_provisioning_server_not_configured(self):
         """Check if an exception is raised if missing provisioning_server"""
-        with pytest.raises(VirtualMachineError):
-            _ = VirtualMachine()  # noqa
+        with pytest.raises(VirtualMachineError, match=r'A provisioning server must be provided.*'):
+            VirtualMachine()
 
     @pytest.mark.parametrize('exception_type', [NoValidConnectionsError, SSHException])
     def test_host_unreachable(self, exception_type):
         """Look for VirtualMachineError if the host is unreachable"""
         with patch('robottelo.ssh.command') as ssh_mock:
             ssh_mock.side_effect = exception_type
-        with pytest.raises(VirtualMachineError):
-            _ = VirtualMachine()
+        with pytest.raises(VirtualMachineError, match=f'{exception_type.__name__}'):
+            VirtualMachine()
 
     def test_run(self, config_provisioning_server, host_os_version_patch):
         """Check if run calls ssh.command"""

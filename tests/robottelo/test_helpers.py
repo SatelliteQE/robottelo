@@ -68,16 +68,16 @@ class TestGetHostInfo:
     @mock.patch('robottelo.helpers.ssh')
     def test_cat_fail(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 1, 'stderr'))
-        with pytest.raises(HostInfoError) as context:
+        with pytest.raises(
+            HostInfoError, match=r'.*Not able to cat /etc/redhat-release "stderr".*'
+        ):
             get_host_info()
-        assert context.match(r'.*Not able to cat /etc/redhat-release "stderr".*')
 
     @mock.patch('robottelo.helpers.ssh')
     def test_release_parse_fail(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
-        with pytest.raises(HostInfoError) as context:
+        with pytest.raises(HostInfoError, match=r'.*Not able to parse release string "".*'):
             get_host_info()
-        assert context.match(r'.*Not able to parse release string "".*')
 
 
 class TestEscapeSearch:
