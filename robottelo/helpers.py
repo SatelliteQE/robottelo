@@ -1004,3 +1004,11 @@ def download_gce_cert():
             )
         )
     return download_server_file('json', settings.gce.cert_url)
+
+
+def idgen(val):
+    """
+    The id generator function which will return string that will append to the parameterized
+    test name
+    """
+    return '_parameter'
