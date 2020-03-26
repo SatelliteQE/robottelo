@@ -17,6 +17,7 @@
 import copy
 import json
 import os
+import random
 
 import decorator
 import pyotp
@@ -38,7 +39,10 @@ from robottelo.constants import KEY_CLOAK_CLI
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.constants import PERMISSIONS
+from robottelo.constants import RHSSO_NEW_USER
+from robottelo.constants import RHSSO_RESET_PASSWORD
 from robottelo.datafactory import gen_string
+from robottelo.datafactory import valid_emails_list
 from robottelo.decorators import destructive
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
@@ -47,6 +51,7 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
+
 
 pytestmark = [run_in_one_thread]
 
@@ -68,6 +73,7 @@ def set_certificate_in_satellite(server_type):
             hostname=settings.server.hostname,
         )
     elif server_type == 'AD':
+        ssh.command('yum -y --disableplugin=foreman-protector install cifs-utils')
         command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
         ssh.command(command.format(settings.ldap.password, settings.ldap.hostname))
         result = ssh.command(
@@ -237,14 +243,96 @@ def enroll_idm_and_configure_external_auth():
     )
 
 
+def get_rhsso_client_id():
+    """Getter method for fetching the client id and can be used other functions"""
+    client_name = "{}{}".format(settings.server.hostname, '-foreman-openidc')
+    run_command(
+        cmd="{0} config credentials "
+        "--server {1}/auth "
+        "--realm {2} "
+        "--user {3} "
+        "--password {4}".format(
+            KEY_CLOAK_CLI,
+            settings.rhsso.host_url.replace("https://", "http://"),
+            settings.rhsso.realm,
+            settings.rhsso.rhsso_user,
+            settings.rhsso.password,
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+
+    result = run_command(
+        cmd="{} get clients --fields id,clientId".format(KEY_CLOAK_CLI),
+        hostname=settings.rhsso.host_name,
+    )
+    result_json = json.loads("[{{{0}".format("".join(result)))
+    client_id = None
+    for client in result_json:
+        if client_name in client['clientId']:
+            client_id = client['id']
+            break
+    return client_id
+
+
+def get_rhsso_user_details(username):
+    """Getter method to receive the user id"""
+    result = run_command(
+        cmd="{} get users -r {} -q username={}".format(
+            KEY_CLOAK_CLI, settings.rhsso.realm, username
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+    result_json = json.loads("[{{{0}".format("".join(result)))
+    return result_json[0]
+
+
+def upload_rhsso_entity(json_content, entity_name):
+    """Helper method upload the entity json request as file on RHSSO Server"""
+    with open(entity_name, "w") as file:
+        json.dump(json_content, file)
+    ssh.upload_file(entity_name, entity_name, hostname=settings.rhsso.host_name)
+
+
 def create_mapper(json_content, client_id):
     """Helper method to create the RH-SSO Client Mapper"""
-    with open("mapper_file", "w") as file:
-        json.dump(json_content, file)
-    ssh.upload_file("mapper_file", "mapper_file", hostname=settings.rhsso.host_name)
+    upload_rhsso_entity(json_content, "mapper_file")
     run_command(
-        cmd="{} create clients/{}/protocol-mappers/models -r {} -f mapper_file".format(
-            KEY_CLOAK_CLI, client_id, settings.rhsso.realm
+        cmd="{} create clients/{}/protocol-mappers/models -r {} -f {}".format(
+            KEY_CLOAK_CLI, client_id, settings.rhsso.realm, "mapper_file"
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+
+
+def create_new_rhsso_user(client_id):
+    """create new user in RHSSO instance and set the password"""
+    RHSSO_NEW_USER['username'] = gen_string('alphanumeric')
+    RHSSO_NEW_USER['email'] = random.choice(valid_emails_list())
+    RHSSO_RESET_PASSWORD['value'] = settings.rhsso.password
+    upload_rhsso_entity(RHSSO_NEW_USER, "create_user")
+    upload_rhsso_entity(RHSSO_RESET_PASSWORD, "reset_password")
+    run_command(
+        cmd="{} create users -r {} -f {}".format(
+            KEY_CLOAK_CLI, settings.rhsso.realm, "create_user"
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+    user_details = get_rhsso_user_details(RHSSO_NEW_USER['username'])
+    run_command(
+        cmd="{} update -r {} users/{}/reset-password -f {}".format(
+            KEY_CLOAK_CLI, settings.rhsso.realm, user_details['id'], "reset_password"
+        ),
+        hostname=settings.rhsso.host_name,
+    )
+    return RHSSO_NEW_USER
+
+
+def delete_rhsso_user(username):
+    """Delete the RHSSO user"""
+    user_details = get_rhsso_user_details(username)
+    run_command(
+        cmd="{} delete -r {} users/{}".format(
+            KEY_CLOAK_CLI, settings.rhsso.realm, user_details['id']
         ),
         hostname=settings.rhsso.host_name,
     )
@@ -306,32 +394,7 @@ def enroll_configure_rhsso_external_auth():
 @fixture(scope='module')
 def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = "{}{}".format(settings.server.hostname, '-foreman-openidc')
-    run_command(
-        cmd="{0} config credentials "
-        "--server {1}/auth "
-        "--realm {2} "
-        "--user {3} "
-        "--password {4}".format(
-            KEY_CLOAK_CLI,
-            settings.rhsso.host_url.replace("https://", "http://"),
-            settings.rhsso.realm,
-            settings.rhsso.rhsso_user,
-            settings.rhsso.password,
-        ),
-        hostname=settings.rhsso.host_name,
-    )
-
-    result = run_command(
-        cmd="{} get clients --fields id,clientId".format(KEY_CLOAK_CLI),
-        hostname=settings.rhsso.host_name,
-    )
-    result_json = json.loads("[{{{0}".format("".join(result)))
-
-    for client in result_json:
-        if client['clientId'] == client_id:
-            client_id = client['id']
-            break
+    client_id = get_rhsso_client_id()
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper["config"]["included.client.audience"] = audience_mapper["config"][
@@ -1235,7 +1298,7 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
 
 
 @destructive
-def test_external_logout_rhsso(session):
+def test_external_logout_rhsso(enable_external_auth_rhsso, session):
     """Verify the external logout page navigation with external authentication RH-SSO
 
     :id: 87b5e08e-69c6-11ea-8126-e74d80ea4308
@@ -1262,5 +1325,36 @@ def test_external_logout_rhsso(session):
             session.rhsso_login.login(login_details, external_login=True)
             actual_user = session.task.read_all(widget_names="current_user")['current_user']
             assert settings.rhsso.rhsso_user in actual_user
+    finally:
+        update_rhsso_settings_in_satellite(revert=True)
+
+
+@destructive
+def test_external_new_user_login(enable_external_auth_rhsso, session):
+    """Verify the external logout page navigation with external authentication RH-SSO
+
+    :id: bf938ea2-6df9-11ea-a7cf-951107ed0bbb
+
+    :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :steps:
+        1. Create new user on RHSSO Instance and Update the Settings in Satellite
+        2. Verify the login for that user
+
+    :expectedresults: New User created in RHSSO server should able to get log-in
+    """
+    client_id = get_rhsso_client_id()
+    try:
+        update_rhsso_settings_in_satellite()
+        user_details = create_new_rhsso_user(client_id)
+        login_details = {
+            'username': user_details['username'],
+            'password': settings.rhsso.password,
+        }
+        with session(login=False):
+            session.rhsso_login.login(login_details)
+            actual_user = session.task.read_all(widget_names="current_user")['current_user']
+            assert user_details['firstName'] in actual_user
+        delete_rhsso_user(user_details['username'])
     finally:
         update_rhsso_settings_in_satellite(revert=True)

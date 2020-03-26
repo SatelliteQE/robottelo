@@ -1778,3 +1778,14 @@ AUDIENCE_MAPPER = {
     "protocol": "openid-connect",
     "protocolMapper": "oidc-audience-mapper",
 }
+
+RHSSO_NEW_USER = {
+    "email": "test_user@mailinator.com",
+    "emailVerified": "true",
+    "enabled": "true",
+    "firstName": "first_name",
+    "lastName": "last_name",
+    "username": "random_name",
+}
+
+RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}
