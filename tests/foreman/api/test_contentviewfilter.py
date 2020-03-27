@@ -882,7 +882,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=self.content_view, inclusion=False
         ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}"'.format('duck')}
+            query={'search': 'name="{}"'.format('walrus')}
         )
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
@@ -891,7 +891,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view = self.content_view.read()
         content_view_version_info = content_view.read().version[0].read()
         # verify the module_stream_count and errata_count for Include Filter
-        assert content_view_version_info.module_stream_count == 1
+        assert content_view_version_info.module_stream_count == 2
         assert content_view_version_info.errata_counts['total'] == 1
 
     @tier2
