@@ -1780,7 +1780,7 @@ AUDIENCE_MAPPER = {
 }
 
 RHSSO_NEW_USER = {
-    "email": "test_user@mailinator.com",
+    "email": "test_user@example.com",
     "emailVerified": "true",
     "enabled": "true",
     "firstName": "first_name",
