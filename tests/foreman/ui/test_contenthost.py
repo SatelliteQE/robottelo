@@ -26,6 +26,7 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
+from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
@@ -153,6 +154,14 @@ def cut_lines(start_line, end_line, source_file, out_file, connection=None):
         'sed -n "{0},{1} p" {2} < {2} > {3}'.format(start_line, end_line, source_file, out_file)
     )
     return result
+
+
+@pytest.fixture(scope='module')
+def module_host_template(module_org, module_loc):
+    host_template = entities.Host(organization=module_org, location=module_loc)
+    host_template.create_missing()
+    host_template.name = None
+    return host_template
 
 
 @tier3
@@ -1250,3 +1259,57 @@ def test_syspurpose_mismatched(session, vm_module_streams):
             'details'
         ]
         assert details['system_purpose_status'] == "Mismatched"
+
+
+@tier3
+def test_pagination_multiple_hosts_multiple_pages(session, module_host_template):
+    """Create hosts to fill more than one page, sort on OS, check pagination.
+
+    Search for hosts based on operating system and assert that more than one page
+    is reported to exist and that more than one page can be accessed. Make some
+    additonal aserts to ensure the pagination widget is working as expected.
+
+    To avoid requiring more than 20 fakes hosts to overcome default page setting of 20,
+    this test will set a new per_page default (see new_per_page_setting).
+    This test is using URL method rather than the "entries_per_page" setting to avoid
+    impacting other tests that might be running.
+
+    :id: e63e4872-5fcf-4468-ab66-63ac4f4f5dac
+
+    :BZ: 1642549
+    """
+    new_per_page_setting = 2
+    host_num = new_per_page_setting + 1
+    host_name = None
+    start_url = f'/content_hosts?page=1&per_page={new_per_page_setting}'
+    # Create more than one page of fake hosts. Need two digits in name to ensure sort order.
+    for count in range(host_num):
+        host_name = f'test-{count + 1:0>2}'
+        make_fake_host(
+            {
+                'name': host_name,
+                'organization-id': module_host_template.organization.id,
+                'architecture-id': module_host_template.architecture.id,
+                'domain-id': module_host_template.domain.id,
+                'location-id': module_host_template.location.id,
+                'medium-id': module_host_template.medium.id,
+                'operatingsystem-id': module_host_template.operatingsystem.id,
+                'partition-table-id': module_host_template.ptable.id,
+            }
+        )
+    with session(url=start_url):
+        # Search for all the hosts by os. This uses pagination to get more than one page.
+        all_fake_hosts_found = session.contenthost.search(
+            f"os = {module_host_template.operatingsystem.name}"
+        )
+        # Assert dump of fake hosts found includes the higest numbered host created for this test
+        match = re.search(r'test-{:0>2}'.format(host_num), str(all_fake_hosts_found))
+        assert match, "Highest numbered host not found."
+        # Get all the pagination values
+        pagination_values = session.contenthost.read_all('Pagination')['Pagination']
+        # Assert total pages reported is greater than one page of hosts
+        total_pages = pagination_values['pages']
+        assert int(total_pages) > int(host_num) / int(new_per_page_setting)
+        # Assert that total items reported is the number of hosts created for this test
+        total_items_found = pagination_values['total_items']
+        assert int(total_items_found) >= host_num
