@@ -125,8 +125,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
 
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+
         # Provision Host
         try:
             skip_yum_update_during_provisioning(template='Kickstart default finish')
@@ -140,7 +139,6 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert session.host.search(fqdn)[0]['Name'] == fqdn
             assert host_info['properties']['properties_table']['Build'] == 'Installed'
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
@@ -155,12 +153,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
             # Host Delete
-            message = session.host.delete(fqdn)
-            assert (
-                'Are you sure you want to delete host {}? This will delete the VM and '
-                'its disks, and is irreversible. This behavior can be changed via '
-                'global setting "Destroy associated VM on host delete".'.format(fqdn)
-            ) == message
+            session.host.delete(fqdn)
             assert not session.host.search(fqdn)
 
             # AzureRm Cloud assertion
@@ -206,8 +199,7 @@ def test_positive_azurerm_host_provision_ud(
     fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
 
     with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+
         # Provision Host
         try:
             skip_yum_update_during_provisioning(template='Kickstart default user data')
@@ -221,7 +213,6 @@ def test_positive_azurerm_host_provision_ud(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert session.host.search(fqdn)[0]['Name'] == fqdn
             assert host_info['properties']['properties_table']['Build'] == 'Pending installation'
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
