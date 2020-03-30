@@ -37,7 +37,7 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 25366930-b7f4-4db8-a9c3-a470fe4f3583
 
         :expectedresults: Rule should be created, modified and deleted successfully
-        with given attributes.
+            with given attributes.
 
         :CaseImportance: Critical
         """
@@ -58,8 +58,12 @@ class DiscoveryRuleTestCase(APITestCase):
             loc = entities.Location().create()
             hostgroup = entities.HostGroup(organization=[org]).create()
             discovery_rule = entities.DiscoveryRule(
-                name=name, search_=search, hostname=hostname,
-                organization=[org], location=[loc], hostgroup=hostgroup
+                name=name,
+                search_=search,
+                hostname=hostname,
+                organization=[org],
+                location=[loc],
+                hostgroup=hostgroup,
             ).create()
             self.assertEqual(name, discovery_rule.name)
             self.assertEqual(hostname, discovery_rule.hostname)
@@ -84,8 +88,13 @@ class DiscoveryRuleTestCase(APITestCase):
             discovery_rule.enabled = enabled
             discovery_rule = discovery_rule.update(
                 [
-                    'name', 'organization', 'location', 'hostgroup',
-                    'search_', 'max_count', 'enabled'
+                    'name',
+                    'organization',
+                    'location',
+                    'hostgroup',
+                    'search_',
+                    'max_count',
+                    'enabled',
                 ]
             )
             self.assertEqual(name, discovery_rule.name)
