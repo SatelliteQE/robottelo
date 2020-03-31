@@ -1,6 +1,7 @@
 """Tests for :mod:`robottelo.vm`."""
 from unittest.mock import call
 from unittest.mock import patch
+from unittest.mock import PropertyMock
 
 import pytest
 from paramiko import SSHException
@@ -8,6 +9,8 @@ from paramiko.ssh_exception import NoValidConnectionsError
 
 from robottelo import ssh
 from robottelo.config.base import DistroSettings
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.vm import VirtualMachine
@@ -18,28 +21,36 @@ PROV_SERVER_DEFAULT = 'provisioning.example.com'
 
 
 class TestVirtualMachine:
-    """Tests for :class:`robottelo.vm.VirtualMachine`."""
+    """Tests for :class:`robottelo.vm.VirtualMachine`.
+
+    NOTE: During unit testing, particularly on travis, the robottelo.properties file is empty
+    The vm module is reading from settings.distro directly
+    but settings.configure() is never called in this context, and so no values are loaded anyway
+    """
 
     @pytest.fixture(scope="function")
     def vm_settings_patch(self):
         """Provide mock patches scoped to the function for vm settings"""
-        settings_patcher = patch('robottelo.vm.settings', spec=True)
-        vm_patch = settings_patcher.start()
-        vm_patch.clients.provisioning_server = None
-        vm_patch.distro = DistroSettings()
-
-        yield vm_patch
-        settings_patcher.stop()
+        with patch('robottelo.vm.settings', spec=True) as patcher:
+            patcher.clients.provisioning_server = None
+            patcher.distro = DistroSettings()
+            yield patcher
 
     @pytest.fixture(scope="function")
-    def host_os_version_patch(self):
+    def allowed_distro_patch(self):
         """Provide mock patches scoped to the function for host_os_version calls"""
-        host_patcher = patch('robottelo.vm.get_host_os_version')
-        host_patcher.start()
-        host_patcher.return_value = 'RHEL7.2.1'
+        from robottelo.vm import VirtualMachine
 
-        yield host_patcher
-        host_patcher.stop()
+        with patch.object(VirtualMachine, 'allowed_distros', new_callable=PropertyMock) as patcher:
+            patcher.return_value = [DISTRO_RHEL6, DISTRO_RHEL7]
+            yield patcher
+
+    @pytest.fixture(scope="function")
+    def host_os_version_patch(self, allowed_distro_patch):
+        """Provide mock patches scoped to the function for host_os_version calls"""
+        with patch('robottelo.vm.get_host_os_version') as patcher:
+            patcher.return_value = 'RHEL7.2.1'
+            yield patcher
 
     @pytest.fixture(scope="function")
     def config_provisioning_server(self, vm_settings_patch):
@@ -47,21 +58,35 @@ class TestVirtualMachine:
 
     def test_invalid_distro(self):
         """Check if an exception is raised if an invalid distro is passed"""
-        with pytest.raises(VirtualMachineError):
-            VirtualMachine(distro='invalid_distro')  # noqa
+        inv = 'this_distro_dne'
+        with pytest.raises(VirtualMachineError, match=f'{inv} is not a supported distro'):
+            VirtualMachine(distro=inv)
 
-    def test_provisioning_server_not_configured(self):
-        """Check if an exception is raised if missing provisioning_server"""
-        with pytest.raises(VirtualMachineError, match=r'A provisioning server must be provided.*'):
+    @patch('robottelo.vm.get_host_os_version')
+    def test_non_default_host_distro(self, host_version_mock):
+        """Check if an exception is raised if the host distro doesn't match expected types"""
+        non_default = 'NONVALIDDEFAULT'
+        host_version_mock.return_value = non_default
+        with pytest.raises(VirtualMachineError, match=f'using host OS version: {non_default}'):
             VirtualMachine()
+
+    def test_provisioning_server_not_configured(self, host_os_version_patch):
+        """Check if an exception is raised if missing provisioning_server
+        Mocking allowed_distros because config is empty on travis when running unit tests
+        This means we can't hit the provisioning server line, because distro_mapping has Nones
+        """
+        with pytest.raises(VirtualMachineError, match=r'A provisioning server must be provided.*'):
+            VirtualMachine(distro=DISTRO_RHEL6)
 
     @pytest.mark.parametrize('exception_type', [NoValidConnectionsError, SSHException])
     def test_host_unreachable(self, exception_type):
         """Look for VirtualMachineError if the host is unreachable"""
         with patch('robottelo.ssh.command') as ssh_mock:
-            ssh_mock.side_effect = exception_type
-        with pytest.raises(VirtualMachineError, match=f'{exception_type.__name__}'):
-            VirtualMachine()
+            ssh_mock.side_effect = exception_type({('127.0.0.1', 22): None})
+            with pytest.raises(
+                VirtualMachineError, match=f'Exception connecting via ssh to get host os version'
+            ):
+                VirtualMachine()
 
     def test_run(self, config_provisioning_server, host_os_version_patch):
         """Check if run calls ssh.command"""
