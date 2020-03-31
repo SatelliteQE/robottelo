@@ -226,12 +226,6 @@ def test_positive_azurerm_host_provision_ud(
             assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
             assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
-        except Exception as error:
-            azure_vm = entities.Host().search(query={'search': 'name={}'.format(fqdn)})
-            if azure_vm:
-                azure_vm[0].delete()
-            raise error
-
         finally:
             skip_yum_update_during_provisioning(
                 template='Kickstart default user data', reverse=True
