@@ -17,6 +17,7 @@ from time import sleep
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
+from cached_property import cached_property
 from fauxfactory import gen_string
 from wait_for import wait_for
 
@@ -77,8 +78,6 @@ class VirtualMachine(object):
         bridge=None,
         network=None,
     ):
-        distro_docker = settings.docker.docker_image
-        allowed_distros = list(settings.distro.__dict__.values()) + [distro_docker]
         distro_mapping = {
             DISTRO_RHEL6: settings.distro.image_el6,
             DISTRO_RHEL7: settings.distro.image_el7,
@@ -97,30 +96,34 @@ class VirtualMachine(object):
             try:
                 server_host_os_version = get_host_os_version()
             except (NoValidConnectionsError, SSHException):
-                trace = sys.exc_info()[2]
+                import traceback
+
+                trace = sys.exc_info()
+                tb_lines = '\n'.join(traceback.format_tb(trace[2]))
+                core_exc = trace[1]
                 raise VirtualMachineError(
-                    f'Exception connecting via ssh to get host os version'
-                ).with_traceback(trace)
+                    'Exception connecting via ssh to get host os version:\n'
+                    f'{tb_lines}\n{core_exc}'
+                )
             if server_host_os_version.startswith('RHEL6'):
                 distro = DISTRO_RHEL6
             elif server_host_os_version.startswith('RHEL7'):
                 distro = DISTRO_RHEL7
             else:
                 raise VirtualMachineError(
-                    'Cannot find a default compatible distro to create the virtual machine'
+                    'Cannot find a default compatible distro using '
+                    f'host OS version: {server_host_os_version}'
                 )
-        if distro in distro_mapping.keys():
-            distro = distro_mapping[distro]
-        self.distro = distro
-        if self.distro not in (allowed_distros):
+
+        self.distro = distro_mapping.get(distro) or distro
+        if self.distro not in self.allowed_distros:
             raise VirtualMachineError(
-                f'{self.distro} is not a supported distro. Choose one of {allowed_distros}'
+                f'{self.distro} is not a supported distro. Choose one of {self.allowed_distros}'
             )
-        if provisioning_server is None:
-            self.provisioning_server = settings.clients.provisioning_server
-        else:
-            self.provisioning_server = provisioning_server
-        if self.provisioning_server is None or self.provisioning_server == '':
+
+        self.provisioning_server = provisioning_server or settings.clients.provisioning_server
+
+        if self.provisioning_server in [None, '']:
             raise VirtualMachineError(
                 'A provisioning server must be provided. Make sure to fill '
                 '"provisioning_server" on clients section of your robottelo '
@@ -150,6 +153,14 @@ class VirtualMachine(object):
                     self.hostname, len(self.hostname)
                 )
             )
+
+    @cached_property
+    def allowed_distros(self):
+        """This is needed in construction, record it for easy reference
+        Property instead of a class attribute to delay reading of the settings
+        """
+        distro_docker = settings.docker.docker_image
+        return list(settings.distro.__dict__.values()) + [distro_docker]
 
     @property
     def subscribed(self):
