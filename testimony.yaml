@@ -58,6 +58,7 @@ CaseComponent:
     - Infobloxintegration
     - Infrastructure
     - InsightsInventoryPlugin
+    - InsightsPlugin
     - Installer
     - InterSatelliteSync
     - katello-agent
