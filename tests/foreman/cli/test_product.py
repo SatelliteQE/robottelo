@@ -39,6 +39,7 @@ from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_labels_list
+from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -177,6 +178,7 @@ class ProductTestCase(CLITestCase):
                         }
                     )
 
+    @run_in_one_thread
     @tier2
     def test_product_list_with_default_settings(self):
         """Listing product of an organization apart from default organization using hammer
