@@ -276,7 +276,12 @@ class CapsuleContentManagementTestCase(APITestCase):
             entities.ForemanTask(id=task['id']).poll()
         # Verify previously uploaded content is present on capsule
         lce_repo_path = form_repo_path(
-            org=org.label, lce=lce.label, cv=cv.label, prod=product.label, repo=repo.label
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=product.label,
+            repo=repo.label,
+            capsule=True,
         )
         for i in range(5):
             capsule_rpms = get_repo_files(lce_repo_path, hostname=self.capsule_ip)
