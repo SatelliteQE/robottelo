@@ -496,7 +496,7 @@ def get_services_status():
     return [result.return_code, result.stdout]
 
 
-def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None):
+def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None, capsule=False):
     """Forms unix path to the directory containing published repository in
     pulp using provided entity names. Supports both repositories in content
     view version and repositories in lifecycle environment. Note that either
@@ -508,6 +508,7 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None):
     :param str optional cvv: content view version, e.g. '1.0'
     :param str prod: product label
     :param str repo: repository label
+    :param bool capsule: whether the repo_path is from a capsule or not
     :return: full unix path to the specific repository
     :rtype: str
     """
@@ -516,7 +517,9 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None):
     if not any([lce, cvv]):
         raise ValueError('Either `lce` or `cvv` is required')
 
-    if lce:
+    if lce and capsule:
+        repo_path = '{}/{}/custom/{}/{}'.format(org, lce, prod, repo)
+    elif lce:
         repo_path = '{}/{}/{}/custom/{}/{}'.format(org, lce, cv, prod, repo)
     elif cvv:
         repo_path = '{}/content_views/{}/{}/custom/{}/{}'.format(org, cv, cvv, prod, repo)
