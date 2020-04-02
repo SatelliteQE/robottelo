@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import re
 from datetime import datetime
 from datetime import timedelta
 
@@ -23,6 +24,7 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import virt_who_hypervisor_config
@@ -133,6 +135,24 @@ def set_ignore_facts_for_os(value=False):
 def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.return_code == 0
+
+
+def line_count(file, connection=None):
+    """Get number of lines in a file."""
+    connection = connection or ssh.get_connection()
+    result = connection.run('wc -l < {0}'.format(file), output_format='plain')
+    count = result.stdout.strip('\n')
+    return count
+
+
+def cut_lines(start_line, end_line, source_file, out_file, connection=None):
+    """Given start and end line numbers, cut lines from source file
+    and put them in out file."""
+    connection = connection or ssh.get_connection()
+    result = connection.run(
+        'sed -n "{0},{1} p" {2} < {2} > {3}'.format(start_line, end_line, source_file, out_file)
+    )
+    return result
 
 
 @tier3
@@ -412,29 +432,48 @@ def test_actions_katello_host_package_update_timeout(session, vm):
 
     :CaseLevel: System
     """
+    error_line_found = False
+    source_log = '/var/log/foreman/production.log'
+    test_logfile = '/var/tmp/logfile_package_update_timeout'
     # Install fake package with older version
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     # Remove gofer to break communications on package status
     vm.run('rpm -e --nodeps gofer')
+    with ssh.get_connection() as connection:
+        # get the number of lines in the source log before the test
+        line_count_start = line_count(source_log, connection)
     # Attempt to update fake package, check for warning
     with session:
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Update',
-            FAKE_1_CUSTOM_PACKAGE_NAME,
+            vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME,
         )
         assert result['result'] == 'warning'
         # Install gofer using CLI
         vm.run('yum install gofer -y && systemctl restart goferd')
         # Try again to update fake package, check for success
         result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Update',
-            FAKE_1_CUSTOM_PACKAGE_NAME,
+            vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME,
         )
         assert result['result'] == 'success'
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+    # Get the log extract to check for the expected error message
+    with ssh.get_connection() as connection:
+        # get the number of lines in the source log after the test
+        line_count_end = line_count(source_log, connection)
+        # get the log lines of interest, put them in test_logfile
+        cut_lines(line_count_start, line_count_end, source_log, test_logfile, connection)
+    # Use same location on remote and local for log file extract
+    ssh.download_file(test_logfile)
+    # Search the log file extract for the line with error message
+    with open(test_logfile, "r") as logfile:
+        for line in logfile:
+            if re.search(
+                r'Host did not respond within 20 seconds. The task has been cancelled.', line
+            ):
+                error_line_found = True
+                break
+    assert error_line_found, "The expected time out error was not found in logs."
 
 
 @tier3
