@@ -22,6 +22,7 @@ from time import sleep
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.factory import make_job_invocation
@@ -481,6 +482,40 @@ class TestRemoteExecution:
                 )
             )
             raise AssertionError(result)
+
+    @tier3
+    def test_positive_run_receptor_installer(self):
+        """Run Receptor installer ("Configure Cloud Connector")
+
+        :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
+
+        :expectedresults: The job passes, installs Receptor that peers with c.r.c
+        """
+        template_name = 'Configure Cloud Connector'
+        invocation = make_job_invocation(
+            {
+                'async': True,
+                'job-template': template_name,
+                'inputs': 'satellite_user="{0}",satellite_password="{1}"'.format(
+                    settings.server.admin_username, settings.server.admin_password
+                ),
+                'search-query': "name ~ {0}".format(settings.server.hostname),
+            }
+        )
+        invocation_id = invocation['id']
+
+        wait_for(
+            lambda: entities.JobInvocation(id=invocation_id).read().status_label
+            in ["succeeded", "failed"],
+            timeout="1500s",
+        )
+        assert entities.JobInvocation(id=invocation_id).read().status == 0
+
+        result = ' '.join(
+            JobInvocation.get_output({'id': invocation_id, 'host': settings.server.hostname})
+        )
+        assert 'project-receptor.satellite_receptor_installer' in result
+        assert 'Exit status: 0' in result
 
 
 class TestAnsibleREX:
