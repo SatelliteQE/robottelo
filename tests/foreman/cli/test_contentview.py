@@ -5077,3 +5077,19 @@ class ContentViewFileRepoTestCase(CLITestCase):
         )['repositories'][0]['name']
 
         self.assertIn(repo['name'], expected_repo)
+
+    @tier3
+    def test_positive_katello_repo_rpms_max_int(self):
+        """Checking that datatype for katello_repository_rpms table is a
+        bigint for id for a closed loop bz.
+
+        :id: e83b3a00-c851-4970-a70d-abd26b2d3593
+
+        :expectedresults: id datatype is bigint
+
+        :CaseImportance: medium
+
+        :BZ: 1793701
+        """
+        result = ssh.command('sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"')
+        self.assertIn("id|bigint", result.stdout[3].replace(" ", ""))
