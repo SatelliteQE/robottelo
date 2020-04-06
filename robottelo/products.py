@@ -763,7 +763,14 @@ class RepositoryCollection(object):
     def organization(self):
         return self._org
 
-    def add_item(self, item):  # type: (BaseRepository) -> None
+    def add_item(self, item) -> None:
+        """
+        Add repository to collection
+
+        :type item: BaseRepository
+        :param item: Item to add
+        :returns: None
+        """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not add more')
         if not isinstance(item, BaseRepository):
@@ -774,7 +781,14 @@ class RepositoryCollection(object):
         if isinstance(item, RHELRepository):
             self.os_repo = item
 
-    def add_items(self, items):  # type: (List[BaseRepository]) -> None
+    def add_items(self, items):
+        """
+        Add multiple repositories to collection
+
+        :type items: List[BaseRepository]
+        :param items: Items to add
+        :returns: None
+        """
         for item in items:
             self.add_item(item)
 
@@ -941,18 +955,18 @@ class RepositoryCollection(object):
         enable_custom_repos=False,
         configure_rhel_repo=False,
     ):
-        # type: (VirtualMachine, bool, bool, bool, bool, bool) -> None
         """
         Setup The virtual machine basic task, eg: install katello ca,
         register vm host, enable rh repos and install katello-agent
 
-        :param vm: The Virtual machine to setup.
-        :param patch_os_release: whether to patch the VM with os version.
-        :param install_katello_agent: whether to install katello-agent
-        :param enable_rh_repos: whether to enable RH repositories
-        :param enable_custom_repos: whether to enable custom repositories
-        :param configure_rhel_repo: Whether to configure the distro Red Hat repository, this is
-            needed to configure manually RHEL custom repo url as sync time is very big
+        :type vm: VirtualMachine
+        :param VirtualMachine vm: The Virtual machine to setup.
+        :param bool patch_os_release: whether to patch the VM with os version.
+        :param bool install_katello_agent: whether to install katello-agent
+        :param bool enable_rh_repos: whether to enable RH repositories
+        :param bool enable_custom_repos: whether to enable custom repositories
+        :param bool configure_rhel_repo: Whether to configure the distro Red Hat repository,
+            this is needed to configure manually RHEL custom repo url as sync time is very big
             (more than 2 hours for RHEL 7Server) and not critical for some contexts.
         """
         if not self._setup_content_data:
