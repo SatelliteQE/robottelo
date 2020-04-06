@@ -24,14 +24,22 @@ from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 from robottelo.test import settings
+from robottelo.vm import VirtualMachine
 
 
 @run_in_one_thread
@@ -181,3 +189,56 @@ class SubscriptionsTestCase(APITestCase):
             data={'organization_id': org.id}
         )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
+
+    @tier2
+    def test_positive_subscription_status_disabled(self):
+        """Verify that Content host Subscription status is 'Unknown Subscription Status'
+         for a golden ticket manifest
+
+        :id: d7d7e20a-e386-43d5-9619-da933aa06694
+
+        :expectedresults: subscription status is 'Unknown Subscription Status'
+
+        :BZ: 1789924
+
+        :CaseImportance: Medium
+        """
+        org = entities.Organization().create()
+        with manifests.clone(name='golden_ticket') as manifest:
+            upload_manifest(org.id, manifest.content)
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
+        custom_repo = entities.Repository(
+            product=entities.Product(organization=org).create(),
+        ).create()
+        custom_repo.sync()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        cv = entities.ContentView(
+            organization=org, repository=[rh_repo_id, custom_repo.id],
+        ).create()
+        cv.publish()
+        cvv = cv.read().version[0].read()
+        promote(cvv, lce.id)
+        ak = entities.ActivationKey(
+            content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
+        ).create()
+        subscription = entities.Subscription(organization=org).search(
+            query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        )[0]
+        ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(org.label, ak.name)
+            assert vm.subscribed
+            host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
+            host_id = host[0].id
+            host_content = entities.Host(id=host_id).read_raw().content
+            assert "Unknown subscription status" in str(host_content)

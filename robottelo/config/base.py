@@ -557,11 +557,13 @@ class FakeManifestSettings(FeatureSettings):
         self.cert_url = None
         self.key_url = None
         self.url = None
+        self.golden_ticket = None
 
     def read(self, reader):
         """Read fake manifest settings."""
         self.cert_url = reader.get('fake_manifest', 'cert_url')
         self.key_url = reader.get('fake_manifest', 'key_url')
+        self.golden_ticket = reader.get('fake_manifest', 'golden_ticket')
         url = {}
         try:
             url = reader.get('fake_manifest', 'url', cast=dict)

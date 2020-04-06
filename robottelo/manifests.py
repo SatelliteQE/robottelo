@@ -32,7 +32,10 @@ class ManifestCloner(object):
         """Download and cache the manifest information."""
         if self.template is None:
             self.template = {}
-        self.template[name] = requests.get(settings.fake_manifest.url[name]).content
+        if name == "golden_ticket":
+            self.template[name] = requests.get(settings.fake_manifest.golden_ticket).content
+        else:
+            self.template[name] = requests.get(settings.fake_manifest.url[name]).content
         if self.signing_key is None:
             self.signing_key = requests.get(settings.fake_manifest.key_url).content
         if self.private_key is None:
