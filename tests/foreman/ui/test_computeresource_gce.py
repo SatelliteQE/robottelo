@@ -69,7 +69,7 @@ def test_positive_default_end_to_end_with_custom_profile(session):
     loc = entities.Location().create()
     new_org = entities.Organization().create()
     new_loc = entities.Location().create()
-    download_gce_cert(GCE_SETTINGS['cert_url'], GCE_SETTINGS['cert_path'])
+    download_gce_cert()
 
     with session:
         session.organization.select(org_name=org.name)
