@@ -15,11 +15,12 @@
 """
 import time
 
+from copy import copy
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import entities
-from nailgun.config import ServerConfig
+from nailgun import entity_mixins
 
 from robottelo import ssh
 from robottelo.api.utils import create_org_admin_user
@@ -81,7 +82,7 @@ class DiscoveryTestCase(APITestCase):
         Introduced a delay of 300secs by polling every 10 secs to get expected
         host
         """
-        default_config = ServerConfig.get()
+        default_config = entity_mixins.DEFAULT_SERVER_CONFIG
         for _ in range(30):
             discovered_host = entities.DiscoveredHost(user_config or default_config).search(
                 query={'search': 'name={}'.format(hostname)}
@@ -117,35 +118,27 @@ class DiscoveryTestCase(APITestCase):
             "/var/lib/tftpboot/pxelinux.cfg/default"
         )
         ssh.command(
-            "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' "
+            "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
             "/var/lib/tftpboot/pxelinux.cfg/default"
         )
         # Create Org and location
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
         # Get default settings values
-        cls.discovery_loc = entities.Setting().search(
-            query={'search': 'name=discovery_location', 'per_page': '200'}
-        )[0]
-        cls.default_discovery_loc = cls.discovery_loc.value
+        cls.default_disco_settings = {i.name: i for i in entities.Setting().search(
+            query={'search': 'name~discovery'})
+        }
 
-        cls.discovery_org = entities.Setting().search(
-            query={'search': 'name=discovery_organization', 'per_page': '200'}
-        )[0]
-        cls.default_discovery_org = cls.discovery_org.value
-
-        cls.discovery_auto = entities.Setting().search(
-            query={'search': 'name=discovery_auto', 'per_page': '200'}
-        )[0]
-        cls.default_discovery_auto = cls.discovery_auto.value
-
-        # Update default org and location params to place discovered host
+        # Update discovery taxonomies settings
+        cls.discovery_loc = copy(cls.default_disco_settings['discovery_location'])
         cls.discovery_loc.value = cls.loc.name
         cls.discovery_loc.update(['value'])
+        cls.discovery_org = copy(cls.default_disco_settings['discovery_organization'])
         cls.discovery_org.value = cls.org.name
         cls.discovery_org.update(['value'])
 
         # Enable flag to auto provision discovered hosts via discovery rules
+        cls.discovery_auto = copy(cls.default_disco_settings['discovery_auto'])
         cls.discovery_auto.value = 'true'
         cls.discovery_auto.update(['value'])
 
@@ -156,13 +149,11 @@ class DiscoveryTestCase(APITestCase):
     @classmethod
     def tearDownClass(cls):
         """Restore default global setting's values"""
-        cls.discovery_loc.value = cls.default_discovery_loc
-        cls.discovery_loc.update(['value'])
-        cls.discovery_org.value = cls.default_discovery_org
-        cls.discovery_org.update(['value'])
-        cls.discovery_auto.value = cls.default_discovery_auto
-        cls.discovery_auto.update(['value'])
+        cls.default_disco_settings['discovery_location'].update(['value'])
+        cls.default_disco_settings['discovery_organization'].update(['value'])
+        cls.default_disco_settings['discovery_auto'].update(['value'])
         super(DiscoveryTestCase, cls).tearDownClass()
+
 
     @stubbed()
     @tier3
