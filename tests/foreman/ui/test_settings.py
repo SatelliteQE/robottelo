@@ -20,6 +20,7 @@ from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
 
+from robottelo import ssh
 from robottelo.cli.user import User
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
@@ -342,9 +343,8 @@ def test_negative_update_email_delivery_method_smtp():
     """
 
 
-@stubbed()
 @tier3
-def test_positive_update_email_delivery_method_sendmail():
+def test_positive_update_email_delivery_method_sendmail(session):
     """Updating Sendmail params on Email tab
 
     :id: c774e713-9640-402d-8987-c3509e918eb6
@@ -367,9 +367,39 @@ def test_positive_update_email_delivery_method_sendmail():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
-
-    :CaseAutomation: notautomated
     """
+    property_name = "Email"
+    mail_config_default_param = {
+        "delivery_method": "",
+        "email_reply_address": "",
+        "email_subject_prefix": "",
+        "sendmail_arguments": "",
+        "sendmail_location": "",
+        "send_welcome_email": "",
+    }
+    mail_config_default_param = {
+        content: entities.Setting().search(query={'search': f'name={content}'})[0]
+        for content in mail_config_default_param
+    }
+    mail_config_new_params = {
+        "delivery_method": "Sendmail",
+        "email_reply_address": f"root@{ssh.settings.server.hostname}",
+        "email_subject_prefix": [gen_string('alpha')],
+        "sendmail_location": "/usr/sbin/sendmail",
+        "send_welcome_email": "Yes",
+    }
+    command = "grep " + f'{mail_config_new_params["email_subject_prefix"]}' + " /var/mail/root"
+
+    with session:
+        try:
+            for mail_content, mail_content_value in mail_config_new_params.items():
+                session.settings.update(mail_content, mail_content_value)
+            test_mail_response = session.settings.send_test_mail(property_name)[0]
+            assert test_mail_response == "Email was sent successfully"
+            assert ssh.command(command).return_code == 0
+        finally:
+            for key, value in mail_config_default_param.items():
+                setting_cleanup(setting_name=key, setting_value=value.value)
 
 
 @stubbed()
