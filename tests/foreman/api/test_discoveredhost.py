@@ -14,8 +14,8 @@
 :Upstream: No
 """
 import time
-
 from copy import copy
+
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
@@ -125,8 +125,8 @@ class DiscoveryTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
         # Get default settings values
-        cls.default_disco_settings = {i.name: i for i in entities.Setting().search(
-            query={'search': 'name~discovery'})
+        cls.default_disco_settings = {
+            i.name: i for i in entities.Setting().search(query={'search': 'name~discovery'})
         }
 
         # Update discovery taxonomies settings
@@ -153,7 +153,6 @@ class DiscoveryTestCase(APITestCase):
         cls.default_disco_settings['discovery_organization'].update(['value'])
         cls.default_disco_settings['discovery_auto'].update(['value'])
         super(DiscoveryTestCase, cls).tearDownClass()
-
 
     @stubbed()
     @tier3
@@ -217,9 +216,9 @@ class DiscoveryTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 result = _create_discovered_host(name)
-                discovered_host = entities.DiscoveredHost(id=result['id']).read()
-                host_name = 'mac{0}'.format(discovered_host.mac.replace(':', ''))
-                self.assertEqual(discovered_host.name, host_name)
+                discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
+                host_name = 'mac{0}'.format(discovered_host['mac'].replace(':', ''))
+                self.assertEqual(discovered_host['name'], host_name)
 
     @stubbed()
     @tier3
