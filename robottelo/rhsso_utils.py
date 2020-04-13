@@ -14,7 +14,7 @@ from robottelo.datafactory import valid_emails_list
 
 def run_command(cmd, hostname=settings.server.hostname, timeout=None):
     """helper function for ssh command and avoiding the return code check in called function"""
-    if timeout is not None:
+    if timeout:
         result = ssh.command(cmd=cmd, hostname=hostname, timeout=timeout)
     else:
         result = ssh.command(cmd=cmd, hostname=hostname)
@@ -89,7 +89,9 @@ def create_mapper(json_content, client_id):
 
 def create_new_rhsso_user(client_id, username=None):
     """create new user in RHSSO instance and set the password"""
-    RHSSO_NEW_USER['username'] = gen_string('alphanumeric') if username is None else username
+    if not username:
+        username = gen_string('alphanumeric')
+    RHSSO_NEW_USER['username'] = username
     RHSSO_NEW_USER['email'] = random.choice(valid_emails_list())
     RHSSO_RESET_PASSWORD['value'] = settings.rhsso.password
     upload_rhsso_entity(RHSSO_NEW_USER, "create_user")
