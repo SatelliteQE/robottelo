@@ -767,8 +767,7 @@ class RepositoryCollection(object):
         """
         Add repository to collection
 
-        :type item: BaseRepository
-        :param item: Item to add
+        :param BaseRepository item: Item to add
         :returns: None
         """
         if self._repos_info:
@@ -785,8 +784,7 @@ class RepositoryCollection(object):
         """
         Add multiple repositories to collection
 
-        :type items: List[BaseRepository]
-        :param items: Items to add
+        :param List[BaseRepository] items: Items to add
         :returns: None
         """
         for item in items:
@@ -959,7 +957,6 @@ class RepositoryCollection(object):
         Setup The virtual machine basic task, eg: install katello ca,
         register vm host, enable rh repos and install katello-agent
 
-        :type vm: VirtualMachine
         :param VirtualMachine vm: The Virtual machine to setup.
         :param bool patch_os_release: whether to patch the VM with os version.
         :param bool install_katello_agent: whether to install katello-agent
