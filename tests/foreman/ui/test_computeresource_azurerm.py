@@ -162,7 +162,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
         except Exception as error:
             azure_vm = entities.Host().search(query={'search': 'name={}'.format(fqdn)})
             if azure_vm:
-                azure_vm[0].delete()
+                azure_vm[0].delete(synchronous=False)
             raise error
 
         finally:
@@ -232,4 +232,4 @@ def test_positive_azurerm_host_provision_ud(
             )
             azure_vm = entities.Host().search(query={'search': 'name={}'.format(fqdn)})
             if azure_vm:
-                azure_vm[0].delete()
+                azure_vm[0].delete(synchronous=False)
