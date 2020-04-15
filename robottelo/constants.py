@@ -1636,16 +1636,6 @@ BOOKMARK_ENTITIES = [
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
-BACKUP_FILES = [
-    'candlepin.dump',
-    'config_files.tar.gz',
-    'config.snar',
-    'foreman.dump',
-    'mongo_dump',
-    'pulp_data.tar',
-    'pulp.snar',
-]
-
 REAL_4_ERRATA_DETAILS = [
     ['Advisory', REAL_4_ERRATA_ID],
     ['CVEs', set(REAL_4_ERRATA_CVES)],
