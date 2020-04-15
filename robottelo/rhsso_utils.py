@@ -2,13 +2,14 @@
 import json
 import random
 
+from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import KEY_CLOAK_CLI
 from robottelo.constants import RHSSO_NEW_USER
 from robottelo.constants import RHSSO_RESET_PASSWORD
-from robottelo.datafactory import gen_string
 from robottelo.datafactory import valid_emails_list
 
 satellite = settings.server.hostname
