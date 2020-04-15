@@ -192,7 +192,7 @@ class SubscriptionsTestCase(APITestCase):
 
     @tier2
     def test_positive_subscription_status_disabled(self):
-        """Verify that Content host Subscription status is 'Unknown Subscription Status'
+        """Verify that Content host Subscription status details is 'Unknown Subscription Status'
          for a golden ticket manifest
 
         :id: d7d7e20a-e386-43d5-9619-da933aa06694
