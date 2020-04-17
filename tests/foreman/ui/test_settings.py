@@ -15,10 +15,12 @@
 :Upstream: No
 """
 import pytest
+from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
 
+from robottelo.cli.user import User
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
@@ -209,11 +211,10 @@ def test_positive_selectors(session):
                 setting_cleanup(setting_attr, str(original_val.default))
 
 
-@stubbed()
 @tier3
-def test_positive_update_login_page_footer_text_with_long_string():
-    """Attempt to update parameter "Login_page_footer_text"
-        with long length string under General tab
+def test_positive_update_login_page_footer_text_with_long_string(session):
+    """Testing to update parameter "Login_page_footer_text with long length
+    string under General tab
 
     :id: b1a51594-43e6-49d8-918b-9bc306f3a1a2
 
@@ -228,13 +229,20 @@ def test_positive_update_login_page_footer_text_with_long_string():
 
     :CaseImportance: Medium
 
-    :CaseAutomation: notautomated
-
     :CaseLevel: Acceptance
     """
+    property_name = 'login_text'
+    property_value = entities.Setting().search(query={'search': f'name={property_name}'})[0]
+    login_text_data = gen_string('alpha', 270)
+    with session:
+        try:
+            session.settings.update(f"name={property_name}", f"{login_text_data}")
+            result = session.login.logout()
+            assert result["login_text"] == login_text_data
+        finally:
+            setting_cleanup(setting_name=property_name, setting_value=property_value.value)
 
 
-@stubbed()
 @tier3
 def test_negative_settings_access_to_non_admin():
     """Check non admin users can't access Administer -> Settings tab
@@ -242,20 +250,26 @@ def test_negative_settings_access_to_non_admin():
     :id: 34bb9376-c5fe-431a-ac0d-ef030c0ab50e
 
     :steps:
+
         1. Login with non admin user
         2. Check "Administer" tab is not present
         3. Navigate to /settings
         4. Check message permission denied is present
 
-    :expectedresults: Administer -> Settings tab should not be available to
-        non admin users
+    :expectedresults: Administer -> Settings tab should not be available to non admin users
 
     :CaseImportance: Medium
 
-    :CaseAutomation: notautomated
-
     :CaseLevel: Acceptance
     """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    entities.User(admin=False, login=login, password=password).create()
+    try:
+        with Session(user=login, password=password) as session:
+            assert session.settings.browser.title == 'Permission denied'
+    finally:
+        User.delete({'login': login})
 
 
 @stubbed()
