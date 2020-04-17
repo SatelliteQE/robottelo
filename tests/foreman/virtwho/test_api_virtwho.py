@@ -67,7 +67,7 @@ def virtwho_config(form_data):
 
 @skipif(
     condition=(settings.virtwho.hypervisor_type == 'kubevirt' and is_open('BZ:1735540')),
-    reason='We have not supported kubevirt yet',
+    reason='We have not supported kubevirt hypervisor yet',
 )
 class TestVirtWhoConfig:
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
