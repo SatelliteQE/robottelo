@@ -32,6 +32,7 @@ run_in_one_thread = pytest.mark.run_in_one_thread
 # Shortcuts for pytest methods
 parametrize = pytest.mark.parametrize
 fixture = pytest.fixture
+skipif = pytest.mark.skipif
 
 
 def setting_is_set(option):
