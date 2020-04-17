@@ -15,10 +15,13 @@
 :Upstream: No
 """
 import pytest
+from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
 
+from robottelo import ssh
+from robottelo.cli.user import User
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
@@ -209,11 +212,10 @@ def test_positive_selectors(session):
                 setting_cleanup(setting_attr, str(original_val.default))
 
 
-@stubbed()
 @tier3
-def test_positive_update_login_page_footer_text_with_long_string():
-    """Attempt to update parameter "Login_page_footer_text"
-        with long length string under General tab
+def test_positive_update_login_page_footer_text_with_long_string(session):
+    """Testing to update parameter "Login_page_footer_text with long length
+    string under General tab
 
     :id: b1a51594-43e6-49d8-918b-9bc306f3a1a2
 
@@ -228,13 +230,20 @@ def test_positive_update_login_page_footer_text_with_long_string():
 
     :CaseImportance: Medium
 
-    :CaseAutomation: notautomated
-
     :CaseLevel: Acceptance
     """
+    property_name = 'login_text'
+    property_value = entities.Setting().search(query={'search': f'name={property_name}'})[0]
+    login_text_data = gen_string('alpha', 270)
+    with session:
+        try:
+            session.settings.update(f"name={property_name}", f"{login_text_data}")
+            result = session.login.logout()
+            assert result["login_text"] == login_text_data
+        finally:
+            setting_cleanup(setting_name=property_name, setting_value=property_value.value)
 
 
-@stubbed()
 @tier3
 def test_negative_settings_access_to_non_admin():
     """Check non admin users can't access Administer -> Settings tab
@@ -242,20 +251,26 @@ def test_negative_settings_access_to_non_admin():
     :id: 34bb9376-c5fe-431a-ac0d-ef030c0ab50e
 
     :steps:
+
         1. Login with non admin user
         2. Check "Administer" tab is not present
         3. Navigate to /settings
         4. Check message permission denied is present
 
-    :expectedresults: Administer -> Settings tab should not be available to
-        non admin users
+    :expectedresults: Administer -> Settings tab should not be available to non admin users
 
     :CaseImportance: Medium
 
-    :CaseAutomation: notautomated
-
     :CaseLevel: Acceptance
     """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    entities.User(admin=False, login=login, password=password).create()
+    try:
+        with Session(user=login, password=password) as session:
+            assert session.settings.browser.title == 'Permission denied'
+    finally:
+        User.delete({'login': login})
 
 
 @stubbed()
@@ -328,9 +343,8 @@ def test_negative_update_email_delivery_method_smtp():
     """
 
 
-@stubbed()
 @tier3
-def test_positive_update_email_delivery_method_sendmail():
+def test_positive_update_email_delivery_method_sendmail(session):
     """Updating Sendmail params on Email tab
 
     :id: c774e713-9640-402d-8987-c3509e918eb6
@@ -353,9 +367,39 @@ def test_positive_update_email_delivery_method_sendmail():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
-
-    :CaseAutomation: notautomated
     """
+    property_name = "Email"
+    mail_config_default_param = {
+        "delivery_method": "",
+        "email_reply_address": "",
+        "email_subject_prefix": "",
+        "sendmail_arguments": "",
+        "sendmail_location": "",
+        "send_welcome_email": "",
+    }
+    mail_config_default_param = {
+        content: entities.Setting().search(query={'search': f'name={content}'})[0]
+        for content in mail_config_default_param
+    }
+    mail_config_new_params = {
+        "delivery_method": "Sendmail",
+        "email_reply_address": f"root@{ssh.settings.server.hostname}",
+        "email_subject_prefix": [gen_string('alpha')],
+        "sendmail_location": "/usr/sbin/sendmail",
+        "send_welcome_email": "Yes",
+    }
+    command = "grep " + f'{mail_config_new_params["email_subject_prefix"]}' + " /var/mail/root"
+
+    with session:
+        try:
+            for mail_content, mail_content_value in mail_config_new_params.items():
+                session.settings.update(mail_content, mail_content_value)
+            test_mail_response = session.settings.send_test_mail(property_name)[0]
+            assert test_mail_response == "Email was sent successfully"
+            assert ssh.command(command).return_code == 0
+        finally:
+            for key, value in mail_config_default_param.items():
+                setting_cleanup(setting_name=key, setting_value=value.value)
 
 
 @stubbed()
