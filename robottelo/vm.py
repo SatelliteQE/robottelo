@@ -523,13 +523,23 @@ gpgcheck=0'''.format(
         cmd = 'subscription-manager register --org {0}'.format(org)
         if activation_key is not None:
             cmd += ' --activationkey {0}'.format(activation_key)
-        elif lce is not None:
+        elif lce:
             if username is None and password is None:
                 username = settings.server.admin_username
                 password = settings.server.admin_password
 
             cmd += ' --environment {0} --username {1} --password {2}'.format(
                 lce, username, password
+            )
+            if auto_attach:
+                cmd += ' --auto-attach'
+        elif consumerid:
+            if username is None and password is None:
+                username = settings.server.admin_username
+                password = settings.server.admin_password
+
+            cmd += ' --consumerid {0} --username {1} --password {2}'.format(
+                consumerid, username, password,
             )
             if auto_attach:
                 cmd += ' --auto-attach'
