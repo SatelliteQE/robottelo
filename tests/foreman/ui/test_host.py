@@ -1910,6 +1910,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             )
 
 
+@upgrade
 @tier2
 def test_positive_cockpit(session):
     """Test whether webconsole button and cockpit integration works
