@@ -71,7 +71,7 @@ def virtwho_config(form_data):
 )
 class TestVirtWhoConfig:
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
-        subscriptions = entities.Subscription().search(query={'search': '{0}'.format(sku)})
+        subscriptions = entities.Subscription().search(query={'search': sku})
         for item in subscriptions:
             item = item.read_json()
             if hypervisor_name.lower() in item['hypervisor']['name']:
@@ -102,31 +102,28 @@ class TestVirtWhoConfig:
         assert virtwho_config.status == 'unknown'
         command = get_configure_command(virtwho_config.id)
         hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
-        assert (
+        virt_who_instance = (
             entities.VirtWhoConfig()
-            .search(query={'search': 'name={}'.format(virtwho_config.name)})[0]
+            .search(query={'search': f'name={virtwho_config.name}'})[0]
             .status
-            == 'ok'
         )
+        assert virt_who_instance == 'ok'
         hosts = [
-            (
-                hypervisor_name,
-                'product_id={} and type=NORMAL'.format(settings.virtwho.sku_vdc_physical),
-            ),
+            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL',),
             (
                 guest_name,
-                'product_id={} and type=STACK_DERIVED'.format(settings.virtwho.sku_vdc_physical),
+                f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED',
             ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
-                subscriptions = entities.Subscription().search(query={'search': '{0}'.format(sku)})
+                subscriptions = entities.Subscription().search(query={'search': sku})
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 vdc_id = self._get_guest_bonus(hypervisor_name, sku)
             host, time = wait_for(
                 entities.Host().search,
-                func_args=(None, {'search': "{0}".format(hostname)}),
+                func_args=(None, {'search': hostname}),
                 fail_condition=[],
                 timeout=5,
                 delay=1,
@@ -134,14 +131,10 @@ class TestVirtWhoConfig:
             entities.HostSubscription(host=host[0].id).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
-            result = (
-                entities.Host().search(query={'search': '{0}'.format(hostname)})[0].read_json()
-            )
+            result = entities.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': "name={form_data['name']}"})
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
@@ -162,31 +155,28 @@ class TestVirtWhoConfig:
         hypervisor_name, guest_name = deploy_configure_by_script(
             script['virt_who_config_script'], debug=True
         )
-        assert (
+        virt_who_instance = (
             entities.VirtWhoConfig()
-            .search(query={'search': 'name={}'.format(virtwho_config.name)})[0]
+            .search(query={'search': f'name={virtwho_config.name}'})[0]
             .status
-            == 'ok'
         )
+        assert virt_who_instance == 'ok'
         hosts = [
-            (
-                hypervisor_name,
-                'product_id={} and type=NORMAL'.format(settings.virtwho.sku_vdc_physical),
-            ),
+            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL',),
             (
                 guest_name,
-                'product_id={} and type=STACK_DERIVED'.format(settings.virtwho.sku_vdc_physical),
+                f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED',
             ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
-                subscriptions = entities.Subscription().search(query={'search': '{0}'.format(sku)})
+                subscriptions = entities.Subscription().search(query={'search': sku})
                 vdc_id = subscriptions[0].id
             if 'type=STACK_DERIVED' in sku:
                 vdc_id = self._get_guest_bonus(hypervisor_name, sku)
             host, time = wait_for(
                 entities.Host().search,
-                func_args=(None, {'search': "{0}".format(hostname)}),
+                func_args=(None, {'search': hostname}),
                 fail_condition=[],
                 timeout=5,
                 delay=1,
@@ -194,14 +184,10 @@ class TestVirtWhoConfig:
             entities.HostSubscription(host=host[0].id).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
-            result = (
-                entities.Host().search(query={'search': '{0}'.format(hostname)})[0].read_json()
-            )
+            result = entities.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_debug_option(self, form_data, virtwho_config):
@@ -225,9 +211,7 @@ class TestVirtWhoConfig:
             deploy_configure_by_command(command)
             assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
 
     @tier2
     def test_positive_interval_option(self, form_data, virtwho_config):
@@ -260,9 +244,7 @@ class TestVirtWhoConfig:
             deploy_configure_by_command(command)
             assert get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data["name"])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
@@ -289,9 +271,7 @@ class TestVirtWhoConfig:
             deploy_configure_by_command(command)
             assert get_configure_option('hypervisor_id', config_file) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
 
     @tier2
     def test_positive_filter_option(self, form_data, virtwho_config):
@@ -343,9 +323,7 @@ class TestVirtWhoConfig:
                 == blacklist['exclude_host_parents']
             )
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
 
     @tier2
     def test_positive_proxy_option(self, form_data, virtwho_config):
@@ -374,9 +352,7 @@ class TestVirtWhoConfig:
         assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == proxy
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
 
     @tier2
     def test_positive_configure_organization_list(self, form_data, virtwho_config):
@@ -397,6 +373,4 @@ class TestVirtWhoConfig:
         search_result = virtwho_config.get_organization_configs(data={'per_page': 1000})
         assert [item for item in search_result['results'] if item['name'] == form_data['name']]
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(
-            query={'search': 'name={}'.format(form_data['name'])}
-        )
+        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
