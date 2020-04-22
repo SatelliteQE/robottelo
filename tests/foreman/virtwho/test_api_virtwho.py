@@ -134,7 +134,7 @@ class TestVirtWhoConfig:
             result = entities.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': "name={form_data['name']}"})
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
@@ -211,7 +211,7 @@ class TestVirtWhoConfig:
             deploy_configure_by_command(command)
             assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_interval_option(self, form_data, virtwho_config):
@@ -271,7 +271,7 @@ class TestVirtWhoConfig:
             deploy_configure_by_command(command)
             assert get_configure_option('hypervisor_id', config_file) == value
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_filter_option(self, form_data, virtwho_config):
@@ -323,7 +323,7 @@ class TestVirtWhoConfig:
                 == blacklist['exclude_host_parents']
             )
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_proxy_option(self, form_data, virtwho_config):
@@ -352,7 +352,7 @@ class TestVirtWhoConfig:
         assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == proxy
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
     @tier2
     def test_positive_configure_organization_list(self, form_data, virtwho_config):
@@ -373,4 +373,4 @@ class TestVirtWhoConfig:
         search_result = virtwho_config.get_organization_configs(data={'per_page': 1000})
         assert [item for item in search_result['results'] if item['name'] == form_data['name']]
         virtwho_config.delete()
-        assert not entities.VirtWhoConfig().search(query={'search': f"'name={form_data['name']}'"})
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
