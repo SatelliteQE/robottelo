@@ -459,6 +459,37 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             )
         self.assertIn('Error: Could not find organization', context.exception.stderr)
 
+    @tier3
+    @upgrade
+    def test_positive_list_affected_chosts(self):
+        """View a list of affected content hosts for an erratum
+
+        :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps: host list --search "applicable_errata = <erratum_id>"
+            --organization-id=<org_id>
+
+        :expectedresults: List of affected content hosts for an erratum is
+            displayed.
+
+        :CaseAutomation: automated
+
+        """
+        result = Host.list(
+            {
+                'search': f'applicable_errata = {FAKE_2_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'fields': 'Name',
+            }
+        )
+        for virtual_machine in self.virtual_machines:
+            result = [item['name'] for item in result]
+            assert (
+                virtual_machine.hostname in result
+            ), "VM host name not found in list of applicable hosts"
+
 
 class ErrataTestCase(CLITestCase):
     """Hammer CLI Tests for Erratum command"""
@@ -1495,25 +1526,6 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(user_org_errata_ids), self.org_multi_product_small_erratum_count)
         self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
         self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
-
-    @stubbed()
-    @upgrade
-    def test_positive_list_affected_chosts(self):
-        """View a list of affected content hosts for an erratum
-
-        :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps: content-host list --erratum-id=<erratum_id>
-            --organization-id=<org_id>
-
-        :expectedresults: List of affected content hosts for an erratum is
-            displayed.
-
-        :CaseAutomation: notautomated
-
-        """
 
     @stubbed()
     def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
