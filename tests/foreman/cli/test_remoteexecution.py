@@ -484,6 +484,7 @@ class TestRemoteExecution:
             raise AssertionError(result)
 
     @tier3
+    @upgrade
     def test_positive_run_receptor_installer(self):
         """Run Receptor installer ("Configure Cloud Connector")
 
