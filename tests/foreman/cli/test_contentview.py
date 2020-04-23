@@ -4156,7 +4156,7 @@ class ContentViewTestCase(CLITestCase):
                     }
                 )
             # Synchronize the capsule content
-            Capsule.content_synchronize({'id': capsule['id'], 'organization-id': org['id']})
+            # Capsule.content_synchronize({'id': capsule['id'], 'organization-id': org['id']})
             capsule_content_info = Capsule.content_info(
                 {'id': capsule['id'], 'organization-id': org['id']}
             )
