@@ -517,6 +517,12 @@ class TestRemoteExecution:
         )
         assert 'project-receptor.satellite_receptor_installer' in result
         assert 'Exit status: 0' in result
+        # check that there is one receptor conf file and it's only readable
+        # by the receptor user and root
+        result = ssh.command('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
+        assert result.stdout[0] == '400:foreman-proxy'
+        result = ssh.command('ls -l /etc/receptor/*/receptor.conf | wc -l')
+        assert result.stdout[0] == '1'
 
 
 class TestAnsibleREX:
