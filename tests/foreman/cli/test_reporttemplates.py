@@ -729,12 +729,20 @@ class ReportTemplateTestCase(CLITestCase):
             vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
             assert vm.subscribed
             result_html = ReportTemplate.generate(
-                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'html'}
+                {
+                    'organization': self.setup_org['name'],
+                    'name': 'Entitlements',
+                    'report-format': 'html',
+                }
             )
             assert vm.hostname in result_html[2]
             assert self.setup_subs_id[0]['name'] in result_html[2]
             result_yaml = ReportTemplate.generate(
-                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'yaml'}
+                {
+                    'organization': self.setup_org['name'],
+                    'name': 'Entitlements',
+                    'report-format': 'yaml',
+                }
             )
             for entry in result_yaml:
                 if '-Name:' in entry:
@@ -742,7 +750,11 @@ class ReportTemplateTestCase(CLITestCase):
                 elif 'Subscription Name:' in entry:
                     assert self.setup_subs_id[0]['name'] in entry
             result_csv = ReportTemplate.generate(
-                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'csv'}
+                {
+                    'organization': self.setup_org['name'],
+                    'name': 'Entitlements',
+                    'report-format': 'csv',
+                }
             )
             assert vm.hostname in result_csv[1]
             assert self.setup_subs_id[0]['name'] in result_csv[1]
@@ -770,10 +782,14 @@ class ReportTemplateTestCase(CLITestCase):
             vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
             assert vm.subscribed
             scheduled_csv = ReportTemplate.schedule(
-                {'id': 115, 'organization': self.setup_org['name'], 'report-format': 'csv'}
+                {
+                    'name': 'Entitlements',
+                    'organization': self.setup_org['name'],
+                    'report-format': 'csv',
+                }
             )
             data_csv = ReportTemplate.report_data(
-                {'id': 115, 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]}
+                {'name': 'Entitlements', 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]}
             )
             assert any(vm.hostname in line for line in data_csv)
             assert any(self.setup_subs_id[0]['name'] in line for line in data_csv)
