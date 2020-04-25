@@ -112,7 +112,8 @@ def test_positive_check_dashboard(
         )
         session.oscappolicy.create(
             {
-                'create_policy.name': name,
+                'deployment_options.deploy_by': 'ansible',
+                'policy_attributes.name': name,
                 'scap_content.scap_content_resource': oscap_content_title,
                 'scap_content.xccdf_profile': OSCAP_PROFILE['security7'],
                 'schedule.period': 'Weekly',
@@ -124,11 +125,7 @@ def test_positive_check_dashboard(
         )
         policy_details = session.oscappolicy.details(name)
         assert policy_details['HostsBreakdownStatus']['total_count'] == 1
-        host_breakdown_chart = policy_details['HostBreakdownChart']['hosts_breakdown'].split(
-            " ", 1
-        )
-        assert host_breakdown_chart[0] == '100%'
-        assert host_breakdown_chart[1] == 'Not audited'
+        assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%'
 
 
 @tier1
@@ -167,8 +164,9 @@ def test_positive_end_to_end(
         # Create new oscap policy with assigned content and tailoring file
         session.oscappolicy.create(
             {
-                'create_policy.name': name,
-                'create_policy.description': description,
+                'deployment_options.deploy_by': 'ansible',
+                'policy_attributes.name': name,
+                'policy_attributes.description': description,
                 'scap_content.scap_content_resource': oscap_content_title,
                 'scap_content.xccdf_profile': profile_type,
                 'scap_content.tailoring_file': tailoring_name,
@@ -183,6 +181,7 @@ def test_positive_end_to_end(
         assert session.oscappolicy.search(name)[0]['Name'] == name
         # Check that created entity has expected values
         oscappolicy_values = session.oscappolicy.read(name)
+        assert oscappolicy_values['deployment_options']['deploy_by'] == 'ansible'
         assert oscappolicy_values['general']['name'] == name
         assert oscappolicy_values['general']['description'] == description
         assert oscappolicy_values['scap_content']['scap_content'] == oscap_content_title
@@ -198,7 +197,8 @@ def test_positive_end_to_end(
         ]
         # Update oscap policy with new name
         session.oscappolicy.update(name, {'general.name': new_name})
-        assert session.oscappolicy.search(new_name)[0]['Name'] == new_name
+        oscappolicy_values = session.oscappolicy.read(new_name)
+        assert oscappolicy_values['general']['name'] == new_name
         assert not session.oscappolicy.search(name)
         # Delete oscap policy entity
         session.oscappolicy.delete(new_name)
