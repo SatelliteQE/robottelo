@@ -2085,12 +2085,12 @@ class HostSubscriptionTestCase(CLITestCase):
         )
 
         cls.subscription_name = SATELLITE_SUBSCRIPTION_NAME
-        # create a rh capsule content
+        # create a satellite tools repository content
         setup_org_for_a_rh_repo(
             {
-                'product': PRDS['rhsc'],
-                'repository-set': REPOSET['rhsc7'],
-                'repository': REPOS['rhsc7']['name'],
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
                 'organization-id': cls.org['id'],
                 'content-view-id': cls.content_view['id'],
                 'lifecycle-environment-id': cls.env['id'],
@@ -2101,7 +2101,7 @@ class HostSubscriptionTestCase(CLITestCase):
         )
         org_subscriptions = Subscription.list({'organization-id': cls.org['id']})
         cls.default_subscription_id = None
-        cls.repository_id = REPOS['rhsc7']['id']
+        cls.repository_id = REPOS['rhst7']['id']
         for org_subscription in org_subscriptions:
             if org_subscription['name'] == cls.subscription_name:
                 cls.default_subscription_id = org_subscription['id']
