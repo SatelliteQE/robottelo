@@ -57,8 +57,6 @@ CaseComponent:
     - Hosts-Content
     - Infobloxintegration
     - Infrastructure
-    - InsightsInventoryPlugin
-    - InsightsPlugin
     - Installer
     - InterSatelliteSync
     - katello-agent
@@ -84,6 +82,9 @@ CaseComponent:
     - RemoteExecution
     - Reporting
     - Repositories
+    - RHCloud-CloudConnector
+    - RHCloud-Insights
+    - RHCloud-Inventory
     - rubygem-foreman-redhat_access
     - satellite-change-hostname
     - SatelliteClone

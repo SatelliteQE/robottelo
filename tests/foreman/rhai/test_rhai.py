@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: InsightsPlugin
+:CaseComponent: RHCloud-Insights
 
 :TestType: Functional
 

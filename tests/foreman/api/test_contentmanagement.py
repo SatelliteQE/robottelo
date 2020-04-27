@@ -201,6 +201,8 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :id: a31b0e21-aa5d-44e2-a408-5e01b79db3a1
 
+        :CaseComponent: RHCloud-Insights
+
         :customerscenario: true
 
         :expectedresults: `redhat-access-insights-puppet` package is delivered
