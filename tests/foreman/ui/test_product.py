@@ -143,6 +143,7 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
     description = gen_string('alpha')
     cron_expression = gen_choice(valid_cron_expressions())
     with session:
+        session.organization.select(module_org.name)
         startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         sync_plan_values = {
             'name': plan_name,
