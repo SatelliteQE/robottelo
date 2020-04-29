@@ -16,6 +16,7 @@
 """
 from fauxfactory import gen_string
 
+import pytest
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import CLIReturnCodeError
@@ -39,7 +40,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         super(RHEVComputeResourceTestCase, cls).setUpClass()
         cls.current_rhev_url = settings.rhev.hostname
         cls.username = settings.rhev.username
-        cls.password = settings.rhev.password
+        cls.passord = settings.rhev.password
         cls.datacenter = settings.rhev.datacenter
         cls.image_name = settings.rhev.image_name
         cls.image_os = settings.rhev.image_os
@@ -62,7 +63,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': 'cr {0}'.format(gen_string(str_type='alpha')),
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -86,7 +87,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': name,
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -109,7 +110,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -135,7 +136,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -160,7 +161,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 {
                     'provider': 'Ovirt',
                     'user': self.username,
-                    'password': self.password,
+                    'password': self.passord,
                     'datacenter': self.datacenter,
                     'url': 'invalid url',
                 }
@@ -187,7 +188,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': name,
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -199,7 +200,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                     'name': name,
                     'provider': 'Ovirt',
                     'user': self.username,
-                    'password': self.password,
+                    'password': self.passord,
                     'datacenter': self.datacenter,
                     'url': self.current_rhev_url,
                 }
@@ -228,7 +229,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -258,7 +259,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -271,10 +272,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'uuid': self.image_name,
                 'operatingsystem': self.image_os,
                 'architecture': self.image_arch,
-                'username': self.username, # ToDo: why is this mandatory, why not password?
+                'username': "root",
             }
         )
 
+    @pytest.mark.skip_if_open("BZ:1829239")
     @tier2
     def test_negative_add_image_rhev_with_invalid_name(self):
         """Attempt to add invalid image to the RHEV compute resource
@@ -298,7 +300,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.password,
+                'password': self.passord,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -309,7 +311,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'compute-resource': comp_res['name'],
                 'name': 'img {0}'.format(gen_string(str_type='alpha')),
-                'image': 'invalidimg {0}'.format(gen_string(str_type='alpha')), # i expect this is supposed to be invalid
+                'uuid': 'invalidimg {0}'.format(gen_string(str_type='alpha')),
                 'operatingsystem': self.image_os,
                 'architecture': self.image_arch,
                 'username': "root",
