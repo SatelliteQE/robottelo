@@ -39,8 +39,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
         super(RHEVComputeResourceTestCase, cls).setUpClass()
         cls.current_rhev_url = settings.rhev.hostname
         cls.username = settings.rhev.username
-        cls.passord = settings.rhev.password
+        cls.password = settings.rhev.password
         cls.datacenter = settings.rhev.datacenter
+        cls.image_name = settings.rhev.image_name
+        cls.image_os = settings.rhev.image_os
+        cls.image_arch = settings.rhev.image_arch
 
     @tier1
     def test_positive_create_rhev_with_valid_name(self):
@@ -59,7 +62,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': 'cr {0}'.format(gen_string(str_type='alpha')),
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -83,7 +86,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': name,
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -106,7 +109,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -132,7 +135,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -157,7 +160,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 {
                     'provider': 'Ovirt',
                     'user': self.username,
-                    'password': self.passord,
+                    'password': self.password,
                     'datacenter': self.datacenter,
                     'url': 'invalid url',
                 }
@@ -184,7 +187,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': name,
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -196,7 +199,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                     'name': name,
                     'provider': 'Ovirt',
                     'user': self.username,
-                    'password': self.passord,
+                    'password': self.password,
                     'datacenter': self.datacenter,
                     'url': self.current_rhev_url,
                 }
@@ -225,7 +228,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -235,7 +238,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         self.assertEqual(new_name, ComputeResource.info({'id': comp_res['id']})['name'])
 
     @tier2
-    @stubbed()
     def test_positive_add_image_rhev_with_name(self):
         """Add images to the RHEV compute resource
 
@@ -250,13 +252,30 @@ class RHEVComputeResourceTestCase(CLITestCase):
             2. Create a image for the compute resource with valid parameter,
                compute-resource image create
 
-        :CaseAutomation: notautomated
-
         :expectedresults: The image is added to the CR successfully
          """
+        comp_res = make_compute_resource(
+            {
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.password,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
+            }
+        )
+        self.assertTrue(comp_res['name'])
+        ComputeResource.image_create(
+            {
+                'compute-resource': comp_res['name'],
+                'name': 'img {0}'.format(gen_string(str_type='alpha')),
+                'uuid': self.image_name,
+                'operatingsystem': self.image_os,
+                'architecture': self.image_arch,
+                'username': self.username, # ToDo: why is this mandatory, why not password?
+            }
+        )
 
     @tier2
-    @stubbed()
     def test_negative_add_image_rhev_with_invalid_name(self):
         """Attempt to add invalid image to the RHEV compute resource
 
@@ -271,10 +290,31 @@ class RHEVComputeResourceTestCase(CLITestCase):
             2. Create a image for the compute resource with invalid value for
                name parameter, compute-resource image create.
 
-        :CaseAutomation: notautomated
-
         :expectedresults: The image should not be added to the CR
+
+        :BZ: 1829239
         """
+        comp_res = make_compute_resource(
+            {
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.password,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
+            }
+        )
+        self.assertTrue(comp_res['name'])
+        with self.assertRaises(CLIFactoryError):
+            ComputeResource.image_create(
+            {
+                'compute-resource': comp_res['name'],
+                'name': 'img {0}'.format(gen_string(str_type='alpha')),
+                'image': 'invalidimg {0}'.format(gen_string(str_type='alpha')), # i expect this is supposed to be invalid
+                'operatingsystem': self.image_os,
+                'architecture': self.image_arch,
+                'username': "root",
+            }
+        )
 
     @stubbed()
     @tier3
