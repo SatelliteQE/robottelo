@@ -71,8 +71,9 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
         session.oscaptailoringfile.update(name, {'file_upload.name': new_name})
         assert session.oscaptailoringfile.search(new_name)[0]['Name'] == new_name
         assert not session.oscaptailoringfile.search(name)
-        session.oscaptailoringfile.delete(new_name)
-        assert not session.oscaptailoringfile.search(new_name)
+        # Skip delete operation till https://github.com/SatelliteQE/airgun/issues/473 is fixed.
+        # session.oscaptailoringfile.delete(new_name)
+        # assert not session.oscaptailoringfile.search(new_name)
 
 
 @tier2
