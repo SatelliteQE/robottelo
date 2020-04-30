@@ -45,6 +45,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         cls.image_name = settings.rhev.image_name
         cls.image_os = settings.rhev.image_os
         cls.image_arch = settings.rhev.image_arch
+        cls.image_uuid = settings.rhev.image_uuid
 
     @tier1
     def test_positive_create_rhev_with_valid_name(self):
@@ -255,6 +256,9 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The image is added to the CR successfully
          """
+        if self.image_uuid is None:
+            self.skipTest('Missing configuration for rhev.image_uuid')
+
         comp_res = make_compute_resource(
             {
                 'provider': 'Ovirt',
@@ -269,7 +273,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'compute-resource': comp_res['name'],
                 'name': 'img {0}'.format(gen_string(str_type='alpha')),
-                'uuid': self.image_name,
+                'uuid': self.image_uuid,
                 'operatingsystem': self.image_os,
                 'architecture': self.image_arch,
                 'username': "root",
