@@ -251,16 +251,19 @@ def install_katello_ca(hostname=None):
     :raises: AssertionError: If katello-ca wasn't installed.
 
     """
-    ssh.command('rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()), hostname)
-    # Not checking the return_code here, as rpm could be installed before
-    # and installation may fail
-    result = ssh.command(
-        'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
-    )
-    # Checking the return_code here to verify katello-ca rpm is actually
-    # present in the system
-    if result.return_code != 0:
-        raise AssertionError('Failed to install the katello-ca rpm')
+    with ssh.get_connection(hostname=hostname) as connection:
+        # ensure time is set now to avoid a jump later at yum install time
+        connection.run('ntpdate clock.redhat.com')
+        connection.run('rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()), hostname)
+        # Not checking the return_code here, as rpm could be installed before
+        # and installation may fail
+        result = connection.run(
+            'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
+        )
+        # Checking the return_code here to verify katello-ca rpm is actually
+        # present in the system
+        if result.return_code != 0:
+            raise AssertionError('Failed to install the katello-ca rpm')
 
 
 def remove_katello_ca(hostname=None):
