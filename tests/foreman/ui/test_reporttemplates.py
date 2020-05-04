@@ -24,9 +24,11 @@ from lxml import etree
 from nailgun import entities
 
 from robottelo import manifests
+from robottelo import ssh
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
@@ -312,7 +314,7 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
         data = json.load(json_file)
     subscription_cnt = len(entities.Subscription(organization=module_org).search())
     assert subscription_cnt > 0
-    assert len(data) > subscription_cnt
+    assert len(data) >= subscription_cnt
     keys_expected = ['Available', 'Contract number', 'ID', 'Name', 'Quantity', 'SKU']
     for subscription in data:
         assert sorted(list(subscription.keys())) == keys_expected
@@ -375,8 +377,7 @@ def test_positive_autocomplete(session):
 
 
 @tier2
-@stubbed()
-def test_positive_schedule_generation_and_get_mail(session):
+def test_positive_schedule_generation_and_get_mail(session, module_org, module_loc):
     """ Schedule generating a report. Request the result be sent via e-mail.
 
     :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67
@@ -393,6 +394,47 @@ def test_positive_schedule_generation_and_get_mail(session):
                       The result is compressed.
     :CaseImportance: High
     """
+    # make sure we have some subscriptions
+    with manifests.clone() as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    # generate Subscriptions report
+    with session:
+        session.reporttemplate.schedule(
+            "Subscriptions",
+            values={
+                'output_format': 'JSON',
+                'generate_at': '1970-01-01 17:10:00',
+                'email': True,
+                'email_to': 'root@localhost',
+            },
+        )
+    file_path = '/tmp/{0}.json'.format(gen_string('alpha'))
+    gzip_path = f'{file_path}.gz'
+    expect_script = (
+        f'#!/usr/bin/env expect\n'
+        f'spawn mail\n'
+        f'expect "& "\n'
+        f'send "w $ /dev/null\\r"\n'
+        f'expect "Enter filename"\n'
+        f'send "\\r"\n'
+        f'expect "Enter filename"\n'
+        f'send "\\r"\n'
+        f'expect "Enter filename"\n'
+        f'send "\\025{gzip_path}\\r"\n'
+        f'expect "&"\n'
+        f'send "q\\r"\n'
+    )
+    ssh.command(f'expect -c \'{expect_script}\'', hostname=settings.server.hostname)
+    ssh.download_file(gzip_path)
+    os.system(f'gunzip {gzip_path}')
+    with open(file_path) as json_file:
+        data = json.load(json_file)
+    subscription_cnt = len(entities.Subscription(organization=module_org).search())
+    assert subscription_cnt > 0
+    assert len(data) >= subscription_cnt
+    keys_expected = ['Available', 'Contract number', 'ID', 'Name', 'Quantity', 'SKU']
+    for subscription in data:
+        assert sorted(list(subscription.keys())) == keys_expected
 
 
 @tier3
