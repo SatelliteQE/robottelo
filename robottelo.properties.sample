@@ -575,3 +575,12 @@ rhsso_user=
 user_password=
 # RH-SSO Host Realm
 realm=
+
+# Report Portal Section for Rerunning failed tests
+[report_portal]
+# Portal URL
+# portal_url=
+# Project Name
+# project=satellite6
+# API key of an user
+# api_key=
