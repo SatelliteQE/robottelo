@@ -99,7 +99,6 @@ class SettingTestCase(APITestCase):
                 login = login.update(['value'])
                 self.assertEqual(login.value, login_text)
 
-    @stubbed()
     @tier2
     def test_negative_update_hostname_with_empty_fact(self):
         """Update the Hostname_facts settings without any string(empty values)
@@ -108,9 +107,21 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Error should be raised on setting empty value for
             hostname_facts setting
-
-        :CaseAutomation: notautomated
         """
+        hostname_facts_id = [
+            ele.id
+            for ele in entities.Setting().search(
+                query={"per_page": 200, 'search': 'name="discovery_hostname"'}
+            )
+        ][0]
+        facts = entities.Setting(id=hostname_facts_id).read()
+        original_value = facts.value
+        facts.value = ""
+        try:
+            facts = facts.update(['value'])
+            self.assertNotEqual(facts.value, "", msg="Empty string")
+        finally:
+            setting_cleanup("discovery_hostname", original_value)
 
     @tier2
     def test_positive_update_hostname_prefix_without_value(self):
