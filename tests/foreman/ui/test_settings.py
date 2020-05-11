@@ -463,6 +463,7 @@ def test_positive_email_yaml_config_precedence():
     :CaseAutomation: notautomated
     """
 
+
 @tier2
 def test_negative_update_hostname_with_empty_fact(session):
     """Update the Hostname_facts settings without any string(empty values)
@@ -477,23 +478,14 @@ def test_negative_update_hostname_with_empty_fact(session):
     :expectedresults: Error should be raised on setting empty value for
         hostname_facts setting
     """
-    property_name = "Discovered"
-    discovery_config_default_param = { "discovery_hostname" : "" }
-    discovery_config_default_param = {
-        content: entities.Setting().search(query={'search': f'name='
-                                                            f'{content}'})[
-            0] for content in discovery_config_default_param
-    }
-    discovery_config_new_param = { "discovery_hostname" : ""}
+    default_hostname = entities.Setting().search(query={'search': 'name=discovery_hostname'})[0]
+    default_hostname = {"discovery_hostname": default_hostname}
+    new_hostname = {"discovery_hostname": ""}
     with session:
         try:
-            for discovery_content, discovery_content_value in \
-                    discovery_config_new_param.items():
-                discovery_update_response = session.settings.update(
-                    discovery_content, discovery_content_value)
-            assert discovery_update_response != None, "Empty string accepted"
+            for key, value in new_hostname.items():
+                response = session.settings.update(key, value)
+            assert response is not None, "Empty string accepted"
         finally:
-            for discovery_content, discovery_content_value in \
-                    discovery_config_default_param.items():
-                setting_cleanup(setting_name=discovery_content,
-                                setting_value=discovery_content_value.value)
+            for key, value in default_hostname.items():
+                setting_cleanup(setting_name=key, setting_value=value.value)
