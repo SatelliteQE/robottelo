@@ -48,7 +48,6 @@ from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -331,50 +330,6 @@ class TestContentView:
             content_view_version.errata_counts['total'] == CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
         )
 
-    @tier2
-    @stubbed()
-    def test_positive_restart_promote_via_dynflow(self):
-        """Attempt to restart a promotion
-
-        :id: 99fc4562-0230-40a5-aef1-f65f02feae65
-
-        :steps:
-
-            1. (Somehow) cause a CV promotion to fail.  Not exactly sure how
-               yet.
-            2. Via Dynflow, restart promotion
-
-        :expectedresults: Promotion is restarted.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_restart_publish_via_dynflow(self):
-        """Attempt to restart a publish
-
-        :id: 8612959e-cd52-404e-88ec-7351c2d282d0
-
-        :steps:
-
-            1. (Somehow) cause a CV publish  to fail.  Not exactly sure how
-               yet.
-            2. Via Dynflow, restart publish
-
-        :expectedresults: Publish is restarted.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-        """
-
 
 class TestContentViewCreate:
     """Create tests for content views."""
@@ -487,27 +442,6 @@ class TestContentViewPublishPromote:
         composite_cv.component = cv_versions
         composite_cv = composite_cv.update(['component'])
         assert len(composite_cv.component) == cv_amount
-
-    @pytest.mark.skip_if_open('BZ:1581628')
-    @tier1
-    def test_positive_publish_with_long_name(self):
-        """Publish a content view that has at least 255 characters in its name
-
-        :id: 1c786756-266d-49b2-912f-7808096f5cc0
-
-        :expectedresults: Content view has been published with repository and
-            has one version populated
-
-        :BZ: 1365312, 1581628
-
-        :CaseImportance: Low
-        """
-        name = gen_string('alpha', 255)
-        content_view = entities.ContentView(name=name).create()
-        content_view.repository = [self.yum_repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        assert len(content_view.read().version) == 1
 
     @tier2
     def test_positive_publish_with_content_multiple(self, content_view, module_org):
@@ -1034,24 +968,6 @@ class TestContentViewUpdate:
             module_cv.update(['name'])
         cv = module_cv.read()
         assert cv.name != new_name
-
-    @pytest.mark.skip_if_open("BZ:1147100")
-    @tier1
-    def test_negative_update_label(self, module_cv):
-        """Try to update a content view label with any value
-
-        :id: 77883887-800f-412f-91a3-b2f7ed999c70
-
-        :expectedresults: The content view label is immutable and cannot be
-            modified
-
-        :CaseImportance: Critical
-
-        :BZ: 1147100
-        """
-        with pytest.raises(HTTPError):
-            module_cv.label = gen_utf8(30)
-            module_cv.update(['label'])
 
 
 class TestContentViewDelete:
@@ -1700,109 +1616,3 @@ class TestContentViewRedHatOstreeContent:
         content_view.publish()
         promote(content_view.read().version[0], module_lce.id)
         assert len(content_view.read().version[0].read().environment) == 2
-
-
-class TestContentViewFileRepo:
-    """Specific tests for Content Views with File Repositories containing
-    arbitrary files
-    """
-
-    @stubbed()
-    @tier2
-    def test_positive_arbitrary_file_repo_addition(self):
-        """Check a File Repository with Arbitrary File can be added to a
-        Content View
-
-        :id: 133c4a68-ed5a-477a-ae62-8b9a3703ae6b
-
-        :Setup:
-            1. Create a File Repository (FR)
-            2. Upload an arbitrary file to it
-            3. Create a Content View (CV)
-
-        :Steps:
-            1. Add the FR to the CV
-
-        :expectedresults: Check FR is added to CV
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_arbitrary_file_repo_removal(self):
-        """Check a File Repository with Arbitrary File can be removed from a
-        Content View
-
-        :id: dcda4ff3-9ba7-4d83-afcd-76ddd9c1a485
-
-        :Setup:
-            1. Create a File Repository (FR)
-            2. Upload an arbitrary file to it
-            3. Create a Content View (CV)
-            4. Add the FR to the CV
-
-        :Steps:
-            1. Remove the FR from the CV
-
-        :expectedresults: Check FR is removed from CV
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier3
-    def test_positive_arbitrary_file_sync_over_capsule(self):
-        """Check a File Repository with Arbitrary File can be added to a
-        Content View is synced throughout capsules
-
-        :id: 16a70e22-53bb-4cf0-a93c-d6b4afcf8401
-
-        :Setup:
-            1. Create a File Repository (FR)
-            2. Upload an arbitrary file to it
-            3. Create a Content View (CV)
-            4. Add the FR to the CV
-            5. Create a Capsule
-            6. Connect the Capsule with Satellite/Foreman host
-
-        :Steps:
-            1. Start synchronization
-
-        :expectedresults: Check CV with FR is synced over Capsule
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier2
-    @upgrade
-    def test_positive_arbitrary_file_repo_promotion(self):
-        """Check arbitrary files availability on Environment after Content
-        View promotion
-
-        :id: c5be2b04-d659-4aa8-a3ac-98330c251a77
-
-        :Setup:
-            1. Create a File Repository (FR)
-            2. Upload an arbitrary file to it
-            3. Create a Content View (CV)
-            4. Add the FR to the CV
-            5. Create an Environment
-
-        :Steps:
-            1. Promote the CV to the Environment
-
-        :expectedresults: Check arbitrary files from FR is available on
-            environment
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
