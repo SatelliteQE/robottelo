@@ -233,7 +233,7 @@ def update_rhsso_settings_in_satellite(revert=False):
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
         'oidc_algorithm': 'RS256',
-        'oidc_audience': '{}-foreman-openidc'.format(settings.server.hostname),
+        'oidc_audience': ['{}-foreman-openidc'.format(settings.server.hostname)],
         'oidc_issuer': '{}/auth/realms/{}'.format(settings.rhsso.host_url, settings.rhsso.realm),
         'oidc_jwks_url': '{}/auth/realms/{}/protocol/openid-connect/certs'.format(
             settings.rhsso.host_url, settings.rhsso.realm
