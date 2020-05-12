@@ -28,6 +28,9 @@ PyYAML==5.1.2
 tenacity==6.0.0
 pyotp==2.3.0
 
+# Temporarily get dynaconf from master until 3.0.0 is out
+git+https://github.com/rochacbruno/dynaconf.git#egg=dynaconf
+
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
 git+https://github.com/SatelliteQE/nailgun.git@stable-satellite#egg=nailgun

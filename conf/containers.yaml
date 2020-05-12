@@ -1,0 +1,14 @@
+container_repo:
+  config: null
+  config_file: null
+  long_pass_registry: null
+  multi_registry_test_configs: null
+  yaml: null
+
+docker:
+  docker_image: rhel7-docker-base
+  external_registry_1: "<str>"
+  private_registry_name: "<str>"
+  private_registry_password: "<str>"
+  private_registry_url: "<str>"
+  private_registry_username: "<str>"

@@ -59,3 +59,14 @@ tests/foreman/pytest.ini
 
 # For `coverage xml` generated file.
 **/coverage.xml
+
+# Dynaconf local files
+/.secrets.yaml
+/.secrets_*.yaml
+/settings.local.yaml
+/settings*.local.yaml
+
+# I don't know where those 2 files come from
+# but they are always there.
+full_upgrade
+upgrade_highlights

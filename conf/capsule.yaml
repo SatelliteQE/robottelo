@@ -1,0 +1,10 @@
+capsule:
+  ddns_package_url: null
+  domain: null
+  hash: null
+  instance_name: "<str>"
+
+fake_capsules:
+  port_range:
+  - '9400'
+  - '14999'

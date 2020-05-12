@@ -1,0 +1,5 @@
+fake_manifest:
+  cert_url: "<str>"
+  key_url: "<str>"
+  url:
+    default: "<str>"
