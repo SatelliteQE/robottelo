@@ -1,0 +1,11 @@
+shared_function:
+  call_retries: null
+  enabled: null
+  lock_timeout: null
+  redis_db: null
+  redis_host: null
+  redis_password: null
+  redis_port: null
+  scope: null
+  share_timeout: null
+  storage: null

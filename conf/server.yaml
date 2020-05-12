@@ -1,0 +1,11 @@
+server:
+  admin_password: "<str>"
+  admin_username: "<str>"
+  hostname: "<str>"
+  port: null
+  scheme: https
+  ssh_key: "<str>"
+  ssh_password: null
+  ssh_username: "<str>"
+
+ssh_client: {}

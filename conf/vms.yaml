@@ -1,0 +1,136 @@
+azurerm:
+  azure_region: null
+  azure_subnet: null
+  client_id: null
+  client_secret: null
+  password: null
+  ssh_pub_key: null
+  subscription_id: null
+  tenant_id: null
+  username: null
+
+compute_resources:
+  libvirt_hostname: "<str>"
+  libvirt_image_dir: /var/lib/libvirt/images
+
+clients:
+  distros:
+  - rhel7
+  image_dir: /opt/robottelo/disks
+  provisioning_server: "<str>"
+
+
+ec2:
+  access_key: "<str>"
+  availability_zone: us-west-2a
+  image: "<str>"
+  managed_ip: Private
+  region: us-west-2
+  secret_key: "<str>"
+  security_groups:
+  - default - "<str>"
+  subnet: "<str>"
+
+virtwho:
+  guest: null
+  guest_password: null
+  guest_port: null
+  guest_username: null
+  hypervisor_config_file: null
+  hypervisor_password: null
+  hypervisor_server: null
+  hypervisor_type: null
+  hypervisor_username: null
+  sku_vdc_physical: null
+  sku_vdc_virtual: null
+
+upgrade:
+  capsule_ak: null
+  capsule_hostname: null
+  docker_vm: "<str>"
+  from_version: null
+  rhev_cap_host: null
+  rhev_capsule_ak: null
+  to_version: null
+  vm_domain: "<str>"
+
+vlan_networking:
+  bridge: "<str>"
+  dhcp_from: null
+  dhcp_ipam: null
+  dhcp_to: null
+  dns_primary: null
+  dns_zone: null
+  gateway: "<str>"
+  netmask: "<str>"
+  network: null
+  subnet: "<str>"
+
+vmware:
+  datacenter: "<str>"
+  image_arch: "<str>"
+  image_name: robottelo-automation-rhel7
+  image_os: RedHat 7.7
+  image_password: "<str>"
+  image_username: "<str>"
+  password: "<str>"
+  username: "<str>"
+  vcenter: "<str>"
+  vm_name: "<str>"
+
+
+oscap:
+  content_path: "<str>"
+  tailoring_path: "<str>"
+
+osp:
+  hostname: "<str>"
+  image_arch: x86_64
+  image_name: RHEL-7.5-Server-x86_64-released
+  image_os: RedHat 7.7
+  image_username: "<str>"
+  password: "<str>"
+  project_domain_id: "<str>"
+  security_group: "<str>"
+  tenant: "<str>"
+  username: "<str>"
+  vm_name: "<str>"
+
+ostree:
+  ostree_installer: "<str>"
+
+performance:
+  cdn_address: null
+  csv_buckets_count: null
+  enabled_repos_savepoint: null
+  fresh_install_savepoint: null
+  repos: null
+  sync_count: null
+  sync_type: null
+  time_hammer: null
+  virtual_machines: null
+
+rhai:
+  insights_client_el6repo: "<str>"
+  insights_client_el7repo: "<str>"
+
+rhev:
+  ca_cert: "<str>"
+  datacenter: "<str>"
+  hostname: "<str>"
+  image_arch: x86_64
+  image_name: robottelo-automation-rhel74
+  image_os: RedHat 7.7
+  image_password: "<str>"
+  image_username: "<str>"
+  password: "<str>"
+  storage_domain: VMS
+  username: "<str>"
+  vm_name: "<str>"
+
+rhsso:
+  host_name: null
+  host_url: null
+  password: null
+  realm: null
+  rhsso_user: null

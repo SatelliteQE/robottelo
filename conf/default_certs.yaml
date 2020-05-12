@@ -1,0 +1,29 @@
+certs:
+  ca_bundle_file: /home/jenkins/certs/rootCA.pem
+  cert_file: /home/jenkins/certs/server.valid.crt
+  key_file: /home/jenkins/certs/server.key
+  req_file: /home/jenkins/certs/server.csr
+
+gce:
+  cert_path: "<str>"
+  cert_url: "<str>"
+  client_email: "<str>"
+  project_id: "<str>"
+  zone: "<str>"
+
+ipa:
+  basedn_ipa: "<str>"
+  grpbasedn_ipa: "<str>"
+  hostname_ipa: "<str>"
+  otp_user: "<str>"
+  password_ipa: "<str>"
+  time_based_secret: "<str>"
+  user_ipa: "<str>"
+  username_ipa: "<str>"
+
+ldap:
+  basedn: "<str>"
+  grpbasedn: "<str>"
+  hostname: "<str>"
+  password: "<str>"
+  username: "<str>"

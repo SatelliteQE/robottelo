@@ -27,6 +27,9 @@ pyotp==2.4.1
 pexpect==4.8.0
 pytest-ibutsu==1.1.1
 
+# Temporarily get dynaconf from master until 3.0.0 is out
+git+https://github.com/rochacbruno/dynaconf.git#egg=dynaconf
+
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
 git+https://github.com/SatelliteQE/nailgun.git@stable-satellite#egg=nailgun

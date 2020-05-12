@@ -1674,6 +1674,21 @@ class Settings:
         for logger in loggers:
             logging.getLogger(logger).setLevel(logging.WARNING)
 
+    def to_dict(self):
+        """Transform settings in to an evaluated dictionary"""
+        new = {}
+        for feature in self.all_features:
+            new.update(
+                {
+                    feature: {
+                        k: v
+                        for k, v in getattr(self, feature).__dict__.items()
+                        if not k.startswith("_")
+                    }
+                }
+            )
+        return new
+
 
 class HttpProxySettings(FeatureSettings):
     """Http Proxy settings definitions."""
