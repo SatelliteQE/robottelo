@@ -1282,31 +1282,6 @@ class VirtWhoSettings(FeatureSettings):
         return validation_errors
 
 
-class ReportPortalSettings(FeatureSettings):
-    """Report portal settings definitions."""
-
-    def __init__(self, *args, **kwargs):
-        super(ReportPortalSettings, self).__init__(*args, **kwargs)
-        self.rp_url = None
-        self.rp_project = None
-        self.rp_key = None
-
-    def read(self, reader):
-        """Read Report portal settings."""
-        self.rp_url = reader.get('report_portal', 'portal_url')
-        self.rp_project = reader.get('report_portal', 'project')
-        self.rp_key = reader.get('report_portal', 'api_key')
-
-    def validate(self):
-        """Validate Report portal settings."""
-        validation_errors = []
-        if not all(self.__dict__.values()):
-            validation_errors.append(
-                'All [report_portal] {} options must be provided'.format(self.__dict__.keys())
-            )
-        return validation_errors
-
-
 class Settings(object):
     """Robottelo's settings representation."""
 
@@ -1374,7 +1349,6 @@ class Settings(object):
         self.upgrade = UpgradeSettings()
         self.vmware = VmWareSettings()
         self.virtwho = VirtWhoSettings()
-        self.report_portal = ReportPortalSettings()
 
     def configure(self, settings_path=None):
         """Read the settings file and parse the configuration.
