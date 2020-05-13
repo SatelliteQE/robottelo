@@ -666,10 +666,10 @@ FAKE_2_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo2/'
 FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = 'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
+FAKE_6_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/needed-errata/'
 FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
 FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
-FAKE_9_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
+FAKE_9_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/multiple_errata/'
 FAKE_10_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/modules-rpms/'
 FAKE_11_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/rpm-deps/'
 FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
@@ -725,6 +725,7 @@ FAKE_9_YUM_OUTDATED_PACKAGES = [
     'penguin-0.8.1-1.noarch',
     'stork-0.11-1.noarch',
     'walrus-0.71-1.noarch',
+    'kangaroo-0.2-1.noarch',
 ]
 FAKE_9_YUM_UPDATED_PACKAGES = [
     'bear-4.1-1.noarch',
@@ -734,11 +735,12 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'penguin-0.9.1-1.noarch',
     'stork-0.12-1.noarch',
     'walrus-5.21-1.noarch',
+    'kangaroo-0.3-1.noarch',
 ]
 FAKE_0_MODULAR_ERRATA_ID = 'RHEA-2012:0059'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
-FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
+FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 FAKE_4_ERRATA_ID = 'WALRUS-2013:0002'
 REAL_0_ERRATA_ID = 'RHBA-2019:3175'  # for rhst7
@@ -753,9 +755,15 @@ FAKE_1_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_ERRATUM_COUNT = 79
 FAKE_3_YUM_REPOS_COUNT = 136
-FAKE_6_YUM_ERRATUM_COUNT = 4
-FAKE_9_YUM_ERRATUM_COUNT = 4
-FAKE_9_YUM_ERRATUM = ['RHEA-2012:0055', 'RHEA-2012:0056', 'RHEA-2012:0057', 'RHEA-2012:0058']
+FAKE_6_YUM_ERRATUM_COUNT = 5
+FAKE_9_YUM_ERRATUM_COUNT = 5
+FAKE_9_YUM_ERRATUM = [
+    'RHSA-2012:0055',
+    'RHSA-2012:0056',
+    'RHSA-2012:0057',
+    'RHEA-2012:0058',
+    'RHBA-2012:1030',
+]
 FAKE_9_YUM_SECURITY_ERRATUM = FAKE_9_YUM_ERRATUM[:-1]
 FAKE_9_YUM_SECURITY_ERRATUM_COUNT = len(FAKE_9_YUM_SECURITY_ERRATUM)
 
