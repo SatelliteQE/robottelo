@@ -2127,7 +2127,6 @@ class ContentViewTestCase(CLITestCase):
             len(module_streams), 13, 'Module Streams are not associated with Content View'
         )
 
-    @pytest.mark.skip_if_open("BZ:1625783")
     @tier2
     def test_positive_republish_after_content_removed(self):
         """Attempt to re-publish content view after all associated content
@@ -2148,15 +2147,6 @@ class ContentViewTestCase(CLITestCase):
         """
         # Create new Yum repository
         yum_repo = make_repository({'product-id': self.product['id']})
-        # Create new Ostree repository
-        ostree_repo = make_repository(
-            {
-                'product-id': self.product['id'],
-                'content-type': 'ostree',
-                'publish-via-http': 'false',
-                'url': FEDORA27_OSTREE_REPO,
-            }
-        )
         # Create new Docker repository
         docker_repo = make_repository(
             {
@@ -2167,20 +2157,19 @@ class ContentViewTestCase(CLITestCase):
             }
         )
         # Sync all three repos
-        for repo_id in [yum_repo['id'], docker_repo['id'], ostree_repo['id']]:
+        for repo_id in [yum_repo['id'], docker_repo['id']]:
             Repository.synchronize({'id': repo_id})
         # Create CV with different content types
         new_cv = make_content_view(
             {
                 'organization-id': self.org['id'],
-                'repository-ids': [yum_repo['id'], docker_repo['id'], ostree_repo['id']],
+                'repository-ids': [yum_repo['id'], docker_repo['id']],
             }
         )
         # Check that repos were actually assigned to CV
         for repo_type in [
             'yum-repositories',
             'container-image-repositories',
-            'ostree-repositories',
         ]:
             self.assertEqual(len(new_cv[repo_type]), 1)
         # Publish a new version of CV
@@ -2188,13 +2177,12 @@ class ContentViewTestCase(CLITestCase):
         new_cv = ContentView.info({'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 1)
         # Remove content from CV
-        for repo_id in [yum_repo['id'], docker_repo['id'], ostree_repo['id']]:
+        for repo_id in [yum_repo['id'], docker_repo['id']]:
             ContentView.remove_repository({'id': new_cv['id'], 'repository-id': repo_id})
         new_cv = ContentView.info({'id': new_cv['id']})
         for repo_type in [
             'yum-repositories',
             'container-image-repositories',
-            'ostree-repositories',
         ]:
             self.assertEqual(len(new_cv[repo_type]), 0)
         # Publish a new version of CV
