@@ -493,6 +493,8 @@ class TestRemoteExecution:
         :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
 
         :expectedresults: The job passes, installs Receptor that peers with c.r.c
+
+        :BZ: 1818076
         """
         template_name = 'Configure Cloud Connector'
         invocation = make_job_invocation(
