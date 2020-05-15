@@ -464,9 +464,8 @@ def test_positive_email_yaml_config_precedence():
     """
 
 
-@stubbed()
 @tier2
-def test_negative_update_hostname_with_empty_fact():
+def test_negative_update_hostname_with_empty_fact(session):
     """Update the Hostname_facts settings without any string(empty values)
 
     :id: e0eaab69-4926-4c1e-b111-30c51ede273e
@@ -478,6 +477,15 @@ def test_negative_update_hostname_with_empty_fact():
 
     :expectedresults: Error should be raised on setting empty value for
         hostname_facts setting
-
-    :CaseAutomation: notautomated
     """
+    default_hostname = entities.Setting().search(query={'search': 'name=discovery_hostname'})[0]
+    default_hostname = {"discovery_hostname": default_hostname}
+    new_hostname = {"discovery_hostname": ""}
+    with session:
+        try:
+            for key, value in new_hostname.items():
+                response = session.settings.update(key, value)
+            assert response is not None, "Empty string accepted"
+        finally:
+            for key, value in default_hostname.items():
+                setting_cleanup(setting_name=key, setting_value=value.value)
