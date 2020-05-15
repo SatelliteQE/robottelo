@@ -1,7 +1,7 @@
-"""Unit tests for the ``config_templates`` paths.
+"""Unit tests for the ``provisioning_templates`` paths.
 
 A full API reference is available here:
-http://theforeman.org/api/apidoc/v2/config_templates.html
+http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 
 :Requirement: Template
 
@@ -21,6 +21,7 @@ import time
 from random import choice
 
 import pytest
+from fauxfactory import gen_choice
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -33,6 +34,7 @@ from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
@@ -42,21 +44,210 @@ from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 
-class ConfigTemplateTestCase(APITestCase):
-    """Tests for config templates
+@pytest.fixture(scope="module")
+def module_location(module_location):
+    yield module_location
+    module_location.delete()
+
+
+@pytest.fixture(scope="module")
+def module_org(module_org):
+    yield module_org
+    module_org.delete()
+
+
+@pytest.fixture(scope="module")
+def module_user(module_org, module_location):
+    """Creates an org admin role and user
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alpha')
+    # Create user with Manager role
+    orig_role = entities.Role().search(query={'search': 'name="Organization admin"'})[0]
+    new_role_dict = entities.Role(id=orig_role.id).clone(
+        data={
+            'role': {
+                'name': 'test_template_admin_{0}'.format(gen_string('alphanumeric', 3)),
+                'organization_ids': [module_org.id],
+                'location_ids': [module_location.id],
+            }
+        }
+    )
+    new_role = entities.Role(id=new_role_dict['id']).read()
+    user = entities.User(
+        role=[new_role],
+        admin=False,
+        login=user_login,
+        password=user_password,
+        organization=[module_org],
+        location=[module_location],
+    ).create()
+    yield (user, user_login, user_password)
+    user.delete()
+    new_role.delete()
+
+
+@pytest.fixture(scope="function")
+def tftpboot(module_org):
+    """This fixture removes the current deployed templates from TFTP, and sets up new ones.
+    It manipulates the global defaults, so it shouldn't be used in concurrent environment
+
+    :param module_org:
+    :return: A dictionary containing nailgun entities, names, values and paths of the custom
+    Templates
+    """
+    tftpboot_path = '/var/lib/tftpboot'
+    default_templates = {
+        'pxegrub': {
+            'setting': 'global_PXEGrub',
+            'path': f'{tftpboot_path}/grub/menu.lst',
+            'kind': 'PXEGrub',
+        },
+        'pxegrub2': {
+            'setting': 'global_PXEGrub2',
+            'path': f'{tftpboot_path}/grub2/grub.cfg',
+            'kind': 'PXEGrub2',
+        },
+        'pxelinux': {
+            'setting': 'global_PXELinux',
+            'path': f'{tftpboot_path}/pxelinux.cfg/default',
+            'kind': 'PXELinux',
+        },
+        'ipxe': {
+            'setting': 'global_iPXE',
+            'path': f'https://{settings.server.hostname}/unattended/iPXE?bootsrap=1',
+            'kind': 'iPXE',
+        },
+    }
+    # we keep the value of these for the teardown
+    default_settings = entities.Setting().search(query={"search": "name ~ Global default"})
+    kinds = entities.TemplateKind().search(query={"search": "name ~ PXE"})
+
+    # clean the already-deployed default pxe configs
+    ssh.command('rm {0}'.format(' '.join([i['path'] for i in default_templates.values()])))
+
+    # create custom Templates per kind
+    for template in default_templates.values():
+        template['entity'] = entities.ProvisioningTemplate(
+            name=gen_string('alpha'),
+            organization=[module_org],
+            snippet=False,
+            template_kind=[i.id for i in kinds if i.name == template['kind']][0],
+            template='<%= foreman_server_url %> {0}'.format(template['kind']),
+        ).create(create_missing=False)
+
+        # Update the global settings to use newly created template
+        template['setting_id'] = entities.Setting(
+            id=[i.id for i in default_settings if i.name == template['setting']][0],
+            value=template['entity'].name,
+        ).update(fields=['value'])
+
+    yield default_templates
+
+    # delete the deployed tftp files
+    ssh.command('rm {0}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    # set the settings back to defaults
+    for setting in default_settings:
+        if setting.value is None:
+            setting.value = ''
+        setting.update(fields=['value'] or '')
+
+
+class TestProvisioningTemplate:
+    """Tests for provisioning templates
 
     :CaseComponent: ProvisioningTemplates
 
     :CaseLevel: Acceptance
     """
 
+    @tier1
+    @upgrade
+    def test_positive_end_to_end_crud(self, module_org, module_location, module_user):
+        """Create a new provisioning template with several attributes, update them,
+        clone the provisioning template and then delete it
+
+        :id: 8dfbb234-7a52-4873-be72-4de086472670
+
+        :expectedresults: Template is created, with all the given attributes, updated, cloned and
+                          deleted
+
+        :CaseImportance: Critical
+        """
+        cfg = get_nailgun_config()
+        cfg.auth = (module_user[1], module_user[2])
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
+        template_kind = choice(entities.TemplateKind().search())
+
+        template = entities.ProvisioningTemplate(
+            name=name,
+            organization=[module_org],
+            location=[module_location],
+            snippet=False,
+            template_kind=template_kind,
+        ).create()
+        assert template.name == name
+        assert len(template.organization) == 1, "Template should be assigned to a single org here"
+        assert template.organization[0].id == module_org.id
+        assert len(template.location) == 1, "Template should be assigned to a single location here"
+        assert template.location[0].id == module_location.id
+        assert template.snippet is False, "Template snippet attribute is True instead of False"
+        assert template.template_kind.id == template_kind.id
+
+        # negative create
+        with pytest.raises(HTTPError) as e1:
+            entities.ProvisioningTemplate(name=gen_choice(invalid_names_list())).create()
+        assert e1.value.response.status_code == 422
+
+        invalid = entities.ProvisioningTemplate(snippet=False)
+        invalid.create_missing()
+        invalid.template_kind = None
+        invalid.template_kind_name = gen_string('alpha')
+        with pytest.raises(HTTPError) as e2:
+            invalid.create(create_missing=False)
+        assert e2.value.response.status_code == 422
+
+        # update
+        assert template.template_kind.id == template_kind.id, "Template kind id doesn't match"
+        updated = entities.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(
+            ['name']
+        )
+        assert updated.name == new_name, "The Provisioning template wasn't properly renamed"
+        # clone
+
+        template_origin = template.read_json()
+        # remove unique keys
+        unique_keys = ('updated_at', 'created_at', 'id', 'name')
+        template_origin = {
+            key: value for key, value in template_origin.items() if key not in unique_keys
+        }
+
+        dupe_name = gen_choice(valid_data_list())
+        dupe_json = entities.ProvisioningTemplate(
+            id=template.clone(data={'name': dupe_name})['id']
+        ).read_json()
+        dupe_template = entities.ProvisioningTemplate(id=dupe_json['id'])
+        dupe_json = {key: value for key, value in dupe_json.items() if key not in unique_keys}
+        assert template_origin == dupe_json
+
+        # delete
+        dupe_template.delete()
+        template.delete()
+        with pytest.raises(HTTPError) as e3:
+            updated.read()
+        assert e3.value.response.status_code == 404
+
     @tier2
-    def test_positive_build_pxe_default(self):
+    @upgrade
+    @run_in_one_thread
+    def test_positive_build_pxe_default(self, tftpboot):
         """Call the "build_pxe_default" path.
 
         :id: ca19d9da-1049-4b39-823b-933fc1a0cebd
 
-        :expectedresults: The response is a JSON payload.
+        :expectedresults: The response is a JSON payload, all templates are deployed to TFTP/HTTP
+                          and are rendered correctly
 
         :CaseLevel: Integration
 
@@ -64,281 +255,23 @@ class ConfigTemplateTestCase(APITestCase):
 
         :BZ: 1202564
         """
-        response = client.get(
-            entities.ConfigTemplate().path('build_pxe_default'),
+        response = client.post(
+            entities.ProvisioningTemplate().path('build_pxe_default'),
             auth=settings.server.get_credentials(),
             verify=False,
         )
         response.raise_for_status()
-        self.assertIsInstance(response.json(), dict)
-
-    @tier2
-    def test_positive_add_orgs(self):
-        """Associate a config template with organizations.
-
-        :id: b60907c3-47b9-4bc7-99d6-08615ebe9d68
-
-        :expectedresults: Config template is associated with organization
-
-        :CaseImportance: Medium
-
-        :BZ: 1395229
-        """
-        orgs = [entities.Organization().create() for _ in range(2)]
-
-        # By default, a configuration template should have no organizations.
-        conf_templ = entities.ConfigTemplate().create()
-        self.assertEqual(0, len(conf_templ.organization))
-
-        # Associate our configuration template with one organization.
-        conf_templ.organization = orgs[:1]
-        conf_templ = conf_templ.update(['organization'])
-        self.assertEqual(len(conf_templ.organization), 1)
-        self.assertEqual(conf_templ.organization[0].id, orgs[0].id)
-
-        # Associate our configuration template with two organizations.
-        conf_templ.organization = orgs
-        conf_templ = conf_templ.update(['organization'])
-        self.assertEqual(len(conf_templ.organization), 2)
-        self.assertEqual(
-            set((org.id for org in conf_templ.organization)), set((org.id for org in orgs))
-        )
-
-        # Finally, associate our config template with zero organizations.
-        conf_templ.organization = []
-        conf_templ = conf_templ.update(['organization'])
-        self.assertEqual(len(conf_templ.organization), 0)
-
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create a configuration template providing the initial name.
-
-        :id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
-
-        :expectedresults: Configuration Template is created and contains
-            provided name.
-
-        :CaseLevel: Component
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                c_temp = entities.ConfigTemplate(name=name).create()
-                self.assertEqual(name, c_temp.name)
-
-    @tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create configuration template providing an invalid name.
-
-        :id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
-
-        :expectedresults: Configuration Template is not created
-
-        :CaseLevel: Component
-
-        :CaseImportance: Medium
-        """
-        for name in invalid_names_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.ConfigTemplate(name=name).create()
-
-    @tier1
-    def test_positive_create_with_template_kind(self):
-        """Create a provisioning template providing the template_kind.
-
-        :id: d7309be8-b5c9-4f77-8c4e-e9f2b8982076
-
-        :expectedresults: Provisioning Template is created and contains
-            provided template kind.
-
-        :CaseLevel: Component
-
-        :CaseImportance: Critical
-        """
-        template_kind = choice(entities.TemplateKind().search())
-        template = entities.ProvisioningTemplate(
-            snippet=False, template_kind=template_kind
-        ).create()
-        self.assertEqual(template.template_kind.id, template_kind.id)
-
-    @tier1
-    def test_positive_create_with_template_kind_name(self):
-        """Create a provisioning template providing existing
-        template_kind name.
-
-        :id: 4a1410e4-aa3c-4d27-b062-089e34722bd9
-
-        :expectedresults: Provisioning Template is created
-
-        :BZ: 1379006
-
-        :CaseLevel: Component
-
-        :CaseImportance: Critical
-        """
-        template_kind = choice(entities.TemplateKind().search())
-        template = entities.ProvisioningTemplate(snippet=False)
-        template.create_missing()
-        template.template_kind = None
-        template.template_kind_name = template_kind.name
-        template = template.create(create_missing=False)
-        self.assertEqual(template.template_kind.id, template_kind.id)
-
-    @tier1
-    def test_negative_create_with_template_kind_name(self):
-        """Create a provisioning template providing non-existing
-        template_kind name.
-
-        :id: e6de9ceb-fe4b-43ce-b7e3-5453ca4bd164
-
-        :expectedresults: 404 error and expected message is returned
-
-        :BZ: 1379006
-
-        :CaseLevel: Component
-
-        :CaseImportance: Medium
-        """
-        template = entities.ProvisioningTemplate(snippet=False)
-        template.create_missing()
-        template.template_kind = None
-        template.template_kind_name = gen_string('alpha')
-        with self.assertRaises(HTTPError) as context:
-            template.create(create_missing=False)
-        self.assertEqual(context.exception.response.status_code, 422)
-        self.assertRegex(context.exception.response.text, "Could not find template_kind with name")
-
-    @tier1
-    def test_positive_update_name(self):
-        """Create configuration template providing the initial name,
-        then update its name to another valid name.
-
-        :id: 58ccc4ee-5faa-4fb2-bfd0-e19412e230dd
-
-        :expectedresults: Configuration Template is created, and its name can
-            be updated.
-
-        :CaseLevel: Component
-
-        :CaseImportance: Critical
-        """
-        c_temp = entities.ConfigTemplate().create()
-
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                updated = entities.ConfigTemplate(id=c_temp.id, name=new_name).update(['name'])
-                self.assertEqual(new_name, updated.name)
-
-    @tier1
-    def test_positive_update_with_manager_role(self):
-        """Create template providing the initial name, then update its name
-        with manager user role.
-
-        :id: 0aed79f0-7c9a-4789-99ba-56f2db82f097
-
-        :expectedresults: Provisioning Template is created, and its name can
-            be updated.
-
-        :CaseImportance: Medium
-
-        :BZ: 1277308
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alpha')
-        new_name = gen_string('alpha')
-        org = entities.Organization().create()
-        loc = entities.Location().create()
-        template = entities.ProvisioningTemplate(organization=[org], location=[loc]).create()
-        # Create user with Manager role
-        role = entities.Role().search(query={'search': 'name="Manager"'})[0]
-        entities.User(
-            role=[role],
-            admin=False,
-            login=user_login,
-            password=user_password,
-            organization=[org],
-            location=[loc],
-        ).create()
-        # Update template name with that user
-        cfg = get_nailgun_config()
-        cfg.auth = (user_login, user_password)
-        updated = entities.ProvisioningTemplate(cfg, id=template.id, name=new_name).update(
-            ['name']
-        )
-        self.assertEqual(updated.name, new_name)
-
-    @tier1
-    def test_negative_update_name(self):
-        """Create configuration template then update its name to an
-        invalid name.
-
-        :id: f6167dc5-26ba-46d7-b61f-14c290d6a8fa
-
-        :expectedresults: Configuration Template is created, and its name is
-            not updated.
-
-        :CaseImportance: Medium
-
-        :CaseLevel: Component
-        """
-        c_temp = entities.ConfigTemplate().create()
-        for new_name in invalid_names_list():
-            with self.subTest(new_name):
-                with self.assertRaises(HTTPError):
-                    entities.ConfigTemplate(id=c_temp.id, name=new_name).update(['name'])
-                c_temp = entities.ConfigTemplate(id=c_temp.id).read()
-                self.assertNotEqual(c_temp.name, new_name)
-
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Create configuration template and then delete it.
-
-        :id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
-
-        :expectedresults: Configuration Template is successfully deleted.
-
-        :CaseImportance: Critical
-
-        :CaseLevel: Component
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                c_temp = entities.ConfigTemplate().create()
-                c_temp.delete()
-                with self.assertRaises(HTTPError):
-                    entities.ConfigTemplate(id=c_temp.id).read()
-
-    @tier2
-    def test_positive_clone(self):
-        """Assure ability to clone a provisioning template
-
-        :id: 8dfbb234-7a52-4873-be72-4de086472669
-
-        :expectedresults: The template is cloned successfully with all values
-
-        :CaseLevel: Component
-
-        :CaseImportance: Medium
-        """
-        template = entities.ConfigTemplate().create()
-        template_origin = template.read_json()
-
-        # remove unique keys
-        unique_keys = ('updated_at', 'created_at', 'id', 'name')
-        for key in unique_keys:
-            del template_origin[key]
-
-        for name in valid_data_list():
-            with self.subTest(name):
-                new_template = entities.ConfigTemplate(
-                    id=template.clone(data={'name': name})['id']
-                ).read_json()
-                for key in unique_keys:
-                    del new_template[key]
-                self.assertEqual(template_origin, new_template)
+        assert type(response.json()) == dict
+        for template in tftpboot.values():
+            if template['path'].startswith('http'):
+                r = client.get(template['path'], verify=False)
+                r.raise_for_status()
+                rendered = r.text
+            else:
+                rendered = ssh.command('cat {0}'.format(template['path'])).stdout[0]
+            assert rendered == '{0}://{1} {2}'.format(
+                settings.server.scheme, settings.server.hostname, template['kind']
+            )
 
 
 class TemplateSyncTestCase(APITestCase):
@@ -415,7 +348,7 @@ class TemplateSyncTestCase(APITestCase):
 
     def create_import_export_local_directory(self, dir_name):
         """Creates a local directory on satellite from where the templates will
-            be import or exported to
+            be imported or exported to
 
         :param str dir_name: The directory name which will be created as export
             or import directory under ```/usr/share/foreman_templates```
