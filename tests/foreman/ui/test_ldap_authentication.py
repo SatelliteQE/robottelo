@@ -1249,3 +1249,42 @@ def test_external_new_user_login(enable_external_auth_rhsso, session):
     finally:
         update_rhsso_settings_in_satellite(revert=True)
         delete_rhsso_user(user_details['username'])
+
+
+@destructive
+def test_users_count_from_auth_source(enable_external_auth_rhsso, session):
+    """Verify the external user count after configuring the RH-SSO and actual login
+
+    :id: 2fa91152-9911-11ea-afb6-d46d6dd3b5b2
+
+    :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :steps:
+        1. Login into satellite and gather the count of external users
+        2. Create new user on RHSSO Instance and Update the Settings in Satellite
+        3. Verify that the count is increased
+
+    :expectedresults: The external user count should reflect on UI after create and login
+    """
+    client_id = get_rhsso_client_id()
+    with session:
+        current_count = session.ldapauthentication.read_auth_source_counts('External')
+        try:
+            update_rhsso_settings_in_satellite()
+            user_details = create_new_rhsso_user(client_id)
+            login_details = {
+                'username': user_details['username'],
+                'password': settings.rhsso.password,
+            }
+            with Session(login=False) as rhsso_session:
+                rhsso_session.rhsso_login.login(login_details)
+                actual_user = rhsso_session.task.read_all(widget_names="current_user")[
+                    'current_user'
+                ]
+                assert user_details['firstName'] in actual_user
+            session.browser.refresh()
+            count = session.ldapauthentication.read_auth_source_counts('External')
+            assert count == current_count + 1
+        finally:
+            update_rhsso_settings_in_satellite(revert=True)
+            delete_rhsso_user(user_details['username'])
