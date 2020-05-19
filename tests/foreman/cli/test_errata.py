@@ -23,9 +23,13 @@ from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.contentview import ContentViewFilter
 from robottelo.cli.erratum import Erratum
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_content_view_filter
+from robottelo.cli.factory import make_content_view_filter_rule
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_host_collection
 from robottelo.cli.factory import make_lifecycle_environment
@@ -49,6 +53,7 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
 from robottelo.constants import FAKE_0_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_1_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_YUM_REPO
@@ -60,6 +65,8 @@ from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_6_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_ERRATUM
+from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
@@ -80,7 +87,7 @@ ERRATUM_MAX_IDS_INFO = 10
 class HostCollectionErrataInstallTestCase(CLITestCase):
     """CLI Tests for the errata management feature"""
 
-    CUSTOM_REPO_URL = FAKE_6_YUM_REPO
+    CUSTOM_REPO_URL = FAKE_9_YUM_REPO
     CUSTOM_PACKAGE = FAKE_1_CUSTOM_PACKAGE
     CUSTOM_ERRATA_ID = FAKE_2_ERRATA_ID
     CUSTOM_PACKAGE_ERRATA_APPLIED = FAKE_2_CUSTOM_PACKAGE
@@ -475,7 +482,6 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             displayed.
 
         :CaseAutomation: automated
-
         """
         result = Host.list(
             {
@@ -489,6 +495,150 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             assert (
                 virtual_machine.hostname in result
             ), "VM host name not found in list of applicable hosts"
+
+    @tier3
+    def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
+        """View a list of affected content hosts for an erratum filtered
+        with restrict flags. Applicability is calculated using the Library,
+        so that search must not limit to CV or LCE. Installability
+        is calculated using the attached CV, subject to the CV's own filtering,
+        so that search must limit to CV and LCE.
+
+        :id: 594acd48-892c-499e-b0cb-6506cea7cd64
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps:
+
+            1. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-installable=1
+
+            2. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-installable=0
+
+            3. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-applicable=1
+
+            4. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-applicable=0
+
+
+        :expectedresults: List of affected content hosts for an erratum is
+            displayed filtered with corresponding restrict flags.
+
+        :CaseAutomation: automated
+        """
+        # Create list of uninstallable errata by removing FAKE_2_ERRATA_ID
+        UNINSTALLABLE = [erratum for erratum in FAKE_9_YUM_ERRATUM if erratum != FAKE_2_ERRATA_ID]
+        # Check that only installable errata are present in the list
+        erratum_list = Erratum.list(
+            {
+                'errata-restrict-installable': 1,
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        # Assert the expected errata is in the list
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID in erratum_id_list
+        ), "Errata not found in list of installable errata"
+        # Assert the uninstallable errata are not in the list
+        for erratum in UNINSTALLABLE:
+            assert erratum not in erratum_id_list, "Unexpected errata found"
+        # Check list of errata is not affected by installable=0 restrict flag
+        erratum_list = Erratum.list(
+            {
+                'errata-restrict-installable': 0,
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        for erratum in FAKE_9_YUM_ERRATUM:
+            assert erratum in erratum_id_list, "Errata not found in list of installable errata"
+        # Check list of applicable errata
+        erratum_list = Erratum.list(
+            {'errata-restrict-applicable': 1, 'organization-id': self.org['id'], 'per-page': 1000}
+        )
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID in erratum_id_list
+        ), "Errata not found in list of applicable errata"
+        # Check list of errata is not affected by applicable=0 restrict flag
+        erratum_list = Erratum.list(
+            {'errata-restrict-applicable': 0, 'organization-id': self.org['id'], 'per-page': 1000}
+        )
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        for erratum in FAKE_9_YUM_ERRATUM:
+            assert erratum in erratum_id_list, "Errata not found in list of applicable errata"
+        # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
+        # Make RPM exclude filter
+        make_content_view_filter(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_restrict_test',
+                'description': 'Hide the installable errata',
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+                'inclusion': 'false',
+            }
+        )
+        # Make rule to hide the RPM that creates the need for the installable erratum
+        make_content_view_filter_rule(
+            {
+                'content-view-id': self.content_view['id'],
+                'content-view-filter': 'erratum_restrict_test',
+                'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+            }
+        )
+        # Publish the version with the filter
+        ContentView.publish({'id': self.content_view['id']})
+        # Need to promote the last version published
+        content_view_version = ContentView.info({'id': self.content_view['id']})['versions'][-1]
+        ContentView.version_promote(
+            {
+                'id': content_view_version['id'],
+                'organization-id': self.org['id'],
+                'to-lifecycle-environment-id': self.env['id'],
+            }
+        )
+        # Check that the installable erratum is no longer present in the list
+        erratum_list = Erratum.list(
+            {
+                'errata-restrict-installable': 1,
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        # Assert the expected erratum is no longer in the list
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID not in erratum_id_list
+        ), "Errata not found in list of installable errata"
+        # Check CUSTOM_ERRATA_ID still applicable
+        erratum_list = Erratum.list(
+            {'errata-restrict-applicable': 1, 'organization-id': self.org['id'], 'per-page': 1000}
+        )
+        # Assert the expected erratum is in the list
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID in erratum_id_list
+        ), "Errata not found in list of applicable errata"
+        # Clean up by removing the CV filter
+        ContentViewFilter.delete(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_restrict_test',
+                'organization-id': self.org['id'],
+            }
+        )
 
 
 class ErrataTestCase(CLITestCase):
@@ -1526,33 +1676,6 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(user_org_errata_ids), self.org_multi_product_small_erratum_count)
         self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
         self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
-
-    @stubbed()
-    def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
-        """View a list of affected content hosts for an erratum filtered
-        with restrict flags
-
-        :id: 594acd48-892c-499e-b0cb-6506cea7cd64
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps:
-
-            1. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-available=1
-            2. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-unavailable=1
-            3. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-available=0
-            4. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-unavailable=0
-
-        :expectedresults: List of affected content hosts for an erratum is
-            displayed filtered with corresponding restrict flags.
-
-        :CaseAutomation: notautomated
-
-        """
 
     @stubbed()
     def test_positive_view_available_count_in_affected_chosts(self):
