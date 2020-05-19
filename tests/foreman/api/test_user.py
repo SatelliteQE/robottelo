@@ -365,6 +365,33 @@ class UserTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.User(auth_source='').create()
 
+    @tier1
+    def test_count_number_of_users_internal_auth(self):
+        """Count number of users in Authentication Source(internal)
+
+        :id: d7b3162c-99ca-11ea-b2d6-4ceb42ab8dbc
+
+        :expectedresults: Count of users(internal) is updated after more
+            users are created
+
+        :CaseImportance: High
+        """
+
+        def count_users():
+            login_id = [
+                ele.id
+                for ele in entities.User().search(
+                    query={'search': 'auth_source_type= AuthSourceInternal'}
+                )
+            ]
+            return len(login_id)
+
+        old_count = count_users()
+        for username in valid_usernames_list():
+            entities.User(login=username).create()
+        new_count = count_users()
+        assert new_count == old_count + 1
+
 
 class UserRoleTestCase(APITestCase):
     """Test associations between users and roles."""
