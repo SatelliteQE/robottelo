@@ -275,7 +275,7 @@ def enroll_configure_rhsso_external_auth():
         cmd="satellite-installer --foreman-keycloak true "
         "--foreman-keycloak-app-name 'foreman-openidc' "
         "--foreman-keycloak-realm '{}' ".format(settings.rhsso.realm),
-        timeout=600,
+        timeout=1000,
     )
     run_command(cmd="systemctl restart httpd")
 
@@ -1221,8 +1221,8 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, session):
 
 @upgrade
 @destructive
-def test_external_new_user_login(enable_external_auth_rhsso, session):
-    """Verify the external logout page navigation with external authentication RH-SSO
+def test_external_new_user_login_and_check_count(session):
+    """Verify the external new user login and verify the external user count
 
     :id: bf938ea2-6df9-11ea-a7cf-951107ed0bbb
 
@@ -1233,38 +1233,7 @@ def test_external_new_user_login(enable_external_auth_rhsso, session):
         2. Verify the login for that user
 
     :expectedresults: New User created in RHSSO server should able to get log-in
-    """
-    client_id = get_rhsso_client_id()
-    try:
-        update_rhsso_settings_in_satellite()
-        user_details = create_new_rhsso_user(client_id)
-        login_details = {
-            'username': user_details['username'],
-            'password': settings.rhsso.password,
-        }
-        with session(login=False):
-            session.rhsso_login.login(login_details)
-            actual_user = session.task.read_all(widget_names="current_user")['current_user']
-            assert user_details['firstName'] in actual_user
-    finally:
-        update_rhsso_settings_in_satellite(revert=True)
-        delete_rhsso_user(user_details['username'])
-
-
-@destructive
-def test_users_count_from_auth_source(enable_external_auth_rhsso, session):
-    """Verify the external user count after configuring the RH-SSO and actual login
-
-    :id: 2fa91152-9911-11ea-afb6-d46d6dd3b5b2
-
-    :setup: Enroll the RH-SSO Configuration for External Authentication
-
-    :steps:
-        1. Login into satellite and gather the count of external users
-        2. Create new user on RHSSO Instance and Update the Settings in Satellite
-        3. Verify that the count is increased
-
-    :expectedresults: The external user count should reflect on UI after create and login
+        and correct count shown for external users
     """
     client_id = get_rhsso_client_id()
     with session:
