@@ -484,8 +484,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 'fields': 'Name',
             }
         )
+        result = [item['name'] for item in result]
         for virtual_machine in self.virtual_machines:
-            result = [item['name'] for item in result]
             assert (
                 virtual_machine.hostname in result
             ), "VM host name not found in list of applicable hosts"
