@@ -465,13 +465,10 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.override = True
         sc_param.default_value = gen_string('alpha')
         override = entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=value,
-            use_puppet_default=True,
+            smart_class_parameter=sc_param, match='domain=example.com', value=value, omit=True
         ).create()
         sc_param = sc_param.read()
-        self.assertEqual(sc_param.override_values[0]['use_puppet_default'], True)
+        self.assertEqual(sc_param.override_values[0]['omit'], True)
         self.assertEqual(sc_param.override_values[0]['match'], 'domain=example.com')
         self.assertEqual(sc_param.override_values[0]['value'], value)
         override.delete()
