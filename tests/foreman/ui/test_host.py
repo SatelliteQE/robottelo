@@ -1774,6 +1774,7 @@ def test_positive_gce_provision_end_to_end(
     hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
+    storage = [{'size': 20}]
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
@@ -1787,6 +1788,7 @@ def test_positive_gce_provision_end_to_end(
                     'provider_content.virtual_machine.machine_type': 'g1-small',
                     'provider_content.virtual_machine.external_ip': True,
                     'provider_content.virtual_machine.network': 'default',
+                    'provider_content.virtual_machine.storage': storage,
                     'operating_system.operating_system': module_os.title,
                     'operating_system.image': 'autogce_img',
                     'operating_system.root_password': root_pwd,
@@ -1854,6 +1856,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     name = gen_string('alpha').lower()
     hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
+    storage = [{'size': 20}]
     root_pwd = gen_string('alpha', random.choice([8, 15]))
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
@@ -1868,6 +1871,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                     'provider_content.virtual_machine.machine_type': 'g1-small',
                     'provider_content.virtual_machine.external_ip': True,
                     'provider_content.virtual_machine.network': 'default',
+                    'provider_content.virtual_machine.storage': storage,
                     'operating_system.operating_system': module_os.title,
                     'operating_system.image': 'autogce_img_cinit',
                     'operating_system.root_password': root_pwd,
