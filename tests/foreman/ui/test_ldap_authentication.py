@@ -1257,3 +1257,18 @@ def test_external_new_user_login_and_check_count(session):
         finally:
             update_rhsso_settings_in_satellite(revert=True)
             delete_rhsso_user(user_details['username'])
+
+
+@tier2
+def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
+    """Verify for a positive test connection response
+
+    :id: 5daf3976-9b5c-11ea-96f8-4ceb42ab8dbc
+
+    :steps: Assert test connection of AD and IPA.
+
+    :expectedresults: Positive test connection of AD and IPA
+    """
+    with session:
+        for ldap_host in (ldap_data['ldap_hostname'], ipa_data['ldap_ipa_hostname']):
+            session.ldapauthentication.test_connection({'ldap_server.host': ldap_host})
