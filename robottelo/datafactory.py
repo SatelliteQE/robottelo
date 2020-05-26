@@ -258,11 +258,11 @@ def valid_data_list(interface=None):
     """
     return {
         'alpha': gen_string('alpha', random.randint(1, 255)),
-        'alphanumeric': gen_string('alphanumeric', random.randint(1, 255)),
         'numeric': gen_string('numeric', random.randint(1, 255)),
-        'cjk': gen_string('cjk', random.randint(1, 85)),
+        'alphanumeric': gen_string('alphanumeric', random.randint(1, 255)),
         'latin1': gen_string('latin1', random.randint(1, 255)),
         'utf8': gen_string('utf8', random.randint(1, 85)),
+        'cjk': gen_string('cjk', random.randint(1, 85)),
         'html': gen_string('html', random.randint(1, 85)),
     }
 
