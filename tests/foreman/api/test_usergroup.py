@@ -1,8 +1,7 @@
 """Unit tests for the ``usergroups`` paths.
 
-Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
-tested can be found here:
-http://theforeman.org/api/1.11/apidoc/v2/usergroups.html
+A full API reference is available here:
+https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 
 :Requirement: Usergroup
 
@@ -20,24 +19,30 @@ http://theforeman.org/api/1.11/apidoc/v2/usergroups.html
 """
 from random import randint
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
+from robottelo.constants import STRING_TYPES
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_usernames_list
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.test import APITestCase
 
 
-class UserGroupTestCase(APITestCase):
+class TestUserGroup:
     """Tests for the ``usergroups`` path."""
 
+    @pytest.fixture
+    def user_group(self):
+        return entities.UserGroup().create()
+
     @tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', valid_data_list(), ids=STRING_TYPES)
+    def test_positive_create_with_name(self, name):
         """Create new user group using different valid names
 
         :id: 3a2255d9-f48d-4f22-a4b9-132361bd9224
@@ -46,13 +51,12 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                user_group = entities.UserGroup(name=name).create()
-                self.assertEqual(user_group.name, name)
+        user_group = entities.UserGroup(name=name).create()
+        assert user_group.name == name
 
     @tier1
-    def test_positive_create_with_user(self):
+    @pytest.mark.parametrize('login', valid_usernames_list(), ids=STRING_TYPES[:-1])
+    def test_positive_create_with_user(self, login):
         """Create new user group using valid user attached to that group.
 
         :id: ab127e09-31d2-4c5b-ae6c-726e4b11a21e
@@ -61,12 +65,10 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for login in valid_usernames_list():
-            with self.subTest(login):
-                user = entities.User(login=login).create()
-                user_group = entities.UserGroup(user=[user]).create()
-                self.assertEqual(len(user_group.user), 1)
-                self.assertEqual(user_group.user[0].read().login, login)
+        user = entities.User(login=login).create()
+        user_group = entities.UserGroup(user=[user]).create()
+        assert len(user_group.user) == 1
+        assert user_group.user[0].read().login == login
 
     @tier1
     def test_positive_create_with_users(self):
@@ -81,13 +83,13 @@ class UserGroupTestCase(APITestCase):
         """
         users = [entities.User().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(user=users).create()
-        self.assertEqual(
-            sorted([user.login for user in users]),
-            sorted([user.read().login for user in user_group.user]),
+        assert sorted([user.login for user in users]) == sorted(
+            [user.read().login for user in user_group.user]
         )
 
     @tier1
-    def test_positive_create_with_role(self):
+    @pytest.mark.parametrize('role_name', valid_data_list(), ids=STRING_TYPES)
+    def test_positive_create_with_role(self, role_name):
         """Create new user group using valid role attached to that group.
 
         :id: c4fac71a-9dda-4e5f-a5df-be362d3cbd52
@@ -96,12 +98,10 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for role_name in valid_data_list():
-            with self.subTest(role_name):
-                role = entities.Role(name=role_name).create()
-                user_group = entities.UserGroup(role=[role]).create()
-                self.assertEqual(len(user_group.role), 1)
-                self.assertEqual(user_group.role[0].read().name, role_name)
+        role = entities.Role(name=role_name).create()
+        user_group = entities.UserGroup(role=[role]).create()
+        assert len(user_group.role) == 1
+        assert user_group.role[0].read().name == role_name
 
     @tier1
     def test_positive_create_with_roles(self):
@@ -116,13 +116,13 @@ class UserGroupTestCase(APITestCase):
         """
         roles = [entities.Role().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(role=roles).create()
-        self.assertEqual(
-            sorted([role.name for role in roles]),
-            sorted([role.read().name for role in user_group.role]),
+        assert sorted([role.name for role in roles]) == sorted(
+            [role.read().name for role in user_group.role]
         )
 
     @tier1
-    def test_positive_create_with_usergroup(self):
+    @pytest.mark.parametrize('name', valid_data_list(), ids=STRING_TYPES)
+    def test_positive_create_with_usergroup(self, name):
         """Create new user group using another user group attached to the
         initial group.
 
@@ -132,12 +132,10 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                sub_user_group = entities.UserGroup(name=name).create()
-                user_group = entities.UserGroup(usergroup=[sub_user_group]).create()
-                self.assertEqual(len(user_group.usergroup), 1)
-                self.assertEqual(user_group.usergroup[0].read().name, name)
+        sub_user_group = entities.UserGroup(name=name).create()
+        user_group = entities.UserGroup(usergroup=[sub_user_group]).create()
+        assert len(user_group.usergroup) == 1
+        assert user_group.usergroup[0].read().name == name
 
     @tier2
     def test_positive_create_with_usergroups(self):
@@ -153,13 +151,15 @@ class UserGroupTestCase(APITestCase):
         """
         sub_user_groups = [entities.UserGroup().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(usergroup=sub_user_groups).create()
-        self.assertEqual(
-            sorted([usergroup.name for usergroup in sub_user_groups]),
-            sorted([usergroup.read().name for usergroup in user_group.usergroup]),
+        assert sorted([usergroup.name for usergroup in sub_user_groups]) == sorted(
+            [usergroup.read().name for usergroup in user_group.usergroup]
         )
 
     @tier1
-    def test_negative_create_with_name(self):
+    @pytest.mark.parametrize(
+        'name', invalid_values_list(), ids=['empty', 'space', 'tab'] + STRING_TYPES
+    )
+    def test_negative_create_with_name(self, name):
         """Attempt to create user group with invalid name.
 
         :id: 1a3384dc-5d52-442c-87c8-e38048a61dfa
@@ -168,10 +168,8 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.UserGroup(name=name).create()
+        with pytest.raises(HTTPError):
+            entities.UserGroup(name=name).create()
 
     @tier1
     def test_negative_create_with_same_name(self):
@@ -184,11 +182,12 @@ class UserGroupTestCase(APITestCase):
         :CaseImportance: Critical
         """
         user_group = entities.UserGroup().create()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.UserGroup(name=user_group.name).create()
 
     @tier1
-    def test_positive_update(self):
+    @pytest.mark.parametrize('new_name', valid_data_list(), ids=STRING_TYPES)
+    def test_positive_update(self, user_group, new_name):
         """Update existing user group with different valid names.
 
         :id: b4f0a19b-9059-4e8b-b245-5a30ec06f9f3
@@ -197,12 +196,9 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        user_group = entities.UserGroup().create()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                user_group.name = new_name
-                user_group = user_group.update(['name'])
-                self.assertEqual(new_name, user_group.name)
+        user_group.name = new_name
+        user_group = user_group.update(['name'])
+        assert new_name == user_group.name
 
     @tier1
     def test_positive_update_with_new_user(self):
@@ -218,7 +214,7 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup().create()
         user_group.user = [user]
         user_group = user_group.update(['user'])
-        self.assertEqual(user.login, user_group.user[0].read().login)
+        assert user.login == user_group.user[0].read().login
 
     @tier2
     def test_positive_update_with_existing_user(self):
@@ -234,7 +230,7 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup(user=[users[0]]).create()
         user_group.user[0] = users[1]
         user_group = user_group.update(['user'])
-        self.assertEqual(users[1].login, user_group.user[0].read().login)
+        assert users[1].login == user_group.user[0].read().login
 
     @tier1
     def test_positive_update_with_new_role(self):
@@ -250,7 +246,7 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup().create()
         user_group.role = [new_role]
         user_group = user_group.update(['role'])
-        self.assertEqual(new_role.name, user_group.role[0].read().name)
+        assert new_role.name == user_group.role[0].read().name
 
     @tier1
     @upgrade
@@ -267,10 +263,13 @@ class UserGroupTestCase(APITestCase):
         user_group = entities.UserGroup().create()
         user_group.usergroup = [new_usergroup]
         user_group = user_group.update(['usergroup'])
-        self.assertEqual(new_usergroup.name, user_group.usergroup[0].read().name)
+        assert new_usergroup.name == user_group.usergroup[0].read().name
 
     @tier1
-    def test_negative_update(self):
+    @pytest.mark.parametrize(
+        'new_name', invalid_values_list(), ids=['empty', 'space', 'tab'] + STRING_TYPES
+    )
+    def test_negative_update(self, user_group, new_name):
         """Attempt to update existing user group using different invalid names.
 
         :id: 03772bd0-0d52-498d-8259-5c8a87e08344
@@ -279,13 +278,10 @@ class UserGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        user_group = entities.UserGroup().create()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                user_group.name = new_name
-                with self.assertRaises(HTTPError):
-                    user_group.update(['name'])
-                self.assertNotEqual(user_group.read().name, new_name)
+        user_group.name = new_name
+        with pytest.raises(HTTPError):
+            user_group.update(['name'])
+        assert user_group.read().name != new_name
 
     @tier1
     def test_negative_update_with_same_name(self):
@@ -301,9 +297,9 @@ class UserGroupTestCase(APITestCase):
         entities.UserGroup(name=name).create()
         new_user_group = entities.UserGroup().create()
         new_user_group.name = name
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             new_user_group.update(['name'])
-        self.assertNotEqual(new_user_group.read().name, name)
+        assert new_user_group.read().name != name
 
     @tier1
     def test_positive_delete(self):
@@ -317,5 +313,5 @@ class UserGroupTestCase(APITestCase):
         """
         user_group = entities.UserGroup().create()
         user_group.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             user_group.read()
