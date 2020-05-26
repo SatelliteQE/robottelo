@@ -63,6 +63,10 @@ from robottelo.constants import FAKE_2_YUM_REPO
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_6_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_ERRATUM
@@ -636,6 +640,187 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             {
                 'content-view-id': self.content_view['id'],
                 'name': 'erratum_restrict_test',
+                'organization-id': self.org['id'],
+            }
+        )
+
+    @tier3
+    def test_host_errata_search_commands(self):
+        """View a list of affected content hosts for security (RHSA or RHEA) and bugfix (RHBA) errata,
+        filtered with errata status and applicable flags. Applicability is calculated using the
+        Library, but Installability is calculated using the attached CV, and is subject to the
+        CV's own filtering.
+
+        :id: 07757a77-7ab4-4020-99af-2beceb023266
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps:
+            1.  host list --search "errata_status = errata_needed"
+            2.  host list --search "errata_status = security_needed"
+            3.  host list --search "applicable_errata = RHBA-2012:1030"
+            4.  host list --search "applicable_errata = RHSA-2012:0055"
+            5.  host list --search "applicable_rpms = kangaroo-0.3-1.noarch"
+            6.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
+            7.  Create filter & rule to hide RPM (applicable vs. instalable test)
+            8.  Repeat steps 3 and 5, but 5 expects host name not found.
+
+        :expectedresults: The hosts are correctly listed for RHSA and RHBA errata.
+
+        :BZ: 1707335
+        """
+        # Install package on first VM to create a need for RHBA-2012:1030
+        result = ssh.command(
+            f'yum install -y {FAKE_4_CUSTOM_PACKAGE}', self.virtual_machines[0].ip_addr
+        )
+        assert result.return_code == 0, "Failed to install RPM"
+        # Update package on first VM to remove its need for RHSA-2012:0055
+        result = ssh.command(
+            f'yum install -y {FAKE_2_CUSTOM_PACKAGE}', self.virtual_machines[0].ip_addr
+        )
+        assert result.return_code == 0, "Failed to install RPM"
+        # Step 1: Search for hosts that require RHBA errata
+        result = Host.list(
+            {
+                'search': f'errata_status = errata_needed',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is in the list
+        assert self.virtual_machines[0].hostname in result
+        # Assert second VM's name is not in the list
+        assert self.virtual_machines[1].hostname not in result
+        # Step 2: Search for hosts that require RHSA errata
+        result = Host.list(
+            {
+                'search': f'errata_status = security_needed',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is not in the list
+        assert self.virtual_machines[0].hostname not in result
+        # Assert second VM's name is in the list
+        assert self.virtual_machines[1].hostname in result
+        # Step 3: Search for hosts that have RHBA-2012:1030 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_errata = {FAKE_5_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is in the list
+        assert self.virtual_machines[0].hostname in result
+        # Assert second VM's name is not in the list
+        assert self.virtual_machines[1].hostname not in result
+        # Step 4: Search for hosts that have RHSA-2012:0055 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_errata = {FAKE_2_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is not in the list
+        assert self.virtual_machines[0].hostname not in result
+        # Assert second VM's name is in the list
+        assert self.virtual_machines[1].hostname in result
+        # Step 5: Search for hosts that have RPM for RHBA-2012:1030 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is in the list
+        assert self.virtual_machines[0].hostname in result
+        # Assert second VM's name is not in the list
+        assert self.virtual_machines[1].hostname not in result
+        # Step 6: Search for hosts that have RPM for RHSA-2012:0055 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is not in the list
+        assert self.virtual_machines[0].hostname not in result
+        # Assert second VM's name is in the list
+        assert self.virtual_machines[1].hostname in result
+        # Step 7: Apply filter and rule to CV to hide RPM, thus making erratum not installable
+        # Make RPM exclude filter
+        make_content_view_filter(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_search_test',
+                'description': 'Hide the installable errata',
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+                'inclusion': 'false',
+            }
+        )
+        # Make rule to hide the RPM that indicates the erratum is installable
+        make_content_view_filter_rule(
+            {
+                'content-view-id': self.content_view['id'],
+                'content-view-filter': 'erratum_search_test',
+                'name': f'{FAKE_4_CUSTOM_PACKAGE_NAME}',
+            }
+        )
+        # Publish the version with the filter
+        ContentView.publish({'id': self.content_view['id']})
+        # Need to promote the last version published
+        content_view_version = ContentView.info({'id': self.content_view['id']})['versions'][-1]
+        ContentView.version_promote(
+            {
+                'id': content_view_version['id'],
+                'organization-id': self.org['id'],
+                'to-lifecycle-environment-id': self.env['id'],
+            }
+        )
+        # Step 8: Run tests again. Applicable should still be true, Installable should now be false
+        # Search for hosts that have RPM for RHBA-2012:1030 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is in the list
+        assert self.virtual_machines[0].hostname in result
+        # Assert second VM's name is not in the list
+        assert self.virtual_machines[1].hostname not in result
+        # There is no installable_rpms flag, so its just the one test.
+        # Search for hosts that show RHBA-2012:1030 installable
+        result = Host.list(
+            {
+                'search': f'installable_errata = {FAKE_5_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        # Assert first VM's name is not in the list
+        assert self.virtual_machines[0].hostname not in result
+        # Assert second VM's name is also not in the list
+        assert self.virtual_machines[1].hostname not in result
+        # Clean up by removing the CV filter
+        ContentViewFilter.delete(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_search_test',
                 'organization-id': self.org['id'],
             }
         )
