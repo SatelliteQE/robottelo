@@ -222,13 +222,13 @@ class SmartClassParametersTestCase(CLITestCase):
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
         SmartClassParameter.update(
-            {'default-value': value, 'use-puppet-default': 1, 'id': sc_param_id, 'override': 1}
+            {'default-value': value, 'omit': 1, 'id': sc_param_id, 'override': 1}
         )
         sc_param = SmartClassParameter.info(
             {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
         )
         self.assertEqual(sc_param['default-value'], value)
-        self.assertEqual(sc_param['use-puppet-default'], True)
+        self.assertEqual(sc_param['omit'], True)
 
     @tier1
     def test_negative_override(self):
@@ -415,11 +415,7 @@ class SmartClassParametersTestCase(CLITestCase):
             {'id': sc_param_id, 'override': 1, 'default-value': gen_string('alpha')}
         )
         SmartClassParameter.add_override_value(
-            {
-                'smart-class-parameter-id': sc_param_id,
-                'match': 'domain=test.com',
-                'use-puppet-default': 1,
-            }
+            {'smart-class-parameter-id': sc_param_id, 'match': 'domain=test.com', 'omit': 1}
         )
         sc_param = SmartClassParameter.info(
             {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
