@@ -1,10 +1,13 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
+import os
+
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
+from robottelo import ssh
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
@@ -15,6 +18,7 @@ from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import download_gce_cert
+from robottelo.helpers import file_downloader
 from robottelo.test import settings
 
 # Global Satellite Entities
@@ -311,3 +315,18 @@ def module_product(module_org):
 @pytest.fixture(scope='class')
 def module_cv(module_org):
     return entities.ContentView(organization=module_org).create()
+
+
+@pytest.fixture(scope="module")
+def tailoring_file_path():
+    """ Return Tailoring file path."""
+    return file_downloader(file_url=settings.oscap.tailoring_path)[0]
+
+
+@pytest.fixture(scope="module")
+def oscap_content_path():
+    """ Download scap content from satellite and return local path of it."""
+    _, file_name = os.path.split(settings.oscap.content_path)
+    local_file = f"/tmp/{file_name}"
+    ssh.download_file(settings.oscap.content_path, local_file)
+    return local_file

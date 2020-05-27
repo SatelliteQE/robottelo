@@ -25,6 +25,8 @@ from robottelo.api.entity_fixtures import module_provisioingtemplate  # noqa: F4
 from robottelo.api.entity_fixtures import module_puppet_environment  # noqa: F401
 from robottelo.api.entity_fixtures import module_smart_proxy  # noqa: F401
 from robottelo.api.entity_fixtures import module_subnet  # noqa: F401
+from robottelo.api.entity_fixtures import oscap_content_path  # noqa: F401
+from robottelo.api.entity_fixtures import tailoring_file_path  # noqa: F401
 
 # TODO: load fixtures consistently without hanging imports here, entry_points or module inclusion
 
