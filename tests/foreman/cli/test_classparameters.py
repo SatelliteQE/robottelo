@@ -337,7 +337,7 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
-            SmartClassParameter.add_override_value(
+            SmartClassParameter.add_matcher(
                 {
                     'smart-class-parameter-id': sc_param_id,
                     'match': 'hostgroup=nonexistingHG',
@@ -371,7 +371,7 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'override-value-order': 'is_virtual'}
         )
-        SmartClassParameter.add_override_value(
+        SmartClassParameter.add_matcher(
             {'smart-class-parameter-id': sc_param_id, 'match': 'is_virtual=true', 'value': value}
         )
         sc_param = SmartClassParameter.info(
@@ -380,7 +380,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(sc_param['override-values']['values']['1']['match'], 'is_virtual=true')
         self.assertEqual(sc_param['override-values']['values']['1']['value'], value)
 
-        SmartClassParameter.remove_override_value(
+        SmartClassParameter.remove_matcher(
             {
                 'smart-class-parameter-id': sc_param_id,
                 'id': sc_param['override-values']['values']['1']['id'],
@@ -414,7 +414,7 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'default-value': gen_string('alpha')}
         )
-        SmartClassParameter.add_override_value(
+        SmartClassParameter.add_matcher(
             {'smart-class-parameter-id': sc_param_id, 'match': 'domain=test.com', 'omit': 1}
         )
         sc_param = SmartClassParameter.info(
