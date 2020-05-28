@@ -217,15 +217,6 @@ API_PATHS = {
         '/api/config_reports/:id',
         '/api/hosts/:host_id/config_reports/last',
     ),
-    'config_templates': (
-        '/api/config_templates',
-        '/api/config_templates',
-        '/api/config_templates/:id',
-        '/api/config_templates/:id',
-        '/api/config_templates/:id',
-        '/api/config_templates/:id/clone',
-        '/api/config_templates/build_pxe_default',
-    ),
     'content_credentials': (
         '/katello/api/content_credentials',
         '/katello/api/content_credentials',
@@ -831,8 +822,6 @@ API_PATHS = {
     ),
     'template': ('/api/templates/export', '/api/templates/import'),
     'template_combinations': (
-        '/api/config_templates/:config_template_id/template_combinations',
-        '/api/config_templates/:config_template_id/template_combinations',
         '/api/provisioning_templates/:provisioning_template_id/template_combinations/:id',
         '/api/template_combinations/:id',
         '/api/template_combinations/:id',

@@ -481,9 +481,9 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Update the OS to associate arch, ptable, templates
     os.architecture.append(arch)
     os.ptable.append(ptable)
-    os.config_template.append(provisioning_template)
-    os.config_template.append(pxe_template)
-    os = os.update(['architecture', 'config_template', 'ptable'])
+    os.provisioning_template.append(provisioning_template)
+    os.provisioning_template.append(pxe_template)
+    os = os.update(['architecture', 'provisioning_template', 'ptable'])
     # kickstart_repository is the content view and lce bind repo
     kickstart_repository = entities.Repository().search(
         query=dict(content_view_id=content_view.id, environment_id=lc_env.id, name=repo.name)

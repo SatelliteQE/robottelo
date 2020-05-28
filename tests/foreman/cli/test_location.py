@@ -86,7 +86,7 @@ class LocationTestCase(CLITestCase):
                 'hostgroup-ids': [self.host_group.id, self.host_group2.id],
                 'medium-ids': self.medium["id"],
                 'compute-resource-ids': self.comp_resource.id,
-                'config-templates': self.template.name,
+                'provisioning-templates': self.template.name,
                 'user-ids': self.user.id,
             }
         )
