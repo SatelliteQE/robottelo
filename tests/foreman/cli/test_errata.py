@@ -74,7 +74,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
@@ -1676,23 +1675,3 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(user_org_errata_ids), self.org_multi_product_small_erratum_count)
         self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
         self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
-
-    @stubbed()
-    def test_positive_view_available_count_in_affected_chosts(self):
-        """Available errata count displayed while viewing a list of
-        Content hosts
-
-        :id: 1d174432-bb51-4192-990d-3c62087b96df
-
-        :Setup:
-
-            1. Errata synced on satellite server.
-            2. Some content hosts present.
-
-        :Steps: hammer content-host list --organization-id=<orgid>
-
-        :expectedresults: The available errata count is retrieved.
-
-        :CaseAutomation: notautomated
-
-        """
