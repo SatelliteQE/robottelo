@@ -37,8 +37,8 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
@@ -742,4 +742,4 @@ def test_positive_install_modular_errata(
         assert result['job_status'] == 'Success'
         assert result['job_status_progress'] == '100%'
         assert int(result['total_hosts']) == 2
-        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_4_CUSTOM_PACKAGE)
+        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_5_CUSTOM_PACKAGE)
