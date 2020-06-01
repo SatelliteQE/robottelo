@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
 from functools import wraps

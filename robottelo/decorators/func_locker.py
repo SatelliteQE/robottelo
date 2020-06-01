@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Implements test function locking, using pytest_services file locking
 
 Usage::
