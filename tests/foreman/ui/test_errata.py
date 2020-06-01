@@ -23,6 +23,10 @@ from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM
+from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
+from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM
+from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
@@ -518,13 +522,16 @@ def test_positive_content_host_library(session, module_org, vm):
 
 @tier3
 def test_positive_content_host_search_type(session, erratatype_vm):
-    """ Search for errata on a content_host by type
+    """ Search for errata on a content host's errata tab by type.
 
     :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
 
-    :Setup: Content Host with applicable security errata
+    :Setup: Content Host with applicable errata
 
-    :Steps: Search for errata on content host by type (ie 'type = security')
+    :Steps: Search for errata on content host by type (e.g. 'type = security')
+     Step 1 Search for "type = security", assert expected amount and IDs found
+     Step 2 Search for "type = bugfix", assert expected amount and IDs found
+     Step 3 Search for "type = enhancement", assert expected amount and IDs found
 
     :BZ: 1653293
 
@@ -535,15 +542,39 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
 
     with session:
+        # Search for RHSA security errata
         ch_erratum = session.contenthost.search_errata(
             erratatype_vm.hostname, "type = security", environment='Library Synced Content'
         )
 
+        # Assert length matches known amount of RHSA errata
         assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
-        # check IDs just to be safe
-        errata_ids = sorted([e['Id'] for e in ch_erratum])
+        # Assert IDs are that of RHSA errata
+        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
         assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
+        # Search for RHBA buxfix errata
+        ch_erratum = session.contenthost.search_errata(
+            erratatype_vm.hostname, "type = bugfix", environment='Library Synced Content'
+        )
+
+        # Assert length matches known amount of RHBA errata
+        assert len(ch_erratum) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
+
+        # Assert IDs are that of RHBA errata
+        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        assert errata_ids == sorted(FAKE_10_YUM_BUGFIX_ERRATUM)
+        # Search for RHEA enhancement errata
+        ch_erratum = session.contenthost.search_errata(
+            erratatype_vm.hostname, "type = enhancement", environment='Library Synced Content'
+        )
+
+        # Assert length matches known amount of RHEA errata
+        assert len(ch_erratum) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
+
+        # Assert IDs are that of RHEA errata
+        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
 @pytest.mark.skip_if_open("BZ:1655130")
