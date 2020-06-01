@@ -131,14 +131,15 @@ def test_positive_host_configuration_chart(session):
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
-        assert dashboard_values['chart']['No report'] == '100%'
+        assert dashboard_values['chart'][''] == '100%'
 
 
+@upgrade
 @run_in_one_thread
 @tier2
 def test_positive_task_status(session):
     """Check if the Task Status is working in the Dashboard UI and
-        filter from Tasks dashboard is working correctly
+        filter from Tasks index page is working correctly
 
     :id: fb667d6a-7255-4341-9f79-2f03d19e8e0f
 
@@ -166,15 +167,12 @@ def test_positive_task_status(session):
         repo.sync()
     with session:
         session.organization.select(org_name=org.name)
-        session.dashboard.action({'TaskStatus': {'state': 'running', 'result': 'pending'}})
-        searchbox = session.task.read_all('searchbox')
-        assert searchbox['searchbox'] == 'state=running&result=pending'
-        session.task.set_chart_filter('RunningChart')
-        tasks = session.task.read_all(['pagination', 'RunningChart'])
-        assert tasks['pagination']['total_items'] == tasks['RunningChart']['total']['Total']
         session.dashboard.action({'TaskStatus': {'state': 'stopped', 'result': 'warning'}})
-        tasks = session.task.read_all('searchbox')
-        assert tasks['searchbox'] == 'state=stopped&result=warning'
+        searchbox = session.task.read_all('searchbox')
+        assert searchbox['searchbox'] == 'state=stopped&result=warning'
+        session.task.set_chart_filter('ScheduledChart')
+        tasks = session.task.read_all(['pagination', 'ScheduledChart'])
+        assert tasks['pagination']['total_items'] == tasks['ScheduledChart']['total'].split()[0]
         session.task.set_chart_filter('StoppedChart', {'row': 1, 'focus': 'Total'})
         tasks = session.task.read_all()
         assert tasks['pagination']['total_items'] == tasks['StoppedChart']['table'][1]['Total']
