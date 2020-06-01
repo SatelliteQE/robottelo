@@ -112,7 +112,7 @@ class Base(object):
         subscription                  Manipulate subscriptions.
         sync-plan                     Manipulate sync plans
         task                          Tasks related actions.
-        template                      Manipulate config templates.
+        template                      Manipulate provisioning templates.
         user                          Manipulate users.
         user-group                    Manage user groups.
 
