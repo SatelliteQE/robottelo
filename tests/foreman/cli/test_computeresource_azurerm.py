@@ -41,27 +41,27 @@ from robottelo.decorators import upgrade
 
 @pytest.fixture(scope='class')
 def azurerm_hostgroup(
-    module_architecture,
+    default_architecture,
     module_azurerm_cr,
-    module_domain,
+    default_domain,
     module_location,
     module_puppet_environment,
-    module_smart_proxy,
-    module_os,
+    default_smart_proxy,
+    default_os,
     module_org,
 ):
     """Sets Hostgroup for AzureRm Host Provisioning"""
 
     hgroup = entities.HostGroup(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_azurerm_cr,
-        domain=module_domain,
+        domain=default_domain,
         location=[module_location],
         environment=module_puppet_environment,
-        puppet_proxy=module_smart_proxy,
-        puppet_ca_proxy=module_smart_proxy,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
         root_pass=gen_string('alphanumeric'),
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         organization=[module_org],
     ).create()
     return hgroup
@@ -128,7 +128,7 @@ class TestAzureRMComputeResourceTestCase:
     @upgrade
     @tier2
     @parametrize("image", [AZURERM_RHEL7_FT_IMG_URN, AZURERM_RHEL7_UD_IMG_URN])
-    def test_positive_image_crud(self, module_architecture, module_azurerm_cr, module_os, image):
+    def test_positive_image_crud(self, default_architecture, module_azurerm_cr, default_os, image):
         """ Finish template/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
@@ -155,8 +155,8 @@ class TestAzureRMComputeResourceTestCase:
         img_ft = ComputeResource.image_create(
             {
                 'name': img_name,
-                'operatingsystem-id': module_os.id,
-                'architecture-id': module_architecture.id,
+                'operatingsystem-id': default_os.id,
+                'architecture-id': default_architecture.id,
                 'uuid': image,
                 'compute-resource': module_azurerm_cr.name,
                 'username': username,
@@ -170,11 +170,11 @@ class TestAzureRMComputeResourceTestCase:
         img_info = ComputeResource.image_info(
             {'name': img_name, 'compute-resource': module_azurerm_cr.name}
         )[0]
-        assert img_info['operating-system'] == module_os.title
+        assert img_info['operating-system'] == default_os.title
         assert img_info['username'] == username
         assert img_info['uuid'] == image
         assert img_info['user-data'] == 'false'
-        assert img_info['architecture'] == module_architecture.name
+        assert img_info['architecture'] == default_architecture.name
 
         # List image
         list_img = ComputeResource.image_list({'compute-resource': module_azurerm_cr.name})
@@ -289,7 +289,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
     """
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
+    def class_setup(self, request, default_domain, module_azurerm_cr, module_azurerm_finishimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -300,7 +300,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+        request.cls.fullhostname = '{}.{}'.format(self.hostname, default_domain.name).lower()
 
         request.cls.compute_attrs = (
             "resource_group={},vm_size={},username={},ssh_key_data={},"
@@ -326,12 +326,12 @@ class TestAzureRm_FinishTemplate_Provisioning:
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
-        module_architecture,
-        module_domain,
+        default_architecture,
+        default_domain,
         module_location,
         module_org,
-        module_os,
-        module_smart_proxy,
+        default_os,
+        default_smart_proxy,
         module_puppet_environment,
     ):
         """
@@ -348,9 +348,9 @@ class TestAzureRm_FinishTemplate_Provisioning:
                 'interface': self.interfaces_attributes,
                 'location-id': module_location.id,
                 'organization-id': module_org.id,
-                'domain-id': module_domain.id,
-                'architecture-id': module_architecture.id,
-                'operatingsystem-id': module_os.id,
+                'domain-id': default_domain.id,
+                'architecture-id': default_architecture.id,
+                'operatingsystem-id': default_os.id,
                 'root-password': gen_string('alpha'),
                 'image': module_azurerm_finishimg.name,
             },
@@ -411,7 +411,7 @@ class TestAzureRm_UserData_Provisioning:
     """
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_cloudimg):
+    def class_setup(self, request, default_domain, module_azurerm_cr, module_azurerm_cloudimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -422,7 +422,7 @@ class TestAzureRm_UserData_Provisioning:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+        request.cls.fullhostname = '{}.{}'.format(self.hostname, default_domain.name).lower()
 
         request.cls.compute_attrs = (
             "resource_group={},vm_size={},username={},password={},"
@@ -449,12 +449,12 @@ class TestAzureRm_UserData_Provisioning:
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
-        module_architecture,
-        module_domain,
+        default_architecture,
+        default_domain,
         module_location,
         module_org,
-        module_os,
-        module_smart_proxy,
+        default_os,
+        default_smart_proxy,
         module_puppet_environment,
         azurerm_hostgroup,
     ):
@@ -473,7 +473,7 @@ class TestAzureRm_UserData_Provisioning:
                 'hostgroup': azurerm_hostgroup.name,
                 'location': module_location.name,
                 'organization': module_org.name,
-                'operatingsystem-id': module_os.id,
+                'operatingsystem-id': default_os.id,
             },
             timeout=1800,
         )
