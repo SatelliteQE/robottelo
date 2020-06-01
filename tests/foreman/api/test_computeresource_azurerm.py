@@ -88,7 +88,7 @@ class TestAzureRMComputeResourceTestCase:
     @upgrade
     @tier2
     def test_positive_create_finish_template_image(
-        self, module_architecture, module_azurerm_cr, module_azurerm_finishimg
+        self, default_architecture, module_azurerm_cr, module_azurerm_finishimg
     ):
         """ Finish template image along with username is being added in AzureRM CR
 
@@ -105,7 +105,7 @@ class TestAzureRMComputeResourceTestCase:
         :CaseLevel: Integration
         """
 
-        assert module_azurerm_finishimg.architecture.id == module_architecture.id
+        assert module_azurerm_finishimg.architecture.id == default_architecture.id
         assert module_azurerm_finishimg.compute_resource == module_azurerm_cr
         assert module_azurerm_finishimg.username == settings.azurerm.username
         assert module_azurerm_finishimg.uuid == AZURERM_RHEL7_FT_IMG_URN
@@ -113,7 +113,7 @@ class TestAzureRMComputeResourceTestCase:
     @upgrade
     @tier2
     def test_positive_create_cloud_init_image(
-        self, module_azurerm_cloudimg, module_azurerm_cr, module_architecture
+        self, module_azurerm_cloudimg, module_azurerm_cr, default_architecture
     ):
         """Cloud Init template image along with username is being added in AzureRM CR
 
@@ -128,7 +128,7 @@ class TestAzureRMComputeResourceTestCase:
         :CaseLevel: Integration
         """
 
-        assert module_azurerm_cloudimg.architecture.id == module_architecture.id
+        assert module_azurerm_cloudimg.architecture.id == default_architecture.id
         assert module_azurerm_cloudimg.compute_resource.id == module_azurerm_cr.id
         assert module_azurerm_cloudimg.username == settings.azurerm.username
         assert module_azurerm_cloudimg.uuid == AZURERM_RHEL7_UD_IMG_URN
@@ -157,7 +157,7 @@ class TestAzureRMHostProvisioningTestCase:
     """
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
+    def class_setup(self, request, default_domain, module_azurerm_cr, module_azurerm_finishimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -168,7 +168,7 @@ class TestAzureRMHostProvisioningTestCase:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+        request.cls.fullhostname = '{}.{}'.format(self.hostname, default_domain.name).lower()
 
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
@@ -198,12 +198,12 @@ class TestAzureRMHostProvisioningTestCase:
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
-        module_architecture,
-        module_domain,
+        default_architecture,
+        default_domain,
         module_location,
         module_org,
-        module_os,
-        module_smart_proxy,
+        default_os,
+        default_smart_proxy,
         module_puppet_environment,
     ):
         """
@@ -213,22 +213,22 @@ class TestAzureRMHostProvisioningTestCase:
 
         skip_yum_update_during_provisioning(template='Kickstart default finish')
         host = entities.Host(
-            architecture=module_architecture,
+            architecture=default_architecture,
             build=True,
             compute_resource=module_azurerm_cr,
             compute_attributes=self.compute_attrs,
             interfaces_attributes=self.interfaces_attributes,
-            domain=module_domain,
+            domain=default_domain,
             organization=module_org,
-            operatingsystem=module_os,
+            operatingsystem=default_os,
             location=module_location,
             name=self.hostname,
             provision_method='image',
             image=module_azurerm_finishimg,
             root_pass=gen_string('alphanumeric'),
             environment=module_puppet_environment,
-            puppet_proxy=module_smart_proxy,
-            puppet_ca_proxy=module_smart_proxy,
+            puppet_proxy=default_smart_proxy,
+            puppet_ca_proxy=default_smart_proxy,
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
@@ -302,7 +302,7 @@ class TestAzureRM_UserData_Provisioning:
     """
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
+    def class_setup(self, request, default_domain, module_azurerm_cr, module_azurerm_finishimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -314,7 +314,7 @@ class TestAzureRM_UserData_Provisioning:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+        request.cls.fullhostname = '{}.{}'.format(self.hostname, default_domain.name).lower()
 
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
@@ -344,12 +344,12 @@ class TestAzureRM_UserData_Provisioning:
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
-        module_architecture,
-        module_domain,
+        default_architecture,
+        default_domain,
         module_location,
         module_org,
-        module_os,
-        module_smart_proxy,
+        default_os,
+        default_smart_proxy,
         module_puppet_environment,
     ):
         """
@@ -359,22 +359,22 @@ class TestAzureRM_UserData_Provisioning:
 
         skip_yum_update_during_provisioning(template='Kickstart default finish')
         host = entities.Host(
-            architecture=module_architecture,
+            architecture=default_architecture,
             build=True,
             compute_resource=module_azurerm_cr,
             compute_attributes=self.compute_attrs,
             interfaces_attributes=self.interfaces_attributes,
-            domain=module_domain,
+            domain=default_domain,
             organization=module_org,
-            operatingsystem=module_os,
+            operatingsystem=default_os,
             location=module_location,
             name=self.hostname,
             provision_method='image',
             image=module_azurerm_cloudimg,
             root_pass=gen_string('alphanumeric'),
             environment=module_puppet_environment,
-            puppet_proxy=module_smart_proxy,
-            puppet_ca_proxy=module_smart_proxy,
+            puppet_proxy=default_smart_proxy,
+            puppet_ca_proxy=default_smart_proxy,
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)

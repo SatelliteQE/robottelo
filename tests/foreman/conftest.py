@@ -5,31 +5,6 @@ import logging
 
 import pytest
 
-from robottelo.api.entity_fixtures import azurerm_settings  # noqa: F401
-from robottelo.api.entity_fixtures import azurermclient  # noqa: F401
-from robottelo.api.entity_fixtures import module_architecture  # noqa: F401
-from robottelo.api.entity_fixtures import module_azurerm_cloudimg  # noqa: F401
-from robottelo.api.entity_fixtures import module_azurerm_cr  # noqa: F401
-from robottelo.api.entity_fixtures import module_azurerm_finishimg  # noqa: F401
-from robottelo.api.entity_fixtures import module_cv  # noqa: F401
-from robottelo.api.entity_fixtures import module_domain  # noqa: F401
-from robottelo.api.entity_fixtures import module_gce_compute  # noqa: F401
-from robottelo.api.entity_fixtures import module_lce  # noqa: F401
-from robottelo.api.entity_fixtures import module_location  # noqa: F401
-from robottelo.api.entity_fixtures import module_org  # noqa: F401
-from robottelo.api.entity_fixtures import module_os  # noqa: F401
-from robottelo.api.entity_fixtures import module_partiontable  # noqa: F401
-from robottelo.api.entity_fixtures import module_product  # noqa: F401
-from robottelo.api.entity_fixtures import module_provisioningtemplate_default  # noqa: F401
-from robottelo.api.entity_fixtures import module_provisioningtemplate_pxe  # noqa: F401
-from robottelo.api.entity_fixtures import module_puppet_environment  # noqa: F401
-from robottelo.api.entity_fixtures import module_smart_proxy  # noqa: F401
-from robottelo.api.entity_fixtures import module_subnet  # noqa: F401
-from robottelo.api.entity_fixtures import oscap_content_path  # noqa: F401
-from robottelo.api.entity_fixtures import tailoring_file_path  # noqa: F401
-
-# TODO: load fixtures consistently without hanging imports here, entry_points or module inclusion
-
 
 try:
     from pytest_reportportal import RPLogger, RPLogHandler

@@ -72,27 +72,27 @@ def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_finishimg):
 def module_azure_hg(
     module_azurerm_cr,
     module_azure_cp_attrs,
-    module_architecture,
-    module_os,
+    default_architecture,
+    default_os,
     module_puppet_environment,
-    module_smart_proxy,
-    module_domain,
+    default_smart_proxy,
+    default_domain,
     module_loc,
     module_org,
 ):
     """ Create hostgroup """
 
     return entities.HostGroup(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         compute_profile=COMPUTE_PROFILE_SMALL,
-        domain=module_domain,
+        domain=default_domain,
         location=[module_loc],
         environment=module_puppet_environment,
-        puppet_proxy=module_smart_proxy,
-        puppet_ca_proxy=module_smart_proxy,
-        content_source=module_smart_proxy,
-        operatingsystem=module_os,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
+        content_source=default_smart_proxy,
+        operatingsystem=default_os,
         organization=[module_org],
     ).create()
 
@@ -103,7 +103,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     azurermclient,
     module_azurerm_finishimg,
     module_azurerm_cr,
-    module_domain,
+    default_domain,
     module_org,
     module_loc,
     module_azure_hg,
@@ -122,7 +122,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     """
 
     hostname = gen_string('alpha')
-    fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
+    fqdn = '{}.{}'.format(hostname, default_domain.name).lower()
 
     with session:
 
@@ -176,8 +176,8 @@ def test_positive_azurerm_host_provision_ud(
     azurermclient,
     module_azurerm_cloudimg,
     module_azurerm_cr,
-    module_domain,
-    module_os,
+    default_domain,
+    default_os,
     module_org,
     module_loc,
     module_azure_hg,
@@ -196,7 +196,7 @@ def test_positive_azurerm_host_provision_ud(
     """
 
     hostname = gen_string('alpha')
-    fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
+    fqdn = '{}.{}'.format(hostname, default_domain.name).lower()
 
     with session:
 
