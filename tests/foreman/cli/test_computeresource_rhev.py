@@ -43,7 +43,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         cls.username = settings.rhev.username
         cls.password = settings.rhev.password
         cls.datacenter = settings.rhev.datacenter
-        cls.image_os = settings.rhev.image_os
         cls.image_arch = settings.rhev.image_arch
         cls.image_uuid = settings.rhev.image_uuid
         cls.os = make_os()
