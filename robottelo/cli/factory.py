@@ -60,7 +60,6 @@ from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.scapcontent import Scapcontent
-from robottelo.cli.smart_variable import SmartVariable
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
@@ -438,12 +437,7 @@ def make_model(options=None):
 
     :returns Model object
     """
-    args = {
-        'hardware-model': None,
-        'info': None,
-        'name': gen_alphanumeric(),
-        'vendor-class': None,
-    }
+    args = {'hardware-model': None, 'info': None, 'name': gen_alphanumeric(), 'vendor-class': None}
 
     return create_object(Model, args, options)
 
@@ -1609,38 +1603,6 @@ def make_template_input(options=None):
 
 
 @cacheable
-def make_smart_variable(options=None):
-    """Creates Smart Variable
-
-    :param options: Check options using `hammer smart-variable create --help` on satellite.
-
-    :returns SmartVariable object
-    """
-    # Puppet class name or ID is a required field.
-    if not options or 'puppet-class' not in options and 'puppet-class-id' not in options:
-        raise CLIFactoryError('Please provide a valid Puppet class')
-
-    # Assigning default values for attributes
-    args = {
-        'avoid-duplicates': None,
-        'default-value': None,
-        'description': None,
-        'hidden-value': None,
-        'merge-default': None,
-        'merge-overrides': None,
-        'override-value-order': None,
-        'puppet-class': None,
-        'puppet-class-id': None,
-        'validator-rule': None,
-        'validator-type': None,
-        'variable': gen_alphanumeric(),
-        'variable-type': None,
-    }
-
-    return create_object(SmartVariable, args, options)
-
-
-@cacheable
 def make_virt_who_config(options=None):
     """Creates a Virt Who Configuration
 
@@ -2426,11 +2388,7 @@ def setup_cdn_and_custom_repositories(
                 }
             )
             repo_info = Repository.info(
-                {
-                    'organization-id': org_id,
-                    'name': repo['repository'],
-                    'product': repo['product'],
-                }
+                {'organization-id': org_id, 'name': repo['repository'], 'product': repo['product']}
             )
         else:
             if custom_product is None:

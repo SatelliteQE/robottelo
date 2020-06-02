@@ -107,7 +107,6 @@ class Base(object):
         sc-param                      Manipulate smart class parameters.
         settings                      Change server settings.
         shell                         Interactive shell
-        smart-variable                Manipulate smart variables.
         subnet                        Manipulate subnets.
         subscription                  Manipulate subscriptions.
         sync-plan                     Manipulate sync plans
