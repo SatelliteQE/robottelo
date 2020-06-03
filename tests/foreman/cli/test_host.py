@@ -51,7 +51,6 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_smart_variable
 from robottelo.cli.factory import make_user
 from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.factory import setup_org_for_a_custom_repo
@@ -530,12 +529,12 @@ class HostCreateTestCase(CLITestCase):
             self.assertEqual(result.return_code, 64)
 
     @tier2
-    def test_positive_list_scparams_and_smartvariables(self):
-        """List all smart class parameters and smart variables using host id
+    def test_positive_list_scparams(self):
+        """List all smart class parameters using host id
 
-        :id: 61814875-5ccd-4c04-a06f-d36fe089d514
+        :id: 61814875-5ccd-4c04-a638-d36fe089d514
 
-        :expectedresults: Overridden sc-param and smart variable from puppet
+        :expectedresults: Overridden sc-param from puppet
             class are listed
 
         :CaseLevel: Integration
@@ -548,11 +547,6 @@ class HostCreateTestCase(CLITestCase):
                 'organization-id': self.new_org['id'],
             }
         )
-        # Create smart variable
-        smart_variable = make_smart_variable({'puppet-class': self.puppet_class['name']})
-        # Verify that affected sc-param is listed
-        host_variables = Host.smart_variables({'host-id': host['id']})
-        self.assertIn(smart_variable['id'], [sv['id'] for sv in host_variables])
 
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list(
@@ -2323,7 +2317,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self._host_subscription_register()
         host = Host.info({'name': self.client.hostname})
         self.client.register_contenthost(
-            self.org['name'], consumerid=host['subscription-information']['uuid'], force=False,
+            self.org['name'], consumerid=host['subscription-information']['uuid'], force=False
         )
         client_status = self.client.subscription_manager_status()
         self.assertIn(SM_OVERALL_STATUS['current'], client_status.stdout)
