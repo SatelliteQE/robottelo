@@ -1375,6 +1375,7 @@ class Settings(object):
         self.vmware = VmWareSettings()
         self.virtwho = VirtWhoSettings()
         self.report_portal = ReportPortalSettings()
+        self.http_proxy = HttpProxySettings()
 
     def configure(self, settings_path=None):
         """Read the settings file and parse the configuration.
@@ -1608,3 +1609,30 @@ class Settings(object):
         )
         for logger in loggers:
             logging.getLogger(logger).setLevel(logging.WARNING)
+
+
+class HttpProxySettings(FeatureSettings):
+    """Http Proxy settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(HttpProxySettings, self).__init__(*args, **kwargs)
+        self.un_auth_proxy_url = None
+        self.auth_proxy_url = None
+        self.username = None
+        self.password = None
+
+    def read(self, reader):
+        """Read Http Proxy settings."""
+        self.un_auth_proxy_url = reader.get('http_proxy', 'un_auth_proxy_url')
+        self.auth_proxy_url = reader.get('http_proxy', 'auth_proxy_url')
+        self.username = reader.get('http_proxy', 'username')
+        self.password = reader.get('http_proxy', 'password')
+
+    def validate(self):
+        """Validate Http Proxy settings."""
+        validation_errors = []
+        if not all(self.__dict__.values()):
+            validation_errors.append(
+                'All [http_proxy] {} options must be provided'.format(self.__dict__.keys())
+            )
+        return validation_errors

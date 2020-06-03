@@ -19,6 +19,7 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 from nailgun import entities
 
+from robottelo.config import settings
 from robottelo.constants import FAKE_0_PUPPET_REPO
 from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import REPO_TYPE
@@ -96,21 +97,17 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
     :CaseImportance: Critical
     """
     # create HTTP proxies
-    http_proxy_url_a = '{}:{}'.format(
-        gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-    )
     http_proxy_a = entities.HTTPProxy(
         name=gen_string('alpha', 15),
-        url=http_proxy_url_a,
+        url=settings.http_proxy.un_auth_proxy_url,
         organization=[module_org.id],
         location=[module_loc.id],
     ).create()
-    http_proxy_url_b = '{}:{}'.format(
-        gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-    )
     http_proxy_b = entities.HTTPProxy(
         name=gen_string('alpha', 15),
-        url=http_proxy_url_b,
+        url=settings.http_proxy.auth_proxy_url,
+        username=settings.http_proxy.username,
+        password=settings.http_proxy.password,
         organization=[module_org.id],
         location=[module_loc.id],
     ).create()
