@@ -578,13 +578,6 @@ API_PATHS = {
         '/katello/api/ostree_branches/:id',
         '/katello/api/ostree_branches/compare',
     ),
-    'override_values': (
-        '/api/smart_variables/:smart_variable_id/override_values',
-        '/api/smart_variables/:smart_variable_id/override_values',
-        '/api/smart_variables/:smart_variable_id/override_values/:id',
-        '/api/smart_variables/:smart_variable_id/override_values/:id',
-        '/api/smart_variables/:smart_variable_id/override_values/:id',
-    ),
     'package_groups': (
         '/katello/api/package_group',
         '/katello/api/package_group',
@@ -759,13 +752,6 @@ API_PATHS = {
         '/api/smart_proxies/:id',
         '/api/smart_proxies/:id/import_puppetclasses',
         '/api/smart_proxies/:id/refresh',
-    ),
-    'smart_variables': (
-        '/api/smart_variables',
-        '/api/smart_variables',
-        '/api/smart_variables/:id',
-        '/api/smart_variables/:id',
-        '/api/smart_variables/:id',
     ),
     'srpms': ('/katello/api/srpms/:id', '/katello/api/srpms/compare'),
     'ssh_keys': (
