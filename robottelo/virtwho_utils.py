@@ -267,6 +267,7 @@ def deploy_configure_by_command(command, debug=False, org='Default_Organization'
         raise VirtWhoError("Failed to deploy configure by {}".format(command))
     if debug:
         return deploy_validation()
+    return ret, stdout
 
 
 def deploy_configure_by_script(script_content, debug=False):

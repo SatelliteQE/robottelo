@@ -36,6 +36,7 @@ from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import hypervisor_json_create
+from robottelo.virtwho_utils import runcmd
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
@@ -352,3 +353,39 @@ class TestVirtWhoConfigCLICases:
                 wait_for_tasks(search_query=f'id = {task_id}', max_tries=10)
             else:
                 assert result.status_code == 200
+
+    @tier2
+    def test_positive_foreman_packages_protection(self, form_data, virtwho_config):
+        """foreman-protector should allow virt-who to be installed
+
+        :id: 73dc895f-50b8-4de5-91de-ea55da935fe5
+
+        :expectedresults:
+            virt-who packages can be installed
+            the virt-who plugin can be deployed successfully
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+
+        :BZ: 1783987
+        """
+        ret, stdout = runcmd('rpm -q virt-who')
+        if ret == 0:
+            runcmd(f'rpm -e {stdout}')
+        result = runcmd('rpm -q virt-who')
+        assert 'package virt-who is not installed' in result[1]
+        result = runcmd('foreman-maintain packages lock')
+        assert "FAIL" not in result[1]
+        result = runcmd('foreman-maintain packages is-locked')
+        assert "Packages are locked" in result[1]
+        command = get_configure_command(virtwho_config['id'])
+        result = deploy_configure_by_command(command)
+        assert "FAIL" not in result[1]
+        assert "Running unlocking of package versions" in result[1]
+        virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
+            'general-information'
+        ]['status']
+        assert virt_who_instance == 'OK'
+        VirtWhoConfig.delete({'name': virtwho_config['name']})
+        assert not VirtWhoConfig.exists(search=('name', form_data['name']))
