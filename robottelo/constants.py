@@ -1424,12 +1424,6 @@ PERMISSIONS_UI = {
         'edit_external_parameters',
         'destroy_external_parameters',
     ],
-    'Smart variable': [
-        'view_external_variables',
-        'create_external_variables',
-        'edit_external_variables',
-        'destroy_external_variables',
-    ],
     'Ssh key': ["view_ssh_keys", "create_ssh_keys", "destroy_ssh_keys"],
     'Subnet': [
         'view_subnets',
@@ -1642,12 +1636,6 @@ BOOKMARK_ENTITIES = [
     },
     {'name': 'PuppetEnvironment', 'controller': 'environments', 'setup': entities.Environment},
     {'name': 'PuppetClass', 'controller': 'puppetclasses', 'setup': entities.PuppetClass},
-    {
-        'name': 'SmartVariable',
-        'controller': 'lookup_keys',
-        'setup': entities.SmartVariable,
-        'skip_for_ui': True,
-    },
     {'name': 'Roles', 'controller': 'ansible_roles', 'setup': entities.Role},
     {'name': 'Variables', 'controller': 'ansible_variables'},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
