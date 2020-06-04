@@ -36,7 +36,7 @@ from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import hypervisor_json_create
-from robottelo.virtwho_utils import runcmd
+from robottelo.virtwho_utils import virtwho_package_locked
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
@@ -370,19 +370,9 @@ class TestVirtWhoConfigCLICases:
 
         :BZ: 1783987
         """
-        ret, stdout = runcmd('rpm -q virt-who')
-        if ret == 0:
-            runcmd(f'rpm -e {stdout}')
-        result = runcmd('rpm -q virt-who')
-        assert 'package virt-who is not installed' in result[1]
-        result = runcmd('foreman-maintain packages lock')
-        assert "FAIL" not in result[1]
-        result = runcmd('foreman-maintain packages is-locked')
-        assert "Packages are locked" in result[1]
+        virtwho_package_locked()
         command = get_configure_command(virtwho_config['id'])
-        result = deploy_configure_by_command(command)
-        assert "FAIL" not in result[1]
-        assert "Running unlocking of package versions" in result[1]
+        deploy_configure_by_command(command)
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
