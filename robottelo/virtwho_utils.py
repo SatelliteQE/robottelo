@@ -267,7 +267,6 @@ def deploy_configure_by_command(command, debug=False, org='Default_Organization'
         raise VirtWhoError("Failed to deploy configure by {}".format(command))
     if debug:
         return deploy_validation()
-    return ret, stdout
 
 
 def deploy_configure_by_script(script_content, debug=False):
@@ -370,3 +369,18 @@ def get_hypervisor_info():
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
     hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
     return hypervisor_name, guest_name
+
+
+def virtwho_package_locked():
+    """
+    Uninstall virt-who package and verify the foreman-maintain packages is locked.
+    """
+    ret, stdout = runcmd('rpm -q virt-who')
+    if ret == 0:
+        runcmd(f'rpm -e {stdout}')
+    result = runcmd('rpm -q virt-who')
+    assert 'package virt-who is not installed' in result[1]
+    result = runcmd('foreman-maintain packages lock')
+    assert "FAIL" not in result[1]
+    result = runcmd('foreman-maintain packages is-locked')
+    assert "Packages are locked" in result[1]
