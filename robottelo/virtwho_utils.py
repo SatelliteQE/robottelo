@@ -373,14 +373,8 @@ def get_hypervisor_info():
 
 def virtwho_package_locked():
     """
-    Uninstall virt-who package and verify the foreman-maintain packages is locked.
+    Uninstall virt-who package and lock the foreman-maintain packages.
     """
-    ret, stdout = runcmd('rpm -q virt-who')
-    if ret == 0:
-        runcmd(f'rpm -e {stdout}')
-    result = runcmd('rpm -q virt-who')
-    assert 'package virt-who is not installed' in result[1]
-    result = runcmd('foreman-maintain packages lock')
-    assert "FAIL" not in result[1]
+    runcmd('rpm -e virt-who; foreman-maintain packages lock')
     result = runcmd('foreman-maintain packages is-locked')
     assert "Packages are locked" in result[1]
