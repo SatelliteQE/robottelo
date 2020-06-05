@@ -80,7 +80,7 @@ def promote(content_view_version, environment_id, force=False):
     :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
 
     """
-    data = {'environment_id': environment_id, 'force': True if force else False}
+    data = {'environment_ids': [environment_id], 'force': True if force else False}
     return content_view_version.promote(data=data)
 
 
