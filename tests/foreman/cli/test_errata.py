@@ -171,8 +171,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         )
         # install the custom package for each host
         for virtual_machine in self.virtual_machines:
-            virtual_machine.run('yum install -y {0}'.format(self.CUSTOM_PACKAGE))
-            result = virtual_machine.run('rpm -q {0}'.format(self.CUSTOM_PACKAGE))
+            virtual_machine.run(f'yum install -y {self.CUSTOM_PACKAGE}')
+            result = virtual_machine.run(f'rpm -q {self.CUSTOM_PACKAGE}')
             self.assertEqual(result.return_code, 0)
 
     def _is_errata_package_installed(self, virtual_machine):
@@ -181,7 +181,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :type virtual_machine: robottelo.vm.VirtualMachine
         :rtype: bool
         """
-        result = virtual_machine.run('rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+        result = virtual_machine.run(f'rpm -q {self.CUSTOM_PACKAGE_ERRATA_APPLIED}')
         return True if result.return_code == 0 else False
 
     @tier3
@@ -937,7 +937,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list({'order': sort_text, 'per-page': ERRATUM_MAX_IDS_INFO})
@@ -988,7 +988,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1045,7 +1045,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1104,7 +1104,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1161,7 +1161,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1218,7 +1218,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1277,7 +1277,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1811,7 +1811,7 @@ class ErrataTestCase(CLITestCase):
             {
                 'permission-ids': user_required_permissions_ids,
                 'role-id': role['id'],
-                'search': 'name = {0}'.format(product['name']),
+                'search': f"name = {product['name']}",
             }
         )
         # create a new user and assign him the created role permissions
