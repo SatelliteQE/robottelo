@@ -28,6 +28,9 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_REPO
@@ -761,3 +764,73 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
             }
             for key in actual_values:
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
+
+
+@tier3
+def test_content_host_errata_search_commands(session, module_org, module_repos_col):
+    """ View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
+    filtered with errata status and applicable flags. Applicability is calculated using the
+    Library, but Installability is calculated using the attached CV, and is subject to the
+    CV's own filtering.
+
+    :id: 45114f8e-0fc8-4c7c-85e0-f9b613530dac
+
+    :Setup: Two Content Hosts, one with RHSA and one with RHBA errata.
+
+    :Steps:
+        1.  host list --search "errata_status = security_needed"
+        2.  host list --search "errata_status = errata_needed"
+        3.  host list --search "applicable_errata = RHSA-2012:0055"
+        4.  host list --search "applicable_errata = RHBA-2012:1030"
+        5.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
+        6.  host list --search "applicable_rpms = kangaroo-0.3-1.noarch"
+        7.  host list --search "installable_errata = RHSA-2012:0055"
+        8.  host list --search "installable_errata = RHBA-2012:1030"
+
+    :expectedresults: The hosts are correctly listed for RHSA and RHBA errata.
+
+    :BZ: 1707335
+    """
+
+    with VirtualMachine(distro=module_repos_col.distro) as client1, VirtualMachine(
+        distro=module_repos_col.distro
+    ) as client2:
+        for client in client1, client2:
+            module_repos_col.setup_virtual_machine(client)
+        # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
+        assert _install_client_package(client1, FAKE_1_CUSTOM_PACKAGE, errata_applicability=False)
+        # Install pkg kangaroo-0.2-1.noarch to create need for RHBA on client 2
+        assert _install_client_package(client2, FAKE_4_CUSTOM_PACKAGE, errata_applicability=False)
+        with session:
+            # Search for hosts needing RHSA security errata
+            result = session.contenthost.search('errata_status = security_needed')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result, 'Needs-RHSA host not found'
+            # Search for hosts needing RHBA bugfix errata
+            result = session.contenthost.search('errata_status = errata_needed')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result, 'Needs-RHBA host not found'
+            # Search for applicable RHSA errata by Errata ID
+            result = session.contenthost.search(f'applicable_errata = {FAKE_2_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result
+            # Search for applicable RHBA errata by Errata ID
+            result = session.contenthost.search(f'applicable_errata = {FAKE_5_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result
+            # Search for RHSA applicable RPMs
+            result = session.contenthost.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result
+            # Search for RHBA applicable RPMs
+            result = session.contenthost.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result
+            # Search for installable RHSA errata by Errata ID
+            result = session.contenthost.search(f'installable_errata = {FAKE_2_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result
+            # Search for installable RHBA errata by Errata ID
+            result = session.contenthost.search(f'installable_errata = {FAKE_5_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result
