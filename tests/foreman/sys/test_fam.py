@@ -13,6 +13,7 @@
 :Upstream: No
 """
 from robottelo import ssh
+from robottelo.constants import FAM_MODULE_PATH
 from robottelo.constants import FOREMAN_ANSIBLE_MODULES
 from robottelo.decorators import destructive
 from robottelo.decorators import run_in_one_thread
@@ -20,7 +21,7 @@ from robottelo.decorators import run_in_one_thread
 
 @destructive
 @run_in_one_thread
-def test_positive_ansible_modules():
+def test_positive_ansible_modules_installation():
     """Foreman ansible modules installation test
 
     :CaseComponent: Ansible
@@ -35,8 +36,16 @@ def test_positive_ansible_modules():
         'yum install -y ansible-collection-redhat-satellite --disableplugin=foreman-protector'
     )
     assert result.return_code == 0
-    for module_name in FOREMAN_ANSIBLE_MODULES:
+    # list installed modules
+    result = ssh.command(f'ls {FAM_MODULE_PATH} |  sed "s/.[^.]*$//"')
+    assert result.return_code == 0
+    installed_modules = result.stdout
+    installed_modules.remove('')
+    # see help for installed modules
+    for module_name in installed_modules:
         result = ssh.command(f'ansible-doc redhat.satellite.{module_name} -s')
         assert result.return_code == 0
         doc_name = result.stdout[1].lstrip()[:-1]
         assert doc_name == module_name
+    # check installed modules against the expected list
+    assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()

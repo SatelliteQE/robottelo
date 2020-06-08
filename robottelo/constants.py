@@ -1871,3 +1871,7 @@ FOREMAN_ANSIBLE_MODULES = [
     'katello_upload',
     'redhat_manifest',
 ]
+
+FAM_MODULE_PATH = (
+    '/usr/share/ansible/collections/ansible_collections/redhat/satellite/plugins/modules'
+)
