@@ -78,7 +78,7 @@ class VirtualMachine(object):
         bridge=None,
         network=None,
     ):
-        distro_mapping = {
+        image_map = {
             DISTRO_RHEL6: settings.distro.image_el6,
             DISTRO_RHEL7: settings.distro.image_el7,
             DISTRO_RHEL8: settings.distro.image_el8,
@@ -115,7 +115,7 @@ class VirtualMachine(object):
                     f'host OS version: {server_host_os_version}'
                 )
 
-        self.distro = distro_mapping.get(distro) or distro
+        self.distro = distro
         if self.distro not in self.allowed_distros:
             raise VirtualMachineError(
                 f'{self.distro} is not a supported distro. Choose one of {self.allowed_distros}'
@@ -140,7 +140,7 @@ class VirtualMachine(object):
         self._domain = domain
         self._created = False
         self._subscribed = False
-        self._source_image = source_image or '{0}-base'.format(self.distro)
+        self._source_image = source_image or '{0}-base'.format(image_map.get(self.distro))
         self._target_image = target_image or gen_string('alphanumeric', 16).lower()
         if tag:
             self._target_image = tag + self._target_image
