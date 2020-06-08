@@ -10,7 +10,6 @@ from robottelo import ssh
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
 from robottelo.decorators import setting_is_set
 from robottelo.helpers import extract_capsule_satellite_installer_command
@@ -139,8 +138,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             ' echo "{1} {0}" >> /etc/hosts'.format(self._capsule_hostname, self.ip_addr),
             hostname=settings.server.hostname,
         )
-        if self.distro[:-1] == DISTRO_RHEL7:
-            self.run('hostnamectl set-hostname {}'.format(self._capsule_hostname))
+        self.run('hostnamectl set-hostname {}'.format(self._capsule_hostname))
 
         def ensure_host_resolved(ssh_func, host_to_ping, ip_addr, time_sleep=60, retries=10):
             resolved = False
@@ -175,13 +173,10 @@ class CapsuleVirtualMachine(VirtualMachine):
                 'Failed to resolver the capsule hostname from capsule')
         '''
 
-        if self.distro[:-1] == DISTRO_RHEL7:
-            # Add RH-Satellite-6 service to firewall public zone
-            self.run(
-                'firewall-cmd --zone=public --add-service={}'.format(
-                    SATELLITE_FIREWALL_SERVICE_NAME
-                )
-            )
+        # Add RH-Satellite-6 service to firewall public zone
+        self.run(
+            'firewall-cmd --zone=public --add-service={}'.format(SATELLITE_FIREWALL_SERVICE_NAME)
+        )
 
     def _capsule_cleanup(self):
         """make the necessary cleanup in case of a crash"""
@@ -234,7 +229,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             ansible=settings.ansible_repo,
             maint=settings.satmaintenance_repo,
         )
-        self.configure_rhel_repo(settings.__dict__[self.distro[:-1] + '_repo'])
+        self.configure_rhel_repo(settings.__dict__[self.distro + '_repo'])
         self.run('yum repolist')
         self.run('yum -y install satellite-capsule', timeout=1200)
         result = self.run('rpm -q satellite-capsule')
