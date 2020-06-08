@@ -98,14 +98,14 @@ def module_provisioingtemplate(module_org, module_location):
 
 @pytest.fixture(scope='module')
 def module_configtemaplate(module_org, module_location):
-    pxe_template = entities.ConfigTemplate().search(
+    pxe_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.organization.append(module_org)
     pxe_template.location.append(module_location)
     pxe_template.update(['organization', 'location'])
-    pxe_template = entities.ConfigTemplate(id=pxe_template.id).read()
+    pxe_template = entities.ProvisioningTemplate(id=pxe_template.id).read()
     return pxe_template
 
 

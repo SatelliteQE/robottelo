@@ -111,7 +111,7 @@ class DiscoveryTestCase(APITestCase):
         super(DiscoveryTestCase, cls).setUpClass()
 
         # Build PXE default template to get default PXE file
-        entities.ConfigTemplate().build_pxe_default()
+        entities.ProvisioningTemplate().build_pxe_default()
         # let's just modify the timeouts to speed things up
         ssh.command(
             "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "

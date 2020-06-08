@@ -45,7 +45,7 @@ class TemplateCombinationTestCase(APITestCase):
     def setUp(self):
         """Create ConfigTemplate and TemplateConfiguration for each test"""
         super(TemplateCombinationTestCase, self).setUp()
-        self.template = entities.ConfigTemplate(
+        self.template = entities.ProvisioningTemplate(
             snippet=False,
             template_combinations=[
                 {'hostgroup_id': self.hostgroup.id, 'environment_id': self.env.id}

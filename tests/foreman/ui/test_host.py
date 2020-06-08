@@ -194,7 +194,7 @@ def module_os(default_architecture, default_partition_table, module_org, module_
         'Kickstart default user data',
     ]:
         template = (
-            entities.ConfigTemplate()
+            entities.ProvisioningTemplate()
             .search(query={'search': 'name="{}"'.format(template_name)})[0]
             .read()
         )
