@@ -28,29 +28,28 @@ def filtered_datapoint(func):
     If run_one_datapoint=true, return a random data.
 
     """
+    if not settings.configured:
+        settings.configure()
 
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         """Perform smoke test attribute check"""
         dataset = func(*args, **kwargs)
         if isinstance(dataset, dict):
-            # New UI tests are written using pytest, update dict to support
-            # pytest's parametrize
-            if 'ui' in args or kwargs.get('interface') == 'ui':
+            # New UI tests are written using pytest, update dict to support pytest's parametrize
+            if 'ui' in args or kwargs.get('interface') == 'ui' and settings.webdriver == 'chrome':
                 # Chromedriver only supports BMP chars
-                if settings.webdriver == 'chrome':
-                    utf8 = dataset.pop('utf8', None)
-                    if utf8:
-                        dataset['utf8'] = gen_utf8(len(utf8), smp=False)
-                if settings.run_one_datapoint:
-                    key = random.choice(list(dataset.keys()))
-                    dataset = {key: dataset[key]}
-                return xdist_adapter(dataset.values())
+                utf8 = dataset.pop('utf8', None)
+                if utf8:
+                    dataset['utf8'] = gen_utf8(len(utf8), smp=False)
+            if settings.run_one_datapoint:
+                key = random.choice(list(dataset.keys()))
+                dataset = {key: dataset[key]}
+        else:
             # Otherwise use list for backwards compatibility
-            dataset = list(dataset.values())
-
-        if settings.run_one_datapoint:
-            dataset = [random.choice(dataset)]
+            dataset = list(dataset)
+            if settings.run_one_datapoint:
+                dataset = [random.choice(dataset)]
         return dataset
 
     return func_wrapper
@@ -63,7 +62,16 @@ def parametrized(data):
     :param dict data: dictionary with parametrized test names as dict keys and
         parametrized arguments as dict values
     """
-    return {'ids': list(data.keys()), 'argvalues': list(data.values())}
+    if isinstance(data, dict):
+        return {
+            'ids': list(data.keys()),
+            'argvalues': list(data.values()),
+        }
+    else:
+        return {
+            'ids': [str(i) for i in range(len(data))],
+            'argvalues': list(data),
+        }
 
 
 @filtered_datapoint
