@@ -24,8 +24,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.constants import STRING_TYPES
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_usernames_list
 from robottelo.decorators import tier1
@@ -41,7 +41,7 @@ class TestUserGroup:
         return entities.UserGroup().create()
 
     @tier1
-    @pytest.mark.parametrize('name', valid_data_list(), ids=STRING_TYPES)
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_with_name(self, name):
         """Create new user group using different valid names
 
@@ -55,7 +55,7 @@ class TestUserGroup:
         assert user_group.name == name
 
     @tier1
-    @pytest.mark.parametrize('login', valid_usernames_list(), ids=STRING_TYPES[:-1])
+    @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()))
     def test_positive_create_with_user(self, login):
         """Create new user group using valid user attached to that group.
 
@@ -88,7 +88,7 @@ class TestUserGroup:
         )
 
     @tier1
-    @pytest.mark.parametrize('role_name', valid_data_list(), ids=STRING_TYPES)
+    @pytest.mark.parametrize('role_name', **parametrized(valid_data_list()))
     def test_positive_create_with_role(self, role_name):
         """Create new user group using valid role attached to that group.
 
@@ -121,7 +121,7 @@ class TestUserGroup:
         )
 
     @tier1
-    @pytest.mark.parametrize('name', valid_data_list(), ids=STRING_TYPES)
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_with_usergroup(self, name):
         """Create new user group using another user group attached to the
         initial group.
@@ -156,9 +156,7 @@ class TestUserGroup:
         )
 
     @tier1
-    @pytest.mark.parametrize(
-        'name', invalid_values_list(), ids=['empty', 'space', 'tab'] + STRING_TYPES
-    )
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name):
         """Attempt to create user group with invalid name.
 
@@ -186,7 +184,7 @@ class TestUserGroup:
             entities.UserGroup(name=user_group.name).create()
 
     @tier1
-    @pytest.mark.parametrize('new_name', valid_data_list(), ids=STRING_TYPES)
+    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
     def test_positive_update(self, user_group, new_name):
         """Update existing user group with different valid names.
 
@@ -266,9 +264,7 @@ class TestUserGroup:
         assert new_usergroup.name == user_group.usergroup[0].read().name
 
     @tier1
-    @pytest.mark.parametrize(
-        'new_name', invalid_values_list(), ids=['empty', 'space', 'tab'] + STRING_TYPES
-    )
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update(self, user_group, new_name):
         """Attempt to update existing user group using different invalid names.
 
