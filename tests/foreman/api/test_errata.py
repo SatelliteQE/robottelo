@@ -36,8 +36,10 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
+from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_ERRATUM
+from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import PRDS
@@ -341,8 +343,8 @@ class ErrataTestCase(APITestCase):
         repo2_errata_ids = [
             errata['errata_id'] for errata in repo2.errata(data={'per_page': 1000})['results']
         ]
-        self.assertEqual(len(repo1_errata_ids), 4)
-        self.assertEqual(len(repo2_errata_ids), 79)
+        self.assertEqual(len(repo1_errata_ids), FAKE_9_YUM_ERRATUM_COUNT)
+        self.assertEqual(len(repo2_errata_ids), FAKE_3_YUM_ERRATUM_COUNT)
         self.assertIn(CUSTOM_REPO_ERRATA_ID, repo1_errata_ids)
         self.assertNotIn(CUSTOM_REPO_ERRATA_ID, repo2_errata_ids)
         self.assertIn(FAKE_3_ERRATA_ID, repo2_errata_ids)
