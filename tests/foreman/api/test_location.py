@@ -78,7 +78,7 @@ class LocationTestCase(APITestCase):
         cls.subnet = entities.Subnet().create()
         cls.env = entities.Environment().create()
         cls.host_group = entities.HostGroup().create()
-        cls.template = entities.ConfigTemplate().create()
+        cls.template = entities.ProvisioningTemplate().create()
         cls.test_cr = entities.LibvirtComputeResource().create()
         cls.new_user = entities.User().create()
 

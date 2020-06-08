@@ -451,7 +451,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         )
 
     # Get the Provisioning template_ID and update with OS, Org, Location
-    provisioning_template = entities.ConfigTemplate().search(
+    provisioning_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
     provisioning_template = provisioning_template[0].read()
@@ -463,7 +463,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     )
 
     # Get the PXE template ID and update with OS, Org, location
-    pxe_template = entities.ConfigTemplate().search(
+    pxe_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()

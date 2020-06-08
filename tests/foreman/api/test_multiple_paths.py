@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 BZ_1118015_ENTITIES = (
     entities.ActivationKey,
     entities.Architecture,
-    entities.ConfigTemplate,
+    entities.ProvisioningTemplate,
     entities.ContentView,
     entities.Environment,
     entities.GPGKey,
@@ -60,7 +60,7 @@ def valid_entities():
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
-        entities.ConfigTemplate,
+        entities.ProvisioningTemplate,
         entities.ContentView,
         entities.DiscoveryRule,
         entities.Domain,

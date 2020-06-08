@@ -280,7 +280,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        template = entities.ConfigTemplate(organization=[self.org]).create()
+        template = entities.ProvisioningTemplate(organization=[self.org]).create()
         operating_sys = entities.OperatingSystem(config_template=[template]).create()
         self.assertEqual(len(operating_sys.config_template), 1)
         self.assertEqual(operating_sys.config_template[0].id, template.id)
@@ -585,8 +585,8 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        template_1 = entities.ConfigTemplate(organization=[self.org]).create()
-        template_2 = entities.ConfigTemplate(organization=[self.org]).create()
+        template_1 = entities.ProvisioningTemplate(organization=[self.org]).create()
+        template_2 = entities.ProvisioningTemplate(organization=[self.org]).create()
         os = entities.OperatingSystem(config_template=[template_1]).create()
         self.assertEqual(len(os.config_template), 1)
         self.assertEqual(os.config_template[0].id, template_1.id)
