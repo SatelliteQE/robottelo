@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Module containing convenience functions for working with the API."""
 import time
 

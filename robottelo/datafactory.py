@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Data Factory for all entities"""
 import random
 import string

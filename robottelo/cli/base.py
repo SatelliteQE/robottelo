@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Generic base class for cli hammer commands."""
 import logging
 import re
