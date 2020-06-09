@@ -60,7 +60,6 @@ from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.scapcontent import Scapcontent
-from robottelo.cli.smart_variable import SmartVariable
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
@@ -164,27 +163,11 @@ def _entity_with_credentials(credentials, cli_entity_cls):
 
 @cacheable
 def make_activation_key(options=None):
-    """
-    Usage::
+    """Creates an Activation Key
 
-        hammer activation-key create [OPTIONS]
+    :param options: Check options using `hammer activation-key create --help` on satellite.
 
-    Options::
-
-        --content-view CONTENT_VIEW_NAME Content view name to search by
-        --content-view-id CONTENT_VIEW_ID content view numeric identifier
-        --description DESCRIPTION     description
-        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME Name to search by
-        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
-        --max-hosts MAX_CONTENT_HOSTS maximum number of registered
-                                              content hosts
-        --name NAME                   name
-        --organization ORGANIZATION_NAME Organization name to search by
-        --organization-id ORGANIZATION_ID
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --unlimited-hosts UNLIMITED_CONTENT_HOSTS can the activation
-                                                          key have unlimited
-                                                          content hosts
+    :returns ActivationKey object
     """
     # Organization Name, Label or ID is a required field.
     if (
@@ -218,16 +201,11 @@ def make_activation_key(options=None):
 
 @cacheable
 def make_architecture(options=None):
-    """
-    Usage::
+    """Creates an Architecture
 
-        hammer architecture create [OPTIONS]
+    :param options: Check options using `hammer architecture create --help` on satellite.
 
-    Options::
-
-        --name NAME
-        --operatingsystem-ids OPERATINGSYSTEM_IDS Operatingsystem ID’s
-                                      Comma separated list of values.
+    :returns Architecture object
     """
     args = {'name': gen_alphanumeric(), 'operatingsystem-ids': None}
 
@@ -236,73 +214,19 @@ def make_architecture(options=None):
 
 @cacheable
 def make_content_view(options=None):
-    """
-    Usage::
+    """Creates a Content View
 
-        hammer content-view create [OPTIONS]
+    :param options: Check options using `hammer content-view create --help` on satellite.
 
-    Options::
-
-         --auto-publish AUTO_PUBLISH             Enable/Disable auto publish of
-                                                 composite view
-                                                 One of true/false, yes/no, 1/0.
-         --component-ids COMPONENT_IDS           List of component content view
-                                                 version ids for composite views
-                                                 Comma separated list of values.
-                                                 Values containing comma should be
-                                                 quoted or escaped with backslash.
-                                                 JSON is acceptable and preferred
-                                                 way for complex parameters
-         --description DESCRIPTION               Description for the content view
-         --id ID                                 Content view identifier
-         --name NAME                             Content view name to search by
-         --new-name NEW_NAME                     New name for the content view
-         --organization ORGANIZATION_NAME        Organization name to search by
-         --organization-id ORGANIZATION_ID       Organization ID to search by
-         --organization-label ORGANIZATION_LABEL Organization label to search by
-         --repository-ids REPOSITORY_IDS         List of repository ids
-                                                 Comma separated list of values.
-                                                 Values containing comma should be
-                                                 quoted or escaped with backslash.
-                                                 JSON is acceptable and preferred
-                                                 way for complex parameters
-         --solve-dependencies SOLVE_DEPENDENCIES Solve RPM dependencies by default on
-                                                 Content View publish, defaults to false
-                                                 One of true/false, yes/no, 1/0.
-         -h, --help                              Print help
-
+    :returns ContentView object
     """
     return make_content_view_with_credentials(options)
 
 
 def make_content_view_with_credentials(options=None, credentials=None):
-    """
-    Usage::
+    """Helper function to create CV with credentials
 
-        hammer content-view create [OPTIONS]
-
-    Options::
-
-        --component-ids COMPONENT_IDS List of component content view
-        version ids for composite views
-                                      Comma separated list of values.
-        --composite                   Create a composite content view
-        --description DESCRIPTION     Description for the content view
-        --label LABEL                 Content view label
-        --name NAME                   Name of the content view
-        --organization ORGANIZATION_NAME  Organization name to search by
-        --organization-id ORGANIZATION_ID Organization identifier
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --product PRODUCT_NAME          Product name to search by
-        --product-id PRODUCT_ID         product numeric identifier
-        --repositories REPOSITORY_NAMES Comma separated list of values.
-        --repository-ids REPOSITORY_IDS List of repository ids
-                                        Comma separated list of values.
-        -h, --help                    print help
-
-    If credentials is None default credentials present on
-    robottelo.properties will be used.
-
+    If credentials is None, the default credentials in robottelo.properties will be used.
     """
     # Organization ID is a required field.
     if not options or not options.get('organization-id'):
@@ -329,35 +253,11 @@ def make_content_view_with_credentials(options=None, credentials=None):
 
 @cacheable
 def make_content_view_filter(options=None):
-    """
-    Usage::
+    """Creates a Content View Filter
 
-        content-view filter create [OPTIONS]
+    :param options: Check options using `hammer content-view filter create --help` on satellite.
 
-    Options::
-
-        --content-view CONTENT_VIEW_NAME        Content view name to search by
-        --content-view-id CONTENT_VIEW_ID       content view numeric identifier
-        --description DESCRIPTION               description of the filter
-        --inclusion INCLUSION                   specifies if content should be
-                                                included or excluded, default:
-                                                 inclusion=false
-                                                One of true/false, yes/no, 1/0.
-        --name NAME                             name of the filter
-        --organization ORGANIZATION_NAME        Organization name to search by
-        --organization-id ORGANIZATION_ID       Organization ID to search by
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --original-packages ORIGINAL_PACKAGES   add all packages without errata
-                                                to the included/ excluded list.
-                                                (package filter only)
-                                                One of true/false, yes/no, 1/0.
-        --repositories REPOSITORY_NAMES         Comma separated list of values.
-        --repository-ids REPOSITORY_IDS         list of repository ids
-                                                Comma separated list of values.
-        --type TYPE                             type of filter (e.g. rpm,
-                                                package_group, erratum)
-        -h, --help                              print help
-
+    :returns ContentViewFilter object
     """
 
     args = {
@@ -380,39 +280,12 @@ def make_content_view_filter(options=None):
 
 @cacheable
 def make_content_view_filter_rule(options=None):
-    """
-    Usage::
+    """Creates a Content View Filter Rule
 
-        content-view filter rule create [OPTIONS]
+    :param options: Check options using `hammer content-view filter rule create --help` on
+        satellite.
 
-    Options::
-
-        --content-view CONTENT_VIEW_NAME        Content view name to search by
-        --content-view-filter CONTENT_VIEW_FILTER_NAME  Name to search by
-        --content-view-filter-id CONTENT_VIEW_FILTER_ID filter identifier
-        --content-view-id CONTENT_VIEW_ID       content view numeric identifier
-        --date-type DATE_TYPE                   erratum: search using the
-                                                'Issued On' or 'Updated On'
-                                                column of the errata.
-                                                Values are 'issued'/'updated'
-        --end-date END_DATE                     erratum: end date (YYYY-MM-DD)
-        --errata-id ERRATA_ID                   erratum: id
-        --errata-ids ERRATA_IDS                 erratum: IDs or a select all
-                                                object
-                                                Comma separated list of values.
-        --max-version MAX_VERSION               package: maximum version
-        --min-version MIN_VERSION               package: minimum version
-        --name NAME                             package and package group names
-                                                Comma separated list of values.
-        --names NAMES                           Package and package group names
-        --start-date START_DATE                 erratum: start date
-                                                (YYYY-MM-DD)
-        --types TYPES                           erratum: types (enhancement,
-                                                bugfix, security)
-                                                Comma separated list of values.
-        --version VERSION                       package: version
-        -h, --help                              print help
-
+    :returns ContentViewFilterRule object
     """
 
     args = {
@@ -438,40 +311,11 @@ def make_content_view_filter_rule(options=None):
 
 @cacheable
 def make_discoveryrule(options=None):
-    """
-    Usage::
+    """Creates a Discovery Rule
 
-        hammer discovery_rule create [OPTIONS]
+    :param options: Check options using `hammer discovery-rule create --help` on satellite.
 
-    Options::
-
-        --enabled ENABLED                   flag is used for temporary shutdown
-                                            of rules
-                                            One of true/false, yes/no, 1/0.
-        --hostgroup HOSTGROUP_NAME          Hostgroup name
-        --hostgroup-id HOSTGROUP_ID
-        --hostgroup-title HOSTGROUP_TITLE   Hostgroup title
-        --hostname HOSTNAME                 defines a pattern to assign
-                                            human-readable hostnames to the
-                                            matching hosts
-        --hosts-limit HOSTS_LIMIT
-        --location-ids LOCATION_IDS         REPLACE locations with given ids
-                                            Comma separated list of values.
-        --locations LOCATION_NAMES          Comma separated list of values.
-        --max-count MAX_COUNT               enables to limit maximum amount of
-                                            provisioned hosts per rule
-        --name NAME                         represents rule name shown to the
-                                            users
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with given
-                                            ids.
-                                            Comma separated list of values.
-        --organizations ORGANIZATION_NAMES  Comma separated list of values.
-        --priority PRIORITY                 puts the rules in order, low
-                                            numbers go first. Must be greater
-                                            then zero
-        --search SEARCH                     query to match discovered hosts for
-                                            the particular rule
-        -h, --help                          print help
+    :returns DiscoveryRule object
     """
 
     # Organizations, Locations, search query, hostgroup are required fields.
@@ -512,19 +356,11 @@ def make_discoveryrule(options=None):
 
 @cacheable
 def make_gpg_key(options=None):
-    """
-    Usage::
+    """Creates a GPG Key
 
-        hammer gpg create [OPTIONS]
+    :param options: Check options using `hammer gpg create --help` on satellite.
 
-    Options::
-
-        --key GPG_KEY_FILE            GPG Key file
-        --name NAME                   identifier of the GPG Key
-        --organization ORGANIZATION_NAME  Organization name to search by
-        --organization-id ORGANIZATION_ID organization identifier
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        -h, --help                    print help
+    :returns GPGKey object
     """
     # Organization ID is a required field.
     if not options or not options.get('organization-id'):
@@ -557,78 +393,11 @@ def make_gpg_key(options=None):
 
 @cacheable
 def make_location(options=None):
-    """Location CLI factory
+    """Creates a Location
 
-    Usage::
+    :param options: Check options using `hammer location create --help` on satellite.
 
-        hammer location create [OPTIONS]
-
-    Options::
-
-        --compute-resource-ids COMPUTE_RESOURCE_IDS Compute resource IDs
-                                                    Comma separated list of
-                                                    values.
-        --compute-resources COMPUTE_RESOURCE_NAMES  Compute resource names
-                                                    Comma separated list of
-                                                    values.
-        --config-template-ids CONFIG_TEMPLATE_IDS   Provisioning template IDs
-                                                    Comma separated list of
-                                                    values.
-        --config-templates CONFIG_TEMPLATE_NAMES    Provisioning template names
-                                                    Comma separated list of
-                                                    values.
-        --description DESCRIPTION                   Location description
-        --domain-ids DOMAIN_IDS                     Domain IDs
-                                                    Comma separated list of
-                                                    values.
-        --domains DOMAIN_NAMES                      Domain names
-                                                    Comma separated list of
-                                                    values.
-        --environment-ids ENVIRONMENT_IDS           Environment IDs
-                                                    Comma separated list of
-                                                    values.
-        --environments ENVIRONMENT_NAMES            Environment names
-                                                    Comma separated list of
-                                                    values.
-        --puppet-environment-ids ENVIRONMENT_IDS    Environment IDs
-                                                    Comma separated list of
-                                                    values.
-        --puppet-environments ENVIRONMENT_NAMES     Environment names
-                                                    Comma separated list of
-                                                    values.
-        --hostgroup-ids HOSTGROUP_IDS               Host group IDs
-                                                    Comma separated list of
-                                                    values.
-        --hostgroups HOSTGROUP_NAMES                Host group names
-                                                    Comma separated list of
-                                                    values.
-        --medium-ids MEDIUM_IDS                     Media IDs
-                                                    Comma separated list of
-                                                    values.
-        --name NAME
-        --realm-ids REALM_IDS                       Realm IDs
-                                                    Comma separated list of
-                                                    values.
-        --realms REALM_NAMES                        Realm names
-                                                    Comma separated list of
-                                                    values.
-        --smart-proxy-ids SMART_PROXY_IDS           Smart proxy IDs
-                                                    Comma separated list of
-                                                    values.
-        --smart-proxies SMART_PROXY_NAMES           Smart proxy names
-                                                    Comma separated list of
-                                                    values.
-        --subnet-ids SUBNET_IDS                     Subnet IDs
-                                                    Comma separated list of
-                                                    values.
-        --subnets SUBNET_NAMES                      Subnet names
-                                                    Comma separated list of
-        --user-ids USER_IDS                         User IDs
-                                                    Comma separated list of
-                                                    values.
-        --users USER_LOGINS                         User names
-                                                    Comma separated list of
-                                                    values.
+    :returns Location object
     """
     args = {
         'compute-resource-ids': None,
@@ -662,17 +431,11 @@ def make_location(options=None):
 
 @cacheable
 def make_model(options=None):
-    """
-    Usage::
+    """Creates a Hardware Model
 
-        hammer model create [OPTIONS]
+    :param options: Check options using `hammer model create --help` on satellite.
 
-    Options::
-
-        --hardware-model HARDWARE_MODEL
-        --info INFO
-        --name NAME
-        --vendor-class VENDOR_CLASS
+    :returns Model object
     """
     args = {
         'hardware-model': None,
@@ -686,29 +449,11 @@ def make_model(options=None):
 
 @cacheable
 def make_partition_table(options=None):
-    """
-    Usage::
+    """Creates a Partition Table
 
-        hammer partition-table create [OPTIONS]
+    :param options: Check options using `hammer partition-table create --help` on satellite.
 
-    Options::
-
-        --file LAYOUT                         Path to a file that contains the
-                                              partition layout
-        --location-ids LOCATION_IDS           REPLACE locations with given ids
-                                              Comma separated list of values.
-        --locations LOCATION_NAMES            Comma separated list of values.
-        --name NAME
-        --operatingsystem-ids OPERATINGSYSTEM_IDS Array of operating system IDs
-            to associate with the partition table Comma separated list of
-            values. Values containing comma should be double quoted
-        --operatingsystems OPERATINGSYSTEM_TITLES Comma separated list of
-            values. Values containing comma should be double quoted
-        --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
-                                              ids.
-                                              Comma separated list of values.
-        --organizations ORGANIZATION_NAMES    Comma separated list of values.
-        --os-family OS_FAMILY
+    :returns PartitionTable object
     """
     if options is None:
         options = {}
@@ -737,29 +482,17 @@ def make_partition_table(options=None):
 
 @cacheable
 def make_product(options=None):
+    """Creates a Product
+
+    :param options: Check options using `hammer product create --help` on satellite.
+
+    :returns Product object
+    """
     return make_product_with_credentials(options)
 
 
 def make_product_with_credentials(options=None, credentials=None):
-    """
-    Usage::
-
-        hammer product create [OPTIONS]
-
-    Options::
-
-        --description DESCRIPTION     Product description
-        --gpg-key GPG_KEY_NAME        Name to search by
-        --gpg-key-id GPG_KEY_ID       Identifier of the GPG key
-        --label LABEL
-        --name NAME
-        --organization ORGANIZATION_NAME        Organization name to search by
-        --organization-id ORGANIZATION_ID       ID of the organization
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --sync-plan SYNC_PLAN_NAME              Sync plan name to search by
-        --sync-plan-id SYNC_PLAN_ID             Plan numeric identifier
-        -h, --help                              print help
-    """
+    """Helper function to create product with credentials"""
     # Organization ID is a required field.
     if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
@@ -815,21 +548,11 @@ def make_product_wait(options=None, wait_for=5):
 
 @cacheable
 def make_proxy(options=None):
-    """
-    Usage::
+    """Creates a Proxy
 
-        hammer proxy create [OPTIONS]
+    :param options: Check options using `hammer proxy create --help` on satellite.
 
-    Options::
-
-        --location-ids LOCATION_IDS     REPLACE locations with given ids
-                                        Comma separated list of values.
-        --name NAME
-        --organization-ids              ORGANIZATION_IDS REPLACE organizations
-                                        with given ids.
-                                        Comma separated list of values.
-        -h, --help                      print help
-
+    :returns Proxy object
     """
     args = {'name': gen_alphanumeric()}
 
@@ -847,69 +570,17 @@ def make_proxy(options=None):
 
 @cacheable
 def make_repository(options=None):
+    """Creates a Repository
+
+    :param options: Check options using `hammer repository create --help` on satellite.
+
+    :returns Repository object
+    """
     return make_repository_with_credentials(options)
 
 
 def make_repository_with_credentials(options=None, credentials=None):
-    """
-    Usage::
-
-        hammer repository create [OPTIONS]
-
-    Options::
-
-        --checksum-type CHECKSUM_TYPE           checksum of the repository,
-                                                currently 'sha1' &amp; 'sha256'
-                                                are supported.'
-        --content-type CONTENT_TYPE             type of repo (either 'yum',
-                                                'puppet', 'docker' or 'ostree',
-                                                defaults to 'yum')
-        --docker-tags-whitelist DOCKER_TAGS_WHITELIST Comma separated list of
-                                                tags to sync for Container Image
-                                                repository
-        --docker-upstream-name DOCKER_UPSTREAM_NAME name of the upstream docker
-                                                repository
-        --download-policy DOWNLOAD_POLICY       download policy for yum repos
-                                                (either 'immediate','on_demand'
-                                                or 'background')
-        --gpg-key GPG_KEY_NAME                  Name to search by
-        --gpg-key-id GPG_KEY_ID                 gpg key numeric identifier
-        --ignorable-content IGNORABLE_CONTENT   List of content units to ignore
-                                                while syncing a yum repository.
-                                                Subset of rpm, drpm, srpm,
-                                                distribution, erratum
-        --label LABEL
-        --mirror-on-sync MIRROR_ON_SYNC         true if this repository when
-                                                synced has to be mirrored from
-                                                the source and stale rpms
-                                                removed.
-        --name NAME
-        --organization ORGANIZATION_NAME        Organization name to search by
-        --organization-id ORGANIZATION_ID       organization ID
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --ostree-upstream-sync-depth OSTREE_UPSTREAM_SYNC_DEPTH if a custom
-                                                sync policy is chosen for
-                                                ostree repositories then a
-                                                'depth' value must be provided.
-        --ostree-upstream-sync-policy OSTREE_UPSTREAM_SYNC_POLICY policies for
-                                                syncing upstream ostree
-                                                repositories. Possible
-                                                value(s): 'latest', 'all',
-                                                'custom'
-        --product PRODUCT_NAME                  Product name to search by
-        --product-id PRODUCT_ID                 product numeric identifier
-        --publish-via-http ENABLE               Publish Via HTTP
-                                                One of true/false, yes/no, 1/0.
-        --upstream-password UPSTREAM_PASSWORD   Password of the upstream
-                                                repository user used for
-                                                authentication
-        --upstream-username UPSTREAM_USERNAME   Username of the upstream
-                                                repository user used for
-                                                authentication
-        --url URL                               repository source url
-        -h, --help                              print help
-
-    """
+    """Helper function to create Repository with credentials"""
     # Product ID is a required field.
     if not options or not options.get('product-id'):
         raise CLIFactoryError('Please provide a valid Product ID.')
@@ -943,13 +614,11 @@ def make_repository_with_credentials(options=None, credentials=None):
 
 @cacheable
 def make_role(options=None):
-    """Usage::
+    """Creates a Role
 
-        hammer role create [OPTIONS]
+    :param options: Check options using `hammer role create --help` on satellite.
 
-    Options::
-
-        --name NAME
+    :returns Role object
     """
     # Assigning default values for attributes
     args = {'name': gen_alphanumeric(6)}
@@ -959,24 +628,11 @@ def make_role(options=None):
 
 @cacheable
 def make_filter(options=None):
-    """
-    Usage::
+    """Creates a Role Filter
 
-        hammer filter create [OPTIONS]
+    :param options: Check options using `hammer filter create --help` on satellite.
 
-    Options::
-
-        --location-ids LOCATION_IDS         Comma separated list of values.
-        --locations LOCATION_NAMES          Comma separated list of values.
-        --organization-ids ORGANIZATION_IDS Comma separated list of values.
-        --organizations ORGANIZATION_NAMES  Comma separated list of values.
-        --override OVERRIDE                 One of true/false, yes/no, 1/0.
-        --permission-ids PERMISSION_IDS     Comma separated list of values.
-        --permissions PERMISSION_NAMES      Comma separated list of values.
-        --role ROLE_NAME                    User role name
-        --role-id ROLE_ID
-        --search SEARCH
-        -h, --help                          print help
+    :returns Role object
     """
     args = {
         'location-ids': None,
@@ -1008,92 +664,11 @@ def make_filter(options=None):
 
 @cacheable
 def make_scap_policy(options=None):
-    """
-    Usage::
+    """Creates a Scap Policy
 
-        policy create [OPTIONS]
+    :param options: Check options using `hammer policy create --help` on satellite.
 
-    Options::
-
-         --cron-line CRON_LINE                                 Policy schedule
-                                                               cron line
-         --day-of-month DAY_OF_MONTH                           Policy schedule
-                                                               day of month
-                                                               (only if period
-                                                               == “monthly”)
-         --deploy-by DEPLOY_BY                                 How the policy should be deployed
-                                                               Possible value(s): 'puppet',
-                                                               'ansible', 'manual'
-         --description DESCRIPTION                             Policy
-                                                               description
-         --hostgroup-ids HOSTGROUP_IDS                         Apply policy to
-                                                               host groups
-                                                               Comma separated
-                                                               Values list of
-                                                               values.
-                                                               containing comma
-                                                               or should be
-                                                               quoted escaped
-                                                               with backslash
-         --hostgroups HOSTGROUP_NAMES                          Comma separated
-                                                               list of values.
-                                                               Values
-                                                               containing
-                                                               comma should be
-                                                               quoted or
-                                                               escaped with
-                                                               backslash
-         --location-ids LOCATION_IDS                           REPLACE
-                                                               locations
-                                                               with given ids
-                                                               Comma separated
-                                                               list of values.
-                                                               containing comma
-                                                               should be quoted
-                                                               escaped with
-                                                               backslash
-         --locations LOCATION_NAMES                            Comma separated
-                                                               list of values.
-                                                               containing comma
-                                                               should be quoted
-                                                               escaped with
-                                                               backslash
-         --name NAME                                           Policy name
-         --organization-ids ORGANIZATION_IDS                   REPLACE
-                                                               organizations
-                                                               with given ids.
-                                                               Comma separated
-                                                               list of values.
-                                                               containing comma
-                                                               should be quoted
-                                                               escaped with
-                                                               backslash
-         --organizations ORGANIZATION_NAMES                    Comma separated
-                                                               list of values.
-                                                               containing comma
-                                                               should be quoted
-                                                               escaped with
-                                                               backslash
-         --period PERIOD                                       Policy schedule
-                                                               period (weekly,
-                                                               monthly, custom)
-         --scap-content SCAP_CONTENT_TITLE                     SCAP content
-                                                               title
-         --scap-content-id SCAP_CONTENT_ID
-         --scap-content-profile-id SCAP_CONTENT_PROFILE_ID     Policy SCAP
-                                                               content
-                                                               profile ID
-         --tailoring-file TAILORING_FILE_NAME                  Tailoring file
-                                                               name
-         --tailoring-file-id TAILORING_FILE_ID
-         --tailoring-file-profile-id TAILORING_FILE_PROFILE_ID Tailoring file
-                                                               profile ID
-         --weekday WEEKDAY                                     Policy schedule
-                                                               weekday (only if
-                                                               period
-                                                               == “weekly”)
-         -h, --help                                            print help
-
+    :returns Scappolicy object
     """
     # Assigning default values for attributes
     # SCAP ID and SCAP profile ID is a required field.
@@ -1133,40 +708,11 @@ def make_scap_policy(options=None):
 
 @cacheable
 def make_subnet(options=None):
-    """
-    Usage::
+    """Creates a Subnet
 
-        hammer subnet create [OPTIONS]
+    :param options: Check options using `hammer subnet create --help` on satellite.
 
-    Options::
-
-        --boot-mode BOOT_MODE         Default boot mode for interfaces assigned
-                                      to this subnet, valid values are
-                                      "Static", "DHCP"
-        --dhcp-id DHCP_ID             DHCP Proxy to use within this subnet
-        --dns-id DNS_ID               DNS Proxy to use within this subnet
-        --dns-primary DNS_PRIMARY     Primary DNS for this subnet
-        --dns-secondary DNS_SECONDARY Secondary DNS for this subnet
-        --domain-ids DOMAIN_IDS       Numerical ID or domain name
-        --domains DOMAIN_NAMES        Comma separated list of values.
-        --from FROM                   Starting IP Address for IP auto
-                                      suggestion
-        --gateway GATEWAY             Primary DNS for this subnet
-        --ipam IPAM                   IP Address auto suggestion mode for this
-                                      subnet, valid values are
-                                      'DHCP', 'Internal DB', 'None'
-        --location-ids LOCATION_IDS
-        --locations LOCATION_NAMES    Comma separated list of values.
-        --mask MASK                   Netmask for this subnet
-        --name NAME                   Subnet name
-        --network NETWORK             Subnet network
-        --organization-ids ORGANIZATION_IDS organization ID
-        --organizations ORGANIZATION_NAMES Comma separated list of values.
-        --tftp-id TFTP_ID             TFTP Proxy to use within this subnet
-        --to TO                       Ending IP Address for IP auto suggestion
-        --vlanid VLANID               VLAN ID for this subnet
-        -h, --help                    print help
-
+    :returns Subnet object
     """
     args = {
         'boot-mode': None,
@@ -1196,35 +742,11 @@ def make_subnet(options=None):
 
 @cacheable
 def make_sync_plan(options=None):
-    """
-    Usage::
+    """Creates a Sync Plan
 
-        hammer sync-plan create [OPTIONS]
+    :param options: Check options using `hammer sync-plan create --help` on satellite.
 
-    Options::
-
-        --description DESCRIPTION               sync plan description
-        --enabled ENABLED                       enables or disables
-                                                synchronization. One of
-                                                true/false, yes/no, 1/0.
-        --interval INTERVAL                     how often synchronization
-                                                should run. One of 'none',
-                                                'hourly', 'daily', 'weekly'
-                                                'custom cron'.
-                                                Default: ""none""
-        --name NAME                             sync plan name
-        --organization ORGANIZATION_NAME        Organization name to search by
-        --organization-id ORGANIZATION_ID       organization ID
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --sync-date SYNC_DATE                   start date and time of the
-                                                synchronization defaults to now
-                                                Date and time in YYYY-MM-DD
-                                                HH:MM:SS or ISO 8601 format
-                                                Default: "2014-10-07 08:50:35"
-        --cron-expression CRON EXPRESSION       Set this when interval is
-                                                custom cron
-        -h, --help                              print help
-
+    :returns SyncPlan object
     """
     # Organization ID is a required field.
     if not options or not options.get('organization-id'):
@@ -1250,162 +772,11 @@ def make_sync_plan(options=None):
 
 @cacheable
 def make_host(options=None):
-    """
-    Usage::
+    """Creates a Host
 
-        hammer host create [OPTIONS]
+    :param options: Check options using `hammer host create --help` on satellite.
 
-    Options::
-
-        --architecture ARCHITECTURE_NAME            Architecture name
-        --architecture-id ARCHITECTURE_ID
-        --ask-root-password ASK_ROOT_PW             One of true/false, yes/no,
-                                                    1/0.
-        --autoheal AUTOHEAL                         Sets whether the Host will
-                                                    autoheal subscriptions upon
-                                                    checkin
-                                                    One of true/false, yes/no,
-                                                    1/0.
-        --build BUILD                               One of true/false, yes/no,
-                                                    1/0.
-                                                    Default: "true"
-        --comment COMMENT                           Additional information
-                                                    about this host
-        --compute-attributes COMPUTE_ATTRS          Compute resource attributes
-                                                    Comma-separated list of
-                                                    key=value.
-        --compute-profile COMPUTE_PROFILE_NAME      Name to search by
-        --compute-profile-id COMPUTE_PROFILE_ID
-        --compute-resource COMPUTE_RESOURCE_NAME    Compute resource name
-        --compute-resource-id COMPUTE_RESOURCE_ID
-        --config-group-ids CONFIG_GROUP_IDS         IDs of associated config
-                                                    groups. Comma separated
-                                                    list of values
-        --config-groups CONFIG_GROUP_NAMES          Comma separated list of
-                                                    values.
-        --content-source-id CONTENT_SOURCE_ID
-        --content-view CONTENT_VIEW_NAME            Name to search by
-        --content-view-id CONTENT_VIEW_ID           content view numeric
-                                                    identifier
-        --domain DOMAIN_NAME                        Domain name
-        --domain-id DOMAIN_ID                       Numerical ID or domain name
-        --enabled ENABLED                           One of true/false, yes/no,
-                                                    1/0.
-                                                    Default: "true"
-        --environment ENVIRONMENT_NAME              Environment name
-        --environment-id ENVIRONMENT_ID
-        --hostgroup HOSTGROUP_NAME                  Hostgroup name
-        --hostgroup-id HOSTGROUP_ID
-        --hostgroup-title HOSTGROUP_TITLE           Hostgroup title
-        --hypervisor-guest-uuids HYPERVISOR_GUEST_UUIDS     List of hypervisor
-                                                            guest uuids
-                                                            Comma separated
-                                                            list of values.
-        --image IMAGE_NAME                          Name to search by
-        --image-id IMAGE_ID
-        --interface INTERFACE                       Interface parameters.
-                                                    Comma-separated list of
-                                                    key=value.
-                                                    Can be specified multiple
-                                                    times.
-        --ip IP                                     not required if using a
-                                                    subnet with DHCP Capsule
-        --kickstart-repository-id KICKSTART_REPOSITORY_ID   Repository Id
-                                                            associated with the
-                                                            kickstart repo used
-                                                            for provisioning
-        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME  Name to search by
-        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID ID of the
-                                                            environment
-        --location LOCATION_NAME                    Location name
-        --location-id LOCATION_ID
-        --mac MAC                                   required for managed host
-                                                    that is bare metal, not
-                                                    required if it's a virtual
-                                                    machine
-        --managed MANAGED                           One of true/false, yes/no,
-                                                    1/0.
-                                                    Default: "true"
-        --medium MEDIUM_NAME                        Medium name
-        --medium-id MEDIUM_ID
-        --model MODEL_NAME                          Model name
-        --model-id MODEL_ID
-        --name NAME
-        --operatingsystem OPERATINGSYSTEM_TITLE     Operating system title
-        --operatingsystem-id OPERATINGSYSTEM_ID
-        --organization ORGANIZATION_NAME            Organization name
-        --organization-id ORGANIZATION_ID           organization ID
-        --overwrite OVERWRITE                       One of true/false, yes/no,
-                                                    1/0.
-                                                    Default: "true"
-        --owner OWNER_LOGIN                         Login of the owner
-        --owner-id OWNER_ID                         ID of the owner
-        --owner-type OWNER_TYPE                     Host's owner type
-                                                    Possible value(s): 'User',
-                                                    'Usergroup'
-        --parameters PARAMS                         Host parameters.
-                                                    Comma-separated list of
-                                                    key=value.
-        --partition-table PARTITION_TABLE_NAME      Partition table name
-        --partition-table-id PARTITION_TABLE_ID
-        --progress-report-id PROGRESS_REPORT_ID     UUID to track orchestration
-                                                    tasks status, GET
-                                                    /api/orchestration/:UUID
-                                                    /tasks
-        --provision-method METHOD                   Possible value(s): 'build',
-                                                    'image'
-        --puppet-ca-proxy PUPPET_CA_PROXY_NAME
-        --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
-        --puppet-class-ids PUPPET_CLASS_IDS         Comma separated list of
-                                                    values.
-        --puppet-classes PUPPET_CLASS_NAMES         Comma separated list of
-                                                    values.
-        --puppet-proxy PUPPET_PROXY_NAME
-        --puppet-proxy-id PUPPET_PROXY_ID
-        --pxe-loader PXE_LOADER                     DHCP filename option
-                                                    (Grub2/PXELinux by default)
-                                                    Possible value(s): 'None',
-                                                    'PXELinux BIOS',
-                                                    'PXELinux UEFI',
-                                                    'Grub UEFI',
-                                                    'Grub UEFI SecureBoot',
-                                                    'Grub2 UEFI',
-                                                    'Grub2 UEFI SecureBoot'
-        --realm REALM_NAME                          Name to search by
-        --realm-id REALM_ID                         Numerical ID or realm name
-        --release-version RELEASE_VERSION           Release version for this
-                                                    Host to use (7Server, 7.1,
-                                                    etc)
-        --root-password ROOT_PW                     required if host is managed
-                                                    and value is not inherited
-                                                    from host group or default
-                                                    password in settings
-        --service-level SERVICE_LEVEL               Service level to be used
-                                                    for autoheal.
-        --subnet SUBNET_NAME                        Subnet name
-        --subnet-id SUBNET_ID
-        --volume VOLUME                             Volume parameters
-                                                    Comma-separated list of
-                                                    key=value.
-                                                    Can be specified multiple
-                                                    times.
-
-    Available keys for --interface::
-
-        mac
-        ip
-        type                                        Possible values: interface,
-                                                    bmc, bond, bridge
-        name
-        subnet_id
-        domain_id
-        identifier
-        managed                                     true/false
-        primary                                     true/false, each managed
-                                                    hosts needs to have one
-                                                    primary interface.
-        provision                                   true/false
-        virtual                                     true/false
+    :returns Host object
     """
     args = {
         'architecture': None,
@@ -1569,34 +940,11 @@ def make_fake_host(options=None):
 
 @cacheable
 def make_host_collection(options=None):
-    """
-    Usage::
+    """Creates a Host Collection
 
-         host-collection create [OPTIONS]
+    :param options: Check options using `hammer host-collection create  --help` on satellite.
 
-    Options::
-
-        --description DESCRIPTION
-        --host-collection-ids HOST_COLLECTION_IDS  Array of content host ids to
-                                                   replace the content hosts in
-                                                   host collection
-                                                   Comma separated list of
-                                                   values
-        --hosts HOST_NAMES                         Comma separated list of
-                                                   values
-        --max-hosts MAX_CONTENT_HOSTS              Maximum number of content
-                                                   hosts in the host collection
-        --name NAME                                Host Collection name
-        --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID          Organization identifier
-        --organization-label ORGANIZATION_LABEL
-        --unlimited-hosts UNLIMITED_CONTENT_HOSTS  Whether or not the host
-                                                   collection may have
-                                                   unlimited content hosts
-                                                   One of true/false, yes/no,
-                                                   1/0.
-         -h, --help                                print help
-
+    :returns HostCollection object
     """
     # Assigning default values for attributes
     args = {
@@ -1616,50 +964,11 @@ def make_host_collection(options=None):
 
 @cacheable
 def make_job_invocation(options=None):
-    """
-    Usage::
+    """Creates a Job Invocation
 
-        hammer job-invocation create
+    :param options: Check options using `hammer job-invocation create --help` on satellite.
 
-    Options::
-
-         --async                                  Do not wait for the task
-         --bookmark BOOKMARK_NAME                 Name to search by
-         --bookmark-id BOOKMARK_ID
-         --concurrency-level CONCURRENCY_LEVEL    Run at most N tasks at a time
-         --cron-line CRONLINE                     Create a recurring execution
-         --description-format DESCRIPTION_FORMAT  Override the description
-                                                  format from the template for
-                                                  this invocation only
-         --dynamic                                Dynamic search queries are
-                                                  evaluated at run time
-         --effective-user EFFECTIVE_USER          What user should be used to
-                                                  run the script (using
-                                                  sudo-like mechanisms).
-         --end-time DATETIME                      Perform no more executions
-                                                  after this time, used with
-                                                  --cron-line (YYYY-MM-DD
-                                                  HH:MM:SS or ISO 8601 format)
-         --input-files INPUT FILES                Read input values from files
-                                                  Comma-separated list of
-                                                  key=file, where file is a
-                                                  path to a text file
-         --inputs INPUTS                          Inputs from command line
-                                                  Comma-separated list of
-                                                  key=value.
-         --job-template JOB_TEMPLATE_NAME         Name to search by
-         --job-template-id JOB_TEMPLATE_ID
-         --max-iteration MAX_ITERATION            Repeat a maximum of N times
-         --search-query SEARCH_QUERY
-         --start-at DATETIME                      Schedule the execution for
-                                                  a later time in
-                                                  YYYY-MM-DD HH:MM:SS
-                                                  or ISO 8601
-         --start-before DATETIME                  Execution should be cancelled
-                                                  if it cannot be started
-                                                  before specified datetime
-         --time-span TIME_SPAN                    Distribute tasks over
-                                                  N seconds
+    :returns JobInvocation object
     """
 
     args = {
@@ -1688,38 +997,11 @@ def make_job_invocation(options=None):
 
 @cacheable
 def make_job_template(options=None):
-    """
-    Usage::
+    """Creates a Job Template
 
-        hammer job-template create
+    :param options: Check options using `hammer job-template create --help` on satellite.
 
-    Options::
-
-       --audit-comment AUDIT_COMMENT
-       --current-user CURRENT_USER              Whether the current user login
-                                                should be used as the effective
-                                                user.
-       --description-format DESCRIPTION_FORMAT  This template is used to
-                                                generate the description.
-       --file TEMPLATE                          Path to a file that contains
-                                                the template.
-       --job-category JOB_CATEGORY              Job category.
-       --location-ids LOCATION_IDS              Comma separated list of values.
-       --locations LOCATION_NAMES               Comma separated list of values.
-       --locked LOCKED                          Whether or not the template is
-                                                locked for editing.
-       --name NAME                              Template name
-       --organization-ids ORGANIZATION_IDS      Comma separated list of values.
-       --organizations ORGANIZATION_NAMES       Comma separated list of values.
-       --overridable OVERRIDABLE                Whether it should be allowed to
-                                                override the effective user
-                                                from the invocation form.
-       --provider-type PROVIDER_TYPE            Possible value(s): 'SSH'
-       --snippet SNIPPET                        One of true/false, yes/no, 1/0.
-       --value VALUE                            What user should be used to run
-                                                the script (using sudo-like
-                                                mechanisms).
-
+    :returns JobTemplate object
     """
     args = {
         'audit-comment': None,
@@ -1743,30 +1025,11 @@ def make_job_template(options=None):
 
 @cacheable
 def make_user(options=None):
-    """
-    Usage::
+    """Creates a User
 
-        hammer user create [OPTIONS]
+    :param options: Check options using `hammer user create --help` on satellite.
 
-    Options::
-
-        --admin ADMIN                       Is an admin account?
-        --auth-source-id AUTH_SOURCE_ID
-        --default-location-id DEFAULT_LOCATION_ID
-        --default-organization-id DEFAULT_ORGANIZATION_ID
-        --description DESCRIPTION
-        --firstname FIRSTNAME
-        --lastname LASTNAME
-        --location-ids LOCATION_IDS         REPLACE locations with given ids
-                                            Comma separated list of values.
-        --login LOGIN
-        --mail MAIL
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with
-                                            given ids.
-                                            Comma separated list of values.
-        --password PASSWORD
-        -h, --help                          print help
-
+    :returns User object
     """
     login = gen_alphanumeric(6)
 
@@ -1796,21 +1059,11 @@ def make_user(options=None):
 
 @cacheable
 def make_usergroup(options=None):
-    """
-    Usage::
+    """Creates a User Group
 
-        hammer user-group create [OPTIONS]
+    :param options: Check options using `hammer user-group create --help` on satellite.
 
-    Options::
-
-        --name NAME
-        --role-ids ROLE_IDS                              Comma separated list
-        --roles ROLE_NAMES                               Comma separated list
-        --user-group-ids, --usergroup-ids USER_GROUP_IDS Comma separated list
-        --user-groups, --usergroups USER_GROUP_NAMES     Comma separated list
-        --user-ids USER_IDS                              Comma separated list
-        --users USER_LOGINS                              Comma separated list
-
+    :returns UserGroup object
     """
     # Assigning default values for attributes
     args = {
@@ -1828,17 +1081,11 @@ def make_usergroup(options=None):
 
 @cacheable
 def make_usergroup_external(options=None):
-    """
-    Usage::
+    """Creates an External User Group
 
-        hammer user-group external create [OPTIONS]
+    :param options: Check options using `hammer user-group external create --help` on satellite.
 
-    Options::
-
-        --auth-source-id AUTH_SOURCE_ID           ID of linked auth source
-        --name NAME                               External user group name
-        --user-group, --usergroup USER_GROUP_NAME Name to search by
-        --user-group-id, --usergroup-id USER_GROUP_ID
+    :returns UserGroupExternal object
     """
     # UserGroup Name or ID is a required field.
     if not options or not options.get('user-group') and not options.get('user-group-id'):
@@ -1857,60 +1104,11 @@ def make_usergroup_external(options=None):
 
 @cacheable
 def make_ldap_auth_source(options=None):
-    """
-    Usage::
+    """Creates an LDAP Auth Source
 
-        hammer auth-source ldap create [OPTIONS]
+    :param options: Check options using `hammer auth-source ldap create --help` on satellite.
 
-    Options::
-
-        --account ACCOUNT
-        --account-password ACCOUNT_PASSWORD       required if onthefly_register
-                                                  is true
-        --attr-firstname ATTR_FIRSTNAME           required if onthefly_register
-                                                  is true
-        --attr-lastname ATTR_LASTNAME             required if onthefly_register
-                                                  is true
-        --attr-login ATTR_LOGIN                   required if onthefly_register
-                                                  is true
-        --attr-mail ATTR_MAIL                     required if onthefly_register
-                                                  is true
-        --attr-photo ATTR_PHOTO
-        --base-dn BASE_DN
-        --groups-base GROUPS_BASE                 groups base DN
-        --host HOST
-        --ldap-filter LDAP_FILTER                 LDAP filter
-        --location-ids LOCATION_IDS               REPLACE locations with given
-                                                  ids
-                                                  Comma separated list of
-                                                  values. Values containing
-                                                  comma should be double quoted
-        --locations LOCATION_NAMES                Comma separated list of
-                                                  values. Values containing
-                                                  comma should be double quoted
-        --name NAME
-        --onthefly-register                       ONTHEFLY_REGISTER One of
-                                                  true/false, yes/no, 1/0.
-        --organization-ids ORGANIZATION_IDS       REPLACE organizations with
-                                                  given ids.
-                                                  Comma separated list of
-                                                  values. Values containing
-                                                  comma should be double quoted
-        --organizations ORGANIZATION_NAMES        Comma separated list of
-                                                  values. Values containing
-                                                  comma should be double quoted
-        --port PORT                               defaults to 389
-        --server-type SERVER_TYPE                 type of the LDAP server
-                                                  Possible value(s):
-                                                  'free_ipa',
-                                                  'active_directory', 'posix'
-        --tls TLS                                 One of true/false, yes/no,
-                                                  1/0.
-        --usergroup-sync USERGROUP_SYNC           sync external user groups on
-                                                  login
-                                                  One of true/false, yes/no,
-                                                  1/0.
-        -h, --help                                print help
+    :returns LDAPAuthSource object
     """
     # Assigning default values for attributes
     args = {
@@ -1942,84 +1140,11 @@ def make_ldap_auth_source(options=None):
 
 @cacheable
 def make_compute_resource(options=None):
-    """
-    Usage::
+    """Creates a Compute Resource
 
-        hammer compute-resource create [OPTIONS]
+    :param options: Check options using `hammer compute-resource create --help` on satellite.
 
-    Options::
-
-        --caching-enabled CACHING_ENABLED           Enable caching, for VMware only
-                                                    One of true/false, yes/no, 1/0.
-        --datacenter DATACENTER                     For RHEV, VMware Datacenter
-        --description DESCRIPTION
-        --display-type DISPLAY_TYPE                 For Libvirt only
-                                                    Possible value(s): 'VNC', 'SPICE'
-        --domain DOMAIN                             For RHEL OpenStack Platform (v3) only
-        --location LOCATION_NAME                    Location name
-        --location-id LOCATION_ID
-        --location-ids LOCATION_IDS                 REPLACE locations with given ids
-                                                    Comma separated list of values. Values
-                                                    containing comma should be quoted or escaped
-                                                    with backslash.
-                                                    JSON is acceptable and preferred way for
-                                                    complex parameters
-        --location-title LOCATION_TITLE             Location title
-        --location-titles LOCATION_TITLES           Comma separated list of values. Values
-                                                    containing comma should be
-                                                    quoted or escaped with backslash.
-                                                    JSON is acceptable and preferred way for
-                                                    complex parameters
-        --locations LOCATION_NAMES                  Comma separated list of values. Values
-                                                    containing comma should be
-                                                    quoted or escaped with backslash.
-                                                    JSON is acceptable and preferred way for
-                                                    complex parameters
-        --name NAME
-        --organization ORGANIZATION_NAME            Organization name
-        --organization-id ORGANIZATION_ID           Organization ID
-        --organization-ids ORGANIZATION_IDS         REPLACE organizations with given ids.
-                                                    Comma separated list of values. Values
-                                                    containing comma should be
-                                                    quoted or escaped with backslash.
-                                                    JSON is acceptable and preferred way for
-                                                    complex parameters
-        --organization-title ORGANIZATION_TITLE     Organization title
-        --organization-titles ORGANIZATION_TITLES   Comma separated list of values. Values
-                                                    containing comma should be
-                                                    quoted or escaped with backslash.
-                                                    JSON is acceptable and preferred way for
-                                                    complex parameters
-        --organizations ORGANIZATION_NAMES          Comma separated list of values. Values
-                                                    containing comma should be
-                                                    quoted or escaped with backslash.
-                                                    JSON is acceptable and preferred way for
-                                                    complex parameters
-        --ovirt-quota OVIRT_QUOTA                   For RHEV only, ID of quota to use
-        --password PASSWORD                         Password for RHEV, EC2, VMware, RHEL OpenStack
-                                                    Platform. Secret key for EC2
-        --project-domain-id PROJECT_DOMAIN_ID       For RHEL OpenStack Platform (v3) only
-        --project-domain-name PROJECT_DOMAIN_NAME   For RHEL OpenStack Platform (v3) only
-        --provider PROVIDER                         Providers include Libvirt, Ovirt, EC2, Vmware,
-                                                    Openstack, Rackspace, GCE
-        --public-key PUBLIC_KEY                     For RHEV only
-        --public-key-path PUBLIC_KEY_PATH           Path to a file that contains oVirt public key
-                                                    (For oVirt only)
-        --region REGION                             For EC2 only, use 'us-gov-west-1' for GovCloud
-                                                    region
-        --server SERVER                             For VMware
-        --set-console-password SET_CONSOLE_PASSWORD For Libvirt and VMware only
-                                                    One of true/false, yes/no, 1/0.
-        --tenant TENANT                             For RHEL OpenStack Platform only
-        --url URL                                   URL for Libvirt, RHEV, RHEL OpenStack Platform
-                                                    and Rackspace
-        --use-v4 USE_V4                             For RHEV only
-                                                    One of true/false, yes/no, 1/0.
-        --user USER                                 Username for RHEV, EC2, VMware, RHEL OpenStack
-                                                    Platform. Access Key for EC2.
-        --uuid UUID                                 Deprecated, please use datacenter
-        -h, --help                                  Print help
-
+    :returns ComputeResource object
     """
     args = {
         'caching-enabled': None,
@@ -2070,80 +1195,17 @@ def make_compute_resource(options=None):
 
 @cacheable
 def make_org(options=None):
+    """Creates an Organization
+
+    :param options: Check options using `hammer organization create --help` on satellite.
+
+    :returns Organization object
+    """
     return make_org_with_credentials(options)
 
 
 def make_org_with_credentials(options=None, credentials=None):
-    """
-    Usage::
-
-        hammer organization create [OPTIONS]
-
-    Options::
-
-        --compute-resource-ids COMPUTE_RESOURCE_IDS Compute resource IDs
-                                                    Comma separated list
-                                                    of values.
-        --compute-resources COMPUTE_RESOURCE_NAMES  Compute resource Names
-                                                    Comma separated list
-                                                    of values.
-        --config-template-ids CONFIG_TEMPLATE_IDS   Provisioning template IDs
-                                                    Comma separated list
-                                                    of values.
-        --config-templates CONFIG_TEMPLATE_NAMES    Provisioning template Names
-                                                    Comma separated list
-                                                    of values.
-        --description DESCRIPTION                   description
-        --domain-ids DOMAIN_IDS                     Domain IDs
-                                                    Comma separated list
-                                                    of values.
-        --environment-ids ENVIRONMENT_IDS           Environment IDs
-                                                    Comma separated list
-                                                    of values.
-        --environments ENVIRONMENT_NAMES            Environment Names
-                                                    Comma separated list
-                                                    of values.
-        --hostgroup-ids HOSTGROUP_IDS               Host group IDs
-                                                    Comma separated list
-                                                    of values.
-        --hostgroups HOSTGROUP_NAMES                Host group Names
-                                                    Comma separated list
-                                                    of values.
-        --label LABEL                               unique label
-        --media MEDIUM_NAMES                        Media Names
-                                                    Comma separated list
-                                                    of values.
-        --media-ids MEDIA_IDS                       Media IDs
-                                                    Comma separated list
-                                                    of values.
-        --name NAME                                 name
-        --realms REALM_NAMES                        Realm Names
-                                                    Comma separated list
-                                                    of values.
-        --realm-ids REALM_IDS                       Realm IDs
-                                                    Comma separated list
-                                                    of values.
-        --smart-proxies SMART_PROXY_NAMES           Smart proxy Names
-                                                    Comma separated list
-                                                    of values.
-        --smart-proxy-ids SMART_PROXY_IDS           Smart proxy IDs
-                                                    Comma separated list
-                                                    of values.
-        --subnet-ids SUBNET_IDS                     Subnet IDs
-                                                    Comma separated list
-                                                    of values.
-        --subnets SUBNET_NAMES                      Subnet Names
-                                                    Comma separated list
-                                                    of values.
-        --user-ids USER_IDS                         User IDs
-                                                    Comma separated list
-                                                    of values.
-        --users USER_NAMES                          User Names
-                                                    Comma separated list
-                                                    of values.
-        -h, --help                                  print help
-
-    """
+    """Helper function to create organization with credentials"""
     # Assigning default values for attributes
     args = {
         'compute-resource-ids': None,
@@ -2175,36 +1237,11 @@ def make_org_with_credentials(options=None, credentials=None):
 
 @cacheable
 def make_realm(options=None):
-    """
-    Usage::
+    """Creates a REALM
 
-        hammer realm create [OPTIONS]
+    :param options: Check options using `hammer realm create --help` on satellite.
 
-    Options::
-
-        --location-ids LOCATION_IDS         REPLACE locations with given ids
-                                            Comma separated list of values.
-                                            Values containing comma should
-                                            be double quoted
-        --locations LOCATION_NAMES          Comma separated list of values.
-                                            Values containing comma should
-                                            be double quoted
-        --name NAME                         The realm name, e.g. EXAMPLE.COM
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with
-                                            given ids.
-                                            Comma separated list of values.
-                                            Values containing comma should
-                                            be double quoted
-        --organizations ORGANIZATION_NAMES  Comma separated list of values.
-                                            Values containing comma should
-                                            be double quoted
-        --realm-proxy-id REALM_PROXY_ID     Capsule ID to use within this realm
-        --realm-type REALM_TYPE             Realm type, e.g.
-                                            Red Hat Identity Management
-                                            or Active Directory
-
-        -h, --help                          print help
-
+    :returns Realm object
     """
     # Assigning default values for attributes
     args = {
@@ -2222,69 +1259,11 @@ def make_realm(options=None):
 
 @cacheable
 def make_report_template(options=None):
-    """
-    Usage::
+    """Creates a Report Template
 
-        hammer report-template create [OPTIONS]
+    :param options: Check options using `hammer report-template create --help` on satellite.
 
-    Options::
-
-        --audit-comment AUDIT_COMMENT
-        --default DEFAULT           Whether or not the template is added
-                                    automatically to new organizations
-                                    and Locations
-                                    One of true/false, yes/no, 1/0.
-        --file LAYOUT               Path to a file that contains
-                                    the report template content
-        --interactive, -i           Open empty template in an $EDITOR.
-                                    Upload the result
-        --location LOCATION_NAME    Location name
-        --location-id LOCATION_ID
-        --location-ids LOCATION_IDS REPLACE locations with given ids
-                                    Comma separated list of values. Values
-                                    containing comma should be quoted
-                                    or escaped with backslash.
-                                    JSON is acceptable and preferred way
-                                    for complex parameters
-        --location-title LOCATION_TITLE     Location title
-        --location-titles LOCATION_TITLES   Comma separated list of values.
-                                            Values containing comma should be
-                                            quoted or escaped with backslash.
-                                            JSON is acceptable and preferred
-                                            way for complex parameters
-        --locations LOCATION_NAMES          Comma separated list of values.
-                                            Values containing comma should be
-                                            quoted or escaped with backslash.
-                                            JSON is acceptable and preferred
-                                            way for complex parameters
-        --locked LOCKED     Whether or not the template is locked for editing
-                            One of true/false, yes/no, 1/0.
-        --name NAME
-        --organization ORGANIZATION_NAME    Organization name
-        --organization-id ORGANIZATION_ID   Organization ID
-        --organization-ids ORGANIZATION_IDS REPLACE organizations
-                                            with given ids.
-                                            Comma separated list of values.
-                                            Values containing comma should be
-                                            quoted or escaped with backslash.
-                                            JSON is acceptable and preferred
-                                            way for complex parameters
-        --organization-title ORGANIZATION_TITLE   Organization title
-        --organization-titles ORGANIZATION_TITLES Comma separated
-                                                  list of values. Values
-                                                  containing comma should be
-                                                  quoted or escaped
-                                                  with backslash.
-                                                  JSON is acceptable and
-                                                  preferred way
-                                                  for complex parameters
-        --organizations ORGANIZATION_NAMES  Comma separated list of values.
-                                            Values containing comma should be
-                                            quoted or escaped with backslash.
-                                            JSON is acceptable and preferred
-                                            way for complex parameters
-        --snippet SNIPPET                   One of true/false, yes/no, 1/0.
-        -h, --help                          Print help
+    :returns ReportTemplate object
     """
     if options is not None and 'content' in options.keys():
         content = options.pop('content')
@@ -2317,44 +1296,11 @@ def make_report_template(options=None):
 
 @cacheable
 def make_os(options=None):
-    """
-    Usage::
+    """Creates an Operating System
 
-        hammer os create [OPTIONS]
+    :param options: Check options using `hammer os create --help` on satellite.
 
-    Options::
-
-        --architecture-ids ARCHITECTURE_IDS       IDs of associated
-                                                  architectures. Comma
-                                                  separated list of values.
-        --architectures ARCHITECTURE_NAMES        Comma separated list of
-                                                  values.
-        --config-template-ids CONFIG_TEMPLATE_IDS IDs of associated
-                                                  provisioning templates. Comma
-                                                  separated list of values.
-        --config-templates CONFIG_TEMPLATE_NAMES  Comma separated list of
-                                                  values.
-        --description DESCRIPTION
-        --family FAMILY
-        --major MAJOR
-        --media MEDIUM_NAMES                      Comma separated list of
-                                                  values.
-        --medium-ids MEDIUM_IDS                   IDs of associated media.
-                                                  Comma separated list of
-                                                  values.
-        --minor MINOR
-        --name NAME
-        --partition-table-ids PARTITION_TABLE_IDS IDs of associated partition
-                                                  tables. Comma separated list
-                                                  of values.
-        --partition-tables PARTITION_TABLE_NAMES  Comma separated list of
-                                                  values.
-        --password-hash PASSWORD_HASH             Root password hash function
-                                                  to use, one of MD5, SHA256,
-                                                  SHA512
-        --release-name RELEASE_NAME
-        -h, --help                    print help
-
+    :returns OperatingSys object
     """
     # Assigning default values for attributes
     args = {
@@ -2380,33 +1326,11 @@ def make_os(options=None):
 
 @cacheable
 def make_scapcontent(options=None):
-    """
-    Usage::
+    """Creates Scap Content
 
-         scap-content create [OPTIONS]
+    :param options: Check options using `hammer scap-content create --help` on satellite.
 
-    Options::
-
-         --location-ids LOCATION_IDS           REPLACE locations with given ids
-                                               Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --locations LOCATION_NAMES            Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
-                                               ids.
-                                               Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --organizations ORGANIZATION_NAMES    Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --original-filename ORIGINAL_FILENAME Original file name of the XML
-                                               file
-         --scap-file SCAP_FILE                 Scap content file
-         --title TITLE                         SCAP content name
-         -h, --help                            print help
+    :returns ScapContent object
     """
     # Assigning default values for attributes
     args = {
@@ -2424,25 +1348,11 @@ def make_scapcontent(options=None):
 
 @cacheable
 def make_domain(options=None):
-    """
-    Usage::
+    """Creates a Domain
 
-        hammer domain create [OPTIONS]
+    :param options: Check options using `hammer domain create --help` on satellite.
 
-    Options::
-
-        --description DESC            Full name describing the domain
-        --dns-id DNS_ID               DNS Proxy to use within this domain
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
-                                      Comma separated list of values.
-        --locations LOCATION_NAMES    Comma separated list of values.
-        --name NAME                   The full DNS Domain name
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with
-                                            given ids.
-                                            Comma separated list of values.
-        --organizations ORGANIZATION_NAMES  Comma separated list of values.
-        -h, --help                          print help
-
+    :returns Domain object
     """
     # Assigning default values for attributes
     args = {
@@ -2460,74 +1370,11 @@ def make_domain(options=None):
 
 @cacheable
 def make_hostgroup(options=None):
-    """
-    Usage::
+    """Creates a Hostgroup
 
-        hammer hostgroup create [OPTIONS]
+    :param options: Check options using `hammer hostgroup create --help` on satellite.
 
-    Options::
-
-        --architecture ARCHITECTURE_NAME        Architecture name
-        --architecture-id ARCHITECTURE_ID
-        --ask-root-pass ASK_ROOT_PW             One of true/false, yes/no, 1/0.
-        --compute-profile COMPUTE_PROFILE_NAME  Name to search by
-        --compute-profile-id COMPUTE_PROFILE_ID
-        --config-group-ids CONFIG_GROUP_IDS     IDs of associated config groups
-        --config-groups CONFIG_GROUP_NAMES
-        --content-source-id CONTENT_SOURCE_ID
-        --content-view CONTENT_VIEW_NAME        Name to search by
-        --content-view-id CONTENT_VIEW_ID       content view numeric identifier
-
-        --domain DOMAIN_NAME                    Domain name
-        --domain-id DOMAIN_ID                   Numerical ID or domain name
-        --environment ENVIRONMENT_NAME          Environment name
-        --environment-id ENVIRONMENT_ID
-        --group-parameters-attributes GROUP_PARAMETERS_ATTRIBUTES    Array of
-                                                                     parameters
-        --kickstart-repository-id KICKSTART_REPOSITORY_ID    Kickstart
-                                                             repository ID
-        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME    Name to search by
-        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID    ID of the
-                                                               environment
-        --locations LOCATION_NAMES  Comma separated list of values
-        --location-titles LOCATION_TITLES
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
-                                      Comma separated list of values.
-        --medium MEDIUM_NAME          Medium name
-        --medium-id MEDIUM_ID
-        --name NAME
-        --openscap-proxy-id OPENSCAP_PROXY_ID      ID of OpenSCAP Capsule
-        --operatingsystem OPERATINGSYSTEM_TITLE    Operating system title
-        --operatingsystem-id OPERATINGSYSTEM_ID
-        --organizations ORGANIZATION_NAMES   Comma separated list of values
-        --organization-titles ORGANIZATION_TITLES
-        --organization-ids ORGANIZATION_IDS     REPLACE organizations with
-                                                given ids.
-                                                Comma separated list of values.
-        --parent PARENT_NAME                    Name of parent hostgroup
-        --parent-id PARENT_ID
-        --partition-table PTABLE_NAME           Partition table name
-        --partition-table-id PTABLE_ID
-        --puppet-ca-proxy PUPPET_CA_PROXY_NAME  Name of puppet CA proxy
-        --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
-        --puppet-class-ids PUPPETCLASS_IDS      List of puppetclass ids
-                                                Comma separated list of values.
-        --puppet-classes PUPPET_CLASS_NAMES     Comma separated list of values.
-        --puppet-proxy PUPPET_CA_PROXY_NAME     Name of puppet proxy
-        --puppet-proxy-id PUPPET_PROXY_ID
-        --pxe-loader PXE_LOADER                 DHCP filename option (
-                                                Grub2/PXELinux by default)
-        --query-organization ORGANIZATION_NAME  Organization name to search by
-        --query-organization-id ORGANIZATION_ID Organization ID to search by
-        --query-organization-label ORGANIZATION_LABEL    Organization label to
-                                                         search by
-        --realm REALM_NAME                 Name to search by
-        --realm-id REALM_ID                Numerical ID or realm name
-        --root-pass ROOT_PASSWORD
-        --subnet SUBNET_NAME               Subnet name
-        --subnet-id SUBNET_ID
-        -h, --help                         print help
-
+    :returns Hostgroup object
     """
     # Assigning default values for attributes
     args = {
@@ -2586,47 +1433,11 @@ def make_hostgroup(options=None):
 
 @cacheable
 def make_medium(options=None):
-    """
-    Usage::
+    """Creates a Medium
 
-        hammer medium create [OPTIONS]
+    :param options: Check options using `hammer medium create --help` on satellite.
 
-    Options::
-
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
-                                      Comma separated list of values.
-        --locations LOCATION_NAMES    Comma separated list of values.
-        --name NAME             Name of media
-        --operatingsystem-ids OPERATINGSYSTEM_IDS REPLACE organizations with
-                                                  given ids.
-                                                  Comma separated list of
-                                                  values.
-        --operatingsystems OPERATINGSYSTEM_TITLES Comma separated list of
-                                                  values.
-        --organization-ids ORGANIZATION_IDS       Comma separated list of
-                                                  values.
-        --organizations ORGANIZATION_NAMES        Comma separated list of
-                                                  values.
-        --os-family OS_FAMILY   The family that the operating system belongs
-                                to. Available families:
-                                Archlinux
-                                Debian
-                                Gentoo
-                                Redhat
-                                Solaris
-                                Suse
-                                Windows
-        --path PATH             The path to the medium, can be a URL or a valid
-                                NFS server (exclusive of the architecture)
-                                for example http://mirror.centos.org/centos/
-                                $version/os/$arch where $arch will be
-                                substituted for the host’s actual OS
-                                architecture and $version, $major and $minor
-                                will be substituted for the version of the
-                                operating system.
-                                Solaris and Debian media may also use $release.
-        -h, --help                         print help
-
+    :returns Medium object
     """
     # Assigning default values for attributes
     args = {
@@ -2646,22 +1457,11 @@ def make_medium(options=None):
 
 @cacheable
 def make_environment(options=None):
-    """
-    Usage::
+    """Creates a Puppet Environment
 
-        hammer environment create [OPTIONS]
+    :param options: Check options using `hammer environment create --help` on satellite.
 
-    Options::
-
-         --location-ids LOCATION_IDS         REPLACE locations with given ids
-                                             Comma separated list of values.
-         --locations LOCATION_NAMES          Comma separated list of values.
-         --name NAME
-         --organization-ids ORGANIZATION_IDS REPLACE organizations with given
-                                             ids.
-                                             Comma separated list of values.
-         --organizations ORGANIZATION_NAMES  Comma separated list of values.
-
+    :returns Environment object
     """
     # Assigning default values for attributes
     args = {
@@ -2677,29 +1477,11 @@ def make_environment(options=None):
 
 @cacheable
 def make_lifecycle_environment(options=None):
-    """
-    Usage::
+    """Creates a Lifecycle Environment
 
-        hammer lifecycle-environment create [OPTIONS]
+    :param options: Check options using `hammer lifecycle-environment create --help` on satellite.
 
-    Options::
-
-        --description DESCRIPTION   description of the environment
-        --label LABEL               label of the environment
-        --name NAME                 name of the environment
-        --organization ORGANIZATION_NAME        Organization name to search by
-        --organization-id ORGANIZATION_ID       organization ID
-        --organization-label ORGANIZATION_LABEL Organization label to search by
-        --prior PRIOR               Name of an environment that is prior to
-                                    the new environment in the chain. It has to
-                                    be either ‘Library’ or an environment at
-                                    the end of a chain.
-        --registry-name-pattern REGISTRY_NAME_PATTERN    Pattern for container
-                                    image names
-        --registry-unauthenticated-pull REGISTRY_UNAUTHENTICATED_PULL Allow
-                                    unauthenticed pull of container images
-        -h, --help                  print help
-
+    :returns LifecycleEnvironment object
     """
     # Organization Name, Label or ID is a required field.
     if (
@@ -2731,33 +1513,11 @@ def make_lifecycle_environment(options=None):
 
 @cacheable
 def make_tailoringfile(options=None):
-    """
-   Usage::
+    """Creates a tailoring File
 
-        tailoring-file create [OPTIONS]
+    :param options: Check options using `hammer tailoring-file create --help` on satellite.
 
-   Options::
-
-         --location-ids LOCATION_IDS           REPLACE locations with given ids
-                                               Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted.
-         --locations LOCATION_NAMES            Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --name NAME                           Tailoring file name
-         --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
-                                               ids.
-                                               Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --organizations ORGANIZATION_NAMES    Comma separated list of values.
-                                               Values containing comma should
-                                               be double quoted
-         --original-filename ORIGINAL_FILENAME Original file name of the XML
-                                               file
-         --scap-file SCAP_FILE                 Tailoring file content
-         -h, --help                            print help
+    :returns TailoringFile object
     """
     # Assigning default values for attributes
     args = {
@@ -2775,30 +1535,11 @@ def make_tailoringfile(options=None):
 
 @cacheable
 def make_template(options=None):
-    """
-    Usage::
+    """Creates a Template
 
-        hammer template create [OPTIONS]
+    :param options: Check options using `hammer template create --help` on satellite.
 
-    Options::
-
-        --audit-comment AUDIT_COMMENT
-        --file TEMPLATE     Path to a file that contains the template
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
-                                      Comma separated list of values.
-        --locked LOCKED               Whether or not the template is locked
-                                      for editing
-                                      One of true/false, yes/no, 1/0.
-        --name NAME         template name
-        --operatingsystem-ids OPERATINGSYSTEM_IDS
-                            Array of operating systems ID to associate the
-                            template with Comma separated list of values.
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with
-                                            given ids.
-                                            Comma separated list of values.
-        --type TYPE         Template type. Eg. snippet, script, provision
-        -h, --help                  print help
-
+    :returns Template object
     """
     # Assigning default values for attribute
     args = {
@@ -2833,86 +1574,11 @@ def make_template(options=None):
 @cacheable
 def make_template_input(options=None):
     """
-    Usage::
+    Creates Template Input
 
-        hammer template-input create [OPTIONS]
+    :param options: Check options using `hammer template-input create --help` on satellite.
 
-    Options::
-
-        --advanced ADVANCED                Input is advanced
-                                           One of true/false, yes/no, 1/0.
-        --description DESCRIPTION          Input description
-        --fact-name FACT_NAME          Fact name, used when input type is fact
-        --input-type INPUT_TYPE        Input type
-                                       Possible value(s): 'user', 'fact',
-                                       'variable', 'puppet_parameter'
-        --location LOCATION_NAME           Location name
-        --location-id LOCATION_ID
-        --location-title LOCATION_TITLE    Location title
-        --name NAME                        Input name
-        --options OPTIONS              Selectable values for user inputs
-                                       Comma separated list of values.
-                                       Values containing comma should be quoted
-                                       or escaped with backslash.
-                                       JSON is acceptable and preferred way
-                                       for complex parameters.
-        --organization ORGANIZATION_NAME              Organization name
-        --organization-id ORGANIZATION_ID             Organization ID
-        --organization-title ORGANIZATION_TITLE       Organization title
-        --puppet-class-name PUPPET_CLASS_NAME         Puppet class name,
-                                                      used when input type is
-                                                      puppet_parameter
-        --puppet-parameter-name PUPPET_PARAMETER_NAME Puppet parameter name,
-                                                      used when input type is
-                                                      puppet_parameter
-        --required REQUIRED            Input is required
-                                       One of true/false, yes/no, 1/0.
-        --resource-type RESOURCE_TYPE  For values of type search, this is
-                                       the resource the value searches in
-                                       Possible value(s): 'AnsibleRole',
-                                       'AnsibleVariable', 'Architecture',
-                                       'Audit', 'AuthSource', 'Bookmark',
-                                       'ComputeProfile', 'ComputeResource',
-                                       'ConfigGroup', 'ConfigReport',
-                                       'DiscoveryRule', 'Domain',
-                                       'Environment', 'ExternalUsergroup',
-                                       'FactValue', 'Filter',
-                                       'ForemanOpenscap::ArfReport',
-                                       'ForemanOpenscap::Policy',
-                                       'ForemanOpenscap::ScapContent',
-                                       'ForemanOpenscap::TailoringFile',
-                                       'ForemanTasks::RecurringLogic',
-                                       'ForemanTasks::Task',
-                                       'ForemanVirtWhoConfigure::Config',
-                                       'Host', 'HostClass', 'Hostgroup',
-                                       'HttpProxy', 'Image', 'JobInvocation',
-                                       'JobTemplate', 'Katello::ActivationKey',
-                                       'Katello::ContentView',
-                                       'Katello::GpgKey',
-                                       'Katello::HostCollection',
-                                       'Katello::KTEnvironment',
-                                       'Katello::Product',
-                                       'Katello::Subscription',
-                                       'Katello::SyncPlan', 'KeyPair',
-                                       'Location', 'MailNotification',
-                                       'Medium', 'Model', 'Operatingsystem',
-                                       'Organization', 'Parameter',
-                                       'PersonalAccessToken',
-                                       'ProvisioningTemplate', 'Ptable',
-                                       'Puppetclass', 'PuppetclassLookupKey',
-                                       'Realm', 'RemoteExecutionFeature',
-                                       'Report', 'ReportTemplate', 'Role',
-                                       'Setting', 'SmartProxy', 'SshKey',
-                                       'Subnet', 'Template',
-                                       'TemplateInvocation', 'Trend', 'User',
-                                       'Usergroup', 'VariableLookupKey'
-        --template-id TEMPLATE_ID
-        --value-type VALUE_TYPE         Value type, defaults to plain
-                                        Possible value(s):
-                                        'plain', 'search', 'date'
-        --variable-name VARIABLE_NAME   Variable name, used when
-                                        input type is variable
-        -h, --help                      Print help
+    :returns TemplateInput object
     """
     if not options or not options.get('input-type') or not options.get('template-id'):
         raise CLIFactoryError('Please provide valid template-id and input-type')
@@ -2942,131 +1608,12 @@ def make_template_input(options=None):
 
 
 @cacheable
-def make_smart_variable(options=None):
-    """
-    Usage::
-
-        hammer smart-variable create [OPTIONS]
-
-    Options::
-
-        --avoid-duplicates AVOID_DUPLICATES         Remove duplicate values (
-                                                    only array type)
-                                                    One of true/false, yes/no,
-                                                    1/0.
-        --default-value DEFAULT_VALUE               Default value of variable
-        --description DESCRIPTION                   Description of variable
-        --hidden-value HIDDEN_VALUE                 When enabled the parameter
-                                                    is hidden in the UI
-                                                    One of true/false, yes/no,
-                                                    1/0.
-        --merge-default MERGE_DEFAULT               Include default value when
-                                                    merging all matching values
-                                                    One of true/false, yes/no,
-                                                    1/0.
-        --merge-overrides MERGE_OVERRIDES           Merge all matching values(
-                                                    only array/hash type)
-                                                    One of true/false, yes/no,
-                                                    1/0.
-        --override-value-order OVERRIDE_VALUE_ORDER The order in which values
-                                                    are resolved
-        --puppet-class PUPPET_CLASS_NAME            Puppet class name
-        --puppet-class-id PUPPET_CLASS_ID           ID of Puppet class
-        --validator-rule VALIDATOR_RULE             Used to enforce certain
-                                                    values for the parameter
-                                                    values
-        --validator-type VALIDATOR_TYPE             Type of the validator.
-                                                    Possible value(s):
-                                                    'regexp', 'list', ''
-        --variable VARIABLE                         Name of variable
-        --variable-type VARIABLE_TYPE               Type of the variable.
-                                                    Possible value(s):
-                                                    'string', 'boolean',
-                                                    'integer', 'real', 'array',
-                                                    'hash', 'yaml', 'json'
-         -h, --help                                 print help
-
-    """
-    # Puppet class name or ID is a required field.
-    if not options or 'puppet-class' not in options and 'puppet-class-id' not in options:
-        raise CLIFactoryError('Please provide a valid Puppet class')
-
-    # Assigning default values for attributes
-    args = {
-        'avoid-duplicates': None,
-        'default-value': None,
-        'description': None,
-        'hidden-value': None,
-        'merge-default': None,
-        'merge-overrides': None,
-        'override-value-order': None,
-        'puppet-class': None,
-        'puppet-class-id': None,
-        'validator-rule': None,
-        'validator-type': None,
-        'variable': gen_alphanumeric(),
-        'variable-type': None,
-    }
-
-    return create_object(SmartVariable, args, options)
-
-
-@cacheable
 def make_virt_who_config(options=None):
-    """
-    Usage::
+    """Creates a Virt Who Configuration
 
-        hammer virt-who-config create [OPTIONS]
+    :param options: Check options using `hammer virt-who-config create --help` on satellite.
 
-    Options::
-
-        --blacklist BLACKLIST    Hypervisor blacklist, applicable only when
-                                 filtering mode is set to 2.
-                                 Wildcards and regular expressions are
-                                 supported, multiple records must be
-                                 separated by comma.
-        --debug DEBUG            Enable debugging output
-                                 One of true/false, yes/no, 1/0.
-        --filtering-mode MODE    Hypervisor filtering mode
-                                 Possible value(s): 'none', 'whitelist',
-                                 'blacklist'
-        --hypervisor-id HYPERVISOR_ID  Specifies how the hypervisor will be
-                                       identified.
-                                       Possible value(s): 'hostname', 'uuid',
-                                       'hwuuid'
-        --hypervisor-password HYPERVISOR_PASSWORD Hypervisor password, required
-                                                  for all hypervisor types
-                                                  except for libvirt
-        --hypervisor-server HYPERVISOR_SERVER     Fully qualified host name or
-                                                  IP address of the hypervisor
-        --hypervisor-type HYPERVISOR_TYPE         Hypervisor type
-                                                  Possible value(s): 'esx',
-                                                  'rhevm', 'hyperv', 'xen',
-                                                  'libvirt'
-        --hypervisor-username HYPERVISOR_USERNAME Account name by which
-                                                  virt-who is to connect to the
-                                                  hypervisor.
-        --interval INTERVAL   Configuration interval in minutes
-                              Possible value(s): '60', '120', '240', '480',
-                              '720'
-        --name NAME           Configuration name
-        --no-proxy NO_PROXY   Ignore Proxy. A comma-separated list of hostnames
-                              or domains or ip addresses to ignore proxy
-                              settings for. Optionally this may be set to * to
-                              bypass proxy settings for all hostnames domains
-                              or ip addresses.
-        --organization ORGANIZATION_NAME          Organization name
-        --organization-id ORGANIZATION_ID         organization ID
-        --organization-title ORGANIZATION_TITLE   Organization title
-        --proxy PROXY         HTTP Proxy that should be used for communication
-                              between the server on which virt-who is running
-                              and the hypervisors and virtualization managers.
-        --satellite-url SATELLITE_URL   Satellite server FQDN
-        --whitelist WHITELIST Hypervisor whitelist, applicable only when
-                              filtering mode is set to 1.
-                              Wildcards and regular expressions are supported,
-                              multiple records must be separated by comma.
-        -h, --help            print help
+    :returns VirtWhoConfig object
     """
     args = {
         'blacklist': None,
@@ -3091,16 +1638,7 @@ def make_virt_who_config(options=None):
 
 
 def activationkey_add_subscription_to_repo(options=None):
-    """
-    Adds subscription to activation key.
-
-    Args::
-
-        organization-id - ID of organization
-        activationkey-id - ID of activation key
-        subscription - subscription name
-
-    """
+    """Helper function that adds subscription to an activation key"""
     if (
         not options
         or not options.get('organization-id')
@@ -3150,18 +1688,6 @@ def setup_org_for_a_custom_repo(options=None):
     4. Checks if activation key was given, otherwise creates a new one and
         associates it with the content view.
     5. Adds the custom repo subscription to the activation key
-
-    Options::
-
-        url - URL to custom repository
-        organization-id (optional) - ID of organization to use (or create a new
-                                    one if empty)
-        lifecycle-environment-id (optional) - ID of lifecycle environment to
-                                             use (or create a new one if empty)
-        content-view-id (optional) - ID of content view to use (or create a new
-                                    one if empty)
-        activationkey-id (optional) - ID of activation key (or create a new one
-                                    if empty)
 
     :return: A dictionary with the entity ids of Activation key, Content view,
         Lifecycle Environment, Organization, Product and Repository
@@ -3269,24 +1795,6 @@ def _setup_org_for_a_rh_repo(options=None):
 
     Note that in most cases you should use ``setup_org_for_a_rh_repo`` instead
     as it's more flexible.
-
-    Options::
-
-        product - RH product name
-        repository-set - RH repository set name
-        repository - RH repository name
-        releasever (optional) - Repository set release version, don't specify
-                                it if enabling the Satellite 6 Tools repo.
-        organization-id (optional) - ID of organization to use (or create a new
-                                    one if empty)
-        lifecycle-environment-id (optional) - ID of lifecycle environment to
-                                             use (or create a new one if empty)
-        content-view-id (optional) - ID of content view to use (or create a new
-                                    one if empty)
-        activationkey-id (optional) - ID of activation key (or create a new one
-                                    if empty)
-        subscription (optional) - subscription name (or use the default one
-                                  if empty)
 
     :return: A dictionary with the entity ids of Activation key, Content view,
         Lifecycle Environment, Organization and Repository
@@ -4269,50 +2777,11 @@ def virt_who_hypervisor_config(
 
 @cacheable
 def make_http_proxy(options=None):
-    """
-    Usage::
+    """Creates a HTTP Proxy
 
-        http-proxy create [OPTIONS]
+    :param options: Check options using `hammer http-proxy create --help` on satellite.
 
-    Options::
-
-        --location LOCATION_NAME                  Location name
-        --location-id LOCATION_ID
-        --location-ids LOCATION_IDS               REPLACE locations with given ids
-                                                  Comma separated list of values. Values containing
-                                                  comma should be quoted or escaped with backslash.
-                                                  JSON is acceptable and preferred way for complex
-                                                  parameters
-        --location-title LOCATION_TITLE           Location title
-        --location-titles LOCATION_TITLES         Comma separated list of values. Values containing
-                                                  comma should be quoted or escaped with backslash.
-                                                  JSON is acceptable and preferred way for complex
-                                                  parameters
-        --locations LOCATION_NAMES                Comma separated list of values. Values containing
-                                                  comma should be quoted or escaped with backslash.
-                                                  JSON is acceptable and preferred way for complex
-                                                  parameters
-        --name NAME                               The HTTP Proxy name
-        --organization ORGANIZATION_NAME          Organization name
-        --organization-id ORGANIZATION_ID         Organization ID
-        --organization-ids ORGANIZATION_IDS       REPLACE organizations with given ids.
-                                                  Comma separated list of values. Values containing
-                                                  comma should be quoted or escaped with backslash.
-                                                  JSON is acceptable and preferred way for complex
-                                                  parameters
-        --organization-title ORGANIZATION_TITLE   Organization title
-        --organization-titles ORGANIZATION_TITLES Comma separated list of values. Values containing
-                                                  comma should be quoted or escaped with backslash.
-                                                  JSON is acceptable and preferred way for complex
-                                                  parameters
-        --organizations ORGANIZATION_NAMES        Comma separated list of values. Values containing
-                                                  comma should be quoted or escaped with backslash.
-                                                  JSON is acceptable and preferred way for complex
-                                                  parameters
-        --password PASSWORD                       Password used to authenticate with the HTTP Proxy
-        --url URL                                 URL of the HTTP Proxy
-        --username USERNAME                       Username used to authenticate with the HTTP Proxy
-        -h, --help                                Print help
+    :returns HttpProxy object
     """
     # Assigning default values for attributes
     args = {
