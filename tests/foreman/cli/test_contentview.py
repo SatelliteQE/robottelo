@@ -1631,38 +1631,6 @@ class ContentViewTestCase(CLITestCase):
                 )
 
     @tier2
-    def test_negative_add_unpublished_cv_to_composite(self):
-        """Attempt to associate unpublished non-composite content view with
-        composite content view.
-
-        :id: acee782f-2792-4c4e-b0c9-87d6b89992ef
-
-        :steps:
-
-            1. Create an empty non-composite content view. Do not publish it.
-            2. Create a new composite content view
-
-        :expectedresults: Non-composite content view cannot be added to
-            composite content view.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-
-        :BZ: 1367123
-        """
-        # Create component CV
-        content_view = make_content_view({'organization-id': self.org['id']})
-        # Create composite CV
-        composite_cv = make_content_view({'organization-id': self.org['id'], 'composite': True})
-        # Add unpublished component CV
-        with self.assertRaises(CLIReturnCodeError) as context:
-            ContentView.add_version(
-                {'id': composite_cv['id'], 'content-view-id': content_view['id']}
-            )
-        self.assertIn('Error: content_view_version not found', str(context.exception))
-
-    @tier2
     def test_negative_add_non_composite_cv_to_composite(self):
         """Attempt to associate both published and unpublished
         non-composite content views with composite content view.
@@ -1708,10 +1676,6 @@ class ContentViewTestCase(CLITestCase):
                 {'id': composite_cv['id'], 'content-view-id': unpublished_cv['id']}
             )
         self.assertIn('Error: content_view_version not found', str(context.exception))
-
-    # Content View: promotions
-    # katello content view promote --label=MyView --env=Dev --org=ACME
-    # katello content view promote --view=MyView --env=Staging --org=ACME
 
     @run_in_one_thread
     @tier2
