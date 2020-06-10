@@ -847,8 +847,12 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
         'view_statuses',
-        'view_foreman_rh_cloud',
         'generate_foreman_rh_cloud',
+        'forget_status_hosts',
+        'edit_user_mail_notifications',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
+        'view_foreman_rh_cloud',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
