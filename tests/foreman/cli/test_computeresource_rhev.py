@@ -14,12 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_os
 from robottelo.config import settings
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import stubbed
@@ -39,8 +41,11 @@ class RHEVComputeResourceTestCase(CLITestCase):
         super(RHEVComputeResourceTestCase, cls).setUpClass()
         cls.current_rhev_url = settings.rhev.hostname
         cls.username = settings.rhev.username
-        cls.passord = settings.rhev.password
+        cls.password = settings.rhev.password
         cls.datacenter = settings.rhev.datacenter
+        cls.image_arch = settings.rhev.image_arch
+        cls.image_uuid = settings.rhev.image_uuid
+        cls.os = make_os()
 
     @tier1
     def test_positive_create_rhev_with_valid_name(self):
@@ -59,7 +64,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': 'cr {0}'.format(gen_string(str_type='alpha')),
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -83,7 +88,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': name,
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -106,7 +111,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -132,7 +137,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -157,7 +162,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 {
                     'provider': 'Ovirt',
                     'user': self.username,
-                    'password': self.passord,
+                    'password': self.password,
                     'datacenter': self.datacenter,
                     'url': 'invalid url',
                 }
@@ -184,7 +189,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 'name': name,
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -196,7 +201,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                     'name': name,
                     'provider': 'Ovirt',
                     'user': self.username,
-                    'password': self.passord,
+                    'password': self.password,
                     'datacenter': self.datacenter,
                     'url': self.current_rhev_url,
                 }
@@ -225,7 +230,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             {
                 'provider': 'Ovirt',
                 'user': self.username,
-                'password': self.passord,
+                'password': self.password,
                 'datacenter': self.datacenter,
                 'url': self.current_rhev_url,
             }
@@ -235,7 +240,6 @@ class RHEVComputeResourceTestCase(CLITestCase):
         self.assertEqual(new_name, ComputeResource.info({'id': comp_res['id']})['name'])
 
     @tier2
-    @stubbed()
     def test_positive_add_image_rhev_with_name(self):
         """Add images to the RHEV compute resource
 
@@ -250,14 +254,37 @@ class RHEVComputeResourceTestCase(CLITestCase):
             2. Create a image for the compute resource with valid parameter,
                compute-resource image create
 
-        :CaseAutomation: notautomated
-
         :expectedresults: The image is added to the CR successfully
          """
+        if self.image_uuid is None:
+            self.skipTest('Missing configuration for rhev.image_uuid')
 
+        comp_res = make_compute_resource(
+            {
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.password,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
+            }
+        )
+        self.assertTrue(comp_res['name'])
+        ComputeResource.image_create(
+            {
+                'compute-resource': comp_res['name'],
+                'name': 'img {0}'.format(gen_string(str_type='alpha')),
+                'uuid': self.image_uuid,
+                'operatingsystem': self.os['title'],
+                'architecture': self.image_arch,
+                'username': "root",
+            }
+        )
+        result = ComputeResource.image_list({'compute-resource': comp_res['name']})
+        self.assertEqual(result[0]['uuid'], self.image_uuid)
+
+    @pytest.mark.skip_if_open("BZ:1829239")
     @tier2
-    @stubbed()
-    def test_negative_add_image_rhev_with_invalid_name(self):
+    def test_negative_add_image_rhev_with_invalid_uuid(self):
         """Attempt to add invalid image to the RHEV compute resource
 
         :id: e8a653f9-9749-4c76-95ed-2411a7c0a117
@@ -269,12 +296,78 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
             1. Create a compute resource of type rhev.
             2. Create a image for the compute resource with invalid value for
-               name parameter, compute-resource image create.
-
-        :CaseAutomation: notautomated
+               uuid parameter, compute-resource image create.
 
         :expectedresults: The image should not be added to the CR
+
+        :BZ: 1829239
         """
+        comp_res = make_compute_resource(
+            {
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.password,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
+            }
+        )
+        self.assertTrue(comp_res['name'])
+        with self.assertRaises(CLIReturnCodeError):
+            ComputeResource.image_create(
+                {
+                    'compute-resource': comp_res['name'],
+                    'name': 'img {0}'.format(gen_string(str_type='alpha')),
+                    'uuid': 'invalidimguuid {0}'.format(gen_string(str_type='alpha')),
+                    'operatingsystem': self.os['title'],
+                    'architecture': self.image_arch,
+                    'username': "root",
+                }
+            )
+
+    @tier2
+    def test_negative_add_image_rhev_with_invalid_name(self):
+        """Attempt to add invalid image name to the RHEV compute resource
+
+        :id: 873a7d79-1e89-4e4f-81ca-b6db1e0246da
+
+        :setup: Images/templates should be present in RHEV-M itself,
+            so that satellite can use them.
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Create a image for the compute resource with invalid value for
+               name parameter, compute-resource image create.
+
+        :expectedresults: The image should not be added to the CR
+
+        """
+        if self.image_uuid is None:
+            self.skipTest('Missing configuration for rhev.image_uuid')
+
+        comp_res = make_compute_resource(
+            {
+                'provider': 'Ovirt',
+                'user': self.username,
+                'password': self.password,
+                'datacenter': self.datacenter,
+                'url': self.current_rhev_url,
+            }
+        )
+
+        self.assertTrue(comp_res['name'])
+        with self.assertRaises(CLIReturnCodeError):
+            ComputeResource.image_create(
+                {
+                    'compute-resource': comp_res['name'],
+                    # too long string (>255 chars)
+                    'name': 'img {0}'.format(gen_string(str_type='alphanumeric', length=256)),
+                    'uuid': self.image_uuid,
+                    'operatingsystem': self.os['title'],
+                    'architecture': self.image_arch,
+                    'username': "root",
+                }
+            )
 
     @stubbed()
     @tier3

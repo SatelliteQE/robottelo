@@ -783,6 +783,7 @@ class RHEVSettings(FeatureSettings):
         self.image_username = None
         self.image_password = None
         self.image_name = None
+        self.image_uuid = None
         self.ca_cert = None
 
     def read(self, reader):
@@ -800,12 +801,13 @@ class RHEVSettings(FeatureSettings):
         self.image_username = reader.get('rhev', 'image_username')
         self.image_password = reader.get('rhev', 'image_password')
         self.image_name = reader.get('rhev', 'image_name')
+        self.image_uuid = reader.get('rhev', 'image_uuid', None)
         self.ca_cert = reader.get('rhev', 'ca_cert', None)
 
     def validate(self):
         """Validate rhev settings."""
         validation_errors = []
-        values = [v for k, v in vars(self).items() if k != 'ca_cert']
+        values = [v for k, v in vars(self).items() if k not in ['ca_cert', 'image_uuid']]
         if not all(values):
             validation_errors.append(
                 'All [rhev] hostname, username, password, datacenter, '

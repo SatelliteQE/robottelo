@@ -435,6 +435,8 @@ port_range=9091, 14999
 # image_password=
 # image_name: Image name on the external provider
 # image_name=
+# image_uuid: Unique image id
+# image_uuid=
 # RHV CA cert url for adding RHV as compute resource
 # ca_cert=
 
