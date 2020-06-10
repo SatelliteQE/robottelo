@@ -45,6 +45,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import fixture
 from robottelo.decorators import parametrize
@@ -134,7 +135,7 @@ def test_positive_end_to_end_register(session):
 
 @tier2
 @upgrade
-@parametrize('cv_name', **valid_data_list('ui'))
+@parametrize('cv_name', **parametrized(valid_data_list('ui')))
 def test_positive_create_with_cv(session, module_org, cv_name):
     """Create Activation key for all variations of Content Views
 
@@ -405,7 +406,7 @@ def test_positive_update_env(session, module_org):
 
 @run_in_one_thread
 @tier2
-@parametrize('cv2_name', **valid_data_list('ui'))
+@parametrize('cv2_name', **parametrized(valid_data_list('ui')))
 def test_positive_update_cv(session, module_org, cv2_name):
     """Update Content View in an Activation key
 
