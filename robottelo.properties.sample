@@ -154,6 +154,7 @@ ssh_key=
 # basedn_ipa=
 # grpbasedn_ipa=
 # user_ipa=
+# disable_user_ipa=
 # otp_user=otp_user
 # time_based_secret=
 

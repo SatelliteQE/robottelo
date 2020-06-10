@@ -106,6 +106,7 @@ def ipa_data():
         'ldap_ipa_user_name': settings.ipa.username_ipa,
         'ipa_otp_username': settings.ipa.otp_user,
         'ldap_ipa_user_passwd': settings.ipa.password_ipa,
+        'disable_user_ipa': settings.ipa.disable_user_ipa,
         'ipa_base_dn': settings.ipa.basedn_ipa,
         'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
         'ldap_ipa_hostname': settings.ipa.hostname_ipa,
@@ -1272,3 +1273,21 @@ def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
     with session:
         for ldap_host in (ldap_data['ldap_hostname'], ipa_data['ldap_ipa_hostname']):
             session.ldapauthentication.test_connection({'ldap_server.host': ldap_host})
+
+
+@tier2
+def test_negative_login_with_disable_user(test_name, ipa_data, auth_source_ipa):
+    """Disabled IDM user cannot login
+
+    :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
+
+    :steps: Try login from the disabled user
+
+    :expectedresults: Login fails
+    """
+    with Session(
+        test_name, ipa_data['disable_user_ipa'], ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
