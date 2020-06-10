@@ -566,20 +566,20 @@ port_range=9091, 14999
 # sku_vdc_virtual=
 
 # section for RH-SSO integration
-[rhsso]
+# [rhsso]
 # RH-SSO Hostname
-host_name=
+# host_name=
 # RH-SSO Host Url
-host_url=
+# host_url=
 # RH-SSO Host Admin of Realm
-rhsso_user=
+# rhsso_user=
 # RH-SSO Host Admin Password
-user_password=
+# user_password=
 # RH-SSO Host Realm
-realm=
+# realm=
 
 # Report Portal Section for Rerunning failed tests
-[report_portal]
+# [report_portal]
 # Portal URL
 # portal_url=
 # Project Name
