@@ -24,6 +24,7 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import fixture
@@ -100,7 +101,7 @@ def test_positive_end_to_end(session, module_org):
         assert session.product.search(new_product_name)[0]['Name'] != new_product_name
 
 
-@parametrize('product_name', **valid_data_list('ui'))
+@parametrize('product_name', **parametrized(valid_data_list('ui')))
 @tier2
 def test_positive_create_in_different_orgs(session, product_name):
     """Create Product with same name but in different organizations
