@@ -241,13 +241,13 @@ class SubscriptionTestCase(CLITestCase):
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
     @tier2
-    def test_positive_Subscription_status_disbaled(self):
-        """Verify that Content host Subscription status details is 'Unknown Subscription Status'
+    def test_positive_Subscription_status_disabled(self):
+        """Verify that Content host Subscription status is set to 'Disabled'
          for a golden ticket manifest
 
         :id: 42e10499-3a0d-48cd-ab71-022421a74add
 
-        :expectedresults: subscription status is 'Unknown Subscription Status'
+        :expectedresults: subscription status is 'Disabled'
 
         :BZ: 1789924
 
@@ -288,4 +288,4 @@ class SubscriptionTestCase(CLITestCase):
             host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
             host_id = host[0].id
             host_content = entities.Host(id=host_id).read_raw().content
-            assert "Unknown subscription status" in str(host_content)
+            assert "Disabled" in str(host_content)

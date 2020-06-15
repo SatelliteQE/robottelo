@@ -428,12 +428,12 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
 @tier3
 def test_positive_subscription_status_disabled(session):
-    """Verify that Content host Subscription status details is 'Unknown Subscription Status'
+    """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
     :id: 115595ef-929d-4c42-bf34-aadd1bd36a5f
 
-    :expectedresults: subscription status is 'Unknown Subscription Status'
+    :expectedresults: subscription status is 'Disabled'
 
     :BZ: 1789924
 
@@ -478,4 +478,4 @@ def test_positive_subscription_status_disabled(session):
             host = session.contenthost.read(vm.hostname, widget_names='details')['details'][
                 'subscription_status'
             ]
-            assert "Unknown subscription status" in host
+            assert "Disabled" in host
