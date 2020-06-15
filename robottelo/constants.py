@@ -1758,6 +1758,8 @@ FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'example_template.erb'
 )
 
+FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
+
 DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     'service_level': ('sla', 'Self-Support', 'Standard', 'Premium'),
     'usage_type': ('usage', 'Production', 'Development/Test', 'Disaster Recovery'),

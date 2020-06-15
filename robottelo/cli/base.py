@@ -456,6 +456,6 @@ class Base(object):
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += ' --{0}="{1}"'.format(key, val)
-        cmd = '{0} {1} {2}'.format(cls.command_base, cls.command_sub, tail.strip())
+        cmd = f"{cls.command_base} {cls.command_sub or ''} {tail.strip()}"
 
         return cmd
