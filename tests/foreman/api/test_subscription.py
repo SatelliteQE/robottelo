@@ -192,12 +192,12 @@ class SubscriptionsTestCase(APITestCase):
 
     @tier2
     def test_positive_subscription_status_disabled(self):
-        """Verify that Content host Subscription status details is 'Unknown Subscription Status'
+        """Verify that Content host Subscription status is set to 'Disabled'
          for a golden ticket manifest
 
         :id: d7d7e20a-e386-43d5-9619-da933aa06694
 
-        :expectedresults: subscription status is 'Unknown Subscription Status'
+        :expectedresults: subscription status is 'Disabled'
 
         :BZ: 1789924
 
@@ -241,4 +241,4 @@ class SubscriptionsTestCase(APITestCase):
             host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
             host_id = host[0].id
             host_content = entities.Host(id=host_id).read_raw().content
-            assert "Unknown subscription status" in str(host_content)
+            assert "Disabled" in str(host_content)
