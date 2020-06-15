@@ -14,8 +14,8 @@
 
 :Upstream: No
 """
-import copy
 import os
+from time import sleep
 
 import decorator
 import pyotp
@@ -29,22 +29,18 @@ from pytest import skip
 from robottelo import ssh
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
-from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import CERT_PATH
-from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import gen_string
 from robottelo.decorators import destructive
-from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
-from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import create_new_rhsso_user
 from robottelo.rhsso_utils import delete_rhsso_user
 from robottelo.rhsso_utils import get_rhsso_client_id
@@ -89,144 +85,6 @@ def set_certificate_in_satellite(server_type):
         )
 
 
-@fixture(scope='module')
-def ldap_data():
-    return {
-        'ldap_user_name': settings.ldap.username,
-        'ldap_user_passwd': settings.ldap.password,
-        'base_dn': settings.ldap.basedn,
-        'group_base_dn': settings.ldap.grpbasedn,
-        'ldap_hostname': settings.ldap.hostname,
-    }
-
-
-@fixture(scope='module')
-def ipa_data():
-    return {
-        'ldap_ipa_user_name': settings.ipa.username_ipa,
-        'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
-        'ipa_base_dn': settings.ipa.basedn_ipa,
-        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
-        'time_based_secret': settings.ipa.time_based_secret,
-    }
-
-
-@fixture(scope='function')
-def auth_source(ldap_data, module_org, module_loc):
-    return entities.AuthSourceLDAP(
-        onthefly_register=True,
-        account=ldap_data['ldap_user_name'],
-        account_password=ldap_data['ldap_user_passwd'],
-        base_dn=ldap_data['base_dn'],
-        groups_base=ldap_data['group_base_dn'],
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login_ad'],
-        server_type=LDAP_SERVER_TYPE['API']['ad'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=ldap_data['ldap_hostname'],
-        tls=False,
-        port='389',
-        organization=[module_org],
-        location=[module_loc],
-    ).create()
-
-
-@fixture(scope='function')
-def auth_source_ipa(ipa_data, module_org, module_loc):
-    return entities.AuthSourceLDAP(
-        onthefly_register=True,
-        account=ipa_data['ldap_ipa_user_name'],
-        account_password=ipa_data['ldap_ipa_user_passwd'],
-        base_dn=ipa_data['ipa_base_dn'],
-        groups_base=ipa_data['ipa_group_base_dn'],
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login'],
-        server_type=LDAP_SERVER_TYPE['API']['ipa'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=ipa_data['ldap_ipa_hostname'],
-        tls=False,
-        port='389',
-        organization=[module_org],
-        location=[module_loc],
-    ).create()
-
-
-@fixture()
-def ldap_user_name(ldap_data, test_name):
-    """Add LDAP user to satellite by logging in, return username to test and delete the user (if
-    still exists) when test finishes.
-    """
-    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']):
-        pass
-    yield ldap_data['ldap_user_name']
-    users = entities.User().search(
-        query={'search': 'login="{}"'.format(ldap_data['ldap_user_name'])}
-    )
-    if users:
-        users[0].delete()
-
-
-@fixture()
-def ldap_usergroup_name():
-    """Return some random usergroup name, and attempt to delete such usergroup when test finishes.
-    """
-    usergroup_name = gen_string('alphanumeric')
-    yield usergroup_name
-    user_groups = entities.UserGroup().search(query={'search': 'name="{}"'.format(usergroup_name)})
-    if user_groups:
-        user_groups[0].delete()
-
-
-@fixture(scope='module')
-def ldap_auth_name():
-    """Return some random ldap name, and attempt to delete all ldap when test starts.
-    """
-    ldap = entities.AuthSourceLDAP().search()
-    for ldap_auth in range(len(ldap)):
-        users = entities.User(auth_source=ldap[ldap_auth]).search()
-        for user in range(len(users)):
-            users[user].delete()
-        ldap[ldap_auth].delete()
-    ldap_name = gen_string('alphanumeric')
-    yield ldap_name
-
-
-@fixture(scope='module')
-def enroll_idm_and_configure_external_auth():
-    """Enroll the Satellite6 Server to an IDM Server."""
-    run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
-
-    run_command(
-        cmd='echo {0} | kinit admin'.format(settings.ipa.password_ipa),
-        hostname=settings.ipa.hostname_ipa,
-    )
-    result = run_command(
-        cmd='ipa host-add --random {}'.format(settings.server.hostname),
-        hostname=settings.ipa.hostname_ipa,
-    )
-
-    for line in result:
-        if "Random password" in line:
-            _, password = line.split(': ', 2)
-            break
-    run_command(
-        cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
-        hostname=settings.ipa.hostname_ipa,
-    )
-    _, domain = settings.ipa.hostname_ipa.split('.', 1)
-    run_command(
-        cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".format(
-            password, domain, settings.ipa.hostname_ipa, domain.upper()
-        )
-    )
-
-
 def update_rhsso_settings_in_satellite(revert=False):
     """Update or Revert the RH-SSO settings in satellite"""
     rhhso_settings = {
@@ -252,44 +110,6 @@ def update_rhsso_settings_in_satellite(revert=False):
         )[0]
         setting_entity.value = False
         setting_entity.update({'value'})
-
-
-@fixture(scope='module')
-def enroll_configure_rhsso_external_auth():
-    """Enroll the Satellite6 Server to an RHSSO Server."""
-    run_command(
-        cmd='yum -y --disableplugin=foreman-protector install '
-        'mod_auth_openidc keycloak-httpd-client-install'
-    )
-    run_command(
-        cmd='echo {0} | keycloak-httpd-client-install --app-name foreman-openidc \
-                --keycloak-server-url {1} \
-                --keycloak-admin-username "admin" \
-                --keycloak-realm "{2}" \
-                --keycloak-admin-realm master \
-                --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'.format(
-            settings.rhsso.password, settings.rhsso.host_url, settings.rhsso.realm,
-        )
-    )
-    run_command(
-        cmd="satellite-installer --foreman-keycloak true "
-        "--foreman-keycloak-app-name 'foreman-openidc' "
-        "--foreman-keycloak-realm '{}' ".format(settings.rhsso.realm),
-        timeout=1000,
-    )
-    run_command(cmd="systemctl restart httpd")
-
-
-@fixture(scope='module')
-def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
-    """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = get_rhsso_client_id()
-    create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
-    audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
-    audience_mapper["config"]["included.client.audience"] = audience_mapper["config"][
-        "included.client.audience"
-    ].format(rhsso_host=settings.server.hostname)
-    create_mapper(audience_mapper, client_id)
 
 
 def generate_otp(secret):
@@ -1188,6 +1008,45 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
 
 @upgrade
 @destructive
+def test_session_expire_rhsso_idle_timeout(session):
+    """Verify the idle session expiration timeout with external authentication RH-SSO
+
+    :id: 80247b30-a988-11ea-943c-d46d6dd3b5b2
+
+    :BZ: 1792135
+
+    :steps:
+        1. Change the idle timeout settings for the External Authentication
+        2. Login into Satellite using RHSSO login and wait for the idle timeout
+
+    :expectedresults: After completion of the idle timeout user session
+        should get expired
+    """
+    try:
+        update_rhsso_settings_in_satellite()
+        property_name = 'idle_timeout'
+        setting_entity = entities.Setting().search(query={'search': f'name={property_name}'})[0]
+        setting_entity.value = 1
+        setting_entity.update({'value'})
+
+        with session(login=False):
+            session.rhsso_login.login(
+                {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
+            )
+            sleep(70)
+            session.browser.refresh()
+            with raises(NavigationTriesExceeded) as error:
+                session.task.read_all(widget_names="current_user")['current_user']
+            assert error.typename == "NavigationTriesExceeded"
+
+    finally:
+        update_rhsso_settings_in_satellite(revert=True)
+        setting_entity.value = 30
+        setting_entity.update({'value'})
+
+
+@upgrade
+@destructive
 def test_external_logout_rhsso(enable_external_auth_rhsso, session):
     """Verify the external logout page navigation with external authentication RH-SSO
 
@@ -1221,7 +1080,7 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, session):
 
 @upgrade
 @destructive
-def test_external_new_user_login_and_check_count(session):
+def test_external_new_user_login_and_check_count(enable_external_auth_rhsso, session):
     """Verify the external new user login and verify the external user count
 
     :id: bf938ea2-6df9-11ea-a7cf-951107ed0bbb
