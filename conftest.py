@@ -3,5 +3,5 @@
 pytest_plugins = [
     "pytest_plugins.uncollector",
     # Component Fixture
-    "pytest_fixtures.authsource_fixtures",
+    "pytest_fixtures.satellite_auth",
 ]

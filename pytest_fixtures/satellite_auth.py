@@ -1,7 +1,8 @@
 import copy
-from airgun.session import Session
 
+from airgun.session import Session
 from nailgun import entities
+
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
@@ -12,30 +13,6 @@ from robottelo.decorators import fixture
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
-
-
-@fixture(scope='module')
-def ldap_data():
-    return {
-        'ldap_user_name': settings.ldap.username,
-        'ldap_user_passwd': settings.ldap.password,
-        'base_dn': settings.ldap.basedn,
-        'group_base_dn': settings.ldap.grpbasedn,
-        'ldap_hostname': settings.ldap.hostname,
-    }
-
-
-@fixture(scope='module')
-def ipa_data():
-    return {
-        'ldap_ipa_user_name': settings.ipa.username_ipa,
-        'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
-        'ipa_base_dn': settings.ipa.basedn_ipa,
-        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
-        'time_based_secret': settings.ipa.time_based_secret,
-    }
 
 
 @fixture(scope='function')
@@ -188,4 +165,3 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
         "included.client.audience"
     ].format(rhsso_host=settings.server.hostname)
     create_mapper(audience_mapper, client_id)
-

@@ -52,6 +52,25 @@ pytestmark = [run_in_one_thread]
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
 
+ldap_data = {
+    'ldap_user_name': settings.ldap.username,
+    'ldap_user_passwd': settings.ldap.password,
+    'base_dn': settings.ldap.basedn,
+    'group_base_dn': settings.ldap.grpbasedn,
+    'ldap_hostname': settings.ldap.hostname,
+}
+
+
+ipa_data = {
+    'ldap_ipa_user_name': settings.ipa.username_ipa,
+    'ipa_otp_username': settings.ipa.otp_user,
+    'ldap_ipa_user_passwd': settings.ipa.password_ipa,
+    'ipa_base_dn': settings.ipa.basedn_ipa,
+    'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
+    'ldap_ipa_hostname': settings.ipa.hostname_ipa,
+    'time_based_secret': settings.ipa.time_based_secret,
+}
+
 if not setting_is_set('ldap'):
     skip('skipping tests due to missing ldap settings', allow_module_level=True)
 
@@ -145,7 +164,7 @@ def ldap_wrapper(test_func):
 
 @ldap_wrapper
 @tier2
-def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
+def test_positive_end_to_end_ad(session, ldap_auth_name):
     """Perform end to end testing for LDAP authentication component with AD
 
     :id: a6528239-e090-4379-a850-3900ee625b24
@@ -183,7 +202,7 @@ def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
 @ldap_wrapper
 @tier2
 @upgrade
-def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name):
+def test_positive_create_with_ad_org_and_loc(session, ldap_auth_name):
     """Create LDAP auth_source for AD with org and loc assigned.
 
     :id: 4f595af4-fc01-44c6-a614-a9ec827e3c3c
@@ -238,7 +257,7 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name)
 @ldap_wrapper
 @skip_if_not_set('ipa')
 @tier2
-def test_positive_create_with_idm_org_and_loc(session, ipa_data):
+def test_positive_create_with_idm_org_and_loc(session):
     """Create LDAP auth_source for IDM with org and loc assigned.
 
     :id: bc70bcff-1241-4d8e-9713-da752d6c4798
@@ -294,7 +313,7 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
 @ldap_wrapper
 @skip_if_not_set('ipa')
 @destructive
-def test_positive_create_with_idm_https(session, test_name, ipa_data):
+def test_positive_create_with_idm_https(session, test_name):
     """Create LDAP auth_source for IDM with HTTPS.
 
     :id: 7ff3daa4-2317-11ea-aeb8-d46d6dd3b5b2
@@ -351,7 +370,7 @@ def test_positive_create_with_idm_https(session, test_name, ipa_data):
 
 @ldap_wrapper
 @destructive
-def test_positive_create_with_ad_https(session, test_name, ldap_data):
+def test_positive_create_with_ad_https(session, test_name):
     """Create LDAP auth_source for AD with HTTPS.
 
     :id: 739a82a2-2b01-11ea-93ea-398446a2b98f
@@ -407,7 +426,7 @@ def test_positive_create_with_ad_https(session, test_name, ldap_data):
 @ldap_wrapper
 @tier2
 def test_positive_add_katello_role(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name
 ):
     """Associate katello roles to User Group.
     [belonging to external AD User Group.]
@@ -452,7 +471,7 @@ def test_positive_add_katello_role(
 @upgrade
 @tier2
 def test_positive_update_external_roles(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name
 ):
     """Added AD UserGroup roles get pushed down to user
 
@@ -515,7 +534,7 @@ def test_positive_update_external_roles(
 @tier2
 @upgrade
 def test_positive_delete_external_roles(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name
 ):
     """Deleted AD UserGroup roles get pushed down to user
 
@@ -572,7 +591,7 @@ def test_positive_delete_external_roles(
 @ldap_wrapper
 @tier2
 def test_positive_update_external_user_roles(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name
 ):
     """Assure that user has roles/can access feature areas for
     additional roles assigned outside any roles assigned by his group
@@ -637,7 +656,7 @@ def test_positive_update_external_user_roles(
 @ldap_wrapper
 @tier2
 def test_positive_add_admin_role_with_org_loc(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org
 ):
     """Associate Admin role to User Group with org and loc set.
     [belonging to external AD User Group.]
@@ -685,14 +704,7 @@ def test_positive_add_admin_role_with_org_loc(
 @ldap_wrapper
 @tier2
 def test_positive_add_foreman_role_with_org_loc(
-    session,
-    ldap_data,
-    ldap_user_name,
-    test_name,
-    auth_source,
-    ldap_usergroup_name,
-    module_org,
-    module_loc,
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org, module_loc,
 ):
     """Associate foreman roles to User Group with org and loc set.
     [belonging to external AD User Group.]
@@ -748,7 +760,7 @@ def test_positive_add_foreman_role_with_org_loc(
 @ldap_wrapper
 @tier2
 def test_positive_add_katello_role_with_org(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org
+    session, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org
 ):
     """Associate katello roles to User Group with org set.
     [belonging to external AD User Group.]
@@ -826,7 +838,7 @@ def test_positive_create_user_in_ldap_mode(session, auth_source):
 
 @ldap_wrapper
 @tier2
-def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, auth_source):
+def test_positive_login_ad_user_no_roles(test_name, ldap_user_name, auth_source):
     """Login with LDAP Auth- AD for user with no roles/rights
 
     :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
@@ -849,9 +861,7 @@ def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, a
 @ldap_wrapper
 @tier2
 @upgrade
-def test_positive_login_ad_user_basic_roles(
-    session, test_name, ldap_data, ldap_user_name, auth_source
-):
+def test_positive_login_ad_user_basic_roles(session, test_name, ldap_user_name, auth_source):
     """Login with LDAP - AD for user with roles/rights
 
     :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
@@ -884,7 +894,7 @@ def test_positive_login_ad_user_basic_roles(
 @ldap_wrapper
 @upgrade
 @tier2
-def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
+def test_positive_login_user_password_otp(test_name, auth_source_ipa):
     """Login with password with time based OTP
 
     :id: be7eb5d6-3228-4660-aa64-c56f9f3ec5e0
@@ -912,7 +922,7 @@ def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
 
 @ldap_wrapper
 @tier2
-def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth_source_ipa):
+def test_negative_login_user_with_invalid_password_otp(test_name, auth_source_ipa):
     """Login with password with time based OTP
 
     :id: 3718c86e-5976-4fb8-9c80-4685d53bd955
@@ -1013,8 +1023,6 @@ def test_session_expire_rhsso_idle_timeout(session):
 
     :id: 80247b30-a988-11ea-943c-d46d6dd3b5b2
 
-    :BZ: 1792135
-
     :steps:
         1. Change the idle timeout settings for the External Authentication
         2. Login into Satellite using RHSSO login and wait for the idle timeout
@@ -1033,8 +1041,7 @@ def test_session_expire_rhsso_idle_timeout(session):
             session.rhsso_login.login(
                 {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
             )
-            sleep(70)
-            session.browser.refresh()
+            sleep(360)
             with raises(NavigationTriesExceeded) as error:
                 session.task.read_all(widget_names="current_user")['current_user']
             assert error.typename == "NavigationTriesExceeded"
@@ -1113,13 +1120,18 @@ def test_external_new_user_login_and_check_count(enable_external_auth_rhsso, ses
             session.browser.refresh()
             count = session.ldapauthentication.read_auth_source_counts('External')
             assert count == current_count + 1
+            # checking delete user can't login anymore
+            delete_rhsso_user(user_details['username'])
+            with Session(login=False) as rhsso_session:
+                with raises(NavigationTriesExceeded) as error:
+                    rhsso_session.rhsso_login.login(login_details)
+                assert error.typename == "NavigationTriesExceeded"
         finally:
             update_rhsso_settings_in_satellite(revert=True)
-            delete_rhsso_user(user_details['username'])
 
 
 @tier2
-def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
+def test_positive_test_connection_functionality(session):
     """Verify for a positive test connection response
 
     :id: 5daf3976-9b5c-11ea-96f8-4ceb42ab8dbc
