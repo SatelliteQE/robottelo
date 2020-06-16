@@ -24,7 +24,6 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_os
 from robottelo.config import settings
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -369,7 +368,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 }
             )
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_rhev_without_host_group(self):

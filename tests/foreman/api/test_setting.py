@@ -22,7 +22,6 @@ from robottelo.cleanup import setting_cleanup
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -176,7 +175,7 @@ class SettingTestCase(APITestCase):
         finally:
             setting_cleanup("discovery_prefix", original_value)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_hostname_default_facts(self):
         """Update the default set fact of hostname_facts setting with list of
@@ -189,7 +188,7 @@ class SettingTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_negative_discover_host_with_invalid_prefix(self):
         """Update the hostname_prefix with invalid string like

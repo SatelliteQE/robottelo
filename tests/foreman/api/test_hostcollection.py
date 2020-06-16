@@ -16,6 +16,7 @@
 """
 from random import choice
 
+import pytest
 from nailgun import entities
 from nailgun.client import request
 from requests.exceptions import HTTPError
@@ -25,7 +26,6 @@ from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -451,7 +451,7 @@ class HostCollectionTestCase(APITestCase):
                 assert prod_name in req.text, 'Subscription not applied HC members'
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_remove_subscription(self):
         """Try to remove a subscription from a host collection
 

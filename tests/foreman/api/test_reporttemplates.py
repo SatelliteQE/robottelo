@@ -30,7 +30,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -281,7 +280,7 @@ class ReportTemplateTestCase(APITestCase):
         )
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_export_report(self):
         """Export report template
 
@@ -299,7 +298,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_report_sanitized(self):
         """Generate report template where there are values in comma outputted which might brake CSV format
 
@@ -318,7 +317,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_negative_create_report_without_name(self):
         """Try to create a report template with empty name
 
@@ -336,7 +335,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_applied_errata(self):
         """Generate an Applied Errata report
 
@@ -354,7 +353,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_nonblocking(self):
         """Generate an Applied Errata report
 
@@ -373,7 +372,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_email_compressed(self):
         """Generate an Applied Errata report, get it by e-mail, compressed
 
@@ -392,7 +391,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_email_uncompressed(self):
         """Generate an Applied Errata report, get it by e-mail, uncompressed
 
@@ -412,7 +411,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_negative_bad_email(self):
         """ Report can't be generated when incorrectly formed mail specified
 
@@ -430,7 +429,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_cleanup_task_running(self):
         """ Report can't be generated when incorrectly formed mail specified
 
@@ -448,7 +447,7 @@ class ReportTemplateTestCase(APITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_negative_nonauthor_of_report_cant_download_it(self):
         """The resulting report should only be downloadable by
            the user that generated it or admin. Check.

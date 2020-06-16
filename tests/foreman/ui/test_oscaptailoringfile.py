@@ -15,12 +15,12 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
@@ -77,7 +77,7 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
 
 
 @tier2
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_download_tailoring_file():
     """ Download the tailoring file from satellite
 
@@ -96,7 +96,7 @@ def test_positive_download_tailoring_file():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier4
 def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
     """ End-to-End Oscap run with tailoring files and external capsule
@@ -124,7 +124,7 @@ def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier4
 def test_positive_fetch_tailoring_file_information_from_arfreports():
     """ Fetch Tailoring file Information from Arf-reports

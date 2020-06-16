@@ -95,7 +95,6 @@ from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -830,7 +829,7 @@ class HostCreateTestCase(CLITestCase):
         hosts = Host.list({'organization-id': options.organization.id})
         self.assertEqual('{0}/{1}'.format(parent_hg_name, nested_hg_name), hosts[0]['host-group'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader
@@ -1349,7 +1348,7 @@ class HostParameterTestCase(CLITestCase):
 class HostProvisionTestCase(CLITestCase):
     """Provisioning-related tests"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_baremetal_with_bios_syslinux(self):
@@ -1387,7 +1386,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_syslinux(self):
         """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
@@ -1424,7 +1423,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_grub(self):
         """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
@@ -1464,7 +1463,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_baremetal_with_uefi_grub2(self):
@@ -1506,7 +1505,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_secureboot(self):
         """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from
@@ -2586,7 +2585,7 @@ class SLESTestCase(CLITestCase):
         9. Remove the temporary custom repository from point 3.
         """
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier3
     def test_positive_report_package_installed_removed(self):
         """Verify that SLES setup works correctly for every distribution,

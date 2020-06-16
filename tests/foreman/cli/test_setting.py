@@ -31,7 +31,6 @@ from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_url_list
 from robottelo.datafactory import xdist_adapter
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.test import CLITestCase
@@ -40,7 +39,7 @@ from robottelo.test import CLITestCase
 class SettingTestCase(CLITestCase):
     """Implements tests for Settings for CLI"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_negative_update_hostname_with_empty_fact(self):
         """Update the Hostname_facts settings without any string(empty values)
@@ -78,7 +77,7 @@ class SettingTestCase(CLITestCase):
         discovery_prefix = Settings.list({'search': 'name=discovery_prefix'})[0]
         self.assertEqual(hostname_prefix_value, discovery_prefix['value'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_hostname_default_facts(self):
         """Update the default set fact of hostname_facts setting with list of
@@ -91,7 +90,7 @@ class SettingTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_negative_discover_host_with_invalid_prefix(self):
         """Update the hostname_prefix with invalid string like
@@ -162,7 +161,7 @@ class SettingTestCase(CLITestCase):
                 login_text = Settings.list({'search': 'name=login_text'})[0]
                 self.assertEqual(login_text_value, login_text['value'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_email_delivery_method_smtp(self):
         """Check Updating SMTP params through settings subcommand
@@ -188,7 +187,7 @@ class SettingTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_email_delivery_method_sendmail(self):
         """Check Updating Sendmail params through settings subcommand
@@ -267,7 +266,7 @@ class SettingTestCase(CLITestCase):
         email_subject_prefix = Settings.list({'search': 'name=email_subject_prefix'})[0]
         self.assertEqual(email_subject_prefix_value, email_subject_prefix['value'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_negative_update_email_subject_prefix(self):
         """Check email subject prefix not

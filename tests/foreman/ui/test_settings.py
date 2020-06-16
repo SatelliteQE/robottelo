@@ -28,7 +28,6 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -275,7 +274,7 @@ def test_negative_settings_access_to_non_admin():
         User.delete({'login': login})
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 def test_positive_update_email_delivery_method_smtp():
     """Updating SMTP params on Email tab
@@ -310,7 +309,7 @@ def test_positive_update_email_delivery_method_smtp():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 @upgrade
 def test_negative_update_email_delivery_method_smtp():
@@ -404,7 +403,7 @@ def test_positive_update_email_delivery_method_sendmail(session):
                 setting_cleanup(setting_name=key, setting_value=value.value)
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 def test_negative_update_email_delivery_method_sendmail():
     """Updating Sendmail params on Email tab fail
@@ -434,7 +433,7 @@ def test_negative_update_email_delivery_method_sendmail():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 def test_positive_email_yaml_config_precedence():
     """Check configuration file /etc/foreman/email.yaml takes precedence

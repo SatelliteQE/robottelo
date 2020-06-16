@@ -79,7 +79,6 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -2304,7 +2303,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
     # create a sync schedule against the mirror to make sure it is periodically
     # update to contain the latest and greatest.
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_local_create(self):
         """Create repository with local git puppet mirror.
@@ -2323,7 +2322,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_local_update(self):
         """Update repository with local git puppet mirror.
@@ -2342,7 +2341,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_git_local_delete(self):
@@ -2362,7 +2361,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_remote_create(self):
         """Create repository with remote git puppet mirror.
@@ -2381,7 +2380,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_remote_update(self):
         """Update repository with remote git puppet mirror.
@@ -2400,7 +2399,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_git_remote_delete(self):
@@ -2420,7 +2419,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_sync(self):
         """Sync repository with git puppet mirror.
@@ -2441,7 +2440,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_git_sync_with_content_change(self):
@@ -2470,7 +2469,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_sync_schedule(self):
         """Scheduled sync of git puppet mirror.
@@ -2489,7 +2488,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_view_content(self):
         """View content in synced git puppet mirror
@@ -2559,7 +2558,7 @@ class FileRepositoryTestCase(CLITestCase):
         )
         self.assertEqual(RPM_TO_UPLOAD, filesearch[0].name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository

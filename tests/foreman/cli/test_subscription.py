@@ -37,7 +37,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -263,7 +262,7 @@ class SubscriptionTestCase(CLITestCase):
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     def test_positive_subscription_status_disabled_golden_ticket(self):
         """Verify that Content host Subscription status is set to 'Disabled'
@@ -278,7 +277,7 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Medium
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_candlepin_events_processed_by_STOMP(self):
         """Verify that Candlepin events are being read and processed by
            attaching subscriptions, validating host subscriptions status,

@@ -16,6 +16,7 @@
 """
 import random
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -29,7 +30,6 @@ from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import ZOO_CUSTOM_GPG_KEY
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -825,7 +825,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             content_view.read()
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
         """Remove promoted content view version from environment that is used
@@ -863,7 +863,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
 
     @upgrade
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
@@ -903,7 +903,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,

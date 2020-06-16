@@ -81,7 +81,6 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -3195,7 +3194,7 @@ class ContentViewTestCase(CLITestCase):
             new_cv['lifecycle-environments'],
         )
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
 
@@ -3212,7 +3211,7 @@ class ContentViewTestCase(CLITestCase):
 
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
 
@@ -3901,7 +3900,7 @@ class ContentViewTestCase(CLITestCase):
         content_views = ContentView.list({'organization-id': org['id']})
         self.assertNotIn(content_view['name'], [cv['name'] for cv in content_views])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
@@ -3940,7 +3939,7 @@ class ContentViewTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
@@ -4924,7 +4923,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         cv = ContentView.info({'id': cv['id']})
         self.assertEqual(cv['file-repositories'][0]['name'], self.repo_name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_arbitrary_file_repo_removal(self):
         """Check a File Repository with Arbitrary File can be removed from a
@@ -4948,7 +4947,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_arbitrary_file_sync_over_capsule(self):
