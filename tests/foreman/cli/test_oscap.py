@@ -38,7 +38,6 @@ from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
@@ -943,7 +942,7 @@ class OpenScapTestCase(CLITestCase):
         hosts = Host.list({'search': 'compliance_policy_id = {0}'.format(scap_policy['id'])})
         assert host_name in [host['name'] for host in hosts]
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_list_arf_reports(self):
         """List all arf-reports
@@ -969,7 +968,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @upgrade
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_info_arf_report(self):
         """View information of arf-report
@@ -995,7 +994,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_delete_arf_report(self):
         """Delete an arf-report

@@ -25,6 +25,7 @@ import datetime
 import random
 
 import paramiko
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -40,7 +41,6 @@ from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -222,7 +222,7 @@ class UserTestCase(CLITestCase):
         user = User.info({'id': user['id']})
         self.assertItemsEqual(user['organizations'], [org['name'] for org in orgs])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_create_in_ldap_modes(self):

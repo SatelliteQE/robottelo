@@ -24,7 +24,6 @@ from robottelo.cli.template_sync import TemplateSync
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 
 
@@ -107,7 +106,7 @@ class TestTemplateSyncTestCase:
         else:
             pytest.fail('The template is not imported for force test')
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_export_filtered_templates_to_git(self):
         """Assure only templates with a given filter regex are pushed to

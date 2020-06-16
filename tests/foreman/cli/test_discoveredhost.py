@@ -15,6 +15,8 @@
 """
 from time import sleep
 
+import pytest
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveredhost import DiscoveredHost
@@ -27,7 +29,6 @@ from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
@@ -153,7 +154,7 @@ class DiscoveredTestCase(CLITestCase):
             host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(host)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_custom_facts_pxeless_discovery(self):
         """Check if defined custom facts of pxeless host are correctly
@@ -176,7 +177,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_custom_facts_pxe_discovery(self):
         """Check if defined custom facts of pxe-based discovered host are
@@ -274,7 +275,7 @@ class DiscoveredTestCase(CLITestCase):
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxeless_uefi_grub(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB
@@ -312,7 +313,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxeless_uefi_grub2(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB2
@@ -350,7 +351,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxeless_uefi_grub2_secureboot(self):
         """Provision and discover the pxe-less UEFI SB host from cli using GRUB2
@@ -478,7 +479,7 @@ class DiscoveredTestCase(CLITestCase):
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB
@@ -527,7 +528,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB2
@@ -577,7 +578,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2_sb(self):
         """Provision the pxe-based UEFI Secureboot discovered host from cli
@@ -667,7 +668,7 @@ class DiscoveredTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveredHost.info({'id': host['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_pxe_host(self):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
@@ -683,7 +684,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_of_pxeless_host(self):
         """Refresh the facts of pxeless discovered hosts by adding a new NIC
@@ -699,7 +700,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxe_host(self):
         """Reboot pxe based discovered hosts
@@ -715,7 +716,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Medium
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxeless_host(self):
         """Reboot pxe-less discovered hosts
@@ -731,7 +732,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxe_host(self):
         """Discover a pxe based host and auto-provision it with
@@ -746,7 +747,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxeless_host(self):
         """Discover a pxe-less host and auto-provision it with
@@ -761,7 +762,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_list_discovered_host(self):
         """List pxe-based and pxe-less discovered hosts
@@ -775,7 +776,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_assign_discovery_manager_role(self):
         """Assign 'Discovery_Manager' role to a normal user
@@ -791,7 +792,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_assign_discovery_role(self):
         """Assign 'Discovery" role to a normal user
@@ -806,7 +807,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_update_discover_hostname_settings(self):
         """Update the hostname_prefix and Hostname_facts settings and

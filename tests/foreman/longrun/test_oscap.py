@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -40,7 +41,6 @@ from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -593,7 +593,7 @@ class OpenScapTestCase(CLITestCase):
             result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
             assert result is not None
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
@@ -612,7 +612,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
@@ -632,7 +632,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_download_xml_button(self):
         """'Download xml' button should exist for OSCAP Reports
@@ -653,7 +653,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_select_oscap_proxy(self):
         """Oscap-Proxy select box should exist while filling hosts
@@ -672,7 +672,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
@@ -693,7 +693,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.

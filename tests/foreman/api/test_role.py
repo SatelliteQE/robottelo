@@ -26,7 +26,6 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -1528,7 +1527,7 @@ class CannedRoleTestCases(APITestCase):
             ]:
                 entity(sc).search()
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_access_entities_from_ldap_org_admin(self):
         """LDAP User can not access resources in taxonomies assigned to role if
@@ -1552,7 +1551,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_access_entities_from_ldap_user(self):
         """LDAP User can not access resources within its own taxonomies if
@@ -1576,7 +1575,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can access to the resources in taxonomies if
@@ -1601,7 +1600,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can not have access to the resources in
@@ -1632,7 +1631,7 @@ class RoleSearchFilterTestCase(APITestCase):
     Tests adding additional search filters to role filters.
     """
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier3
     def test_positive_role_lce_search(self):
         """Test role with search filter using lifecycle enviroment.
@@ -1656,7 +1655,7 @@ class RoleSearchFilterTestCase(APITestCase):
         :BZ: 1651699
         """
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier3
     def test_negative_role_lce_search(self):
         """Test role with search filter using lifecycle environment.

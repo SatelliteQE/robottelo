@@ -48,7 +48,6 @@ from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
@@ -318,7 +317,7 @@ def test_positive_discover_repo_via_new_product(session, module_org):
         assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
 
 
-@stubbed
+@pytest.mark.stubbed
 @tier2
 @upgrade
 def test_positive_discover_module_stream_repo_via_existing_product(session, module_org):

@@ -17,6 +17,7 @@
 """
 from tempfile import mkstemp
 
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_choice
 from fauxfactory import gen_integer
@@ -37,7 +38,6 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -385,7 +385,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_add_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -456,7 +456,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('id'), gpg_key['id'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_add_repos_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -594,7 +594,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), new_name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -691,7 +691,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), new_name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_key_for_repos_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -815,7 +815,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_delete_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -910,7 +910,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_delete_key_for_repos_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -930,7 +930,7 @@ class TestGPGKey(CLITestCase):
 
     # Content
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_consume_content_using_repo(self):
         """Hosts can install packages using gpg key associated with
@@ -945,7 +945,7 @@ class TestGPGKey(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_consume_content_using_repos(self):
@@ -961,7 +961,7 @@ class TestGPGKey(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_consume_content_using_repos_and_different_keys(self):
         """Hosts can install packages using different gpg keys

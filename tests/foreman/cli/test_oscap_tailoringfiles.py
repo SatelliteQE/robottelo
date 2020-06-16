@@ -27,7 +27,6 @@ from robottelo.config import settings
 from robottelo.constants import SNIPPET_DATA_FILE
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
@@ -171,7 +170,7 @@ class TailoringFilesTestCase(CLITestCase):
                 with pytest.raises(CLIFactoryError):
                     make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_negative_associate_tailoring_file_with_different_scap(self):
         """ Associate a tailoring file with different scap content
@@ -241,7 +240,7 @@ class TailoringFilesTestCase(CLITestCase):
         with pytest.raises(CLIReturnCodeError):
             TailoringFiles.info({'id': tailoring_file['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
@@ -268,7 +267,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_external_capsule(self):
@@ -295,7 +294,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_fetch_tailoring_file_information_from_arfreports(self):

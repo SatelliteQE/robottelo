@@ -51,7 +51,6 @@ from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import REPORT_TEMPLATE_FILE
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -386,7 +385,7 @@ class ReportTemplateTestCase(CLITestCase):
         )
 
     @tier3
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_applied_errata(self):
         """Generate an Applied Errata report, then generate it by using schedule --wait and then
         use schedule and report-data to download generated Applied Errata report,
@@ -413,7 +412,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_email_compressed(self):
         """Generate an Applied Errata report, get it by e-mail, compressed
 
@@ -432,7 +431,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_email_uncompressed(self):
         """Generate an Applied Errata report, get it by e-mail, uncompressed
 

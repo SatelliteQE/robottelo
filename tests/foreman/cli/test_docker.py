@@ -15,6 +15,7 @@
 from random import choice
 from random import randint
 
+import pytest
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 from wait_for import wait_for
@@ -41,7 +42,6 @@ from robottelo.datafactory import invalid_docker_upstream_names
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_docker_upstream_names
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -1496,7 +1496,7 @@ class DockerClientTestCase(CLITestCase):
         result = ssh.command(docker_pull_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @skip_if_not_set('docker')
     @tier3
     @upgrade

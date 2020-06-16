@@ -299,7 +299,7 @@ SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
 ENVIRONMENT = "Library"
 
-NOT_IMPLEMENTED = 'Test not implemented'
+NOT_IMPLEMENTED = 'This is a Manual test!'
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
