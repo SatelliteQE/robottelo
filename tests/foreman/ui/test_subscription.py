@@ -25,7 +25,6 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import setup_virtual_machine
@@ -457,13 +456,12 @@ def test_positive_subscription_status_disabled(session):
         name=gen_string('alphanumeric').upper(), product=custom_product
     ).create()
     custom_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(organization=org, repository=[rh_repo_id, custom_repo.id],).create()
-    cv.publish()
-    cvv = cv.read().version[0].read()
-    promote(cvv, lce.id)
     ak = entities.ActivationKey(
-        content_view=cv, organization=org, environment=lce, auto_attach=True
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+        auto_attach=True,
     ).create()
     subscription = entities.Subscription(organization=org).search(
         query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}

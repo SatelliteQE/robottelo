@@ -25,7 +25,6 @@ from nailgun.entity_mixins import TaskFailedError
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -220,15 +219,12 @@ class SubscriptionsTestCase(APITestCase):
             product=entities.Product(organization=org).create(),
         ).create()
         custom_repo.sync()
-        lce = entities.LifecycleEnvironment(organization=org).create()
-        cv = entities.ContentView(
-            organization=org, repository=[rh_repo_id, custom_repo.id],
-        ).create()
-        cv.publish()
-        cvv = cv.read().version[0].read()
-        promote(cvv, lce.id)
         ak = entities.ActivationKey(
-            content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
+            content_view=org.default_content_view,
+            max_hosts=100,
+            organization=org,
+            environment=entities.LifecycleEnvironment(id=org.library.id),
+            auto_attach=True,
         ).create()
         subscription = entities.Subscription(organization=org).search(
             query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}

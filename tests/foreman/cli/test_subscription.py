@@ -23,10 +23,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
@@ -259,22 +256,10 @@ class SubscriptionTestCase(CLITestCase):
         new_product = make_product({'organization-id': org['id']})
         new_repo = make_repository({'product-id': new_product['id']})
         Repository.synchronize({'id': new_repo['id']})
-        content_view = make_content_view({'organization-id': org['id']})
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': org['id'],
-                'repository-id': new_repo['id'],
-            }
-        )
-        ContentView.publish({'id': content_view['id']})
-        env = make_lifecycle_environment({'organization-id': org['id']})
-        cvv = ContentView.info({'id': content_view['id']})['versions'][0]
-        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
         new_ak = make_activation_key(
             {
-                'lifecycle-environment-id': env['id'],
-                'content-view': content_view['name'],
+                'lifecycle-environment': 'Library',
+                'content-view': 'Default Organization View',
                 'organization-id': org['id'],
                 'auto-attach': False,
             }
