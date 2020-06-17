@@ -14,14 +14,11 @@
 
 :Upstream: No
 """
-import re
 import tempfile
 from urllib.parse import urljoin
 
 import pytest
-from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from fauxfactory import gen_url
 from nailgun import client
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
@@ -86,13 +83,14 @@ class RepositoryTestCase(APITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(RepositoryTestCase, cls).setUpClass()
-        http_proxy_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-        )
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15), url=http_proxy_url, organization=[cls.org.id]
+            name=gen_string('alpha', 15),
+            url=settings.http_proxy.auth_proxy_url,
+            username=settings.http_proxy.username,
+            password=settings.http_proxy.password,
+            organization=[cls.org.id],
         ).create()
 
     @tier1
@@ -113,28 +111,23 @@ class RepositoryTestCase(APITestCase):
     @tier2
     @upgrade
     def test_positive_assign_http_proxy_to_repository(self):
-        """Assign http_proxy to Repositories and check whether http-proxy is
-         used during sync.
+        """Assign http_proxy to Repositories and perform repository sync.
 
         :id: 5b3b992e-02d3-4b16-95ed-21f1588c7741
 
-        :expectedresults: HTTP Proxy can be assigned to repository and sync operation
-         uses assigned http-proxy.
+        :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
+            successfully.
 
         :CaseImportance: Critical
         """
-        http_proxy_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-        )
-        http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15), url=http_proxy_url, organization=[self.org.id]
-        ).create()
-        proxy_fqdn = re.split(r'[:]', http_proxy.url)[1].strip("//")
-        # no http_proxy
         repo_a = entities.Repository(
-            url=FAKE_2_YUM_REPO, product=self.product, http_proxy_policy='none'
+            url=FAKE_2_YUM_REPO,
+            product=self.product,
+            http_proxy_policy='use_selected_http_proxy',
+            http_proxy_id=self.http_proxy.id,
         ).create()
-        assert repo_a.http_proxy_policy == 'none'
+        assert repo_a.http_proxy_policy == 'use_selected_http_proxy'
+        assert repo_a.http_proxy_id == self.http_proxy.id
         repo_a.sync()
         assert repo_a.read().content_counts['rpm'] >= 1
         # Use global_default_http_proxy
@@ -145,14 +138,8 @@ class RepositoryTestCase(APITestCase):
         ).create()
         assert repo_b.http_proxy_policy == 'global_default_http_proxy'
         # Update to selected_http_proxy
-        repo_b = entities.Repository(
-            id=repo_b.id, http_proxy_policy='use_selected_http_proxy', http_proxy_id=http_proxy.id
-        ).update()
-        assert repo_b.http_proxy_policy == 'use_selected_http_proxy'
-        assert repo_b.http_proxy_id == http_proxy.id
-        repo_b.sync({'async': True})
-        result = ssh.command('grep -F {} /var/log/messages'.format(proxy_fqdn))
-        assert result.return_code == 0
+        repo_b = entities.Repository(id=repo_b.id, http_proxy_policy='none').update()
+        assert repo_b.http_proxy_policy == 'none'
 
     @tier1
     def test_positive_create_with_label(self):

@@ -586,3 +586,10 @@ port_range=9091, 14999
 # project=satellite6
 # API key of an user
 # api_key=
+
+# Section for Http Proxy Details
+# [http_proxy]
+# un_auth_proxy_url=http://proxy.example.com:4332
+# auth_proxy_url=
+# username=
+# password=
