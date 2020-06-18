@@ -84,6 +84,7 @@ class VirtualMachine(object):
             DISTRO_RHEL8: settings.distro.image_el8,
             DISTRO_SLES11: settings.distro.image_sles11,
             DISTRO_SLES12: settings.distro.image_sles12,
+            'image_docker': settings.docker.docker_image,
         }
         self.cpu = cpu
         self.mac = None
@@ -159,8 +160,7 @@ class VirtualMachine(object):
         """This is needed in construction, record it for easy reference
         Property instead of a class attribute to delay reading of the settings
         """
-        distro_docker = settings.docker.docker_image
-        return list(settings.distro.__dict__.values()) + [distro_docker]
+        return [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8, DISTRO_SLES11, DISTRO_SLES12]
 
     @property
     def subscribed(self):
