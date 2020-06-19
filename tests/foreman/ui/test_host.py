@@ -206,8 +206,8 @@ def module_os(default_architecture, default_partition_table, module_org, module_
     # Update the OS to associate architecture, ptable, templates
     os.architecture = [default_architecture]
     os.ptable = [default_partition_table]
-    os.config_template = templates
-    os = os.update(['architecture', 'config_template', 'ptable'])
+    os.provisioning_template = templates
+    os = os.update(['architecture', 'provisioning_template', 'ptable'])
     return os
 
 

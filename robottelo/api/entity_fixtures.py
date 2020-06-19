@@ -88,7 +88,7 @@ def module_partiontable(module_org, module_location):
 
 
 @pytest.fixture(scope='module')
-def module_provisioingtemplate(module_org, module_location):
+def module_provisioningtemplate_default(module_org, module_location):
     provisioning_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
@@ -101,7 +101,7 @@ def module_provisioingtemplate(module_org, module_location):
 
 
 @pytest.fixture(scope='module')
-def module_configtemaplate(module_org, module_location):
+def module_provisioningtemplate_pxe(module_org, module_location):
     pxe_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
@@ -127,8 +127,8 @@ def module_architecture():
 def module_os(
     module_architecture,
     module_partiontable,
-    module_configtemaplate,
-    module_provisioingtemplate,
+    module_provisioningtemplate_default,
+    module_provisioningtemplate_pxe,
     os=None,
 ):
     if os is None:
@@ -157,9 +157,9 @@ def module_os(
         )
     os.architecture.append(module_architecture)
     os.ptable.append(module_partiontable)
-    os.config_template.append(module_configtemaplate)
-    os.provisioning_template.append(module_provisioingtemplate)
-    os.update(['architecture', 'ptable', 'config_template', 'provisioning_template'])
+    os.provisioning_template.append(module_provisioningtemplate_default)
+    os.provisioning_template.append(module_provisioningtemplate_pxe)
+    os.update(['architecture', 'ptable', 'provisioning_template'])
     os = entities.OperatingSystem(id=os.id).read()
     return os
 
