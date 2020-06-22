@@ -812,6 +812,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @upgrade
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_create_delete_srpm_repo(self):
         """Create a repository, sync SRPM contents and remove repo
 
@@ -1800,6 +1801,7 @@ class SRPMRepositoryTestCase(APITestCase):
 
     @upgrade
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_repo_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
@@ -1840,6 +1842,7 @@ class DRPMRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -1859,6 +1862,7 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -1884,6 +1888,7 @@ class DRPMRepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1961,6 +1966,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         self.assertEqual(repo.content_counts['srpm'], 2)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_ignore_srpm_sync(self):
         """Test whether SRPM content can be ignored during sync.
 
