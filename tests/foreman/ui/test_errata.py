@@ -743,7 +743,8 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 for key, value in host_details_values['properties']['properties_table'].items()
                 if key in expected_values
             }
-            assert actual_values == expected_values
+            for key in actual_values:
+                assert expected_values[key] in actual_values[key], 'Expected text not found'
             _set_setting_value(errata_status_installable, False)
             expected_values = {
                 'Status': 'Error',
@@ -758,4 +759,5 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 for key, value in host_details_values['properties']['properties_table'].items()
                 if key in expected_values
             }
-            assert actual_values == expected_values
+            for key in actual_values:
+                assert expected_values[key] in actual_values[key], 'Expected text not found'
