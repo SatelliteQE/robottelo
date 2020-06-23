@@ -44,6 +44,28 @@ from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
 
+@pytest.fixture(scope='class')
+def ContentHostSetup(request):
+    org = make_org()
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(org['id'], manifest.content)
+    new_product = make_product({'organization-id': org['id']})
+    new_repo = make_repository({'product-id': new_product['id']})
+    Repository.synchronize({'id': new_repo['id']})
+    new_ak = make_activation_key(
+        {
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+            'organization-id': org['id'],
+            'auto-attach': False,
+        }
+    )
+    subs_id = Subscription.list({'organization-id': org['id']}, per_page=False)
+    ActivationKey.add_subscription({'id': new_ak['id'], 'subscription-id': subs_id[0]['id']})
+    request.cls.org_setup = org
+    request.cls.ak_setup = new_ak
+
+
 @run_in_one_thread
 class SubscriptionTestCase(CLITestCase):
     """Manifest CLI tests"""
@@ -238,6 +260,7 @@ class SubscriptionTestCase(CLITestCase):
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
     @tier2
+    @pytest.mark.usefixtures("ContentHostSetup")
     def test_positive_Subscription_status_disabled(self):
         """Verify that Content host Subscription status is set to 'Disabled'
          for a golden ticket manifest
@@ -250,25 +273,9 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        org = make_org()
-        with manifests.clone(name='golden_ticket') as manifest:
-            upload_manifest(org['id'], manifest.content)
-        new_product = make_product({'organization-id': org['id']})
-        new_repo = make_repository({'product-id': new_product['id']})
-        Repository.synchronize({'id': new_repo['id']})
-        new_ak = make_activation_key(
-            {
-                'lifecycle-environment': 'Library',
-                'content-view': 'Default Organization View',
-                'organization-id': org['id'],
-                'auto-attach': False,
-            }
-        )
-        subs_id = Subscription.list({'organization-id': org['id']}, per_page=False)
-        ActivationKey.add_subscription({'id': new_ak['id'], 'subscription-id': subs_id[0]['id']})
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
-            vm.register_contenthost(org['label'], new_ak['name'])
+            vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
             assert vm.subscribed
             host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
             host_id = host[0].id

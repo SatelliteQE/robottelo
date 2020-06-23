@@ -53,6 +53,40 @@ if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
 
 
+@pytest.fixture(scope='module')
+def content_host_setup():
+    org = entities.Organization().create()
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(org.id, manifest.content)
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_product = entities.Product(organization=org).create()
+    custom_repo = entities.Repository(
+        name=gen_string('alphanumeric').upper(), product=custom_product
+    ).create()
+    custom_repo.sync()
+    ak = entities.ActivationKey(
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+        auto_attach=True,
+    ).create()
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+    )[0]
+    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    return org, ak
+
+
 @tier2
 @upgrade
 def test_positive_end_to_end(session):
@@ -426,7 +460,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
 
 @tier3
-def test_positive_subscription_status_disabled(session):
+def test_positive_subscription_status_disabled(session, content_host_setup):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
@@ -438,37 +472,9 @@ def test_positive_subscription_status_disabled(session):
 
     :CaseImportance: Medium
     """
-    org = entities.Organization().create()
-    with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(org.id, manifest.content)
-    rh_repo_id = enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
-        releasever=None,
-    )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    custom_product = entities.Product(organization=org).create()
-    custom_repo = entities.Repository(
-        name=gen_string('alphanumeric').upper(), product=custom_product
-    ).create()
-    custom_repo.sync()
-    ak = entities.ActivationKey(
-        content_view=org.default_content_view,
-        max_hosts=100,
-        organization=org,
-        environment=entities.LifecycleEnvironment(id=org.library.id),
-        auto_attach=True,
-    ).create()
-    subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.install_katello_ca()
+        org, ak = content_host_setup
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         with session:
