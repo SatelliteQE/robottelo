@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import math
+
 import pytest
 from airgun.session import Session
 from fauxfactory import gen_url
@@ -489,3 +491,44 @@ def test_negative_update_hostname_with_empty_fact(session):
         finally:
             for key, value in default_hostname.items():
                 setting_cleanup(setting_name=key, setting_value=value.value)
+
+
+@run_in_one_thread
+@tier3
+def test_positive_entries_per_page(session):
+    """ Update the per page entry in the settings.
+
+    :id: 009026b6-7550-40aa-9f78-5eb7f7e3800f
+
+    :Steps:
+        1. Navigate to Administer > Settings > General tab
+        2. Update the entries per page value
+        3. GoTo Monitor > Tasks Table > Pagination
+        4. Check the new per page entry is updated in pagination list
+        5. Check the page count on the basis of the new updated entries per page.
+
+    :expectedresults: New set entry-per-page should be available in the pagination list and
+        page count should match according to the new setting
+
+    :BZ: 1746221
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Acceptance
+    """
+    property_name = "entries_per_page"
+    property_value = 19
+    default_property_value = entities.Setting().search(query={'search': f'name={property_name}'})[
+        0
+    ]
+    with session:
+        try:
+            session.settings.update(f"name={property_name}", property_value)
+            page_content = session.task.read_all(widget_names="Pagination")
+            assert str(property_value) in page_content["Pagination"]["per_page"]
+            total_pages = math.ceil(
+                int(page_content["Pagination"]["total_items"]) / property_value
+            )
+            assert str(total_pages) == page_content["Pagination"]["pages"]
+        finally:
+            setting_cleanup(setting_name=property_name, setting_value=default_property_value.value)
