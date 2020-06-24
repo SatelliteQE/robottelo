@@ -12,12 +12,12 @@ Parameters::
 Subcommands::
 
     add-computeresource           Associate a resource
-    add-configtemplate            Associate a resource
     add-domain                    Associate a resource
     add-environment               Associate a resource
     add-hostgroup                 Associate a resource
     add-location                  Associate a location
     add-medium                    Associate a resource
+    add-provisioning-template     Associate provisioning templates
     add-smartproxy                Associate a resource
     add-subnet                    Associate a resource
     add-user                      Associate a resource
@@ -27,12 +27,12 @@ Subcommands::
     info                          Show an organization
     list                          List all organizations
     remove_computeresource        Disassociate a resource
-    remove_configtemplate         Disassociate a resource
     remove_domain                 Disassociate a resource
     remove_environment            Disassociate a resource
     remove_hostgroup              Disassociate a resource
     remove-location               Disassociate a location
     remove_medium                 Disassociate a resource
+    remove-provisioning-template  Disassociate provisioning templates
     remove_smartproxy             Disassociate a resource
     remove_subnet                 Disassociate a resource
     remove_user                   Disassociate a resource
@@ -58,18 +58,6 @@ class Org(Base):
     def remove_compute_resource(cls, options=None):
         """Removes a computeresource from an org"""
         cls.command_sub = 'remove-compute-resource'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_config_template(cls, options=None):
-        """Adds a configtemplate to an org"""
-        cls.command_sub = 'add-config-template'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_config_template(cls, options=None):
-        """Removes a configtemplate from an org"""
-        cls.command_sub = 'remove-config-template'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
@@ -130,6 +118,18 @@ class Org(Base):
     def remove_medium(cls, options=None):
         """Removes a medium from an org"""
         cls.command_sub = 'remove-medium'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def add_provisioning_template(cls, options=None):
+        """Adds a provisioning template to an org"""
+        cls.command_sub = 'add-provisioning-template'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_provisioning_template(cls, options=None):
+        """Removes a provisioning template from an org"""
+        cls.command_sub = 'remove-provisioning-template'
         return cls.execute(cls._construct_command(options))
 
     @classmethod

@@ -12,12 +12,12 @@ Parameters::
 Subcommands::
 
     add-compute-resource          Associate a compute resource
-    add-config-template           Associate a configuration template
     add-domain                    Associate a domain
     add-environment               Associate an environment
     add-hostgroup                 Associate a hostgroup
     add-medium                    Associate a medium
     add-organization              Associate an organization
+    add-provisioning-template     Associate provisioning templates
     add-smart-proxy               Associate a smart proxy
     add-subnet                    Associate a subnet
     add-user                      Associate an user
@@ -26,12 +26,12 @@ Subcommands::
     info                          Show a location
     list                          List all locations
     remove-compute-resource       Disassociate a compute resource
-    remove-config-template        Disassociate a configuration template
     remove-domain                 Disassociate a domain
     remove-environment            Disassociate an environment
     remove-hostgroup              Disassociate a hostgroup
     remove-medium                 Disassociate a medium
     remove-organization           Disassociate an organization
+    remove-provisioning-template  Disassociate provisioning templates
     remove-smart-proxy            Disassociate a smart proxy
     remove-subnet                 Disassociate a subnet
     remove-user                   Disassociate an user
@@ -50,14 +50,6 @@ class Location(Base):
         """Associate a compute resource"""
 
         cls.command_sub = 'add-compute-resource'
-
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_config_template(cls, options=None):
-        """Associate a configuration template"""
-
-        cls.command_sub = 'add-config-template'
 
         return cls.execute(cls._construct_command(options))
 
@@ -102,6 +94,14 @@ class Location(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def add_provisioning_template(cls, options=None):
+        """Associate a provisioning template"""
+
+        cls.command_sub = 'add-provisioning-template'
+
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def add_smart_proxy(cls, options=None):
         """Associate a smart proxy"""
 
@@ -130,14 +130,6 @@ class Location(Base):
         """Disassociate a compute resource"""
 
         cls.command_sub = 'remove-compute-resource'
-
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_config_template(cls, options=None):
-        """Disassociate a configuration template"""
-
-        cls.command_sub = 'remove-config-template'
 
         return cls.execute(cls._construct_command(options))
 
@@ -178,6 +170,14 @@ class Location(Base):
         """Disassociate an organization"""
 
         cls.command_sub = 'remove-organization'
+
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_provisioning_template(cls, options=None):
+        """Disassociate a provisioning template"""
+
+        cls.command_sub = 'remove-provisioning-template'
 
         return cls.execute(cls._construct_command(options))
 

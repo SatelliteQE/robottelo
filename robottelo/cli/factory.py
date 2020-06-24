@@ -403,8 +403,6 @@ def make_location(options=None):
     args = {
         'compute-resource-ids': None,
         'compute-resources': None,
-        'config-template-ids': None,
-        'config-templates': None,
         'description': None,
         'domain-ids': None,
         'domains': None,
@@ -417,6 +415,8 @@ def make_location(options=None):
         'medium-ids': None,
         'name': gen_alphanumeric(),
         'parent-id': None,
+        'provisioning-template-ids': None,
+        'provisioning-templates': None,
         'realm-ids': None,
         'realms': None,
         'smart-proxy-ids': None,
@@ -1211,8 +1211,8 @@ def make_org_with_credentials(options=None, credentials=None):
     args = {
         'compute-resource-ids': None,
         'compute-resources': None,
-        'config-template-ids': None,
-        'config-templates': None,
+        'provisioning-template-ids': None,
+        'provisioning-templates': None,
         'description': None,
         'domain-ids': None,
         'environment-ids': None,
@@ -1307,8 +1307,8 @@ def make_os(options=None):
     args = {
         'architecture-ids': None,
         'architectures': None,
-        'config-template-ids': None,
-        'config-templates': None,
+        'provisioning-template-ids': None,
+        'provisioning-templates': None,
         'description': None,
         'family': None,
         'major': random.randint(0, 10),
@@ -2170,7 +2170,7 @@ def configure_env_for_provision(org=None, loc=None):
             OperatingSys.update(
                 {
                     'id': os['id'],
-                    'config-templates': list(set(os['templates']) | {template['name']}),
+                    'provisioning-templates': list(set(os['templates']) | {template['name']}),
                 }
             )
 

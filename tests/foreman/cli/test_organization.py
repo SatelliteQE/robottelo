@@ -404,16 +404,20 @@ class OrganizationTestCase(CLITestCase):
         name = valid_data_list()[0]
 
         template = make_template({'content': gen_string('alpha'), 'name': name})
-        # Add config-template
-        Org.add_config_template({'name': self.org['name'], 'config-template': template['name']})
+        # Add provisioning-template
+        Org.add_provisioning_template(
+            {'name': self.org['name'], 'provisioning-template': template['name']}
+        )
         org_info = Org.info({'name': self.org['name']})
         self.assertIn(
             '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
-        # Remove config-template
-        Org.remove_config_template({'config-template': template['name'], 'name': self.org['name']})
+        # Remove provisioning-template
+        Org.remove_provisioning_template(
+            {'provisioning-template': template['name'], 'name': self.org['name']}
+        )
         org_info = Org.info({'name': self.org['name']})
         self.assertNotIn(
             '{0} ({1})'.format(template['name'], template['type']),
@@ -422,16 +426,20 @@ class OrganizationTestCase(CLITestCase):
         )
 
         # add and remove templates by id
-        # Add config-template
-        Org.add_config_template({'config-template-id': template['id'], 'id': self.org['id']})
+        # Add provisioning-template
+        Org.add_provisioning_template(
+            {'provisioning-template-id': template['id'], 'id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertIn(
             '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
-        # Remove config-template
-        Org.remove_config_template({'config-template-id': template['id'], 'id': self.org['id']})
+        # Remove provisioning-template
+        Org.remove_provisioning_template(
+            {'provisioning-template-id': template['id'], 'id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn(
             '{0} ({1})'.format(template['name'], template['type']),

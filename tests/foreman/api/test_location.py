@@ -211,7 +211,7 @@ class LocationTestCase(APITestCase):
         location.subnet = [self.subnet]
         location.environment = [self.env]
         location.hostgroup = [self.host_group]
-        location.config_template = [self.template]
+        location.provisioning_template = [self.template]
         location.compute_resource = [self.test_cr]
         location.user = [self.new_user]
 
@@ -221,7 +221,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(location.update(['hostgroup']).hostgroup[0].id, self.host_group.id)
         ct_list = [
             ct
-            for ct in location.update(['config_template']).config_template
+            for ct in location.update(['provisioning_template']).provisioning_template
             if ct.id == self.template.id
         ]
         self.assertEqual(len(ct_list), 1)
