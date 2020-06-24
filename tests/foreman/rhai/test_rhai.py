@@ -460,10 +460,7 @@ def test_numeric_group(vm, autosession):
 
     :expectedresults: rule no more appears on Rules page on portal
     """
-    rule_title = (
-        'Unexpected behavior in command-line tools and 3rd party software when user or '
-        'group names are numeric'
-    )
+    rule_title = 'Unexpected behavior: Numeric user or group names'
     values = autosession.insightsinventory.read(vm.hostname, 'rules')
     # assert that the user and group numeric rule is not present
     assert not [rule for rule in values['rules'] if rule_title in rule['title']]
