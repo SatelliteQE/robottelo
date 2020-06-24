@@ -649,9 +649,9 @@ CUSTOM_FILE_REPO_FILES_COUNT = 3
 
 CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
 
-CUSTOM_RPM_REPO = 'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
+CUSTOM_RPM_REPO = 'https://fixtures.pulpproject.org/rpm-signed/'
 
-CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with-sha-512/'
+CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
 
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 
@@ -667,14 +667,14 @@ FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
 FAKE_6_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/needed-errata/'
-FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
+FAKE_7_YUM_REPO = 'https://fixtures.pulpproject.org/rpm-long-updateinfo/'
 FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
 FAKE_9_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/multiple_errata/'
 FAKE_10_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/modules-rpms/'
 FAKE_11_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/rpm-deps/'
-FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
-FAKE_YUM_SRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
-FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
+FAKE_YUM_DRPM_REPO = 'https://fixtures.pulpproject.org/drpm-signed/'
+FAKE_YUM_SRPM_REPO = 'https://fixtures.pulpproject.org/srpm-signed/'
+FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://fixtures.pulpproject.org/srpm-duplicate/'
 FAKE_YUM_MIXED_REPO = 'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 CUSTOM_PUPPET_REPO = 'http://omaciel.fedorapeople.org/bagoftricks'
@@ -801,7 +801,7 @@ FAKE_0_PUPPET_MODULE = 'httpd'
 FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
 
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-string-version-updateinfo/'
+    'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
 )
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
 

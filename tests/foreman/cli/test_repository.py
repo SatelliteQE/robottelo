@@ -2131,7 +2131,6 @@ class SRPMRepositoryTestCase(CLITestCase):
         cls.product = make_product({'organization-id': cls.org['id']})
 
     @tier2
-    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with SRPMs
 
@@ -2151,7 +2150,6 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
-    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish content view
@@ -2176,7 +2174,6 @@ class SRPMRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -2217,7 +2214,6 @@ class DRPMRepositoryTestCase(CLITestCase):
         cls.product = make_product({'organization-id': cls.org['id']})
 
     @tier2
-    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -2237,7 +2233,6 @@ class DRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
-    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -2262,7 +2257,6 @@ class DRPMRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment

@@ -17,7 +17,6 @@
 import os
 from time import sleep
 
-import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -73,7 +72,6 @@ class ContentManagementTestCase(APITestCase):
     """
 
     @tier2
-    @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
         errata.
