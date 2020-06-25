@@ -54,6 +54,7 @@ DEFAULT_CUSTOM_HIERA_DATA = [
     "# postgresql::server::config_entries:",
     "#   max_connections: 600",
     "#   shared_buffers: 1024MB",
+    "",
 ]
 
 MEDIUM_TUNING_DATA = [
@@ -77,15 +78,16 @@ MEDIUM_TUNING_DATA = [
     "  effective_cache_size: 16GB",
     "  autovacuum_vacuum_cost_limit: 2000",
     "  log_min_duration_statement: 500 ",
+    "",
 ]
 
 MMPV1_MONGODB = [
     "# Added by foreman-installer during upgrade, run the "
     "installer with --upgrade-mongo-storage to upgrade to WiredTiger.",
-    "mongodb::server::storage_engine: 'mmapv1'",
+    "mongodb::server::storage_engine: 'mmapv1'", ""
 ]
 
-WIREDTIGER_MONGODB = ["# Do not remove", "mongodb::server::storage_engine: 'wiredTiger'"]
+WIREDTIGER_MONGODB = ["# Do not remove", "mongodb::server::storage_engine: 'wiredTiger'", ""]
 
 
 @destructive
@@ -141,18 +143,20 @@ class ScenarioPerformanceTuning(TestCase):
         mongodb_type = ssh.command(cmd).return_code
         self._create_custom_hiera_file(mongodb_type, "medium")
         try:
-            ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
+            ssh.upload_file(local_file='custom-hiera.yaml',
+                            remote_file='/etc/foreman-installer/custom-hiera.yaml')
             command_output = ssh.command(
-                'satellite-installer -s --disable-system-checks', connection_timeout=1000
-            ).stdout
-            assert '  Success!' in command_output
+                'satellite-installer -s --disable-system-checks', timeout=1000
+            )
+            assert '  Success!' in command_output.stdout
         except Exception:
             self._create_custom_hiera_file(mongodb_type, "default")
-            ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
+            ssh.upload_file(local_file='custom-hiera.yaml',
+                            remote_file='/etc/foreman-installer/custom-hiera.yaml')
             command_output = ssh.command(
-                'satellite-installer -s --disable-system-checks', connection_timeout=1000
-            ).stdout
-            assert '  Success!' in command_output
+                'satellite-installer -s --disable-system-checks', timeout=1000
+            )
+            assert '  Success!' in command_output.stdout
             raise
 
     @post_upgrade(depend_on=test_pre_performance_tuning_apply)
@@ -180,16 +184,18 @@ class ScenarioPerformanceTuning(TestCase):
             cmd = 'grep "tuning: medium" /etc/foreman-installer/scenarios.d/satellite.yaml'
             tuning_state_after_upgrade = ssh.command(cmd).return_code
             assert tuning_state_after_upgrade == 0
-            ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
+            ssh.upload_file(local_file='custom-hiera.yaml',
+                            remote_file='/etc/foreman-installer/custom-hiera.yaml')
             command_output = ssh.command(
                 'satellite-installer --tuning default -s --disable-system-checks',
-                connection_timeout=1000,
+                timeout=1000,
             ).stdout
             assert "  Success!" in command_output
         finally:
-            ssh.upload_file('custom-hiera.yaml', '/etc/foreman-installer')
+            ssh.upload_file(local_file='custom-hiera.yaml',
+                            remote_file='/etc/foreman-installer/custom-hiera.yaml')
             command_output = ssh.command(
-                'satellite-installer -s --disable-system-checks', connection_timeout=1000
+                'satellite-installer -s --disable-system-checks', timeout=1000
             ).stdout
             assert "  Success!" in command_output
 
