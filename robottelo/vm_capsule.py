@@ -13,9 +13,9 @@ from robottelo.config import settings
 from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
 from robottelo.decorators import setting_is_set
 from robottelo.helpers import extract_capsule_satellite_installer_command
-from robottelo.helpers import is_open
 from robottelo.ssh import download_file
 from robottelo.ssh import upload_file
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 logger = logging.getLogger(__name__)

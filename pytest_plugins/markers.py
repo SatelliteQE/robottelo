@@ -1,3 +1,6 @@
+# Custom markers for robottelo tests
+
+
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [

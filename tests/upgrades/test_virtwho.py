@@ -27,9 +27,9 @@ from robottelo.api.utils import upload_manifest
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.constants import DEFAULT_LOC
 from robottelo.decorators import skip_if_not_set
-from robottelo.helpers import is_open
 from robottelo.test import APITestCase
 from robottelo.test import settings
+from robottelo.utils.issue_handlers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file

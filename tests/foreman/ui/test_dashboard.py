@@ -30,10 +30,10 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 

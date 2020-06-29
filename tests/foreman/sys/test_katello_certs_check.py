@@ -31,11 +31,11 @@ from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
-from robottelo.helpers import is_open
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
 from robottelo.ssh import upload_file
 from robottelo.test import TestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 @run_in_one_thread
