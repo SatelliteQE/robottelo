@@ -18,20 +18,62 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 from robottelo.test import settings
+from robottelo.vm import VirtualMachine
+
+
+@pytest.fixture(scope='class')
+def ContentHostSetup(request):
+    org = entities.Organization().create()
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(org.id, manifest.content)
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_repo = entities.Repository(
+        product=entities.Product(organization=org).create(),
+    ).create()
+    custom_repo.sync()
+    ak = entities.ActivationKey(
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+        auto_attach=True,
+    ).create()
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+    )[0]
+    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    request.cls.org_setup = org
+    request.cls.ak_setup = ak
 
 
 @run_in_one_thread
@@ -181,3 +223,26 @@ class SubscriptionsTestCase(APITestCase):
             data={'organization_id': org.id}
         )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
+
+    @tier2
+    @pytest.mark.usefixtures("ContentHostSetup")
+    def test_positive_subscription_status_disabled(self):
+        """Verify that Content host Subscription status is set to 'Disabled'
+         for a golden ticket manifest
+
+        :id: d7d7e20a-e386-43d5-9619-da933aa06694
+
+        :expectedresults: subscription status is 'Disabled'
+
+        :BZ: 1789924
+
+        :CaseImportance: Medium
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org_setup.label, self.ak_setup.name)
+            assert vm.subscribed
+            host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
+            host_id = host[0].id
+            host_content = entities.Host(id=host_id).read_raw().content
+            assert "Disabled" in str(host_content)

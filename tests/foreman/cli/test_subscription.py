@@ -21,10 +21,16 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
+from robottelo.api.utils import upload_manifest
+from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -35,6 +41,29 @@ from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
+
+
+@pytest.fixture(scope='class')
+def ContentHostSetup(request):
+    org = make_org()
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(org['id'], manifest.content)
+    new_product = make_product({'organization-id': org['id']})
+    new_repo = make_repository({'product-id': new_product['id']})
+    Repository.synchronize({'id': new_repo['id']})
+    new_ak = make_activation_key(
+        {
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+            'organization-id': org['id'],
+            'auto-attach': False,
+        }
+    )
+    subs_id = Subscription.list({'organization-id': org['id']}, per_page=False)
+    ActivationKey.add_subscription({'id': new_ak['id'], 'subscription-id': subs_id[0]['id']})
+    request.cls.org_setup = org
+    request.cls.ak_setup = new_ak
 
 
 @run_in_one_thread
@@ -229,3 +258,26 @@ class SubscriptionTestCase(CLITestCase):
             {'organization-id': org.id}
         )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
+
+    @tier2
+    @pytest.mark.usefixtures("ContentHostSetup")
+    def test_positive_Subscription_status_disabled(self):
+        """Verify that Content host Subscription status is set to 'Disabled'
+         for a golden ticket manifest
+
+        :id: 42e10499-3a0d-48cd-ab71-022421a74add
+
+        :expectedresults: subscription status is 'Disabled'
+
+        :BZ: 1789924
+
+        :CaseImportance: Medium
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
+            assert vm.subscribed
+            host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
+            host_id = host[0].id
+            host_content = entities.Host(id=host_id).read_raw().content
+            assert "Disabled" in str(host_content)
