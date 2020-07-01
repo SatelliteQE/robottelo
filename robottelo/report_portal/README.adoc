@@ -1,27 +1,27 @@
 = Report Portal Module
 
 
-The `ReportPortal` python module is designed to _read_ the `Satellite6` test results data from Report Portal Analyzer tool.
+The `ReportPortal` python module is designed to read the `Satellite6` test results data from the Report Portal Analyzer tool.
 
 
 
-This module is consists of mainly two classes:
+This module consists of mainly two classes:
 
 
 * *ReportPortal:*
 
     This class holds the properties and functions to interact with Report Portal properties and launches.
 
-    ** `launches()`: Retrives all the launches from Satelite project. It can be filtered by specific Satellite version and launch_type. The launches data will be sorted by Satellite latest released version's latest snap version on top.
+    ** `launches()`: Retrives all the launches from Satelite project. It can be filtered by specific Satellite version and launch_type. The launches data will be sorted by Satellite release version, with the latest snap version at the top.
 
-    ** `launch()`:_ Retrives a given Satellite's snap version launch data from Satellite project. It can be filtered by launch_type.
+    ** `launch()`:_ Retrives a given Satellite's snap version launch data from Satellite Project. It can be filtered by launch_type.
 
 
 * *Launch:*
 
     This class holds the properties and functions to interact with Report Portal Launch properties and its tests.
 
-    ** `tests()`: Retrieves the all the tests and their data from a specific launch from Satellite Project. The tests can be filtered by particular test_status or/and defect_type.
+    ** `tests()`: Retrieves all the tests and their data from a specific launch from Satellite Project. The tests can be filtered by particular test_status and defect_type.
 
 
 == Examples:
@@ -73,7 +73,7 @@ Out [2]:
  '1.0': <robottelo.report_portal.portal.Launch at 0x7f2aea5f98d0>}
 ----
 
-* Retrieve Launch from Report Portal
+* Retrieve launch from Report Portal
 
 [source,python]
 ----
@@ -100,7 +100,7 @@ In [4]: launch = rp.launches(sat_version='6.7.0', launch_type='satellite6').pop(
 Out[4]: <__main__.Launch object at 0x7fdc5ba28e50>
 ----
 
-* Retrieve Tests with test status _failed_
+* Retrieve tests with test status _failed_
 
 [source,python]
 ----
@@ -108,7 +108,7 @@ In [5]: launch.tests(status='failed')
 Out [5]: ['tests/foreman/api/test_contentmanagement.py::CapsuleContentManagementTestCase::test_positive_capsule_pub_url_accessible', 'tests/foreman/api/test_contentmanagement.py::CapsuleContentManagementTestCase::test_positive_uploaded_content_library_sync', 'tests/foreman/ui/test_ldap_authentication.py::test_single_sign_on_using_rhsso', 'tests/foreman/ui/test_ldap_authentication.py::test_external_logout_rhsso', 'tests/foreman/ui/test_ldap_authentication.py::test_external_new_user_login']
 ----
 
-* Retrieve Tests with test status _failed_ and defect type _automation_bug_
+* Retrieve tests with test status _failed_ and defect type _automation_bug_
 
 [source,python]
 ----
@@ -116,7 +116,7 @@ In [6]: launch.tests(defect_type='automation_bug')
 Out [6]: ['tests/foreman/api/test_contentmanagement.py::CapsuleContentManagementTestCase::test_positive_uploaded_content_library_sync', 'tests/foreman/cli/test_satellitesync.py::ContentViewSync::test_positive_export_import_redhat_cv_with_huge_contents', 'tests/foreman/ui/test_host.py::test_positive_bulk_delete_host', 'tests/foreman/cli/test_contentview.py::ContentViewTestCase::test_positive_republish_after_rh_content_removed', 'tests/foreman/ui/test_computeresource_vmware.py::test_positive_resource_vm_power_management', 'tests/foreman/ui/test_contentview.py::test_positive_publish_rh_content_with_errata_by_date_filter', 'tests/foreman/cli/test_contentview.py::ContentViewTestCase::test_positive_remove_cv_version_from_multi_env_capsule_scenario', 'tests/foreman/api/test_template.py::TemplateSyncTestCase::test_positive_export_json_output', 'tests/foreman/api/test_template.py::TemplateSyncTestCase::test_positive_export_filtered_templates_to_localdir', 'tests/foreman/ui/test_operatingsystem.py::test_positive_update_with_params']
 ----
 
-* Retrieve Tests those are yet _to_investigate_
+* Retrieve tests that are flagged _to_investigate_
 
 [source,python]
 ----
