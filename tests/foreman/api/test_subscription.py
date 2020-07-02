@@ -43,7 +43,7 @@ from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='class')
-def ContentHostSetup(request):
+def GoldenTicketHostSetup(request):
     org = entities.Organization().create()
     with manifests.clone(name='golden_ticket') as manifest:
         upload_manifest(org.id, manifest.content)
@@ -225,7 +225,7 @@ class SubscriptionsTestCase(APITestCase):
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
     @tier2
-    @pytest.mark.usefixtures("ContentHostSetup")
+    @pytest.mark.usefixtures("GoldenTicketHostSetup")
     def test_positive_subscription_status_disabled(self):
         """Verify that Content host Subscription status is set to 'Disabled'
          for a golden ticket manifest
