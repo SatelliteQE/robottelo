@@ -76,7 +76,9 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=Organization"}
+            )
         ]
         # Assign filter to created role
         filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
@@ -97,7 +99,9 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=Organization"}
+            )
         ]
         # Assign filter to created role
         make_filter({'role-id': role['id'], 'permissions': permissions})
@@ -152,7 +156,9 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=Organization"}
+            )
         ]
         # Assign filter to created role
         filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
@@ -173,7 +179,9 @@ class RoleTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=Organization"}
+            )
         ]
         # Assign filter to created role
         filter_ = make_filter({'role': role['name'], 'permissions': permissions})
@@ -220,7 +228,9 @@ class RoleTestCase(CLITestCase):
         while len(permissions) <= 20:
             permissions += [
                 permission['name']
-                for permission in Filter.available_permissions({'resource-type': next(res_types)})
+                for permission in Filter.available_permissions(
+                    {"search": f"resource_type={next(res_types)}"}
+                )
             ]
         # Create a filter for each permission
         for perm in permissions:
