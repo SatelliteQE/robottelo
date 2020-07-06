@@ -572,7 +572,7 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
         request.cls.compute_attrs = (
             f'resource_group={self.rg_default},vm_size={self.vm_size}, '
             f'username={module_azurerm_byos_finishimg.username}, '
-            f'ssh_key_data={settings.azurerm.ssh_pub_ke}, platform={self.platform},'
+            f'ssh_key_data={settings.azurerm.ssh_pub_key}, platform={self.platform},'
             f'script_command={"touch /var/tmp/test.txt"}, script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
