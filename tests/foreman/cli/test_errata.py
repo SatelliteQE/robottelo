@@ -496,6 +496,48 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             ), "VM host name not found in list of applicable hosts"
 
     @tier3
+    def test_install_errata_to_one_host(self):
+        """Install an erratum to one of the hosts in a host collection.
+
+        :id: bfcee2de-3448-497e-a696-fcd30cea9d33
+
+        :expectedresults: Errata was successfully installed in only one of the hosts in
+         the host collection
+
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps:
+           1. Remove FAKE_2_CUSTOM_PACKAGE_NAME packages from one host
+           2. host-collection erratum install --errata <errata> --id <id>
+              --organization <org name>
+           3. Assert first host does not have any FAKE_2_CUSTOM_PACKAGE_NAME packages.
+           4. Assert second host does have FAKE_2_CUSTOM_PACKAGE
+
+        :expectedresults: Erratum is only installed on one host.
+
+        :BZ: 1810774
+        """
+        # Remove package on first VM to remove need for CUSTOM_ERRATA_ID
+        result = self.virtual_machines[0].run(f'yum erase -y {self.CUSTOM_PACKAGE}')
+        assert result.return_code == 0, "Failed to erase the RPM"
+        # Install CUSTOM_ERRATA_ID to the host collection
+        install_task = HostCollection.erratum_install(
+            {
+                'id': self.host_collection['id'],
+                'organization': self.org['name'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
+        Task.progress({'id': install_task[0]['id']})
+        # Assert first host does not have any FAKE_1_CUSTOM_PACKAGE_NAME packages
+        result = self.virtual_machines[0].run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}')
+        assert result.return_code == 1, "Unwanted custom package found."
+        # Assert second host does have FAKE_2_CUSTOM_PACKAGE
+        result = self.virtual_machines[1].run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+        assert result.return_code == 0, "Expected custom package not found."
+
+    @tier3
     def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
         """View a list of affected content hosts for an erratum filtered
         with restrict flags. Applicability is calculated using the Library,
