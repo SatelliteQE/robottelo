@@ -14,15 +14,32 @@ from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
 
 
-@fixture(scope='function')
-def auth_source(module_org, module_loc):
-    ldap_data = {
+@fixture(scope='session')
+def ldap_data():
+    return {
         'ldap_user_name': settings.ldap.username,
         'ldap_user_passwd': settings.ldap.password,
         'base_dn': settings.ldap.basedn,
         'group_base_dn': settings.ldap.grpbasedn,
         'ldap_hostname': settings.ldap.hostname,
     }
+
+
+@fixture(scope='session')
+def ipa_data():
+    return {
+        'ldap_ipa_user_name': settings.ipa.username_ipa,
+        'ipa_otp_username': settings.ipa.otp_user,
+        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
+        'ipa_base_dn': settings.ipa.basedn_ipa,
+        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
+        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
+        'time_based_secret': settings.ipa.time_based_secret,
+    }
+
+
+@fixture(scope='function')
+def auth_source(module_org, module_loc, ldap_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
         account=ldap_data['ldap_user_name'],
@@ -44,16 +61,7 @@ def auth_source(module_org, module_loc):
 
 
 @fixture(scope='function')
-def auth_source_ipa(module_org, module_loc):
-    ipa_data = {
-        'ldap_ipa_user_name': settings.ipa.username_ipa,
-        'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
-        'ipa_base_dn': settings.ipa.basedn_ipa,
-        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
-        'time_based_secret': settings.ipa.time_based_secret,
-    }
+def auth_source_ipa(module_org, module_loc, ipa_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
         account=ipa_data['ldap_ipa_user_name'],
@@ -75,20 +83,6 @@ def auth_source_ipa(module_org, module_loc):
 
 
 @fixture(scope='session')
-def ldap_auth_name():
-    """Return some random ldap name, and attempt to delete all ldap when test starts.
-    """
-    ldap_auth_sources = entities.AuthSourceLDAP().search()
-    for ldap_auth in ldap_auth_sources:
-        users = entities.User(auth_source=ldap_auth).search()
-        for user in users:
-            user.delete()
-        ldap_auth.delete()
-    ldap_name = gen_string('alphanumeric')
-    yield ldap_name
-
-
-@fixture(scope='session')
 def enroll_configure_rhsso_external_auth():
     """Enroll the Satellite6 Server to an RHSSO Server."""
     run_command(
@@ -104,9 +98,9 @@ def enroll_configure_rhsso_external_auth():
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
     )
     run_command(
-        cmd='satellite-installer --foreman-keycloak true '
-        '--foreman-keycloak-app-name "foreman-openidc" '
-        '--foreman-keycloak-realm "{settings.rhsso.realm}" ',
+        cmd=f"satellite-installer --foreman-keycloak true "
+        f"--foreman-keycloak-app-name 'foreman-openidc' "
+        f"--foreman-keycloak-realm '{settings.rhsso.realm}' ",
         timeout=1000,
     )
     run_command(cmd="systemctl restart httpd")
