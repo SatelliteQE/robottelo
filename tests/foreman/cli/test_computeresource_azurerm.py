@@ -40,6 +40,7 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
+from robottelo.helpers import idgen
 
 
 @pytest.fixture(scope='class')
@@ -68,11 +69,6 @@ def azurerm_hostgroup(
         organization=[module_org],
     ).create()
     return hgroup
-
-
-@pytest.fixture(scope='module')
-def module_domain(module_org, module_location):
-    return entities.Domain(organization=[module_org], location=[module_location]).create()
 
 
 class TestAzureRMComputeResourceTestCase:
@@ -144,6 +140,7 @@ class TestAzureRMComputeResourceTestCase:
             AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
             AZURERM_RHEL7_FT_GALLERY_IMG_URN,
         ],
+        ids=idgen,
     )
     def test_positive_image_crud(self, default_architecture, module_azurerm_cr, default_os, image):
         """ Finish template/Cloud_init image along with username is being Create, Read, Update and
@@ -561,20 +558,15 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
         request.cls.region = settings.azurerm.azure_region
-        request.cls.rhel7_ft_img = AZURERM_RHEL7_FT_BYOS_IMG_URN
-        request.cls.rg_default = AZURERM_RG_DEFAULT
-        request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
-        request.cls.platform = AZURERM_PLATFORM_DEFAULT
-        request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (
-            f'resource_group={self.rg_default},vm_size={self.vm_size}, '
+            f'resource_group={AZURERM_RG_DEFAULT},vm_size={AZURERM_VM_SIZE_DEFAULT}, '
             f'username={module_azurerm_byos_finishimg.username}, '
-            f'ssh_key_data={settings.azurerm.ssh_pub_key}, platform={self.platform},'
+            f'ssh_key_data={settings.azurerm.ssh_pub_key}, platform={AZURERM_PLATFORM_DEFAULT},'
             f'script_command={"touch /var/tmp/test.txt"}, script_uris={AZURERM_FILE_URI},'
-            f'premium_os_disk={self.premium_os_disk}'
+            f'premium_os_disk={AZURERM_PREMIUM_OS_Disk}'
         )
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = (
@@ -582,7 +574,7 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
         )
 
     @pytest.fixture(scope='class')
-    def class_host_ft(
+    def class_byos_ft_host(
         self,
         azurermclient,
         module_azurerm_byos_finishimg,
@@ -624,20 +616,24 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
         set_hammer_api_timeout(reverse=True)
 
     @pytest.fixture(scope='class')
-    def azureclient_host(self, azurermclient, class_host_ft):
+    def azureclient_host(self, azurermclient, class_byos_ft_host):
         """Returns the AzureRM Client Host object to perform the assertions"""
-        return azurermclient.get_vm(name=class_host_ft['name'].split('.')[0])
+        return azurermclient.get_vm(name=class_byos_ft_host['name'].split('.')[0])
 
     @upgrade
     @tier3
-    def test_positive_azurerm_host_provisioned(
-        self, class_host_ft, azureclient_host, module_azurerm_cr, module_azurerm_byos_finishimg
+    def test_positive_azurerm_byosft_host_provisioned(
+        self,
+        class_byos_ft_host,
+        azureclient_host,
+        module_azurerm_cr,
+        module_azurerm_byos_finishimg,
     ):
         """Host can be provisioned on AzureRM using BYOS Image
 
         :id: 5ebfc3ed-0e61-4cb1-9d5e-831d81bb3bcc
 
-        :CaseLevel: Component
+        :CaseLevel: System
 
         ::CaseImportance: Critical
 
@@ -652,15 +648,17 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
             5. The host Compute Resource name same as provisioned
             6. The host image name same as provisioned
             7. The host Name and Platform should be same on Azure Cloud as provided during
-               provisioned.
+               provisioning.
         """
 
-        assert class_host_ft['name'] == self.fullhostname
-        assert class_host_ft['status']['build-status'] == "Installed"
-        assert class_host_ft['compute-resource'] == module_azurerm_cr.name
-        assert class_host_ft['operating-system']['image'] == module_azurerm_byos_finishimg.name
-        assert class_host_ft['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
+        assert class_byos_ft_host['name'] == self.fullhostname
+        assert class_byos_ft_host['status']['build-status'] == "Installed"
+        assert class_byos_ft_host['compute-resource'] == module_azurerm_cr.name
+        assert (
+            class_byos_ft_host['operating-system']['image'] == module_azurerm_byos_finishimg.name
+        )
+        assert class_byos_ft_host['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
 
         # Azure cloud
         assert self.hostname.lower() == azureclient_host.name
-        assert self.vm_size == azureclient_host.type
+        assert AZURERM_VM_SIZE_DEFAULT == azureclient_host.type

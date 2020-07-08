@@ -133,9 +133,9 @@ def default_architecture():
     return arch
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def default_os(
-    default_architecture, default_partitiontable, module_configtemplate, os=None,
+    default_architecture, default_partitiontable, default_pxetemplate, os=None,
 ):
     if os is None:
         os = (
@@ -161,7 +161,7 @@ def default_os(
         )
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
-    os.provisioning_template.append(module_configtemplate)
+    os.provisioning_template.append(default_pxetemplate)
     os.update(['architecture', 'ptable', 'provisioning_template'])
     os = entities.OperatingSystem(id=os.id).read()
     return os
@@ -359,7 +359,7 @@ def oscap_content_path():
     return local_file
 
 
-@pytest.fixture(scope='module')
-def module_configtemplate(module_org, module_location):
+@pytest.fixture(scope='session')
+def default_pxetemplate():
     pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
     return pxe_template[0].read()
