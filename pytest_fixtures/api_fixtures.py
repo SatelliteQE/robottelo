@@ -9,6 +9,7 @@ from wrapanapi import GoogleCloudSystem
 
 from robottelo import ssh
 from robottelo.constants import AZURERM_RG_DEFAULT
+from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -134,11 +135,7 @@ def default_architecture():
 
 @pytest.fixture(scope='session')
 def default_os(
-    default_architecture,
-    default_partitiontable,
-    module_configtemaplate,
-    module_provisioingtemplate,
-    os=None,
+    default_architecture, default_partitiontable, default_pxetemplate, os=None,
 ):
     if os is None:
         os = (
@@ -164,9 +161,8 @@ def default_os(
         )
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
-    os.config_template.append(module_configtemaplate)
-    os.provisioning_template.append(module_provisioingtemplate)
-    os.update(['architecture', 'ptable', 'config_template', 'provisioning_template'])
+    os.provisioning_template.append(default_pxetemplate)
+    os.update(['architecture', 'ptable', 'provisioning_template'])
     os = entities.OperatingSystem(id=os.id).read()
     return os
 
@@ -279,6 +275,20 @@ def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr
 
 
 @pytest.fixture(scope='module')
+def module_azurerm_byos_finishimg(default_architecture, default_os, module_azurerm_cr):
+    """ Creates BYOS Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=default_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=default_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_BYOS_IMG_URN,
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
 def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr):
     """ Creates cloudinit image on AzureRM Compute Resource """
     finish_image = entities.Image(
@@ -347,3 +357,9 @@ def oscap_content_path():
     local_file = f"/tmp/{file_name}"
     ssh.download_file(settings.oscap.content_path, local_file)
     return local_file
+
+
+@pytest.fixture(scope='session')
+def default_pxetemplate():
+    pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
+    return pxe_template[0].read()
