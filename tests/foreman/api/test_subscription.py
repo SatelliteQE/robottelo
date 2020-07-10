@@ -35,6 +35,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.test import APITestCase
@@ -224,6 +225,7 @@ class SubscriptionsTestCase(APITestCase):
         )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
+<<<<<<< HEAD
     @tier2
     @pytest.mark.usefixtures("ContentHostSetup")
     def test_positive_subscription_status_disabled(self):
@@ -246,3 +248,29 @@ class SubscriptionsTestCase(APITestCase):
             host_id = host[0].id
             host_content = entities.Host(id=host_id).read_raw().content
             assert "Disabled" in str(host_content)
+
+    @stubbed()
+    def test_positive_candlepin_events_processed_by_STOMP(self):
+        """Verify that Candlepin events are being read and processed by
+           attaching subscriptions, validating host subscriptions status,
+           and viewing processed and failed Candlepin events
+
+        :id: efd20ffd-8f98-4536-abb6-d080f9d23169
+
+        :steps:
+
+            1. Add subscriptions to content host
+            2. Verify subscription status is invalid at
+               <your-satellite-url>/api/v2/hosts
+            3. Import a Manifest
+            4. Attach subs to content host
+            5. Verify subscription status is valid
+            6. Check ping api for processed and failed events
+               /katello/api/v2/ping
+
+        :expectedresults: Candlepin events are being read and processed
+                          correctly without any failures
+        :BZ: #1826515
+
+        :CaseImportance: High
+        """

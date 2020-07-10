@@ -40,6 +40,7 @@ from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -483,3 +484,29 @@ def test_positive_subscription_status_disabled(session, content_host_setup):
                 'subscription_status'
             ]
             assert "Disabled" in host
+
+
+@stubbed()
+def test_positive_candlepin_events_processed_by_STOMP(self):
+    """Verify that Candlepin events are being read and processed by
+       attaching subscriptions, validating host subscriptions status,
+       and viewing processed and failed Candlepin events
+
+    :id: 9510fd1c-2efb-4132-8665-9a72273cd1af
+
+    :steps:
+
+        1. Register Content Host without subscriptions attached
+        2. Verify subscriptions status is red "invalid"
+        3. Import a Manifest
+        4. Attach subs to content host
+        5. Verify subscription status is green "valid"
+        6. Check for processed and failed Candlepin events
+
+    :expectedresults: Candlepin events are being read and processed
+                      correctly without any failures
+
+    :BZ: #1826515
+
+    :CaseImportance: High
+    """
