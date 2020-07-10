@@ -10,6 +10,8 @@ from wrapanapi import GoogleCloudSystem
 from robottelo import ssh
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -299,6 +301,34 @@ def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr)
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_UD_IMG_URN,
         user_data=True,
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_gallery_finishimg(default_architecture, default_os, module_azurerm_cr):
+    """ Creates Shared Gallery Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=default_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=default_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_custom_finishimg(default_architecture, default_os, module_azurerm_cr):
+    """ Creates Custom Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=default_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=default_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
     ).create()
     return finish_image
 
