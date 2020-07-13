@@ -110,7 +110,9 @@ class PermissionTestCase(APITestCase):
         for resource_type in self.permission_resource_types:
             if resource_type is None:
                 continue
-            perm_group = entities.Permission(resource_type=resource_type).search()
+            perm_group = entities.Permission().search(
+                query={'search': f'resource_type="{resource_type}"'}
+            )
             permissions = {perm.name for perm in perm_group}
             expected_permissions = set(self.permissions[resource_type])
             added = tuple(permissions - expected_permissions)

@@ -1188,7 +1188,9 @@ class TestContentViewRoles:
         user_password = gen_string('alphanumeric')
         # create a role with all content views permissions
         for res_type in ['Katello::ContentView', 'Katello::KTEnvironment']:
-            permission = entities.Permission(resource_type=res_type).search()
+            permission = entities.Permission().search(
+                query={'search': f'resource_type="{res_type}"'}
+            )
             entities.Filter(organization=[module_org], permission=permission, role=role).create()
         # create a user and assign the above created role
         entities.User(
@@ -1240,16 +1242,18 @@ class TestContentViewRoles:
         # create a role with content views read only permissions
         entities.Filter(
             organization=[module_org],
-            permission=entities.Permission(resource_type='Katello::ContentView').search(
-                filters={'name': 'view_content_views'}
+            permission=entities.Permission().search(
+                filters={'name': 'view_content_views'},
+                query={'search': 'resource_type="Katello::ContentView"'},
             ),
             role=role,
         ).create()
         # create read only products permissions and assign it to our role
         entities.Filter(
             organization=[module_org],
-            permission=entities.Permission(resource_type='Katello::Product').search(
-                filters={'name': 'view_products'}
+            permission=entities.Permission().search(
+                filters={'name': 'view_products'},
+                query={'search': 'resource_type="Katello::Product"'},
             ),
             role=role,
         ).create()
@@ -1296,15 +1300,18 @@ class TestContentViewRoles:
         # create a role with content views read only permissions
         entities.Filter(
             organization=[module_org],
-            permission=entities.Permission(resource_type='Katello::ContentView').search(
-                filters={'name': 'view_content_views'}
+            permission=entities.Permission().search(
+                filters={'name': 'view_content_views'},
+                query={'search': 'resource_type="Katello::ContentView"'},
             ),
             role=role,
         ).create()
         # create environment permissions and assign it to our role
         entities.Filter(
             organization=[module_org],
-            permission=entities.Permission(resource_type='Katello::KTEnvironment').search(),
+            permission=entities.Permission().search(
+                query={'search': 'resource_type="Katello::KTEnvironment"'}
+            ),
             role=role,
         ).create()
         # create a user and assign the above created role
@@ -1357,9 +1364,9 @@ class TestContentViewRoles:
         user_password = gen_string('alphanumeric')
         # create a role with all content views permissions except
         # view_content_views
-        cv_permissions_entities = entities.Permission(
-            resource_type='Katello::ContentView'
-        ).search()
+        cv_permissions_entities = entities.Permission().search(
+            query={'search': 'resource_type="Katello::ContentView"'}
+        )
         user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
         user_cv_permissions.remove('view_content_views')
         user_cv_permissions_entities = [
