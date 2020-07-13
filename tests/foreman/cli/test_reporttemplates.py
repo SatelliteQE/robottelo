@@ -565,15 +565,19 @@ class ReportTemplateTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions_org = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=Organization"}
+            )
         ]
         permissions_loc = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Location'})
+            for permission in Filter.available_permissions({"search": "resource_type=Location"})
         ]
         permissions_rt = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'ReportTemplate'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=ReportTemplate"}
+            )
         ]
         permissions_pt = [
             permission['name']
@@ -583,7 +587,7 @@ class ReportTemplateTestCase(CLITestCase):
         ]
         permissions_jt = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'JobTemplate'})
+            for permission in Filter.available_permissions({"search": "resource_type=JobTemplate"})
         ]
         # Assign filters to created role
         make_filter({'role-id': role['id'], 'permissions': permissions_org})
