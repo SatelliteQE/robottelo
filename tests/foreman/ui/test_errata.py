@@ -295,7 +295,9 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
     role = entities.Role().create()
     entities.Filter(
         organization=[module_org],
-        permission=entities.Permission(resource_type='Katello::Product').search(),
+        permission=entities.Permission().search(
+            query={'search': 'resource_type="Katello::Product"'}
+        ),
         role=role,
         search='name = "{0}"'.format(PRDS['rhel']),
     ).create()

@@ -723,10 +723,12 @@ def test_positive_access_non_admin_user(session, test_name):
 
     # Add permissions for Organization and Location
     entities.Filter(
-        permission=entities.Permission(resource_type='Organization').search(), role=role
+        permission=entities.Permission().search(query={'search': 'resource_type="Organization"'}),
+        role=role,
     ).create()
     entities.Filter(
-        permission=entities.Permission(resource_type='Location').search(), role=role
+        permission=entities.Permission().search(query={'search': 'resource_type="Location"'}),
+        role=role,
     ).create()
 
     # Create new user with a configured role

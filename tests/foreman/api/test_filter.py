@@ -33,7 +33,9 @@ class FilterTestCase(APITestCase):
         """Search for provisioning template permissions. Set ``cls.ct_perms``.
         """
         super(FilterTestCase, cls).setUpClass()
-        cls.ct_perms = entities.Permission(resource_type='ProvisioningTemplate').search()
+        cls.ct_perms = entities.Permission().search(
+            query={'search': 'resource_type="ProvisioningTemplate"'}
+        )
 
     @tier1
     def test_positive_create_with_permission(self):
