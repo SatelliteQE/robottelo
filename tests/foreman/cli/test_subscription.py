@@ -260,7 +260,6 @@ class SubscriptionTestCase(CLITestCase):
         )
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
-<<<<<<< HEAD
     @tier2
     @pytest.mark.usefixtures("ContentHostSetup")
     def test_positive_Subscription_status_disabled(self):
