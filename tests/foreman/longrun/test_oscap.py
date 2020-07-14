@@ -70,6 +70,7 @@ class OpenScapTestCase(CLITestCase):
         super(OpenScapTestCase, cls).setUpClass()
         cls.rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         cls.rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
+        cls.puppet_classes = ['foreman_scap_client::params', 'foreman_scap_client']
         cls.config_env = cls.configure_puppet_test()
 
     @classmethod
@@ -115,21 +116,16 @@ class OpenScapTestCase(CLITestCase):
         ]
         # Create new organization and environment.
         org = entities.Organization(name=gen_string('alpha')).create()
-        loc = entities.Location().search(query={'search': "{0}".format(DEFAULT_LOC)})[0].read()
         cls.puppet_env = (
             entities.Environment().search(query={'search': 'name=production'})[0].read()
         )
-        cls.puppet_env.location.append(loc)
         cls.puppet_env.organization.append(org)
-        cls.puppet_env = cls.puppet_env.update(['location', 'organization'])
+        cls.puppet_env = cls.puppet_env.update(['organization'])
         smart_proxy = (
             entities.SmartProxy()
             .search(query={'search': 'name={0}'.format(sat6_hostname)})[0]
             .read()
         )
-        smart_proxy.organization.append(entities.Organization(id=org.id))
-        smart_proxy.location.append(entities.Location(id=loc.id))
-        smart_proxy.update(['location', 'organization'])
         smart_proxy.import_puppetclasses(environment=cls.puppet_env.name)
         env = entities.LifecycleEnvironment(organization=org, name=gen_string('alpha')).create()
         # Create content view
@@ -225,6 +221,7 @@ class OpenScapTestCase(CLITestCase):
                     'puppet-ca-proxy': self.config_env['sat6_hostname'],
                     'puppet-proxy': self.config_env['sat6_hostname'],
                     'organizations': self.config_env['org_name'],
+                    'puppet-classes': self.puppet_classes,
                 }
             )
         # Creates oscap_policy for both rhel6 and rhel7.
@@ -255,7 +252,6 @@ class OpenScapTestCase(CLITestCase):
                     self.config_env['org_name'], self.config_env['ak_name'].get(value['distro'])
                 )
                 self.assertTrue(vm.subscribed)
-                vm.configure_puppet(value['rhel_repo'])
                 Host.update(
                     {
                         'name': vm.hostname.lower(),
@@ -268,10 +264,7 @@ class OpenScapTestCase(CLITestCase):
                     }
                 )
 
-                # Run "puppet agent -t" twice so that it detects it's,
-                # satellite6 and fetch katello SSL certs.
-                for _ in range(2):
-                    vm.run('puppet agent -t 2> /dev/null')
+                vm.configure_puppet(value['rhel_repo'])
                 result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
                 self.assertEqual(result.return_code, 0)
                 # Runs the actual oscap scan on the vm/clients and
@@ -318,6 +311,7 @@ class OpenScapTestCase(CLITestCase):
                 'puppet-ca-proxy': self.config_env['sat6_hostname'],
                 'puppet-proxy': self.config_env['sat6_hostname'],
                 'organizations': self.config_env['org_name'],
+                'puppet-classes': self.puppet_classes,
             }
         )
         # Creates oscap_policy for rhel7.
@@ -347,7 +341,6 @@ class OpenScapTestCase(CLITestCase):
                 self.config_env['org_name'], self.config_env['ak_name'].get(distro_os)
             )
             self.assertTrue(vm.subscribed)
-            vm.configure_puppet(vm_values.get('rhel_repo'))
             Host.update(
                 {
                     'name': vm.hostname.lower(),
@@ -359,10 +352,7 @@ class OpenScapTestCase(CLITestCase):
                     'puppet-environment-id': self.puppet_env.id,
                 }
             )
-            # Run "puppet agent -t" twice so that it detects it's,
-            # satellite6 and fetch katello SSL certs.
-            for _ in range(2):
-                vm.run('puppet agent -t 2> /dev/null')
+            vm.configure_puppet(vm_values.get('rhel_repo'))
             result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep content_path')
             self.assertEqual(result.return_code, 0)
             # Runs the actual oscap scan on the vm/clients and
@@ -453,6 +443,7 @@ class OpenScapTestCase(CLITestCase):
                 'puppet-ca-proxy': self.config_env['sat6_hostname'],
                 'puppet-proxy': self.config_env['sat6_hostname'],
                 'organizations': self.config_env['org_name'],
+                'puppet-classes': self.puppet_classes,
             }
         )
 
@@ -491,7 +482,6 @@ class OpenScapTestCase(CLITestCase):
                 self.config_env['org_name'], self.config_env['ak_name'].get(distro_os)
             )
             self.assertTrue(vm.subscribed)
-            vm.configure_puppet(rhel7_repo)
             Host.update(
                 {
                     'name': vm.hostname.lower(),
@@ -503,10 +493,7 @@ class OpenScapTestCase(CLITestCase):
                     'puppet-environment-id': self.puppet_env.id,
                 }
             )
-            # Run "puppet agent -t" twice so that it detects it's,
-            # satellite6 and fetch katello SSL certs.
-            for _ in range(2):
-                vm.run('puppet agent -t 2> /dev/null')
+            vm.configure_puppet(rhel7_repo)
             result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
             self.assertEqual(result.return_code, 0)
             # Runs the actual oscap scan on the vm/clients and
