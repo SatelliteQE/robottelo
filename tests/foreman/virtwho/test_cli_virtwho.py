@@ -2,7 +2,7 @@
 
 :Requirement: Virt-whoConfigurePlugin
 
-:CaseAutomation: notautomated
+:CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
