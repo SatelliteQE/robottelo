@@ -146,12 +146,11 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         ssh.upload_file(
-            local_file=get_data_file(SNIPPET_DATA_FILE),
-            remote_file='/tmp/{0}'.format(SNIPPET_DATA_FILE),
+            local_file=get_data_file(SNIPPET_DATA_FILE), remote_file=f'/tmp/{SNIPPET_DATA_FILE}',
         )
         name = gen_string('alphanumeric')
         with pytest.raises(CLIFactoryError):
-            make_tailoringfile({'name': name, 'scap-file': '/tmp/{0}'.format(SNIPPET_DATA_FILE)})
+            make_tailoringfile({'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'})
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -192,6 +191,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
+    @pytest.mark.skip_if_open("BZ:1857572")
     @tier2
     def test_positive_download_tailoring_file(self):
 
@@ -206,15 +206,17 @@ class TailoringFilesTestCase(CLITestCase):
 
         :expectedresults: The tailoring file should be downloaded
 
+        BZ: 1857572
+
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        file_path = '/tmp/{0}.xml'.format(name)
+        file_path = f'/var/{self.tailoring_file_path}'
         tailoring_file = make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
         assert tailoring_file['name'] == name
-        result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/tmp/'})
+        result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/var/tmp/'})
         assert file_path in result[0]
-        result = ssh.command('find {0}'.format(file_path))
+        result = ssh.command(f'find {file_path} 2> /dev/null')
         assert result.return_code == 0
         assert file_path == result.stdout[0]
 
